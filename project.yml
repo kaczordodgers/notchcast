@@ -17,13 +17,13 @@ settings:
     # A stable self-signed identity keeps the Accessibility grant across rebuilds. docs/signing.md
     CODE_SIGN_IDENTITY: "Tinycast Self-Signed"
     SWIFT_STRICT_CONCURRENCY: complete
-    TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app
-    TINYCAST_URL_SCHEME: tinycast
+    TINYCAST_BUNDLE_IDENTIFIER: app.notchcast
+    TINYCAST_URL_SCHEME: notchcast
   configs:
     Debug:
-      TINYCAST_BUNDLE_IDENTIFIER: com.tinycast.app.dev
+      TINYCAST_BUNDLE_IDENTIFIER: app.notchcast.dev
       # Its own scheme too, so a link never lands in whichever channel macOS happens to pick.
-      TINYCAST_URL_SCHEME: tinycast-dev
+      TINYCAST_URL_SCHEME: notchcast-dev
       DICTATION_EXECUTABLE_NAME: Tinycast Dev Dictation
     Release:
       DICTATION_EXECUTABLE_NAME: Tinycast Dictation
@@ -96,7 +96,9 @@ targets:
       configs:
         # Debug is its own channel, so a local build never corrupts the installed app's state.
         Debug:
-          PRODUCT_NAME: Tinycast Dev
+          PRODUCT_NAME: Notchcast Dev
+        Release:
+          PRODUCT_NAME: Notchcast
 
   ClipboardTextHelper:
     type: tool
