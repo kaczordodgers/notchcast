@@ -1,8 +1,9 @@
 #!/bin/bash
-# Install Notchcast for this user. Usage: install-launchd.sh all|update|app
+# Install Notchcast for this user. Usage: install-launchd.sh all|update|app|kick
 #   all     first install: update.sh installs /Applications/Notchcast.app, migrate.sh copies the old Tinycast data once,
 #           the old Tinycast .app goes to the Trash (its data stays), then both agents below are loaded.
 #   update  notchcast.update runs notchcast/update.sh every 30 min (needs gh logged in).
+#   kick    notchcast.kick runs notchcast/kick.sh every 10 min: starts the sync when upstream moved (needs gh).
 #   app     notchcast.app runs the app itself: started at login, restarted 10 s after a crash or a Quit.
 #           Stop:  launchctl bootout gui/$(id -u)/notchcast.app
 #           Start: launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/notchcast.app.plist
@@ -46,6 +47,14 @@ install_update() {
         /bin/bash "$HERE/update.sh"
 }
 
+install_kick() {
+    agent notchcast.kick kick \
+        '<key>StartInterval</key><integer>600</integer>
+<key>ProcessType</key><string>Background</string>
+<key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>' \
+        /bin/bash "$HERE/kick.sh"
+}
+
 install_app() {
     local exe
     [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")" = "$BUNDLE_ID" ] \
@@ -80,8 +89,9 @@ first_install() {
 }
 
 case "${1:-}" in
-    all) first_install; install_update; install_app ;;
+    all) first_install; install_update; install_kick; install_app ;;
     update) install_update ;;
+    kick) install_kick ;;
     app) install_app ;;
-    *) echo "usage: $0 all|update|app" >&2; exit 2 ;;
+    *) echo "usage: $0 all|update|app|kick" >&2; exit 2 ;;
 esac
