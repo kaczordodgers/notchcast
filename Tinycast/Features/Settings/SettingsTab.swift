@@ -2,6 +2,7 @@ enum SettingsTab: CaseIterable, Identifiable {
     case general, applications, systemSettings, systemActions, commands, quicklinks, appleShortcuts,
         fallbacks, clipboard, snippets, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         dictation, ai, quickActions, extensions, permissions, backup, about
+    case notchcast
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 
@@ -36,6 +37,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .permissions: "permissions"
         case .backup: "backup"
         case .about: "about"
+        case .notchcast: "notchcast"
         }
     }
 
@@ -64,6 +66,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .permissions: return String(localized: "Permissions")
         case .backup: return String(localized: "Backup")
         case .about: return String(localized: "About")
+        case .notchcast: return String(localized: "Notchcast")
         }
     }
 
@@ -92,6 +95,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .permissions: return "lock.shield"
         case .backup: return "arrow.up.arrow.down.circle"
         case .about: return "info.circle"
+        case .notchcast: return "macbook.gen2"
         }
     }
 }
@@ -122,6 +126,7 @@ enum SettingsSection: CaseIterable, Identifiable {
         case .features:
             // Everyday tools first; AI and extensions are opt-in extras.
             return [
+                .notchcast,
                 .clipboard, .snippets, .fileSearch, .windowManagement, .navigation, .notes,
                 .calendar, .emoji, .dictation, .ai, .quickActions, .extensions
             ]
