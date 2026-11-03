@@ -29,6 +29,10 @@ struct IslandHeaderView: View {
             Color.clear.frame(width: cameraWidth).accessibilityHidden(true)
             HStack(spacing: Theme.Spacing.xxs) {
                 Spacer(minLength: 0)
+                if NotchcastPreferences.shared.isOn(.islandStatusMessages),
+                   let message = IslandActivityCenter.shared.message {
+                    IslandStatusView(message: message)
+                }
                 if pages.isRefreshing {
                     SymbolImage(name: "progress.indicator", size: NotchcastTheme.headerGlyph)
                         .symbolEffect(.variableColor.iterative)

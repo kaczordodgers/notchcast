@@ -18,7 +18,7 @@ final class IslandSurfaceView: NSView {
         layer?.mask = silhouette
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
-        setAccessibilityLabel("Notchcast")
+        setAccessibilityLabel(String(localized: "Island"))
         for host in [openHost, closedHost] {
             host.sizingOptions = []
             host.wantsLayer = true

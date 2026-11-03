@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-final class IslandController: NotchcastModule {
+final class IslandController: NotchcastModule, IslandActivityPresenter {
     struct ClosedContent {
         var leading: AnyView?
         var trailing: AnyView?
@@ -35,6 +35,7 @@ final class IslandController: NotchcastModule {
     @ObservationIgnored private var observationID: UUID?
     @ObservationIgnored private var openedAt: TimeInterval = 0
     @ObservationIgnored private var appObservation: NotificationToken?
+    @ObservationIgnored private var spaceObservation: NotificationToken?
     @ObservationIgnored private var hoverTask: Task<Void, Never>?
     @ObservationIgnored private var pages: IslandPagesCoordinator?
     @ObservationIgnored private var setCommandAvailable: (Bool) -> Void = { _ in }
@@ -43,7 +44,7 @@ final class IslandController: NotchcastModule {
         guard pages == nil else { return }
         let pages = IslandPagesCoordinator(core: core, island: self)
         self.pages = pages
-        openContent = AnyView(IslandPagesView().environment(self).environment(pages))
+        openContent = AnyView(IslandPagesView().environment(self).environment(pages).environment(core.palette))
         setCommandAvailable = { [weak core] in core?.appIndex.setCommandsVisible([.toggleIsland], $0) }
         setCommandAvailable(false)
     }
@@ -63,17 +64,28 @@ final class IslandController: NotchcastModule {
         }, center: center)
         watchPointer()
         watchApplications(identity: identity)
+        let workspace = NSWorkspace.shared.notificationCenter
+        spaceObservation = NotificationToken(workspace.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self, observationID == identity else { return }
+                updatePresenter()
+            }
+        }, center: workspace)
         rebuildPanels()
         setCommandAvailable(true)
         observePreferences(identity: identity)
     }
 
     func stop() {
+        IslandActivityCenter.shared.presenter = nil
         close()
         setCommandAvailable(false)
         observationID = nil
         screenObservation = nil
         appObservation = nil
+        spaceObservation = nil
         mouseMonitors.forEach(NSEvent.removeMonitor)
         mouseMonitors.removeAll()
         panels.forEach { $0.close() }
@@ -181,6 +193,27 @@ final class IslandController: NotchcastModule {
             scheduleHover()
         }
         _ = preferences.islandHoverDelay
+        let center = IslandActivityCenter.shared
+        hasLiveActivities = !center.activities.isEmpty
+        let activity = preferences.isOn(.islandLiveActivities) ? center.current : nil
+        closedContent = ClosedContent(
+            leading: activity.map { AnyView(IslandActivityGlyph(activity: $0)) },
+            trailing: activity.map { AnyView(IslandActivityValue(activity: $0, multiple: center.activities.count > 1)) })
+        let message = preferences.isOn(.islandStatusMessages) ? center.message : nil
+        panels.forEach {
+            $0.setMessage(message)
+            $0.setActivityAccessibility(activity)
+        }
+        updatePresenter()
+    }
+
+    private func updatePresenter() {
+        let active = panels.first { $0.displayFrame.contains(NSEvent.mouseLocation) }
+        let eligible = IslandPresenterPolicy.shouldRegister(
+            running: observationID != nil,
+            enabled: NotchcastPreferences.shared.isOn(.islandStatusMessages),
+            visibleOnActiveScreen: active?.isVisible == true && active?.isOnActiveSpace == true)
+        IslandActivityCenter.shared.presenter = eligible ? self : nil
     }
 
     private func observePreferences(identity: UUID) {
@@ -210,6 +243,7 @@ final class IslandController: NotchcastModule {
     }
 
     private func pointerEvent(_ event: NSEvent) {
+        updatePresenter()
         panels.forEach { $0.updateMousePassthrough() }
         let inside = isOpen ? openPanel?.containsPointer == true
             : panels.contains { $0.isVisible && $0.containsPointer }

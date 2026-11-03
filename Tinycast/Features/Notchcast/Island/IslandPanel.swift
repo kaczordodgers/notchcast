@@ -10,6 +10,10 @@ final class IslandPanel: NSPanel {
     private var contentHeight = NotchcastTheme.estimatedContentHeight
     private var compactWidth: CGFloat = 0
     private var hasCompactContent = false
+    private var message: IslandMessage?
+    private var closed = IslandController.ClosedContent()
+    private var expandedContent = AnyView(EmptyView())
+    private var headerContent = AnyView(EmptyView())
     var onOpen: (() -> Void)?
     var onKey: ((NSEvent) -> Bool)?
     var onFocus: ((Bool) -> Void)?
@@ -65,7 +69,7 @@ final class IslandPanel: NSPanel {
     override func sendEvent(_ event: NSEvent) {
         if event.type == .keyDown, onKey?(event) == true { return }
         if event.type == .leftMouseDown, containsPointer {
-            if !open { onOpen?(); return }
+            if !open, message?.onCancel == nil { onOpen?(); return }
             makeKey()
         }
         super.sendEvent(event)
@@ -77,6 +81,9 @@ final class IslandPanel: NSPanel {
     }
 
     func setContent(open: AnyView, closed: IslandController.ClosedContent, header: AnyView) {
+        self.closed = closed
+        expandedContent = open
+        headerContent = header
         hasCompactContent = closed.leading != nil || closed.trailing != nil
         let expanded = IslandContentView(content: open, header: header, headerHeight: headerHeight) { [weak self] height in
             guard let self else { return }
@@ -85,7 +92,9 @@ final class IslandPanel: NSPanel {
             contentHeight = height
             if self.open { present(animated: true) }
         }
-        let compact = IslandClosedView(content: closed, cameraWidth: hardwareNotch?.width ?? 0) { [weak self] width in
+        let compact = IslandClosedView(content: closed, cameraWidth: hardwareNotch?.width ?? 0,
+                                       bandHeight: hardwareNotch?.height ?? NotchcastTheme.monitorPill.height,
+                                       message: message) { [weak self] width in
             guard let self else { return }
             let width = max(0, width.rounded(.up))
             guard compactWidth != width else { return }
@@ -93,6 +102,16 @@ final class IslandPanel: NSPanel {
             if !self.open { present(animated: true) }
         }
         surface.setContent(open: AnyView(expanded), closed: AnyView(compact))
+        present(animated: true)
+    }
+
+    func setMessage(_ message: IslandMessage?) {
+        self.message = message
+        setContent(open: expandedContent, closed: closed, header: headerContent)
+    }
+
+    func setActivityAccessibility(_ activity: IslandActivity?) {
+        surface.setAccessibilityValue(message?.text ?? activity?.title)
     }
 
     func setOpen(_ open: Bool, animated: Bool) {
@@ -132,7 +151,8 @@ final class IslandPanel: NSPanel {
             opening: open, reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
             animationsEnabled: animated && Motion.duration(1) > 0)
         surface.present(rect: rect, shoulder: shoulder,
-                        radius: open ? NotchcastTheme.openRadius : NotchcastTheme.closedRadius,
+                        radius: open ? NotchcastTheme.openRadius
+                            : (message == nil ? NotchcastTheme.closedRadius : NotchcastTheme.statusRadius),
                         open: open, motion: motion)
         invalidateShadow()
     }
@@ -151,10 +171,11 @@ final class IslandPanel: NSPanel {
                               height: NotchcastTheme.monitorPill.height)
             return IslandGeometry.monitorPill(screen: screenFrame, size: size)
         }
-        let wings = hasCompactContent ? max(NotchcastTheme.minimumWing * 2,
+        let wings = hasCompactContent || message != nil ? max(NotchcastTheme.minimumWing * 2,
                                            compactWidth - hardwareNotch.width) : 0
         let width = min(frame.width, hardwareNotch.width + wings + NotchcastTheme.closedShoulder * 2)
-        return CGRect(x: hardwareNotch.midX - width / 2, y: hardwareNotch.minY,
-                      width: width, height: hardwareNotch.height)
+        let extra = message == nil ? 0 : NotchcastTheme.statusHeight
+        return CGRect(x: hardwareNotch.midX - width / 2, y: hardwareNotch.minY - extra,
+                      width: width, height: hardwareNotch.height + extra)
     }
 }
