@@ -20,6 +20,7 @@ JS
             else
                 found=0
                 extra_sources=$(printf '%s ' $sources)
+                extra_sources=${extra_sources% }
                 for queue_file in "$QUEUE" "$EXCLUSIVE_QUEUE"; do
                     if awk -v name="$name" '$2 == name { found=1 } END { exit !found }' "$queue_file"; then
                         awk -v name="$name" -v extras="$extra_sources" \
