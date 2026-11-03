@@ -939,6 +939,7 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
 for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
 
 run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+run soloist-source-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/SoloistProtocol.swift Tinycast/Features/Music/Service/SoloistSource.swift
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
