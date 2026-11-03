@@ -1,3 +1,7 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+
+// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastLauncher[GP]*.swift
+
 import AppKit
 
 @MainActor

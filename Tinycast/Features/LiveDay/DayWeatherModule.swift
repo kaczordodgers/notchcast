@@ -1,8 +1,10 @@
 @MainActor
 final class DayWeatherModule: NotchcastModule {
-    let store = DayWeatherStore()
+    let store: DayWeatherStore
     private var enabled = false
     private var visible = false
+
+    init(store: DayWeatherStore = DayWeatherStore()) { self.store = store }
 
     func start() { enabled = true; updateVisibility() }
     func stop() { enabled = false; store.stop() }
