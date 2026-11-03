@@ -22,6 +22,7 @@ struct PlayerApps {
     var play: (String) async throws -> Void
     var watchLaunches: (@escaping @MainActor (Launch) -> Void) -> [NotificationToken]
     var quit: (Launch) -> Bool
+    var canPlay: (String) -> Bool = { $0 == LastPlayer.spotify }
 
     static func workspace() -> Self {
         Self(
@@ -57,6 +58,10 @@ struct PlayerApps {
                 guard let app = NSRunningApplication(processIdentifier: launch.processID),
                     app.bundleIdentifier == launch.bundleID else { return false }
                 return app.forceTerminate() || app.terminate()
+            },
+            canPlay: { id in
+                guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { return false }
+                return (try? playCode(bundleURL: url)) != nil
             }
         )
     }
