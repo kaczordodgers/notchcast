@@ -1,15 +1,27 @@
 import Foundation
 
 extension SettingsAnchor {
+    static let notchcastAppearance = Self(tab: .notchcast, title: "Appearance")
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
     static let notchcastOptions = Self(tab: .notchcast, title: "Options")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
-    static let notchcastAppearance = Self(tab: .notchcast, title: "Appearance")
+    static let notchcastHover = Self(tab: .notchcast, title: "Island")
+    static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
+    static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
+    static let notchcastDay = Self(tab: .notchcast, title: "Day")
 }
 
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastAppearance, "Custom appearance", keywords: ["enable", "colours", "colors", "theme"]),
+        .init(.notchcastAppearance, "Surface", keywords: ["glass", "black", "matte", "material"]),
+        .init(.notchcastAppearance, "Light theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Dark theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Theme backdrop", keywords: ["opacity", "background", "transparency"]),
+        .init(.notchcastAppearance, "Import from link", keywords: ["theme", "raycast", "ray.so", "url"]),
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
         .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
         .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display"]),
@@ -18,11 +30,15 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
         .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
-        .init(.notchcastAppearance, "Custom appearance", keywords: ["enable", "colours", "colors", "theme"]),
-        .init(.notchcastAppearance, "Surface", keywords: ["glass", "black", "matte", "material"]),
-        .init(.notchcastAppearance, "Light theme", keywords: ["palette", "raycast", "ray.so"]),
-        .init(.notchcastAppearance, "Dark theme", keywords: ["palette", "raycast", "ray.so"]),
-        .init(.notchcastAppearance, "Theme backdrop", keywords: ["opacity", "background", "transparency"]),
-        .init(.notchcastAppearance, "Import from link", keywords: ["theme", "raycast", "ray.so", "url"])
+        .init(.notchcastHover, "Hover delay"),
+        .init(group: .notchcastShortcuts, "Toggle Island"),
+        .init(.notchcastOptions, "Display Brightness", keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastOptions, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
+        .init(.notchcastOptions, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
+        .init(.notchcastOptions, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastOptions, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
+        .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
     ]
 }

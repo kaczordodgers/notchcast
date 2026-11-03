@@ -21,13 +21,35 @@ struct NotchcastSettingsView: View {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
                     }
+                    .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
                 }
             } header: {
                 SettingsSectionHeader(.notchcastOptions)
             }
+
+            BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            AppearanceSettingsSection().environment(core.appearanceCoordinator)
+            QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
+            TimerSettingsSection(store: NotchcastCore.timers.store)
+            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+
+            Section {
+                Picker(selection: Binding(
+                    get: { preferences.islandHoverDelay },
+                    set: { preferences.islandHoverDelay = $0 })) {
+                    ForEach(NotchcastPreferences.HoverDelay.allCases) { delay in
+                        Text(delay.title).tag(delay)
+                    }
+                } label: {
+                    SettingsRowTitle(.notchcastHover, "Hover delay")
+                }
+                .settingsEnabled(preferences.isOn(.islandHoverOpen))
+            }
+            .settingsAnchor(.notchcastHover)
             .settingsEnabled(preferences.isOn(.island))
 
-            AppearanceSettingsSection().environment(core.appearanceCoordinator)
+            FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
+                .settingsEnabled(preferences.isOn(.island))
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)

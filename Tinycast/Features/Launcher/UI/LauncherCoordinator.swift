@@ -272,6 +272,7 @@ final class LauncherCoordinator {
         case .quit:
             NSApp.terminate(nil)
         case .theme: core.appearanceCoordinator.showThemes()
+        case .toggleIsland: dismissPalette(); IslandController.shared.toggle()
         }
     }
 

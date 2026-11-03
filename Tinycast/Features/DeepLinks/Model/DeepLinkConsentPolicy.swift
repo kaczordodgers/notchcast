@@ -57,6 +57,7 @@ enum DeepLinkConsentPolicy {
             .support:
             false
         case .theme: false
+        case .toggleIsland: false
         }
     }
 }
