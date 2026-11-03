@@ -81177,6 +81177,58 @@
         }
       }
     },
+    "No captions are available. The Distill transcriber fallback is not connected yet." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Untertitel verfügbar. Die Distill-Transkription als Ersatz ist noch nicht verbunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay subtítulos disponibles. La transcripción alternativa de Distill aún no está conectada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun sous-titre disponible. La transcription de secours Distill n’est pas encore connectée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕がありません。代替の Distill 文字起こしはまだ接続されていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자막이 없습니다. 대체 Distill 받아쓰기가 아직 연결되지 않았습니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитры недоступны. Резервная транскрипция Distill ещё не подключена."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não há legendas disponíveis. A transcrição alternativa do Distill ainda não está ligada."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用字幕。Distill 备用转录尚未连接。"
+          }
+        }
+      }
+    },
     "No chats yet" : {
       "localizations" : {
         "de" : {
@@ -121519,6 +121571,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下载的归档中不包含 Tinycast。"
+          }
+        }
+      }
+    },
+    "The downloader did not return an output file." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Downloader hat keine Ausgabedatei zurückgegeben."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El descargador no devolvió un archivo de salida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le téléchargeur n’a renvoyé aucun fichier de sortie."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダウンローダーから出力ファイルが返されませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다운로더가 출력 파일을 반환하지 않았습니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузчик не вернул выходной файл."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O descarregador não devolveu um ficheiro de saída."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载器未返回输出文件。"
           }
         }
       }
