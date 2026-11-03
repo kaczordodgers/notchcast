@@ -11,6 +11,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case pastePlain
+    case pasteImage
 
     var title: String {
         switch self {
@@ -29,6 +31,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .pastePlain: String(localized: "Paste Plain Text")
+        case .pasteImage: String(localized: "Paste Image in Finder")
         }
     }
 
@@ -49,13 +53,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .pastePlain: String(localized: "Hyper+V pastes text without formatting.")
+        case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .volumeLevels, .displayBrightness, .quitProtection, .pastePlain, .pasteImage: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
@@ -66,7 +72,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool { ![Self.displayBrightness, .quitProtection, .pastePlain, .pasteImage].contains(self) }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
