@@ -45,6 +45,12 @@ if [[ ! "$console_user" =~ ^[a-z_][a-z0-9_.-]{0,30}$ ]] || [ "$console_user" = r
 fi
 
 source_directory=$(cd "$(/usr/bin/dirname "$0")" && pwd)
+# Root compiles these sources: refuse uncommitted edits and show the commit they come from.
+if [ -n "$(/usr/bin/git -C "$source_directory" status --porcelain -- .)" ]; then
+    printf 'notchcast/root has uncommitted changes; commit or discard them first.\n' >&2
+    exit 65
+fi
+printf 'Installing the helper from commit %s.\n' "$(/usr/bin/git -C "$source_directory" rev-parse HEAD)"
 if [ "$dry_run" -eq 1 ]; then
     stage='<private temporary directory>'
     step /usr/bin/mktemp -d /private/tmp/notchcast-root.XXXXXX
