@@ -59,7 +59,14 @@ final class ChildProcess: Sendable {
     func cancel() {
         state.withLock { state in
             if state.cancelledAt == nil { state.cancelledAt = DispatchTime.now().uptimeNanoseconds }
-            if let processID = state.processID { kill(-processID, SIGTERM) }
+            if let processID = state.processID {
+                kill(-processID, SIGTERM)
+                DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + .milliseconds(250)) { [self] in
+                    self.state.withLock { current in
+                        if current.processID == processID { kill(-processID, SIGKILL) }
+                    }
+                }
+            }
         }
     }
 
@@ -92,49 +99,38 @@ final class ChildProcess: Sendable {
         try? errors.fileHandleForWriting.close()
         let outputFD = output.fileHandleForReading.fileDescriptor
         let errorFD = errors.fileHandleForReading.fileDescriptor
-        _ = fcntl(outputFD, F_SETFL, O_NONBLOCK)
-        _ = fcntl(errorFD, F_SETFL, O_NONBLOCK)
-        var stdout = Capture()
-        var stderr = Capture()
-        var status: Int32 = 0
-        while true {
-            stdout.read(from: outputFD, onLine: onLine)
-            stderr.read(from: errorFD)
-            let cancelledAt = state.withLock { $0.cancelledAt }
-            if let cancelledAt {
-                if DispatchTime.now().uptimeNanoseconds - cancelledAt >= 250_000_000 {
-                    state.withLock { state in
-                        kill(-processID, SIGKILL)
-                        while waitpid(processID, &status, 0) < 0 && errno == EINTR {}
-                        state.processID = nil
-                    }
-                    break
-                }
-            } else {
-                var information = siginfo_t()
-                if waitid(P_PID, id_t(processID), &information, WEXITED | WNOHANG | WNOWAIT) == 0,
-                   information.si_pid == processID {
-                    // Keep the leader unreaped until its group is dead, so its pid cannot be reused.
-                    state.withLock { state in
-                        kill(-processID, SIGTERM)
-                        kill(-processID, SIGKILL)
-                        while waitpid(processID, &status, 0) < 0 && errno == EINTR {}
-                        state.processID = nil
-                    }
-                    break
-                }
+        let stdout = Mutex(Capture())
+        let stderr = Mutex(Capture())
+        let readers = DispatchGroup()
+        readers.enter()
+        DispatchQueue.global(qos: .utility).async {
+            stdout.withLock { capture in
+                capture.read(from: outputFD, onLine: onLine)
+                capture.finish(onLine: onLine)
             }
-            Thread.sleep(forTimeInterval: 0.01)
+            readers.leave()
         }
+        readers.enter()
+        DispatchQueue.global(qos: .utility).async {
+            stderr.withLock { $0.read(from: errorFD) }
+            readers.leave()
+        }
+        var status: Int32 = 0
+        var information = siginfo_t()
+        while waitid(P_PID, id_t(processID), &information, WEXITED | WNOWAIT) < 0 && errno == EINTR {}
+        state.withLock { state in
+            kill(-processID, SIGTERM)
+            kill(-processID, SIGKILL)
+            while waitpid(processID, &status, 0) < 0 && errno == EINTR {}
+            state.processID = nil
+        }
+        readers.wait()
         let cancelled = state.withLock { state in
             return state.cancelledAt != nil
         }
-        stdout.read(from: outputFD, onLine: onLine)
-        stderr.read(from: errorFD)
-        stdout.finish(onLine: onLine)
         if cancelled { throw CancellationError() }
         let exitCode = status & 0x7F == 0 ? (status >> 8) & 0xFF : 128 + (status & 0x7F)
-        return Result(status: exitCode, output: stdout.text, errors: stderr.text)
+        return Result(status: exitCode, output: stdout.withLock { $0.text }, errors: stderr.withLock { $0.text })
     }
 
     private func launch(output: Pipe, errors: Pipe) throws -> pid_t {
@@ -173,7 +169,7 @@ final class ChildProcess: Sendable {
 
         mutating func read(from descriptor: Int32, onLine: (@Sendable (String) -> Void)? = nil) {
             var buffer = [UInt8](repeating: 0, count: 8192)
-            for _ in 0..<16 {
+            while true {
                 let count = Darwin.read(descriptor, &buffer, buffer.count)
                 if count < 0 && errno == EINTR { continue }
                 guard count > 0 else { return }

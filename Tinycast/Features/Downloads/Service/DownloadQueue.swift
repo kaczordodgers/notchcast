@@ -3,7 +3,21 @@ import Observation
 
 @MainActor @Observable
 final class DownloadQueue {
-    private(set) var jobs: [DownloadJob]
+    private(set) var jobs: [DownloadJob] {
+        get {
+            let now = clock()
+            if now >= nextExpiryCheck {
+                nextExpiryCheck = now.addingTimeInterval(60)
+                let count = storedJobs.count
+                expire(now: now)
+                if storedJobs.count != count { save() }
+            }
+            return storedJobs
+        }
+        set { storedJobs = newValue }
+    }
+    private var storedJobs: [DownloadJob] = []
+    @ObservationIgnored private var nextExpiryCheck = Date.distantPast
     private(set) var persistenceError: String?
     let maxConcurrent: Int
     var destination: URL
@@ -28,9 +42,11 @@ final class DownloadQueue {
         self.maxConcurrent = max(1, maxConcurrent)
         self.tools = tools
         self.clock = clock
-        jobs = try await Self.load(file: file, now: clock())
+        let loaded = try await Self.load(file: file, now: clock())
+        storedJobs = loaded.jobs
         save()
         try await flush()
+        persistenceError = loaded.error
     }
 
     isolated deinit {
@@ -52,43 +68,43 @@ final class DownloadQueue {
             DownloadJob(id: UUID().uuidString, kind: kind, source: $0, title: $0,
                         group: group, created: now, options: options)
         }
-        jobs.append(contentsOf: added)
+        storedJobs.append(contentsOf: added)
         save()
         pump()
         return added
     }
 
     func cancel(_ id: String) {
-        guard let index = jobs.firstIndex(where: { $0.id == id }), !jobs[index].state.isFinished else { return }
+        guard let index = storedJobs.firstIndex(where: { $0.id == id }), !storedJobs[index].state.isFinished else { return }
         tasks[id]?.cancel()
-        jobs[index].state = .cancelled
-        jobs[index].finished = clock()
+        storedJobs[index].state = .cancelled
+        storedJobs[index].finished = clock()
         save()
         pump()
     }
 
     func retry(_ id: String) {
-        guard let index = jobs.firstIndex(where: { $0.id == id }), jobs[index].state.isFinished else { return }
-        var job = jobs.remove(at: index)
+        guard let index = storedJobs.firstIndex(where: { $0.id == id }), storedJobs[index].state.isFinished else { return }
+        var job = storedJobs.remove(at: index)
         job.state = .waiting
         job.progress = nil
         job.output = nil
         job.detail = nil
         job.finished = nil
-        jobs.append(job)
+        storedJobs.append(job)
         save()
         pump()
     }
 
     func remove(_ id: String) {
         tasks[id]?.cancel()
-        jobs.removeAll { $0.id == id }
+        storedJobs.removeAll { $0.id == id }
         save()
         pump()
     }
 
     func clearFinished() {
-        jobs.removeAll { $0.state.isFinished }
+        storedJobs.removeAll { $0.state.isFinished }
         save()
     }
 
@@ -96,9 +112,9 @@ final class DownloadQueue {
         stopped = true
         let running = Array(tasks.values)
         for task in running { task.cancel() }
-        for index in jobs.indices where jobs[index].state == .running {
-            jobs[index].state = .interrupted
-            jobs[index].finished = clock()
+        for index in storedJobs.indices where storedJobs[index].state == .running {
+            storedJobs[index].state = .interrupted
+            storedJobs[index].finished = clock()
         }
         save()
         for task in running { await task.value }
@@ -116,30 +132,39 @@ final class DownloadQueue {
     private func pump() {
         guard !stopped else { return }
         while tasks.count < maxConcurrent,
-              let job = jobs.first(where: { $0.state == .waiting && tasks[$0.id] == nil }) {
-            // Restored jobs wait for their runner to be registered by the composition root.
-            guard let runner = runners[job.kind] else { return }
+              let job = storedJobs.first(where: { $0.state == .waiting && tasks[$0.id] == nil }) {
+            guard let runner = runners[job.kind] else {
+                if let index = storedJobs.firstIndex(where: { $0.id == job.id }) {
+                    storedJobs[index].state = .failed
+                    storedJobs[index].finished = clock()
+                    storedJobs[index].detail = String(localized: "This download type is not available.")
+                    save()
+                }
+                continue
+            }
             begin(job, runner: runner)
         }
     }
 
     private func begin(_ job: DownloadJob, runner: any DownloadRunner) {
-        guard let index = jobs.firstIndex(where: { $0.id == job.id }) else { return }
-        jobs[index].state = .running
+        guard let index = storedJobs.firstIndex(where: { $0.id == job.id }) else { return }
+        storedJobs[index].state = .running
         let operation = UUID()
         operations[job.id] = operation
         let context = DownloadRunContext(destination: destination, tools: tools, report: { [weak self] progress in
             guard let self, operations[job.id] == operation,
-                  let index = jobs.firstIndex(where: { $0.id == job.id }), jobs[index].state == .running else { return }
+                  let index = storedJobs.firstIndex(where: { $0.id == job.id }),
+                  storedJobs[index].state == .running else { return }
             var progress = progress
             if let fraction = progress.fraction { progress.fraction = fraction.isFinite ? min(1, max(0, fraction)) : nil }
-            jobs[index].progress = progress
+            storedJobs[index].progress = progress
         }, detail: { [weak self] detail in
             guard let self, operations[job.id] == operation,
-                  let index = jobs.firstIndex(where: { $0.id == job.id }), jobs[index].state == .running else { return }
-            jobs[index].detail = detail
+                  let index = storedJobs.firstIndex(where: { $0.id == job.id }),
+                  storedJobs[index].state == .running else { return }
+            storedJobs[index].detail = detail
         })
-        let runningJob = jobs[index]
+        let runningJob = storedJobs[index]
         tasks[job.id] = Task { [weak self, tools] in
             let result: Result<URL?, Error>
             do {
@@ -160,15 +185,15 @@ final class DownloadQueue {
         guard operations[id] == operation else { return }
         tasks[id] = nil
         operations[id] = nil
-        if let index = jobs.firstIndex(where: { $0.id == id }), jobs[index].state == .running {
-            jobs[index].finished = clock()
+        if let index = storedJobs.firstIndex(where: { $0.id == id }), storedJobs[index].state == .running {
+            storedJobs[index].finished = clock()
             switch result {
             case .success(let output):
-                jobs[index].state = .done
-                jobs[index].output = output?.path
+                storedJobs[index].state = .done
+                storedJobs[index].output = output?.path
             case .failure(let error):
-                jobs[index].state = error is CancellationError ? .cancelled : .failed
-                jobs[index].detail = error is CancellationError ? nil : error.localizedDescription
+                storedJobs[index].state = error is CancellationError ? .cancelled : .failed
+                storedJobs[index].detail = error is CancellationError ? nil : error.localizedDescription
             }
             save()
         }
@@ -190,12 +215,12 @@ final class DownloadQueue {
 
     private func expire(now: Date) {
         let cutoff = now.addingTimeInterval(-7 * 24 * 60 * 60)
-        jobs.removeAll { $0.state.isFinished && ($0.finished ?? $0.created) <= cutoff }
+        storedJobs.removeAll { $0.state.isFinished && ($0.finished ?? $0.created) <= cutoff }
     }
 
     private func save() {
         guard let file else { return }
-        let snapshot = jobs
+        let snapshot = storedJobs
         let previous = persistence
         persistence = Task { [weak self] in
             _ = try? await previous?.value
@@ -210,16 +235,27 @@ final class DownloadQueue {
     }
 
     @concurrent
-    private static func load(file: URL?, now: Date) async throws -> [DownloadJob] {
-        guard let file, FileManager.default.fileExists(atPath: file.path) else { return [] }
-        var jobs = try JSONDecoder().decode([DownloadJob].self, from: Data(contentsOf: file))
+    private static func load(file: URL?, now: Date) async throws -> (jobs: [DownloadJob], error: String?) {
+        guard let file, FileManager.default.fileExists(atPath: file.path) else { return ([], nil) }
+        let data = try Data(contentsOf: file)
+        var jobs: [DownloadJob]
+        do {
+            jobs = try JSONDecoder().decode([DownloadJob].self, from: data)
+        } catch {
+            let badFile = file.appendingPathExtension("bad")
+            if FileManager.default.fileExists(atPath: badFile.path) {
+                try FileManager.default.moveItem(at: badFile, to: badFile.appendingPathExtension(UUID().uuidString))
+            }
+            try FileManager.default.moveItem(at: file, to: badFile)
+            return ([], error.localizedDescription)
+        }
         let cutoff = now.addingTimeInterval(-7 * 24 * 60 * 60)
         jobs.removeAll { $0.state.isFinished && ($0.finished ?? $0.created) <= cutoff }
         for index in jobs.indices where jobs[index].state == .running {
             jobs[index].state = .interrupted
             jobs[index].finished = now
         }
-        return jobs
+        return (jobs, nil)
     }
 
     @concurrent

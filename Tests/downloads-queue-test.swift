@@ -44,6 +44,10 @@ struct DownloadsQueueTest {
         let serialProbe = Probe()
         let serial = try await DownloadQueue(file: nil, destination: root, maxConcurrent: 1)
         serial.register(GateRunner(probe: serialProbe))
+        let unknown = serial.enqueue(kind: "unregistered", sources: ["unknown"])[0]
+        expect(serial.jobs.first?.state == .failed && serial.jobs.first?.detail != nil,
+               "unregistered runner fails without blocking FIFO")
+        serial.remove(unknown.id)
         serial.enqueue(kind: "fake", sources: ["a", "b", "c", "d"])
         for (index, source) in ["a", "b", "c", "d"].enumerated() {
             try await eventually { serialProbe.started.count == index + 1 }
@@ -123,11 +127,11 @@ struct DownloadsQueueTest {
         await reloaded.stop()
         try await reloaded.flush()
         try Data("invalid".utf8).write(to: file)
-        do {
-            _ = try await DownloadQueue(file: file, destination: root)
-            fatalError("corrupt queue must be reported")
-        } catch is DecodingError {}
-        try expect(Data(contentsOf: file) == Data("invalid".utf8), "corrupt file is preserved")
+        let recovered = try await DownloadQueue(file: file, destination: root)
+        expect(recovered.jobs.isEmpty && recovered.persistenceError != nil, "corrupt queue recovers with error")
+        try expect(Data(contentsOf: file.appendingPathExtension("bad")) == Data("invalid".utf8),
+                   "corrupt file is preserved")
+        await recovered.stop()
     }
 
     @MainActor
@@ -189,6 +193,11 @@ struct DownloadsQueueTest {
             done
             """])
         expect(large.output.utf8.count == 65_536 && large.errors.utf8.count == 65_536, "both streams drain with bounded tails")
+        let burst = Lines()
+        _ = try await context.spawn(executable: URL(filePath: "/usr/bin/seq"), arguments: ["1", "100000"],
+                                    onLine: { line in burst.value.withLock { $0.append(line) } })
+        expect(burst.value.withLock { $0.count == 100000 && $0.last == "100000" },
+               "all output lines drain through EOF after exit")
         do {
             _ = try await context.spawn(executable: URL(filePath: "/bin/sh"), arguments: [
                 "-c", "printf 'first\\nlast failure\\n  \\n' >&2; exit 7"

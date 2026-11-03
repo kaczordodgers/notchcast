@@ -27,7 +27,11 @@ struct DownloadToolLookup: Sendable {
             "PATH": folders.map(\.path).joined(separator: ":"),
             "HOME": home.path, "LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8"
         ]
-        if let temporary = parent["TMPDIR"] { environment["TMPDIR"] = temporary }
+        for key in ["TMPDIR", "HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY",
+                    "http_proxy", "https_proxy", "all_proxy", "no_proxy",
+                    "SSL_CERT_FILE", "SSL_CERT_DIR", "USER", "LOGNAME"] {
+            environment[key] = parent[key]
+        }
         self.environment = environment
     }
 
