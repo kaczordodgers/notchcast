@@ -28,7 +28,7 @@ struct BrightnessDisplayRow: View {
                 Text(failed ? String(localized: "Not responding") : controlTitle)
                     .foregroundStyle(failed ? Theme.Colors.warning : Theme.Colors.textSecondary)
             } icon: {
-                SymbolImage(display.isBuiltIn ? "laptopcomputer" : "display", size: Theme.Size.menuIcon)
+                SymbolImage(name: display.isBuiltIn ? "laptopcomputer" : "display", size: Theme.Size.menuIcon)
                     .accessibilityHidden(true)
             }
         }
