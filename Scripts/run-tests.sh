@@ -452,7 +452,7 @@ run ext-icon-test          Tinycast/Platform/Appearance.swift \
                            Tinycast/Features/Clipboard/Model/ColorSpaces.swift
 run system-action-test     Tinycast/Features/SystemActions/Model/SystemAction.swift \
                            Tinycast/Platform/LocalizedResource.swift
-run microphone-mute-test   Tinycast/Features/SystemActions/Service/SystemActionFailure.swift \
+run microphone-mute-test   Tinycast/Features/Microphone/Model/*.swift Tinycast/Features/SystemActions/Service/SystemActionFailure.swift \
                            Tinycast/Features/SystemActions/Service/SystemActionRunner+Microphone.swift
 run volume-test            Tinycast/Features/SystemActions/Model/VolumeLevel.swift
 run window-command-test    Tinycast/Features/WindowManagement/Model/WindowCommand.swift \
@@ -949,6 +949,8 @@ run soloist-runtime-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast
 run soloist-speaker-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 run music-model-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/MusicSelection.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Service/MusicModel.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift
 run music-launch-block-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/MusicLaunchPolicy.swift Tinycast/Features/Music/Service/MusicLaunchBlocker.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift Tinycast/Platform/ProcessExit.swift
+run in-use-marks-test Tinycast/Features/Microphone/Model/*.swift Tinycast/Features/Microphone/Service/*.swift
+
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
