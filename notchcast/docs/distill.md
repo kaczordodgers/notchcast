@@ -4,16 +4,17 @@
 the old Orion or Damian Tools queue URL; the source is read only and an import marker is committed
 with the added links. Removing imported links does not import them again on the next launch.
 
-`DistillRunner.run(source:destination:times:execution:progress:)` fetches media metadata and native
+`DistillRunner`, registered as kind `distill`, fetches media metadata and native
 audio with yt-dlp, transcribes it, then publishes `Channel - Title.txt`. Filenames replace filesystem
 reserved characters and limit each component to 100 UTF-8 bytes. Existing files receive a numbered
 suffix. Publication uses a same-directory hard link so the complete file appears without replacing
 another file. An empty transcript is an error. The caller supplies the destination; later settings
 can supply `~/Downloads/Distill/Raw` as their default. No output is ingested or deleted.
 
-Unknown web hosts go to the injected webpage saver. Browser cookies are off. All child commands are
-injected through `DistillExecution.spawn`; its implementation must await completion, return stdout,
-throw on a nonzero exit and cancel the process group with its owning task.
+Unknown web hosts go to the injected webpage saver; the default reports that it is not connected yet.
+Browser cookies are off. All child commands use `DownloadRunContext.spawn`, which owns process-group
+cancellation and failure details. Supply a queue with `maxConcurrent: 1` for serial Distill batches.
+The context supplies the destination; the `timestamps` job option enables chunk times when `true`.
 
 ## File transcription API for Convert
 
@@ -21,9 +22,8 @@ Create a transcriber from the existing app-owned Dictation model store on the ma
 
 ```swift
 let transcriber = modelStore.distillTranscriber(model: selectedModel)
-let segments = try await transcriber.transcribe(
-    file: mediaFile, workDirectory: scratchRoot, execution: execution)
-let text = DistillTranscript.text(segments, times: false)
+let text = try await transcriber.text(
+    file: mediaFile, workDirectory: scratchRoot, context: context)
 ```
 
 `file` accepts audio or video supported by ffmpeg. The source remains unchanged. ffmpeg extracts the
@@ -45,11 +45,5 @@ prefixes therefore have chunk-level precision. Progress reports completed and to
 
 `transcribePCM(file:progress:)` accepts an already normalized Float32 file and is also used by the
 standalone harness. `DISTILL_TEST_ROOT` selects the harness scratch directory; otherwise it uses an
-isolated temporary directory. The optional `--live` mode accepts explicit scratch, helper and build
-model cache paths plus a public video URL. It runs the complete engine with real child commands,
-uses an already installed model or downloads Redux with the upstream downloader, and saves the
-transcript into the scratch directory's `Raw` folder.
-`DISTILL_EXISTING_MODEL` can point at a compatible installed Parakeet v3 directory; the live fixture
-creates a symlink in its supplied model root and never modifies the existing model directory.
-
-Queue registration and the concrete process adapter wait for the Downloads queue pack to land.
+isolated temporary directory. The harness exercises fake media tools through the real queue context.
+Queue registration and launcher wiring belong to the later integration round.

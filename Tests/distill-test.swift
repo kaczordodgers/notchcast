@@ -16,10 +16,6 @@ struct DistillTest {
 
     @MainActor
     static func main() async throws {
-        if CommandLine.arguments.contains("--live") {
-            try await live()
-            return
-        }
         let environment = ProcessInfo.processInfo.environment
         let scratch = environment["DISTILL_TEST_ROOT"].map { URL(filePath: $0) }
             ?? FileManager.default.temporaryDirectory
@@ -190,30 +186,52 @@ struct DistillTest {
 
     @MainActor
     private static func testRunner(root: URL) async throws {
-        let calls = Mutex<[String]>([])
-        let execution = DistillExecution { tool, arguments in
-            calls.withLock { $0.append(tool) }
-            if arguments.contains("--dump-single-json") { return #"{"title":"Title","channel":"Channel"}"# }
-            if tool == "yt-dlp", let index = arguments.firstIndex(of: "-o") {
-                let path = arguments[index + 1].replacingOccurrences(of: "%(ext)s", with: "m4a")
-                try Data([0]).write(to: URL(filePath: path))
-            }
-            if tool == "ffmpeg", let path = arguments.last {
-                try Data(repeating: 0, count: 64_000).write(to: URL(filePath: path))
-            }
-            return ""
+        let bin = root.appending(path: "bin")
+        try FileManager.default.createDirectory(at: bin, withIntermediateDirectories: true)
+        let script = """
+        #!/usr/bin/python3
+        import sys, json
+        a = sys.argv
+        if '--dump-single-json' in a:
+            print(json.dumps({'title': 'Title', 'channel': 'Channel'}))
+        elif '-o' in a:
+            open(a[a.index('-o') + 1].replace('%(ext)s', 'm4a'), 'wb').write(b'0')
+        else:
+            open(a[-1], 'wb').write(bytes(64000))
+        """
+        for tool in ["yt-dlp", "ffmpeg"] {
+            let file = bin.appending(path: tool)
+            try script.write(to: file, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: file.path)
         }
+        let stages = Mutex<[String]>([])
+        let context = DownloadRunContext(
+            destination: root.appending(path: "runner-output"),
+            tools: DownloadToolLookup(directories: [bin]),
+            report: { value in stages.withLock { $0.append(value.stage ?? "") } })
         let work = root.appending(path: "runner-work")
         let runner = DistillRunner(transcriber: DistillTranscriber { _ in "A transcript." }, workDirectory: work) { _, target in
             target.appending(path: "webpage.md")
         }
-        let result = try await runner.run(source: "https://youtu.be/abc", destination: root.appending(path: "runner-output"),
-                                          execution: execution)
+        let job = DownloadJob(id: UUID().uuidString, kind: "distill", source: "https://youtu.be/abc",
+                              title: "Fixture", created: .distantPast)
+        let registered: any DownloadRunner = runner
+        precondition(registered.kind == "distill" && registered.tools == [.ytDlp, .ffmpeg])
+        let result = try await registered.run(job, context: context)!
         try check(String(contentsOf: result, encoding: .utf8) == "A transcript.\n")
-        precondition(calls.withLock { $0 } == ["yt-dlp", "yt-dlp", "ffmpeg"])
+        precondition(stages.withLock { $0 } == ["Transcribing 1 of 1"])
         try check(FileManager.default.contentsOfDirectory(atPath: work.path).isEmpty)
-        let page = try await runner.run(source: "https://example.com/article", destination: root, execution: execution)
-        precondition(page.lastPathComponent == "webpage.md" && calls.withLock { $0.count } == 3)
+        let page = try await runner.run(source: "https://example.com/article", destination: root, context: context)
+        precondition(page.lastPathComponent == "webpage.md")
+        let unavailable = DistillRunner(transcriber: runner.transcriber, workDirectory: work)
+        do {
+            _ = try await unavailable.run(source: "https://example.com/article", destination: root, context: context)
+            preconditionFailure("Unconnected webpage saver succeeded")
+        } catch {
+            precondition(error.localizedDescription.contains("not connected"))
+        }
+        let fileText = try await runner.transcriber.text(file: result, workDirectory: work, context: context)
+        precondition(fileText == "A transcript.\n")
         let ready = AsyncStream<Void>.makeStream()
         let slow = DistillRunner(transcriber: DistillTranscriber { _ in
             ready.continuation.yield(())
@@ -222,7 +240,7 @@ struct DistillTest {
         }, workDirectory: work, saveWebpage: runner.saveWebpage)
         let cancelled = Task {
             try await slow.run(source: "https://youtu.be/cancelled", destination: root.appending(path: "cancelled-output"),
-                               execution: execution)
+                               context: context)
         }
         var iterator = ready.stream.makeAsyncIterator()
         _ = await iterator.next()
@@ -235,93 +253,8 @@ struct DistillTest {
         try check(FileManager.default.contentsOfDirectory(atPath: work.path).isEmpty)
     }
 
-    @MainActor
-    private static func live() async throws {
-        let arguments = CommandLine.arguments
-        guard arguments.count == 6 else {
-            fatalError("--live <pack-directory> <helper-executable> <model-cache> <public-video-url>")
-        }
-        let root = URL(filePath: arguments[2])
-        let executable = URL(filePath: arguments[3])
-        let modelRoot = URL(filePath: arguments[4])
-        if let existing = ProcessInfo.processInfo.environment["DISTILL_EXISTING_MODEL"] {
-            try FileManager.default.createDirectory(at: modelRoot, withIntermediateDirectories: true)
-            let link = modelRoot.appending(path: DictationModel.ultra.folderName)
-            if !FileManager.default.fileExists(atPath: link.path) {
-                try FileManager.default.createSymbolicLink(at: link, withDestinationURL: URL(filePath: existing))
-            }
-        }
-        let store = DictationModelStore(idleRelease: .never, root: modelRoot) { try DictationWorker(executable: executable) }
-        let model = DictationModel.allCases.filter { store.isInstalled($0) }
-            .min { $0.approximateInstalledMegabytes < $1.approximateInstalledMegabytes } ?? .redux
-        if !store.isInstalled(model) {
-            print("No model installed in the build cache; downloading Redux with the upstream downloader")
-            try await store.download(model)
-        }
-        do {
-            let execution = DistillExecution { tool, arguments in
-                try await spawn(tool: tool, arguments: arguments, root: root.appending(path: "commands"))
-            }
-            let runner = DistillRunner(
-                transcriber: store.distillTranscriber(model: model), workDirectory: root.appending(path: "Work")
-            ) { _, _ in throw CocoaError(.fileReadUnsupportedScheme) }
-            let output = try await runner.run(
-                source: arguments[5], destination: root.appending(path: "Raw"), execution: execution)
-            let text = try String(contentsOf: output, encoding: .utf8)
-            print("Live Distill model: \(model.rawValue)")
-            print("Live Distill output: \(output.path)")
-            print(text)
-            await store.stop()
-        } catch {
-            await store.stop()
-            throw error
-        }
-    }
-
     private static func check(_ condition: @autoclosure () throws -> Bool) rethrows {
         guard try condition() else { preconditionFailure("Distill assertion failed") }
     }
 
-    @concurrent
-    private nonisolated static func spawn(tool: String, arguments: [String], root: URL) async throws -> String {
-        try Task.checkCancellation()
-        let process = Process()
-        let cancelled = Mutex(false)
-        let task = Task.detached {
-            try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-            let output = root.appending(path: "\(UUID()).stdout")
-            let errors = root.appending(path: "\(UUID()).stderr")
-            try Data().write(to: output)
-            try Data().write(to: errors)
-            let stdout = try FileHandle(forWritingTo: output)
-            let stderr = try FileHandle(forWritingTo: errors)
-            defer { try? stdout.close(); try? stderr.close() }
-            process.executableURL = URL(filePath: "/usr/bin/env")
-            process.arguments = [tool] + arguments
-            process.standardInput = FileHandle.nullDevice
-            process.standardOutput = stdout
-            process.standardError = stderr
-            let exit = try cancelled.withLock { cancelled in
-                guard !cancelled else { throw CancellationError() }
-                return try process.runObservingExit()
-            }
-            exit.wait()
-            try Task.checkCancellation()
-            guard process.terminationStatus == 0 else {
-                throw NSError(domain: "DistillLiveCommand", code: Int(process.terminationStatus), userInfo: [
-                    NSLocalizedDescriptionKey: try String(contentsOf: errors, encoding: .utf8)
-                ])
-            }
-            return try String(contentsOf: output, encoding: .utf8)
-        }
-        return try await withTaskCancellationHandler {
-            try await task.value
-        } onCancel: {
-            task.cancel()
-            cancelled.withLock {
-                $0 = true
-                if process.isRunning { process.terminate() }
-            }
-        }
-    }
 }
