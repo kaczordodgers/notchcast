@@ -32,9 +32,11 @@ private final class FakeClock {
 
     var time = Duration.zero
     var waits: [Duration] = []
+    var immediate = true
     private var waiters: [UUID: Waiter] = [:]
 
     func sleep(_ duration: Duration) async throws {
+        if immediate { return }
         let id = UUID()
         waits.append(duration)
         try await withTaskCancellationHandler {
@@ -70,6 +72,7 @@ private final class Desk {
     var opening: CheckedContinuation<Void, any Error>?
     var holdOpen = false
     var failOpen = false
+    var playFailures = 0
     var date = Date(timeIntervalSince1970: 100)
     lazy var model = MusicModel(defaults: defaults, apps: apps, now: { [unowned self] in date },
                                 sleep: { [clock] in try await clock.sleep($0) })
@@ -84,8 +87,14 @@ private final class Desk {
                        opened.append(id)
                        if failOpen { throw FakeSource.Failure.unreadable }
                        if holdOpen { try await withCheckedThrowingContinuation { opening = $0 } }
-                   }, play: { [unowned self] in played.append($0) },
-                   watchLaunches: { _ in [] }, quit: { _ in false })
+                   }, play: { [unowned self] in
+                       played.append($0)
+                       if playFailures > 0 {
+                           playFailures -= 1
+                           throw PlayerApps.Failure.automation(-600)
+                       }
+                   }, watchLaunches: { _ in [] }, quit: { _ in false },
+                   canPlay: { $0 == "test.player" || $0 == LastPlayer.spotify })
     }
 
     func start() async {
@@ -120,6 +129,8 @@ struct MusicModelTest {
         await staleReads()
         await lastPlayer()
         await resume()
+        await coldLaunch()
+        await disabledFailures()
         print("PASS music-model: selection, routing, 1/2/4s retries, stale reads, last player and cancellation")
     }
 
@@ -192,6 +203,7 @@ struct MusicModelTest {
     @MainActor
     static func retries() async {
         let desk = Desk()
+        desk.clock.immediate = false
         desk.system.fails = true
         desk.soloist.track = track(.soloist)
         await desk.start()
@@ -219,7 +231,15 @@ struct MusicModelTest {
         assert(desk.system.reads == 4)
         desk.system.onChange?()
         await settle()
-        assert(desk.system.reads == 5 && desk.clock.waits.count == 3)
+        assert(desk.system.reads == 5 && desk.clock.waits.count == 4)
+        assert(desk.clock.waits.last == .seconds(1))
+        desk.clock.advance(.seconds(1))
+        await settle()
+        assert(desk.clock.waits.last == .seconds(2))
+        desk.clock.advance(.seconds(2))
+        await settle()
+        desk.clock.advance(.seconds(4))
+        await settle()
         desk.system.fails = false
         desk.system.track = track()
         desk.system.onChange?()
@@ -281,8 +301,13 @@ struct MusicModelTest {
         desk.system.onChange?()
         await settle()
         assert(desk.model.lastPlayer.bundleID == "test.player")
-        let again = LastPlayer(defaults: desk.defaults)
+        let again = LastPlayer(defaults: desk.defaults, canPlay: desk.apps.canPlay)
         assert(again.bundleID == "test.player")
+        desk.model.lastPlayer.hear(track(bundleID: "com.apple.Safari"))
+        assert(desk.model.lastPlayer.bundleID == "test.player")
+        desk.defaults.set("com.apple.Safari", forKey: LastPlayer.key)
+        assert(LastPlayer(defaults: desk.defaults, canPlay: desk.apps.canPlay).bundleID == nil)
+        desk.defaults.set("test.player", forKey: LastPlayer.key)
         desk.system.track = track(bundleID: LastPlayer.appleMusic)
         desk.system.onChange?()
         await settle()
@@ -355,5 +380,54 @@ struct MusicModelTest {
         desk.opening = nil
         await settle()
         assert(desk.played.count == played)
+    }
+
+    @MainActor
+    static func coldLaunch() async {
+        let desk = Desk()
+        desk.clock.immediate = false
+        desk.playFailures = 2
+        let task = desk.model.openReplacement(startingPlayback: true)
+        await settle()
+        assert(desk.played.isEmpty && desk.clock.waits == [.seconds(1)])
+        for count in 1...3 {
+            desk.clock.advance(.seconds(1))
+            await settle()
+            assert(desk.played.count == count)
+        }
+        await task.value
+        assert(desk.model.failure == nil)
+        desk.playFailures = 3
+        let failed = desk.model.openReplacement(startingPlayback: true)
+        await settle()
+        for _ in 0..<3 {
+            desk.clock.advance(.seconds(1))
+            await settle()
+        }
+        await failed.value
+        assert(desk.played.count == 6 && desk.model.failure == .playbackFailed(LastPlayer.spotify))
+        let cancelled = desk.model.openReplacement(startingPlayback: true)
+        await settle()
+        cancelled.cancel()
+        await settle()
+        desk.clock.advance(.seconds(1))
+        await cancelled.value
+        assert(desk.played.count == 6)
+    }
+
+    @MainActor
+    static func disabledFailures() async {
+        let desk = Desk()
+        assert(!desk.model.isEnabled)
+        desk.installed = []
+        await desk.model.openReplacement(startingPlayback: true).value
+        assert(desk.model.failure == .noReplacement)
+        desk.installed = [LastPlayer.spotify]
+        desk.failOpen = true
+        await desk.model.openReplacement(startingPlayback: true).value
+        assert(desk.model.failure == .launchFailed(LastPlayer.spotify))
+        desk.failOpen = false
+        await desk.model.openReplacement(startingPlayback: false).value
+        assert(desk.model.failure == nil)
     }
 }
