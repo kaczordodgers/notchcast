@@ -9,6 +9,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
 }
 
 extension SettingsSearchCatalog {
@@ -31,5 +32,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastOptions, "AI Usage", keywords: ["plan", "limits", "cache"]),
+        .init(.notchcastOptions, "Other Mac AI Usage", keywords: ["peer", "remote"]),
+        .init(.notchcastOptions, "Mac Link", keywords: ["pair", "network"]),
+        .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
     ]
 }

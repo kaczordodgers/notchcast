@@ -1,9 +1,9 @@
 import Foundation
 
-nonisolated struct OtherMacUsageSnapshot: Sendable, Equatable {
+nonisolated struct OtherMacUsageSnapshot: Codable, Sendable, Equatable {
     var readings: [Reading]
 
-    struct Reading: Sendable, Equatable {
+    struct Reading: Codable, Sendable, Equatable {
         var providerID: String
         // The adapter supplies a stable, opaque account/plan identity, never a credential.
         var planID: String

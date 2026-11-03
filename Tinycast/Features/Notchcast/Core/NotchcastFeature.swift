@@ -11,6 +11,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case aiUsage
+    case aiUsageOtherMac
+    case machLink
 
     var title: String {
         switch self {
@@ -29,6 +32,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .aiUsage: String(localized: "AI Usage")
+        case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
+        case .machLink: String(localized: "Mac Link")
         }
     }
 
@@ -49,6 +55,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .aiUsage: String(localized: "Read local AI usage on demand.")
+        case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
+        case .machLink: String(localized: "Connect to a paired Mac on the local network.")
         }
     }
 
@@ -58,7 +67,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
+            .aiUsage, .aiUsageOtherMac, .machLink:
             []
         }
     }
@@ -66,7 +76,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool {
+        ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink].contains(self)
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
