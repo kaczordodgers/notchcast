@@ -17,18 +17,23 @@ final class NotchcastPreferences {
     var islandHoverDelay: HoverDelay {
         didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") }
     }
+    var fanMode: String {
+        didSet { defaults.set(fanMode, forKey: "fanMode") }
+    }
     static let shared = NotchcastPreferences(
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
     @ObservationIgnored private let defaults: UserDefaults
-    /// Every switch defaults to on, so only the ones turned off are stored.
     private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        fanMode = defaults.string(forKey: "fanMode") ?? "auto"
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
-        off = Set(NotchcastFeature.allCases.filter { defaults.object(forKey: $0.rawValue) as? Bool == false })
+        off = Set(NotchcastFeature.allCases.filter {
+            !(defaults.object(forKey: $0.rawValue) as? Bool ?? ($0 != .systemMonitor && $0 != .fanControl))
+        })
     }
 
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
