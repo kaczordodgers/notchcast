@@ -18,6 +18,8 @@ struct DownloadsQueueTest {
         try await concurrencyAndFIFO(root)
         try await actions(root)
         try await persistence(root)
+        try await readOnlyJobs(root)
+        try await unreadablePersistence(root)
         try await tools(root)
         try await processes(root)
         print("downloads-queue-test: all checks passed")
@@ -136,6 +138,45 @@ struct DownloadsQueueTest {
         try expect(Data(contentsOf: file.appendingPathExtension("bad")) == Data("invalid".utf8),
                    "corrupt file is preserved")
         await recovered.stop()
+    }
+
+    @MainActor
+    private static func readOnlyJobs(_ root: URL) async throws {
+        let file = root.appending(path: "read-only/downloads.json")
+        var now = Date(timeIntervalSince1970: 2_000_000_000)
+        let queue = try await DownloadQueue(file: file, destination: root, clock: { now })
+        queue.enqueue(kind: "unregistered", sources: ["expired"])
+        try await queue.flush()
+        let original = try Data(contentsOf: file)
+        now = now.addingTimeInterval(8 * 86400)
+        expect(queue.jobs.count == 1, "reading jobs does not expire rows")
+        expect(queue.jobs.count == 1, "repeated reads preserve rows")
+        try await queue.flush()
+        try expect(Data(contentsOf: file) == original, "reading jobs does not persist changes")
+        queue.expireFinished()
+        expect(queue.jobs.isEmpty, "expireFinished drops old finished rows on a running app")
+        queue.enqueue(kind: "unregistered", sources: ["expired"])
+        now = now.addingTimeInterval(8 * 86400)
+        queue.enqueue(kind: "unregistered", sources: ["fresh"])
+        expect(queue.jobs.map(\.source) == ["fresh"], "enqueue expires old finished rows")
+        await queue.stop()
+    }
+
+    @MainActor
+    private static func unreadablePersistence(_ root: URL) async throws {
+        let file = root.appending(path: "unreadable/downloads.json")
+        try FileManager.default.createDirectory(at: file, withIntermediateDirectories: true)
+        let marker = file.appending(path: "preserved")
+        try Data("fixture".utf8).write(to: marker)
+        let queue = try await DownloadQueue(file: file, destination: root)
+        expect(queue.jobs.isEmpty && queue.persistenceError != nil, "unreadable queue starts empty with error")
+        try expect(Data(contentsOf: file.appendingPathExtension("bad").appending(path: "preserved"))
+                   == Data("fixture".utf8), "unreadable queue is moved aside intact")
+        queue.enqueue(kind: "unregistered", sources: ["new"])
+        try await queue.flush()
+        let rows = try JSONDecoder().decode([DownloadJob].self, from: Data(contentsOf: file))
+        expect(rows.map(\.source) == ["new"], "recovered queue persists new jobs")
+        await queue.stop()
     }
 
     @MainActor
