@@ -43,7 +43,8 @@ nonisolated struct BatteryReading: Sendable, Equatable {
             ?? positive(properties["FullChargeCapacity"])
             ?? positive(properties["MaxCapacity"]).flatMap { $0 > 100 ? $0 : nil }
         let health = full.flatMap { full in design.map { min(100, full / $0 * 100) } }
-        let temperature = number(properties["Temperature"]).map { $0 / 100 }
+        let temperature = number(properties["Temperature"] ?? data["Temperature"] ?? data["VirtualTemperature"])
+            .map { $0 / 100 }
             .flatMap { (-20...100).contains($0) ? $0 : nil }
         let currentNumber = (properties["Amperage"] ?? properties["InstantAmperage"]) as? NSNumber
         let amperage = currentNumber.map { value -> Double in
