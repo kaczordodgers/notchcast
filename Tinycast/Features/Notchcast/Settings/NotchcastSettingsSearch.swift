@@ -4,6 +4,8 @@ extension SettingsAnchor {
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
     static let notchcastOptions = Self(tab: .notchcast, title: "Options")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
+    static let notchcastHover = Self(tab: .notchcast, title: "Island")
+    static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
 }
 
 extension SettingsSearchCatalog {
@@ -16,6 +18,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Open on Hover", keywords: ["pointer", "mouse", "hover"]),
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
-        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"])
+        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(.notchcastHover, "Hover delay"),
+        .init(group: .notchcastShortcuts, "Toggle Island")
     ]
 }
