@@ -7,7 +7,7 @@ struct ThemeBrowserSheet: View {
     @State private var query = ""
     @State private var selection: String?
     @State private var previewOwner = UUID()
-    @State private var host = ThemePreviewWindowReader.Host()
+    @State private var host = WindowHost()
 
     private var sections: AppearanceThemeBrowser.Section {
         AppearanceThemeBrowser.themes(for: slot, query: query, imported: coordinator.store.imported)
@@ -66,7 +66,7 @@ struct ThemeBrowserSheet: View {
             .padding(Theme.Spacing.lg)
         }
         .frame(width: AppearanceMetrics.browserWidth, height: AppearanceMetrics.browserHeight)
-        .background(ThemePreviewWindowReader(host: host))
+        .background(WindowReader { [host] in host.window = $0 })
         .motionScope()
         .onAppear {
             selection = identity(coordinator.store.theme(for: slot).map { .theme($0) } ?? .tinycast(slot))
@@ -144,4 +144,8 @@ private struct ThemeBrowserRow: View {
             if let remove { Button("Remove", action: remove) }
         }
     }
+}
+
+@MainActor private final class WindowHost {
+    weak var window: NSWindow?
 }
