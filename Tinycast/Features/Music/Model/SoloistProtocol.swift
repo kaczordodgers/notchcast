@@ -11,6 +11,7 @@ enum SoloistProtocol {
         case state(NowPlaying?, cover: URL?)
         case auth(AuthState)
         case changed
+        case failure(String)
         case other
     }
 
@@ -39,6 +40,7 @@ enum SoloistProtocol {
 
     private struct Frame: Decodable {
         var type: String
+        var message: String?
         var status: String?
         var item: Entity?
         var position: Position?
@@ -55,6 +57,7 @@ enum SoloistProtocol {
         let data = Data(text.utf8)
         let frame = try decoder.decode(Frame.self, from: data)
         switch frame.type {
+        case "error": return .failure(frame.message ?? "")
         case "auth_state": return .auth(try decoder.decode(AuthState.self, from: data))
         case "playback_state":
             guard frame.status != "idle", let details = frame.item?.decorations,
@@ -96,4 +99,5 @@ enum SoloistProtocol {
     }
 
     static let getState = #"{"type":"command","command":"get_state"}"#
+    static let getAuthState = #"{"type":"command","command":"get_auth_state"}"#
 }
