@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 
 private func check(_ condition: Bool, _ message: String = "check failed", line: UInt = #line) {
@@ -13,6 +14,9 @@ struct SoloistSpeakerTest {
         try await peers()
         try await expiry()
         try await staleWork()
+        try await failedInstall()
+        try await previousOwnedProcess()
+        try await termination()
         print("PASS: speaker states, 1/2/4/8 restart, five-start limit, healthy reset, expiry retry, "
               + "one-soloist guard, wake, cancellation")
     }
@@ -152,7 +156,7 @@ struct SoloistSpeakerTest {
         try unowned.files.makeFolders()
         try unowned.files.recordChild(999)
         unowned.speaker.setEnabled(true)
-        check(unowned.processes.stopped.isEmpty && unowned.speaker.state == .waitingForOther)
+        check(unowned.processes.stopped == unowned.processes.list && unowned.speaker.state == .waitingForOther)
         let reused = try Fixture()
         try reused.files.makeFolders()
         try reused.files.recordChild(42)
@@ -234,7 +238,8 @@ struct SoloistSpeakerTest {
         exitUpdate.builds.holdInstall = true
         exitUpdate.speaker.installBuild()
         await exitUpdate.yieldUntil { exitUpdate.builds.installation != nil }
-        exitUpdate.launcher.crash()
+        exitUpdate.launcher.crash(status: 10)
+        check(exitUpdate.speaker.installing?.isCancelled == false)
         exitUpdate.builds.installation?.resume(returning: exitUpdate.builds.newBuild)
         exitUpdate.builds.installation = nil
         exitUpdate.clock.advance(1)
@@ -253,6 +258,47 @@ struct SoloistSpeakerTest {
     }
 
     @MainActor
+    private static func failedInstall() async throws {
+        let f = try Fixture()
+        f.speaker.setEnabled(true)
+        await f.settle()
+        f.launcher.crash()
+        f.builds.installError = .download
+        f.speaker.installBuild()
+        await f.settle()
+        check(f.speaker.installFailure == .download && f.launcher.children.count == 2)
+        try f.answer()
+        f.speaker.installBuild()
+        await f.settle()
+        check(f.speaker.installFailure == .download && f.speaker.state == .running(port: 51234))
+    }
+
+    @MainActor
+    private static func previousOwnedProcess() async throws {
+        let f = try Fixture()
+        let previous = SoloistPeer(pid: 123, path: f.builds.available[0].executable.path)
+        f.processes.list = [previous]
+        check(f.files.recordedChild() == nil)
+        f.speaker.setEnabled(true)
+        check(f.processes.stopped == [previous] && f.speaker.state == .waitingForOther)
+        f.processes.end(previous.pid)
+        f.clock.advance(1)
+        await f.settle()
+        check(f.launcher.children.count == 1)
+    }
+
+    @MainActor
+    private static func termination() async throws {
+        let f = try Fixture()
+        f.speaker.setEnabled(true)
+        await f.settle()
+        check(f.files.recordedChild() != nil)
+        NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+        check(f.launcher.children[0].stopped && f.files.recordedChild() == nil)
+        check(f.speaker.state == .off)
+    }
+
+    @MainActor
     final class Fixture {
         let files: SoloistFiles
         let clock = Clock()
@@ -265,7 +311,7 @@ struct SoloistSpeakerTest {
         lazy var key = SoloistKey(read: { [unowned self] in self.secret }, write: { [unowned self] in self.secret = $0 })
         lazy var speaker = SoloistSpeaker(key: key, files: files, builds: builds, launcher: launcher, processes: processes,
             schedule: clock.schedule, now: { [unowned self] in self.now() }, probe: { [unowned self] _ in self.probeAnswer },
-            watch: { _, _ in SoloistCancellation {} })
+            watch: SoloistSystemEvents.watch)
 
         init() throws {
             let root = FileManager.default.temporaryDirectory.appending(path: "soloist-speaker-\(UUID().uuidString)")
@@ -335,6 +381,7 @@ struct SoloistSpeakerTest {
         var installs = 0
         var holdLookup = false
         var holdInstall = false
+        var installError: SoloistFailure?
         var lookup: CheckedContinuation<SoloistBuild?, Never>?
         var installation: CheckedContinuation<SoloistBuild, Never>?
 
@@ -347,6 +394,7 @@ struct SoloistSpeakerTest {
 
         func install() async throws -> SoloistBuild {
             installs += 1
+            if let installError { throw installError }
             if holdInstall { return await withCheckedContinuation { installation = $0 } }
             available = [newBuild]
             return newBuild
