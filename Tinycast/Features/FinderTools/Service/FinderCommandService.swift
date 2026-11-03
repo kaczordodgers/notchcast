@@ -13,7 +13,9 @@ enum FinderCommandService {
             let role = string(focused, kAXRoleAttribute)
         else { return .unavailable }
         if [kAXTextFieldRole, kAXTextAreaRole, kAXComboBoxRole].contains(role) { return .text }
-        guard let window = element(app, kAXFocusedWindowAttribute) else { return .unavailable }
+        guard role != kAXMenuRole, role != kAXMenuItemRole,
+            let window = element(app, kAXFocusedWindowAttribute), string(window, kAXRoleAttribute) == kAXWindowRole
+        else { return .unavailable }
         let subrole = string(window, kAXSubroleAttribute)
         guard subrole != kAXDialogSubrole, subrole != kAXSystemDialogSubrole else { return .unavailable }
         var children: CFTypeRef?
