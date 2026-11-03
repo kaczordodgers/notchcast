@@ -12,25 +12,20 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayWeather
     case dayMarkets
 
-    static let islandOptions: [Self] = [
-        .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-        .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-    ]
-
     var title: String {
         switch self {
         case .island: String(localized: "Island")
-        case .islandExternalDisplays: String(localized: "External Displays")
-        case .islandFullScreen: String(localized: "Full-Screen Apps")
-        case .islandHoverOpen: String(localized: "Open on Hover")
-        case .islandStatusMessages: String(localized: "Status Messages")
-        case .islandLiveActivities: String(localized: "Live Activities")
-        case .launcherFromIsland: String(localized: "Launcher from Island")
-        case .lowDiskWarning: String(localized: "Low Disk Warning")
-        case .systemNotices: String(localized: "System Notices")
-        case .volumeLevels: String(localized: "Volume in Island")
-        case .displayBrightness: String(localized: "Display Brightness")
-        case .quitProtection: String(localized: "Quit Protection")
+        case .islandExternalDisplays: String(localized: "External displays")
+        case .islandFullScreen: String(localized: "Full-screen apps")
+        case .islandHoverOpen: String(localized: "Open on hover")
+        case .islandStatusMessages: String(localized: "Status messages")
+        case .islandLiveActivities: String(localized: "Live activities")
+        case .launcherFromIsland: String(localized: "Launcher from island")
+        case .lowDiskWarning: String(localized: "Low disk warning")
+        case .systemNotices: String(localized: "System notices")
+        case .volumeLevels: String(localized: "Volume in island")
+        case .displayBrightness: String(localized: "Display brightness")
+        case .quitProtection: String(localized: "Quit protection")
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")

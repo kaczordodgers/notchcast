@@ -5,20 +5,17 @@ struct BrightnessSettingsSection: View {
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
-        Section {
-            NotchcastFeatureToggle(feature: .displayBrightness, anchor: .notchcastBrightness,
-                                  title: "Display brightness",
-                                  subtitle: "Brightness keys control every display, external ones too.")
-            if preferences.isOn(.displayBrightness) {
+        if preferences.isOn(.displayBrightness) {
+            Section {
                 if controller.currentDisplays.isEmpty {
                     Text("No display can be controlled.").foregroundStyle(.secondary)
                 }
                 ForEach(controller.currentDisplays) { display in
                     BrightnessDisplayRow(display: display, controller: controller)
                 }
+            } header: {
+                SettingsSectionHeader(.notchcastBrightness)
             }
-        } header: {
-            SettingsSectionHeader(.notchcastBrightness)
         }
     }
 }

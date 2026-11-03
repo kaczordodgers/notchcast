@@ -7,25 +7,23 @@ struct DaySettingsSection: View {
     @State private var symbols = ""
 
     var body: some View {
-        Section {
-            NotchcastFeatureToggle(feature: .dayWeather, anchor: .notchcastDay,
-                                  title: "Weather", subtitle: "Forecast from Open-Meteo on the Day page.")
-            if preferences.isOn(.dayWeather) { DayCityField(store: weather) }
-            NotchcastFeatureToggle(feature: .dayMarkets, anchor: .notchcastDay,
-                                  title: "Markets", subtitle: "Prices refresh every 3 minutes while Day is open.")
-            if preferences.isOn(.dayMarkets) {
-                TextField(text: $symbols) {
-                    SettingsRowTitle(.notchcastDay, "Symbols")
-                    Text("Yahoo Finance symbols, separated by commas.")
+        if preferences.isOn(.dayWeather) || preferences.isOn(.dayMarkets) {
+            Section {
+                if preferences.isOn(.dayWeather) { DayCityField(store: weather) }
+                if preferences.isOn(.dayMarkets) {
+                    TextField(text: $symbols) {
+                        SettingsRowTitle(.notchcastDay, "Symbols")
+                        Text("Yahoo Finance symbols, separated by commas.")
+                    }
+                    .onAppear { symbols = markets.symbols.joined(separator: ", ") }
+                    .onSubmit(saveSymbols)
+                    .onDisappear(perform: saveSymbols)
                 }
-                .onAppear { symbols = markets.symbols.joined(separator: ", ") }
-                .onSubmit(saveSymbols)
-                .onDisappear(perform: saveSymbols)
+            } header: {
+                SettingsSectionHeader(.notchcastDay)
             }
-        } header: {
-            SettingsSectionHeader(.notchcastDay)
+            .settingsEnabled(preferences.isOn(.island))
         }
-        .settingsEnabled(preferences.isOn(.island))
     }
 
     private func saveSymbols() {

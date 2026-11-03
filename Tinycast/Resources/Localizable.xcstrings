@@ -625,58 +625,6 @@
     }
   }
 },
-"Display Brightness" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Displayhelligkeit"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Brillo de pantalla"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Luminosité de l’écran"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "ディスプレイの明るさ"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "디스플레이 밝기"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Brilho do ecrã"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Яркость дисплея"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "显示器亮度"
-      }
-    }
-  }
-},
 "Display brightness" : {
   "localizations": {
     "de": {
@@ -885,7 +833,7 @@
     }
   }
 },
-"Low Disk Warning" : {
+"Low disk warning" : {
   "localizations": {
     "de": {
       "stringUnit": {
@@ -989,58 +937,6 @@
     }
   }
 },
-"Low disk space" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Wenig Speicherplatz"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Poco espacio en disco"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Espace disque faible"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "ディスク容量不足"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "디스크 공간 부족"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Pouco espaço em disco"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Мало места на диске"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "磁盘空间不足"
-      }
-    }
-  }
-},
 "Markets" : {
   "localizations": {
     "de": {
@@ -1089,58 +985,6 @@
       "stringUnit": {
         "state": "translated",
         "value": "市场"
-      }
-    }
-  }
-},
-"Microphone mute in the island" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Mikrofonstummschaltung in der Insel"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Silencio del micrófono en la isla"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Microphone coupé dans l’îlot"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "アイランドにマイクのミュートを表示"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "아일랜드에 마이크 음소거 표시"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Microfone silenciado na ilha"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Состояние микрофона в островке"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "在灵动岛中显示麦克风静音状态"
       }
     }
   }
@@ -1457,58 +1301,6 @@
     }
   }
 },
-"Protect ⌘Q" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "⌘Q schützen"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Proteger ⌘Q"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Protéger ⌘Q"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "⌘Qを保護"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "⌘Q 보호"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Proteger ⌘Q"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Защита ⌘Q"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "保护 ⌘Q"
-      }
-    }
-  }
-},
 "Protect ⌘W" : {
   "localizations": {
     "de": {
@@ -1557,58 +1349,6 @@
       "stringUnit": {
         "state": "translated",
         "value": "保护 ⌘W"
-      }
-    }
-  }
-},
-"Quit Protection" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Beendigungsschutz"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Protección de cierre"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Protection contre la fermeture"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "終了保護"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "종료 보호"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Proteção de encerramento"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Защита от закрытия"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "退出保护"
       }
     }
   }
@@ -1821,58 +1561,6 @@
     }
   }
 },
-"Shows when the microphone is muted or unmuted." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Zeigt an, wenn das Mikrofon stummgeschaltet oder aktiviert wird."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Muestra cuando se silencia o activa el micrófono."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "S’affiche quand le microphone est coupé ou réactivé."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "マイクのミュートと解除を表示します。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "마이크를 음소거하거나 해제할 때 표시합니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Mostra quando o microfone é silenciado ou reativado."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Показывает отключение и включение микрофона."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "在麦克风静音或取消静音时显示。"
-      }
-    }
-  }
-},
 "Software dimming" : {
   "localizations": {
     "de": {
@@ -1973,58 +1661,6 @@
       "stringUnit": {
         "state": "translated",
         "value": "防止误操作导致 App 退出。"
-      }
-    }
-  }
-},
-"System Notices" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Systemhinweise"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Avisos del sistema"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Notifications système"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "システム通知"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "시스템 알림"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Avisos do sistema"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Системные уведомления"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "系统通知"
       }
     }
   }
@@ -2133,58 +1769,6 @@
     }
   }
 },
-"Tailscale isn’t installed." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscale ist nicht installiert."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscale no está instalado."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscale n’est pas installé."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscaleがインストールされていません。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscale이 설치되어 있지 않습니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "O Tailscale não está instalado."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscale не установлен."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "尚未安装 Tailscale。"
-      }
-    }
-  }
-},
 "These apps quit and close without asking." : {
   "localizations": {
     "de": {
@@ -2289,7 +1873,7 @@
     }
   }
 },
-"Volume in Island" : {
+"Volume in island" : {
   "localizations": {
     "de": {
       "stringUnit": {
@@ -2337,162 +1921,6 @@
       "stringUnit": {
         "state": "translated",
         "value": "灵动岛音量"
-      }
-    }
-  }
-},
-"Volume in the island" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Lautstärke in der Insel"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Volumen en la isla"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Volume dans l’îlot"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "アイランドの音量表示"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "아일랜드에 음량 표시"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Volume na ilha"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Громкость в островке"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "灵动岛音量"
-      }
-    }
-  }
-},
-"When Tailscale connects, drops or needs you." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Wenn Tailscale verbunden oder getrennt wird oder eine Aktion braucht."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Cuando Tailscale se conecta, desconecta o requiere atención."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Quand Tailscale se connecte, se déconnecte ou demande votre attention."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscaleの接続・切断時や対応が必要なときに通知します。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscale이 연결되거나 끊기거나 조치가 필요할 때 알립니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Quando o Tailscale liga, desliga ou precisa de atenção."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Когда Tailscale подключается, отключается или требует внимания."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Tailscale 连接、断开或需要操作时提醒。"
-      }
-    }
-  }
-},
-"When Wi-Fi connects or drops." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Wenn WLAN verbunden oder getrennt wird."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Cuando el wifi se conecta o desconecta."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Quand le Wi-Fi se connecte ou se déconnecte."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Wi-Fiの接続・切断時に通知します。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Wi-Fi가 연결되거나 끊길 때 알립니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Quando o Wi-Fi liga ou desliga."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "При подключении или отключении Wi-Fi."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Wi-Fi 连接或断开时提醒。"
       }
     }
   }
@@ -2649,58 +2077,6 @@
       "stringUnit": {
         "state": "translated",
         "value": "Yahoo Finance 代码，以逗号分隔。"
-      }
-    }
-  }
-},
-"At %lld%% and %lld%% while on battery." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Bei %1$lld %% und %2$lld %% im Batteriebetrieb."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Al %1$lld %% y al %2$lld %% al usar la batería."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "À %1$lld %% et %2$lld %% sur batterie."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "バッテリー使用時に%1$lld%%と%2$lld%%で通知します。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "배터리 사용 중 %1$lld%%와 %2$lld%%일 때 알립니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Aos %1$lld%% e %2$lld%% ao usar a bateria."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "При %1$lld%% и %2$lld%% заряда при работе от аккумулятора."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "使用电池时在电量达到 %1$lld%% 和 %2$lld%% 时提醒。"
       }
     }
   }
@@ -56990,7 +56366,7 @@
         }
       }
     },
-    "External Displays" : {
+    "External displays" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -60384,7 +59760,7 @@
         }
       }
     },
-    "Full-Screen Apps" : {
+    "Full-screen apps" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -71592,7 +70968,7 @@
         }
       }
     },
-    "Launcher from Island" : {
+    "Launcher from island" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -73259,7 +72635,7 @@
         }
       }
     },
-    "Live Activities" : {
+    "Live activities" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -90627,7 +90003,7 @@
         }
       }
     },
-    "Open on Hover" : {
+    "Open on hover" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -115904,7 +115280,7 @@
         }
       }
     },
-    "Status Messages" : {
+    "Status messages" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
