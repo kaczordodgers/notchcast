@@ -1,23 +1,11 @@
 import Foundation
 import Observation
+import OSLog
 
 @MainActor @Observable
 final class DownloadQueue {
-    private(set) var jobs: [DownloadJob] {
-        get {
-            let now = clock()
-            if now >= nextExpiryCheck {
-                nextExpiryCheck = now.addingTimeInterval(60)
-                let count = storedJobs.count
-                expire(now: now)
-                if storedJobs.count != count { save() }
-            }
-            return storedJobs
-        }
-        set { storedJobs = newValue }
-    }
+    var jobs: [DownloadJob] { storedJobs }
     private var storedJobs: [DownloadJob] = []
-    @ObservationIgnored private var nextExpiryCheck = Date.distantPast
     private(set) var persistenceError: String?
     let maxConcurrent: Int
     var destination: URL
@@ -238,11 +226,13 @@ final class DownloadQueue {
     @concurrent
     private static func load(file: URL?, now: Date) async throws -> (jobs: [DownloadJob], error: String?) {
         guard let file, FileManager.default.fileExists(atPath: file.path) else { return ([], nil) }
-        let data = try Data(contentsOf: file)
         var jobs: [DownloadJob]
         do {
+            let data = try Data(contentsOf: file)
             jobs = try JSONDecoder().decode([DownloadJob].self, from: data)
         } catch {
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast", category: "Downloads")
+                .error("Could not load downloads: \(error.localizedDescription, privacy: .public)")
             let badFile = file.appendingPathExtension("bad")
             if FileManager.default.fileExists(atPath: badFile.path) {
                 try FileManager.default.moveItem(at: badFile, to: badFile.appendingPathExtension(UUID().uuidString))
