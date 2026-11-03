@@ -59,10 +59,10 @@ else
     trap '/bin/rm -rf "$stage"' EXIT
 fi
 
-step /bin/cp "$source_directory/RootContract.swift" "$source_directory/main.swift" "$stage/"
-step /usr/bin/shasum -a 256 "$stage/RootContract.swift" "$stage/main.swift"
+step /bin/cp "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$stage/"
+step /usr/bin/shasum -a 256 "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift"
 step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/RootContract.swift" \
-    "$stage/main.swift" -o "$stage/helper"
+    "$stage/main.swift" "$stage/FanSMC.swift" -o "$stage/helper"
 if [ "$dry_run" -eq 1 ]; then
     printf 'Would write %s with exactly one rule:\n' "$stage/notchcast"
     printf '%s ALL=(root) NOPASSWD: %s\n' "$console_user" "$helper"
