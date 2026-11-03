@@ -67,15 +67,13 @@ nonisolated enum DistillFileAccess {
         return text.hasPrefix("\u{FEFF}") ? String(text.dropFirst()) : text
     }
 
-    static func output(for source: URL) throws -> URL {
+    static func output(for source: URL, matching hash: String, in root: URL) throws -> URL {
         let candidates = [source.deletingPathExtension().appendingPathExtension("md"), source.appendingPathExtension("md")]
-        for candidate in candidates where !FileManager.default.fileExists(atPath: candidate.path) {
-            return candidate
-        }
-        for number in 2..<10_000 {
-            let name = source.lastPathComponent + " - Converted \(number).md"
-            let candidate = source.deletingLastPathComponent().appendingPathComponent(name)
+        for index in 0..<10_000 {
+            let candidate = index < 2 ? candidates[index] : source.deletingLastPathComponent()
+                .appendingPathComponent(source.lastPathComponent + " - Converted \(index).md")
             if !FileManager.default.fileExists(atPath: candidate.path) { return candidate }
+            if let existing = try? snapshot(candidate, in: root), existing.hash == hash { return candidate }
         }
         throw DistillConversion.Failure.noOutputName
     }

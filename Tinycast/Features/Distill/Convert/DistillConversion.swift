@@ -4,8 +4,20 @@ nonisolated struct DistillConversion: Sendable {
     var markdown: String
     var retainSource = true
 
-    enum Failure: Error {
+    enum Failure: LocalizedError {
         case unreadable, empty, tooLarge, sourceChanged, outputChanged, unsafePath, noOutputName
+
+        var errorDescription: String? {
+            switch self {
+            case .unreadable: String(localized: "The source could not be read.")
+            case .empty: String(localized: "The source contains no readable text.")
+            case .tooLarge: String(localized: "The file exceeds the conversion size limit.")
+            case .sourceChanged: String(localized: "The source changed during conversion. Try again.")
+            case .outputChanged: String(localized: "The converted output changed. The original was kept.")
+            case .unsafePath: String(localized: "The file path is unsafe for conversion.")
+            case .noOutputName: String(localized: "No unused name is available for the converted output.")
+            }
+        }
     }
 
     struct Result: Sendable {

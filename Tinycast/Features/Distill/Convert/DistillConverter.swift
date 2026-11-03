@@ -24,7 +24,7 @@ nonisolated struct DistillConverter: Sendable {
     func convert(
         folder: URL, report: @Sendable (DistillConversion.Result) async -> Void = { _ in }
     ) async throws -> [DistillConversion.Result] {
-        let input = folder.standardizedFileURL
+        let input = folder.standardizedFileURL.resolvingSymlinksInPath()
         let isDirectory = try input.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
         let root = (isDirectory.isDirectory == true && isDirectory.isSymbolicLink != true
             ? input : input.deletingLastPathComponent()).resolvingSymlinksInPath()
@@ -75,9 +75,11 @@ nonisolated struct DistillConverter: Sendable {
                 guard try DistillFileAccess.snapshot(source, in: root) == original else {
                     throw DistillConversion.Failure.sourceChanged
                 }
-                let target = try DistillFileAccess.output(for: source)
+                let target = try DistillFileAccess.output(for: source, matching: DistillFileAccess.hash(data), in: root)
                 try DistillFileAccess.check(target.deletingLastPathComponent(), in: root, allowingRoot: true)
-                try data.write(to: target, options: .withoutOverwriting)
+                if !FileManager.default.fileExists(atPath: target.path) {
+                    try data.write(to: target, options: .withoutOverwriting)
+                }
                 output = target
                 receipt = Receipt(
                     sourceHash: original.hash, outputName: target.lastPathComponent,
@@ -105,7 +107,7 @@ nonisolated struct DistillConverter: Sendable {
         } catch is CancellationError {
             throw CancellationError()
         } catch {
-            return .init(source: source, output: output, status: .failed(String(describing: error)))
+            return .init(source: source, output: output, status: .failed(error.localizedDescription))
         }
     }
 
