@@ -15,10 +15,20 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
             Section {
                 ForEach(options, id: \.self) { feature in
-                    NotchcastFeatureToggle(feature: feature, anchor: .notchcastOptions)
+                    Toggle(isOn: binding(feature)) {
+                        SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
+                        Text(feature.subtitle)
+                    }
+                    .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
                 }
-            } header: { SettingsSectionHeader(.notchcastOptions) }
-                .settingsEnabled(preferences.isOn(.island))
+            } header: {
+                SettingsSectionHeader(.notchcastOptions)
+            }
+
+            BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
+            TimerSettingsSection(store: NotchcastCore.timers.store)
+            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
             Section {
                 Picker(selection: Binding(
@@ -58,9 +68,11 @@ struct NotchcastSettingsView: View {
         .notchcastEnvironment()
     }
 
+    /// Island options and feature switches; music and microphone switches have their own sections.
     private var options: [NotchcastFeature] {
-        [.islandExternalDisplays, .islandFullScreen, .islandHoverOpen, .islandStatusMessages,
-         .islandLiveActivities, .launcherFromIsland]
+        let own: Set<NotchcastFeature> = [.island, .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic,
+                                          .spotifyConnect, .microphoneMute, .inUseMarks]
+        return NotchcastFeature.allCases.filter { !own.contains($0) }
     }
 
     /// Grants needed by the switches that are on, in a stable order.

@@ -9,6 +9,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case spotifyConnect
     case microphoneMute
     case inUseMarks
+    case lowDiskWarning
+    case systemNotices
+    case volumeLevels
+    case displayBrightness
+    case quitProtection
+    case liveTimers
+    case dayWeather
+    case dayMarkets
 
     var defaultOn: Bool { self != .spotifyConnect }
 
@@ -16,7 +24,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         switch self {
         case .island: []
         case .musicLastPlayer, .spotifyConnect: [.island, .musicNowPlaying]
-        default: [.island]
+        default: needsIsland ? [.island] : []
         }
     }
 
@@ -35,6 +43,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .spotifyConnect: String(localized: "Spotify Connect speaker")
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
+        case .lowDiskWarning: String(localized: "Low Disk Warning")
+        case .systemNotices: String(localized: "System Notices")
+        case .volumeLevels: String(localized: "Volume in Island")
+        case .displayBrightness: String(localized: "Display Brightness")
+        case .quitProtection: String(localized: "Quit Protection")
+        case .liveTimers: String(localized: "Timers")
+        case .dayWeather: String(localized: "Weather")
+        case .dayMarkets: String(localized: "Markets")
         }
     }
 
@@ -53,19 +69,33 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .spotifyConnect: String(localized: "Play Spotify on this Mac from your phone, without the Spotify app.")
         case .microphoneMute: String(localized: "F5 mutes every microphone. Press it again to unmute.")
         case .inUseMarks: String(localized: "Show a mark in the island while the camera or a microphone is on.")
+        case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.")
+        case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.")
+        case .volumeLevels: String(localized: "Replaces the macOS volume overlay.")
+        case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
+        case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
+        case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .musicLastPlayer, .musicBlockAppleMusic: [.accessibility]
+        case .musicLastPlayer, .musicBlockAppleMusic, .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .musicNowPlaying, .spotifyConnect, .microphoneMute, .inUseMarks:
+            .musicNowPlaying, .spotifyConnect, .microphoneMute, .inUseMarks,
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
             []
         }
     }
+}
+
+extension NotchcastFeature {
+    /// Shows only in the island, so its switch follows the island switch in Settings.
+    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
