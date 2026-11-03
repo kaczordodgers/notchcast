@@ -84,6 +84,9 @@ jobs:
           git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
           test "$(git rev-parse refs/remotes/upstream/main)" = "${{ needs.plan.outputs.upstream_main }}" || git fetch -q https://github.com/abue-ammar/tinycast.git "${{ needs.plan.outputs.upstream_main }}"
           python3 ../tools/notchcast/ci.py replay . "${{ needs.plan.outputs.upstream_main }}"
+      - name: Regenerate project before building main
+        working-directory: src
+        run: '"$XCODEGEN" generate --quiet'
       - name: Build (Debug, unsigned)
         working-directory: src
         run: |
