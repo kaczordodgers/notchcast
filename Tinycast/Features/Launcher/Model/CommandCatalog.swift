@@ -66,7 +66,7 @@ extension SettingsTab {
         case .emoji: [.searchEmoji]
         case .calendar:
             [.joinNextMeeting, .mySchedule, .createEvent, .copyMeetingLink, .openInCalendar]
-        case .notchcast: [.toggleIsland]
+        case .notchcast: [.toggleIsland, .openCurrentPlayer]
         default: []
         }
     }

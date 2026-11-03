@@ -33,6 +33,7 @@ final class SystemActionCoordinator {
     private func perform(
         _ action: SystemAction, previousApp: NSRunningApplication?, volume: Float32?
     ) async {
+        if MusicCommands.run(action.id, core: core) || MicrophoneCommands.run(action.id) { return }
         if action.id == .toggleMicrophoneMute, let microphone = NotchcastCore.services?.microphone {
             microphone.toggle()
             return

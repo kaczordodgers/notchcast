@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor
 final class NotchcastServices {
     let music: MusicNowPlayingModule
+    let commandFeedback: MusicCommandFeedback
     let lastPlayer: MusicLastPlayerModule
     let appleMusic: MusicBlockAppleMusicModule
     let spotify: SpotifyConnectModule
@@ -14,6 +15,7 @@ final class NotchcastServices {
     init(core: AppCore, preferences: NotchcastPreferences) {
         let music = MusicNowPlayingModule(defaults: preferences.engineDefaults)
         self.music = music
+        commandFeedback = MusicCommandFeedback(music: music, core: core)
         lastPlayer = MusicLastPlayerModule(model: music.model)
         appleMusic = MusicBlockAppleMusicModule(music: music)
         spotify = SpotifyConnectModule(source: music.soloist, defaults: preferences.engineDefaults)

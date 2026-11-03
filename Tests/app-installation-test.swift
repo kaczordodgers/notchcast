@@ -4,6 +4,11 @@ import Synchronization
 
 private let receivedWorkspaceLaunch = Mutex(false)
 
+@MainActor
+enum MusicCommands {
+    static func listed(_ results: AppIndex.Results) -> AppIndex.Results { results }
+}
+
 @main
 @MainActor
 struct AppInstallationTest {

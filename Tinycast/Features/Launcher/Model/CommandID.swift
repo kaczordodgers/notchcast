@@ -49,6 +49,7 @@ enum CommandID: String, CaseIterable, Sendable {
     case support = "command:support"
     case quit = "command:quit"
     case toggleIsland = "command:toggle-island"
+    case openCurrentPlayer = "command:open-current-player"
 
     static let defaultCompactBarCommands: [CommandID] = [
         .clipboardHistory, .searchEmoji, .searchFiles, .searchQuicklinks
@@ -125,6 +126,7 @@ enum CommandID: String, CaseIterable, Sendable {
         case .support: return "Support Tinycast"
         case .quit: return "Quit Tinycast"
         case .toggleIsland: return "Toggle Island"
+        case .openCurrentPlayer: return "Open Current Player"
         }
     }
 
@@ -176,6 +178,7 @@ enum CommandID: String, CaseIterable, Sendable {
         case .support: return "heart"
         case .quit: return "power"
         case .toggleIsland: return "rectangle.topthird.inset.filled"
+        case .openCurrentPlayer: return "music.note"
         }
     }
 

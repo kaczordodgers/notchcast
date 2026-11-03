@@ -740,7 +740,7 @@ final class AppIndex {
             match: matchKey(q, limit: 200), visibilityRevision: visibility.revision,
             favoritesRevision: favorites.revision, hotKeysRevision: hotKeys.revision,
             showsSuggestions: showsSuggestions, minute: Int(usage.now.timeIntervalSince1970 / 60))
-        return resultsMemo.value(for: key) {
+        return MusicCommands.listed(resultsMemo.value(for: key) {
             // Filtering stays downstream of `matches` so that memo is never keyed on hidden state.
             let matched = searchResults(q)
             let visible = matched.entries.filter(visibility.isVisible)
@@ -759,7 +759,7 @@ final class AppIndex {
                 entries: split.favorites + meetings + suggested + rest.filter { $0.kind != .meeting },
                 favoriteCount: split.favorites.count, meetingCount: meetings.count,
                 suggestionCount: suggested.count)
-        }
+        })
     }
 
     private var sensitivity: SearchSensitivity { settings?.rootSearchSensitivity ?? .default }

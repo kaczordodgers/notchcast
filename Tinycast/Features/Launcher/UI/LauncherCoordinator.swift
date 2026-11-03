@@ -272,6 +272,7 @@ final class LauncherCoordinator {
         case .quit:
             NSApp.terminate(nil)
         case .toggleIsland: dismissPalette(); IslandController.shared.toggle()
+        case .openCurrentPlayer: dismissPalette(); MusicCommands.openCurrentPlayer(core: core)
         }
     }
 
