@@ -1,7 +1,9 @@
 import AppKit
+import Observation
 import Synchronization
 
-final class AppearanceThemeColors: Sendable {
+@Observable final class AppearanceThemeColors: Sendable {
+    static let shared = AppearanceThemeColors()
     enum Role: Sendable {
         case text, selection, background, backgroundSecondary
     }
@@ -35,6 +37,7 @@ final class AppearanceThemeColors: Sendable {
         var preview: Palette?
         var previewSlot: RaycastTheme.Appearance?
         var opacity = AppearanceStore.defaultOpacity
+        var revision = 0
 
         func palette(dark isDark: Bool) -> Palette? {
             if previewSlot == (isDark ? .dark : .light) { return preview }
@@ -44,6 +47,11 @@ final class AppearanceThemeColors: Sendable {
 
     private let state = Mutex(State())
 
+    var revision: Int {
+        access(keyPath: \.revision)
+        return state.withLock { $0.revision }
+    }
+
     @MainActor
     func update(
         light: RaycastTheme?, dark: RaycastTheme?, preview: RaycastThemeLink.Target?, opacity: Double
@@ -51,7 +59,13 @@ final class AppearanceThemeColors: Sendable {
         let next = State(
             light: light.flatMap(Palette.init), dark: dark.flatMap(Palette.init),
             preview: preview?.theme.flatMap(Palette.init), previewSlot: preview?.appearance, opacity: opacity)
-        state.withLock { $0 = next }
+        withMutation(keyPath: \.revision) {
+            state.withLock {
+                let revision = $0.revision &+ 1
+                $0 = next
+                $0.revision = revision
+            }
+        }
     }
 
     func ink(_ role: Role, in appearance: NSAppearance, dark: Double, light: Double) -> NSColor? {

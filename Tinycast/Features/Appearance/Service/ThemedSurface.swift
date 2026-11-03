@@ -28,8 +28,6 @@ final class ThemedSurface: NSView {
         updateFill()
     }
 
-    override func hitTest(_ point: NSPoint) -> NSView? { nil }
-
     private func installSurface() {
         surface.frame = bounds
         surface.autoresizingMask = [.width, .height]

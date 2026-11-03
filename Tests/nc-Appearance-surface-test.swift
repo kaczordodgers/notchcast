@@ -27,9 +27,10 @@ struct AppearanceSurfaceTest {
         surface.appearance = NSAppearance(named: .aqua)
         surface.viewDidChangeEffectiveAppearance()
         precondition(fill.layer?.backgroundColor == NSColor.white.withAlphaComponent(0.68).cgColor)
-        precondition(surface.hitTest(.zero) == nil)
         surface.apply(.glass)
         precondition(surface.subviews.count == 1 && surface.subviews[0] is NSGlassEffectView)
-        print("Surface checks passed: native glass, opaque black, adaptive matte, one child, passive hit testing")
+        let point = NSPoint(x: 100, y: 100)
+        precondition(surface.hitTest(point) === surface.subviews[0].hitTest(point))
+        print("Surface checks passed: native glass, opaque black, adaptive matte, native hit testing")
     }
 }
