@@ -303,6 +303,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
         let session = drag
         drag = nil
         dropGuides.hide()
+        guard !NotchcastLauncherPlacement.isActive else { return }
         guard let session, session.moved, let anchor else { return }
         if session.snap.centeredX && session.snap.height == .home {
             core.settings.setPalettePosition(nil, on: session.displayKey, expandedCenter: false)
@@ -502,7 +503,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     /// Cached until hide, so both placements read one `visibleFrame`; a drag outranks the setting.
     private func resolveAnchor() -> CGPoint? {
         if let anchor { return anchor }
-        let resolved = targetScreen().flatMap { restoredAnchor(on: $0) ?? defaultAnchor(on: $0) }
+        let resolved = targetScreen().flatMap { NotchcastLauncherPlacement.anchor(on: $0, width: metrics.size.panelWidth) ?? restoredAnchor(on: $0) ?? defaultAnchor(on: $0) }
         anchor = resolved
         return resolved
     }
