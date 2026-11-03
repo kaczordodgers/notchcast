@@ -6,7 +6,7 @@ import Synchronization
 struct DistillTest {
     @MainActor private final class Recognition {
         var counts = [Int]()
-        var answers = ["A first chunk ends with the shared words.", "THE shared words, followed by new speech."]
+        var answers = ["A first chunk ends.", "New speech follows."]
 
         func transcribe(_ samples: [Float]) -> String {
             counts.append(samples.count)
@@ -29,6 +29,7 @@ struct DistillTest {
         try testQueue(root: root)
         try testPublication(root: root)
         try await testTranscription(root: root)
+        try await testBusy()
         try await testRunner(root: root)
         print("Distill passed: links, dedupe, naming, chunks, timestamps, legacy import, publication and cancellation")
     }
@@ -67,20 +68,13 @@ struct DistillTest {
     }
 
     private static func testChunkPlan() {
-        precondition(DistillAudioChunks.plan(sampleCount: 0).isEmpty)
-        let maximum = Int64(DistillAudioChunks.maximumSamples)
-        precondition(DistillAudioChunks.plan(sampleCount: maximum).count == 1)
-        let chunks = DistillAudioChunks.plan(sampleCount: maximum * 3 + 17)
-        precondition(chunks.count == 4 && chunks.first?.offset == 0)
-        precondition(chunks.last.map { $0.offset + Int64($0.count) } == maximum * 3 + 17)
-        for (previous, next) in zip(chunks, chunks.dropFirst()) {
-            precondition(previous.offset + Int64(previous.count) - next.offset == Int64(DistillAudioChunks.overlapSamples))
-            precondition(next.count <= DictationWire.maximumSamples && next.start > previous.start)
-        }
-        precondition(DistillAudioChunks.removingOverlap(
-            previous: "A shared phrase.", next: "SHARED phrase, new words") == "new words")
-        precondition(DistillAudioChunks.removingOverlap(previous: "yes", next: "yes, yes") == "yes, yes")
-        precondition(DistillAudioChunks.removingOverlap(previous: "Other content", next: "Different words") == "Different words")
+        let maximum = DistillAudioChunks.maximumSamples
+        var samples = [Float](repeating: 1, count: maximum)
+        let silence = (maximum - 24_000)..<(maximum - 20_800)
+        samples.replaceSubrange(silence, with: repeatElement(Float.zero, count: silence.count))
+        let cut = DistillAudioChunks.cut(in: samples, final: false)
+        precondition(silence.contains(cut) && cut < DictationWire.maximumSamples)
+        precondition(DistillAudioChunks.cut(in: samples, final: true) == maximum)
     }
 
     private static func testLegacy(root: URL) throws {
@@ -164,10 +158,11 @@ struct DistillTest {
         let result = try await transcriber.transcribePCM(file: pcm) { completed, _ in
             progress.withLock { $0.append(completed) }
         }
-        precondition(recognition.counts == [DistillAudioChunks.maximumSamples, 48_000])
-        precondition(result.count == 2 && result[1].start == 238)
-        precondition(result[1].text == "followed by new speech.")
-        precondition(DistillTranscript.text(result, times: true).contains("[00:03:58] followed by new speech."))
+        precondition(recognition.counts == [DistillAudioChunks.maximumSamples - 1_600, 17_600])
+        precondition(recognition.counts.reduce(0, +) == count)
+        precondition(result.count == 2 && result[1].start == 239.9)
+        precondition(result[1].text == "New speech follows.")
+        precondition(DistillTranscript.text(result, times: true).contains("[00:03:59] New speech follows."))
         precondition(!DistillTranscript.text(result, times: false).contains("[00:"))
         precondition(progress.withLock { $0 } == [1, 2])
         let cancelled = Task { try await transcriber.transcribePCM(file: pcm) }
@@ -182,6 +177,36 @@ struct DistillTest {
             _ = try await transcriber.transcribePCM(file: pcm)
             preconditionFailure("Corrupt PCM accepted")
         } catch is CocoaError {}
+    }
+
+    @MainActor
+    private static func testBusy() async throws {
+        var attempts = 0
+        let retrying = DistillTranscriber { _ in
+            attempts += 1
+            if attempts <= 3 { throw DictationWire.Failure.busy }
+            return "Ready"
+        }
+        let text = try await retrying.recognizeWhenAvailable([0])
+        precondition(text == "Ready" && attempts == 4)
+        let ready = AsyncStream<Void>.makeStream()
+        let busy = DistillTranscriber { _ in
+            ready.continuation.yield(())
+            throw DictationWire.Failure.busy
+        }
+        let task = Task { try await busy.recognizeWhenAvailable([0]) }
+        var iterator = ready.stream.makeAsyncIterator()
+        _ = await iterator.next()
+        task.cancel()
+        do {
+            _ = try await task.value
+            preconditionFailure("Busy retry ignored cancellation")
+        } catch is CancellationError {}
+        let failed = DistillTranscriber { _ in throw DictationWire.Failure.notInstalled }
+        do {
+            _ = try await failed.recognizeWhenAvailable([0])
+            preconditionFailure("Non-busy error retried")
+        } catch DictationWire.Failure.notInstalled {}
     }
 
     @MainActor
@@ -221,7 +246,7 @@ struct DistillTest {
         try check(String(contentsOf: result, encoding: .utf8) == "A transcript.\n")
         precondition(stages.withLock { $0 } == ["Transcribing 1 of 1"])
         try check(FileManager.default.contentsOfDirectory(atPath: work.path).isEmpty)
-        let page = try await runner.run(source: "https://example.com/article", destination: root, context: context)
+        let page = try await runner.run(source: "https://open.spotify.com/track/fixture", destination: root, context: context)
         precondition(page.lastPathComponent == "webpage.md")
         let unavailable = DistillRunner(transcriber: runner.transcriber, workDirectory: work)
         do {
