@@ -942,6 +942,7 @@ run downloads-queue-test Tinycast/Features/Downloads/Model/*.swift Tinycast/Feat
 
 run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
 run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+run downloads-media-test Tinycast/Features/Downloads/Media/*.swift Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
 
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
