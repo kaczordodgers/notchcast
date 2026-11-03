@@ -30,5 +30,5 @@ dependency in the pure deep-link parser. Toggle Island's legacy link still works
 already use upstream `togglePalette`; any new island action needs a design decision.
 
 `notchcast-commands-test` compiles the shipped catalog, registration and hotkey mapping.
-The two upstream index/settings harnesses use empty fork-catalog fixtures through
+The three upstream index/settings/hotkey harnesses use empty fork-catalog fixtures through
 one compiler-source hook; no harness registration is added to the upstream runner.
