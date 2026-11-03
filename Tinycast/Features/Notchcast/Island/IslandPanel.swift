@@ -4,6 +4,7 @@ import SwiftUI
 final class IslandPanel: NSPanel {
     let hardwareNotch: CGRect?
     private let screenFrame: CGRect
+    var displayFrame: CGRect { screenFrame }
     private let surface: IslandSurfaceView
     private var open = false
     private var contentHeight = NotchcastTheme.estimatedContentHeight
@@ -41,7 +42,7 @@ final class IslandPanel: NSPanel {
         }
     }
 
-    override var canBecomeKey: Bool { false }
+    override var canBecomeKey: Bool { open }
     override var canBecomeMain: Bool { false }
 
     func setContent(open: AnyView, closed: IslandController.ClosedContent) {
@@ -65,6 +66,7 @@ final class IslandPanel: NSPanel {
 
     func setOpen(_ open: Bool, animated: Bool) {
         self.open = open
+        if !open && isKeyWindow { resignKey() }
         present(animated: animated)
     }
 

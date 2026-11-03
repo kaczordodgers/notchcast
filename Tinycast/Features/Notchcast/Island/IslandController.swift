@@ -23,6 +23,7 @@ final class IslandController: NotchcastModule {
     }
 
     @ObservationIgnored private var panels: [IslandPanel] = []
+    @ObservationIgnored private weak var openPanel: IslandPanel?
     @ObservationIgnored private var screenObservation: NotificationToken?
     @ObservationIgnored private var mouseMonitors: [Any] = []
     @ObservationIgnored private var observationID: UUID?
@@ -56,29 +57,42 @@ final class IslandController: NotchcastModule {
         isPinned = false
     }
 
-    func open(page: String) {
+    func open(page: String, on screen: NSScreen? = nil, takeKey: Bool = false) {
         guard observationID != nil else { return }
+        let frames = panels.map(\.displayFrame)
+        let point = screen.map { CGPoint(x: $0.frame.midX, y: $0.frame.midY) } ?? NSEvent.mouseLocation
+        guard let index = IslandGeometry.screenIndex(containing: point, frames: frames),
+              panels[index].isVisible else { return }
+        if openPanel !== panels[index] { openPanel?.setOpen(false, animated: true) }
+        openPanel = panels[index]
         self.page = page
         isOpen = true
-        panels.forEach { $0.setOpen(true, animated: true) }
+        openPanel?.setOpen(true, animated: true)
+        if takeKey { openPanel?.makeKey() }
     }
 
     func close() {
         isOpen = false
         isPinned = false
-        panels.forEach { $0.setOpen(false, animated: true) }
+        openPanel?.setOpen(false, animated: true)
+        openPanel = nil
     }
 
     func toggle() {
-        if isOpen { close() } else { open(page: page) }
+        if isOpen { close() } else { open(page: page, takeKey: true) }
     }
 
     private func rebuildPanels() {
+        let previousFrame = openPanel?.displayFrame
         panels.forEach { $0.close() }
+        openPanel = nil
         panels = NSScreen.screens.map(IslandPanel.init(screen:))
         updateContent()
-        panels.forEach { $0.setOpen(isOpen, animated: false) }
         applyPreferences()
+        if isOpen, let panel = panels.first(where: { $0.displayFrame == previousFrame && $0.isVisible }) {
+            openPanel = panel
+            panel.setOpen(true, animated: false)
+        } else { close() }
     }
 
     private func updateContent() {
@@ -112,6 +126,7 @@ final class IslandController: NotchcastModule {
     }
 
     private func watchPointer() {
+        // The global pointer monitor is the deliberate M0 hook for island hit-region tracking.
         let events: NSEvent.EventTypeMask = [.mouseMoved, .leftMouseDragged, .rightMouseDragged,
                                              .otherMouseDragged, .leftMouseDown, .rightMouseDown,
                                              .otherMouseDown]
