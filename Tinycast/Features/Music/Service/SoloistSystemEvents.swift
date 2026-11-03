@@ -4,7 +4,8 @@ import Foundation
 @MainActor
 enum SoloistSystemEvents {
     static func watch(wake: @escaping @MainActor () -> Void,
-                      launch: @escaping @MainActor () -> Void) -> SoloistCancellation {
+                      launch: @escaping @MainActor () -> Void,
+                      terminate: @escaping @MainActor () -> Void) -> SoloistCancellation {
         let center = NSWorkspace.shared.notificationCenter
         let wakeToken = NotificationToken(center.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
@@ -12,7 +13,10 @@ enum SoloistSystemEvents {
         let launchToken = NotificationToken(center.addObserver(
             forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main
         ) { _ in Task { @MainActor in launch() } }, center: center)
-        return SoloistCancellation { _ = (wakeToken, launchToken) }
+        let terminationToken = NotificationToken(NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification, object: nil, queue: .main
+        ) { _ in MainActor.assumeIsolated { terminate() } }, center: .default)
+        return SoloistCancellation { _ = (wakeToken, launchToken, terminationToken) }
     }
 
     static func answers(port: Int) async -> Bool {
