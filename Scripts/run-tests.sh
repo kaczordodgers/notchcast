@@ -935,6 +935,7 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
+run now-playing-adapter-test -parse-as-library Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/NowPlayingAdapterReply.swift Tinycast/Features/Music/Service/SystemNowPlayingSource.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
