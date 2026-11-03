@@ -40,6 +40,7 @@ BOT = {
     "GIT_COMMITTER_NAME": "github-actions[bot]",
     "GIT_COMMITTER_EMAIL": "41898282+github-actions[bot]@users.noreply.github.com",
 }
+AUTHOR = "Damian <336236323+kaczordodgers@users.noreply.github.com>"
 TAG_RE = re.compile(r"v(\d+)\.(\d+)\.(\d+)(?:-[a-z]+\.(\d+))?")
 
 
@@ -197,12 +198,12 @@ def replay(tree, onto, check=False):
                     run("git", "checkout", "HEAD", "--", path, cwd=tree)
                 else:
                     run("git", "rm", "-q", "-f", "--ignore-unmatch", "--", path, cwd=tree)
-        run("git", "commit", "-q", "--allow-empty", "--no-verify", "-C", sha, cwd=tree, env=BOT)
+        run("git", "commit", "-q", "--no-verify", "--allow-empty", "-C", sha, "--author", AUTHOR, cwd=tree, env=BOT)
     if not check:
         regenerate(tree, onto)
         run("git", "add", "-A", "--", *GENERATED, cwd=tree)
         message = ["-C", generated_commit] if generated_commit else ["-m", GENERATED_COMMIT]
-        run("git", "commit", "-q", "--allow-empty", "--no-verify", *message, cwd=tree, env=BOT)
+        run("git", "commit", "-q", "--no-verify", "--allow-empty", *message, "--author", AUTHOR, cwd=tree, env=BOT)
     print(run("git", "log", "--format=%h %an | %cn | %s", f"{onto}..HEAD", cwd=tree))
 
 
