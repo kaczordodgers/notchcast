@@ -93,7 +93,8 @@ private final class CoverServer {
                         guard let data, let request = String(data: data, encoding: .utf8) else { return }
                         self.requests.append(request.components(separatedBy: " ")[1])
                         if self.requests.count == 1 { return }
-                        let response = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\nConnection: close\r\n\r\ncover"
+                        let status = self.requests.last == "/failed" ? "500 Failure" : "200 OK"
+                        let response = "HTTP/1.1 \(status)\r\nContent-Length: 5\r\nConnection: close\r\n\r\ncover"
                         connection.send(content: Data(response.utf8), completion: .contentProcessed { _ in
                             connection.cancel()
                         })
@@ -208,6 +209,14 @@ struct SoloistSourceTest {
         }
         let artwork = try await source.read()?.artwork
         precondition(artwork == Data("cover".utf8))
+        server.send(coverSnapshot("failed"), server.connections[0])
+        try await wait {
+            if case .artwork = source.failure { return true }
+            return false
+        }
+        for _ in 0..<5 { server.send(coverSnapshot("failed"), server.connections[0]) }
+        try await Task.sleep(for: .milliseconds(200))
+        precondition(coverServer.requests.filter { $0 == "/failed" }.count == 1)
         server.connections[0].cancel()
         try await wait { !source.isConnected }
         let retained = try await source.read()

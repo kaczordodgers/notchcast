@@ -179,6 +179,7 @@ struct NowPlayingAdapterTests {
         let source = SystemNowPlayingSource(bundle: bundle)
         var changes = 0
         source.watch { changes += 1 }
+        expect(try await source.read() == nil, "Starting source is idle")
         try await waitFor { source.state == .watching }
         expect(try await source.read()?.title == "Fixture", "Source reads helper metadata")
         source.send(.play)

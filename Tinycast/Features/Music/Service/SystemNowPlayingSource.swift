@@ -70,7 +70,8 @@ final class SystemNowPlayingSource: NowPlayingSource {
         switch state {
         case .watching: return playback
         case .retrying(let failure): throw failure
-        case .stopped, .starting: throw NowPlayingAdapterReply.Failure.unavailable
+        case .starting: return nil
+        case .stopped: throw NowPlayingAdapterReply.Failure.unavailable
         }
     }
 

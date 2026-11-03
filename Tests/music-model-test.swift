@@ -97,7 +97,7 @@ private final class Desk {
                        played.append($0)
                        if playFailures > 0 {
                            playFailures -= 1
-                           throw PlayerApps.Failure.automation(-600)
+                           throw NSError(domain: NSOSStatusErrorDomain, code: playFailures == 1 ? -609 : -600)
                        }
                    }, watchLaunches: { _ in [] }, quit: { _ in false },
                    canPlay: { $0 == "test.player" || $0 == LastPlayer.spotify })
@@ -137,7 +137,42 @@ struct MusicModelTest {
         await resume()
         await coldLaunch()
         await disabledFailures()
+        await failureRecovery()
+        capabilityCache()
         print("PASS music-model: selection, routing, 1/2/4s retries, stale reads, last player and cancellation")
+    }
+
+    @MainActor
+    static func capabilityCache() {
+        let suite = "last-player-cache.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        var calls = 0
+        let player = LastPlayer(defaults: defaults, canPlay: { id in calls += 1; return id == "test.player" })
+        player.setEnabled(true)
+        for _ in 0..<5 {
+            player.hear(track())
+            player.hear(track(bundleID: "unsupported"))
+        }
+        assert(calls == 2)
+    }
+
+    @MainActor
+    static func failureRecovery() async {
+        let desk = Desk()
+        await desk.start()
+        desk.failOpen = true
+        await desk.model.openReplacement(startingPlayback: false).value
+        assert(desk.model.failure != nil)
+        desk.model.send(.pause)
+        assert(desk.model.failure == nil)
+        await desk.model.openReplacement(startingPlayback: false).value
+        assert(desk.model.failure != nil)
+        desk.system.track = track()
+        desk.system.onChange?()
+        await settle()
+        assert(desk.model.failure == nil)
+        desk.stop()
     }
 
     static func selection() {

@@ -12,8 +12,6 @@ struct SoloistFiles: Sendable {
     var cache: URL { root.appending(path: "cache", directoryHint: .isDirectory) }
     var portFile: URL { data.appending(path: "ws.port") }
     var addressFile: URL { data.appending(path: "ws.addr") }
-    var childRecord: URL { root.appending(path: "notchcast-soloist.pid") }
-    var rejectedArchive: URL { root.appending(path: "rejected.sha256") }
 
     func makeFolders() throws {
         for folder in [builds, data, cache] {
@@ -40,20 +38,6 @@ struct SoloistFiles: Sendable {
         let executable = URL(filePath: path).standardizedFileURL.resolvingSymlinksInPath()
         let directory = builds.standardizedFileURL.resolvingSymlinksInPath()
         return executable.lastPathComponent == "soloist" && executable.path.hasPrefix(directory.path + "/")
-    }
-
-    func recordedChild() -> Int32? {
-        guard let text = try? String(contentsOf: childRecord, encoding: .utf8) else { return nil }
-        return Int32(text)
-    }
-
-    func recordChild(_ pid: Int32) throws {
-        try String(pid).write(to: childRecord, atomically: true, encoding: .utf8)
-    }
-
-    func forgetChild(_ pid: Int32) {
-        guard recordedChild() == pid else { return }
-        try? FileManager.default.removeItem(at: childRecord)
     }
 
     func arguments(key: String, deviceName: String) -> [String] {

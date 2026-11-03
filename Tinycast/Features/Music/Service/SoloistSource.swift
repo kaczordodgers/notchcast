@@ -15,6 +15,7 @@ final class SoloistSource: NowPlayingSource {
     private var sender: Task<Void, Never>?
     private var coverTask: Task<Void, Never>?
     private var coverURL: URL?
+    private var failedCoverURL: URL?
     private var covers: [URL: Data] = [:]
     private var attemptedCovers: Set<URL> = []
     private let session: URLSession
@@ -115,7 +116,8 @@ final class SoloistSource: NowPlayingSource {
         coverURL = url
         coverTask?.cancel()
         coverTask = nil
-        guard let url, ["https", "http"].contains(url.scheme), !attemptedCovers.contains(url) else { return }
+        guard let url, url != failedCoverURL,
+              ["https", "http"].contains(url.scheme), !attemptedCovers.contains(url) else { return }
         let session = session
         coverTask = Task { [weak self] in
             do {
@@ -134,6 +136,7 @@ final class SoloistSource: NowPlayingSource {
                 guard !Task.isCancelled, let self, self.coverURL == url else { return }
                 self.coverTask = nil
                 self.failure = .artwork
+                self.failedCoverURL = url
                 self.onChange?()
             }
         }

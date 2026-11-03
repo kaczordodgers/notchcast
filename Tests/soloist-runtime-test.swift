@@ -4,6 +4,7 @@
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 import CryptoKit
+import Darwin
 import Foundation
 import Synchronization
 
@@ -193,14 +194,14 @@ struct SoloistRuntimeTest {
         }
         let refusedFiles = SoloistFiles(root: root.appending(path: "refused"))
         let probes = Mutex(0)
-        let refused = SoloistInstaller(files: refusedFiles, now: { clock.withLock { $0 } }, fetch: { _ in bytes }, probe: { _ in
-            probes.withLock { $0 += 1 }
-            return nil
+        let refused = SoloistInstaller(files: refusedFiles, now: { clock.withLock { $0 } }, fetch: { _ in bytes }, probe: { url in
+            let count = probes.withLock { $0 += 1; return $0 }
+            return count == 1 ? nil : SoloistBuild(executable: url, version: "fixture", built: clock.withLock { $0 })
         })
         do { _ = try await refused.install(); preconditionFailure("accepted refused build") } catch {}
         clock.withLock { $0 = $0.addingTimeInterval(3_600) }
-        do { _ = try await refused.install(); preconditionFailure("accepted repeated archive") } catch {}
-        check(probes.withLock { $0 } == 1)
+        _ = try await refused.install()
+        check(probes.withLock { $0 } == 2)
         check(try FileManager.default.contentsOfDirectory(atPath: refusedFiles.root.path)
             .allSatisfy { !$0.hasPrefix("staging-") })
 
@@ -238,6 +239,17 @@ struct SoloistRuntimeTest {
     private static func processChecks() async throws {
         let result = try await SoloistProcess.run(URL(filePath: "/usr/bin/printf"), arguments: ["version fixture"])
         check(result.status == 0 && result.text == "version fixture")
+        let raced = try await SoloistProcess.run(URL(filePath: "/bin/sh"),
+            arguments: ["-c", "sleep 0.02; printf final"], readPipe: { descriptor, buffer, size in
+                let count = Darwin.read(descriptor, buffer, size)
+                if count < 0, errno == EAGAIN { usleep(200_000) }
+                return count
+            })
+        check(raced.text == "final", "lost output written between empty read and exit check")
+        for _ in 0..<100 {
+            let tail = try await SoloistProcess.run(URL(filePath: "/usr/bin/printf"), arguments: ["final output"])
+            check(tail.text == "final output")
+        }
         let started = ContinuousClock.now
         let timeout = try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["10"], timeout: .milliseconds(50))
         check(timeout.status != 0 && ContinuousClock.now - started < .seconds(3))

@@ -195,7 +195,6 @@ final class SoloistSpeaker {
             }
             child = launched
             childRun = run
-            try files.recordChild(launched.pid)
         } catch {
             stopChild()
             failedStart(reason: (error as? SoloistFailure) ?? .process)
@@ -230,16 +229,14 @@ final class SoloistSpeaker {
     }
 
     private func exited(run: UUID, status: Int32) {
-        if let retired = retiring.removeValue(forKey: run) {
-            files.forgetChild(retired.pid)
+        if retiring.removeValue(forKey: run) != nil {
             if retiring.isEmpty, restartWhenStopped {
                 restartWhenStopped = false
                 begin()
             }
             return
         }
-        guard childRun == run, let child else { return }
-        files.forgetChild(child.pid)
+        guard childRun == run, child != nil else { return }
         self.child = nil
         childRun = nil
         pending = nil
@@ -323,7 +320,6 @@ final class SoloistSpeaker {
 
     private func terminate() {
         setEnabled(false)
-        for child in retiring.values { files.forgetChild(child.pid) }
     }
 
     private func clearPort() {

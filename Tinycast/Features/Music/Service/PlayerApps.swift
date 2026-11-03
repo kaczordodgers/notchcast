@@ -66,6 +66,18 @@ struct PlayerApps {
         )
     }
 
+    static func isRetryable(_ error: any Error) -> Bool {
+        let status: Int
+        if case Failure.automation(let code) = error {
+            status = code
+        } else {
+            let error = error as NSError
+            guard error.domain == NSOSStatusErrorDomain else { return false }
+            status = error.code
+        }
+        return status == -600 || status == -609
+    }
+
     @concurrent
     private static func sendPlay(bundleID: String, bundleURL: URL) async throws {
         try Task.checkCancellation()
