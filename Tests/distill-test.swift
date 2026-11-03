@@ -1,3 +1,18 @@
+// notchcast-sources: Tinycast/Features/Distill/Model/*.swift
+// notchcast-sources: Tinycast/Features/Distill/Service/DistillTranscriber.swift
+// notchcast-sources: Tinycast/Features/Distill/Service/DistillRunner.swift
+// notchcast-sources: Tinycast/Features/Distill/Service/DistillQueue.swift
+// notchcast-sources: Tinycast/Features/Distill/Service/DownloadRunContext+Distill.swift
+// notchcast-sources: Tinycast/Features/Dictation/Model/DictationAudioChunks.swift
+// notchcast-sources: Tinycast/Features/Dictation/Model/DictationModel.swift
+// notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
+// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadRunner.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadRunContext.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
 import Foundation
 import Synchronization
 
