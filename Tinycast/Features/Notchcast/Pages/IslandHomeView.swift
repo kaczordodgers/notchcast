@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct IslandHomeView: View {
+    @Environment(\.metrics) private var metrics
     var body: some View {
         if NotchcastPreferences.shared.isOn(.islandLiveActivities),
            !IslandActivityCenter.shared.activities.isEmpty {
@@ -10,42 +11,43 @@ struct IslandHomeView: View {
                         IslandActivityRow(activity: activity)
                     }
                 }
-                .padding(Theme.Spacing.md)
+                .padding(metrics.spacing.md)
             }
             .edgeDissolve()
             .thinScrollbar()
             .frame(height: min(NotchcastTheme.maximumHeight - NotchcastTheme.monitorHeader,
                                CGFloat(IslandActivityCenter.shared.activities.count) * 56))
         } else {
-        VStack(spacing: Theme.Spacing.md) {
-            SymbolImage(name: "house", size: Theme.Size.dialogIcon)
+        VStack(spacing: metrics.spacing.md) {
+            SymbolImage(name: "house", size: metrics.size.dialogIcon)
                 .accessibilityHidden(true)
             Text("Nothing running right now")
-                .font(Theme.Typography.rowTrailing)
+                .font(metrics.typography.rowTrailing)
         }
         .foregroundStyle(Theme.Colors.textSecondary)
         .frame(maxWidth: .infinity)
-        .padding(Theme.Spacing.xxl)
+        .padding(metrics.spacing.xxl)
         }
     }
 }
 
 private struct IslandActivityRow: View {
+    @Environment(\.metrics) private var metrics
     let activity: IslandActivity
     @State private var hovered = false
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.lg) {
-            IslandActivityGlyph(activity: activity).frame(width: Theme.Size.resultRowIcon)
-            Text(activity.title).font(Theme.Typography.rowTitle)
+        HStack(spacing: metrics.spacing.lg) {
+            IslandActivityGlyph(activity: activity).frame(width: metrics.size.resultRowIcon)
+            Text(activity.title).font(metrics.typography.rowTitle)
             Spacer()
             IslandActivityValue(activity: activity)
-                .padding(.horizontal, Theme.Spacing.md)
-                .padding(.vertical, Theme.Spacing.xxs)
+                .padding(.horizontal, metrics.spacing.md)
+                .padding(.vertical, metrics.spacing.xxs)
                 .background(Theme.Colors.controlSurface, in: RoundedRectangle(cornerRadius: Theme.Radius.keyCap))
         }
-        .padding(.horizontal, Theme.Spacing.md)
-        .padding(.vertical, Theme.Spacing.sm)
+        .padding(.horizontal, metrics.spacing.md)
+        .padding(.vertical, metrics.spacing.sm)
         .background(hovered ? Theme.Colors.rowHover : .clear,
                     in: RoundedRectangle(cornerRadius: Theme.Radius.row))
         .armedHover($hovered)

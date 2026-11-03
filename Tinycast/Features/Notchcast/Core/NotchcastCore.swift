@@ -5,14 +5,11 @@ enum NotchcastCore {
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
-        let modules: [NotchcastModuleController.Entry] = [.init(feature: .island, module: IslandController.shared)]
-        let controller = NotchcastModuleController(modules)
+        let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.island], module: IslandController.shared)
+        ]
+        let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
-        let preferences = NotchcastPreferences.shared
-        preferences.onChange = { [weak controller, weak preferences] _ in
-            guard let preferences else { return }
-            controller?.update(preferences)
-        }
-        controller.update(preferences)
+        controller.run()
     }
 }

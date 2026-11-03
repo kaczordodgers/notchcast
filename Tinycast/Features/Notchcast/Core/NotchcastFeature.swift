@@ -7,12 +7,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var title: String {
         switch self {
         case .island: String(localized: "Island")
-        case .islandExternalDisplays: String(localized: "External displays")
-        case .islandFullScreen: String(localized: "Full-screen apps")
-        case .islandHoverOpen: String(localized: "Open on hover")
-        case .islandStatusMessages: String(localized: "Status messages")
-        case .islandLiveActivities: String(localized: "Live activities")
-        case .launcherFromIsland: String(localized: "Launcher from island")
+        case .islandExternalDisplays: String(localized: "External Displays")
+        case .islandFullScreen: String(localized: "Full-Screen Apps")
+        case .islandHoverOpen: String(localized: "Open on Hover")
+        case .islandStatusMessages: String(localized: "Status Messages")
+        case .islandLiveActivities: String(localized: "Live Activities")
+        case .launcherFromIsland: String(localized: "Launcher from Island")
         }
     }
 
@@ -27,4 +27,17 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherFromIsland: String(localized: "Open the launcher from the island.")
         }
     }
+
+    /// What the feature cannot work without; Settings lists these while the feature is on.
+    var requiredGrants: [NotchcastGrant] {
+        switch self {
+        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
+            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland:
+            []
+        }
+    }
+}
+
+enum NotchcastGrant: CaseIterable, Sendable {
+    case accessibility
 }
