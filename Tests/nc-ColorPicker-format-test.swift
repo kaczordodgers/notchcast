@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/ColorPicker/Model/*.swift
+// notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-sources: Tinycast/Features/ColorPicker/Service/*.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorValue.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorFormat.swift
@@ -19,7 +20,11 @@ struct ColorPickerTests {
         precondition(ColorPickerFormat.nsColorLiteral.string(for: color)
             == "#colorLiteral(red: 1.000000, green: 0.500000, blue: 0.000000, alpha: 0.250000)")
         precondition(ColorPickerFormat.hex.string(for: ColorValue(red: .nan, green: -1, blue: 2)) == "#0000FF")
-        let linear = NSColor(colorSpace: .extendedLinearSRGB, components: [0.5, 0.5, 0.5, 0.25], count: 4)
+        guard let space = CGColorSpace(name: CGColorSpace.extendedLinearSRGB),
+              let colorSpace = NSColorSpace(cgColorSpace: space) else {
+            fatalError("Missing linear color space")
+        }
+        let linear = NSColor(colorSpace: colorSpace, components: [0.5, 0.5, 0.5, 0.25], count: 4)
         guard let converted = ColorPickerService.sRGBValue(for: linear) else { fatalError("Conversion failed") }
         precondition(abs(converted.red - 0.735357) < 0.0001)
         precondition(abs(converted.alpha - 0.25) < 0.0001)
