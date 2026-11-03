@@ -782,6 +782,7 @@ run SettingsHistoryTests   Tinycast/Features/Settings/SettingsTab.swift \
                            Tinycast/Features/Settings/SettingsAnchor.swift \
                            Tinycast/Features/Settings/SettingsNavigationState.swift \
                            Tinycast/Features/Settings/SettingsSearchCatalog.swift \
+                           Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift \
                            $L/SearchRelevance.swift \
                            Tinycast/Platform/LocalizedResource.swift
 run UpdatesTests           Tinycast/Features/Updates/Model/*.swift \
@@ -941,6 +942,8 @@ for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .s
 run downloads-queue-test Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
 
 run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
