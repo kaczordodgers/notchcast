@@ -1,8 +1,10 @@
 import Foundation
 import IOKit
+import Synchronization
 
 nonisolated final class SMCClient: Sendable {
     private let connection: io_connect_t
+    private let metadata = Mutex<[String: SMCValue.KeyInfo?]>([:])
 
     init?() {
         let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSMC"))
@@ -16,9 +18,13 @@ nonisolated final class SMCClient: Sendable {
     deinit { IOServiceClose(connection) }
 
     func keyInfo(_ key: String) -> SMCValue.KeyInfo? {
-        guard let code = SMCWire.code(key),
-              let reply = call(.keyInfo, key: code) else { return nil }
-        return SMCWire.keyInfo(reply)
+        metadata.withLock { cache in
+            if let cached = cache[key] { return cached }
+            guard let code = SMCWire.code(key) else { return nil }
+            let info = call(.keyInfo, key: code).flatMap(SMCWire.keyInfo)
+            cache[key] = .some(info)
+            return info
+        }
     }
 
     func read(_ key: String) -> SMCValue? {

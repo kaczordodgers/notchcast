@@ -13,6 +13,7 @@ nonisolated struct SMCSensorReading: Sendable, Equatable {
     let gpuTemperature: Double?
     let systemPowerWatts: Double?
     let fans: [Fan]
+    var maximumCPUTemperature: Double?
 
     static func fanRPM(_ value: Double?) -> Double? {
         value.flatMap { $0.isFinite && (0...30_000).contains($0) ? $0 : nil }

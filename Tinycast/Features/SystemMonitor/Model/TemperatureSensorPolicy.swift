@@ -10,7 +10,10 @@ nonisolated enum TemperatureSensorPolicy {
 
     static func cpuKeys(brand: String) -> [String] {
         switch brand.trimmingCharacters(in: .whitespacesAndNewlines) {
-        case "Apple M1", "Apple M1 Pro", "Apple M1 Max", "Apple M1 Ultra":
+        case "Apple M1":
+            return ["Te0a", "Te0x", "Te3a", "Te3x", "Tp2a", "Tp2x", "Tp3a", "Tp3x",
+                    "Tp4a", "Tp4x", "Tp5a", "Tp5x", "Tp7a", "Tp7x", "Tp8a", "Tp8x", "Tp9a", "Tp9x"]
+        case "Apple M1 Pro", "Apple M1 Max", "Apple M1 Ultra":
             return ["Tp09", "Tp0T", "Tp01", "Tp05", "Tp0D", "Tp0H", "Tp0L", "Tp0P", "Tp0X", "Tp0b"]
         case "Apple M2", "Apple M2 Pro", "Apple M2 Max", "Apple M2 Ultra":
             return ["Tp1h", "Tp1t", "Tp1p", "Tp1l", "Tp01", "Tp05", "Tp09", "Tp0D", "Tp0X", "Tp0b", "Tp0f", "Tp0j"]
@@ -33,8 +36,14 @@ nonisolated enum TemperatureSensorPolicy {
         readings.filter { $0.isFinite && $0 >= 10 && $0 < 125 }.max()
     }
 
+    static func average(_ readings: [Double]) -> Double? {
+        let valid = readings.filter { $0.isFinite && $0 >= 10 && $0 < 125 }
+        return valid.isEmpty ? nil : valid.reduce(0, +) / Double(valid.count)
+    }
+
     static func isCPUKey(_ key: String, includesTf: Bool) -> Bool {
-        key.utf8.count == 4 && (key.hasPrefix("Tp") || key.hasPrefix("Te") || (includesTf && key.hasPrefix("Tf")))
+        key.utf8.count == 4 && !key.hasSuffix("b") && !key.hasSuffix("z")
+            && (key.hasPrefix("Tp") || key.hasPrefix("Te") || (includesTf && key.hasPrefix("Tf")))
     }
 
     static func isGPUKey(_ key: String) -> Bool {
