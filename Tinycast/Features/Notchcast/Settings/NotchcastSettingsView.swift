@@ -11,27 +11,6 @@ struct NotchcastSettingsView: View {
                         anchor: .notchcastIsland, title: "Island",
                         subtitle: "Show the island at the top of the screen.")
                 }
-            }
-            .settingsAnchor(.notchcastIsland)
-
-            Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
-                    Toggle(isOn: binding(feature)) {
-                        SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
-                        Text(feature.subtitle)
-                    }
-                    .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
-                }
-            } header: {
-                SettingsSectionHeader(.notchcastOptions)
-            }
-
-            BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
-            QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
-            TimerSettingsSection(store: NotchcastCore.timers.store)
-            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
-
-            Section {
                 Picker(selection: Binding(
                     get: { preferences.islandHoverDelay },
                     set: { preferences.islandHoverDelay = $0 })) {
@@ -41,9 +20,24 @@ struct NotchcastSettingsView: View {
                 } label: {
                     Text("Hover delay")
                 }
-                .settingsEnabled(preferences.isOn(.islandHoverOpen))
+                .settingsEnabled(preferences.isOn(.island) && preferences.isOn(.islandHoverOpen))
             }
-            .settingsEnabled(preferences.isOn(.island))
+            .settingsAnchor(.notchcastIsland)
+
+            featureSection(.notchcastOptions, features: [
+                .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
+                .islandStatusMessages, .islandLiveActivities,
+            ])
+            featureSection(.notchcastLauncher, features: [.launcherFromIsland])
+            featureSection(.notchcastSystem, features: [
+                .lowDiskWarning, .systemNotices, .volumeLevels, .displayBrightness, .quitProtection,
+            ])
+            featureSection(.notchcastActivities, features: [.liveTimers, .dayWeather, .dayMarkets])
+
+            BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
+            TimerSettingsSection(store: NotchcastCore.timers.store)
+            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
@@ -64,6 +58,20 @@ struct NotchcastSettingsView: View {
 
     private func binding(_ feature: NotchcastFeature) -> Binding<Bool> {
         Binding(get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })
+    }
+
+    private func featureSection(_ anchor: SettingsAnchor, features: [NotchcastFeature]) -> some View {
+        Section {
+            ForEach(features, id: \.self) { feature in
+                Toggle(isOn: binding(feature)) {
+                    SettingsRowTitle(anchor, verbatim: feature.title)
+                    Text(feature.subtitle)
+                }
+                .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
+            }
+        } header: {
+            SettingsSectionHeader(anchor)
+        }
     }
 }
 
