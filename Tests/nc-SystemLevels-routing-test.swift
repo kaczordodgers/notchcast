@@ -20,6 +20,12 @@ func CGDisplayBounds(_ display: UInt32) -> CGRect {
 }
 
 @MainActor
+enum BrightnessDisplayService {
+    static var available = true
+    static func isAvailable(_ id: BrightnessDisplay.ID) -> Bool { available }
+}
+
+@MainActor
 final class EventTapHub {
     enum Verdict { case pass, swallow }
     typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
@@ -131,6 +137,12 @@ struct SystemLevelRoutingTests {
         let step = brightness.controller.steps.first!
         check(step.0 && step.1 && step.2.rawValue == 2, "Brightness targets the display under the event pointer")
         check(keys.revision == 4, "Every applied press publishes a revision for island presentation")
+        BrightnessDisplayService.available = false
+        hub.send(.brightnessDown)
+        await eventually { brightness.controller.steps.count == 2 }
+        for _ in 0..<20 { await Task.yield() }
+        check(keys.revision == 4, "A disconnected or reused display cannot publish stale brightness")
+        BrightnessDisplayService.available = true
         preferences.set(.volumeLevels, false)
         await eventually { !levels.service.isRunning && keys.latest == nil }
         check(hub.handlers.count == 1, "Brightness remains registered with volume off")
