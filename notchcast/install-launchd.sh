@@ -1,5 +1,7 @@
 #!/bin/bash
-# Install the Notchcast launchd agents for this user. Usage: install-launchd.sh update|app|all
+# Install Notchcast for this user. Usage: install-launchd.sh all|update|app
+#   all     first install: update.sh installs /Applications/Notchcast.app, migrate.sh copies the old Tinycast data once,
+#           the old Tinycast .app goes to the Trash (its data stays), then both agents below are loaded.
 #   update  notchcast.update runs notchcast/update.sh every 30 min (needs gh logged in).
 #   app     notchcast.app runs the app itself: started at login, restarted 10 s after a crash or a Quit.
 #           Stop:  launchctl bootout gui/$(id -u)/notchcast.app
@@ -7,7 +9,9 @@
 # Builds and releases run on GitHub Actions (.github/workflows/sync.yml), not on a Mac.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-APP="/Applications/Tinycast Beta.app"
+# shellcheck disable=SC1091
+source "$HERE/config.env"
+APP="/Applications/$APP_NAME.app"
 LOGS="$HOME/Library/Logs/notchcast"
 DOMAIN="gui/$(id -u)"
 mkdir -p "$LOGS" "$HOME/Library/LaunchAgents"
@@ -43,12 +47,13 @@ install_update() {
 }
 
 install_app() {
-    local exe bundle_id
+    local exe
+    [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")" = "$BUNDLE_ID" ] \
+        || { echo "$APP is not $BUNDLE_ID" >&2; exit 1; }
     exe="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$APP/Contents/Info.plist")"
-    bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")"
-    # One instance only: a copy started by Finder or the login item quits before the agent starts its own.
+    # One instance only: a copy started by Finder quits before the agent starts its own.
     if pgrep -f "^$APP/Contents/MacOS/$exe( |$)" >/dev/null && ! launchctl print "$DOMAIN/notchcast.app" >/dev/null 2>&1; then
-        osascript -e "tell application id \"$bundle_id\" to quit" >/dev/null 2>&1 || true
+        osascript -e "tell application id \"$BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
         for _ in $(seq 1 20); do pgrep -f "^$APP/Contents/MacOS/$exe( |$)" >/dev/null || break; sleep 0.5; done
     fi
     # NOTCHCAST_LAUNCHD=1 makes the app keep its own login item off (commit "Notchcast: let a LaunchAgent own starting the app").
@@ -61,9 +66,22 @@ install_app() {
         "$APP/Contents/MacOS/$exe"
 }
 
+first_install() {
+    /bin/bash "$HERE/update.sh"
+    [ -d "$APP" ] || { echo "no $APP after update.sh; see its output" >&2; exit 1; }
+    /bin/bash "$HERE/migrate.sh"
+    # The old app goes to the Trash, never rm; its preferences, data and Keychain items stay where they are.
+    if [ -d "$OLD_APP" ]; then
+        local trashed
+        trashed="$HOME/.Trash/$(basename "$OLD_APP" .app) $(date +%Y%m%d-%H%M%S).app"
+        mv "$OLD_APP" "$trashed"
+        echo "old app moved to $trashed"
+    fi
+}
+
 case "${1:-}" in
+    all) first_install; install_update; install_app ;;
     update) install_update ;;
     app) install_app ;;
-    all) install_update; install_app ;;
-    *) echo "usage: $0 update|app|all" >&2; exit 2 ;;
+    *) echo "usage: $0 all|update|app" >&2; exit 2 ;;
 esac
