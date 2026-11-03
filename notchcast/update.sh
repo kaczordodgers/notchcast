@@ -61,6 +61,14 @@ alert_issues() {
 }
 alert_issues || log "issue check failed; retried next run"
 
+# The app's own "Automatically check for updates" toggle (Settings > General) governs this updater too: off means no
+# update is installed. A missing key or file means on; a first install (no app yet) is not an update.
+SETTINGS="$HOME/.config/$BUNDLE_ID/settings.json"
+if [ -d "$APP" ] && [ "$(jq -r '.general.automaticallyCheckForUpdates' "$SETTINGS" 2>/dev/null)" = false ]; then
+    log "automatic updates are off in $APP_NAME settings (general.automaticallyCheckForUpdates in $SETTINGS); not installing"
+    exit 0
+fi
+
 INSTALLED="" OURS=0
 if [ -d "$APP" ]; then
     [ "$(plist "$APP" CFBundleIdentifier)" = "$BUNDLE_ID" ] || { log "$APP is not $BUNDLE_ID; not touching it"; exit 0; }
