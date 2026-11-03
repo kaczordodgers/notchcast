@@ -48,17 +48,7 @@ struct NotchcastSettingsView: View {
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
 
-            Section {
-                NotchcastFeatureToggle(feature: .musicNowPlaying, anchor: .notchcastMusic)
-                NotchcastFeatureToggle(feature: .musicLastPlayer, anchor: .notchcastMusic)
-                    .settingsEnabled(preferences.isOn(.musicNowPlaying))
-                NotchcastFeatureToggle(feature: .musicBlockAppleMusic, anchor: .notchcastMusic)
-            } header: { SettingsSectionHeader(.notchcastMusic) }
-                .settingsEnabled(preferences.isOn(.island))
-            if NotchcastCore.services != nil {
-                SpotifySettingsSection()
-                MicrophoneSettingsSection()
-            }
+            NotchcastMusicSettings()
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
             }
