@@ -3,7 +3,22 @@ import WebKit
 
 @MainActor
 final class WebpageExtractor: NSObject, WKNavigationDelegate {
-    enum Failure: Error { case inUse, unavailable(Int), unsupportedContent, blocked, noContent, tooLarge, timedOut, renderFailed }
+    enum Failure: LocalizedError {
+        case inUse, unavailable(Int), unsupportedContent, blocked, noContent, tooLarge, timedOut, renderFailed
+
+        var errorDescription: String? {
+            switch self {
+            case .inUse: String(localized: "A webpage is already being saved.")
+            case .unavailable(let status): String(localized: "The webpage returned HTTP status \(status).")
+            case .unsupportedContent: String(localized: "This URL does not contain an HTML webpage.")
+            case .blocked: String(localized: "The webpage requires sign-in or a bot check.")
+            case .noContent: String(localized: "The webpage contains no readable article.")
+            case .tooLarge: String(localized: "The webpage is too large to save.")
+            case .timedOut: String(localized: "The webpage took too long to load.")
+            case .renderFailed: String(localized: "The webpage could not be rendered.")
+            }
+        }
+    }
 
     private var webView: WKWebView?
     private var continuation: CheckedContinuation<Void, any Error>?
