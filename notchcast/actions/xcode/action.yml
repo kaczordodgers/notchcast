@@ -1,0 +1,13 @@
+name: Select Xcode 27
+description: The newest released Xcode 27.x on the runner (real folders only; a symlink can point at a release candidate).
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: |
+        XCODE_PATH="$(find -E /Applications -maxdepth 1 -type d -regex '.*/Xcode_27(\.[0-9]+)*\.app' | sort -V | tail -n1)"
+        if [ -z "$XCODE_PATH" ]; then
+          echo "::error::No released Xcode 27.x on this runner:"; ls /Applications | grep -i xcode || true; exit 1
+        fi
+        echo "Using $XCODE_PATH"
+        echo "DEVELOPER_DIR=$XCODE_PATH/Contents/Developer" >> "$GITHUB_ENV"
