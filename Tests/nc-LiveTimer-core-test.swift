@@ -39,6 +39,7 @@ struct LiveTimerTest {
         precondition(sounds == 2)
         store.dismiss(sooner)
         precondition(!store.isRinging)
+        precondition(store.timers.first?.id == later)
         instant = now.addingTimeInterval(420)
         store.refresh()
         precondition(store.timers.first { $0.id == later }?.status == .missed)
@@ -56,9 +57,28 @@ struct LiveTimerTest {
         store.refresh()
         precondition(!store.isRinging)
         precondition(store.timers.first { $0.id == ringingDuringSleep }?.status == .missed)
+        store.dismiss(sleeping)
+        store.dismiss(ringingDuringSleep)
+        precondition(store.timers.isEmpty)
+        let savedTimer = store.start(60, label: "Tea")!
+        let savedAlarm = store.startAlarm("19:30", label: "Dinner")!
+        store.stop()
+        instant = instant.addingTimeInterval(360)
+        let restored = LiveTimerStore(defaults: defaults, clock: { instant }, calendar: { calendar },
+                                      playSound: { sounds += 1 }, stopSound: {})
+        precondition(restored.timers.map(\.id) == [savedTimer, savedAlarm])
+        precondition(restored.timers[0].status == .missed && restored.timers[0].label == "Tea")
+        precondition(restored.timers[1].kind == .alarm && restored.timers[1].status == .running)
+        restored.dismiss(savedTimer)
+        precondition(restored.timers.first?.id == savedAlarm)
+        restored.cancel(savedAlarm)
+        restored.stop()
+        let empty = LiveTimerStore(defaults: defaults, clock: { instant }, playSound: {}, stopSound: {})
+        precondition(empty.timers.isEmpty)
+        empty.stop()
         store.playSoundWhenTimeIsUp = false
         precondition(!LiveTimerStore(defaults: defaults, playSound: {}, stopSound: {}).playSoundWhenTimeIsUp)
         store.stop()
-        print("PASS parser, labels, alarms, ordering, countdown, ringing, dismissal, missed-on-wake, preferences")
+        print("PASS parser, alarms, ordering, ringing, dismissal removal, persistence, missed-on-reload, preferences")
     }
 }

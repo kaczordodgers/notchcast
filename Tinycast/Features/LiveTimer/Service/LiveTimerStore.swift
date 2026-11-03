@@ -1,9 +1,19 @@
 import AppKit
 import Observation
+import os
 
 @MainActor @Observable
 final class LiveTimerStore {
-    private(set) var timers: [LiveTimerEntry] = []
+    private(set) var timers: [LiveTimerEntry] = [] {
+        didSet {
+            guard timers != oldValue else { return }
+            do {
+                defaults.set(try JSONEncoder().encode(timers), forKey: Self.entriesKey)
+            } catch {
+                Self.logger.error("Failed to save timers: \(error)")
+            }
+        }
+    }
     var ringing: [LiveTimerEntry] { timers.filter { $0.status == .ringing } }
     var isRinging: Bool { !ringing.isEmpty }
     var nextTimer: LiveTimerEntry? { timers.first { $0.status == .running } }
@@ -15,6 +25,9 @@ final class LiveTimerStore {
     }
 
     private static let soundKey = "notchcast.liveTimer.playSound"
+    private static let entriesKey = "notchcast.liveTimer.entries"
+    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev",
+                                       category: "LiveTimerStore")
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let clock: () -> Date
     @ObservationIgnored private let calendar: () -> Calendar
@@ -24,7 +37,9 @@ final class LiveTimerStore {
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var nextSound: Date?
 
-    init(defaults: UserDefaults = .standard, clock: @escaping () -> Date = Date.init,
+    init(defaults: UserDefaults = UserDefaults(
+        suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+         clock: @escaping () -> Date = Date.init,
          calendar: @escaping () -> Calendar = { .autoupdatingCurrent },
          playSound: (() -> Void)? = nil, stopSound: (() -> Void)? = nil) {
         self.defaults = defaults
@@ -34,6 +49,14 @@ final class LiveTimerStore {
         self.playSound = playSound ?? { sound?.play() }
         self.stopSound = stopSound ?? { sound?.stop() }
         playSoundWhenTimeIsUp = defaults.object(forKey: Self.soundKey) as? Bool ?? true
+        if let data = defaults.data(forKey: Self.entriesKey) {
+            do {
+                timers = try JSONDecoder().decode([LiveTimerEntry].self, from: data)
+            } catch {
+                Self.logger.error("Failed to load timers: \(error)")
+            }
+        }
+        refresh()
     }
 
     isolated deinit { wake?.cancel(); stopSound() }
@@ -56,8 +79,7 @@ final class LiveTimerStore {
     }
 
     func dismiss(_ id: UUID) {
-        guard let index = timers.firstIndex(where: { $0.id == id && $0.status == .ringing }) else { return }
-        timers[index].status = .dismissed
+        timers.removeAll { $0.id == id && ($0.status == .ringing || $0.status == .missed) }
         refresh()
     }
 

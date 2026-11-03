@@ -1,8 +1,8 @@
 import Foundation
 
-struct LiveTimerEntry: Identifiable, Equatable, Sendable {
-    enum Kind: Sendable { case timer, alarm }
-    enum Status: Sendable { case running, ringing, missed, dismissed }
+struct LiveTimerEntry: Identifiable, Equatable, Sendable, Codable {
+    enum Kind: Sendable, Codable { case timer, alarm }
+    enum Status: Sendable, Codable { case running, ringing, missed }
 
     let id: UUID
     let kind: Kind
