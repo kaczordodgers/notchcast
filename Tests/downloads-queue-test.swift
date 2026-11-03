@@ -115,6 +115,8 @@ struct DownloadsQueueTest {
         expect(queue.jobs.count == 6, "seven-day terminal expiry")
         expect(queue.jobs[0].state == .interrupted && queue.jobs[0].finished == now, "running reload becomes interrupted")
         expect(queue.jobs[1].state == .waiting, "old waiting job survives expiry")
+        queue.register(OtherRunner())
+        expect(queue.jobs[1].state == .waiting, "restored job waits for its own runner")
         expect(queue.jobs[2].created == rows[2].created, "expiry uses finish date")
         let stored = try JSONDecoder().decode([DownloadJob].self, from: Data(contentsOf: file))
         expect(stored == queue.jobs, "recovery persisted atomically")
@@ -308,6 +310,13 @@ struct DownloadsQueueTest {
         }
 
         func end() { active -= 1 }
+    }
+
+    private struct OtherRunner: DownloadRunner {
+        let kind = "other"
+        var tools: [DownloadTool] = []
+
+        func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? { nil }
     }
 
     private struct GateRunner: DownloadRunner {

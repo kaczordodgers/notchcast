@@ -64,9 +64,16 @@ final class DownloadQueue {
     ) -> [DownloadJob] {
         let now = clock()
         expire(now: now)
+        let available = runners[kind] != nil
         let added = sources.map {
-            DownloadJob(id: UUID().uuidString, kind: kind, source: $0, title: $0,
-                        group: group, created: now, options: options)
+            var job = DownloadJob(id: UUID().uuidString, kind: kind, source: $0, title: $0,
+                                  group: group, created: now, options: options)
+            if !available {
+                job.state = .failed
+                job.finished = now
+                job.detail = String(localized: "This download type is not available.")
+            }
+            return job
         }
         storedJobs.append(contentsOf: added)
         save()
@@ -132,16 +139,10 @@ final class DownloadQueue {
     private func pump() {
         guard !stopped else { return }
         while tasks.count < maxConcurrent,
-              let job = storedJobs.first(where: { $0.state == .waiting && tasks[$0.id] == nil }) {
-            guard let runner = runners[job.kind] else {
-                if let index = storedJobs.firstIndex(where: { $0.id == job.id }) {
-                    storedJobs[index].state = .failed
-                    storedJobs[index].finished = clock()
-                    storedJobs[index].detail = String(localized: "This download type is not available.")
-                    save()
-                }
-                continue
-            }
+              let job = storedJobs.first(where: {
+                  $0.state == .waiting && tasks[$0.id] == nil && runners[$0.kind] != nil
+              }),
+              let runner = runners[job.kind] {
             begin(job, runner: runner)
         }
     }
