@@ -4,8 +4,8 @@ import OSLog
 
 @MainActor @Observable
 final class DownloadQueue {
-    var jobs: [DownloadJob] { storedJobs }
-    private var storedJobs: [DownloadJob] = []
+    nonisolated private static let logger = Logger(subsystem: "com.tinycast", category: "Downloads")
+    private(set) var jobs: [DownloadJob] = []
     private(set) var persistenceError: String?
     let maxConcurrent: Int
     var destination: URL
@@ -31,10 +31,10 @@ final class DownloadQueue {
         self.tools = tools
         self.clock = clock
         let loaded = try await Self.load(file: file, now: clock())
-        storedJobs = loaded.jobs
+        jobs = loaded.jobs
         save()
-        try await flush()
-        persistenceError = loaded.error
+        do { try await flush() } catch { Self.logger.error("Could not save downloads: \(error.localizedDescription)") }
+        persistenceError = loaded.error ?? persistenceError
     }
 
     isolated deinit {
@@ -63,43 +63,43 @@ final class DownloadQueue {
             }
             return job
         }
-        storedJobs.append(contentsOf: added)
+        jobs.append(contentsOf: added)
         save()
         pump()
         return added
     }
 
     func cancel(_ id: String) {
-        guard let index = storedJobs.firstIndex(where: { $0.id == id }), !storedJobs[index].state.isFinished else { return }
+        guard let index = jobs.firstIndex(where: { $0.id == id }), !jobs[index].state.isFinished else { return }
         tasks[id]?.cancel()
-        storedJobs[index].state = .cancelled
-        storedJobs[index].finished = clock()
+        jobs[index].state = .cancelled
+        jobs[index].finished = clock()
         save()
         pump()
     }
 
     func retry(_ id: String) {
-        guard let index = storedJobs.firstIndex(where: { $0.id == id }), storedJobs[index].state.isFinished else { return }
-        var job = storedJobs.remove(at: index)
+        guard let index = jobs.firstIndex(where: { $0.id == id }), jobs[index].state.isFinished else { return }
+        var job = jobs.remove(at: index)
         job.state = .waiting
         job.progress = nil
         job.output = nil
         job.detail = nil
         job.finished = nil
-        storedJobs.append(job)
+        jobs.append(job)
         save()
         pump()
     }
 
     func remove(_ id: String) {
         tasks[id]?.cancel()
-        storedJobs.removeAll { $0.id == id }
+        jobs.removeAll { $0.id == id }
         save()
         pump()
     }
 
     func clearFinished() {
-        storedJobs.removeAll { $0.state.isFinished }
+        jobs.removeAll { $0.state.isFinished }
         save()
     }
 
@@ -107,9 +107,9 @@ final class DownloadQueue {
         stopped = true
         let running = Array(tasks.values)
         for task in running { task.cancel() }
-        for index in storedJobs.indices where storedJobs[index].state == .running {
-            storedJobs[index].state = .interrupted
-            storedJobs[index].finished = clock()
+        for index in jobs.indices where jobs[index].state == .running {
+            jobs[index].state = .interrupted
+            jobs[index].finished = clock()
         }
         save()
         for task in running { await task.value }
@@ -127,7 +127,7 @@ final class DownloadQueue {
     private func pump() {
         guard !stopped else { return }
         while tasks.count < maxConcurrent,
-              let job = storedJobs.first(where: {
+              let job = jobs.first(where: {
                   $0.state == .waiting && tasks[$0.id] == nil && runners[$0.kind] != nil
               }),
               let runner = runners[job.kind] {
@@ -136,24 +136,24 @@ final class DownloadQueue {
     }
 
     private func begin(_ job: DownloadJob, runner: any DownloadRunner) {
-        guard let index = storedJobs.firstIndex(where: { $0.id == job.id }) else { return }
-        storedJobs[index].state = .running
+        guard let index = jobs.firstIndex(where: { $0.id == job.id }) else { return }
+        jobs[index].state = .running
         let operation = UUID()
         operations[job.id] = operation
         let context = DownloadRunContext(destination: destination, tools: tools, report: { [weak self] progress in
             guard let self, operations[job.id] == operation,
-                  let index = storedJobs.firstIndex(where: { $0.id == job.id }),
-                  storedJobs[index].state == .running else { return }
+                  let index = jobs.firstIndex(where: { $0.id == job.id }),
+                  jobs[index].state == .running else { return }
             var progress = progress
             if let fraction = progress.fraction { progress.fraction = fraction.isFinite ? min(1, max(0, fraction)) : nil }
-            storedJobs[index].progress = progress
+            jobs[index].progress = progress
         }, detail: { [weak self] detail in
             guard let self, operations[job.id] == operation,
-                  let index = storedJobs.firstIndex(where: { $0.id == job.id }),
-                  storedJobs[index].state == .running else { return }
-            storedJobs[index].detail = detail
+                  let index = jobs.firstIndex(where: { $0.id == job.id }),
+                  jobs[index].state == .running else { return }
+            jobs[index].detail = detail
         })
-        let runningJob = storedJobs[index]
+        let runningJob = jobs[index]
         tasks[job.id] = Task { [weak self, tools] in
             let result: Result<URL?, Error>
             do {
@@ -174,16 +174,17 @@ final class DownloadQueue {
         guard operations[id] == operation else { return }
         tasks[id] = nil
         operations[id] = nil
-        if let index = storedJobs.firstIndex(where: { $0.id == id }), storedJobs[index].state == .running {
-            storedJobs[index].finished = clock()
+        if let index = jobs.firstIndex(where: { $0.id == id }), jobs[index].state == .running {
+            jobs[index].finished = clock()
             switch result {
             case .success(let output):
-                storedJobs[index].state = .done
-                storedJobs[index].output = output?.path
+                jobs[index].state = .done
+                jobs[index].output = output?.path
             case .failure(let error):
-                storedJobs[index].state = error is CancellationError ? .cancelled : .failed
-                storedJobs[index].detail = error is CancellationError ? nil : error.localizedDescription
+                jobs[index].state = error is CancellationError ? .cancelled : .failed
+                jobs[index].detail = error is CancellationError ? nil : error.localizedDescription
             }
+            expire(now: clock())
             save()
         }
         pump()
@@ -202,14 +203,21 @@ final class DownloadQueue {
         var errorDescription: String? { tool.missingDetail }
     }
 
+    /// Drops finished rows older than 7 days; the app calls it when the list is shown or refreshed.
+    func expireFinished() {
+        let count = jobs.count
+        expire(now: clock())
+        if jobs.count != count { save() }
+    }
+
     private func expire(now: Date) {
         let cutoff = now.addingTimeInterval(-7 * 24 * 60 * 60)
-        storedJobs.removeAll { $0.state.isFinished && ($0.finished ?? $0.created) <= cutoff }
+        jobs.removeAll { $0.state.isFinished && ($0.finished ?? $0.created) <= cutoff }
     }
 
     private func save() {
         guard let file else { return }
-        let snapshot = storedJobs
+        let snapshot = jobs
         let previous = persistence
         persistence = Task { [weak self] in
             _ = try? await previous?.value
@@ -231,13 +239,16 @@ final class DownloadQueue {
             let data = try Data(contentsOf: file)
             jobs = try JSONDecoder().decode([DownloadJob].self, from: data)
         } catch {
-            Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast", category: "Downloads")
-                .error("Could not load downloads: \(error.localizedDescription, privacy: .public)")
+            Self.logger.error("Could not load downloads: \(error.localizedDescription)")
             let badFile = file.appendingPathExtension("bad")
             if FileManager.default.fileExists(atPath: badFile.path) {
-                try FileManager.default.moveItem(at: badFile, to: badFile.appendingPathExtension(UUID().uuidString))
+                try? FileManager.default.moveItem(at: badFile, to: badFile.appendingPathExtension(UUID().uuidString))
             }
-            try FileManager.default.moveItem(at: file, to: badFile)
+            do {
+                try FileManager.default.moveItem(at: file, to: badFile)
+            } catch {
+                Self.logger.error("Could not set aside the unreadable downloads file: \(error.localizedDescription)")
+            }
             return ([], error.localizedDescription)
         }
         let cutoff = now.addingTimeInterval(-7 * 24 * 60 * 60)
