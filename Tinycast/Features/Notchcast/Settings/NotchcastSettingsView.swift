@@ -7,8 +7,9 @@ struct NotchcastSettingsView: View {
         Form {
             Section {
                 Toggle(isOn: binding(.island)) {
-                    SettingsRowTitle(.notchcastIsland, verbatim: NotchcastFeature.island.title)
-                    Text(NotchcastFeature.island.subtitle)
+                    SettingsFeatureToggleLabel(
+                        anchor: .notchcastIsland, title: "Island",
+                        subtitle: "Show the island at the top of the screen.")
                 }
             }
             .settingsAnchor(.notchcastIsland)
