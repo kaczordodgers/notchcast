@@ -111,6 +111,17 @@ struct SystemMonitorCPUTests {
         expect(near(TemperatureSensorPolicy.average(fixed), expected), "M1 fixed keys match raw dump average")
         expect(!TemperatureSensorPolicy.isCPUKey("Tp2z", includesTf: false)
                && !TemperatureSensorPolicy.isCPUKey("Tp2b", includesTf: false), "derived keys rejected")
+        let fixture = ["Tp0b": 65.0, "Tp2z": 90.0, "Tp2b": 80.0]
+        for brand in ["Apple M1 Pro", "Apple M1 Max", "Apple M1 Ultra", "Apple M2", "Apple M4"] {
+            let readings = SMCSensorReader.temperatures(TemperatureSensorPolicy.cpuKeys(brand: brand),
+                                                       deadline: .infinity, value: { fixture[$0] })
+            expect(readings == [65], "fixed table uses Tp0b for \(brand)")
+        }
+        let discovered = ["Tp2z", "Tp2b"].filter {
+            TemperatureSensorPolicy.isCPUKey($0, includesTf: false)
+        }
+        expect(SMCSensorReader.temperatures(discovered, deadline: .infinity,
+                                          value: { fixture[$0] }).isEmpty, "discovery ignores derived b/z")
         expect(TemperatureSensorPolicy.hottest([20, 55, 40]) == 55, "hottest valid sensor")
         expect(TemperatureSensorPolicy.hottest([9.9, 125, .nan, .infinity, -1]) == nil, "implausible sensors")
         expect(TemperatureSensorPolicy.hottest([10, 124.9, 400]) == 124.9, "temperature boundaries")

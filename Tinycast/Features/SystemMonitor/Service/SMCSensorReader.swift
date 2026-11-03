@@ -41,12 +41,15 @@ nonisolated struct SMCSensorReader: Sendable {
     }
 
     private func temperatures(_ keys: [String], client: SMCClient, deadline: Double) -> [Double] {
+        Self.temperatures(keys, deadline: deadline, value: client.value)
+    }
+
+    static func temperatures(_ keys: [String], deadline: Double,
+                             value: (String) -> Double?) -> [Double] {
         var readings: [Double] = []
         for key in keys {
             guard ProcessInfo.processInfo.systemUptime < deadline else { break }
-            guard !key.hasPrefix("Tp") && !key.hasPrefix("Te")
-                || TemperatureSensorPolicy.isCPUKey(key, includesTf: true) else { continue }
-            if let value = client.value(key), TemperatureSensorPolicy.hottest([value]) != nil {
+            if let value = value(key), TemperatureSensorPolicy.hottest([value]) != nil {
                 readings.append(value)
             }
         }
