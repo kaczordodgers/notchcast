@@ -82,6 +82,10 @@ nonisolated enum ArchiveFiles {
         return root
     }
 
+    static func applyQuarantine(_ value: Data?, to item: URL) throws {
+        if let value { try apply(value, to: item, info: attributes(item)) }
+    }
+
     private static func apply(_ value: Data, to item: URL, info: stat) throws {
         let writable = info.st_mode & S_IFMT != S_IFLNK && info.st_mode & S_IWUSR == 0
         if writable, chmod(item.path, info.st_mode | S_IWUSR) != 0 {

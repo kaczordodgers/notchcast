@@ -62,7 +62,7 @@ nonisolated enum ArchiveProcess {
             }
         }
         exit.wait()
-        try Task.checkCancellation()
+        if Task.isCancelled, process.terminationStatus != 0 { throw CancellationError() }
         if let failure { throw failure }
         if captureListing, process.terminationStatus == 0 { try listing?.finish() }
         return Result(status: process.terminationStatus, listing: listing)
