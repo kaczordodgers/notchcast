@@ -91,6 +91,7 @@ final class QuitProtectionModule: NotchcastModule {
         timer?.invalidate()
         timer = nil
         activation = nil
+        layoutSource = nil
         state.value.withLock { $0 = Session() }
         notice = nil
     }
