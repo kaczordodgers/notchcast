@@ -3,7 +3,7 @@ import Foundation
 nonisolated enum ArchiveFormat {
     static let typeIdentifiers = [
         "public.zip-archive", "org.7-zip.7-zip-archive", "com.rarlab.rar-archive",
-        "public.tar-archive", "org.gnu.gnu-zip-tar-archive", "public.split-archive"
+        "public.tar-archive", "org.gnu.gnu-zip-tar-archive", "app.notchcast.split-archive"
     ]
 
     static func accepts(_ url: URL) -> Bool {

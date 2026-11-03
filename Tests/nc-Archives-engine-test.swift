@@ -14,12 +14,12 @@ struct ArchivesEngineTest {
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
             .appending(path: ".archive-fixtures/\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: root) }
+        defer { try? ArchiveFiles.removeStaging(root) }
         try rules()
         try await fakeTool(root)
         if let tool = ArchiveToolLocator().locate() {
             try await realTool(root, tool: tool)
-            print("PASS: installed hatchzip, throwaway ZIP/tar/tgz, quarantine, cleanup, exclusive publish")
+            print("PASS: installed hatchzip, ZIP/7z/tar/tgz/split ZIP, quarantine, readonly cleanup, exclusive publish")
         } else {
             print("NOT VERIFIED: hatchzip not installed; engine tested against a fake tool script")
         }
@@ -98,6 +98,7 @@ struct ArchivesEngineTest {
             if archive.name == 'space.zip': sys.exit(3)
             if archive.name == 'password.zip': sys.exit(5)
             if archive.name == 'damaged.zip': sys.exit(4)
+            if archive.name == 'solid.rar' and '--keep-archive' not in args: sys.exit(1)
         elif args[0] == 'extract':
             output = pathlib.Path(args[args.index('-o') + 1])
             (output / 'result').mkdir(exist_ok=True)
@@ -107,6 +108,21 @@ struct ArchivesEngineTest {
                 pathlib.Path(str(archive) + '.hatchzip').write_text(json.dumps({'keep': True, 'output': str(output)}))
                 time.sleep(30)
             if archive.name == 'failed.zip': sys.exit(1)
+            if archive.name in ('finalize.zip', 'post-fail.zip'):
+                archive.unlink()
+                if archive.name == 'post-fail.zip': os.symlink('/outside', output / 'result/bad')
+            if archive.name == 'resume.zip':
+                journal = pathlib.Path(str(archive) + '.hatchzip')
+                if journal.exists():
+                    journal.unlink()
+                    archive.unlink()
+                else:
+                    assert '-y' in args and '--keep-archive' not in args
+                    assert args[args.index('--keep-free') + 1] == '2GB'
+                    archive.write_text('partial')
+                    journal.write_text(json.dumps({'output': str(output), 'total_size': 4, 'parts': [[str(archive), 7]]}))
+                    signal.signal(signal.SIGINT, signal.SIG_IGN)
+                    time.sleep(30)
         """#
         try script.write(to: tool, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: tool.path)
@@ -145,18 +161,86 @@ struct ArchivesEngineTest {
         expect(!ArchiveFiles.exists(URL(fileURLWithPath: slow.path + ".hatchzip")), "keep journal cleaned")
         expect(try FileManager.default.contentsOfDirectory(atPath: root.path)
             .allSatisfy { !$0.hasPrefix(".notchcast-extract-") }, "staging cleaned")
+        for name in ["barrier.zip", "later.zip"] {
+            let archive = root.appending(path: name)
+            try Data("archive".utf8).write(to: archive)
+            queue.enqueue(archive)
+        }
         queue.retry(queue.jobs[5].id)
         try await wait(queue)
         expect(queue.jobs[5].failure == .toolFailed(1), "retry reexecutes")
+        let retriedCalls = try String(contentsOf: root.appending(path: "calls"), encoding: .utf8)
+        expect(retriedCalls.contains("extract later.zip\nlist failed.zip\n"), "retry joins FIFO tail")
         let missing = ArchiveQueue(runner: ArchiveExtractionRunner(locator: Locator(tool: nil)))
         missing.enqueue(slow)
         try await wait(missing)
         expect(missing.jobs[0].failure == .toolMissing, "missing tool typed")
+        try await inPlace(root, tool: tool)
+    }
+
+    @MainActor static func inPlace(_ root: URL, tool: URL) async throws {
+        let queue = ArchiveQueue(runner: ArchiveExtractionRunner(locator: Locator(tool: tool)))
+        let solid = root.appending(path: "solid.rar")
+        try Data("archive".utf8).write(to: solid)
+        queue.enqueue(solid, mode: .inPlace)
+        try await wait(queue)
+        expect(queue.jobs[0].effectiveMode == .keepArchive, "solid fallback mode")
+        expect(queue.jobs[0].fallback == .inPlaceCheckRefused(1), "fallback reason retained")
+        expect(ArchiveFiles.exists(solid), "solid source preserved")
+        let archive = root.appending(path: "resume.zip")
+        try Data("archive".utf8).write(to: archive)
+        let id = queue.enqueue(archive, mode: .inPlace)
+        let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
+        let deadline = ContinuousClock.now.advanced(by: .seconds(10))
+        while !ArchiveFiles.exists(journal) {
+            guard ContinuousClock.now < deadline else { fatalError("in-place child never started") }
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        queue.cancel(id)
+        try await wait(queue)
+        expect(queue.jobs[1].state == .cancelled, "in-place cancelled")
+        expect(ArchiveFiles.exists(journal), "in-place journal retained")
+        expect(try String(contentsOf: archive, encoding: .utf8) == "partial", "partial source retained")
+        guard let stage = queue.jobs[1].recovery?.staging else { fatalError("recovery missing") }
+        expect(ArchiveFiles.exists(stage.appending(path: "result/file.txt")), "in-place staging retained")
+        let defaultQueue = ArchiveQueue(runner: ArchiveExtractionRunner(locator: Locator(tool: tool)))
+        defaultQueue.enqueue(archive)
+        try await wait(defaultQueue)
+        expect(defaultQueue.jobs[0].failure == .existingProgress, "default mode never grants destructive resume")
+        queue.retry(id)
+        try await wait(queue)
+        expect(queue.jobs[1].state == .finished, "in-place retry resumes")
+        expect(queue.jobs[1].output != nil, "in-place result published")
+        expect(!ArchiveFiles.exists(journal), "resume completes journal cleanup")
+        let calls = try String(contentsOf: root.appending(path: "calls"), encoding: .utf8)
+        expect(calls.components(separatedBy: "list resume.zip\n").count == 2, "resume skips truncated archive preflight")
+        expect(!ArchiveFiles.exists(stage), "resume reuses original staging")
+        let completed = root.appending(path: "finalize.zip")
+        try Data("archive".utf8).write(to: completed)
+        let runner = ArchiveExtractionRunner(locator: Locator(tool: tool))
+        let publication = Task {
+            try await runner.extract(completed, mode: .inPlace) { update in
+                if update.recovery.readyToPublish { withUnsafeCurrentTask { $0?.cancel() } }
+            }
+        }
+        let published = try await publication.value
+        expect(ArchiveFiles.exists(published), "late cancellation still publishes consumed archive")
+        let failed = root.appending(path: "post-fail.zip")
+        try Data("archive".utf8).write(to: failed)
+        let failedID = queue.enqueue(failed, mode: .inPlace)
+        try await wait(queue)
+        guard let pending = queue.jobs.last?.recovery else { fatalError("publication recovery missing") }
+        expect(pending.readyToPublish && queue.jobs.last?.state == .failed, "publication failure retains recovery")
+        try FileManager.default.removeItem(at: pending.staging.appending(path: "result/bad"))
+        queue.retry(failedID)
+        try await wait(queue)
+        expect(queue.jobs.last?.state == .finished, "retry publishes completed extraction without source archive")
+        print("PASS: in-place cancellation/resume, keep fallback, late cancellation, publication retry")
     }
 
     @MainActor static func realTool(_ root: URL, tool: URL) async throws {
         let script = #"""
-        import pathlib, sys, tarfile, zipfile
+        import pathlib, stat, sys, tarfile, zipfile
         root = pathlib.Path(sys.argv[1])
         for name, entries in {
             'real.zip': {'Bundle/hello.txt': 'hello', '__MACOSX/._Bundle': 'junk', 'Bundle/._hello.txt': 'junk'},
@@ -169,10 +253,29 @@ struct ArchivesEngineTest {
         (root / 'source.txt').write_text('tar content')
         for name, mode in [('real.tar', 'w'), ('real.tgz', 'w:gz')]:
             with tarfile.open(root / name, mode) as archive: archive.add(root / 'source.txt', arcname='tar/file.txt')
+        raw = (root / 'one.zip').read_bytes()
+        for index, start in enumerate(range(0, len(raw), 40), 1):
+            (root / f'split.zip.{index:03}').write_bytes(raw[start:start+40])
+        with zipfile.ZipFile(root / 'badlink.zip', 'w') as archive:
+            link = zipfile.ZipInfo('outside')
+            link.create_system = 3
+            link.external_attr = (stat.S_IFLNK | 0o777) << 16
+            archive.writestr(link, '../outside')
+        with tarfile.open(root / 'readonly.tar', 'w') as archive:
+            directory = tarfile.TarInfo('ReadOnly/')
+            directory.type = tarfile.DIRTYPE
+            directory.mode = 0o500
+            archive.addfile(directory)
+            info = archive.gettarinfo(root / 'source.txt', arcname='ReadOnly/content.txt')
+            info.mode = 0o400
+            with (root / 'source.txt').open('rb') as file: archive.addfile(info, file)
         """#
         let generation = try await ArchiveProcess.run(
             tool: URL(fileURLWithPath: "/usr/bin/python3"), arguments: ["-c", script, root.path])
         try ArchiveProcess.validate(generation.status)
+        let sevenZip = try await ArchiveProcess.run(tool: URL(fileURLWithPath: "/usr/bin/tar"),
+            arguments: ["--format", "7zip", "-cf", root.appending(path: "real.7z").path, "-C", root.path, "source.txt"])
+        try ArchiveProcess.validate(sevenZip.status)
         let archive = root.appending(path: "real.zip")
         let warning = Data("0081;00000000;ArchivesHarness;".utf8)
         let status = warning.withUnsafeBytes {
@@ -189,16 +292,58 @@ struct ArchivesEngineTest {
         expect(ArchiveFiles.exists(archive), "archive kept")
         let again = try await runner.extract(archive)
         expect(again.lastPathComponent == "Bundle 2", "real exclusive collision")
-        for name in ["one.zip", "real.tar", "real.tgz"] {
+        for name in ["one.zip", "real.tar", "real.tgz", "real.7z", "split.zip.001", "readonly.tar"] {
             let result = try await runner.extract(root.appending(path: name))
             expect(ArchiveFiles.exists(result), "real \(name)")
         }
-        for name in ["unsafe.zip", "collision.zip"] {
+        let destructive = root.appending(path: "one.zip")
+        let result = try await runner.extract(destructive, mode: .inPlace)
+        expect(ArchiveFiles.exists(result), "real in-place output")
+        expect(!ArchiveFiles.exists(destructive), "real in-place source consumed")
+        try await realResume(root, runner: runner, tool: tool)
+        for name in ["unsafe.zip", "collision.zip", "badlink.zip"] {
             do {
                 _ = try await runner.extract(root.appending(path: name))
                 fatalError("unsafe extraction succeeded")
             } catch is ArchiveFailure {}
         }
         expect(!ArchiveFiles.exists(root.appending(path: "escaped.txt")), "no path escape")
+    }
+
+    @MainActor static func realResume(_ root: URL, runner: ArchiveExtractionRunner, tool: URL) async throws {
+        let archive = root.appending(path: "real-resume.zip")
+        let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let script = #"""
+        import pathlib, signal, subprocess, sys, time, zipfile
+        tool, source, output = sys.argv[1:]
+        archive = pathlib.Path(source)
+        with zipfile.ZipFile(archive, 'w') as file:
+            for index in range(2000): file.writestr(f'resumed/{index:04}.bin', b'x' * 32768)
+        pathlib.Path(output).mkdir(mode=0o700)
+        child = subprocess.Popen([tool, 'extract', '-y', '-q', '--keep-free', '2GB', '-o', output, source],
+                                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        journal = pathlib.Path(source + '.hatchzip')
+        deadline = time.monotonic() + 15
+        while child.poll() is None and time.monotonic() < deadline:
+            if journal.exists():
+                child.send_signal(signal.SIGINT)
+                break
+            time.sleep(.001)
+        status = child.wait(timeout=15)
+        assert status == 130 and journal.exists(), 'real extraction did not pause'
+        """#
+        let pause = try await ArchiveProcess.run(tool: URL(fileURLWithPath: "/usr/bin/python3"),
+                                               arguments: ["-c", script, tool.path, archive.path, staging.path])
+        try ArchiveProcess.validate(pause.status)
+        let parsed = try ArchiveJournal.read(archive)
+        expect(parsed?.mode == .inPlace, "real journal parsed")
+        expect(parsed?.recovery.staging.path == staging.path, "real journal destination")
+        let output = try await runner.extract(archive, mode: .inPlace)
+        let file = output.appending(path: "0000.bin")
+        expect(try Data(contentsOf: file) == Data(repeating: 120, count: 32768), "real resumed bytes")
+        expect(try FileManager.default.contentsOfDirectory(atPath: output.path).count == 2000, "all resumed entries")
+        expect(!ArchiveFiles.exists(URL(fileURLWithPath: archive.path + ".hatchzip")), "real resume journal removed")
+        expect(!ArchiveFiles.exists(staging), "real resume staging published")
+        print("PASS: interrupted installed hatchzip and resumed its original journal with the engine")
     }
 }
