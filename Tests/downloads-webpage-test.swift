@@ -1,3 +1,5 @@
+// notchcast-sources: Tinycast/Features/Downloads/Webpage/*.swift Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
 import AppKit
 import Foundation
 import Network
