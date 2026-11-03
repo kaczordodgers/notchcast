@@ -6,6 +6,18 @@ nonisolated struct DistillTranscriber: Sendable {
 
     let recognize: Recognize
 
+    @MainActor
+    func recognizeWhenAvailable(_ samples: [Float]) async throws -> String {
+        while true {
+            try Task.checkCancellation()
+            do {
+                return try await recognize(samples)
+            } catch DictationWire.Failure.busy {
+                try await Task.sleep(for: .milliseconds(100))
+            }
+        }
+    }
+
     func text(file: URL, workDirectory: URL, context: DownloadRunContext) async throws -> String {
         let segments = try await transcribe(file: file, workDirectory: workDirectory, context: context)
         let text = DistillTranscript.text(segments, times: false)
@@ -44,11 +56,14 @@ nonisolated struct DistillTranscriber: Sendable {
         guard bytes > 0, bytes.isMultiple(of: 4), bytes / 4 <= UInt64(Int64.max) else {
             throw CocoaError(.fileReadCorruptFile)
         }
-        let chunks = DistillAudioChunks.plan(sampleCount: Int64(bytes / 4))
+        let sampleCount = Int64(bytes / 4)
         var segments = [DistillTranscript.Segment]()
-        var previous = ""
-        for (index, chunk) in chunks.enumerated() {
+        var offset: Int64 = 0
+        var completed = 0
+        while offset < sampleCount {
             try Task.checkCancellation()
+            let chunk = DistillAudioChunks.Chunk(
+                offset: offset, count: Int(min(Int64(DistillAudioChunks.maximumSamples), sampleCount - offset)))
             try handle.seek(toOffset: UInt64(chunk.offset) * 4)
             let data = try DictationWire.readExactly(chunk.count * 4, from: handle)
             let samples = data.withUnsafeBytes { bytes in
@@ -57,13 +72,17 @@ nonisolated struct DistillTranscriber: Sendable {
                 }
             }
             guard samples.allSatisfy(\.isFinite) else { throw CocoaError(.fileReadCorruptFile) }
-            let recognized = try await recognize(samples)
+            let cut = DistillAudioChunks.cut(in: samples, final: offset + Int64(chunk.count) == sampleCount)
+            let recognized = try await recognizeWhenAvailable(Array(samples.prefix(cut)))
             try Task.checkCancellation()
-            let text = index == 0 ? recognized.trimmingCharacters(in: .whitespacesAndNewlines)
-                : DistillAudioChunks.removingOverlap(previous: previous, next: recognized)
+            let text = recognized.trimmingCharacters(in: .whitespacesAndNewlines)
             if !text.isEmpty { segments.append(.init(start: chunk.start, text: text)) }
-            previous = recognized
-            await progress(index + 1, chunks.count)
+            offset += Int64(cut)
+            completed += 1
+            let remaining = sampleCount - offset
+            let estimated = Int((remaining + Int64(DistillAudioChunks.maximumSamples) - 1)
+                / Int64(DistillAudioChunks.maximumSamples))
+            await progress(completed, completed + estimated)
         }
         return segments
     }

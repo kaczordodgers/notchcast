@@ -35,7 +35,7 @@ nonisolated enum YtDlpAudio {
         guard let rawHost = url.host?.lowercased() else { return false }
         let host = rawHost.hasPrefix("www.") ? String(rawHost.dropFirst(4)) : rawHost
         let hosts = ["youtube.com", "m.youtube.com", "youtu.be", "vimeo.com", "twitch.tv", "tiktok.com",
-                     "dailymotion.com", "soundcloud.com", "spotify.com", "podcasts.apple.com", "facebook.com",
+                     "dailymotion.com", "soundcloud.com", "podcasts.apple.com", "facebook.com",
                      "rumble.com", "bitchute.com", "loom.com", "wistia.com", "instagram.com"]
         return hosts.contains { host == $0 || host.hasSuffix("." + $0) }
     }
