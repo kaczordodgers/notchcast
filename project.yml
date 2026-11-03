@@ -60,8 +60,11 @@ targets:
     dependencies:
       - target: NowPlayingAdapter
         link: false
+        embed: true
+        codeSign: true
         copy:
-          destination: frameworks
+          destination: wrapper
+          subpath: Contents/Helpers
       - target: DictationHelper
         link: false
         embed: false
