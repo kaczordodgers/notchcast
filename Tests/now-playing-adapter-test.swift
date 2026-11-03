@@ -137,7 +137,7 @@ struct NowPlayingAdapterTests {
         let root = FileManager.default.temporaryDirectory.appending(path: "now-playing-\(UUID()).bundle")
         defer { try? FileManager.default.removeItem(at: root) }
         let resources = root.appending(path: "Contents/Resources")
-        let frameworks = root.appending(path: "Contents/Frameworks")
+        let frameworks = root.appending(path: "Contents/Helpers")
         try FileManager.default.createDirectory(at: resources, withIntermediateDirectories: true)
         try FileManager.default.createDirectory(at: frameworks, withIntermediateDirectories: true)
         let plist = try PropertyListSerialization.data(
