@@ -47,6 +47,7 @@ targets:
           - Features/Clipboard/Service/ClipboardTextHelper.swift
           - Features/Dictation/Helper
           - Features/FileSearch/Helper
+          - Features/Music/NowPlayingAdapter
           - Resources/EmojiKeywords
       # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
       - path: Tinycast/Resources/EmojiKeywords
@@ -54,7 +55,16 @@ targets:
       # The MIT mark's licence asks the notice to travel with the binary, not just the repo.
       - path: NOTICE.md
         buildPhase: resources
+      - path: Tinycast/Features/Music/NowPlayingAdapter/now-playing.pl
+        buildPhase: resources
     dependencies:
+      - target: NowPlayingAdapter
+        link: false
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
       - target: DictationHelper
         link: false
         embed: false
@@ -157,3 +167,17 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER).dictation"
         SKIP_INSTALL: YES
         SWIFT_OPTIMIZATION_LEVEL: -O
+
+  NowPlayingAdapter:
+    type: library.dynamic
+    platform: macOS
+    productName: libNowPlayingAdapter
+    sources:
+      - path: Tinycast/Features/Music/NowPlayingAdapter
+        excludes: [now-playing.pl]
+      - Tinycast/Platform/NotificationToken.swift
+    settings:
+      base:
+        PRODUCT_MODULE_NAME: NowPlayingAdapter
+        EXECUTABLE_NAME: libNowPlayingAdapter.dylib
+        SKIP_INSTALL: YES
