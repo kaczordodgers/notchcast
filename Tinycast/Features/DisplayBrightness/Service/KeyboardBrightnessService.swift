@@ -7,7 +7,7 @@ final class KeyboardBrightnessService: @unchecked Sendable {
     private typealias CopyIDs = @convention(c) (NSObject, Selector) -> Unmanaged<AnyObject>?
     private typealias BuiltIn = @convention(c) (NSObject, Selector, UInt64) -> ObjCBool
     private typealias Get = @convention(c) (NSObject, Selector, UInt64) -> Float
-    private typealias Set = @convention(c) (NSObject, Selector, Float, Int32, Bool, UInt64) -> ObjCBool
+    private typealias Set = @convention(c) (NSObject, Selector, Float, UInt64) -> ObjCBool
 
     private struct Client {
         let object: NSObject
@@ -26,7 +26,7 @@ final class KeyboardBrightnessService: @unchecked Sendable {
     private let lock = NSLock()
     private var client: Client?
     private let getSelector = NSSelectorFromString("brightnessForKeyboard:")
-    private let setSelector = NSSelectorFromString("setBrightness:fadeSpeed:commit:forKeyboard:")
+    private let setSelector = NSSelectorFromString("setBrightness:forKeyboard:")
 
     @concurrent func level() async -> BrightnessLevel? {
         lock.withLock { read() }
@@ -53,7 +53,7 @@ final class KeyboardBrightnessService: @unchecked Sendable {
     private func write(_ value: Double) -> BrightnessLevel? {
         guard !Task.isCancelled, value.isFinite, let client = resolve() else { return nil }
         let bounded = min(max(value, 0), 1)
-        guard client.set(client.object, setSelector, Float(bounded), 350, true, client.id).boolValue
+        guard client.set(client.object, setSelector, Float(bounded), client.id).boolValue
         else { return nil }
         return read()
     }
