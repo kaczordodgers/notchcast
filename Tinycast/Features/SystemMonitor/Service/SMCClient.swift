@@ -21,8 +21,9 @@ nonisolated final class SMCClient: Sendable {
         metadata.withLock { cache in
             if let cached = cache[key] { return cached }
             guard let code = SMCWire.code(key) else { return nil }
-            let info = call(.keyInfo, key: code).flatMap(SMCWire.keyInfo)
-            cache[key] = .some(info)
+            guard let reply = call(.keyInfo, key: code) else { return nil }
+            let info = SMCWire.keyInfo(reply)
+            if info != nil || reply[40] == 0x84 { cache[key] = .some(info) }
             return info
         }
     }
