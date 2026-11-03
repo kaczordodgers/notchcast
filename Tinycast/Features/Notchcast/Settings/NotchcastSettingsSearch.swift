@@ -58,5 +58,10 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastOptions, "Downloads", keywords: ["video", "audio", "transcript", "webpage", "clipboard"]),
+        .init(.notchcastOptions, "Fast Downloads with aria2c", keywords: ["download", "speed", "aria2"]),
+        .init(.notchcastOptions, "Distill", keywords: ["links", "transcribe", "media", "queue"]),
+        .init(.notchcastOptions, "Distill Timestamps", keywords: ["transcript", "time", "chunks"]),
+        .init(.notchcastOptions, "Convert Distill Folder", keywords: ["markdown", "pdf", "ocr", "files"]),
     ]
 }

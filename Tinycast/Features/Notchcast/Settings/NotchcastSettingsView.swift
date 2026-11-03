@@ -30,6 +30,7 @@ struct NotchcastSettingsView: View {
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+            DownloadsSettingsSection()
 
             NotchcastSystemSettingsSection()
 
