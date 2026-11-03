@@ -4,6 +4,7 @@ extension SettingsAnchor {
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
     static let notchcastOptions = Self(tab: .notchcast, title: "Options")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
+    static let notchcastAppearance = Self(tab: .notchcast, title: "Appearance")
 }
 
 extension SettingsSearchCatalog {
@@ -16,6 +17,12 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Open on Hover", keywords: ["pointer", "mouse", "hover"]),
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
-        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"])
+        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(.notchcastAppearance, "Custom appearance", keywords: ["enable", "colours", "colors", "theme"]),
+        .init(.notchcastAppearance, "Surface", keywords: ["glass", "black", "matte", "material"]),
+        .init(.notchcastAppearance, "Light theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Dark theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Theme backdrop", keywords: ["opacity", "background", "transparency"]),
+        .init(.notchcastAppearance, "Import from link", keywords: ["theme", "raycast", "ray.so", "url"])
     ]
 }

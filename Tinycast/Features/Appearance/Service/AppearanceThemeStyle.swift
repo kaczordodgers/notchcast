@@ -13,8 +13,17 @@ extension AppearanceThemeColors {
     }
 }
 
-extension AppearanceStore {
-    var backdrop: LinearGradient {
+extension AppearanceThemeColors {
+    static func backdrop(hidden: Bool) -> AnyShapeStyle {
+        hidden ? AnyShapeStyle(Color.clear) : AnyShapeStyle(shared.backdrop)
+    }
+
+    static func tinted(_ glass: Glass) -> Glass {
+        guard shared.hasPalette else { return glass }
+        return glass.tint(shared.background(.background))
+    }
+
+    private var backdrop: LinearGradient {
         _ = revision
         return LinearGradient(
             stops: [
@@ -23,14 +32,7 @@ extension AppearanceStore {
             ], startPoint: .top, endPoint: .bottom)
     }
 
-    @available(macOS 26.0, *)
-    func tinted(_ glass: Glass) -> Glass {
-        _ = revision
-        guard light != nil || dark != nil || previewTarget?.theme != nil else { return glass }
-        return glass.tint(background(.background))
-    }
-
     private func background(_ role: AppearanceThemeColors.Role) -> Color {
-        Color(nsColor: colors.dynamicColor(role, dark: 1, light: 1, fallback: .clear))
+        Color(nsColor: dynamicColor(role, dark: 1, light: 1, fallback: .clear))
     }
 }

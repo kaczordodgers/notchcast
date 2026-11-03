@@ -133,6 +133,7 @@ struct RootPaletteView: View {
         case .extensionCommand:
             return ExtensionCommandScreen(
                 screen: extensionScreen, extensions: extensions, vm: vm, openActions: openActions)
+        case .theme: return ThemeCommandScreen(coordinator: core.appearanceCoordinator, vm: vm)
         }
     }
 
@@ -343,6 +344,7 @@ struct RootPaletteView: View {
                 // The window's frame is the size source, so the glass and clip stay matched.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 // Hidden rather than unmounted, so expanding never shows a frame without glass.
+                .background(AppearanceThemeColors.backdrop(hidden: isCollapsed))
                 .background(GlassEffectView().opacity(isCollapsed ? 0 : 1))
                 .overlay {
                     Theme.Colors.dialogDimming

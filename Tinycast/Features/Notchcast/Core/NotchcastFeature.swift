@@ -3,6 +3,7 @@ import Foundation
 enum NotchcastFeature: String, CaseIterable, Sendable {
     case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
     case islandStatusMessages, islandLiveActivities, launcherFromIsland
+    case appearance
 
     var title: String {
         switch self {
@@ -13,6 +14,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Status Messages")
         case .islandLiveActivities: String(localized: "Live Activities")
         case .launcherFromIsland: String(localized: "Launcher from Island")
+        case .appearance: String(localized: "Custom appearance")
         }
     }
 
@@ -25,6 +27,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Show status messages in the island.")
         case .islandLiveActivities: String(localized: "Show live activities in the island.")
         case .launcherFromIsland: String(localized: "Open the launcher from the island.")
+        case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         }
     }
 
@@ -32,7 +35,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland:
+            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland, .appearance:
             []
         }
     }

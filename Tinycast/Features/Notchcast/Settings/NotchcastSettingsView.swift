@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct NotchcastSettingsView: View {
+    @Environment(AppCore.self) private var core
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
@@ -15,7 +16,7 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter { $0 != .island && $0 != .appearance }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
@@ -25,6 +26,8 @@ struct NotchcastSettingsView: View {
                 SettingsSectionHeader(.notchcastOptions)
             }
             .settingsEnabled(preferences.isOn(.island))
+
+            AppearanceSettingsSection().environment(core.appearanceCoordinator)
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)

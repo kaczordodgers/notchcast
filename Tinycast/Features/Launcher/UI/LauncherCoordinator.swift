@@ -271,6 +271,7 @@ final class LauncherCoordinator {
             core.supportCoordinator.showSupport()
         case .quit:
             NSApp.terminate(nil)
+        case .theme: core.appearanceCoordinator.showThemes()
         }
     }
 
