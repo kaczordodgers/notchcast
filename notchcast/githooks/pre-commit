@@ -1,0 +1,6 @@
+#!/bin/bash
+# Refuse a commit whose staged changes contain a secret or a forbidden name. Enable once per clone: git config core.hooksPath notchcast/githooks
+set -e
+PATH="/opt/homebrew/bin:$PATH"
+"$(git rev-parse --show-toplevel)/notchcast/check-identity.sh" staged
+exec gitleaks git --pre-commit --staged --redact --no-banner --exit-code 1 .
