@@ -167,14 +167,10 @@ final class PublicWebProxy {
                 let port = UInt16(portBytes[0]) * 256 + UInt16(portBytes[1])
                 let addresses = try await PublicWebAddress.resolve(host, port: port)
                 try Task.checkCancellation()
-                guard !closed, let address = addresses.first, let endpointPort = NWEndpoint.Port(rawValue: port) else {
+                guard !closed, let endpointPort = NWEndpoint.Port(rawValue: port) else {
                     throw CancellationError()
                 }
-                let parameters = NWParameters.tcp
-                parameters.preferNoProxies = true
-                let connection = NWConnection(host: NWEndpoint.Host(address), port: endpointPort, using: parameters)
-                upstream = connection
-                try await connect(connection)
+                let connection = try await connect(addresses, port: endpointPort)
                 try await send([5, 0, 0, 1, 0, 0, 0, 0, 0, 0], to: client)
                 relay(from: client, to: connection)
                 relay(from: connection, to: client)
@@ -199,18 +195,44 @@ final class PublicWebProxy {
             }
         }
 
+        private func connect(_ addresses: [String], port: NWEndpoint.Port) async throws -> NWConnection {
+            var lastError: any Error = URLError(.cannotConnectToHost)
+            for address in addresses {
+                try Task.checkCancellation()
+                guard !closed else { throw CancellationError() }
+                let parameters = NWParameters.tcp
+                parameters.preferNoProxies = true
+                let connection = NWConnection(host: NWEndpoint.Host(address), port: port, using: parameters)
+                upstream = connection
+                do {
+                    try await connect(connection)
+                    try Task.checkCancellation()
+                    guard !closed else { throw CancellationError() }
+                    return connection
+                } catch {
+                    connection.stateUpdateHandler = nil
+                    connection.cancel()
+                    try Task.checkCancellation()
+                    guard !closed else { throw CancellationError() }
+                    lastError = error
+                }
+            }
+            throw lastError
+        }
+
         private func connect(_ connection: NWConnection) async throws {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
                 connectContinuation = continuation
                 connection.stateUpdateHandler = { [weak self] state in
                     Task { @MainActor in
-                        guard let self, let pending = self.connectContinuation else { return }
+                        guard let self, self.upstream === connection,
+                              let pending = self.connectContinuation else { return }
                         switch state {
                         case .ready:
                             connection.stateUpdateHandler = nil
                             self.connectContinuation = nil
                             pending.resume()
-                        case .failed(let error):
+                        case .failed(let error), .waiting(let error):
                             connection.stateUpdateHandler = nil
                             self.connectContinuation = nil
                             pending.resume(throwing: error)
