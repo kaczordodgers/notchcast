@@ -3,7 +3,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastCore.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastServicesModules.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
@@ -33,15 +33,6 @@ final class CountingModule: NotchcastModule {
 }
 
 @MainActor final class AppCore {}
-
-@MainActor
-final class IslandController: NotchcastModule {
-    static let shared = IslandController()
-    var starts = 0
-    func configurePages(_ core: AppCore) {}
-    func start() { starts += 1 }
-    func stop() {}
-}
 
 @MainActor
 final class NotchcastServices {
@@ -97,7 +88,7 @@ struct MusicModuleTests {
         await settle()
         preferences.set(.island, false)
         await settle()
-        precondition(counters.values.allSatisfy { $0.starts == $0.stops })
+        precondition(counters.filter { $0.key.needsIsland }.values.allSatisfy { $0.starts == $0.stops })
         preferences.set(.island, true)
         await settle()
         precondition(speaker.starts == 3)
@@ -136,12 +127,12 @@ struct MusicModuleTests {
                 ? [.accessibility] : []
             precondition(feature.requiredGrants == grants)
         }
-        NotchcastCore.start(AppCore(), preferences: preferences)
-        let services = NotchcastCore.services!
+        let services = NotchcastServices(core: AppCore(), preferences: preferences)
+        let controller = NotchcastModuleController(services.moduleEntries, preferences: preferences)
+        controller.run()
         let modules = [services.music, services.lastPlayer, services.appleMusic,
                        services.spotify, services.microphone, services.marks]
         precondition(modules.map(\.starts) == [1, 1, 1, 0, 1, 1])
-        precondition(IslandController.shared.starts == 1)
         preferences.set(.spotifyConnect, true)
         await settle()
         precondition(modules.map(\.starts) == [1, 1, 1, 1, 1, 1])

@@ -10,6 +10,10 @@ extension SettingsAnchor {
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastHover = Self(tab: .notchcast, title: "Island")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
+    static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
+    static let notchcastDay = Self(tab: .notchcast, title: "Day")
 }
 
 extension SettingsSearchCatalog {
@@ -25,6 +29,14 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
         .init(.notchcastHover, "Hover delay"),
         .init(group: .notchcastShortcuts, "Toggle Island"),
+        .init(.notchcastOptions, "Display Brightness", keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastOptions, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
+        .init(.notchcastOptions, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
+        .init(.notchcastOptions, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastOptions, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
+        .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Block Apple Music from media keys", keywords: ["music app", "itunes", "media key", "play key"]),
