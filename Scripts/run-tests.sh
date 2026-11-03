@@ -947,6 +947,8 @@ run downloads-queue-test Tinycast/Features/Downloads/Model/*.swift Tinycast/Feat
 run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
 run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 
+run notchcast-launcher-placement-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
+
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
