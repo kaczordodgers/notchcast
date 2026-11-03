@@ -29,7 +29,7 @@ Source: read-only clone of upstream `abue-ammar/tinycast`, HEAD `3be769dc` (903 
 ## 2. Build, test, CI and conventions
 
 - **Build** (`docs/development.md:33`, `docs/testing.md:248`): `xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug build` (`CODE_SIGNING_ALLOWED=NO` for a check build). Debug produces `Tinycast Dev.app`, bundle id `com.tinycast.app.dev`, URL scheme `tinycast-dev`. Signing uses the identity "Tinycast Self-Signed" (`project.yml:18`, `docs/signing.md`).
-- **Tests:** `./Scripts/run-tests.sh [name]` (1018 lines). There is no XCTest. `Tests/` holds about 130 standalone Swift files, each a `main`-style harness. The runner compiles each harness with `swiftc -swift-version 6` together with the **shipped source files it lists**, so a new harness is registered by adding a `run [slow|exclusive|-O|index] <name> <sources…>` line (122 such lines, from `Scripts/run-tests.sh:119`). It runs 4 at a time (`TINYCAST_TEST_JOBS`) with a 300 s timeout (`TINYCAST_TEST_TIMEOUT`). `onboarding-test` runs alone and needs an unlocked desktop. Runtime JS fixtures: `node Scripts/raycast-runtime/{modules,oauth}-fixtures.mjs`.
+- **Tests:** `./Scripts/run-tests.sh [name]` (1018 lines). There is no XCTest. `Tests/` holds about 130 standalone Swift files, each a `main`-style harness. The runner compiles each harness with `swiftc -swift-version 6` together with the **shipped source files it lists**, so an upstream harness is registered by adding a `run [slow|exclusive|-O|index] <name> <sources…>` line (122 such lines, from `Scripts/run-tests.sh:119`). It runs 4 at a time (`TINYCAST_TEST_JOBS`) with a 300 s timeout (`TINYCAST_TEST_TIMEOUT`). `onboarding-test` runs alone and needs an unlocked desktop. Runtime JS fixtures: `node Scripts/raycast-runtime/{modules,oauth}-fixtures.mjs`.
 - **Lint:** `./Scripts/lint.sh` runs swiftlint, `check-settings-search.js`, `check-localizations.js` and `check-migrations.sh`. Format: `Scripts/format.sh`.
 - **Definition of done** (`docs/testing.md` "Definition of done"; `AGENTS.md` "Before you finish"): harnesses pass, lint is clean, the purity grep `grep -rln 'import AppKit\|import SwiftUI\|import Cocoa' Tinycast/Features/*/Model/` returns nothing, the Debug build has zero **new** warnings, and docs are fixed in the same commit.
 - **CI gates nothing on code.** `CONTRIBUTING.md` and `testing.md` both say "There is no CI". The workflows:
@@ -135,7 +135,7 @@ Ranked from least to most upstream contact.
    - A preference costs the 6–7 settings registries from section 1, step 3.
    - Conflict hotspots: `CommandID.swift`, `AppCore.swift` and `project.pbxproj`, all edited by about every second upstream feature.
    - Mitigation: add command cases at the **end** of the enum and of each switch.
-   - Mitigation: regenerate pbxproj with `xcodegen generate` after each rebase instead of carrying it as a patch, or keep our sources in a separately grouped folder so the pbxproj hunks are isolated.
+   - Mitigation: regenerate pbxproj locally with `xcodegen generate` after each rebase and leave it uncommitted, or keep our sources in a separately grouped folder so the pbxproj hunks are isolated.
 6. **Avoid:** adding `AppEntry.Kind` cases (forces `KindDescriptor` and `VisibilityStore` changes), editing `DesignSystem/`, and new settings keys unless needed.
 
 ## 5. Identity and branding surfaces
@@ -183,3 +183,5 @@ Upstream contains no reference to the maintainer's employer, so nothing needs re
 - Delete `.github/workflows/*` and `FUNDING.yml`.
 
 All other upstream identity is either inert under a new bundle id or confined to `website/` and release tooling the fork never runs.
+
+Fork PRs never commit generated files or add runner registrations. Use the discovery convention in `notchcast/README.md`; CI regenerates the project before builds and commits generated outputs on main. Local Xcode users must regenerate before opening or building the project.

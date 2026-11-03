@@ -934,12 +934,7 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
-# Notchcast: Tests/nc-<Folder>-<name>-test.swift compiles Tinycast/Features/<Folder>/{Model,Service}/*.swift.
-for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
-run downloads-queue-test Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
-
-run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
-run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+source notchcast/test-harnesses.sh
 
 run notchcast-launcher-placement-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
 
