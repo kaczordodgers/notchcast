@@ -18,6 +18,10 @@ enum RootContract {
     enum Command: String, CaseIterable, Sendable {
         case version
         case ping
+        case spotlightOff = "spotlight-off"
+        case spotlightOn = "spotlight-on"
+        case sudoTouchIDOn = "sudo-touchid-on"
+        case sudoTouchIDOff = "sudo-touchid-off"
         case fansAuto = "fans-auto"
         case fansMedium = "fans-medium"
         case fansMax = "fans-max"
@@ -41,6 +45,7 @@ enum RootContract {
             switch self {
             case .version: RootContract.version + "\n"
             case .ping: "pong\n"
+            case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: "ok\n"
             case .fansAuto, .fansMedium, .fansMax: "ok\n"
             case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
                  .batterySleepOn, .batterySleepOff: "ok\n"
@@ -50,6 +55,7 @@ enum RootContract {
         var operation: Operation {
             switch self {
             case .version, .ping: .read
+            case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: .change
             case .fansAuto, .fansMedium, .fansMax: .change
             case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
                  .batterySleepOn, .batterySleepOff: .change
@@ -67,6 +73,7 @@ enum RootContract {
             switch command {
             case .version: self = .version(RootContract.version)
             case .ping: self = .pong
+            case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: self = .ok
             case .fansAuto, .fansMedium, .fansMax: self = .ok
             case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
                  .batterySleepOn, .batterySleepOff: self = .ok

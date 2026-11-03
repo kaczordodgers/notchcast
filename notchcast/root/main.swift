@@ -10,6 +10,10 @@ if command.operation == .change {
         switch command {
         case .fansAuto, .fansMedium, .fansMax:
             try FanSMC.Controller(smc: FanSMC.Connection()).run(command)
+        case .spotlightOff, .spotlightOn:
+            try Spotlight.run(command)
+        case .sudoTouchIDOn, .sudoTouchIDOff:
+            try SudoTouchID.run(enabled: command == .sudoTouchIDOn)
         default:
             try BatterySMC.run(command)
         }
