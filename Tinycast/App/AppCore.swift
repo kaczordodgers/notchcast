@@ -285,6 +285,7 @@ final class AppCore {
     }
 
     func start(launchedByUser: Bool) {
+        if LaunchAtLogin.managedByLaunchd { LaunchAtLogin.set(false) }
         Signposts.interval("AppCore.start") {
             // Shorten AppKit's ~2–3s tooltip delay; registration domain, so a user default wins.
             UserDefaults.standard.register(defaults: ["NSInitialToolTipDelay": 250])
@@ -627,7 +628,8 @@ final class AppCore {
         mcp.stop()
         installedAI.stop()
         updateCoordinator.installStagedUpdate()
-        if relaunchRequested { RelaunchRunner.relaunchAfterExit(Bundle.main.bundleURL) }
+        // Under the LaunchAgent, launchd restarts the app; a second start would be a second instance.
+        if relaunchRequested, !LaunchAtLogin.managedByLaunchd { RelaunchRunner.relaunchAfterExit(Bundle.main.bundleURL) }
     }
 
     /// Only the tool whose own path or variables changed is checked again; the rest keep running.
