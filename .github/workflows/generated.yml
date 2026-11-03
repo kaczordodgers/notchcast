@@ -1,0 +1,53 @@
+name: Generated files
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - Tinycast.xcodeproj/project.pbxproj
+      - Tinycast/Resources/RaycastRuntime.generated.js
+      - README.md
+      - README.upstream.md
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generated-main
+  cancel-in-progress: false
+
+jobs:
+  regenerate:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: ./notchcast/actions/xcodegen
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Regenerate and push, retrying if main moved
+        shell: bash
+        run: |
+          git config user.name Damian
+          git config user.email 336236323+kaczordodgers@users.noreply.github.com
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset -q --hard origin/main
+            git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
+            python3 notchcast/ci.py regenerate . "$(git merge-base HEAD refs/remotes/upstream/main)"
+            python3 - <<'PY'
+          import subprocess
+          from notchcast.ci import GENERATED
+          subprocess.run(["git", "add", "--", *GENERATED], check=True)
+          PY
+            git diff --cached --quiet && exit 0
+            git commit -m 'Notchcast: generated files'
+            if git push origin HEAD:main; then exit 0; fi
+            git reset --hard HEAD^
+          done
+          echo 'main kept moving; regeneration will retry on the next source push' >&2
+          exit 1
