@@ -34,6 +34,15 @@ struct NotchcastActivitiesTests {
     final class Presenter: IslandActivityPresenter {}
 
     static func main() async {
+        for running in [false, true] {
+            for enabled in [false, true] {
+                for visible in [false, true] {
+                    precondition(IslandPresenterPolicy.shouldRegister(
+                        running: running, enabled: enabled, visibleOnActiveScreen: visible)
+                        == (running && enabled && visible))
+                }
+            }
+        }
         let clock = ManualSleep()
         let center = IslandActivityCenter(sleep: clock.sleep)
         let status = center.begin(IslandActivity(kind: .status, priority: 100, title: "Status"))
