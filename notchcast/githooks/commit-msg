@@ -1,0 +1,3 @@
+#!/bin/bash
+# Refuse a commit message with a forbidden name.
+exec "$(git rev-parse --show-toplevel)/notchcast/check-identity.sh" message "$1"
