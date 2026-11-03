@@ -7,6 +7,8 @@ enum NotchcastCore {
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
+    static let macLink = AIUsageLinkModule()
+    static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let quitProtection = QuitProtectionStore()
     private static var controller: NotchcastModuleController?
 
@@ -22,6 +24,8 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
+            .init(requires: [.aiUsage], module: aiUsage),
+            .init(requires: [.machLink], module: macLink),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
