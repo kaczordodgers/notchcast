@@ -1,3 +1,11 @@
+// notchcast-sources: Tinycast/Features/Appearance/Model/*.swift
+// notchcast-sources: Tinycast/Features/Appearance/Service/*.swift
+// notchcast-sources: Tinycast/Features/Appearance/UI/AppearanceCoordinator.swift
+// notchcast-sources: Tinycast/Features/Appearance/UI/ThemeImportDialog.swift
+// notchcast-sources: Tinycast/Windows/Dialog/DialogRequest.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import AppKit
 
 enum CommandID: Hashable { case theme }
