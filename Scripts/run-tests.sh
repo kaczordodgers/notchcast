@@ -940,6 +940,8 @@ run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift 
 run notchcast-island-geometry-test Tinycast/Features/Notchcast/Island/IslandGeometry.swift Tinycast/Features/Notchcast/Island/IslandMotion.swift Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
 run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
 run soloist-source-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/SoloistProtocol.swift Tinycast/Features/Music/Service/SoloistSource.swift
+run soloist-runtime-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
+run soloist-speaker-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
