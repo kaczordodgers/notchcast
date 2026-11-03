@@ -1,9 +1,12 @@
 import SwiftUI
 
 struct GlassEffectView: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSGlassEffectView {
-        NSGlassEffectView()
+    @AppStorage(AppearanceSurfaceStyle.defaultsKey, store: AppearanceStore.preferences)
+    private var style = AppearanceSurfaceStyle.glass
+
+    func makeNSView(context: Context) -> ThemedSurface {
+        ThemedSurface(style: style)
     }
 
-    func updateNSView(_ nsView: NSGlassEffectView, context: Context) {}
+    func updateNSView(_ nsView: ThemedSurface, context: Context) { nsView.apply(style) }
 }
