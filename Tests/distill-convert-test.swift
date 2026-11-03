@@ -32,6 +32,7 @@ struct DistillConvertTests {
         try await namingAndSkips(root)
         try await integrations(root)
         try await failureSafety(root)
+        try await reviewRegressions(root)
         try await cancellation(root)
         try await realTrash(root)
         try await queueRunner(root)
@@ -270,6 +271,41 @@ struct DistillConvertTests {
             _ = try await denied.convert(folder: unsafe)
             expect(false, "symlink manifest is rejected")
         } catch { expect(exists(unsafe.appendingPathComponent("source.txt")), "symlink manifest cannot authorize Trash") }
+    }
+
+    static func reviewRegressions(_ root: URL) async throws {
+        let failures: [DistillConversion.Failure] = [
+            .unreadable, .empty, .tooLarge, .sourceChanged, .outputChanged, .unsafePath, .noOutputName
+        ]
+        for failure in failures {
+            expect(failure.localizedDescription == failure.errorDescription,
+                   "conversion failures expose localized descriptions")
+            expect(failure.localizedDescription.contains(" "), "failure description is a readable sentence")
+        }
+        let folder = try directory("linked-root-target", in: root)
+        let trash = try directory("review-trash", in: root)
+        let link = root.appendingPathComponent("linked-root")
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: folder)
+        try write("RECOVER AFTER CRASH", "source.txt", in: folder)
+        let source = folder.appendingPathComponent("source.txt")
+        let expected = DistillConversion.literal("RECOVER AFTER CRASH", source: source).markdown
+        try write(expected, "source.md", in: folder)
+        let outside = try directory("linked-child-target", in: root)
+        try write("KEEP OUTSIDE", "outside.txt", in: outside)
+        try FileManager.default.createSymbolicLink(at: folder.appendingPathComponent("child"), withDestinationURL: outside)
+        let results = try await DistillConverter(trash: moveTo(trash)).convert(folder: link)
+        expect(status("source.txt", in: results) == .converted, "symlink job root is resolved")
+        expect(output("source.txt", in: results)?.lastPathComponent == "source.md",
+               "receipt-less matching output is reused")
+        expect(!exists(folder.appendingPathComponent("source.txt.md")), "crash recovery creates no duplicate")
+        expect(try contents(folder.appendingPathComponent("source.md")) == expected, "recovered output is unchanged")
+        expect(exists(folder.appendingPathComponent(DistillConverter.manifestName)), "recovery saves a receipt")
+        expect(status("child", in: results) == .skipped(.symbolicLink), "root resolution does not follow child links")
+        expect(exists(outside.appendingPathComponent("outside.txt")), "child link destination remains untouched")
+        try write("", "empty.txt", in: folder)
+        let failed = try await DistillConverter(trash: moveTo(trash)).convert(folder: folder)
+        expect(status("empty.txt", in: failed) == .failed(DistillConversion.Failure.empty.localizedDescription),
+               "reported failure uses the localized description")
     }
 
     static func cancellation(_ root: URL) async throws {
