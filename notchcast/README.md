@@ -44,3 +44,21 @@ Our commits:
    - `notchcast.update` runs `update.sh` every 30 minutes (needs `gh` logged in), unless Notchcast's own "Automatically check for updates" is off (`general.automaticallyCheckForUpdates: false` in `~/.config/app.notchcast/settings.json`; then it logs that and installs nothing): the newest release is installed when it is newer, or when the installed copy is not ours, after checking bundle id, version and our leaf certificate; the old `.app` goes to the Trash and `notchcast.app` is restarted with `launchctl kickstart -k`. Leads run `notchcast/update.sh --install` at each milestone end on both Macs to bypass only that preference; combine with `--dry-run` in either order to check without installing. Settings, data and Keychain items are never touched.
 
 The new bundle id and signature need Accessibility to be granted once.
+
+## Conflict-free PRs
+
+PRs carry no generated files. Edit their inputs, regenerate locally before opening or building
+`Tinycast.xcodeproj`, and leave the generated diff uncommitted. PR CI regenerates before building.
+After each source push to main, Generated files runs `ci.py regenerate` and commits only `GENERATED`
+with the repository identity. Its generated-only push is excluded by path filters and the Actions
+token also prevents recursive workflow runs. Concurrent source pushes are fetched and rebased before
+retrying regeneration; a delayed job does not block builds. Sync regenerates before every build too.
+
+Fork tests are discovered by `notchcast/test-harnesses.sh`. `Tests/nc-<Folder>-<name>-test.swift`
+defaults to all Model and Service sources in that feature. Any fork harness can instead declare
+`// notchcast-sources: -parse-as-library Tinycast/path/*.swift` (space-separated compiler arguments
+and source globs, no spaces in paths). `Tests/notchcast-*-test.swift` requires that header. Add the
+harness and its sources without editing `Scripts/run-tests.sh` or the project.
+
+Leads leave generated files out of every PR and fix conflicts only in source inputs. Regenerate
+locally before using Xcode; main's generated commit is maintained by CI after landing.
