@@ -1,16 +1,22 @@
 #!/usr/bin/env python3
 """Notchcast CI helper, run by .github/workflows/sync.yml.
 
-    ci.py plan                    decide what this run builds; writes job outputs
-    ci.py replay <tree> <onto>    in <tree> (a checkout of our main with upstream fetched), replay our commits onto <onto>
-    ci.py app-info <tag> <dir>    name, bundle id, version and build of upstream's release zip
+    ci.py plan                              decide what this run builds (conflicts are found here, on Linux)
+    ci.py replay <tree> <onto>              in <tree> (our main, upstream fetched), replay our commits onto <onto>
+    ci.py regenerate <tree> <onto>          rewrite the generated files in <tree> (no commit)
+    ci.py app-info <tag> <dir>              name, bundle id, version and build of upstream's release zip
+    ci.py issue open <kind> <title> <cause> [<details.md>] | issue close <kind>
+    ci.py design-notice <tree> <old upstream> <new upstream>
 
-Our commits are merge-base(main, upstream main)..main. Replaying cherry-picks them in order, except the commit
-"Notchcast: remove upstream workflows", which is made afresh (git rm -r .github/workflows) so an upstream workflow
-edit never conflicts and a new upstream workflow never lands. A conflict in the generated project alone is resolved by
-regenerating it with $XCODEGEN. Any other conflict fails the run; nothing is pushed.
+Our commits are merge-base(main, upstream main)..main. Replaying cherry-picks them in order without the GENERATED
+files, so those never conflict and never travel in our diffs. Two commits are made afresh instead of picked:
+"Notchcast: remove upstream workflows" (git rm -r .github/workflows), so upstream workflow edits never conflict and
+new ones never land, and "Notchcast: generated files", always last, which rewrites GENERATED (`regenerate`).
+Any other conflict fails the run; nothing is pushed.
 Failures are remembered as refs/notchcast-failed/<main|release-<tag>>-<upstream or tag>-<our main>, so the same
-input is retried only when upstream or our main changes.
+input is retried only when upstream or our main changes, and reported as one open issue per kind (label
+notchcast-<kind>: sync = replay onto new upstream, main = main tested as it is, release), which a newer failure with
+the same cause only retitles; notchcast/update.sh tells Chad once per issue and cause.
 """
 import json
 import os
@@ -23,7 +29,13 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REMOVE_WORKFLOWS = "Notchcast: remove upstream workflows"
+GENERATED_COMMIT = "Notchcast: generated files"
 PBXPROJ = "Tinycast.xcodeproj/project.pbxproj"
+RUNTIME_JS = "Tinycast/Resources/RaycastRuntime.generated.js"
+# Rewritten by `regenerate`, never taken from our commits.
+GENERATED = [PBXPROJ, RUNTIME_JS, "README.md", "README.upstream.md"]
+# Upstream changes here mean notchcast/docs/design-system.md may need a refresh.
+DESIGN_PATHS = ["Tinycast/DesignSystem/", ":(glob)**/Theme.swift", "docs/ui.md"]
 BOT = {
     "GIT_COMMITTER_NAME": "github-actions[bot]",
     "GIT_COMMITTER_EMAIL": "41898282+github-actions[bot]@users.noreply.github.com",
@@ -87,8 +99,24 @@ def plan():
         print(f"main: contains upstream {upstream_main[:10]}")
     elif main_key in failed:
         print(f"main: {main_key} already failed; waiting for upstream or main to change")
+        rebase = False
     else:
         print(f"main: rebase {main[:10]} onto upstream {upstream_main[:10]}")
+        # The replay alone, here on Linux, before a macOS runner is spent on it.
+        run("git", "update-ref", "refs/remotes/upstream/main", upstream_main)
+        with tempfile.TemporaryDirectory() as tree:
+            run("git", "worktree", "add", "-q", "--detach", tree, main)
+            try:
+                replay(tree, upstream_main, check=True)
+            except Conflict as conflict:
+                rebase = False
+                details = Path(tempfile.mkstemp(suffix=".md")[1])
+                details.write_text(conflict.report(tree, base, upstream_main, cfg["UPSTREAM_REPO"]))
+                issue_open("sync", f"Sync blocked: upstream {upstream_main[:7]} + main {main[:7]}", conflict.cause,
+                           details)
+                print(f"::warning::{conflict.cause} (see the notchcast-sync issue)")
+            finally:
+                run("git", "worktree", "remove", "--force", tree)
 
     ours = {r["tagName"] for r in json.loads(run(
         "gh", "release", "list", "-R", cfg["FORK_REPO"], "-L", "100", "--json", "tagName"))}
@@ -108,13 +136,35 @@ def plan():
 
     statuses = json.loads(run("gh", "api", f"repos/{cfg['FORK_REPO']}/commits/{main}/status"))["statuses"]
     tested = any(s["context"] == "notchcast/tested" and s["state"] == "success" for s in statuses)
-    print(f"main {main[:10]}: {'tested' if tested else 'not tested yet'}")
-    output(rebase="true" if rebase and main_key not in failed else "false", tested=str(tested).lower(), main=main,
+    # Without a rebase, a main commit is tested as it is, once: a red one waits for a new main.
+    test_main = not rebase and not tested and f"test-{main}" not in failed
+    print(f"main {main[:10]}: {'tested' if tested else 'failed before' if not test_main and not rebase else 'not tested yet'}")
+    output(rebase=str(rebase).lower(), test_main=str(test_main).lower(), main=main, base=base,
            upstream_main=upstream_main, main_key=main_key, releases=json.dumps(releases, separators=(",", ":")))
 
 
-def replay(tree, onto):
-    """Replay merge-base(HEAD, upstream main)..HEAD onto `onto` in tree; leaves tree detached at the result."""
+class Conflict(Exception):
+    def __init__(self, subject, files):
+        super().__init__(f"{subject}: {' '.join(files)}")
+        self.subject, self.files = subject, files
+        # Stable across upstream commits, so a newer upstream stopping on the same thing only retitles the issue.
+        self.cause = f"{subject}: {' '.join(files)}"
+
+    def report(self, tree, base, upstream, upstream_repo):
+        """The upstream commits since our base that touched the conflicting files: usually the one to look at."""
+        url = f"https://github.com/{upstream_repo}/commit"
+        touched = run("git", "log", f"--format=- [`%h`]({url}/%H) %s", f"{base}..{upstream}", "--", *self.files,
+                      cwd=tree)
+        files = ", ".join(f"`{f}`" for f in self.files)
+        return (f"**{self.subject}** no longer applies to upstream [`{upstream[:7]}`]({url}/{upstream}): {files}.\n\n"
+                + (f"Upstream commits since [`{base[:7]}`]({url}/{base}) that touch them:\n\n{touched}\n\n"
+                   "If one of them ships what our commit does, drop our commit; otherwise redo it on top.\n"
+                   if touched else "No upstream commit touched them, so an earlier commit of ours moved the lines.\n"))
+
+
+def replay(tree, onto, check=False):
+    """Replay merge-base(HEAD, upstream main)..HEAD onto `onto` in tree; leaves tree detached at the result.
+    With check=True (plan, on Linux) the generated files are not regenerated. Raises Conflict."""
     main = run("git", "rev-parse", "HEAD", cwd=tree)
     upstream_main = run("git", "rev-parse", "refs/remotes/upstream/main", cwd=tree)
     base = run("git", "merge-base", main, upstream_main, cwd=tree)
@@ -123,28 +173,105 @@ def replay(tree, onto):
     if merges:
         sys.exit(f"main has merge commits ({merges.split()[0][:10]}…); keep main linear")
     run("git", "checkout", "-q", "--detach", onto, cwd=tree)
+    generated_commit = None
     for sha in commits:
         subject = run("git", "show", "-s", "--format=%s", sha, cwd=tree)
         print(f"replay {sha[:10]} {subject}", flush=True)
+        if subject == GENERATED_COMMIT:
+            generated_commit = sha
+            continue
         if subject == REMOVE_WORKFLOWS:
             run("git", "rm", "-r", "-q", "--ignore-unmatch", ".github/workflows", cwd=tree)
-            run("git", "commit", "-q", "--allow-empty", "-C", sha, cwd=tree, env=BOT)
-            continue
-        picked = subprocess.run(["git", "cherry-pick", "--allow-empty", "--keep-redundant-commits", sha],
-                                cwd=tree, env=dict(os.environ, **BOT), text=True, capture_output=True)
-        if picked.returncode:
+        else:
+            picked = subprocess.run(["git", "cherry-pick", "--no-commit", sha], cwd=tree, text=True,
+                                    capture_output=True)
             conflicts = run("git", "diff", "--name-only", "--diff-filter=U", cwd=tree).split()
-            if conflicts == [PBXPROJ] and os.environ.get("XCODEGEN"):
-                # The project is generated from project.yml: regenerate it rather than merge it.
-                print(f"  {PBXPROJ} conflicts; regenerating it from project.yml", flush=True)
-                run(os.environ["XCODEGEN"], "generate", "--quiet", cwd=tree)
-                run("git", "add", PBXPROJ, cwd=tree)
-                run("git", "-c", "core.editor=true", "cherry-pick", "--continue", cwd=tree, env=BOT)
-                continue
-            subprocess.run(["git", "cherry-pick", "--abort"], cwd=tree, capture_output=True)
-            sys.exit(f"{sha[:10]} {subject!r} does not apply on {onto[:10]}:\n"
-                     f"{' '.join(conflicts) or picked.stdout + picked.stderr}")
+            if picked.returncode and not conflicts or set(conflicts) - set(GENERATED):
+                subprocess.run(["git", "cherry-pick", "--abort"], cwd=tree, capture_output=True)
+                subprocess.run(["git", "reset", "-q", "--hard"], cwd=tree, capture_output=True)
+                raise Conflict(subject, [f for f in conflicts if f not in GENERATED]
+                               or [(picked.stderr.strip().splitlines() or ["cherry-pick failed"])[0]])
+            # Generated files stay as they were; the generated-files commit rewrites them.
+            for path in GENERATED:
+                if subprocess.run(["git", "cat-file", "-e", f"HEAD:{path}"], cwd=tree, stderr=subprocess.DEVNULL).returncode == 0:
+                    run("git", "checkout", "HEAD", "--", path, cwd=tree)
+                else:
+                    run("git", "rm", "-q", "-f", "--ignore-unmatch", "--", path, cwd=tree)
+        run("git", "commit", "-q", "--allow-empty", "--no-verify", "-C", sha, cwd=tree, env=BOT)
+    if not check:
+        regenerate(tree, onto)
+        run("git", "add", "-A", "--", *GENERATED, cwd=tree)
+        message = ["-C", generated_commit] if generated_commit else ["-m", GENERATED_COMMIT]
+        run("git", "commit", "-q", "--allow-empty", "--no-verify", *message, cwd=tree, env=BOT)
     print(run("git", "log", "--format=%h %an | %cn | %s", f"{onto}..HEAD", cwd=tree))
+
+
+def regenerate(tree, onto):
+    """Write GENERATED in tree: our README as README.md, upstream's (from onto) as README.upstream.md, the Xcode
+    project from project.yml ($XCODEGEN), and the extension runtime bundle when our commits change its sources."""
+    tree = Path(tree)
+    upstream_readme = run("git", "show", f"{onto}:README.md", cwd=tree)
+    (tree / "README.upstream.md").write_text(
+        "> Upstream's README, kept verbatim; Notchcast's is [README.md](README.md).\n\n" + upstream_readme + "\n")
+    (tree / "README.md").write_text((tree / "notchcast/README.md").read_text())
+    if os.environ.get("XCODEGEN"):
+        run(os.environ["XCODEGEN"], "generate", "--quiet", cwd=tree)
+    elif subprocess.run(["git", "diff", "--quiet", onto, "HEAD", "--", "project.yml"], cwd=tree).returncode:
+        sys.exit("our commits change project.yml; set XCODEGEN to regenerate the project")
+    runtime = tree / "Scripts/raycast-runtime"
+    if subprocess.run(["git", "diff", "--quiet", onto, "HEAD", "--", str(runtime)], cwd=tree).returncode:
+        run("npm", "ci", "--no-audit", "--no-fund", cwd=runtime)
+        run("node", "build.mjs", cwd=runtime)
+
+
+def issue_open(kind, title, cause, details=None):
+    """One open issue per kind. The same cause on a newer input only retitles it, so it notifies once."""
+    repo, label = os.environ["GITHUB_REPOSITORY"], f"notchcast-{kind}"
+    run_url = f"{os.environ['GITHUB_SERVER_URL']}/{repo}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+    marker = f"<!-- cause: {cause} -->"
+    body = (f"{title}: see [the run]({run_url}). Nothing was pushed or published; it is retried when upstream or "
+            f"`main` changes.\n\n" + (Path(details).read_text() + "\n" if details else "") + marker)
+    run("gh", "label", "create", label, "-R", repo, "--color", "d93f0b", "--force")
+    found = json.loads(run("gh", "issue", "list", "-R", repo, "--label", label, "--state", "open",
+                           "--json", "number,title,body"))
+    if not found:
+        print(run("gh", "issue", "create", "-R", repo, "--label", label, "--title", title, "--body", body))
+    elif marker in found[0]["body"]:
+        if found[0]["title"] != title:
+            run("gh", "issue", "edit", str(found[0]["number"]), "-R", repo, "--title", title)
+    else:
+        run("gh", "issue", "edit", str(found[0]["number"]), "-R", repo, "--title", title, "--body", body)
+        run("gh", "issue", "comment", str(found[0]["number"]), "-R", repo, "--body", body)
+
+
+def issue_close(kind, cause=None):
+    """Close the open issue of kind; with a cause, only if it is that cause's."""
+    repo = os.environ["GITHUB_REPOSITORY"]
+    run_url = f"{os.environ['GITHUB_SERVER_URL']}/{repo}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+    for found in json.loads(run("gh", "issue", "list", "-R", repo, "--label", f"notchcast-{kind}", "--state", "open",
+                                "--json", "number,body")):
+        if cause is None or f"<!-- cause: {cause} -->" in found["body"]:
+            run("gh", "issue", "close", str(found["number"]), "-R", repo, "--comment",
+                f"Went through in [this run]({run_url}).")
+
+
+def issue(action, kind, *args):
+    issue_open(kind, *args) if action == "open" else issue_close(kind, *args)
+
+
+def design_notice(tree, old, new):
+    """One notchcast-design issue per sync that brings upstream design-system changes; update.sh turns it into a
+    Todoist task and closes it."""
+    cfg = config()
+    url = f"https://github.com/{cfg['UPSTREAM_REPO']}/commit"
+    commits = run("git", "log", f"--format=- [`%h`]({url}/%H) %s", f"{old}..{new}", "--", *DESIGN_PATHS, cwd=tree)
+    if not commits:
+        return
+    repo = os.environ["GITHUB_REPOSITORY"]
+    run("gh", "label", "create", "notchcast-design", "-R", repo, "--color", "1d76db", "--force")
+    print(run("gh", "issue", "create", "-R", repo, "--label", "notchcast-design",
+              "--title", f"Refresh notchcast/docs/design-system.md (upstream {new[:7]})",
+              "--body", f"Upstream commits from `{old[:7]}` to `{new[:7]}` that touch the design system:\n\n{commits}\n"))
 
 
 def app_info(tag, out_dir):
@@ -170,4 +297,5 @@ def app_info(tag, out_dir):
 
 if __name__ == "__main__":
     command, args = sys.argv[1], sys.argv[2:]
-    {"plan": plan, "replay": replay, "app-info": app_info}[command](*args)
+    {"plan": plan, "replay": replay, "regenerate": regenerate, "app-info": app_info, "issue": issue,
+     "design-notice": design_notice}[command](*args)
