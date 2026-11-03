@@ -938,7 +938,6 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/MCP/Service/*.swift
 source notchcast/test-harnesses.sh
 
-run notchcast-tap-hub-test Tinycast/Features/Notchcast/Input/EventTapPolicy.swift Tinycast/Features/Notchcast/Input/EventTapHub.swift Tinycast/Features/Notchcast/Input/EventTapThread.swift
 run notchcast-launcher-placement-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
 
 if [ "$emit_db" -eq 1 ]; then
