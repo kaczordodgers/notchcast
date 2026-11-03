@@ -625,7 +625,7 @@
     }
   }
 },
-"Display brightness" : {
+"Display Brightness" : {
   "localizations": {
     "de": {
       "stringUnit": {
@@ -833,7 +833,7 @@
     }
   }
 },
-"Low disk warning" : {
+"Low Disk Warning" : {
   "localizations": {
     "de": {
       "stringUnit": {
@@ -1353,7 +1353,7 @@
     }
   }
 },
-"Quit protection" : {
+"Quit Protection" : {
   "localizations": {
     "de": {
       "stringUnit": {
@@ -1665,7 +1665,7 @@
     }
   }
 },
-"System notices" : {
+"System Notices" : {
   "localizations": {
     "de": {
       "stringUnit": {
@@ -1873,7 +1873,7 @@
     }
   }
 },
-"Volume in island" : {
+"Volume in Island" : {
   "localizations": {
     "de": {
       "stringUnit": {
@@ -56366,7 +56366,7 @@
         }
       }
     },
-    "External displays" : {
+    "External Displays" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -59760,7 +59760,7 @@
         }
       }
     },
-    "Full-screen apps" : {
+    "Full-Screen Apps" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -70968,7 +70968,7 @@
         }
       }
     },
-    "Launcher from island" : {
+    "Launcher from Island" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -72635,7 +72635,7 @@
         }
       }
     },
-    "Live activities" : {
+    "Live Activities" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -90003,7 +90003,7 @@
         }
       }
     },
-    "Open on hover" : {
+    "Open on Hover" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -115280,7 +115280,7 @@
         }
       }
     },
-    "Status messages" : {
+    "Status Messages" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
