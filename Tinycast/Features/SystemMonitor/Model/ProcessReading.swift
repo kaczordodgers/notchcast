@@ -1,5 +1,6 @@
 import Foundation
 
+/// Rankings cover accessible current-user processes; macOS may deny other users' counters.
 nonisolated struct ProcessReading: Sendable, Equatable {
     struct Identity: Sendable, Hashable {
         let pid: Int32
