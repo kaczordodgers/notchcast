@@ -114,11 +114,12 @@ final class BrightnessController {
             task.cancel()
         }
         operations[token] = nil
-        guard running, generation == epoch, !Task.isCancelled else { return nil }
+        guard running, generation == epoch else { return nil }
         if request > appliedRevision, let result {
             appliedRevision = request
             currentDisplays = result
         }
+        guard !Task.isCancelled, request >= appliedRevision else { return nil }
         return result
     }
 
