@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import Synchronization
 
 @MainActor
 protocol SoloistBuildSource: AnyObject {
@@ -159,23 +160,50 @@ final class SoloistInstaller: SoloistBuildSource {
     private static func download(_ url: URL) async throws -> Data {
         let config = URLSessionConfiguration.ephemeral
         config.urlCache = nil
-        let session = URLSession(configuration: config, delegate: DownloadDelegate(), delegateQueue: nil)
+        let delegate = DownloadDelegate()
+        let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
         defer { session.invalidateAndCancel() }
-        let (bytes, response) = try await session.bytes(for: URLRequest(url: url, timeoutInterval: 60))
+        let temporary: URL
+        let response: URLResponse
+        do {
+            (temporary, response) = try await session.download(for: URLRequest(url: url, timeoutInterval: 60))
+        } catch {
+            if delegate.oversized.withLock({ $0 }) { throw SoloistFailure.archive }
+            throw error
+        }
+        defer { try? FileManager.default.removeItem(at: temporary) }
         guard let http = response as? HTTPURLResponse else { throw SoloistFailure.download }
         guard http.statusCode == 200 else { throw SoloistFailure.httpStatus(http.statusCode) }
         guard response.url == url, response.expectedContentLength <= SoloistArchiveRules.maxPacked else {
             throw SoloistFailure.archive
         }
-        var data = Data()
-        for try await byte in bytes {
-            guard data.count < SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive }
-            data.append(byte)
-        }
+        return try readDownload(temporary)
+    }
+
+    nonisolated static func readDownload(_ file: URL) throws -> Data {
+        let size = try file.resourceValues(forKeys: [.fileSizeKey]).fileSize
+        guard let size, size <= SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive }
+        let data = try Data(contentsOf: file)
+        guard data.count <= SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive }
         return data
     }
 
-    private final class DownloadDelegate: NSObject, URLSessionTaskDelegate {
+    private final class DownloadDelegate: NSObject, URLSessionDownloadDelegate {
+        let oversized = Mutex(false)
+
+        func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                        didWriteData bytesWritten: Int64, totalBytesWritten: Int64,
+                        totalBytesExpectedToWrite: Int64) {
+            if totalBytesWritten > SoloistArchiveRules.maxPacked
+                || totalBytesExpectedToWrite > SoloistArchiveRules.maxPacked {
+                oversized.withLock { $0 = true }
+                downloadTask.cancel()
+            }
+        }
+
+        func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask,
+                        didFinishDownloadingTo location: URL) {}
+
         func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
                         newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
             completionHandler(nil)
