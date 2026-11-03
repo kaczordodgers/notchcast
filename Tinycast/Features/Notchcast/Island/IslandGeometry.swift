@@ -1,6 +1,10 @@
 import Foundation
 
 enum IslandGeometry {
+    static func screenIndex(containing point: CGPoint, frames: [CGRect]) -> Int? {
+        frames.firstIndex { $0.contains(point) }
+    }
+
     static func notchRect(
         screen: CGRect, safeAreaTop: CGFloat, leftArea: CGRect?, rightArea: CGRect?
     ) -> CGRect? {

@@ -7,13 +7,18 @@ final class IslandSurfaceView: NSView {
     private let openHost = HostingView(rootView: AnyView(EmptyView()))
     private let closedHost = HostingView(rootView: AnyView(EmptyView()))
     private var animationDisplayLink: CADisplayLink?
+    private var showingOpen = false
     var onAnimationFrame: (() -> Void)?
+    var onOpen: (() -> Void)?
 
     override init(frame: NSRect) {
         super.init(frame: frame)
         wantsLayer = true
         layer?.backgroundColor = NSColor.black.cgColor
         layer?.mask = silhouette
+        setAccessibilityElement(true)
+        setAccessibilityRole(.group)
+        setAccessibilityLabel("Notchcast")
         for host in [openHost, closedHost] {
             host.sizingOptions = []
             host.wantsLayer = true
@@ -31,6 +36,13 @@ final class IslandSurfaceView: NSView {
     func present(
         rect: CGRect, shoulder: CGFloat, radius: CGFloat, open: Bool, motion: IslandMotion
     ) {
+        showingOpen = open
+        let activeHost = open ? openHost : closedHost
+        let inactiveHost = open ? closedHost : openHost
+        activeHost.isHidden = false
+        activeHost.setAccessibilityHidden(false)
+        inactiveHost.setAccessibilityHidden(true)
+        setAccessibilityRole(open ? .group : .button)
         let path = IslandSilhouette.path(in: rect, shoulder: shoulder, bottomRadius: radius)
         let previousPath = silhouette.presentation()?.path ?? silhouette.path ?? path
         CATransaction.begin()
@@ -48,6 +60,7 @@ final class IslandSurfaceView: NSView {
         }
         setOpacity(open ? 1 : 0, on: openHost, motion: motion)
         setOpacity(open ? 0 : 1, on: closedHost, motion: motion)
+        if motion == .instant { inactiveHost.isHidden = true }
         onAnimationFrame?()
         if motion != .instant { watchAnimation() }
     }
@@ -58,8 +71,16 @@ final class IslandSurfaceView: NSView {
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
-        guard containsIsland(convert(point, from: superview)) else { return nil }
-        return super.hitTest(point)
+        let localPoint = convert(point, from: superview)
+        guard containsIsland(localPoint) else { return nil }
+        let host = showingOpen ? openHost : closedHost
+        return host.hitTest(localPoint) ?? self
+    }
+
+    override func accessibilityPerformPress() -> Bool {
+        guard !showingOpen else { return false }
+        onOpen?()
+        return true
     }
 
     func stop() {
@@ -79,7 +100,7 @@ final class IslandSurfaceView: NSView {
             animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
         }
         animation.keyPath = "path"
-        animation.duration = motion.duration
+        animation.duration = (animation as? CASpringAnimation)?.settlingDuration ?? motion.duration
         return animation
     }
 
@@ -113,6 +134,7 @@ final class IslandSurfaceView: NSView {
               closedHost.layer?.animation(forKey: "islandContent") == nil else { return }
         sender.invalidate()
         animationDisplayLink = nil
+        (showingOpen ? closedHost : openHost).isHidden = true
     }
 
     private final class HostingView: NSHostingView<AnyView> {
