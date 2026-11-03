@@ -197,6 +197,7 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     }
 
     private var kindSymbol: String {
+        if kind == .command, let symbol = NotchcastCommandCatalog.command(for: id)?.sfSymbol { return symbol }
         switch kind {
         case .quicklink: return Quicklink.sfSymbol
         case .snippet: return "text.quote"
@@ -417,6 +418,7 @@ final class AppIndex {
 
     private var visibleCatalogEntries: [AppEntry] {
         CommandCatalog.all.filter {
+            guard NotchcastCommandCatalog.isEnabled($0.id) else { return false }
             guard let command = CommandCatalog.command(for: $0) else { return true }
             return !hiddenCommands.contains(command) && !unlistedCommands.contains(command)
         }
@@ -425,6 +427,8 @@ final class AppIndex {
     func isCommandEnabled(_ command: CommandID) -> Bool {
         !hiddenCommands.contains(command)
     }
+
+    func refreshNotchcastCommands() { publishEntries() }
 
     func setCommandsVisible(_ commands: Set<CommandID>, _ visible: Bool) {
         let updated = visible ? hiddenCommands.subtracting(commands) : hiddenCommands.union(commands)

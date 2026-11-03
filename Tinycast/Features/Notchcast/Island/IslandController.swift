@@ -15,6 +15,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
     private var input = IslandInputState()
     var isOpen: Bool { input.isOpen }
     var isPinned: Bool { input.isPinned }
+    private(set) var commandsAvailable = false
     private(set) var hasKeyboardFocus = false
     var hasLiveActivities = false
     private(set) var page = IslandPage.home
@@ -43,7 +44,10 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
         let pages = IslandPagesCoordinator(core: core, island: self)
         self.pages = pages
         openContent = AnyView(IslandPagesView().environment(self).environment(pages).environment(core.palette))
-        setCommandAvailable = { [weak core] in core?.appIndex.setCommandsVisible([.toggleIsland], $0) }
+        setCommandAvailable = { [weak self, weak core] available in
+            self?.commandsAvailable = available
+            core?.appIndex.refreshNotchcastCommands()
+        }
         setCommandAvailable(false)
     }
 
