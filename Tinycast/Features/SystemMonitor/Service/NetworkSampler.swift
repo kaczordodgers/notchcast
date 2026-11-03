@@ -4,6 +4,7 @@ import SystemConfiguration
 
 nonisolated struct NetworkSampler: Sendable {
     private var delta = NetworkDelta()
+    private var kinds: [String: NetworkReading.Kind] = [:]
 
     mutating func sample() -> NetworkReading? {
         guard let interface = Self.primaryInterface(), let counters = Self.counters(interface) else {
@@ -12,30 +13,35 @@ nonisolated struct NetworkSampler: Sendable {
         }
         let rates = delta.update(.init(interface: interface, received: counters.0, sent: counters.1,
                                        time: ProcessInfo.processInfo.systemUptime))
-        return NetworkReading(interface: interface, kind: Self.kind(interface),
+        if kinds[interface] == nil { kinds[interface] = Self.kind(interface) }
+        return NetworkReading(interface: interface, kind: kinds[interface] ?? .other,
                               addresses: Self.addresses(interface), downBytesPerSecond: rates.down,
                               upBytesPerSecond: rates.up, totalDown: delta.totalDown, totalUp: delta.totalUp)
     }
 
     private static func primaryInterface() -> String? {
+        var primaryNames: [String] = []
         if let store = SCDynamicStoreCreate(nil, "NetworkSampler" as CFString, nil, nil) {
             for key in ["State:/Network/Global/IPv4", "State:/Network/Global/IPv6"] {
                 if let state = SCDynamicStoreCopyValue(store, key as CFString) as? [String: Any],
-                   let name = state["PrimaryInterface"] as? String, name.hasPrefix("en") { return name }
+                   let name = state["PrimaryInterface"] as? String { primaryNames.append(name) }
             }
         }
         var first: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&first) == 0 else { return nil }
         defer { freeifaddrs(first) }
         var current = first
+        var interfaces: [NetworkInterfaceCandidate] = []
         while let entry = current?.pointee {
             defer { current = entry.ifa_next }
             let name = String(cString: entry.ifa_name)
-            if name.hasPrefix("en"), entry.ifa_flags & UInt32(IFF_UP | IFF_RUNNING) == UInt32(IFF_UP | IFF_RUNNING) {
-                return name
-            }
+            let family = entry.ifa_addr?.pointee.sa_family
+            interfaces.append(.init(name: name,
+                                    isRunning: entry.ifa_flags & UInt32(IFF_UP | IFF_RUNNING)
+                                        == UInt32(IFF_UP | IFF_RUNNING),
+                                    hasAddress: family == UInt8(AF_INET) || family == UInt8(AF_INET6)))
         }
-        return nil
+        return NetworkInterfaceCandidate.select(interfaces, primaryNames: primaryNames)
     }
 
     private static func counters(_ name: String) -> (UInt64, UInt64)? {

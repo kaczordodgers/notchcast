@@ -15,6 +15,9 @@ nonisolated struct SpeedTestRunner: Sendable {
         private struct State {
             var process: Process?
             var cancelled = false
+            var continuation: CheckedContinuation<Data, any Error>?
+            var data: Data?
+            var status: Int32?
         }
 
         private let state = Mutex(State())
@@ -26,33 +29,59 @@ nonisolated struct SpeedTestRunner: Sendable {
             }
         }
 
-        @concurrent func run() async throws -> Data {
-            try runBlocking()
-        }
-
-        private func runBlocking() throws -> Data {
+        func run() async throws -> Data {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/networkQuality")
-            process.arguments = ["-c"]
+            process.arguments = ["-c", "-M", "30"]
             let pipe = Pipe()
             process.standardOutput = pipe
             process.standardError = FileHandle.nullDevice
             process.standardInput = FileHandle.nullDevice
-            let exited = DispatchSemaphore(value: 0)
-            process.terminationHandler = { _ in exited.signal() }
-            try state.withLock {
-                if $0.cancelled { throw CancellationError() }
-                try process.run()
-                $0.process = process
+            process.terminationHandler = { process in
+                self.state.withLock {
+                    $0.status = process.terminationStatus
+                    Self.finish(&$0)
+                }
             }
-            let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            exited.wait()
-            try state.withLock {
-                $0.process = nil
-                if $0.cancelled { throw CancellationError() }
+            return try await withCheckedThrowingContinuation { continuation in
+                state.withLock {
+                    guard !$0.cancelled else {
+                        continuation.resume(throwing: CancellationError())
+                        return
+                    }
+                    do {
+                        try process.run()
+                    } catch {
+                        process.terminationHandler = nil
+                        continuation.resume(throwing: error)
+                        return
+                    }
+                    $0.process = process
+                    $0.continuation = continuation
+                    DispatchQueue.global(qos: .utility).async {
+                        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+                        try? pipe.fileHandleForReading.close()
+                        self.state.withLock {
+                            $0.data = data
+                            Self.finish(&$0)
+                        }
+                    }
+                }
             }
-            guard process.terminationStatus == 0 else { throw CocoaError(.executableRuntimeMismatch) }
-            return data
+        }
+
+        private static func finish(_ state: inout State) {
+            guard let status = state.status, let data = state.data,
+                  let continuation = state.continuation else { return }
+            state.process = nil
+            state.continuation = nil
+            if state.cancelled {
+                continuation.resume(throwing: CancellationError())
+            } else if status != 0 {
+                continuation.resume(throwing: CocoaError(.executableRuntimeMismatch))
+            } else {
+                continuation.resume(returning: data)
+            }
         }
     }
 }
