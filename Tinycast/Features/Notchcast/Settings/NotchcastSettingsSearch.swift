@@ -4,6 +4,8 @@ extension SettingsAnchor {
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
     static let notchcastOptions = Self(tab: .notchcast, title: "Options")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
+    static let notchcastHover = Self(tab: .notchcast, title: "Island")
+    static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
@@ -15,17 +17,19 @@ extension SettingsSearchCatalog {
     static let notchcast: [SettingsSearchEntry] = [
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
         .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
-        .init(.notchcastOptions, "External displays", keywords: ["monitor", "screen", "display"]),
-        .init(.notchcastOptions, "Full-screen apps", keywords: ["fullscreen", "full screen", "video"]),
-        .init(.notchcastOptions, "Open on hover", keywords: ["pointer", "mouse", "hover"]),
-        .init(.notchcastOptions, "Status messages", keywords: ["hud", "toast", "message"]),
-        .init(.notchcastOptions, "Live activities", keywords: ["now playing", "timer", "activity"]),
-        .init(.notchcastOptions, "Launcher from island", keywords: ["palette", "search", "open"]),
-        .init(.notchcastOptions, "Display brightness", keywords: ["display", "dimming", "slider"]),
-        .init(.notchcastOptions, "Volume in island", keywords: ["sound", "microphone", "mute"]),
-        .init(.notchcastOptions, "System notices", keywords: ["wifi", "tailscale", "battery"]),
-        .init(.notchcastOptions, "Low disk warning", keywords: ["storage", "warning"]),
-        .init(.notchcastOptions, "Quit protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display"]),
+        .init(.notchcastOptions, "Full-Screen Apps", keywords: ["fullscreen", "full screen", "video"]),
+        .init(.notchcastOptions, "Open on Hover", keywords: ["pointer", "mouse", "hover"]),
+        .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
+        .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
+        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(.notchcastHover, "Hover delay"),
+        .init(group: .notchcastShortcuts, "Toggle Island"),
+        .init(.notchcastOptions, "Display Brightness", keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastOptions, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
+        .init(.notchcastOptions, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
+        .init(.notchcastOptions, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastOptions, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),

@@ -12,7 +12,9 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        IslandController.shared.configurePages(core)
         let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
