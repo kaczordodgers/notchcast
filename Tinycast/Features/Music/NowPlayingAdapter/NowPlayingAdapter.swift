@@ -54,7 +54,6 @@ private enum MediaRemote {
                 result["kMRMediaRemoteNowPlayingInfoElapsedTime"] = elapsed + age * speed
             }
             result["kMRMediaRemoteNowPlayingInfoPlaybackRate"] = speed
-            result["artworkBase64"] = artwork?.base64EncodedString()
             return result.filter { ($0.value as? Double)?.isFinite != false }
         }
     }
@@ -146,6 +145,7 @@ private final class NowPlayingAdapter {
     private var commandTask: Task<Void, Never>?
     private var input = Data()
     private var discardingInput = false
+    private var previousSnapshot: MediaRemote.Snapshot?
 
     func watch() {
         typealias Register = @convention(c) (DispatchQueue) -> Void
@@ -196,6 +196,15 @@ private final class NowPlayingAdapter {
 
     private func publish(_ snapshot: MediaRemote.Snapshot) {
         var reply = snapshot.reply(at: Date())
+        if let previousSnapshot,
+           previousSnapshot.pid == snapshot.pid, previousSnapshot.bundleID == snapshot.bundleID,
+           previousSnapshot.title == snapshot.title, previousSnapshot.artist == snapshot.artist,
+           previousSnapshot.album == snapshot.album, previousSnapshot.artwork == snapshot.artwork {
+            reply["artworkUnchanged"] = true
+        } else {
+            reply["artworkBase64"] = snapshot.artwork?.base64EncodedString()
+        }
+        previousSnapshot = snapshot
         reply["displayName"] = NSRunningApplication(processIdentifier: snapshot.pid)?.localizedName
         emit(reply)
     }
@@ -247,7 +256,7 @@ private final class NowPlayingAdapter {
 
     private func emit(_ reply: [String: Any]) {
         guard JSONSerialization.isValidJSONObject(reply),
-              let data = try? JSONSerialization.data(withJSONObject: reply) else { return }
+              let data = try? JSONSerialization.data(withJSONObject: reply, options: .withoutEscapingSlashes) else { return }
         FileHandle.standardOutput.write(data)
         FileHandle.standardOutput.write(Data([10]))
     }
