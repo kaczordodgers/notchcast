@@ -104,7 +104,10 @@ def plan():
         print(f"release {tag}: mirror")
         releases.append({"tag": tag, "title": r["name"], "prerelease": r["isPrerelease"]})
 
-    output(rebase="true" if rebase and main_key not in failed else "false", main=main,
+    statuses = json.loads(run("gh", "api", f"repos/{cfg['FORK_REPO']}/commits/{main}/status"))["statuses"]
+    tested = any(s["context"] == "notchcast/tested" and s["state"] == "success" for s in statuses)
+    print(f"main {main[:10]}: {'tested' if tested else 'not tested yet'}")
+    output(rebase="true" if rebase and main_key not in failed else "false", tested=str(tested).lower(), main=main,
            upstream_main=upstream_main, main_key=main_key, releases=json.dumps(releases, separators=(",", ":")))
 
 
