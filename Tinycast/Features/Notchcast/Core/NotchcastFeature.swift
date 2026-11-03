@@ -9,6 +9,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case displayBrightness
     case quitProtection
     case liveTimers
+    case dayCalendar
     case dayWeather
     case dayMarkets
 
@@ -27,6 +28,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Display Brightness")
         case .quitProtection: String(localized: "Quit Protection")
         case .liveTimers: String(localized: "Timers")
+        case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         }
@@ -47,6 +49,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
         case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         }
@@ -58,7 +61,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets:
             []
         }
     }
