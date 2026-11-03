@@ -14,8 +14,12 @@ import Foundation
         precondition(MediaArguments.retryNatively(stderr: "HTTP Error 403: Forbidden", source: source, usedAria2: true))
         precondition(!MediaArguments.retryNatively(stderr: "403", source: source, usedAria2: false))
         precondition(!MediaArguments.retryNatively(stderr: "HTTP Error 403", source: "https://example.com", usedAria2: true))
-        let manual = MediaArguments.captions(source: source, destination: destination, automatic: false, language: "en")
-        let automatic = MediaArguments.captions(source: source, destination: destination, automatic: true, language: "en")
+        let restarted = MediaArguments.download(source: source, destination: destination, format: .video, restart: true)
+        precondition(restarted.contains("--no-continue"))
+        let manual = MediaArguments.captions(source: source, destination: destination, automatic: false)
+        let automatic = MediaArguments.captions(source: source, destination: destination, automatic: true)
+        precondition(manual.contains("all,-live_chat") && !manual.contains("en"))
+        precondition(automatic.contains(".*-orig") && !automatic.contains("en"))
         precondition(manual.contains("--write-subs") && !manual.contains("--write-auto-subs"))
         precondition(automatic.contains("--write-auto-subs") && !automatic.contains("--write-subs"))
         let progress = MediaOutput.progress("MEDIA_PROGRESS 4200 NA 10000 18000000.0 105")!
@@ -31,7 +35,8 @@ import Foundation
         let captions = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello <00:00:00.500><c>world</c>"
             + "\n\n00:00:01.000 --> 00:00:02.000\nhello world again"
             + "\n\n00:00:02.000 --> 00:00:03.000\nworld again &amp; goodbye"
-        precondition(CaptionText.plainText(captions) == "hello world again & goodbye")
+        precondition(CaptionText.plainText(captions, automatic: true) == "hello world again & goodbye")
+        precondition(CaptionText.plainText(captions) == "hello world hello world again world again & goodbye")
         let srt = "1\n00:00:00,000 --> 00:00:01,000\nHello\n\n2\n00:00:01,000 --> 00:00:02,000\nthere"
         precondition(CaptionText.plainText(srt) == "Hello there")
         precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions") == "")
@@ -49,16 +54,24 @@ import Foundation
         #!/bin/sh
         dest=''
         mode=media
+        language=''
         while [ "$#" -gt 0 ]; do
           case "$1" in
             --paths) shift; dest="$1";;
             --write-subs) mode=manual;;
             --write-auto-subs) mode=auto;;
+            --sub-langs) shift; language="$1";;
+            --print) shift; [ "$1" != '%(language)s' ] || mode=metadata;;
           esac
           shift
         done
-        if [ "$mode" = auto ]; then
-          printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nHello world\\n' > "$dest/movie.en.vtt"
+        if [ "$mode" = metadata ]; then
+          printf 'pl\\n'
+        elif [ "$mode" = manual ]; then
+          [ "$language" = pl ] || exit 1
+          printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nDzień dobry\\n' > "$dest/Movie [id].pl.vtt"
+        elif [ "$mode" = auto ]; then
+          exit 1
         elif [ "$mode" = media ]; then
           touch "$dest/movie.mp4"
           printf 'MEDIA_PROGRESS 50 100 NA 10 5\\n'
@@ -76,6 +89,9 @@ import Foundation
         precondition(output?.lastPathComponent == "movie.mp4")
         let transcript = try await TranscriptDownloadRunner().run(job, context: context)
         let text = try String(contentsOf: transcript!, encoding: .utf8)
-        precondition(text == "Hello world")
+        precondition(text == "Dzień dobry")
+        precondition(transcript?.lastPathComponent == "Movie [id].txt")
+        let second = try await TranscriptDownloadRunner().run(job, context: context)
+        precondition(second?.lastPathComponent == "Movie [id] (2).txt")
     }
 }
