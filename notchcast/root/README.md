@@ -1,6 +1,6 @@
 # Root helper
 
-The fixed program and app client share five argument-free verbs. `version` prints the contract version (`1`), and `ping` prints `pong`; neither requires root. `fans-auto`, `fans-medium` and `fans-max` require root and print exactly `ok\n` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and hardware failures exit 70, always without output. The program reads no environment and launches no processes.
+The fixed program and app client share eleven argument-free verbs. `version` prints the contract version (`1`), and `ping` prints `pong`; neither requires root. Fan and battery verbs require root and print exactly `ok\n` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and hardware failures exit 70, always without output. Only battery sleep verbs launch a process, with fixed arguments and an empty environment.
 
 `RootContract.swift` here is a symlink to the app's contract under
 `Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no
@@ -25,14 +25,31 @@ checks every path component with `lstat`: root ownership, no group/world write p
 parents, an executable regular file, and no symlinks. `isInstalled` reports that path check only;
 sudo's authorization remains a separate typed failure at invocation.
 
-Read operations time out after 3 seconds; fan changes time out after 12 seconds. Cancellation and timeout terminate and reap the invocation. Replies must match the command's complete expected output and version. Consumers own presentation of typed failures; this helper adds no settings row or AppCore hook.
+Read operations time out after 3 seconds; changes time out after 12 seconds. Cancellation and timeout terminate and reap the invocation. Replies must match the command's complete expected output and version. Consumers own presentation of typed failures; this helper adds no settings row or AppCore hook.
 
 The `notchcast-root-client-test` harness covers parsing, replies, unsafe paths, permission policy,
 timeout selection, process reaping and cancellation. Its processes are ordinary `/bin/sleep`
 fixtures; it never invokes sudo or installs anything.
 It also compiles the helper sources in a temporary directory and checks the executable's replies and exits.
 
-## Fan writes
+## Battery operations
+
+`BatterySMC.swift` reuses the helper's SMC connection. Before any write, every candidate key is probed,
+present keys are read, and byte counts are validated. Missing keys are skipped; probe/read errors and
+an empty plan fail without writing. All present keys are written, including on machines exposing both
+generations. There is no macOS-version guess and no arbitrary key or command argument.
+
+- `battery-charging-on`: `CHTE = [0,0,0,0]`, `CH0B = [0]`, `CH0C = [0]`, where present.
+- `battery-charging-off`: `CHTE = [1,0,0,0]`, `CH0B = [2]`, `CH0C = [2]`, where present.
+- `battery-adapter-on`: `CHIE = [0]`, `CH0I = [0]`, where present.
+- `battery-adapter-off`: `CHIE = [8]`, `CH0I = [1]`, where present.
+- `battery-sleep-on`: `/usr/bin/pmset -a disablesleep 0`.
+- `battery-sleep-off`: `/usr/bin/pmset -a disablesleep 1`.
+
+The harness checks SMC plans using fake access only and sleep arguments without invoking pmset.
+Actual privileged operations require separate hardware validation.
+
+## Fan implementation
 
 `FanSMC.swift` is helper-only, adapted from Orion's SMC codec, connection and fan sequence. It is never compiled into the app. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
 

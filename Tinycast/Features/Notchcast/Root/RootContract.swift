@@ -21,6 +21,12 @@ enum RootContract {
         case fansAuto = "fans-auto"
         case fansMedium = "fans-medium"
         case fansMax = "fans-max"
+        case batteryChargingOn = "battery-charging-on"
+        case batteryChargingOff = "battery-charging-off"
+        case batteryAdapterOn = "battery-adapter-on"
+        case batteryAdapterOff = "battery-adapter-off"
+        case batterySleepOn = "battery-sleep-on"
+        case batterySleepOff = "battery-sleep-off"
 
         init?(arguments: [String]) {
             guard arguments.count == 1, let command = Self(rawValue: arguments[0]) else {
@@ -36,6 +42,8 @@ enum RootContract {
             case .version: RootContract.version + "\n"
             case .ping: "pong\n"
             case .fansAuto, .fansMedium, .fansMax: "ok\n"
+            case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
+                 .batterySleepOn, .batterySleepOff: "ok\n"
             }
         }
 
@@ -43,6 +51,8 @@ enum RootContract {
             switch self {
             case .version, .ping: .read
             case .fansAuto, .fansMedium, .fansMax: .change
+            case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
+                 .batterySleepOn, .batterySleepOff: .change
             }
         }
     }
@@ -58,6 +68,8 @@ enum RootContract {
             case .version: self = .version(RootContract.version)
             case .ping: self = .pong
             case .fansAuto, .fansMedium, .fansMax: self = .ok
+            case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
+                 .batterySleepOn, .batterySleepOff: self = .ok
             }
         }
     }
