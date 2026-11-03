@@ -950,6 +950,8 @@ run soloist-speaker-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast
 run music-model-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/MusicSelection.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Service/MusicModel.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift
 run music-launch-block-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/MusicLaunchPolicy.swift Tinycast/Features/Music/Service/MusicLaunchBlocker.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift Tinycast/Platform/ProcessExit.swift
 run microphone-engine-test Tinycast/Features/Microphone/Model/*.swift
+run notchcast-launcher-placement-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
+
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
