@@ -1,7 +1,7 @@
 import Foundation
 
 nonisolated enum CaptionText {
-    static func plainText(_ source: String) -> String {
+    static func plainText(_ source: String, automatic: Bool = false) -> String {
         let normalized = source.replacingOccurrences(of: "\r\n", with: "\n")
             .replacingOccurrences(of: "\r", with: "\n")
         var words: [String] = []
@@ -17,7 +17,7 @@ nonisolated enum CaptionText {
                 .replacingOccurrences(of: "&#39;", with: "'")
                 .replacingOccurrences(of: "&quot;", with: "\"")
             let next = text.split(whereSeparator: \.isWhitespace).map(String.init)
-            var overlap = min(words.count, next.count)
+            var overlap = automatic ? min(words.count, next.count) : 0
             while overlap > 0, Array(words.suffix(overlap)) != Array(next.prefix(overlap)) { overlap -= 1 }
             words.append(contentsOf: next.dropFirst(overlap))
         }
