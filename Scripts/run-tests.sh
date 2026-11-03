@@ -792,6 +792,7 @@ run settings-history-test  Tinycast/Features/Settings/SettingsTab.swift \
                            Tinycast/Features/Settings/SettingsAnchor.swift \
                            Tinycast/Features/Settings/SettingsNavigationState.swift \
                            Tinycast/Features/Settings/SettingsSearchCatalog.swift \
+                           Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift \
                            $L/SearchRelevance.swift \
                            Tinycast/Platform/LocalizedResource.swift
 run updates-test           Tinycast/Features/Updates/Model/*.swift \
