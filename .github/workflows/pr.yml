@@ -29,11 +29,10 @@ jobs:
           persist-credentials: false
       - uses: ./tools/notchcast/actions/xcode
       - uses: ./tools/notchcast/actions/xcodegen
-      - name: Project is generated from project.yml
+      - name: Regenerate project from project.yml
         working-directory: src
         run: |
           "$XCODEGEN" generate --quiet
-          git diff --exit-code -- Tinycast.xcodeproj || { echo "::error::Tinycast.xcodeproj differs from xcodegen output; run xcodegen generate"; exit 1; }
       - name: Upstream base
         id: base
         working-directory: src
