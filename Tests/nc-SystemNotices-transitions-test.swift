@@ -55,6 +55,10 @@ struct SystemNoticesTests {
         var lowStartup = SystemNoticeEngine()
         check(lowStartup.consume(.battery(.init(percent: 9, onBattery: true))).isEmpty, "Low startup is quiet")
         check(lowStartup.consume(.battery(.init(percent: 8, onBattery: true))).isEmpty, "Startup spell remains quiet")
+        var chargingStartup = SystemNoticeEngine()
+        check(chargingStartup.consume(.battery(.init(percent: 9, onBattery: false))).isEmpty, "Charging startup is quiet")
+        check(chargingStartup.consume(.battery(.init(percent: 9, onBattery: true)))
+              == [.lowBattery(percent: 9, threshold: 10)], "Unplugging a low startup battery warns")
 
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("nc-notices-\(UUID())", isDirectory: true)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
