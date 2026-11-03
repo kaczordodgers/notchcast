@@ -1,6 +1,8 @@
 import Foundation
 
 extension SettingsAnchor {
+    static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor"))
+    static let notchcastFanMode = Self(tab: .notchcast, title: "Fan mode")
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
     static let notchcastOptions = Self(tab: .notchcast, title: "Options")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
@@ -20,6 +22,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
         .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
         .init(.notchcastHover, "Hover delay"),
+        .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
+        .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
+        .init(.notchcastFanMode, "Fan mode"),
         .init(group: .notchcastShortcuts, "Toggle Island")
     ]
 }
