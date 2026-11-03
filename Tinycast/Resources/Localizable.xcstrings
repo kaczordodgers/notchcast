@@ -1,6 +1,162 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+"Enter a public HTTP or HTTPS webpage URL without credentials, using port 80 or 443." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Gib eine öffentliche HTTP- oder HTTPS-Webseiten-URL ohne Zugangsdaten mit Port 80 oder 443 ein."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Introduce una URL pública HTTP o HTTPS sin credenciales, con el puerto 80 o 443."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Saisissez une URL de page publique HTTP ou HTTPS sans identifiants, sur le port 80 ou 443."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "認証情報を含まない公開 HTTP または HTTPS ページの URL をポート 80 または 443 で入力してください。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "인증 정보 없이 포트 80 또는 443을 사용하는 공개 HTTP 또는 HTTPS 웹페이지 URL을 입력하세요."
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Introduza um URL de página pública HTTP ou HTTPS sem credenciais, usando a porta 80 ou 443."
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Введите URL общедоступной страницы HTTP или HTTPS без учётных данных с портом 80 или 443."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "请输入不含凭据、使用端口 80 或 443 的公开 HTTP 或 HTTPS 网页 URL。"
+      }
+    }
+  }
+},
+"Private and loopback addresses cannot be saved as webpages." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Private und Loopback-Adressen können nicht als Webseiten gespeichert werden."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Las direcciones privadas y de bucle local no se pueden guardar como páginas web."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Les adresses privées et de bouclage ne peuvent pas être enregistrées comme pages web."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "プライベートアドレスとループバックアドレスはウェブページとして保存できません。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "사설 및 루프백 주소는 웹페이지로 저장할 수 없습니다."
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Os endereços privados e de loopback não podem ser guardados como páginas web."
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Частные и петлевые адреса нельзя сохранять как веб-страницы."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "无法将私有地址和环回地址保存为网页。"
+      }
+    }
+  }
+},
+"The webpage host could not be resolved to a public address." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Der Webseiten-Host konnte nicht in eine öffentliche Adresse aufgelöst werden."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "No se pudo resolver el servidor de la página web a una dirección pública."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Impossible de résoudre l’hôte de la page web en adresse publique."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "ウェブページのホストを公開アドレスに解決できませんでした。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "웹페이지 호스트를 공개 주소로 확인할 수 없습니다."
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Não foi possível resolver o servidor da página web para um endereço público."
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Не удалось определить общедоступный адрес узла веб-страницы."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "无法将网页主机解析为公开地址。"
+      }
+    }
+  }
+},
 "%@ is not installed. Install it with: %@" : {
   "localizations": {
     "de": {
