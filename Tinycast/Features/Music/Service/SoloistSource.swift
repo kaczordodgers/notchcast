@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class SoloistSource: NowPlayingSource {
-    enum Failure: Error { case invalidPort, malformedFrame, connection, command, artwork }
+    enum Failure: Error { case invalidPort, malformedFrame, connection, command(String), artwork }
 
     private(set) var authState: SoloistProtocol.AuthState?
     private(set) var failure: Failure?
@@ -55,6 +55,7 @@ final class SoloistSource: NowPlayingSource {
             while !Task.isCancelled {
                 guard let socket = self?.open(port: port) else { return }
                 do {
+                    try await socket.send(.string(SoloistProtocol.getAuthState))
                     try await socket.send(.string(SoloistProtocol.getState))
                     while !Task.isCancelled {
                         let message = try await socket.receive()
@@ -71,6 +72,7 @@ final class SoloistSource: NowPlayingSource {
                 } catch {
                     guard !Task.isCancelled, self?.socket === socket else { return }
                     self?.isConnected = false
+                    self?.state?.isPlaying = false
                     self?.failure = .connection
                     self?.onChange?()
                 }
@@ -91,8 +93,12 @@ final class SoloistSource: NowPlayingSource {
 
     private func receive(_ text: String) {
         do {
+            failure = nil
             switch try SoloistProtocol.parse(text, now: Date()) {
-            case .auth(let auth): authState = auth
+            case .auth(let auth):
+                authState = auth
+                if auth.loggedIn { enqueue(SoloistProtocol.getState) }
+            case .failure(let message): failure = .command(message)
             case .changed: enqueue(SoloistProtocol.getState)
             case .state(let track, let cover):
                 state = track
@@ -100,29 +106,33 @@ final class SoloistSource: NowPlayingSource {
                 loadCover(cover)
             case .other: return
             }
-            failure = nil
         } catch { failure = .malformedFrame }
         onChange?()
     }
 
     private func loadCover(_ url: URL?) {
-        guard url != coverURL else { return }
+        guard url != coverURL || coverTask == nil else { return }
         coverURL = url
         coverTask?.cancel()
-        guard let url, ["https", "http"].contains(url.scheme), attemptedCovers.insert(url).inserted else { return }
+        coverTask = nil
+        guard let url, ["https", "http"].contains(url.scheme), !attemptedCovers.contains(url) else { return }
         let session = session
         coverTask = Task { [weak self] in
             do {
                 let data = try await Self.download(url, session: session)
                 guard !Task.isCancelled, let self, self.coverURL == url else { return }
+                self.coverTask = nil
                 if self.covers.values.reduce(0, { $0 + $1.count }) + data.count > 10_485_760 {
                     self.covers.removeAll()
+                    self.attemptedCovers.removeAll()
                 }
+                self.attemptedCovers.insert(url)
                 self.covers[url] = data
                 self.state?.artwork = data
                 self.onChange?()
             } catch {
                 guard !Task.isCancelled, let self, self.coverURL == url else { return }
+                self.coverTask = nil
                 self.failure = .artwork
                 self.onChange?()
             }
@@ -151,7 +161,7 @@ final class SoloistSource: NowPlayingSource {
             guard !Task.isCancelled, self?.socket === socket else { return }
             do { try await socket.send(.string(text)) } catch {
                 guard !Task.isCancelled, self?.socket === socket else { return }
-                self?.failure = .command
+                self?.failure = .command(String(describing: error))
                 self?.onChange?()
             }
         }
@@ -165,7 +175,7 @@ final class SoloistSource: NowPlayingSource {
         do {
             enqueue(try SoloistProtocol.encode(command, isPlaying: state?.isPlaying ?? false))
         } catch {
-            failure = .command
+            failure = .command(String(describing: error))
             onChange?()
         }
     }
