@@ -20,11 +20,16 @@ struct NotchcastSettingsView: View {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
                     }
+                    .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
                 }
             } header: {
                 SettingsSectionHeader(.notchcastOptions)
             }
-            .settingsEnabled(preferences.isOn(.island))
+
+            BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
+            TimerSettingsSection(store: NotchcastCore.timers.store)
+            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
             Section {
                 Picker(selection: Binding(
