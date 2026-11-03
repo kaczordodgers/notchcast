@@ -936,6 +936,8 @@ run slow MCPStdioTests     Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
+# Notchcast: Tests/nc-<Folder>-<name>-test.swift compiles Tinycast/Features/<Folder>/{Model,Service}/*.swift.
+for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
 
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
