@@ -1,0 +1,36 @@
+name: Upstream tests
+description: Run upstream's Scripts/run-tests.sh in src, minus CI_SKIP_TESTS (config.env), harnesses the hosted VM cannot run.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      working-directory: src
+      run: |
+        set -a; source ../tools/notchcast/config.env; set +a
+        # Edit only the working copy for this run: run() returns early for a skipped name. Commits are untouched.
+        grep -q '^    local name=\$1$' Scripts/run-tests.sh || { echo "::error::run-tests.sh changed shape; update the skip hook"; exit 1; }
+        sed -i '' -E 's/^    local name=\$1$/    local name=$1; case " $CI_SKIP_TESTS " in *" $name "*) echo "skipped on the runner: $name" >\&2; return 0;; esac/' Scripts/run-tests.sh
+        status=0
+        ./Scripts/run-tests.sh || status=$?
+        # A harness that fails once is run again alone (the hosted VM is slower and noisier than a Mac);
+        # it must pass then. A suite that failed with no harness marked failed is not retried.
+        BIN="${TMPDIR:-/tmp}/tinycast-harness"
+        if [ "$status" -ne 0 ] && ls "$BIN"/*.failed >/dev/null 2>&1; then
+          failed="$(for f in "$BIN"/*.failed; do basename "$f" .failed; done)"
+          mkdir -p "$RUNNER_TEMP/first-try" && cp "$BIN"/*.log "$RUNNER_TEMP/first-try/" 2>/dev/null || true
+          status=0
+          for name in $failed; do
+            echo "::warning::retrying $name alone"
+            ./Scripts/run-tests.sh "$name" || status=1
+          done
+        fi
+        git checkout -- Scripts/run-tests.sh
+        exit $status
+    - name: Failed harness logs
+      if: failure()
+      shell: bash
+      run: |
+        for f in "${TMPDIR:-/tmp}"/tinycast-harness/*.failed; do
+          [ -e "$f" ] || continue
+          n="$(basename "$f" .failed)"; echo "::group::$n"; cat "${f%.failed}.log"; echo "::endgroup::"
+        done

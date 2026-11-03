@@ -1,0 +1,233 @@
+# Keep main = upstream main + our commits, and mirror upstream releases. See notchcast/README.md.
+name: Sync
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# One run at a time; a newer trigger replaces a pending one, never a running build.
+concurrency:
+  group: sync
+  cancel-in-progress: false
+
+env:
+  FORK_SSH: git@github.com:${{ github.repository }}.git
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      rebase: ${{ steps.plan.outputs.rebase }}
+      main: ${{ steps.plan.outputs.main }}
+      upstream_main: ${{ steps.plan.outputs.upstream_main }}
+      main_key: ${{ steps.plan.outputs.main_key }}
+      releases: ${{ steps.plan.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          filter: blob:none
+          persist-credentials: false
+      - id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 notchcast/ci.py plan
+
+  # Upstream moved: replay our commits onto it, build, test, and only then move main (lease on what plan saw).
+  # On a push or a manual run with nothing to rebase, main itself is built and tested and nothing is pushed.
+  main:
+    needs: plan
+    if: needs.plan.outputs.rebase == 'true' || github.event_name != 'schedule'
+    runs-on: xcode-27
+    timeout-minutes: 120
+    environment: sync
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.plan.outputs.main }}
+          path: tools
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.plan.outputs.main }}
+          path: src
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./tools/notchcast/actions/xcode
+      - name: Replay our commits onto upstream main
+        if: needs.plan.outputs.rebase == 'true'
+        working-directory: src
+        run: |
+          git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
+          test "$(git rev-parse refs/remotes/upstream/main)" = "${{ needs.plan.outputs.upstream_main }}" || git fetch -q https://github.com/abue-ammar/tinycast.git "${{ needs.plan.outputs.upstream_main }}"
+          python3 ../tools/notchcast/ci.py replay . "${{ needs.plan.outputs.upstream_main }}"
+      - name: Build (Debug, unsigned)
+        working-directory: src
+        run: |
+          xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO build -quiet
+      - uses: ./tools/notchcast/actions/tests
+      - uses: ./tools/notchcast/actions/deploy-key
+        if: needs.plan.outputs.rebase == 'true'
+        with:
+          key: ${{ secrets.DEPLOY_KEY }}
+      # The only history rewrite in this repo: main moves onto new upstream, guarded by a lease on what plan saw.
+      - name: Update main
+        if: needs.plan.outputs.rebase == 'true'
+        working-directory: src
+        run: |
+          git push --force-with-lease="refs/heads/main:${{ needs.plan.outputs.main }}" "$FORK_SSH" HEAD:refs/heads/main
+      - name: Remember the failure
+        if: failure() && needs.plan.outputs.rebase == 'true'
+        uses: ./tools/notchcast/actions/remember-failure
+        with:
+          key: ${{ needs.plan.outputs.main_key }}
+          deploy-key: ${{ secrets.DEPLOY_KEY }}
+
+  release:
+    needs: [plan, main]
+    # After main: a release is built from the main this run ends with. Skipped main (nothing to rebase) is fine.
+    if: always() && needs.plan.result == 'success' && needs.main.result != 'failure' && needs.plan.outputs.releases != '[]'
+    runs-on: xcode-27
+    timeout-minutes: 120
+    environment: sync
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        release: ${{ fromJSON(needs.plan.outputs.releases) }}
+    env:
+      TAG: ${{ matrix.release.tag }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.plan.outputs.main }}
+          path: tools
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.plan.outputs.main }}
+          path: src
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./tools/notchcast/actions/xcode
+      - name: Read upstream's release
+        id: app
+        run: python3 tools/notchcast/ci.py app-info "$TAG" "$RUNNER_TEMP"
+      - name: Replay our commits onto the tag
+        working-directory: src
+        run: |
+          git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main" "+refs/tags/$TAG:refs/tags/$TAG"
+          python3 ../tools/notchcast/ci.py replay . "refs/tags/$TAG^{commit}"
+      - uses: ./tools/notchcast/actions/tests
+      - name: Import the signing identity
+        env:
+          P12_BASE64: ${{ secrets.SIGNING_P12_BASE64 }}
+          P12_PASSWORD: ${{ secrets.SIGNING_P12_PASSWORD }}
+        run: |
+          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
+          KPW="$(openssl rand -base64 24)"
+          printf '%s' "$P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security create-keychain -p "$KPW" "$KEYCHAIN"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN"
+          security unlock-keychain -p "$KPW" "$KEYCHAIN"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$P12_PASSWORD" -A -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KPW" "$KEYCHAIN" >/dev/null
+          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | sed 's/"//g')
+          rm -f "$RUNNER_TEMP/cert.p12"
+      - name: Build (Release, signed, arm64)
+        working-directory: src
+        env:
+          NAME: ${{ steps.app.outputs.name }}
+          BUNDLE_ID: ${{ steps.app.outputs.bundle_id }}
+          VERSION: ${{ steps.app.outputs.version }}
+          BUILD: ${{ steps.app.outputs.build }}
+        run: |
+          set -a; source ../tools/notchcast/config.env; set +a
+          xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Release \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
+            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
+            OTHER_CODE_SIGN_FLAGS="--timestamp=none" \
+            PRODUCT_NAME="$NAME" TINYCAST_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
+            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
+            build -quiet
+      - name: Verify the app
+        env:
+          NAME: ${{ steps.app.outputs.name }}
+          BUNDLE_ID: ${{ steps.app.outputs.bundle_id }}
+          VERSION: ${{ steps.app.outputs.version }}
+        run: |
+          set -a; source tools/notchcast/config.env; set +a
+          APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
+          ./src/Scripts/verify-signature.sh "$APP"
+          codesign --verify --deep --strict "$APP"
+          plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$APP/Contents/Info.plist"; }
+          test "$(plist CFBundleIdentifier)" = "$BUNDLE_ID"
+          test "$(plist CFBundleShortVersionString)" = "$VERSION"
+          codesign -d --extract-certificates="$RUNNER_TEMP/cert" "$APP"
+          LEAF="$(shasum -a 1 "$RUNNER_TEMP/cert0" | awk '{print toupper($1)}')"
+          test "$LEAF" = "$SIGN_SHA1" || { echo "::error::signed by $LEAF, expected $SIGN_SHA1"; exit 1; }
+          for BIN in "$APP/Contents/MacOS/$NAME" "$APP/Contents/Helpers/ClipboardTextHelper" "$APP/Contents/Helpers/FileIndexHelper"; do
+            test "$(lipo -archs "$BIN")" = arm64
+          done
+      - name: Package zip and dmg
+        env:
+          NAME: ${{ steps.app.outputs.name }}
+          VERSION: ${{ steps.app.outputs.version }}
+        run: |
+          APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
+          mkdir -p dist
+          # Only ditto keeps the signature verifiable; the in-app updater expands the zip with ditto.
+          ditto -c -k --keepParent --sequesterRsrc "$APP" "dist/Tinycast-$VERSION.zip"
+          STAGE="$(mktemp -d)"
+          cp -R "$APP" "$STAGE/"
+          ln -s /Applications "$STAGE/Applications"
+          hdiutil create -quiet -srcfolder "$STAGE" -volname "$NAME" -format UDZO "dist/Tinycast-$VERSION.dmg"
+          ls -l dist
+      - uses: ./tools/notchcast/actions/deploy-key
+        with:
+          key: ${{ secrets.DEPLOY_KEY }}
+      # Upstream's tag, unchanged. GITHUB_TOKEN cannot push commits that touch workflows; the deploy-key push may
+      # trigger workflows, but the tagged tree's upstream workflows cannot read the secrets (environment `sync`, main only).
+      - name: Mirror the tag
+        working-directory: src
+        run: |
+          if [ -z "$(git ls-remote "$FORK_SSH" "refs/tags/$TAG")" ]; then
+            git push "$FORK_SSH" "refs/tags/$TAG:refs/tags/$TAG"
+          fi
+      - name: Publish the release
+        env:
+          TITLE: ${{ matrix.release.title }}
+          PRERELEASE: ${{ matrix.release.prerelease }}
+          VERSION: ${{ steps.app.outputs.version }}
+          MAIN: ${{ needs.plan.outputs.main }}
+        run: |
+          set -a; source tools/notchcast/config.env; set +a
+          UPSTREAM="$(git -C src rev-parse "refs/tags/$TAG^{commit}")"
+          {
+            cat "$RUNNER_TEMP/upstream-notes.md"
+            printf '\n\n---\nNotchcast build of %s %s (%s) with our commits from main %s, signed by %s (SHA-1 %s).\n' \
+              "$UPSTREAM_REPO" "$TAG" "${UPSTREAM:0:12}" "${MAIN:0:12}" "$SIGN_IDENTITY" "$SIGN_SHA1"
+          } > "$RUNNER_TEMP/notes.md"
+          FLAGS=()
+          if [ "$PRERELEASE" = "true" ]; then FLAGS+=(--prerelease); fi
+          gh release create "$TAG" "dist/Tinycast-$VERSION.zip" "dist/Tinycast-$VERSION.dmg" \
+            -R "$GITHUB_REPOSITORY" --verify-tag --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md" "${FLAGS[@]}"
+      - name: Remember the failure
+        if: failure()
+        uses: ./tools/notchcast/actions/remember-failure
+        with:
+          key: release-${{ matrix.release.tag }}-${{ needs.plan.outputs.main }}
+          deploy-key: ${{ secrets.DEPLOY_KEY }}
