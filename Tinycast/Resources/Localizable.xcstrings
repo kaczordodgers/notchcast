@@ -121,58 +121,6 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日历设置" } }
       }
     },
-    "Island" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Insel"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Isla"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Îlot"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アイランド"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아일랜드"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ilha"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Остров"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "灵动岛"
-          }
-        }
-      }
-    },
     "External displays" : {
       "localizations": {
         "de": {
@@ -485,370 +433,6 @@
         }
       }
     },
-    "Show the island at the top of the screen." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Insel am oberen Bildschirmrand anzeigen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar la isla en la parte superior de la pantalla."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher l’îlot en haut de l’écran."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "画面上部にアイランドを表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "화면 상단에 아일랜드를 표시합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar a ilha no topo da tela."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать остров вверху экрана."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在屏幕顶部显示灵动岛。"
-          }
-        }
-      }
-    },
-    "Show the island on external displays." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Insel auf externen Displays anzeigen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar la isla en pantallas externas."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher l’îlot sur les écrans externes."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "外部ディスプレイにアイランドを表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "외장 디스플레이에 아일랜드를 표시합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar a ilha em monitores externos."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать остров на внешних дисплеях."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在外接显示器上显示灵动岛。"
-          }
-        }
-      }
-    },
-    "Show the island over full-screen apps." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Insel über Vollbild-Apps anzeigen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar la isla sobre apps a pantalla completa."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher l’îlot au-dessus des apps en plein écran."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "フルスクリーンアプリの上にアイランドを表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전체 화면 앱 위에 아일랜드를 표시합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar a ilha sobre apps em tela cheia."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать остров поверх полноэкранных приложений."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在全屏应用上方显示灵动岛。"
-          }
-        }
-      }
-    },
-    "Open the island when the pointer hovers over it." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Insel öffnen, wenn der Zeiger darüber verweilt."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir la isla al mantener el cursor sobre ella."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ouvrir l’îlot lorsque le pointeur le survole."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ポインタを重ねるとアイランドを開きます。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "포인터를 올리면 아일랜드를 엽니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir a ilha quando o cursor permanecer sobre ela."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Открывать остров при наведении указателя."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "指针悬停时打开灵动岛。"
-          }
-        }
-      }
-    },
-    "Show status messages in the island." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Statusmeldungen in der Insel anzeigen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar mensajes de estado en la isla."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher les messages d’état dans l’îlot."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アイランドにステータスメッセージを表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아일랜드에 상태 메시지를 표시합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar mensagens de status na ilha."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать сообщения о состоянии в острове."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在灵动岛中显示状态消息。"
-          }
-        }
-      }
-    },
-    "Show live activities in the island." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Live-Aktivitäten in der Insel anzeigen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar actividades en directo en la isla."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Afficher les activités en direct dans l’îlot."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アイランドにライブアクティビティを表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아일랜드에 실시간 현황을 표시합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostrar atividades ao vivo na ilha."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать текущие действия в острове."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在灵动岛中显示实时活动。"
-          }
-        }
-      }
-    },
-    "Open the launcher from the island." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Den Launcher über die Insel öffnen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir el lanzador desde la isla."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ouvrir le lanceur depuis l’îlot."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アイランドからランチャーを開きます。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아일랜드에서 실행기를 엽니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Abrir o iniciador pela ilha."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Открывать панель запуска из острова."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从灵动岛打开启动器。"
-          }
-        }
-      }
-    },
     "Required to open the island on hover." : {
       "localizations": {
         "de": {
@@ -901,58 +485,100 @@
         }
       }
     },
-    "Notchcast" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast"
-          }
-        }
+"The downloader did not return an output file." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Der Downloader hat keine Ausgabedatei zurückgegeben."
       }
     },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "El descargador no devolvió un archivo de salida."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Le téléchargeur n’a renvoyé aucun fichier de sortie."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "ダウンローダーから出力ファイルが返されませんでした。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "다운로더가 출력 파일을 반환하지 않았습니다."
+      }
+    },
+    "ru": { "stringUnit": { "state": "translated", "value": "Загрузчик не вернул выходной файл." } },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "O descarregador não devolveu um ficheiro de saída."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "下载器未返回输出文件。"
+      }
+    }
+  }
+},
+"No captions are available. The Distill transcriber fallback is not connected yet." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Keine Untertitel verfügbar. Die Distill-Transkription als Ersatz ist noch nicht verbunden."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "No hay subtítulos disponibles. La transcripción alternativa de Distill aún no está conectada."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Aucun sous-titre disponible. La transcription de secours Distill n’est pas encore connectée."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "字幕がありません。代替の Distill 文字起こしはまだ接続されていません。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "자막이 없습니다. 대체 Distill 받아쓰기가 아직 연결되지 않았습니다."
+      }
+    },
+    "ru": { "stringUnit": { "state": "translated", "value": "Субтитры недоступны. Резервная транскрипция Distill ещё не подключена." } },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Não há legendas disponíveis. A transcrição alternativa do Distill ainda não está ligada."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "没有可用字幕。Distill 备用转录尚未连接。"
+      }
+    }
+  }
+},
 "%@ is not installed. Install it with: %@" : {
   "localizations": {
     "de": {
