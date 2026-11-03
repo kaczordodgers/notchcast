@@ -55,15 +55,18 @@ final class EventTapHub {
 final class DisplayBrightnessModule {
     @MainActor
     final class Controller {
+        enum StepResult { case applied(BrightnessLevel), unavailable, cancelled }
+        var cancelStep = false
         var entries = [BrightnessDisplay(id: .init(rawValue: 2, uuid: "external"), name: "Display",
                                          isBuiltIn: false, control: .ddc, level: .init(0.5))]
         var steps: [(Bool, Bool, BrightnessDisplay.ID)] = []
         func displays() -> [BrightnessDisplay] { entries }
-        func step(up: Bool, fine: Bool, for display: BrightnessDisplay.ID) async -> BrightnessLevel? {
+        func step(up: Bool, fine: Bool, for display: BrightnessDisplay.ID) async -> StepResult {
             steps.append((up, fine, display))
-            guard let index = entries.firstIndex(where: { $0.id == display }) else { return nil }
+            if cancelStep { return .cancelled }
+            guard let index = entries.firstIndex(where: { $0.id == display }) else { return .unavailable }
             entries[index].level = entries[index].level.stepped(up: up, fine: fine)
-            return entries[index].level
+            return .applied(entries[index].level)
         }
     }
     let controller = Controller()
@@ -143,6 +146,11 @@ struct SystemLevelRoutingTests {
         for _ in 0..<20 { await Task.yield() }
         check(keys.revision == 4, "A disconnected or reused display cannot publish stale brightness")
         BrightnessDisplayService.available = true
+        brightness.controller.cancelStep = true
+        hub.send(.brightnessUp)
+        await eventually { brightness.controller.steps.count == 3 }
+        for _ in 0..<20 { await Task.yield() }
+        check(keys.revision == 4, "Superseded brightness operations neither publish nor replay native keys")
         preferences.set(.volumeLevels, false)
         await eventually { !levels.service.isRunning && keys.latest == nil }
         check(hub.handlers.count == 1, "Brightness remains registered with volume off")
