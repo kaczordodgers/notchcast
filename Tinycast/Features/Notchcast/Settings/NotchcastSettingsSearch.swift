@@ -11,6 +11,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
 }
 
 extension SettingsSearchCatalog {
@@ -35,5 +36,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastExtras, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastExtras, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastExtras, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastExtras, "Finder Cut and Paste", keywords: ["files", "move", "clipboard"]),
+        .init(.notchcastExtras, "Finder Rename", keywords: ["hyper", "shortcut", "return"]),
+        .init(.notchcastFinder, "Cut and move files", keywords: ["copy", "escape", "cancel"]),
+        .init(.notchcastFinder, "Rename selection", keywords: ["hyper", "shortcut", "return"]),
     ]
 }

@@ -1,5 +1,7 @@
 @MainActor
 enum NotchcastCore {
+    static let eventTapHub = EventTapHub()
+    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -15,6 +17,8 @@ enum NotchcastCore {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
         let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.finderCutPaste], module: FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)),
+            .init(requires: [.finderRename], module: FinderToolsModule(coordinator: finderTools, feature: .finderRename)),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
