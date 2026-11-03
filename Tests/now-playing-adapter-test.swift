@@ -7,7 +7,7 @@ struct NowPlayingAdapterTests {
     }
 
     static func data(_ reply: [String: Any]) throws -> Data {
-        try JSONSerialization.data(withJSONObject: reply)
+        try JSONSerialization.data(withJSONObject: reply, options: .withoutEscapingSlashes)
     }
 
     static func playback(_ reply: [String: Any], previous: NowPlaying? = nil) throws -> NowPlaying? {
@@ -62,6 +62,12 @@ struct NowPlayingAdapterTests {
         unchanged["artworkBase64"] = nil
         unchanged["artworkUnchanged"] = true
         expect(try playback(unchanged, previous: song)?.artwork == song.artwork, "Same-track artwork reuse")
+        var changed = unchanged
+        changed["artworkUnchanged"] = nil
+        changed["artworkBase64"] = Data([4, 5, 6]).base64EncodedString()
+        expect(try playback(changed, previous: song)?.artwork == Data([4, 5, 6]), "Changed artwork replaces cache")
+        changed["artworkBase64"] = nil
+        expect(try playback(changed, previous: song)?.artwork == nil, "Removed artwork clears cache")
         unchanged[prefix + "Title"] = "New song"
         expect(try playback(unchanged, previous: song)?.artwork == nil, "Artwork cannot leak between tracks")
         unchanged[prefix + "Title"] = "Song"
@@ -79,6 +85,13 @@ struct NowPlayingAdapterTests {
         expect(try playback(cover)?.artwork == nil, "Oversized encoded artwork")
         cover["artworkBase64"] = Data(repeating: 1, count: NowPlayingAdapterReply.maximumArtworkBytes).base64EncodedString()
         expect(try playback(cover)?.artwork?.count == NowPlayingAdapterReply.maximumArtworkBytes, "Artwork cap boundary")
+        cover["artworkBase64"] = Data(repeating: 255, count: NowPlayingAdapterReply.maximumArtworkBytes).base64EncodedString()
+        let nearCap = try data(cover)
+        expect(nearCap.count <= NowPlayingAdapterReply.maximumLineBytes, "Slash-heavy artwork fits line cap")
+        var artworkLines = NowPlayingAdapterReply.Lines()
+        expect(try artworkLines.append(nearCap + Data([10])) == [nearCap], "Near-cap artwork is framed")
+        expect(try playback(cover)?.artwork?.count == NowPlayingAdapterReply.maximumArtworkBytes,
+               "Slash-heavy artwork survives parsing")
 
         expect(try NowPlayingAdapterReply.parse(data(["sent": true]), previous: song, now: .distantPast) == .command(true),
                "Command acknowledgment is separate from playback")
