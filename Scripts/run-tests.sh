@@ -942,8 +942,6 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/MCP/Service/*.swift
 source notchcast/test-harnesses.sh
 
-run notchcast-launcher-placement-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
-
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
