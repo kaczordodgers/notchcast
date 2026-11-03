@@ -14,17 +14,15 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
 
     private var input = IslandInputState()
     var isOpen: Bool { input.isOpen }
-    var isPinned: Bool {
-        get { input.isPinned }
-        set { input.setPinned(newValue) }
-    }
+    var isPinned: Bool { input.isPinned }
     private(set) var hasKeyboardFocus = false
     var hasLiveActivities = false
     private(set) var page = IslandPage.home
     var openContent = AnyView(Color.clear.frame(height: NotchcastTheme.estimatedContentHeight)) {
         didSet { updateContent() }
     }
-    var closedContent = ClosedContent() {
+    /// Builds each panel's wings or pill using its screen and notch geometry; views inherit the notch flag.
+    var closedContent: (IslandClosedContext) -> ClosedContent = { _ in ClosedContent() } {
         didSet { updateContent() }
     }
 
@@ -147,7 +145,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
         for panel in panels {
             panel.onOpen = { [weak self, weak panel] in
                 guard let self, let panel else { return }
-                open(page: page, on: panel.screen, takeKey: true)
+                open(page: page, on: panel.screen, takeKey: false)
             }
             panel.onKey = { [weak self] in self?.handleKey($0) ?? false }
             panel.onFocus = { [weak self] in self?.hasKeyboardFocus = $0 }
@@ -170,7 +168,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
             } else {
                 header = AnyView(Color.clear)
             }
-            panel.setContent(open: openContent, closed: closedContent, header: header)
+            panel.setContent(open: openContent, closed: closedContent(panel.closedContext), header: header)
         }
     }
 
@@ -192,13 +190,12 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
             input.cancelHoverOpen()
             scheduleHover()
         }
-        _ = preferences.islandHoverDelay
         let center = IslandActivityCenter.shared
         hasLiveActivities = !center.activities.isEmpty
         let activity = preferences.isOn(.islandLiveActivities) ? center.current : nil
-        closedContent = ClosedContent(
+        closedContent = { _ in ClosedContent(
             leading: activity.map { AnyView(IslandActivityGlyph(activity: $0)) },
-            trailing: activity.map { AnyView(IslandActivityValue(activity: $0, multiple: center.activities.count > 1)) })
+            trailing: activity.map { AnyView(IslandActivityValue(activity: $0, multiple: center.activities.count > 1)) }) }
         let message = preferences.isOn(.islandStatusMessages) ? center.message : nil
         panels.forEach {
             $0.setMessage(message)
@@ -248,13 +245,14 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
         let inside = isOpen ? openPanel?.containsPointer == true
             : panels.contains { $0.isVisible && $0.containsPointer }
         let preferences = NotchcastPreferences.shared
+        let previousHover = input.pendingHover
         input.pointer(inside: inside, now: ProcessInfo.processInfo.systemUptime,
                       hoverEnabled: preferences.isOn(.islandHoverOpen),
                       delay: preferences.islandHoverDelay.rawValue)
         if [.leftMouseDown, .rightMouseDown, .otherMouseDown].contains(event.type), !inside {
             dismiss(.outsideClick)
         }
-        scheduleHover()
+        if previousHover != input.pendingHover { scheduleHover() }
     }
 
     private func scheduleHover() {
@@ -266,7 +264,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
             try? await Task.sleep(for: .seconds(remaining))
             guard !Task.isCancelled, let self, observationID == identity,
                   input.pendingHover == pending else { return }
-            let action = input.advance(now: ProcessInfo.processInfo.systemUptime)
+            let action = input.advance(now: ProcessInfo.processInfo.systemUptime, focused: hasKeyboardFocus)
             switch action {
             case .open:
                 input.close()
@@ -280,7 +278,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
     }
 
     private func dismiss(_ reason: IslandInputState.Dismissal) {
-        input.dismiss(reason)
+        input.dismiss(reason, focused: hasKeyboardFocus)
         if !isOpen { close() }
     }
 

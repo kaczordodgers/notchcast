@@ -18,7 +18,8 @@ struct IslandInputState: Sendable {
         isOpen = true
     }
 
-    mutating func dismiss(_ reason: Dismissal) {
+    mutating func dismiss(_ reason: Dismissal, focused: Bool = false) {
+        guard reason != .mouseOut || !focused else { return }
         guard !isPinned || reason == .escape || reason == .pageKey else { return }
         close()
     }
@@ -57,7 +58,7 @@ struct IslandInputState: Sendable {
         if pendingHover?.action == .open { pendingHover = nil }
     }
 
-    mutating func advance(now: TimeInterval) -> HoverAction? {
+    mutating func advance(now: TimeInterval, focused: Bool = false) -> HoverAction? {
         guard let pendingHover, now >= pendingHover.deadline else { return nil }
         self.pendingHover = nil
         switch pendingHover.action {
@@ -65,7 +66,7 @@ struct IslandInputState: Sendable {
             guard pointerInside, !isOpen else { return nil }
             open()
         case .close:
-            guard !pointerInside, isOpen, !isPinned else { return nil }
+            guard !pointerInside, isOpen, !isPinned, !focused else { return nil }
             dismiss(.mouseOut)
         }
         return pendingHover.action

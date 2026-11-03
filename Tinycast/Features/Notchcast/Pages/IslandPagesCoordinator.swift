@@ -33,7 +33,8 @@ final class IslandPagesCoordinator {
 
     func didOpen(page: IslandPage) {
         headerFocus = nil
-        refresh(page)
+        cancelRefresh()
+        if page == .day { day.reloadIfStale() }
         day.clock.start()
     }
 
@@ -48,11 +49,11 @@ final class IslandPagesCoordinator {
         let identity = UUID()
         refreshID = identity
         isRefreshing = true
+        page.refresh(day: day)
         refreshTask = Task { [weak self] in
-            await Task.yield()
+            try? await Task.sleep(for: .seconds(0.4))
             guard !Task.isCancelled, self?.refreshID == identity else { return }
             guard let self else { return }
-            page.refresh(day: day)
             guard !Task.isCancelled, refreshID == identity else { return }
             isRefreshing = false
             refreshTask = nil

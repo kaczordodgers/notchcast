@@ -80,10 +80,5 @@ struct IslandStatusView: View {
         .padding(.horizontal, Theme.Spacing.xl)
         .frame(maxWidth: Theme.Size.hudMaxWidth, alignment: .leading)
         .fixedSize(horizontal: true, vertical: false)
-        .background {
-            RadialGradient(colors: [tint.opacity(0.14), tint.opacity(0.03), .clear],
-                           center: .leading, startRadius: 0, endRadius: 150)
-                .allowsHitTesting(false)
-        }
     }
 }

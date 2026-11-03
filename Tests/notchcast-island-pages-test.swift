@@ -98,6 +98,13 @@ struct IslandPagesTests {
         state.pointer(inside: false, now: clock + 12, hoverEnabled: true, delay: 0.3)
         expect(state.advance(now: clock + 12.3) == .close && !state.isOpen,
                "mouse-out closes an unpinned island at its deadline")
+        state.open()
+        state.pointer(inside: true, now: clock + 13, hoverEnabled: true, delay: 0.3)
+        state.pointer(inside: false, now: clock + 14, hoverEnabled: true, delay: 0.3)
+        expect(state.advance(now: clock + 15, focused: true) == nil && state.isOpen,
+               "mouse-out preserves a focused island")
+        state.dismiss(.mouseOut, focused: true)
+        expect(state.isOpen, "direct mouse-out dismissal preserves focus")
     }
 
     @MainActor static func preferences() {

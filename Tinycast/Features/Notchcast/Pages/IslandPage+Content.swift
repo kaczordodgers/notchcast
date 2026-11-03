@@ -8,7 +8,7 @@ extension IslandPage {
         }
     }
 
-    func refresh(day: IslandDayPage) {
+    @MainActor func refresh(day: IslandDayPage) {
         switch self {
         case .home: break
         case .day: day.refresh()

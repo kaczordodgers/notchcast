@@ -1,5 +1,16 @@
 import Foundation
 
+struct IslandClosedContext: Sendable {
+    let screen: CGRect
+    let hardwareNotch: CGRect?
+    let pill: CGRect
+    var hasHardwareNotch: Bool { hardwareNotch != nil }
+
+    func wingWidth(contentWidth: CGFloat, minimum: CGFloat) -> CGFloat {
+        hasHardwareNotch ? max(minimum, contentWidth) : contentWidth
+    }
+}
+
 enum IslandGeometry {
     static func screenIndex(containing point: CGPoint, frames: [CGRect]) -> Int? {
         frames.firstIndex { $0.contains(point) }

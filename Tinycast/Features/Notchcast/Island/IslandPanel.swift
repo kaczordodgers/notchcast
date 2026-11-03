@@ -5,6 +5,10 @@ final class IslandPanel: NSPanel {
     let hardwareNotch: CGRect?
     private let screenFrame: CGRect
     var displayFrame: CGRect { screenFrame }
+    var closedContext: IslandClosedContext {
+        IslandClosedContext(screen: screenFrame, hardwareNotch: hardwareNotch,
+                            pill: IslandGeometry.monitorPill(screen: screenFrame, size: NotchcastTheme.monitorPill))
+    }
     private let surface: IslandSurfaceView
     private var open = false
     private var contentHeight = NotchcastTheme.estimatedContentHeight
@@ -38,6 +42,7 @@ final class IslandPanel: NSPanel {
         backgroundColor = .clear
         hasShadow = true
         isFloatingPanel = true
+        becomesKeyOnlyIfNeeded = true
         acceptsMouseMovedEvents = true
         hidesOnDeactivate = false
         isReleasedWhenClosed = false
@@ -70,7 +75,6 @@ final class IslandPanel: NSPanel {
         if event.type == .keyDown, onKey?(event) == true { return }
         if event.type == .leftMouseDown, containsPointer {
             if !open, message?.onCancel == nil { onOpen?(); return }
-            makeKey()
         }
         super.sendEvent(event)
     }
@@ -92,7 +96,7 @@ final class IslandPanel: NSPanel {
             contentHeight = height
             if self.open { present(animated: true) }
         }
-        let compact = IslandClosedView(content: closed, cameraWidth: hardwareNotch?.width ?? 0,
+        let compact = IslandClosedView(context: closedContext, content: closed, cameraWidth: hardwareNotch?.width ?? 0,
                                        bandHeight: hardwareNotch?.height ?? NotchcastTheme.monitorPill.height,
                                        message: message) { [weak self] width in
             guard let self else { return }
@@ -101,7 +105,8 @@ final class IslandPanel: NSPanel {
             compactWidth = width
             if !self.open { present(animated: true) }
         }
-        surface.setContent(open: AnyView(expanded), closed: AnyView(compact))
+        surface.setContent(open: AnyView(expanded), closed: AnyView(compact
+            .environment(\.hasHardwareNotch, closedContext.hasHardwareNotch)))
         present(animated: true)
     }
 

@@ -1,6 +1,11 @@
 import SwiftUI
 
+extension EnvironmentValues {
+    @Entry var hasHardwareNotch = false
+}
+
 struct IslandClosedView: View {
+    var context: IslandClosedContext
     var content: IslandController.ClosedContent
     var cameraWidth: CGFloat
     var bandHeight: CGFloat
@@ -45,7 +50,6 @@ struct IslandClosedView: View {
     }
 
     private var wingWidth: CGFloat {
-        max(content.leading == nil ? 0 : max(NotchcastTheme.minimumWing, leadingWidth),
-            content.trailing == nil ? 0 : max(NotchcastTheme.minimumWing, trailingWidth))
+        context.wingWidth(contentWidth: max(leadingWidth, trailingWidth), minimum: NotchcastTheme.minimumWing)
     }
 }

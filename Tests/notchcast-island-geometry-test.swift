@@ -9,7 +9,22 @@ struct IslandGeometryTests {
         motionPolicy()
         silhouetteHitRegion()
         screenSelection()
+        closedContext()
         print("notchcast-island-geometry: all checks passed")
+    }
+
+    static func closedContext() {
+        let screen = CGRect(x: 0, y: 0, width: 1512, height: 982)
+        let pill = IslandGeometry.monitorPill(screen: screen, size: CGSize(width: 180, height: 28))
+        let notch = CGRect(x: 660, y: 950, width: 192, height: 32)
+        for hardware in [notch, nil] {
+            let context = IslandClosedContext(screen: screen, hardwareNotch: hardware, pill: pill)
+            expect(context.hasHardwareNotch == (hardware != nil), "context identifies the display shape")
+            expect(context.screen == screen && context.pill == pill, "context preserves display geometry")
+            expect(context.wingWidth(contentWidth: 12, minimum: 44) == (hardware == nil ? 12 : 44),
+                   "only notch wings impose the 44 point floor")
+            expect(context.wingWidth(contentWidth: 60, minimum: 44) == 60, "wide content keeps its width")
+        }
     }
 
     static func screenSelection() {
