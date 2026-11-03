@@ -1,4 +1,5 @@
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
 import AppKit
 import Darwin
 import Foundation
