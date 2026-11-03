@@ -937,6 +937,7 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/MCP/Service/*.swift
 # Notchcast: Tests/nc-<Folder>-<name>-test.swift compiles Tinycast/Features/<Folder>/{Model,Service}/*.swift.
 for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
+run now-playing-adapter-test -parse-as-library Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/NowPlayingAdapterReply.swift Tinycast/Features/Music/Service/SystemNowPlayingSource.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 
 run soloist-source-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/SoloistProtocol.swift Tinycast/Features/Music/Service/SoloistSource.swift
 run soloist-runtime-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
