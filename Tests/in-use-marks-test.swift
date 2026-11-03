@@ -1,4 +1,81 @@
 import Foundation
+import CoreAudio
+import CoreMediaIO
+
+@MainActor
+private enum ListenerFixture {
+    static var live: Bool {
+        CommandLine.arguments.contains("--live-audio") || CommandLine.arguments.contains("--live-marks")
+    }
+    static var audioStatus: OSStatus = -81
+    static var cameraStatus: OSStatus = -82
+    static var audioCallbacks: [AudioObjectPropertyListenerBlock] = []
+    static var cameraCallbacks: [CMIOObjectPropertyListenerBlock] = []
+}
+
+@MainActor
+func AudioObjectGetPropertyDataSize(
+    _ object: AudioObjectID, _ address: UnsafePointer<AudioObjectPropertyAddress>,
+    _ qualifierSize: UInt32, _ qualifier: UnsafeRawPointer?, _ size: UnsafeMutablePointer<UInt32>
+) -> OSStatus {
+    if ListenerFixture.live {
+        return CoreAudio.AudioObjectGetPropertyDataSize(object, address, qualifierSize, qualifier, size)
+    }
+    size.pointee = 0
+    return ListenerFixture.audioStatus
+}
+
+@MainActor
+func CMIOObjectGetPropertyDataSize(
+    _ object: CMIOObjectID, _ address: UnsafePointer<CMIOObjectPropertyAddress>,
+    _ qualifierSize: UInt32, _ qualifier: UnsafeRawPointer?, _ size: UnsafeMutablePointer<UInt32>
+) -> OSStatus {
+    if ListenerFixture.live {
+        return CoreMediaIO.CMIOObjectGetPropertyDataSize(object, address, qualifierSize, qualifier, size)
+    }
+    size.pointee = 0
+    return ListenerFixture.cameraStatus
+}
+
+@MainActor
+func AudioObjectAddPropertyListenerBlock(
+    _ object: AudioObjectID, _ address: UnsafePointer<AudioObjectPropertyAddress>,
+    _ queue: DispatchQueue?, _ block: @escaping AudioObjectPropertyListenerBlock
+) -> OSStatus {
+    if ListenerFixture.live { return CoreAudio.AudioObjectAddPropertyListenerBlock(object, address, queue, block) }
+    ListenerFixture.audioCallbacks.append(block)
+    return noErr
+}
+
+@MainActor
+@discardableResult
+func AudioObjectRemovePropertyListenerBlock(
+    _ object: AudioObjectID, _ address: UnsafePointer<AudioObjectPropertyAddress>,
+    _ queue: DispatchQueue?, _ block: @escaping AudioObjectPropertyListenerBlock
+) -> OSStatus {
+    if ListenerFixture.live { return CoreAudio.AudioObjectRemovePropertyListenerBlock(object, address, queue, block) }
+    return noErr
+}
+
+@MainActor
+func CMIOObjectAddPropertyListenerBlock(
+    _ object: CMIOObjectID, _ address: UnsafePointer<CMIOObjectPropertyAddress>,
+    _ queue: DispatchQueue?, _ block: @escaping CMIOObjectPropertyListenerBlock
+) -> OSStatus {
+    if ListenerFixture.live { return CoreMediaIO.CMIOObjectAddPropertyListenerBlock(object, address, queue, block) }
+    ListenerFixture.cameraCallbacks.append(block)
+    return noErr
+}
+
+@MainActor
+@discardableResult
+func CMIOObjectRemovePropertyListenerBlock(
+    _ object: CMIOObjectID, _ address: UnsafePointer<CMIOObjectPropertyAddress>,
+    _ queue: DispatchQueue?, _ block: @escaping CMIOObjectPropertyListenerBlock
+) -> OSStatus {
+    if ListenerFixture.live { return CoreMediaIO.CMIOObjectRemovePropertyListenerBlock(object, address, queue, block) }
+    return noErr
+}
 
 @MainActor
 private final class FakeInUseSource: InUseSource {
@@ -75,6 +152,7 @@ struct InUseMarksTests {
             try await liveMarks()
             return
         }
+        await listenerRecovery()
         let source = FakeInUseSource()
         let clock = ManualMarksClock()
         var muted = false
@@ -122,11 +200,46 @@ struct InUseMarksTests {
         source.change?()
         clock.advance(to: 8, source: source)
         expect(marks!.failure == nil && marks!.microphone, "a later event recovers from read failure")
+        source.monitoringFailure = .read(-99)
+        source.change?()
+        clock.advance(to: 9, source: source)
+        expect(marks!.failure == .read(-99), "registration failure reaches marks")
+        source.monitoringFailure = nil
+        source.change?()
+        clock.advance(to: 10, source: source)
+        expect(marks!.failure == nil, "successful registration clears marks failure")
         marks = nil
         expect(source.change == nil, "deinit stops the source")
         print("in-use marks: coalescing <= 1 update/second, cancellation, bundle ids, mute state PASS")
         print("\(passes) passed, \(failures) failed")
         if failures > 0 { exit(1) }
+    }
+
+    private static func listenerRecovery() async {
+        let audio = CoreMicrophoneAudio()
+        audio.start {}
+        expect(audio.monitoringFailure == .read(-81), "audio enumeration failure is reported")
+        ListenerFixture.audioStatus = noErr
+        var address = MicrophoneAudioObject.address(kAudioHardwarePropertyDevices)
+        ListenerFixture.audioCallbacks[0](1, &address)
+        for _ in 0..<10 { await Task.yield() }
+        expect(audio.monitoringFailure == nil, "audio listener rebuild clears recovered failure")
+        audio.stop()
+        ListenerFixture.audioCallbacks = []
+        ListenerFixture.audioStatus = -81
+        let source = SystemInUseSource()
+        source.start {}
+        expect(source.monitoringFailure == .read(-81), "process enumeration failure is reported")
+        ListenerFixture.audioStatus = noErr
+        ListenerFixture.audioCallbacks[0](1, &address)
+        for _ in 0..<10 { await Task.yield() }
+        expect(source.monitoringFailure == .read(-82), "process recovery preserves camera failure")
+        ListenerFixture.cameraStatus = noErr
+        var cameraAddress = CMIOObjectPropertyAddress()
+        ListenerFixture.cameraCallbacks[0](1, &cameraAddress)
+        for _ in 0..<10 { await Task.yield() }
+        expect(source.monitoringFailure == nil, "camera listener rebuild clears recovered failure")
+        source.stop()
     }
 
     private static func liveAudio() async throws {
