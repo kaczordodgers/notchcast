@@ -7,6 +7,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
+// notchcast-sources: Tinycast/Features/Microphone/InUseMarksModule.swift
+// notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Service/HotKeyCenter.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Service/KeyShortcut.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HyperKey.swift
