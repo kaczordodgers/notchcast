@@ -15,8 +15,23 @@ struct NotchcastSettingsView: View {
                             .labelsHidden()
                             .accessibilityLabel(feature.title)
                     }
+                    if feature == .islandHoverOpen {
+                        Picker(selection: Binding(
+                            get: { preferences.islandHoverDelay },
+                            set: { preferences.islandHoverDelay = $0 })) {
+                            ForEach(NotchcastPreferences.HoverDelay.allCases) { delay in
+                                Text(delay.title).tag(delay)
+                            }
+                        } label: {
+                            SettingsRowTitle(.notchcastHover, "Hover delay")
+                        }
+                        .settingsEnabled(preferences.isOn(.island) && preferences.isOn(.islandHoverOpen))
+                    }
                 }
             }
+            .settingsAnchor(.notchcastHover)
+            FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
+                .settingsEnabled(preferences.isOn(.island))
             if preferences.isOn(.island) && preferences.isOn(.islandHoverOpen) {
                 Section("Permissions") {
                     SettingsRow(

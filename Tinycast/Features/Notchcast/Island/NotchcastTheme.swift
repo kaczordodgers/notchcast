@@ -1,6 +1,7 @@
 import SwiftUI
 
 enum NotchcastTheme {
+    static let headerGlyph: CGFloat = 16
     static let monitorPill = CGSize(width: 180, height: Theme.Size.barButtonHeight)
     static let openMinimumWidth: CGFloat = 800
     static let estimatedContentHeight: CGFloat = 96
