@@ -11,27 +11,37 @@ struct NotchcastSettingsView: View {
                         anchor: .notchcastIsland, title: "Island",
                         subtitle: "Show the island at the top of the screen.")
                 }
-            }
+            } header: { SettingsSectionHeader(.notchcastIsland) }
             .settingsAnchor(.notchcastIsland)
-
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
-                    Toggle(isOn: binding(feature)) {
-                        SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
-                        Text(feature.subtitle)
-                    }
+                ForEach(options, id: \.self) { feature in
+                    NotchcastFeatureToggle(feature: feature, anchor: .notchcastOptions)
                 }
-            } header: {
-                SettingsSectionHeader(.notchcastOptions)
+            } header: { SettingsSectionHeader(.notchcastOptions) }
+                .settingsEnabled(preferences.isOn(.island))
+            Section {
+                NotchcastFeatureToggle(feature: .musicNowPlaying, anchor: .notchcastMusic)
+                NotchcastFeatureToggle(feature: .musicLastPlayer, anchor: .notchcastMusic)
+                    .settingsEnabled(preferences.isOn(.musicNowPlaying))
+                NotchcastFeatureToggle(feature: .musicBlockAppleMusic, anchor: .notchcastMusic)
+            } header: { SettingsSectionHeader(.notchcastMusic) }
+                .settingsEnabled(preferences.isOn(.island))
+            if NotchcastCore.services != nil {
+                SpotifySettingsSection()
+                MicrophoneSettingsSection()
             }
-            .settingsEnabled(preferences.isOn(.island))
-
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
             }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.notchcast)
+        .notchcastEnvironment()
+    }
+
+    private var options: [NotchcastFeature] {
+        [.islandExternalDisplays, .islandFullScreen, .islandHoverOpen, .islandStatusMessages,
+         .islandLiveActivities, .launcherFromIsland]
     }
 
     /// Grants needed by the switches that are on, in a stable order.
