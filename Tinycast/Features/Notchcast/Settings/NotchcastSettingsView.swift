@@ -15,7 +15,7 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
+                ForEach(NotchcastFeature.islandOptions, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
@@ -25,6 +25,13 @@ struct NotchcastSettingsView: View {
                 SettingsSectionHeader(.notchcastOptions)
             }
             .settingsEnabled(preferences.isOn(.island))
+
+            BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            SystemLevelsSettingsSection(preferences: NotchcastCore.systemLevels.preferences)
+            NoticesSettingsSection(preferences: NotchcastCore.systemNotices.preferences)
+            QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
+            TimerSettingsSection(store: NotchcastCore.timers.store)
+            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
@@ -42,6 +49,20 @@ struct NotchcastSettingsView: View {
 
     private func binding(_ feature: NotchcastFeature) -> Binding<Bool> {
         Binding(get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })
+    }
+}
+
+struct NotchcastFeatureToggle: View {
+    let feature: NotchcastFeature
+    let anchor: SettingsAnchor
+    let title: LocalizedStringResource
+    let subtitle: LocalizedStringResource
+    private let preferences = NotchcastPreferences.shared
+
+    var body: some View {
+        Toggle(isOn: Binding(get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
+            SettingsFeatureToggleLabel(anchor: anchor, title: title, subtitle: subtitle)
+        }
     }
 }
 

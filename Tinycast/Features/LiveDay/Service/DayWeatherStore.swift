@@ -19,7 +19,8 @@ final class DayWeatherStore {
     private let key = "notchcast.day.weatherPlace"
     @ObservationIgnored private var task: Task<Void, Never>?
     private var generation = UUID()
-    private var fetching = false
+    private var fetchingGeneration: UUID?
+    private(set) var isRunning = false
 
     convenience init() {
         self.init(defaults: DayStorage.defaults, cacheURL: DayStorage.weatherCacheURL)
@@ -36,16 +37,18 @@ final class DayWeatherStore {
     }
 
     func select(_ place: DayWeatherPlace?) {
+        let restart = isRunning
         stop()
         self.place = place
         forecast = nil
         fetchedAt = nil
         defaults.set(place.flatMap { try? JSONEncoder().encode($0) }, forKey: key)
-        start()
+        if restart { start() }
     }
 
     func start() {
         stop()
+        isRunning = true
         guard let place else { return }
         let operation = generation
         task = Task { [weak self, cacheURL] in
@@ -63,16 +66,17 @@ final class DayWeatherStore {
     }
 
     func stop() {
+        isRunning = false
         generation = UUID()
         task?.cancel()
         task = nil
     }
 
     func refresh() async {
-        guard let place, !fetching else { return }
-        fetching = true
-        defer { fetching = false }
+        guard let place, fetchingGeneration != generation else { return }
         let operation = generation
+        fetchingGeneration = operation
+        defer { if fetchingGeneration == operation { fetchingGeneration = nil } }
         do {
             var url = URLComponents(string: "https://api.open-meteo.com/v1/forecast")!
             url.queryItems = [
