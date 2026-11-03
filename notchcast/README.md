@@ -47,18 +47,6 @@ The new bundle id and signature need Accessibility to be granted once.
 
 ## Conflict-free PRs
 
-PRs carry no generated files. Edit their inputs, regenerate locally before opening or building
-`Tinycast.xcodeproj`, and leave the generated diff uncommitted. PR CI regenerates before building.
-After each source push to main, Generated files runs `ci.py regenerate` and commits only `GENERATED`
-with the repository identity. Its generated-only push is excluded by path filters and the Actions
-token also prevents recursive workflow runs. Concurrent source pushes are fetched and rebased before
-retrying regeneration; a delayed job does not block builds. Sync regenerates before every build too.
+PRs carry no generated files: edit their inputs, regenerate locally before using Xcode (`xcodegen generate`), and leave the generated diff uncommitted. PR CI regenerates before building. After each source push to main, the Generated files workflow runs `ci.py regenerate` and commits only `GENERATED` as `Notchcast: generated files` with the repository identity; each attempt starts from a fresh `origin/main`, its generated-only push is excluded by path filters, and the Actions token starts no further workflow runs. Sync regenerates before every build too.
 
-Fork tests are discovered by `notchcast/test-harnesses.sh`. `Tests/nc-<Folder>-<name>-test.swift`
-defaults to all Model and Service sources in that feature. Any fork harness can instead declare
-`// notchcast-sources: -parse-as-library Tinycast/path/*.swift` (space-separated compiler arguments
-and source globs, no spaces in paths). `Tests/notchcast-*-test.swift` requires that header. Add the
-harness and its sources without editing `Scripts/run-tests.sh` or the project.
-
-Leads leave generated files out of every PR and fix conflicts only in source inputs. Regenerate
-locally before using Xcode; main's generated commit is maintained by CI after landing.
+Fork harnesses are discovered by `notchcast/test-harnesses.sh`, so a PR never edits `Scripts/run-tests.sh`. `Tests/nc-<Folder>-<name>-test.swift` compiles all Model and Service sources of `Tinycast/Features/<Folder>/`. Any other fork harness (`Tests/notchcast-*-test.swift` or an upstream-style name) declares its sources in one or more `// notchcast-sources: <compiler arguments and source globs>` header lines (no spaces in paths). A `notchcast-*` harness without the header fails alone with an error; the rest of the suite still runs.

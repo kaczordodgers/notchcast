@@ -36,7 +36,7 @@ jobs:
           git config user.email 336236323+kaczordodgers@users.noreply.github.com
           for attempt in 1 2 3 4 5; do
             git fetch origin main
-            git rebase origin/main
+            git reset -q --hard origin/main
             git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
             python3 notchcast/ci.py regenerate . "$(git merge-base HEAD refs/remotes/upstream/main)"
             python3 - <<'PY'

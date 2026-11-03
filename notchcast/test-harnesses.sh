@@ -9,7 +9,8 @@ for harness in $(ls Tests/nc-*-test.swift Tests/notchcast-*-test.swift 2>/dev/nu
         folder=${name#nc-}
         run "$name" $(ls Tinycast/Features/${folder%%-*}/{Model,Service}/*.swift 2>/dev/null)
     else
-        echo "$harness needs a // notchcast-sources: header" >&2
-        exit 1
+        # Compiles alone and fails as one harness; the rest of the suite still runs.
+        echo "::error::$harness needs a // notchcast-sources: header" >&2
+        run "$name"
     fi
 done
