@@ -1,6 +1,8 @@
 import Foundation
 
 extension SettingsAnchor {
+    static let notchcastChargePercent = Self(tab: .notchcast, title: "Charge limit percent")
+    static let notchcastAwakeDuration = Self(tab: .notchcast, title: "Keep-awake duration")
     static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor"))
     static let notchcastFanMode = Self(tab: .notchcast, title: "Fan mode")
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
@@ -8,6 +10,10 @@ extension SettingsAnchor {
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastHover = Self(tab: .notchcast, title: "Island")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
+    static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
+    static let notchcastDay = Self(tab: .notchcast, title: "Day")
 }
 
 extension SettingsSearchCatalog {
@@ -25,6 +31,22 @@ extension SettingsSearchCatalog {
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
         .init(.notchcastFanMode, "Fan mode"),
-        .init(group: .notchcastShortcuts, "Toggle Island")
+        .init(.notchcastMonitor, "Charge Limit"),
+        .init(.notchcastMonitor, "Battery Sailing"),
+        .init(.notchcastMonitor, "Battery Heat Protection"),
+        .init(.notchcastMonitor, "Battery Calibration"),
+        .init(.notchcastMonitor, "Keep Awake"),
+        .init(.notchcastMonitor, "Keep Awake with Lid Closed"),
+        .init(.notchcastChargePercent, "Charge limit percent"),
+        .init(.notchcastAwakeDuration, "Keep-awake duration"),
+        .init(group: .notchcastShortcuts, "Toggle Island"),
+        .init(.notchcastOptions, "Display Brightness", keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastOptions, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
+        .init(.notchcastOptions, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
+        .init(.notchcastOptions, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastOptions, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
+        .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
     ]
 }

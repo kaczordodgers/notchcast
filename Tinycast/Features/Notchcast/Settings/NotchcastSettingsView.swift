@@ -15,44 +15,23 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island && $0 != .systemMonitor && $0 != .fanControl }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter { $0 != .island && !$0.isSystemFeature }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
                     }
+                    .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
                 }
             } header: {
                 SettingsSectionHeader(.notchcastOptions)
             }
-            .settingsEnabled(preferences.isOn(.island))
 
-            Section {
-                Toggle(isOn: binding(.systemMonitor)) {
-                    SettingsRowTitle(.notchcastMonitor, "System Monitor")
-                    Text(NotchcastFeature.systemMonitor.subtitle)
-                }
-                Toggle(isOn: binding(.fanControl)) {
-                    SettingsRowTitle(.notchcastMonitor, "Fan Control")
-                    Text(NotchcastFeature.fanControl.subtitle)
-                }
-                .settingsEnabled(preferences.isOn(.systemMonitor))
-                Picker(selection: Binding(get: { preferences.fanMode }, set: { preferences.fanMode = $0 })) {
-                    Text("Auto").tag("auto")
-                    Text("Medium").tag("medium")
-                    Text("Max").tag("max")
-                } label: {
-                    SettingsRowTitle(.notchcastFanMode, "Fan mode")
-                }
-                .accessibilityLabel("Fan mode")
-                .settingsAnchor(.notchcastFanMode)
-                .settingsEnabled(preferences.isOn(.systemMonitor) && preferences.isOn(.fanControl))
-                if !RootHelperClient().isInstalled {
-                    Text("The privileged helper is not installed.")
-                        .foregroundStyle(.secondary)
-                }
-            } header: {
-                SettingsSectionHeader(.notchcastMonitor)
-            }
+            BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
+            TimerSettingsSection(store: NotchcastCore.timers.store)
+            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+
+            NotchcastSystemSettingsSection()
 
             Section {
                 Picker(selection: Binding(
