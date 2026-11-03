@@ -3,6 +3,12 @@
 Tinycast is licensed under the GNU Affero General Public License v3 — see [LICENSE](LICENSE). It
 also redistributes the third-party material recorded below, under the terms stated for each.
 
+## System Now Playing adapter
+
+`Tinycast/Features/Music/NowPlayingAdapter/` and `SystemNowPlayingSource.swift` adapt
+Vorssaint 794608a's adapter, Perl loader and watched process lifetime,
+Copyright (C) 2026 Vorssaint, under GPL-3.0-or-later. Source files retain their licence headers.
+
 ## Dictation model resources
 
 Tinycast's dictation code uses Apple's frameworks only. No speech model is bundled with the app.
