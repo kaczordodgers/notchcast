@@ -1,5 +1,5 @@
 name: XcodeGen
-description: Pinned XcodeGen for regenerating a conflicting project during replay; sets XCODEGEN.
+description: Pinned XcodeGen; replay regenerates Tinycast.xcodeproj with it. Sets XCODEGEN.
 runs:
   using: composite
   steps:
