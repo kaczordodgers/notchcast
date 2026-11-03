@@ -31,6 +31,14 @@ struct NotchcastCoreTests {
         precondition(m0.isSubset(of: NotchcastFeature.allCases.map(\.rawValue)))
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
         precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
+        let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
+            .displayBrightness, .quitProtection, .liveTimers, .dayWeather, .dayMarkets]
+        for feature in l3 {
+            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
+            let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
+            precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
+        }
+        precondition(l3.allSatisfy { preferences.isOn($0) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))
@@ -45,12 +53,27 @@ struct NotchcastCoreTests {
 
         let hover = TestModule()
         let ungated = TestModule()
+        let battery = TestModule()
+        preferences.set(.batteryChargeLimit, false)
+        preferences.set(.keepAwake, false)
         let controller = NotchcastModuleController(
             [
                 .init(requires: [.island, .islandHoverOpen], module: hover),
-                .init(requires: [.launcherFromIsland], module: ungated)
+                .init(requires: [.launcherFromIsland], module: ungated),
+                .init(requires: [], requiresAny: [.batteryChargeLimit, .keepAwake], module: battery)
             ], preferences: preferences)
         controller.run()
+        precondition(battery.starts == 0)
+        preferences.set(.keepAwake, true)
+        await settle()
+        precondition(battery.starts == 1)
+        preferences.set(.batteryChargeLimit, true)
+        preferences.set(.keepAwake, false)
+        await settle()
+        precondition(battery.starts == 1 && battery.stops == 0)
+        preferences.set(.batteryChargeLimit, false)
+        await settle()
+        precondition(battery.stops == 1)
         precondition(hover.starts == 1 && hover.stops == 0 && ungated.starts == 1)
 
         preferences.set(.islandHoverOpen, false)

@@ -20,6 +20,24 @@ final class NotchcastPreferences {
     var fanMode: String {
         didSet { defaults.set(fanMode, forKey: "fanMode") }
     }
+    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
+    static let awakeDurations = [15, 30, 60, 120, 240]
+    private var chargePercent: Int
+    var batteryChargePercent: Int {
+        get { chargePercent }
+        set {
+            chargePercent = Self.chargeLimits.contains(newValue) ? newValue : 80
+            defaults.set(chargePercent, forKey: "batteryChargePercent")
+        }
+    }
+    private var awakeDuration: Int
+    var keepAwakeMinutes: Int {
+        get { awakeDuration }
+        set {
+            awakeDuration = Self.awakeDurations.contains(newValue) ? newValue : 60
+            defaults.set(awakeDuration, forKey: "keepAwakeMinutes")
+        }
+    }
     static let shared = NotchcastPreferences(
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
@@ -30,9 +48,13 @@ final class NotchcastPreferences {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
         fanMode = defaults.string(forKey: "fanMode") ?? "auto"
+        let percent = defaults.integer(forKey: "batteryChargePercent")
+        chargePercent = Self.chargeLimits.contains(percent) ? percent : 80
+        let minutes = defaults.integer(forKey: "keepAwakeMinutes")
+        awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool ?? ($0 != .systemMonitor && $0 != .fanControl))
+            !(defaults.object(forKey: $0.rawValue) as? Bool ?? !$0.isSystemFeature)
         })
     }
 
