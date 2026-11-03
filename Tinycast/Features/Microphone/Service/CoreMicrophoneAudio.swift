@@ -81,6 +81,7 @@ final class CoreMicrophoneAudio: MicrophoneAudioAccess {
     private func rebuildListeners() {
         guard change != nil else { return }
         controls = []
+        monitoringFailure = topology.first(where: { $0.status != noErr }).map { .read($0.status) }
         do {
             for input in try inputs() {
                 controls.append(listener(input.id, Self.inputAddress(kAudioDevicePropertyStreamConfiguration)) { [weak self] in
