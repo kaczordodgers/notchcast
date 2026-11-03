@@ -1,18 +1,19 @@
 import AppKit
 import SwiftUI
 
-extension AppearanceStore {
+extension AppearanceThemeColors {
     func ramp(dark: Double, light: Double, role: AppearanceThemeColors.Role = .text) -> Color {
         _ = revision
-        let colors = colors
         return Color(nsColor: NSColor(name: nil) { appearance in
             let isDark = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            return colors.ink(role, in: appearance, dark: dark, light: light)
+            return self.ink(role, in: appearance, dark: dark, light: light)
                 ?? NSColor(srgbRed: isDark ? 1 : 0, green: isDark ? 1 : 0,
                            blue: isDark ? 1 : 0, alpha: isDark ? dark : light)
         })
     }
+}
 
+extension AppearanceStore {
     var backdrop: LinearGradient {
         _ = revision
         return LinearGradient(

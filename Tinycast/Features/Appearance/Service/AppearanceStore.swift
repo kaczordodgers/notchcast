@@ -3,6 +3,8 @@ import Observation
 
 @MainActor @Observable
 final class AppearanceStore {
+    static let preferences = UserDefaults(
+        suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
     static let lightKey = "notchcast.appearance.theme.light"
     static let darkKey = "notchcast.appearance.theme.dark"
     static let importedKey = "notchcast.appearance.themes.imported"
@@ -10,7 +12,7 @@ final class AppearanceStore {
     nonisolated static let defaultOpacity = 0.7
 
     @ObservationIgnored private let defaults: UserDefaults
-    @ObservationIgnored let colors = AppearanceThemeColors()
+    @ObservationIgnored let colors = AppearanceThemeColors.shared
 
     private(set) var light: RaycastTheme?
     private(set) var dark: RaycastTheme?
@@ -42,7 +44,7 @@ final class AppearanceStore {
         }
     }
 
-    init(defaults: UserDefaults) {
+    init(defaults: UserDefaults = AppearanceStore.preferences) {
         self.defaults = defaults
         var invalidKeys: [String] = []
         func decode<T: Decodable>(_ type: T.Type, key: String) -> T? {

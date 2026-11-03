@@ -2,9 +2,14 @@ import AppKit
 import Foundation
 import Observation
 import Synchronization
+import SwiftUI
 
 @main @MainActor
 struct AppearanceThemesTest {
+    nonisolated static func token() -> Color {
+        AppearanceThemeColors.shared.ramp(dark: 0.4, light: 0.5)
+    }
+
     static var checks = 0
 
     static func expect(_ condition: Bool, _ message: String) {
@@ -90,6 +95,14 @@ struct AppearanceThemesTest {
         expect(store.imported.count == 2, "same name may have light and dark variants")
         try store.add(dark)
         expect(store.imported.count == 2 && store.imported.first == dark, "deduplicate newest import")
+        store.surfaceStyle = .matte
+        let surfacePreference = AppStorage(
+            wrappedValue: AppearanceSurfaceStyle.glass,
+            AppearanceSurfaceStyle.defaultsKey, store: defaults)
+        expect(surfacePreference.wrappedValue == .matte, "surface reads the store's suite")
+        surfacePreference.wrappedValue = .black
+        expect(AppearanceStore(defaults: defaults).surfaceStyle == .black, "surface writes the same suite")
+        store.surfaceStyle = .black
         store.surfaceStyle = .matte
         store.backgroundOpacity = 0.8
         let restored = AppearanceStore(defaults: defaults)
@@ -180,7 +193,7 @@ struct AppearanceThemesTest {
         let before = store.revision
         let observed = Mutex(false)
         withObservationTracking {
-            _ = store.ramp(dark: 0.4, light: 0.5)
+            _ = token()
         } onChange: {
             observed.withLock { $0 = true }
         }
@@ -200,7 +213,7 @@ struct AppearanceThemesTest {
         var alpha: CGFloat = -1
         darkAppearance.performAsCurrentDrawingAppearance { alpha = dynamic.alphaComponent }
         expect(alpha == 0, "existing dynamic colors resolve new state")
-        _ = store.ramp(dark: 0.4, light: 0.5)
+        _ = AppearanceThemeColors.shared.ramp(dark: 0.4, light: 0.5)
         _ = store.backdrop
     }
 
