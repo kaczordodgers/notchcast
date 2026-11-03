@@ -18,8 +18,10 @@ and stops them. No UI, feature switches, activity slots or Settings hooks are in
   forecast. Successful responses are cached at Application Support/Notchcast/weather.json in release;
   other bundle identifiers receive separate directories. Open-Meteo attribution belongs in the UI.
 - `DayMarketsStore`: `setSymbols(_:)`, `setVisible(_:)`, `refresh()`; observe `quotes` and `lastError`.
-  Visibility owns the three-minute polling task; all refreshes respect a 60-second minimum attempt
-  gap. Call `setVisible(false)` on teardown. The default symbols are USDPLN=X, ^GSPC and BTC-USD.
+  Observe `failedSymbols` for individual failures; successful symbols still publish their quotes.
+  Visibility owns the three-minute polling task; refreshes respect a 60-second minimum attempt gap.
+  Changing symbols resets the gap and refreshes immediately while visible.
+  Call `setVisible(false)` on teardown. The default symbols are USDPLN=X, ^GSPC and BTC-USD.
   `change24Hours` is percent change against a chart sample within one hour of the 24-hour reference,
   or nil when no such sample exists (including market closures).
 

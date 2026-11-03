@@ -34,6 +34,30 @@ enum LiveDayTest {
         let gapQuote = try DayMarketQuote.decode(gap, symbol: "TEST")
         precondition(gapQuote.change24Hours == nil)
         let now = Date(timeIntervalSince1970: 100)
+        precondition(DayMarketsPolicy.canRefresh(visible: true, fetching: false, lastAttempt: nil, now: now))
+        for elapsed in [0.0, 59.999, 60, 180] {
+            precondition(DayMarketsPolicy.canRefresh(visible: true, fetching: false,
+                lastAttempt: now, now: now.addingTimeInterval(elapsed)) == (elapsed >= 60))
+        }
+        precondition(!DayMarketsPolicy.canRefresh(visible: false, fetching: false, lastAttempt: nil, now: now))
+        precondition(!DayMarketsPolicy.canRefresh(visible: true, fetching: true, lastAttempt: nil, now: now))
+        let operation = UUID()
+        precondition(DayMarketsPolicy.canApply(cancelled: false, visible: true,
+                                              operation: operation, generation: operation))
+        precondition(!DayMarketsPolicy.canApply(cancelled: true, visible: true,
+                                               operation: operation, generation: operation))
+        precondition(!DayMarketsPolicy.canApply(cancelled: false, visible: false,
+                                               operation: operation, generation: operation))
+        precondition(!DayMarketsPolicy.canApply(cancelled: false, visible: true,
+                                               operation: operation, generation: UUID()))
+        let partial = DayMarketsPolicy.merge(symbols: ["BAD", "TEST", "BAD2"],
+            results: [.failure(URLError(.badServerResponse)), .success(quote), .failure(URLError(.timedOut))])
+        precondition(partial.quotes.map(\.symbol) == ["TEST"])
+        precondition(partial.failedSymbols == ["BAD", "BAD2"] && partial.error != nil)
+        let success = DayMarketsPolicy.merge(symbols: ["TEST"], results: [.success(quote)])
+        precondition(success.quotes.count == 1 && success.failedSymbols.isEmpty && success.error == nil)
+        let failure = DayMarketsPolicy.merge(symbols: ["BAD"], results: [.failure(URLError(.badServerResponse))])
+        precondition(failure.quotes.isEmpty && failure.failedSymbols == ["BAD"] && failure.error != nil)
         let current = DayEvent(id: "a", title: "A", start: now.addingTimeInterval(-10),
                                end: now.addingTimeInterval(10), isAllDay: false, calendarID: "c")
         let next = DayEvent(id: "b", title: "B", start: now.addingTimeInterval(10),
@@ -41,6 +65,6 @@ enum LiveDayTest {
         precondition(DayEvent.current(in: [next, current], now: now) == current)
         precondition(DayEvent.next(in: [next, current], now: now) == next)
         precondition(DayEvent.current(in: [current], now: current.end) == nil)
-        print("LiveDay: forecast, malformed arrays, Yahoo 24h/gap, event boundaries passed")
+        print("LiveDay: decoding, market refresh gap, stale results, partial failures, event boundaries passed")
     }
 }
