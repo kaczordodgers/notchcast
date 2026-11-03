@@ -46,8 +46,10 @@ struct SystemNoticeEngine: Sendable {
             disarmedThresholds.remove(threshold)
         }
         guard let previous else {
-            for threshold in [20, 10] where next.percent <= threshold {
-                disarmedThresholds.insert(threshold)
+            if next.onBattery {
+                for threshold in [20, 10] where next.percent <= threshold {
+                    disarmedThresholds.insert(threshold)
+                }
             }
             return []
         }
