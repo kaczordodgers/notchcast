@@ -11,7 +11,13 @@ final class SystemInUseSource: InUseSource {
     private var cameras: [CameraListener] = []
     private var cameraTopology: CameraListener?
     private var change: (@MainActor () -> Void)?
-    private(set) var monitoringFailure: MicrophoneInput.Failure?
+    private var processFailure: MicrophoneInput.Failure?
+    private var cameraFailure: MicrophoneInput.Failure?
+    var monitoringFailure: MicrophoneInput.Failure? {
+        if let status = topology?.status, status != noErr { return .read(status) }
+        if let status = cameraTopology?.status, status != noErr { return .read(status) }
+        return processFailure ?? cameraFailure
+    }
 
     func start(change: @escaping @MainActor () -> Void) {
         stop()
@@ -20,13 +26,11 @@ final class SystemInUseSource: InUseSource {
             self?.listenToProcesses()
             self?.change?()
         }
-        if let status = topology?.status, status != noErr { monitoringFailure = .read(status) }
         cameraTopology = CameraListener(
             CMIOObjectID(kCMIOObjectSystemObject), Self.cameraAddress(kCMIOHardwarePropertyDevices)) { [weak self] in
             self?.listenToCameras()
             self?.change?()
         }
-        if let status = cameraTopology?.status, status != noErr { monitoringFailure = .read(status) }
         listenToProcesses()
         listenToCameras()
     }
@@ -37,7 +41,8 @@ final class SystemInUseSource: InUseSource {
         processes = []
         cameraTopology = nil
         cameras = []
-        monitoringFailure = nil
+        processFailure = nil
+        cameraFailure = nil
     }
 
     func read() throws(MicrophoneInput.Failure) -> InUseReading {
@@ -71,33 +76,35 @@ final class SystemInUseSource: InUseSource {
     private func listenToProcesses() {
         guard change != nil else { return }
         processes = []
+        processFailure = nil
         do {
             for process in try Audio.list(Audio.system, Audio.address(kAudioHardwarePropertyProcessObjectList)) {
                 let listener = Audio.Listener(process, Audio.address(kAudioProcessPropertyIsRunningInput)) { [weak self] in
                     self?.change?()
                 }
-                if listener.status != noErr { monitoringFailure = .read(listener.status) }
+                if listener.status != noErr { processFailure = .read(listener.status) }
                 processes.append(listener)
             }
         } catch {
-            monitoringFailure = error
+            processFailure = error
         }
     }
 
     private func listenToCameras() {
         guard change != nil else { return }
         cameras = []
+        cameraFailure = nil
         do {
             for device in try cameraDevices() {
                 let listener = CameraListener(
                     device, Self.cameraAddress(kCMIODevicePropertyDeviceIsRunningSomewhere)) { [weak self] in
                     self?.change?()
                 }
-                if listener.status != noErr { monitoringFailure = .read(listener.status) }
+                if listener.status != noErr { cameraFailure = .read(listener.status) }
                 cameras.append(listener)
             }
         } catch {
-            monitoringFailure = error
+            cameraFailure = error
         }
     }
 
