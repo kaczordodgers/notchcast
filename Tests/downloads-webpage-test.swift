@@ -20,6 +20,8 @@ struct DownloadsWebpageTests {
         converter()
         addresses()
         frontMatter()
+        failureDescriptions()
+        contentRules()
         try await runnerRefusals()
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
@@ -32,6 +34,36 @@ struct DownloadsWebpageTests {
         }
         print("downloads-webpage: \(passes) passed, \(failures) failed")
         if failures > 0 { exit(1) }
+    }
+
+    static func failureDescriptions() {
+        let cases: [(WebpageExtractor.Failure, String)] = [
+            (.inUse, "A webpage is already being saved."),
+            (.unavailable(404), "The webpage returned HTTP status 404."),
+            (.unsupportedContent, "This URL does not contain an HTML webpage."),
+            (.blocked, "The webpage requires sign-in or a bot check."),
+            (.noContent, "The webpage contains no readable article."),
+            (.tooLarge, "The webpage is too large to save."),
+            (.timedOut, "The webpage took too long to load."),
+            (.renderFailed, "The webpage could not be rendered.")
+        ]
+        for (failure, expected) in cases {
+            expect(failure.localizedDescription == expected, "queue detail: \(expected)")
+        }
+    }
+
+    static func contentRules() {
+        func blocked(_ url: String) -> Bool {
+            WebpageWebViewConfiguration.blockedURLPatterns.contains {
+                url.range(of: $0, options: [.regularExpression, .caseInsensitive]) != nil
+            }
+        }
+        for host in ["3dfx.de", "3abc.cafe", "0xff.example.com", "example.com"] {
+            expect(!blocked("https://\(host)/"), "content rules allow hostname \(host)")
+        }
+        for host in ["127.0.0.1", "0x7f000001", "2130706433", "0177.1", "[::1]", "localhost"] {
+            expect(blocked("https://\(host)/"), "content rules block literal or local host \(host)")
+        }
     }
 
     static func runnerRefusals() async throws {
