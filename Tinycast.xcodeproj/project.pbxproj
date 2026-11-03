@@ -965,20 +965,10 @@
 		4AAF1BA4D980892A8FDF2D3E /* Embed Dependencies */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				F5E6536F8F4B77E3AB4F8663 /* libNowPlayingAdapter.dylib in Embed Dependencies */,
-			);
-			name = "Embed Dependencies";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A80E594A9A89BD25DBE528E4 /* Embed Dependencies */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
 			dstPath = Contents/Helpers;
 			dstSubfolderSpec = 1;
 			files = (
+				F5E6536F8F4B77E3AB4F8663 /* libNowPlayingAdapter.dylib in Embed Dependencies */,
 				9CB6AE756ECD2CB3A976A40E /* $(DICTATION_EXECUTABLE_NAME).app in Embed Dependencies */,
 				0A6FDD413D8FEDDA413B69A6 /* ClipboardTextHelper in Embed Dependencies */,
 				13B95710F2DE9DF047E4363A /* FileIndexHelper in Embed Dependencies */,
@@ -4255,7 +4245,6 @@
 				6E13E657DC484EA7935E1C3A /* Sources */,
 				0E8F5C3C217EFF5576B2CB4F /* Resources */,
 				4AAF1BA4D980892A8FDF2D3E /* Embed Dependencies */,
-				A80E594A9A89BD25DBE528E4 /* Embed Dependencies */,
 			);
 			buildRules = (
 			);
