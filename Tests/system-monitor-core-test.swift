@@ -74,6 +74,8 @@ struct MonitorCoreTests {
         expect(english.celsius(40).contains("40") && english.celsius(40).contains("C"), "keeps Celsius")
         expect(english.bitsPerSecond(8) != english.bytesPerSecond(8), "bits and bytes differ")
         expect(english.bytesPerSecond(1_500_000).contains("MB/s"), "byte rate scales")
+        expect(english.bytesPerSecond(.infinity) == "–" && english.bytesPerSecond(.nan) == "–", "no crash on bad rate")
+        expect(english.bitsPerSecond(.nan) == "–" && !english.bytesPerSecond(1e30).isEmpty, "rates clamp")
         expect(english.bitsPerSecond(250_000_000).contains("Mb"), "bit rate scales")
         print(english.bytesPerSecond(1_500_000), english.bitsPerSecond(250_000_000))
         print("\(checks) passed, 0 failed")
