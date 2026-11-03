@@ -15,12 +15,15 @@ struct BrightnessLevel: Equatable, Sendable {
     }
 
     var hardware: Double { max(value, 0) }
-    var fraction: Double { max(value, 0) }
     var isDimmed: Bool { picture < 1 }
 
     var picture: Double {
         let position = softwareOnly ? value : 1 + min(value, 0) / Self.extraDimmingRange
         return Self.minimumPicture + (1 - Self.minimumPicture) * position
+    }
+
+    func refreshed(hardware: Double) -> Self {
+        Self(hardware == 0 ? min(value, 0) : hardware)
     }
 
     func stepped(up: Bool, fine: Bool) -> Self {

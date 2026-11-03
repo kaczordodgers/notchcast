@@ -20,6 +20,19 @@ struct DisplayBrightnessModelTest {
         check(close(BrightnessLevel(-0.125).picture, 0.525), "Extra dimming midpoint")
         check(BrightnessLevel(0).picture == 1, "Zero restores the display profile")
         check(BrightnessLevel(1).picture == 1, "Hardware light needs no gamma")
+        let changed = BrightnessLevel(0.25).refreshed(hardware: 0.75)
+        check(changed.stepped(up: true, fine: false).value == 0.8125,
+              "Step from the fresh system reading")
+        check(changed.stepped(up: false, fine: false).value == 0.6875,
+              "Step down from the fresh system reading")
+        let dimmed = BrightnessLevel(-0.125)
+        check(dimmed.refreshed(hardware: 0) == dimmed, "Minimum hardware preserves extra dimming")
+        let raised = dimmed.refreshed(hardware: 0.5)
+        check(raised.value == 0.5 && !raised.isDimmed, "External backlight increase drops extra dimming")
+        check(raised.stepped(up: false, fine: false).value == 0.4375,
+              "External backlight increase becomes the next step baseline")
+        check(BrightnessLevel(0.5).refreshed(hardware: 0).value == 0,
+              "External decrease to minimum replaces the cached hardware level")
         check(close(BrightnessLevel(0.5, softwareOnly: true).picture, 0.525), "Software midpoint")
         check(BrightnessLevel(1, softwareOnly: true).picture == 1, "Software maximum")
         for fine in [false, true] {

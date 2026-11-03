@@ -114,7 +114,15 @@ final class BrightnessDisplayService: @unchecked Sendable {
         guard !Task.isCancelled, Self.identity(id.rawValue) == id,
               CGDisplayIsActive(id.rawValue) != 0, CGDisplayIsAsleep(id.rawValue) == 0,
               let index = entries.firstIndex(where: { $0.id == id }) else { return nil }
-        let previous = entries[index].level
+        var previous = entries[index].level
+        if entries[index].control == .system {
+            guard let reading = DisplayServicesBrightness.read(id.rawValue) else { return nil }
+            previous = previous.refreshed(hardware: reading)
+            if !previous.isDimmed {
+                guard dim(1, on: id) else { return nil }
+            }
+            entries[index].level = previous
+        }
         let level = transform(previous)
         let wrote: Bool
         switch entries[index].control {
