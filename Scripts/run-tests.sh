@@ -936,6 +936,8 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
 
+run soloist-runtime-test Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
+run soloist-speaker-test Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
