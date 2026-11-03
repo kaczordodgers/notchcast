@@ -104,8 +104,8 @@ final class SystemNowPlayingSource: NowPlayingSource {
         let requested = generation
         state = .starting
         do {
+            let library = bundle.bundleURL.appending(path: "Contents/Helpers/libNowPlayingAdapter.dylib")
             guard let script = bundle.url(forResource: "now-playing", withExtension: "pl"),
-                  let library = bundle.privateFrameworksURL?.appending(path: "libNowPlayingAdapter.dylib"),
                   FileManager.default.fileExists(atPath: library.path) else {
                 throw NowPlayingAdapterReply.Failure.unavailable
             }
