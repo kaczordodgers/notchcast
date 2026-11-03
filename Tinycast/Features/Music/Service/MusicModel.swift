@@ -28,7 +28,7 @@ final class MusicModel {
     init(defaults: UserDefaults, apps: PlayerApps = .workspace(),
          now: @escaping () -> Date = Date.init,
          sleep: @escaping (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) {
-        lastPlayer = LastPlayer(defaults: defaults)
+        lastPlayer = LastPlayer(defaults: defaults, canPlay: apps.canPlay)
         self.apps = apps
         self.now = now
         self.sleep = sleep
@@ -81,6 +81,7 @@ final class MusicModel {
         let apps = apps
         let id = lastPlayer.replacement(isInstalled: apps.isInstalled)
         let revision = lastPlayer.revision
+        let sleep = sleep
         return Task { [weak self] in
             guard !Task.isCancelled,
                 self?.canReplace(operation, id: id, revision: revision, requiresLastPlayer: requiresLastPlayer) == true
@@ -104,11 +105,26 @@ final class MusicModel {
             guard self?.canReplace(operation, id: id, revision: revision, requiresLastPlayer: requiresLastPlayer) == true
             else { return }
             if startingPlayback {
+                do { try await sleep(.seconds(1)) } catch { return }
+                guard !Task.isCancelled,
+                    self?.canReplace(operation, id: id, revision: revision,
+                                     requiresLastPlayer: requiresLastPlayer) == true else { return }
                 if let source = self?.source(for: id) {
                     source.send(.play)
                 } else {
                     do {
-                        try await apps.play(id)
+                        for attempt in 0..<3 {
+                            do {
+                                try await apps.play(id)
+                                break
+                            } catch PlayerApps.Failure.automation(let status) where
+                                attempt < 2 && (status == -600 || status == -609) {
+                                try await sleep(.seconds(1))
+                                try Task.checkCancellation()
+                                guard self?.canReplace(operation, id: id, revision: revision,
+                                                       requiresLastPlayer: requiresLastPlayer) == true else { return }
+                            }
+                        }
                         try Task.checkCancellation()
                     } catch is CancellationError {
                         return
@@ -157,6 +173,7 @@ final class MusicModel {
         let watchID = channel.watchID
         source.watch { [weak self, weak channel] in
             guard let self, let channel, isEnabled, channel.watchID == watchID, channel.retryWait == nil else { return }
+            channel.failedReads = 0
             request(channel)
         }
         request(channel)
