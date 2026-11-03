@@ -942,6 +942,8 @@ run now-playing-adapter-test -parse-as-library Tinycast/Features/Music/Model/Now
 run soloist-source-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/SoloistProtocol.swift Tinycast/Features/Music/Service/SoloistSource.swift
 run soloist-runtime-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 run soloist-speaker-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
+run music-model-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/MusicSelection.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Service/MusicModel.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift
+run music-launch-block-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/MusicLaunchPolicy.swift Tinycast/Features/Music/Service/MusicLaunchBlocker.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift Tinycast/Platform/ProcessExit.swift
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
