@@ -452,7 +452,7 @@ run ext-icon-test          Tinycast/Platform/Appearance.swift \
                            Tinycast/Features/Clipboard/Model/ColorSpaces.swift
 run system-action-test     Tinycast/Features/SystemActions/Model/SystemAction.swift \
                            Tinycast/Platform/LocalizedResource.swift
-run microphone-mute-test   Tinycast/Features/Microphone/Model/*.swift Tinycast/Features/SystemActions/Service/SystemActionFailure.swift \
+run microphone-mute-test   Tinycast/Features/SystemActions/Service/SystemActionFailure.swift \
                            Tinycast/Features/SystemActions/Service/SystemActionRunner+Microphone.swift
 run volume-test            Tinycast/Features/SystemActions/Model/VolumeLevel.swift
 run window-command-test    Tinycast/Features/WindowManagement/Model/WindowCommand.swift \
@@ -935,9 +935,11 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
+# Notchcast: Tests/nc-<Folder>-<name>-test.swift compiles Tinycast/Features/<Folder>/{Model,Service}/*.swift.
+for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
 
 run in-use-marks-test Tinycast/Features/Microphone/Model/*.swift Tinycast/Features/Microphone/Service/*.swift
-
+run microphone-engine-test Tinycast/Features/Microphone/Model/*.swift
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
