@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapHub.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapThread.swift
 import ApplicationServices
 import Foundation
 import Synchronization
