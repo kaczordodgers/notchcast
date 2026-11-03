@@ -110,6 +110,8 @@ enum SettingsSearchCatalog {
         + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
         + navigation + notes + calendar + emoji + ai + quickActions + dictation + extensions + permissions
         + backup + about
+        + [.init(SettingsAnchor(tab: .notchcast, title: "Island"), "Hover delay")]
+        + [.init(group: SettingsAnchor(tab: .notchcast, title: .init("Global Shortcuts")), "Toggle Island")]
         + [.init(pane: .notchcast, keywords: ["island", "hover", "displays", "full screen", "status", "activities", "launcher"])]
 
     private static let general: [SettingsSearchEntry] = [

@@ -10,6 +10,12 @@ final class IslandPanel: NSPanel {
     private var contentHeight = NotchcastTheme.estimatedContentHeight
     private var compactWidth: CGFloat = 0
     private var hasCompactContent = false
+    var onOpen: (() -> Void)?
+    var onKey: ((NSEvent) -> Bool)?
+    var onFocus: ((Bool) -> Void)?
+    var containsPointer: Bool {
+        surface.containsIsland(surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil))
+    }
 
     init(screen: NSScreen) {
         screenFrame = screen.frame
@@ -36,6 +42,7 @@ final class IslandPanel: NSPanel {
         level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         contentView = surface
+        surface.onOpen = { [weak self] in self?.onOpen?() }
         surface.onAnimationFrame = { [weak self] in
             self?.updateMousePassthrough()
             self?.invalidateShadow()
@@ -45,9 +52,33 @@ final class IslandPanel: NSPanel {
     override var canBecomeKey: Bool { open }
     override var canBecomeMain: Bool { false }
 
-    func setContent(open: AnyView, closed: IslandController.ClosedContent) {
+    override func becomeKey() {
+        super.becomeKey()
+        onFocus?(true)
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        onFocus?(false)
+    }
+
+    override func sendEvent(_ event: NSEvent) {
+        if event.type == .keyDown, onKey?(event) == true { return }
+        if event.type == .leftMouseDown, containsPointer {
+            if !open { onOpen?(); return }
+            makeKey()
+        }
+        super.sendEvent(event)
+    }
+
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        if onKey?(event) == true { return true }
+        return super.performKeyEquivalent(with: event)
+    }
+
+    func setContent(open: AnyView, closed: IslandController.ClosedContent, header: AnyView) {
         hasCompactContent = closed.leading != nil || closed.trailing != nil
-        let expanded = IslandContentView(content: open, headerHeight: headerHeight) { [weak self] height in
+        let expanded = IslandContentView(content: open, header: header, headerHeight: headerHeight) { [weak self] height in
             guard let self else { return }
             let height = max(0, height.rounded(.up))
             guard contentHeight != height else { return }
@@ -86,7 +117,7 @@ final class IslandPanel: NSPanel {
         super.close()
     }
 
-    private var headerHeight: CGFloat { hardwareNotch?.height ?? NotchcastTheme.monitorHeader }
+    var headerHeight: CGFloat { hardwareNotch?.height ?? NotchcastTheme.monitorHeader }
 
     private func present(animated: Bool) {
         let target = open ? openFrame : closedFrame

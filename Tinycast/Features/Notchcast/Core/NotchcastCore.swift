@@ -4,6 +4,7 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        IslandController.shared.configurePages(core)
         let modules: [NotchcastModuleController.Entry] = [.init(feature: .island, module: IslandController.shared)]
         let controller = NotchcastModuleController(modules)
         self.controller = controller
