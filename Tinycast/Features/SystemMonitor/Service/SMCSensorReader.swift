@@ -22,34 +22,38 @@ nonisolated struct SMCSensorReader: Sendable {
         let deadline = ProcessInfo.processInfo.systemUptime + 0.045
         let watts = SMCSensorReading.powerWatts(client.value("PSTR"))
         let fans = fans(client, deadline: deadline)
-        var cpu = hottest(cpuKeys, client: client, deadline: deadline)
-            ?? hottest(TemperatureSensorPolicy.fallbackCPUKeys, client: client, deadline: deadline)
-        var gpu = hottest(TemperatureSensorPolicy.gpuKeys, client: client, deadline: deadline)
-        if !discoveredCPUKeys.isEmpty {
-            cpu = TemperatureSensorPolicy.hottest([cpu, hottest(discoveredCPUKeys, client: client,
-                                                               deadline: deadline)].compactMap { $0 })
+        let fixedCPU = temperatures(cpuKeys, client: client, deadline: deadline)
+        let fallbackCPU = fixedCPU.isEmpty
+            ? temperatures(TemperatureSensorPolicy.fallbackCPUKeys, client: client, deadline: deadline) : []
+        let fixedGPU = temperatures(TemperatureSensorPolicy.gpuKeys, client: client, deadline: deadline)
+        let needsCPU = fixedCPU.isEmpty && fallbackCPU.isEmpty
+        if needsCPU || fixedGPU.isEmpty {
+            discover(client, needsCPU: needsCPU, needsGPU: fixedGPU.isEmpty, deadline: deadline)
         }
-        if !discoveredGPUKeys.isEmpty {
-            gpu = TemperatureSensorPolicy.hottest([gpu, hottest(discoveredGPUKeys, client: client,
-                                                               deadline: deadline)].compactMap { $0 })
-        }
-        if cpu == nil || gpu == nil || nextKeyIndex > 0 {
-            discover(client, cpu: &cpu, gpu: &gpu, deadline: deadline)
-        }
-        return SMCSensorReading(cpuTemperature: cpu, gpuTemperature: gpu,
-                                systemPowerWatts: watts, fans: fans)
+        let cpu = !fixedCPU.isEmpty ? fixedCPU : !fallbackCPU.isEmpty ? fallbackCPU
+            : temperatures(discoveredCPUKeys, client: client, deadline: deadline)
+        let gpu = fixedGPU.isEmpty
+            ? temperatures(discoveredGPUKeys, client: client, deadline: deadline) : fixedGPU
+        return SMCSensorReading(cpuTemperature: TemperatureSensorPolicy.average(cpu),
+                                gpuTemperature: TemperatureSensorPolicy.hottest(gpu),
+                                systemPowerWatts: watts, fans: fans,
+                                maximumCPUTemperature: TemperatureSensorPolicy.hottest(cpu))
     }
 
-    private func hottest(_ keys: [String], client: SMCClient, deadline: Double) -> Double? {
+    private func temperatures(_ keys: [String], client: SMCClient, deadline: Double) -> [Double] {
         var readings: [Double] = []
         for key in keys {
             guard ProcessInfo.processInfo.systemUptime < deadline else { break }
-            if let value = client.value(key) { readings.append(value) }
+            guard !key.hasPrefix("Tp") && !key.hasPrefix("Te")
+                || TemperatureSensorPolicy.isCPUKey(key, includesTf: true) else { continue }
+            if let value = client.value(key), TemperatureSensorPolicy.hottest([value]) != nil {
+                readings.append(value)
+            }
         }
-        return TemperatureSensorPolicy.hottest(readings)
+        return readings
     }
 
-    private mutating func discover(_ client: SMCClient, cpu: inout Double?, gpu: inout Double?, deadline: Double) {
+    private mutating func discover(_ client: SMCClient, needsCPU: Bool, needsGPU: Bool, deadline: Double) {
         guard ProcessInfo.processInfo.systemUptime < deadline else { return }
         if keyCount == nil { keyCount = client.keyCount() }
         guard let keyCount else { return }
@@ -58,12 +62,10 @@ nonisolated struct SMCSensorReader: Sendable {
             let key = client.key(at: nextKeyIndex)
             nextKeyIndex += 1
             guard let key else { continue }
-            if TemperatureSensorPolicy.isCPUKey(key, includesTf: includesTf), !cpuKeys.contains(key) {
+            if needsCPU, TemperatureSensorPolicy.isCPUKey(key, includesTf: includesTf) {
                 discoveredCPUKeys.append(key)
-                cpu = TemperatureSensorPolicy.hottest([cpu, client.value(key)].compactMap { $0 })
-            } else if TemperatureSensorPolicy.isGPUKey(key), !TemperatureSensorPolicy.gpuKeys.contains(key) {
+            } else if needsGPU, TemperatureSensorPolicy.isGPUKey(key) {
                 discoveredGPUKeys.append(key)
-                gpu = TemperatureSensorPolicy.hottest([gpu, client.value(key)].compactMap { $0 })
             }
         }
     }

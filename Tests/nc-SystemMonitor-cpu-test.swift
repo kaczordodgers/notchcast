@@ -96,6 +96,21 @@ struct SystemMonitorCPUTests {
     }
 
     static func sensors() {
+        let dump: [String: Double] = [
+            "Te0a": 53.64, "Te0b": 53.64, "Te0x": 56.98, "Te0z": 56.98,
+            "Te3a": 55.35, "Te3b": 64.05, "Te3x": 60.81, "Te3z": 80.81,
+            "Tp2a": 62.63, "Tp2b": 71.73, "Tp2x": 74.42, "Tp2z": 89.42,
+            "Tp9a": 58.78, "Tp9b": 68.88, "Tp9x": 71.53, "Tp9z": 88.53
+        ]
+        let raw = dump.filter { TemperatureSensorPolicy.isCPUKey($0.key, includesTf: false) }
+        expect(raw.count == 8 && raw.keys.allSatisfy { $0.hasSuffix("a") || $0.hasSuffix("x") },
+               "key dump excludes derived b/z sensors")
+        let expected = (53.64 + 56.98 + 55.35 + 60.81 + 62.63 + 74.42 + 58.78 + 71.53) / 8
+        expect(near(TemperatureSensorPolicy.average(Array(raw.values)), expected), "raw die average")
+        let fixed = TemperatureSensorPolicy.cpuKeys(brand: "Apple M1").compactMap { dump[$0] }
+        expect(near(TemperatureSensorPolicy.average(fixed), expected), "M1 fixed keys match raw dump average")
+        expect(!TemperatureSensorPolicy.isCPUKey("Tp2z", includesTf: false)
+               && !TemperatureSensorPolicy.isCPUKey("Tp2b", includesTf: false), "derived keys rejected")
         expect(TemperatureSensorPolicy.hottest([20, 55, 40]) == 55, "hottest valid sensor")
         expect(TemperatureSensorPolicy.hottest([9.9, 125, .nan, .infinity, -1]) == nil, "implausible sensors")
         expect(TemperatureSensorPolicy.hottest([10, 124.9, 400]) == 124.9, "temperature boundaries")
@@ -223,7 +238,15 @@ struct SystemMonitorCPUTests {
         Thread.sleep(forTimeInterval: 0.2)
         let nextSensorStart = ProcessInfo.processInfo.systemUptime
         sensors = sensorReader.read()
-        let nextSensorMilliseconds = (ProcessInfo.processInfo.systemUptime - nextSensorStart) * 1_000
+        var nextSensorMilliseconds = (ProcessInfo.processInfo.systemUptime - nextSensorStart) * 1_000
+        for _ in 0..<12 {
+            let start = ProcessInfo.processInfo.systemUptime
+            sensors = sensorReader.read()
+            nextSensorMilliseconds = (ProcessInfo.processInfo.systemUptime - start) * 1_000
+        }
+        let rawKeys = TemperatureSensorPolicy.cpuKeys(brand: "Apple M1")
+        let rawAverage = TemperatureSensorPolicy.average(rawKeys.compactMap { client?.value($0) })
+        let reference = rawAverage.map { String(format: "%.1f", $0) } ?? "nil"
         let reading = cpu.sample()
         expect(reading.usage.map { $0.totalPercent >= 0 && $0.totalPercent <= 100.000_001 } ?? true, "live CPU range")
         expect(reading.cores.count == baseline.cores.count, "live core shape")
@@ -241,6 +264,7 @@ struct SystemMonitorCPUTests {
             "F\(fan.index):" + (fan.currentRPM.map { String(format: "%.0f", $0) } ?? "nil")
         }.joined(separator: ",")
         let duration = String(format: "%.1f/%.1f", sensorMilliseconds, nextSensorMilliseconds)
-        print("LIVE CPU \(percent)% | CPU temp \(temperature) C | fan RPMs [\(fans)] | SMC reads \(duration) ms")
+        print("LIVE CPU \(percent)% | CPU temp \(temperature) C | raw M1 mean \(reference) C"
+              + " | fan RPMs [\(fans)] | SMC initial/steady \(duration) ms")
     }
 }
