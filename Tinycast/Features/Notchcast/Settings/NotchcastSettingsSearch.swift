@@ -10,12 +10,21 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastTweaks = Self(tab: .notchcast, title: "Tweaks")
 }
 
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
+        .init(.notchcastTweaks, "Startup Items", keywords: ["launchagents"]),
+        .init(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"]),
+        .init(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"]),
+        .init(.notchcastTweaks, "Kill Process", keywords: ["terminate"]),
+        .init(.notchcastTweaks, "Mac Setup Presets", keywords: ["preferences", "undo"]),
+        .init(.notchcastTweaks, "AI Features Off", keywords: ["intelligence", "siri"]),
+        .init(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"]),
+        .init(.notchcastTweaks, "Privacy Choices", keywords: ["analytics"]),
         .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
         .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display"]),
         .init(.notchcastOptions, "Full-Screen Apps", keywords: ["fullscreen", "full screen", "video"]),
