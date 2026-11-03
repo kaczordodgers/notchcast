@@ -5,12 +5,20 @@
 # and only when nothing is installed yet, the release is newer, or the installed copy is not ours.
 # It replaces only the .app bundle: the old one goes to the Trash; settings, data and Keychain items are never touched.
 # The in-app updater stays inert for app.notchcast (ReleaseChannel: development), so this is the update path.
-# Usage: update.sh [--dry-run]
+# Leads run notchcast/update.sh --install at each milestone end on both Macs, even with automatic updates off.
+# Usage: update.sh [--install] [--dry-run] (either order)
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin"
 
 DRY=0
-if [ "${1:-}" = "--dry-run" ]; then DRY=1; shift; fi
+INSTALL=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY=1 ;;
+        --install) INSTALL=1 ;;
+        *) echo "Usage: update.sh [--install] [--dry-run] (either order)" >&2; exit 2 ;;
+    esac
+done
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 source "$HERE/config.env"
@@ -62,9 +70,9 @@ alert_issues() {
 alert_issues || log "issue check failed; retried next run"
 
 # The app's own "Automatically check for updates" toggle (Settings > General) governs this updater too: off means no
-# update is installed. A missing key or file means on; a first install (no app yet) is not an update.
+# update is installed unless --install is passed. A missing key or file means on; a first install is not an update.
 SETTINGS="$HOME/.config/$BUNDLE_ID/settings.json"
-if [ -d "$APP" ] && [ "$(jq -r '.general.automaticallyCheckForUpdates' "$SETTINGS" 2>/dev/null)" = false ]; then
+if [ "$INSTALL" = 0 ] && [ -d "$APP" ] && [ "$(jq -r '.general.automaticallyCheckForUpdates' "$SETTINGS" 2>/dev/null)" = false ]; then
     log "automatic updates are off in $APP_NAME settings (general.automaticallyCheckForUpdates in $SETTINGS); not installing"
     exit 0
 fi
