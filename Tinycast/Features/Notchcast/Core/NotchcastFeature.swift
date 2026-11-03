@@ -11,6 +11,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case downloads, downloadsAria2, distill, distillTimestamps, distillConvert
 
     var title: String {
         switch self {
@@ -29,6 +30,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .downloads: String(localized: "Downloads")
+        case .downloadsAria2: String(localized: "Fast Downloads with aria2c")
+        case .distill: String(localized: "Distill")
+        case .distillTimestamps: String(localized: "Distill Timestamps")
+        case .distillConvert: String(localized: "Convert Distill Folder")
         }
     }
 
@@ -49,12 +55,18 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .downloads: String(localized: "Download video, audio, transcripts and webpages from clipboard links.")
+        case .downloadsAria2: String(localized: "Use aria2c for faster media downloads when it is installed.")
+        case .distill: String(localized: "Save links and transcribe media into your Distill folder.")
+        case .distillTimestamps: String(localized: "Include approximate chunk timestamps in Distill transcripts.")
+        case .distillConvert: String(localized: "Convert files in your Distill folder to Markdown or text.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .downloads, .downloadsAria2, .distill, .distillTimestamps, .distillConvert: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
@@ -66,7 +78,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool {
+        switch self {
+        case .downloads, .downloadsAria2, .distill, .distillTimestamps, .distillConvert,
+            .displayBrightness, .quitProtection: false
+        default: true
+        }
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
