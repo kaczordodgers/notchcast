@@ -27,6 +27,7 @@ final class SystemLevelsService {
     @ObservationIgnored private var operations: [UUID: Task<Result, Never>] = [:]
     @ObservationIgnored private var tail: Task<Result, Never>?
     @ObservationIgnored private var tailID: UUID?
+    @ObservationIgnored private var pendingStep: UUID?
 
     init(hardware: any SystemAudioHardware = CoreAudioLevelAccess(), observeHardware: Bool = true) {
         self.hardware = hardware
@@ -51,6 +52,7 @@ final class SystemLevelsService {
         operations = [:]
         tail = nil
         tailID = nil
+        pendingStep = nil
         state = SystemAudioState()
     }
 
@@ -76,14 +78,19 @@ final class SystemLevelsService {
     }
 
     func apply(_ command: Command) async -> Result {
+        if case .step = command, let pendingStep {
+            operations[pendingStep]?.cancel()
+        }
         let current = generation
         let id = UUID()
         let previous = tail
-        let task = Task { [hardware] in
+        let task = Task { [weak self, hardware] in
             _ = await previous?.value
             guard !Task.isCancelled else { return Result.cancelled }
+            if self?.pendingStep == id { self?.pendingStep = nil }
             return await Self.adjust(command, hardware: hardware)
         }
+        if case .step = command { pendingStep = id }
         operations[id] = task
         tail = task
         tailID = id

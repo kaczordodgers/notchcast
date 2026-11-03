@@ -23,7 +23,9 @@ final class LowDiskManager {
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var readAgain = false
 
-    init(defaults: UserDefaults, volumeURL: URL = URL(filePath: NSHomeDirectory()),
+    init(defaults: UserDefaults = UserDefaults(suiteName:
+             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+         volumeURL: URL = URL(filePath: NSHomeDirectory()),
          interval: Duration = checkInterval,
          wakeCenter: NotificationCenter = NSWorkspace.shared.notificationCenter, read: Read? = nil) {
         self.defaults = defaults

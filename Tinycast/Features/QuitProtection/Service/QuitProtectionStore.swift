@@ -5,7 +5,8 @@ final class QuitProtectionStore {
     private let defaults: UserDefaults
     private let key = "notchcast.quitProtection."
 
-    init(defaults: UserDefaults) {
+    init(defaults: UserDefaults = UserDefaults(suiteName:
+             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!) {
         self.defaults = defaults
     }
 
