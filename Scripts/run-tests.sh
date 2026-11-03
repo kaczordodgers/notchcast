@@ -115,6 +115,7 @@ run() {
     printf '%s %s %s %s\n' "$pri" "$name" "$opt" "$*" >> "$queue"
 }
 
+for t in Tests/system-monitor-*-test.swift; do [ -e "$t" ] && run "$(basename "$t" .swift)" $(ls Tinycast/Features/SystemMonitor/{Model,Service}/*.swift 2>/dev/null); done
 L=Tinycast/Features/Launcher/Model
 run slow -O fuzz-test      $L/SearchRelevance.swift $L/ScriptRomanization.swift \
                            $L/LauncherMatch.swift $L/EntryNaming.swift $L/LauncherOrder.swift \
