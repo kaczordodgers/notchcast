@@ -110,7 +110,7 @@ enum SettingsSearchCatalog {
         + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
         + navigation + notes + calendar + emoji + ai + quickActions + dictation + extensions + permissions
         + backup + about
-        + [.init(pane: .notchcast, keywords: ["island", "hover", "displays", "full screen", "status", "activities", "launcher"])]
+        + notchcast
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),
