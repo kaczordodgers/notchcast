@@ -1,5 +1,8 @@
-// notchcast-sources: Tinycast/Features/Downloads/Media/*.swift Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
-// notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Downloads/Media/*.swift
+// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
 import Foundation
 
 @main struct DownloadsMediaTest {
