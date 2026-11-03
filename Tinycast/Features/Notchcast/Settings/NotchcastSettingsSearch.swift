@@ -4,6 +4,12 @@ extension SettingsAnchor {
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
     static let notchcastOptions = Self(tab: .notchcast, title: "Options")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
+    static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
+    static let notchcastLevels = Self(tab: .notchcast, title: "Levels")
+    static let notchcastNotices = Self(tab: .notchcast, title: "Notices")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
+    static let notchcastDay = Self(tab: .notchcast, title: "Day")
 }
 
 extension SettingsSearchCatalog {
@@ -16,6 +22,14 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Open on Hover", keywords: ["pointer", "mouse", "hover"]),
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
-        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"])
+        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(group: .notchcastBrightness, "Display brightness", keywords: ["display", "dimming", "slider"]),
+        .init(group: .notchcastLevels, "Volume in the island", keywords: ["sound", "microphone", "mute"]),
+        .init(group: .notchcastNotices, "System notices", keywords: ["wifi", "tailscale", "battery"]),
+        .init(group: .notchcastNotices, "Low disk space", keywords: ["storage", "warning"]),
+        .init(group: .notchcastQuitProtection, "Protect ⌘Q", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(group: .notchcastTimers, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(group: .notchcastDay, "Weather", keywords: ["city", "forecast"]),
+        .init(group: .notchcastDay, "Markets", keywords: ["symbols", "stocks", "prices"]),
     ]
 }
