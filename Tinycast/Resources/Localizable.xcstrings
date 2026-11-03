@@ -1,6 +1,584 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Day" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tag" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Día" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Journée" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "予定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일정" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Dia" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "День" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日程" } }
+      }
+    },
+    "Hover delay" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Verzögerung beim Verweilen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Retraso al pasar el puntero" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Délai au survol" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ホバーの待ち時間" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "마우스 오버 지연" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Atraso ao passar o ponteiro" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Задержка при наведении" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "悬停延迟" } }
+      }
+    },
+    "Nothing running right now" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Momentan ist nichts aktiv" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay nada en ejecución ahora" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Rien en cours pour le moment" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "現在実行中のものはありません" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "현재 실행 중인 항목이 없습니다" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Nada em execução agora" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сейчас ничего не запущено" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前没有正在运行的活动" } }
+      }
+    },
+    "Notchcast has no access to your calendar" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast hat keinen Zugriff auf deinen Kalender" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast no tiene acceso a tu calendario" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast n’a pas accès à votre calendrier" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Notchcastはカレンダーにアクセスできません" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast에 캘린더 접근 권한이 없습니다" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "O Notchcast não tem acesso ao seu calendário" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "У Notchcast нет доступа к вашему календарю" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast 无权访问您的日历" } }
+      }
+    },
+    "Notchcast Settings" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast-Einstellungen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes de Notchcast" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages de Notchcast" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Notchcastの設定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast 설정" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes do Notchcast" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Настройки Notchcast" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Notchcast 设置" } }
+      }
+    },
+    "Pin Island" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Insel anheften" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fijar Isla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Épingler l’Îlot" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アイランドを固定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "아일랜드 고정" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Fixar Ilha" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Закрепить Остров" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "固定灵动岛" } }
+      }
+    },
+    "Unpin Island" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Insel lösen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desfijar Isla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Détacher l’Îlot" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アイランドの固定を解除" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "아일랜드 고정 해제" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Desafixar Ilha" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открепить Остров" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消固定灵动岛" } }
+      }
+    },
+    "Refreshing" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wird aktualisiert" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualizando" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Actualisation" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "更新中" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "새로 고치는 중" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Atualizando" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обновление" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正在刷新" } }
+      }
+    },
+    "Toggle Island" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Insel ein-/ausblenden" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar u Ocultar Isla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Afficher ou Masquer l’Îlot" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アイランドの表示を切り替え" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "아일랜드 표시 전환" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar ou Ocultar Ilha" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показать или Скрыть Остров" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "切换灵动岛显示" } }
+      }
+    },
+    "Calendar Settings" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Kalendereinstellungen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes del Calendario" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réglages du Calendrier" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カレンダーの設定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "캘린더 설정" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ajustes do Calendário" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Настройки Календаря" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日历设置" } }
+      }
+    },
+    "External displays" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Externe Displays"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantallas externas"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écrans externes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外部ディスプレイ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "외장 디스플레이"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Monitores externos"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Внешние дисплеи"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "外接显示器"
+          }
+        }
+      }
+    },
+    "Full-screen apps" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollbild-Apps"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps a pantalla completa"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps en plein écran"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フルスクリーンアプリ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체 화면 앱"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apps em tela cheia"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полноэкранные приложения"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全屏应用"
+          }
+        }
+      }
+    },
+    "Open on hover" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Darüberfahren öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir al pasar el cursor"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir au survol"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタを重ねて開く"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "포인터를 올려 열기"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir ao passar o cursor"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открывать при наведении"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "悬停时打开"
+          }
+        }
+      }
+    },
+    "Status messages" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Statusmeldungen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensajes de estado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages d’état"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ステータスメッセージ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "상태 메시지"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensagens de status"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сообщения о состоянии"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态消息"
+          }
+        }
+      }
+    },
+    "Live activities" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Live-Aktivitäten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actividades en directo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activités en direct"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ライブアクティビティ"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실시간 현황"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atividades ao vivo"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текущие действия"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "实时活动"
+          }
+        }
+      }
+    },
+    "Launcher from island" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Launcher über die Insel"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lanzador desde la isla"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lanceur depuis l’îlot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アイランドからランチャーを開く"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아일랜드에서 실행기 열기"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciador pela ilha"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запуск из острова"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从灵动岛打开启动器"
+          }
+        }
+      }
+    },
+    "Required to open the island on hover." : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zum Öffnen der Insel beim Darüberfahren erforderlich."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necesario para abrir la isla al pasar el cursor."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requis pour ouvrir l’îlot au survol."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ポインタを重ねてアイランドを開くために必要です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "포인터를 올려 아일랜드를 열려면 필요합니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Necessário para abrir a ilha ao passar o cursor."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Требуется для открытия острова при наведении."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "悬停打开灵动岛所需。"
+          }
+        }
+      }
+    },
+"The downloader did not return an output file." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Der Downloader hat keine Ausgabedatei zurückgegeben."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "El descargador no devolvió un archivo de salida."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Le téléchargeur n’a renvoyé aucun fichier de sortie."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "ダウンローダーから出力ファイルが返されませんでした。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "다운로더가 출력 파일을 반환하지 않았습니다."
+      }
+    },
+    "ru": { "stringUnit": { "state": "translated", "value": "Загрузчик не вернул выходной файл." } },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "O descarregador não devolveu um ficheiro de saída."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "下载器未返回输出文件。"
+      }
+    }
+  }
+},
+"No captions are available. The Distill transcriber fallback is not connected yet." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Keine Untertitel verfügbar. Die Distill-Transkription als Ersatz ist noch nicht verbunden."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "No hay subtítulos disponibles. La transcripción alternativa de Distill aún no está conectada."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Aucun sous-titre disponible. La transcription de secours Distill n’est pas encore connectée."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "字幕がありません。代替の Distill 文字起こしはまだ接続されていません。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "자막이 없습니다. 대체 Distill 받아쓰기가 아직 연결되지 않았습니다."
+      }
+    },
+    "ru": { "stringUnit": { "state": "translated", "value": "Субтитры недоступны. Резервная транскрипция Distill ещё не подключена." } },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Não há legendas disponíveis. A transcrição alternativa do Distill ainda não está ligada."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "没有可用字幕。Distill 备用转录尚未连接。"
+      }
+    }
+  }
+},
 "%@ is not installed. Install it with: %@" : {
   "localizations": {
     "de": {
@@ -67215,6 +67793,110 @@
         }
       }
     },
+    "Just Add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur hinzufügen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo añadir"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter seulement"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加のみ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가만 하기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apenas adicionar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Только добавить"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅添加"
+          }
+        }
+      }
+    },
+    "Just Add keeps the theme in your library without changing your colors." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Nur hinzufügen“ speichert das Farbschema in deiner Sammlung, ohne deine Farben zu ändern."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo añadir guarda el tema en tu biblioteca sin cambiar los colores."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter seulement conserve le thème dans votre bibliothèque sans modifier vos couleurs."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「追加のみ」は、現在の配色を変更せずにテーマをライブラリに保存します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가만 하기를 선택하면 현재 색상을 변경하지 않고 테마를 라이브러리에 저장합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apenas adicionar salva o tema na sua biblioteca sem alterar as cores."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "«Только добавить» сохраняет тему в библиотеке, не меняя текущие цвета."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“仅添加”会将主题保存在主题库中，不会更改当前配色。"
+          }
+        }
+      }
+    },
     "Karabiner Conflict" : {
       "localizations" : {
         "de" : {
@@ -71852,6 +72534,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "数学"
+          }
+        }
+      }
+    },
+    "Matte" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mate"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mat"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "マット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "무광"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fosco"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Матовый"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磨砂"
           }
         }
       }
@@ -81665,6 +82399,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "剪贴板历史记录中没有文本"
+          }
+        }
+      }
+    },
+    "No theme" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Farbschema"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin tema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun thème"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テーマなし"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "테마 없음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sem tema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Без темы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无主题"
           }
         }
       }
@@ -111785,6 +112571,58 @@
         }
       }
     },
+    "Solid Black" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tiefschwarz"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Negro sólido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noir uni"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ソリッドブラック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "단색 검정"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preto sólido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сплошной чёрный"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纯黑"
+          }
+        }
+      }
+    },
     "Some Items Weren’t Moved" : {
       "localizations" : {
         "de" : {
@@ -122260,6 +123098,58 @@
         }
       }
     },
+    "Theme" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbschema"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thème"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テーマ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "테마"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тема"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题"
+          }
+        }
+      }
+    },
     "There is no user message to send." : {
       "localizations" : {
         "de" : {
@@ -125118,6 +126008,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tinycast 无法打开此链接"
+          }
+        }
+      }
+    },
+    "Tinycast Glass" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tinycast-Glas"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cristal de Tinycast"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verre Tinycast"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tinycastガラス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tinycast 글래스"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vidro do Tinycast"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стекло Tinycast"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tinycast 玻璃"
           }
         }
       }
@@ -132192,6 +133134,58 @@
         }
       }
     },
+    "Use Theme" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbschema verwenden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar tema"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser le thème"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テーマを使用"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "테마 사용"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar tema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использовать тему"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用主题"
+          }
+        }
+      }
+    },
     "Use Tools" : {
       "localizations" : {
         "de" : {
@@ -132448,6 +133442,110 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "仍然使用“%@”"
+          }
+        }
+      }
+    },
+    "Use “%@” as your dark theme?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ als dunkles Farbschema verwenden?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Usar «%@» como tema oscuro?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser « %@ » comme thème sombre ?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」をダークテーマに設定しますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”을(를) 다크 테마로 사용하시겠습니까?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar “%@” como tema escuro?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использовать «%@» как тёмную тему?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将“%@”用作深色主题？"
+          }
+        }
+      }
+    },
+    "Use “%@” as your light theme?" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ als helles Farbschema verwenden?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Usar «%@» como tema claro?"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser « %@ » comme thème clair ?"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「%@」をライトテーマに設定しますか？"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@”을(를) 라이트 테마로 사용하시겠습니까?"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar “%@” como tema claro?"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использовать «%@» как светлую тему?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将“%@”用作浅色主题？"
           }
         }
       }
