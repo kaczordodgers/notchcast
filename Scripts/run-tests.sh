@@ -937,7 +937,7 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
 # Notchcast: Tests/nc-<Folder>-<name>-test.swift compiles Tinycast/Features/<Folder>/{Model,Service}/*.swift.
-for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
+for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); case "$n" in nc-Music-modules-test|nc-Microphone-in-use-marks-test) continue;; esac; f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
 run downloads-queue-test Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
 run now-playing-adapter-test -parse-as-library Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/NowPlayingAdapterReply.swift Tinycast/Features/Music/Service/SystemNowPlayingSource.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 
@@ -949,8 +949,9 @@ run soloist-runtime-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast
 run soloist-speaker-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/Soloist*.swift Tinycast/Features/Music/Service/Soloist*.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 run music-model-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/MusicSelection.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Service/MusicModel.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift
 run music-launch-block-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/MusicLaunchPolicy.swift Tinycast/Features/Music/Service/MusicLaunchBlocker.swift Tinycast/Features/Music/Service/PlayerApps.swift Tinycast/Platform/NotificationToken.swift Tinycast/Platform/ProcessExit.swift
-run in-use-marks-test Tinycast/Features/Microphone/Model/*.swift Tinycast/Features/Microphone/Service/*.swift
+run nc-Microphone-in-use-marks-test Tinycast/Features/Microphone/Model/*.swift Tinycast/Features/Microphone/Service/*.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 run microphone-engine-test Tinycast/Features/Microphone/Model/*.swift
+run nc-Music-modules-test Tinycast/Features/Music/Model/*.swift Tinycast/Features/Music/Service/*.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift Tinycast/Features/Microphone/Model/*.swift Tinycast/Features/Microphone/Service/*.swift Tinycast/Features/HotKeys/Service/HotKeyCenter.swift Tinycast/Features/HotKeys/Service/KeyShortcut.swift Tinycast/Features/HotKeys/Model/HyperKey.swift Tinycast/Platform/ASCIIKeyboardLayout.swift Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift Tinycast/Features/HotKeys/Model/ModifierKey.swift Tinycast/Features/HotKeys/Model/HIDKeyMapping.swift Tinycast/Features/HotKeys/Model/DoubleTapModifier.swift Tinycast/Features/HotKeys/Model/HotKeyBinding.swift Tinycast/Features/Notchcast/Core/NotchcastCore.swift
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile

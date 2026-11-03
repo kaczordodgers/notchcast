@@ -26,7 +26,7 @@ struct NotchcastCoreTests {
             "islandStatusMessages", "islandLiveActivities", "launcherFromIsland"
         ]
         precondition(m0.isSubset(of: NotchcastFeature.allCases.map(\.rawValue)))
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) })
+        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultOn })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))
