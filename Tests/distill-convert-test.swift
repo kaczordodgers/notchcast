@@ -34,6 +34,35 @@ struct DistillConvertTests {
         try await failureSafety(root)
         try await cancellation(root)
         try await realTrash(root)
+        try await queueRunner(root)
+    }
+
+    static func queueRunner(_ root: URL) async throws {
+        let folder = try directory("runner", in: root)
+        let trash = try directory("runner-trash", in: root)
+        let source = folder.appendingPathComponent("single.txt")
+        try write("QUEUE SOURCE", "single.txt", in: folder)
+        try write("KEEP SIBLING", "sibling.txt", in: folder)
+        var progress: [DownloadProgress] = []
+        let context = DownloadRunContext(destination: root, report: { progress.append($0) })
+        let runner = DistillConvertRunner(trash: moveTo(trash))
+        let job = DownloadJob(id: UUID().uuidString, kind: "convert", source: source.path,
+                              title: "Fixture", created: Date())
+        let output = try await runner.run(job, context: context)
+        expect(try contents(output).contains("QUEUE SOURCE"), "queue runner returns single-file output")
+        expect(exists(folder.appendingPathComponent("sibling.txt")), "single-file job leaves sibling untouched")
+        expect(progress.count == 1, "queue runner reports through context")
+        try write("<p>PAGE</p>", "page.html", in: folder)
+        var batch = job
+        batch.source = folder.path
+        _ = try await runner.run(batch, context: context)
+        expect(progress.contains { $0.stage?.contains("HTML converter is unavailable") == true },
+               "queue progress explains missing HTML integration")
+        try write("BROKEN PDF", "broken.pdf", in: folder)
+        do {
+            _ = try await runner.run(batch, context: context)
+            expect(false, "queue runner fails a batch containing conversion failures")
+        } catch { expect(true, "queue runner fails a batch containing conversion failures") }
     }
 
     static func nativeFormats(_ root: URL) async throws {
@@ -158,6 +187,7 @@ struct DistillConvertTests {
         let unavailable = try await DistillConverter(trash: moveTo(trash)).convert(folder: folder)
         expect(status("page.html", in: unavailable) == .skipped(.htmlUnavailable), "HTML reports unavailable integration")
         expect(status("recording.mp3", in: unavailable) == .skipped(.mediaUnavailable), "media reports unavailable integration")
+        try write("{\"manifest_version\": 3}", "manifest.json", in: code)
         let converter = DistillConverter(
             html: { html, base in
                 guard !html.contains("const preserve") else { throw FixtureFailure.invalid }

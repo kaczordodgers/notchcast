@@ -22,21 +22,22 @@ nonisolated struct DistillConverter: Sendable {
 
     @concurrent
     func convert(
-        folder: URL, report: @Sendable (DistillConversion.Result) -> Void = { _ in }
+        folder: URL, report: @Sendable (DistillConversion.Result) async -> Void = { _ in }
     ) async throws -> [DistillConversion.Result] {
-        let root = folder.standardizedFileURL.resolvingSymlinksInPath()
-        guard try root.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true else {
-            throw DistillConversion.Failure.unsafePath
-        }
+        let input = folder.standardizedFileURL
+        let isDirectory = try input.resourceValues(forKeys: [.isDirectoryKey, .isSymbolicLinkKey])
+        let root = (isDirectory.isDirectory == true && isDirectory.isSymbolicLink != true
+            ? input : input.deletingLastPathComponent()).resolvingSymlinksInPath()
         let manifest = root.appendingPathComponent(Self.manifestName)
         var receipts = try loadReceipts(manifest, root: root)
-        let sources = try scan(root)
+        let sources = isDirectory.isDirectory == true && isDirectory.isSymbolicLink != true
+            ? try scan(root) : [input]
         var results: [DistillConversion.Result] = []
         for source in sources {
             try Task.checkCancellation()
             let result = try await convert(source, root: root, manifest: manifest, receipts: &receipts)
             results.append(result)
-            report(result)
+            await report(result)
         }
         return results
     }
@@ -165,7 +166,7 @@ nonisolated struct DistillConverter: Sendable {
         if source.pathExtension.lowercased() == "md" { return .markdown }
         switch DistillSourceKind(source) {
         case .unsupported: return .unsupported
-        case .html where html == nil: return try isHTMLCode(source) ? nil : .htmlUnavailable
+        case .html where html == nil: return .htmlUnavailable
         case .mhtml where html == nil: return .htmlUnavailable
         case .media where media == nil: return .mediaUnavailable
         default: return nil
