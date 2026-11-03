@@ -1,7 +1,9 @@
 # Day data for island wiring
 
 No service starts during initialization. AppCore owns the instances; the island coordinator starts
-and stops them. No UI, feature switches, activity slots or Settings hooks are included here.
+and stops them. `DayWeatherModule` and `DayMarketsModule` gate their stores behind the island and
+feature switches; `setVisible(_:)` starts polling only while the Day page is shown. Their settings
+share the Day section under Notchcast. Activity slots and island views are wired separately.
 
 - `DayCalendarService(store:)`: inject an AppCore-owned `CalendarStore`. `start()` requests its
   seven-day snapshot; observe `store.events` for EventKit changes and `store.access` for permission
@@ -15,7 +17,8 @@ and stops them. No UI, feature switches, activity slots or Settings hooks are in
 - `DayWeatherStore`: `cities(matching:)`, `select(_:)`, `start()`, `stop()`, `refresh()`;
   observe `place`, `forecast`, `fetchedAt`, `lastError`. `isStale(now:)` uses a 30-minute threshold.
   A selected city is required; no location permission is requested. Failed refreshes retain the last
-  forecast. Successful responses are cached at Application Support/Notchcast/weather.json in release;
+  forecast. Selecting a city persists it without starting a stopped store. Successful responses are
+  cached at Application Support/Notchcast/weather.json in release;
   other bundle identifiers receive separate directories. Open-Meteo attribution belongs in the UI.
 - `DayMarketsStore`: `setSymbols(_:)`, `setVisible(_:)`, `refresh()`; observe `quotes` and `lastError`.
   Observe `failedSymbols` for individual failures; successful symbols still publish their quotes.
