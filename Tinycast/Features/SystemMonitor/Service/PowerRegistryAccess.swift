@@ -9,7 +9,7 @@ nonisolated enum PowerRegistryAccess {
         return properties?.takeRetainedValue() as? [String: Any] ?? [:]
     }
 
-    static func read<Value>(_ className: String,
+    static func read<Value>(_ className: String, copyAll: Bool = true,
                             decode: (io_registry_entry_t, [String: Any]) -> Value?) -> [Value] {
         var iterator: io_iterator_t = 0
         guard IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching(className), &iterator)
@@ -18,7 +18,7 @@ nonisolated enum PowerRegistryAccess {
         var result: [Value] = []
         while case let entry = IOIteratorNext(iterator), entry != 0 {
             defer { IOObjectRelease(entry) }
-            if let value = decode(entry, properties(entry)) { result.append(value) }
+            if let value = decode(entry, copyAll ? properties(entry) : [:]) { result.append(value) }
         }
         return result
     }

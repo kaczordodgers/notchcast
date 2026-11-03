@@ -6,6 +6,7 @@ struct GPUPowerTests {
         func check(_ label: String, _ value: Bool) {
             guard value else { print("FAIL: \(label)"); exit(1) }
         }
+        let policy0 = PowerNoticePolicy()
         check("missing battery", BatteryReading.decode(properties: [:]) == nil)
         check("desktop registry", BatteryReading.decode(properties: ["BatteryInstalled": false]) == nil)
         let raw: [String: Any] = [
@@ -19,6 +20,15 @@ struct GPUPowerTests {
         check("signed current", battery.watts == -12)
         check("temperature and time", battery.temperatureCelsius == 41 && battery.timeToEmptySeconds == 5400)
         check("cycles", battery.cycleCount == 123)
+        var silicon = raw
+        silicon["Temperature"] = nil
+        silicon["BatteryData"] = ["Temperature": 3589]
+        check("BatteryData temperature", BatteryReading.decode(properties: silicon)?.temperatureCelsius == 35.89)
+        var warm = raw
+        warm["Temperature"] = 3900
+        check("temperature hysteresis", policy0.evaluate(BatteryReading.decode(properties: warm),
+              previous: .init(highTemperature: true)).highTemperature
+              && !policy0.evaluate(BatteryReading.decode(properties: warm)).highTemperature)
         var charging = raw
         charging["ExternalConnected"] = true
         charging["IsCharging"] = true
