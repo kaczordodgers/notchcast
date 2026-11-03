@@ -1,28 +1,21 @@
 import AppKit
-import Carbon.HIToolbox
 
 @MainActor
 final class PlainPasteModule: NotchcastModule {
-    private let keys = HotKeyCenter()
     private let clipboard: ClipboardManager
     private var pending: (items: [NSPasteboardItem], count: Int)?
     private var restore: Task<Void, Never>?
 
     init(clipboard: ClipboardManager) { self.clipboard = clipboard }
 
-    func start() {
-        keys.register(id: "notchcast.pastePlain", shortcut: KeyShortcut(
-            carbonKeyCode: kVK_ANSI_V, carbonModifiers: cmdKey | controlKey | optionKey | shiftKey
-        )) { [weak self] _ in self?.paste() }
-    }
+    func start() {}
 
     func stop() {
-        keys.unregister(id: "notchcast.pastePlain")
         finish()
     }
 
-    private func paste() {
-        guard Permissions.isAccessibilityTrusted() else { return }
+    func paste() {
+        guard NotchcastPreferences.shared.isOn(.pastePlain), Permissions.isAccessibilityTrusted() else { return }
         finish()
         let board = NSPasteboard.general
         guard board.types?.contains(.fileURL) != true,

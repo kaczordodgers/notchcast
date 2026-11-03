@@ -9,11 +9,14 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
     static let pasteImage = PasteImageModule()
+    static private(set) var pastePlain: PlainPasteModule?
     private static var controller: NotchcastModuleController?
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
@@ -23,7 +26,7 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
-            .init(requires: [.pastePlain], module: PlainPasteModule(clipboard: core.clipboardManager)),
+            .init(requires: [.pastePlain], module: pastePlain),
             .init(requires: [.pasteImage], module: pasteImage),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)

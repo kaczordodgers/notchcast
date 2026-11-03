@@ -10,6 +10,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
 }
 
 extension SettingsSearchCatalog {
@@ -33,7 +34,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
-        .init(.notchcastOptions, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
-        .init(.notchcastOptions, "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
+        .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
+        .init(.notchcastPaste, "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
     ]
 }
