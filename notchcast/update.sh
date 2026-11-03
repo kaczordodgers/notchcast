@@ -63,6 +63,7 @@ TAG="$(gh release list -R "$FORK_REPO" -L 30 --json tagName,isDraft,isPrerelease
 [ -n "$TAG" ] || { log "no $FORK_REPO release for this channel yet"; exit 0; }
 WANT="${TAG#v}"
 CMP="$(jq -nr --arg want "$WANT" --arg have "$INSTALLED" "$VKEY"' if ($want|vkey) > ($have|vkey) then "newer" elif ($want|vkey) == ($have|vkey) then "same" else "older" end')"
+[ -n "$CMP" ] || { log "cannot compare versions '$WANT' and '$INSTALLED'; not installing"; exit 0; }
 if [ "$CMP" = older ] || { [ "$CMP" = same ] && [ "$OURS" = 1 ]; }; then
     log "nothing to install: newest release $WANT, installed $INSTALLED ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
     exit 0
