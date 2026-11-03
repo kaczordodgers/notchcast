@@ -25,6 +25,11 @@ struct LiveTimerTest {
         let store = LiveTimerStore(defaults: defaults, clock: { instant }, calendar: { calendar },
                                    playSound: { sounds += 1 }, stopSound: {})
         precondition(store.playSoundWhenTimeIsUp)
+        precondition(store.defaultDuration == 900)
+        store.defaultDuration = 1500
+        let defaultTimer = store.start()!
+        precondition(store.nextTimer?.end == now.addingTimeInterval(1500))
+        store.cancel(defaultTimer)
         let later = store.start(120)!
         let sooner = store.start(60)!
         precondition(store.nextTimer?.id == sooner)
@@ -63,10 +68,15 @@ struct LiveTimerTest {
         let savedTimer = store.start(60, label: "Tea")!
         let savedAlarm = store.startAlarm("19:30", label: "Dinner")!
         store.stop()
+        let soundCount = sounds
+        store.playSoundWhenTimeIsUp = true
+        store.refresh()
+        precondition(sounds == soundCount)
         instant = instant.addingTimeInterval(360)
         let restored = LiveTimerStore(defaults: defaults, clock: { instant }, calendar: { calendar },
                                       playSound: { sounds += 1 }, stopSound: {})
         precondition(restored.timers.map(\.id) == [savedTimer, savedAlarm])
+        precondition(restored.defaultDuration == 1500)
         precondition(restored.timers[0].status == .missed && restored.timers[0].label == "Tea")
         precondition(restored.timers[1].kind == .alarm && restored.timers[1].status == .running)
         restored.dismiss(savedTimer)
@@ -79,6 +89,16 @@ struct LiveTimerTest {
         store.playSoundWhenTimeIsUp = false
         precondition(!LiveTimerStore(defaults: defaults, playSound: {}, stopSound: {}).playSoundWhenTimeIsUp)
         store.stop()
+        let disabled = LiveTimerStore(defaults: defaults, clock: { instant }, playSound: { sounds += 1 },
+                                      stopSound: {}, active: false)
+        let paused = disabled.start(1)!
+        instant = instant.addingTimeInterval(2)
+        disabled.refresh()
+        precondition(disabled.timers.first?.status == .running)
+        disabled.resume()
+        precondition(disabled.ringing.first?.id == paused)
+        disabled.cancel(paused)
+        disabled.stop()
         print("PASS parser, alarms, ordering, ringing, dismissal removal, persistence, missed-on-reload, preferences")
     }
 }

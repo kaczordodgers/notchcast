@@ -17,6 +17,10 @@ final class LiveTimerStore {
     var ringing: [LiveTimerEntry] { timers.filter { $0.status == .ringing } }
     var isRinging: Bool { !ringing.isEmpty }
     var nextTimer: LiveTimerEntry? { timers.first { $0.status == .running } }
+    static let defaultDurations: [TimeInterval] = [300, 600, 900, 1500, 1800, 3600]
+    var defaultDuration: TimeInterval {
+        didSet { defaults.set(defaultDuration, forKey: "notchcast.liveTimer.defaultDuration") }
+    }
     var playSoundWhenTimeIsUp: Bool {
         didSet {
             defaults.set(playSoundWhenTimeIsUp, forKey: Self.soundKey)
@@ -36,13 +40,17 @@ final class LiveTimerStore {
     @ObservationIgnored private var wake: (any DispatchSourceTimer)?
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var nextSound: Date?
+    @ObservationIgnored private var active: Bool
 
     init(defaults: UserDefaults = UserDefaults(
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
          clock: @escaping () -> Date = Date.init,
          calendar: @escaping () -> Calendar = { .autoupdatingCurrent },
-         playSound: (() -> Void)? = nil, stopSound: (() -> Void)? = nil) {
+         playSound: (() -> Void)? = nil, stopSound: (() -> Void)? = nil, active: Bool = true) {
         self.defaults = defaults
+        self.active = active
+        let duration = defaults.double(forKey: "notchcast.liveTimer.defaultDuration")
+        defaultDuration = Self.defaultDurations.contains(duration) ? duration : LiveTimerInput.defaultDuration
         self.clock = clock
         self.calendar = calendar
         let sound = NSSound(contentsOfFile: "/System/Library/Sounds/Glass.aiff", byReference: true)
@@ -62,7 +70,8 @@ final class LiveTimerStore {
     isolated deinit { wake?.cancel(); stopSound() }
 
     @discardableResult
-    func start(_ seconds: TimeInterval = LiveTimerInput.defaultDuration, label: String = "") -> UUID? {
+    func start(_ seconds: TimeInterval? = nil, label: String = "") -> UUID? {
+        let seconds = seconds ?? defaultDuration
         guard seconds.isFinite, (1...LiveTimerInput.maximumDuration).contains(seconds) else { return nil }
         return add(kind: .timer, end: clock().addingTimeInterval(seconds), label: label)
     }
@@ -84,6 +93,7 @@ final class LiveTimerStore {
     }
 
     func stop() {
+        active = false
         generation = UUID()
         wake?.cancel()
         wake = nil
@@ -92,6 +102,7 @@ final class LiveTimerStore {
     }
 
     func refresh() {
+        guard active else { return }
         generation = UUID()
         wake?.cancel()
         wake = nil
@@ -110,6 +121,11 @@ final class LiveTimerStore {
             stopSound()
         }
         schedule(now: now)
+    }
+
+    func resume() {
+        active = true
+        refresh()
     }
 
     private func add(kind: LiveTimerEntry.Kind, end: Date, label: String) -> UUID {
