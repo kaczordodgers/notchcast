@@ -4,7 +4,8 @@ nonisolated struct MonitorFormat: Sendable, Equatable {
     let locale: Locale
 
     func percent(_ value: Double) -> String {
-        (value / 100).formatted(.percent.precision(.fractionLength(0...1)).locale(locale))
+        guard value.isFinite else { return "–" }
+        return (value / 100).formatted(.percent.precision(.fractionLength(0...1)).locale(locale))
     }
 
     func bytes(_ value: Int64) -> String {
@@ -31,20 +32,23 @@ nonisolated struct MonitorFormat: Sendable, Equatable {
     }
 
     func celsius(_ value: Double) -> String {
-        Measurement(value: value, unit: UnitTemperature.celsius).formatted(
+        guard value.isFinite else { return "–" }
+        return Measurement(value: value, unit: UnitTemperature.celsius).formatted(
             .measurement(width: .abbreviated, usage: .asProvided,
                          numberFormatStyle: .number.precision(.fractionLength(0...1))).locale(locale))
     }
 
     func watts(_ value: Double) -> String {
-        Measurement(value: value, unit: UnitPower.watts).formatted(
+        guard value.isFinite else { return "–" }
+        return Measurement(value: value, unit: UnitPower.watts).formatted(
             .measurement(width: .abbreviated, usage: .asProvided,
                          numberFormatStyle: .number.precision(.fractionLength(0...1))).locale(locale))
     }
 
     // The unit label is a localized string in the UI.
     func rpm(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0)).locale(locale))
+        guard value.isFinite else { return "–" }
+        return value.formatted(.number.precision(.fractionLength(0)).locale(locale))
     }
 }
 

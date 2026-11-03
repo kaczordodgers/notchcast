@@ -743,7 +743,6 @@
 		D07983DDEA61E5F2B8681F01 /* QuicklinkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83CD7B0E866AEF486F9EC5E9 /* QuicklinkCoordinator.swift */; };
 		D07F272D0E095B6000D53716 /* NotesCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F5AFB680B55BBAFF2207F99 /* NotesCoordinator.swift */; };
 		D0964B628AFA1B6E754F064C /* CustomCommandArgumentsAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37602A3CBE03EB41BF09622A /* CustomCommandArgumentsAccessory.swift */; };
-		D12FBA4CE8D48BABF07FC42F /* PowerNoticePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BF0263740F43B3CB970A7E7 /* PowerNoticePolicy.swift */; };
 		D16080B73800FF88758E08B3 /* NoteHeadingMenuWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67C489BF8A42B4E0E7FFAA8F /* NoteHeadingMenuWindowController.swift */; };
 		D19969C92342E025A16443B5 /* CalcTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE1C64977153EF104F583008 /* CalcTokenizer.swift */; };
 		D1F02A377FF12C14CE73B1CB /* ExtensionSearchState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5C67CBB0BD596D3E74326D2 /* ExtensionSearchState.swift */; };
@@ -989,7 +988,6 @@
 		0ADFFB5180991764FB13FE0B /* ExtensionPackageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPackageManager.swift; sourceTree = "<group>"; };
 		0B2FAC737503B853DE6B5ED4 /* MeetingCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingCardView.swift; sourceTree = "<group>"; };
 		0BD0F1989B00B2B3BFF5BFCC /* SecureInputMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureInputMonitor.swift; sourceTree = "<group>"; };
-		0BF0263740F43B3CB970A7E7 /* PowerNoticePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerNoticePolicy.swift; sourceTree = "<group>"; };
 		0C3B9645DB2293FA144B5AA2 /* Paster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Paster.swift; sourceTree = "<group>"; };
 		0C3F123266ED0DA4BC9616B9 /* NoteMarkdownParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteMarkdownParser.swift; sourceTree = "<group>"; };
 		0CD9BD942CF0C95ECEFC41F4 /* CompactShortcutsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompactShortcutsSection.swift; sourceTree = "<group>"; };
@@ -2746,7 +2744,6 @@
 				528751899D209F1ECDD3549C /* MonitorHistory.swift */,
 				1FB166B285764AC1EF8DC50F /* NetworkDelta.swift */,
 				DAEDE3088B82D57D63F199C1 /* NetworkReading.swift */,
-				0BF0263740F43B3CB970A7E7 /* PowerNoticePolicy.swift */,
 				1FF0D4300894C3C835A43510 /* ProcessReading.swift */,
 				11C712F40091ABE13C1F12A7 /* SMCSensorReading.swift */,
 				2647124DE7DD3E3BEE3B75C7 /* SMCValue.swift */,
@@ -4830,7 +4827,6 @@
 				170C8ABCDB7848A9DA0A0524 /* PinnedEmojiStore.swift in Sources */,
 				18F2636E6E075309FEDDC48B /* PlainTextSurface.swift in Sources */,
 				6C052B83FAE453D1011E3FB4 /* PopoverMenu.swift in Sources */,
-				D12FBA4CE8D48BABF07FC42F /* PowerNoticePolicy.swift in Sources */,
 				2E7A013EA5F3F5C5B8E28B27 /* PowerRegistryAccess.swift in Sources */,
 				5CB834F0059FC98C26E7A515 /* ProcessExit.swift in Sources */,
 				C5362E24767E311CEC231547 /* ProcessReading.swift in Sources */,

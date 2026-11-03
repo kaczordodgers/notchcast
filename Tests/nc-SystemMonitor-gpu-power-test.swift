@@ -6,7 +6,6 @@ struct GPUPowerTests {
         func check(_ label: String, _ value: Bool) {
             guard value else { print("FAIL: \(label)"); exit(1) }
         }
-        let policy0 = PowerNoticePolicy()
         check("missing battery", BatteryReading.decode(properties: [:]) == nil)
         check("desktop registry", BatteryReading.decode(properties: ["BatteryInstalled": false]) == nil)
         let raw: [String: Any] = [
@@ -24,11 +23,6 @@ struct GPUPowerTests {
         silicon["Temperature"] = nil
         silicon["BatteryData"] = ["Temperature": 3589]
         check("BatteryData temperature", BatteryReading.decode(properties: silicon)?.temperatureCelsius == 35.89)
-        var warm = raw
-        warm["Temperature"] = 3900
-        check("temperature hysteresis", policy0.evaluate(BatteryReading.decode(properties: warm),
-              previous: .init(highTemperature: true)).highTemperature
-              && !policy0.evaluate(BatteryReading.decode(properties: warm)).highTemperature)
         var charging = raw
         charging["ExternalConnected"] = true
         charging["IsCharging"] = true
@@ -45,17 +39,6 @@ struct GPUPowerTests {
                                      "Power Source State": "AC Power", "Is Charged": true]
         let full = BatteryReading.decode(properties: raw, source: source)!
         check("source precedence", full.percent == 50 && full.isCharged && !full.onBattery)
-        let policy = PowerNoticePolicy()
-        let state = policy.evaluate(battery)
-        check("notices", state.lowBattery && state.highTemperature)
-        var recovering = raw
-        recovering["CurrentCapacity"] = 19
-        let held = BatteryReading.decode(properties: recovering)!
-        check("hysteresis", policy.evaluate(held, previous: state).lowBattery)
-        check("no early trigger", !policy.evaluate(held).lowBattery)
-        recovering["CurrentCapacity"] = 20
-        check("recovery", !policy.evaluate(BatteryReading.decode(properties: recovering), previous: state).lowBattery)
-        check("missing clears", policy.evaluate(nil, previous: state) == PowerNoticePolicy.State())
         check("GPU fallback", GPUReading.decode(id: 1, model: "Apple GPU", statistics:
             ["Device Utilization %": -1, "GPU Activity(%)": 42])?.utilizationPercent == 42)
         check("GPU absent", GPUReading.decode(id: 1, model: "Apple GPU", statistics: [:]) == nil)

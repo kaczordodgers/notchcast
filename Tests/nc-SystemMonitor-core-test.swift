@@ -69,6 +69,12 @@ struct MonitorCoreTests {
         }
         let english = MonitorFormat(locale: Locale(identifier: "en_US"))
         let german = MonitorFormat(locale: Locale(identifier: "de_DE"))
+        for value in [Double.nan, .infinity, -.infinity] {
+            expect(english.percent(value) == "–", "invalid percent")
+            expect(english.celsius(value) == "–", "invalid temperature")
+            expect(english.watts(value) == "–", "invalid power")
+            expect(english.rpm(value) == "–", "invalid fan speed")
+        }
         expect(english.percent(12.5).contains("12.5"), "percent uses 0 to 100 input")
         expect(german.percent(12.5).contains("12,5"), "injected decimal separator")
         expect(english.celsius(40).contains("40") && english.celsius(40).contains("C"), "keeps Celsius")
