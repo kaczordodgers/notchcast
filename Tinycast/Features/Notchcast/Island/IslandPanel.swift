@@ -97,7 +97,10 @@ final class IslandPanel: NSPanel {
 
     func setOpen(_ open: Bool, animated: Bool) {
         self.open = open
-        if !open && isKeyWindow { resignKey() }
+        if !open && isKeyWindow {
+            orderOut(nil)
+            orderFrontRegardless()
+        }
         present(animated: animated)
     }
 
