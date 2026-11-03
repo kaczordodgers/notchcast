@@ -58,26 +58,24 @@ final class MicrophoneMute {
     }
 
     func setMuted(_ muted: Bool) {
-        guard validPersistence else {
-            failures = [.invalidSavedLevels]
-            return
-        }
         muteWanted = muted
         defaults.set(muted, forKey: key)
         if !running {
             running = true
             audio.start { [weak self] in self?.refresh() }
         }
-        refresh(unmuteAll: !muted)
+        refresh()
     }
 
-    private func refresh(unmuteAll: Bool = false) {
+    private func refresh() {
         guard running else { return }
-        guard validPersistence else {
-            failures = [.invalidSavedLevels]
-            return
-        }
         failures = audio.monitoringFailure.map { [$0] } ?? []
+        if !validPersistence {
+            records = [:]
+            defaults.removeObject(forKey: key + ".restore")
+            validPersistence = true
+            failures.append(.invalidSavedLevels)
+        }
         do {
             let inputs = try audio.inputs()
             if inputs.isEmpty && muteWanted { failures.append(.noInputs) }
@@ -85,7 +83,7 @@ final class MicrophoneMute {
                 do {
                     if muteWanted {
                         try mute(input)
-                    } else if unmuteAll || records[input.uid] != nil {
+                    } else if records[input.uid] != nil {
                         try restore(input)
                     }
                 } catch {
@@ -102,6 +100,7 @@ final class MicrophoneMute {
     }
 
     private func mute(_ input: MicrophoneInput) throws(MicrophoneInput.Failure) {
+        if records[input.uid] == nil && input.isMuted { return }
         if case .volume = records[input.uid] {
             try muteVolume(input)
             return
