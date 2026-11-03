@@ -26,23 +26,40 @@ leaf_sha1() {
 }
 plist() { /usr/libexec/PlistBuddy -c "Print :$2" "$1/Contents/Info.plist" 2>/dev/null || true; }
 
-# Tell Chad once per failed sync input (a new refs/notchcast-failed/* ref; GitHub also emails the failed run).
-# Only where chad-opus exists (the MBA), so one Mac sends. The first run records the existing failures silently.
-alert_failures() {
+# The sync reports through issues on the fork (notchcast/ci.py): notchcast-sync, -main and -release are failures, one
+# open issue per kind whose cause marker changes only with a new cause; notchcast-design asks for a docs refresh.
+# Only where chad-opus exists (the MBA), so one Mac acts: Chad is told once per issue and cause, and each design
+# issue becomes one Todoist task (label notchcast, Backlog) and is closed.
+TODOIST_PROJECT=id:6h2GM7vHJxfxj6Xc TODOIST_BACKLOG=id:6hXmwWJvMr4gV736
+alert_issues() {
     command -v chad-opus >/dev/null || return 0
-    local seen="$HOME/Library/Application Support/notchcast/alerted-failures" refs ref
-    refs="$(git ls-remote "https://github.com/$FORK_REPO.git" 'refs/notchcast-failed/*' | cut -f2 | sort)"
-    mkdir -p "$(dirname "$seen")"
-    if [ ! -f "$seen" ]; then [ "$DRY" = 1 ] || printf '%s\n' "$refs" > "$seen"; return 0; fi
-    for ref in $(comm -13 "$seen" <(printf '%s\n' "$refs")); do
-        if [ "$DRY" = 1 ]; then log "would alert: $ref"; continue; fi
-        printf 'Notchcast sync failed: %s. Nothing was published; it retries when upstream or main changes. Runs: https://github.com/%s/actions/workflows/sync.yml\n' \
-            "${ref#refs/notchcast-failed/}" "$FORK_REPO" | chad-opus ping failure - >/dev/null
-        echo "$ref" >> "$seen"
-        log "alerted Chad: $ref"
+    local seen="$HOME/Library/Application Support/notchcast/alerted-issues" issues key n
+    mkdir -p "$(dirname "$seen")"; touch "$seen"
+    issues="$(gh issue list -R "$FORK_REPO" --state open --limit 50 --json number,title,url,body,labels \
+        --jq '.[] | select(any(.labels[]; .name == "notchcast-sync" or .name == "notchcast-main" or .name == "notchcast-release"))
+              | [(.number|tostring) + ":" + ((.body | capture("<!-- cause: (?<c>.*) -->").c) // .title), .title, .url] | @tsv')"
+    while IFS=$'\t' read -r key title url; do
+        [ -n "$key" ] && ! grep -qxF "$key" "$seen" || continue
+        if [ "$DRY" = 1 ]; then log "would alert: $title"; continue; fi
+        printf 'Notchcast: %s. Nothing was pushed or published. %s\n' "$title" "$url" | chad-opus ping failure - >/dev/null \
+            || { log "ping for $title failed; retried next run"; return 1; }
+        echo "$key" >> "$seen"
+        log "alerted Chad: $title"
+    done <<< "$issues"
+    for n in $(gh issue list -R "$FORK_REPO" --state open --label notchcast-design --json number --jq '.[].number'); do
+        if [ "$DRY" = 1 ]; then log "would add a Todoist task for design issue #$n"; continue; fi
+        local body task
+        body="$(gh issue view "$n" -R "$FORK_REPO" --json body,url --jq '.body + "\n" + .url')"
+        task="$(chad-opus td task add "Refresh notchcast/docs/design-system.md" --project "$TODOIST_PROJECT" \
+            --section "$TODOIST_BACKLOG" --labels notchcast --description "$body" --json | jq -r '.id // empty')"
+        [ -n "$task" ] || { log "Todoist task for design issue #$n not created; retried next run"; return 1; }
+        # A failed close would make the next run add a second task.
+        gh issue close "$n" -R "$FORK_REPO" --comment "Todoist task $task" >/dev/null \
+            || { log "design issue #$n: Todoist task $task created but the issue is still open; close it by hand"; return 1; }
+        log "design issue #$n -> Todoist task $task"
     done
 }
-alert_failures || log "failure alert check failed; retried next run"
+alert_issues || log "issue check failed; retried next run"
 
 INSTALLED="" OURS=0
 if [ -d "$APP" ]; then
