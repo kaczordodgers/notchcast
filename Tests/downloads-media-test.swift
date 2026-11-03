@@ -1,7 +1,7 @@
 import Foundation
 
 @main struct DownloadsMediaTest {
-    static func main() throws {
+    static func main() async throws {
         let destination = URL(filePath: "/tmp/media")
         let source = "https://www.youtube.com/watch?v=jNQXAC9IVRw"
         let native = MediaArguments.download(source: source, destination: destination, format: .video)
@@ -13,6 +13,11 @@ import Foundation
         precondition(audio.contains("aria2c:-x 16 -s 16 -k 1M --file-allocation=none"))
         precondition(MediaArguments.retryNatively(stderr: "HTTP Error 403: Forbidden", source: source, usedAria2: true))
         precondition(!MediaArguments.retryNatively(stderr: "403", source: source, usedAria2: false))
+        precondition(!MediaArguments.retryNatively(stderr: "HTTP Error 403", source: "https://example.com", usedAria2: true))
+        let manual = MediaArguments.captions(source: source, destination: destination, automatic: false, language: "en")
+        let automatic = MediaArguments.captions(source: source, destination: destination, automatic: true, language: "en")
+        precondition(manual.contains("--write-subs") && !manual.contains("--write-auto-subs"))
+        precondition(automatic.contains("--write-auto-subs") && !automatic.contains("--write-subs"))
         let progress = MediaOutput.progress("MEDIA_PROGRESS 4200 NA 10000 18000000.0 105")!
         precondition(progress.fraction == 0.42 && progress.eta == 105)
         let completed = MediaOutput.progress("MEDIA_PROGRESS 629172 629172 NA 2021060.1325613454 NA")!
@@ -30,6 +35,47 @@ import Foundation
         let srt = "1\n00:00:00,000 --> 00:00:01,000\nHello\n\n2\n00:00:01,000 --> 00:00:02,000\nthere"
         precondition(CaptionText.plainText(srt) == "Hello there")
         precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions") == "")
+        try await runners()
         print("downloads-media-test: passed")
+    }
+
+    private static func runners() async throws {
+        let root = URL(filePath: ProcessInfo.processInfo.environment["DOWNLOAD_MEDIA_TEST_ROOT"] ?? NSTemporaryDirectory())
+            .appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let tool = root.appending(path: "yt-dlp")
+        let script = """
+        #!/bin/sh
+        dest=''
+        mode=media
+        while [ "$#" -gt 0 ]; do
+          case "$1" in
+            --paths) shift; dest="$1";;
+            --write-subs) mode=manual;;
+            --write-auto-subs) mode=auto;;
+          esac
+          shift
+        done
+        if [ "$mode" = auto ]; then
+          printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nHello world\\n' > "$dest/movie.en.vtt"
+        elif [ "$mode" = media ]; then
+          touch "$dest/movie.mp4"
+          printf 'MEDIA_PROGRESS 50 100 NA 10 5\\n'
+          printf 'MEDIA_FILE "%s/movie.mp4"\\n' "$dest"
+        fi
+        """
+        try script.write(to: tool, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tool.path)
+        try FileManager.default.createSymbolicLink(at: root.appending(path: "ffmpeg"), withDestinationURL: tool)
+        let lookup = DownloadToolLookup(directories: [root, URL(filePath: "/usr/bin"), URL(filePath: "/bin")])
+        let context = DownloadRunContext(destination: root, tools: lookup)
+        let job = DownloadJob(id: UUID().uuidString, kind: "video", source: "https://example.com/video",
+                              title: "Video", state: .waiting, created: Date(), options: [:])
+        let output = try await MediaDownloadRunner(format: .video).run(job, context: context)
+        precondition(output?.lastPathComponent == "movie.mp4")
+        let transcript = try await TranscriptDownloadRunner().run(job, context: context)
+        let text = try String(contentsOf: transcript!, encoding: .utf8)
+        precondition(text == "Hello world")
     }
 }
