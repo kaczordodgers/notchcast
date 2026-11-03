@@ -1,0 +1,233 @@
+import AppKit
+import Foundation
+import Observation
+
+@Observable @MainActor final class TorrentManager: TorrentQueueHost {
+    private struct Request {
+        var gid: String?
+        var lastPeerActivity: Date
+    }
+
+    private(set) var jobs: [TorrentJob] = []
+    @ObservationIgnored private let session: any TorrentSession
+    @ObservationIgnored private let destination: URL
+    @ObservationIgnored private let extraArguments: () -> [String]
+    @ObservationIgnored private let now: () -> Date
+    @ObservationIgnored private let revealFiles: ([URL]) -> Void
+    @ObservationIgnored private let pollInterval: Duration
+    @ObservationIgnored private var requests: [UUID: Request] = [:]
+    @ObservationIgnored private var worker: Task<Void, Never>?
+    @ObservationIgnored private var sessionStarted = false
+    @ObservationIgnored private var stopping = false
+
+    init(
+        session: any TorrentSession,
+        destination: URL = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Downloads"),
+        extraArguments: @escaping () -> [String] = { [] },
+        now: @escaping () -> Date = Date.init,
+        pollInterval: Duration = .seconds(1),
+        revealFiles: @escaping ([URL]) -> Void = { NSWorkspace.shared.activateFileViewerSelecting($0) }
+    ) {
+        self.session = session
+        self.destination = destination.standardizedFileURL
+        self.extraArguments = extraArguments
+        self.now = now
+        self.pollInterval = pollInterval
+        self.revealFiles = revealFiles
+    }
+
+    isolated deinit {
+        worker?.cancel()
+        session.terminate()
+    }
+
+    @discardableResult func enqueue(_ urls: [URL], keepSharing: Bool = false) -> [UUID] {
+        guard !stopping else { return [] }
+        let ids = urls.map { url in
+            let id = UUID()
+            jobs.append(TorrentJob(id: id, source: url, destination: destination, keepSharing: keepSharing))
+            requests[id] = Request(lastPeerActivity: now())
+            return id
+        }
+        startWorker()
+        return ids
+    }
+
+    func cancel(_ id: UUID) {
+        guard let index = index(id), jobs[index].state.isRunning else { return }
+        jobs[index].state = .cancelled
+        jobs[index].speed = 0
+    }
+
+    @discardableResult func tryAgain(_ id: UUID) -> UUID? {
+        guard let job = jobs.first(where: { $0.id == id }), [.failed, .cancelled].contains(job.state) else { return nil }
+        return enqueue([job.source], keepSharing: job.keepSharing).first
+    }
+
+    func reveal(_ id: UUID) {
+        guard let job = jobs.first(where: { $0.id == id }) else { return }
+        revealFiles(job.files.isEmpty ? [job.destination] : job.files)
+    }
+
+    func stop() async {
+        guard !stopping else { return }
+        stopping = true
+        for index in jobs.indices where jobs[index].state.isRunning {
+            jobs[index].state = .cancelled
+            jobs[index].speed = 0
+        }
+        let previous = worker
+        previous?.cancel()
+        await previous?.value
+        await session.stop()
+        worker = nil
+        requests.removeAll()
+        sessionStarted = false
+        stopping = false
+    }
+
+    private func startWorker() {
+        guard worker == nil, !requests.isEmpty else { return }
+        worker = Task { [weak self] in
+            while !Task.isCancelled {
+                guard let interval = await self?.step() else { return }
+                do { try await Task.sleep(for: interval) } catch { return }
+            }
+        }
+    }
+
+    private func step() async -> Duration? {
+        do {
+            try await removeStopped()
+            let ids = jobs.filter { $0.state.isRunning }.map(\.id)
+            for id in ids {
+                try Task.checkCancellation()
+                guard let index = index(id), jobs[index].state.isRunning else { continue }
+                if requests[id]?.gid == nil { try await submit(id) }
+                guard jobs[index].state.isRunning, let gid = requests[id]?.gid else { continue }
+                let status = try await session.status(gid)
+                try Task.checkCancellation()
+                guard jobs[index].state.isRunning, requests[id]?.gid == gid else { continue }
+                if let children = status.followedBy, !children.isEmpty {
+                    guard children.count == 1 else { throw TorrentFailure.invalidResponse }
+                    requests[id]?.gid = children[0]
+                } else {
+                    try apply(status, to: index)
+                }
+            }
+            try await removeStopped()
+        } catch is CancellationError {
+            return nil
+        } catch {
+            let failure = (error as? TorrentFailure) ?? .rpcUnavailable
+            for index in jobs.indices where jobs[index].state.isRunning { fail(index, failure) }
+            requests.removeAll()
+            await session.stop()
+            sessionStarted = false
+        }
+        if requests.isEmpty {
+            await session.stop()
+            sessionStarted = false
+            if !requests.isEmpty { return .zero }
+            worker = nil
+            return nil
+        }
+        return pollInterval
+    }
+
+    private func submit(_ id: UUID) async throws {
+        guard let index = index(id) else { return }
+        let submission: TorrentSubmission
+        do {
+            submission = try await TorrentSubmission.read(jobs[index].source)
+        } catch is CancellationError {
+            throw CancellationError()
+        } catch {
+            if jobs[index].state.isRunning { fail(index, (error as? TorrentFailure) ?? .invalidInput) }
+            return
+        }
+        try Task.checkCancellation()
+        guard jobs[index].state.isRunning else { return }
+        if jobs.contains(where: { $0.id != id && $0.state.isRunning && $0.infoHash == submission.infoHash }) {
+            fail(index, .alreadyRunning)
+            return
+        }
+        jobs[index].infoHash = submission.infoHash
+        jobs[index].name = submission.name
+        if !sessionStarted {
+            try await session.start(extraArguments: extraArguments())
+            try Task.checkCancellation()
+            sessionStarted = true
+        }
+        guard jobs[index].state.isRunning else { return }
+        let gid: String
+        do {
+            gid = try await session.add(submission, destination: destination, keepSharing: jobs[index].keepSharing)
+        } catch let failure as TorrentFailure {
+            guard case .rpc = failure else { throw failure }
+            if jobs[index].state.isRunning { fail(index, failure) }
+            return
+        }
+        requests[id]?.gid = gid
+        requests[id]?.lastPeerActivity = now()
+        try Task.checkCancellation()
+    }
+
+    private func apply(_ status: TorrentStatus, to index: Int) throws {
+        let id = jobs[index].id
+        if let hash = status.infoHash, !hash.isEmpty, hash.lowercased() != jobs[index].infoHash {
+            throw TorrentFailure.invalidResponse
+        }
+        let previousBytes = jobs[index].bytesDone
+        jobs[index].bytesDone = status.bytesDone
+        jobs[index].bytesTotal = status.bytesTotal
+        jobs[index].speed = status.speed
+        jobs[index].peers = status.peers
+        jobs[index].seeders = status.seeders
+        if let name = status.bittorrent?.info?.name, !name.isEmpty { jobs[index].name = name }
+        jobs[index].files = (status.files ?? []).map { URL(fileURLWithPath: $0.path).standardizedFileURL }.filter {
+            $0.path.hasPrefix(destination.path + "/")
+        }
+        switch status.status {
+        case "complete":
+            jobs[index].state = .finished
+            jobs[index].speed = 0
+        case "error":
+            fail(index, .download(code: status.errorCode ?? "", message: status.errorMessage ?? ""))
+        case "removed":
+            jobs[index].state = .cancelled
+            jobs[index].speed = 0
+        case "active", "waiting", "paused":
+            if status.seeder == "true" {
+                jobs[index].state = .sharing
+            } else {
+                jobs[index].state = jobs[index].name == nil ? .findingPeers : .downloading
+            }
+            if status.peers > 0 || status.bytesDone > previousBytes || status.status != "active"
+                || jobs[index].state == .sharing {
+                requests[id]?.lastPeerActivity = now()
+            } else if let lastActivity = requests[id]?.lastPeerActivity, now().timeIntervalSince(lastActivity) >= 600 {
+                fail(index, .noPeers)
+            }
+        default:
+            throw TorrentFailure.invalidResponse
+        }
+    }
+
+    private func removeStopped() async throws {
+        for id in Array(requests.keys) {
+            guard let index = index(id), !jobs[index].state.isRunning else { continue }
+            if let gid = requests[id]?.gid { try await session.remove(gid) }
+            try Task.checkCancellation()
+            requests.removeValue(forKey: id)
+        }
+    }
+
+    private func fail(_ index: Int, _ failure: TorrentFailure) {
+        jobs[index].state = .failed
+        jobs[index].error = failure
+        jobs[index].speed = 0
+    }
+
+    private func index(_ id: UUID) -> Int? { jobs.firstIndex { $0.id == id } }
+}
