@@ -938,6 +938,8 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
 
 run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 run notchcast-island-geometry-test Tinycast/Features/Notchcast/Island/IslandGeometry.swift Tinycast/Features/Notchcast/Island/IslandMotion.swift Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
+run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+run soloist-source-test Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/SoloistProtocol.swift Tinycast/Features/Music/Service/SoloistSource.swift
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
     [ -f .compile ] || echo '[]' > .compile
