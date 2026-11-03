@@ -12,10 +12,13 @@ nonisolated struct MonitorFormat: Sendable, Equatable {
     }
 
     func bytesPerSecond(_ value: Double) -> String {
-        Int64(value.rounded()).formatted(.byteCount(style: .file).locale(locale)) + "/s"
+        guard value.isFinite else { return "–" }
+        let bytes = Int64(value.rounded().clamped(to: -9.2e18...9.2e18))
+        return bytes.formatted(.byteCount(style: .file).locale(locale)) + "/s"
     }
 
     func bitsPerSecond(_ value: Double) -> String {
+        guard value.isFinite else { return "–" }
         let unit: UnitInformationStorage = switch abs(value) {
         case 1e9...: .gigabits
         case 1e6...: .megabits
@@ -39,7 +42,12 @@ nonisolated struct MonitorFormat: Sendable, Equatable {
                          numberFormatStyle: .number.precision(.fractionLength(0...1))).locale(locale))
     }
 
+    // The unit label is a localized string in the UI.
     func rpm(_ value: Double) -> String {
-        value.formatted(.number.precision(.fractionLength(0)).locale(locale)) + " RPM"
+        value.formatted(.number.precision(.fractionLength(0)).locale(locale))
     }
+}
+
+private extension Double {
+    func clamped(to range: ClosedRange<Double>) -> Double { Swift.min(Swift.max(self, range.lowerBound), range.upperBound) }
 }
