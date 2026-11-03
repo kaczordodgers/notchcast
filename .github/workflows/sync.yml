@@ -11,10 +11,10 @@ on:
 permissions:
   contents: read
 
-# Scheduled runs queue one at a time (a newer one replaces a pending one, never a running build). A push or a
-# manual run gets its own group, so a pushed main is always built and tested; a race on main is caught by the lease.
+# One run at a time; a newer trigger replaces a pending one, never a running build. A main commit replaced that
+# way is still tested: plan tests any main without a green `notchcast/tested` status.
 concurrency:
-  group: ${{ github.event_name == 'schedule' && 'sync' || format('sync-{0}', github.run_id) }}
+  group: sync
   cancel-in-progress: false
 
 env:
@@ -24,8 +24,12 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      statuses: read
     outputs:
       rebase: ${{ steps.plan.outputs.rebase }}
+      tested: ${{ steps.plan.outputs.tested }}
       main: ${{ steps.plan.outputs.main }}
       upstream_main: ${{ steps.plan.outputs.upstream_main }}
       main_key: ${{ steps.plan.outputs.main_key }}
@@ -43,13 +47,17 @@ jobs:
         run: python3 notchcast/ci.py plan
 
   # Upstream moved: replay our commits onto it, build, test, and only then move main (lease on what plan saw).
-  # On a push or a manual run with nothing to rebase, main itself is built and tested and nothing is pushed.
+  # Nothing to replay but main not tested yet (a push): build and test main as it is; nothing is pushed.
+  # Either way the tested commit gets a green `notchcast/tested` status.
   main:
     needs: plan
-    if: needs.plan.outputs.rebase == 'true' || github.event_name != 'schedule'
+    if: needs.plan.outputs.rebase == 'true' || needs.plan.outputs.tested != 'true'
     runs-on: xcode-27
     timeout-minutes: 120
     environment: sync
+    permissions:
+      contents: read
+      statuses: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -87,6 +95,13 @@ jobs:
         run: |
           git -c core.hooksPath=/dev/null push --force-with-lease="refs/heads/main:${{ needs.plan.outputs.main }}" "$FORK_SSH" HEAD:refs/heads/main
           rm -f "$RUNNER_TEMP/deploy-key"
+      - name: Mark the commit tested
+        working-directory: src
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$(git rev-parse HEAD)" -f state=success -f context=notchcast/tested \
+            -f description="Debug build and upstream tests green" -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >/dev/null
       - name: Did main move under us?
         id: raced
         if: failure() && needs.plan.outputs.rebase == 'true'
