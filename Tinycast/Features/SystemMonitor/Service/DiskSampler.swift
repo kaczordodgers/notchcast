@@ -8,13 +8,13 @@ nonisolated struct DiskSampler: Sendable {
 
     func read() -> [DiskVolume] {
         let keys: Set<URLResourceKey> = [.volumeNameKey, .volumeIsLocalKey,
-            .volumeIsReadOnlyKey, .volumeTotalCapacityKey, .volumeAvailableCapacityKey]
+            .volumeTotalCapacityKey, .volumeAvailableCapacityKey]
         let urls = FileManager.default.mountedVolumeURLs(
             includingResourceValuesForKeys: Array(keys), options: .skipHiddenVolumes) ?? []
         return urls.compactMap { url in
             guard !url.path.hasPrefix("/System/Volumes/"),
                   let values = try? url.resourceValues(forKeys: keys),
-                  values.volumeIsLocal == true else { return nil }
+                  values.volumeIsLocal != false else { return nil }
             // Finder presents the boot volume as writable despite its sealed root snapshot.
             let capacityURL = url.path == "/" ? URL(filePath: "/System/Volumes/Data") : url
             guard let capacity = try? capacityURL.resourceValues(forKeys: keys),
