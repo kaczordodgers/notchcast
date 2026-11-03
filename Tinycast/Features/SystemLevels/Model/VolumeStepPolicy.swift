@@ -9,7 +9,8 @@ enum VolumeStepPolicy {
         let current = Int((volume * Double(divisions)).rounded())
         let indexes = increasing ? Array((min(divisions, current + 1))...divisions)
             : Array((0...max(0, current - 1)).reversed())
-        return indexes.map { Double($0) / Double(divisions) }
+        let limit = fine ? 4 : 2
+        return indexes.prefix(limit).map { Double($0) / Double(divisions) }
     }
 
     static func advanced(from initial: Double, to actual: Double, increasing: Bool) -> Bool {

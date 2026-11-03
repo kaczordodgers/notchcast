@@ -2,13 +2,29 @@ import Foundation
 
 @main
 struct SystemNoticesTests {
-    static func main() async throws {
+    @MainActor static func main() async throws {
         var checks = 0
         func check(_ condition: Bool, _ message: String) {
             checks += 1
             if !condition { fatalError(message) }
         }
         var engine = SystemNoticeEngine()
+        let manager = SystemNoticesManager(observeSystem: false)
+        var notices: [SystemNoticeEngine.Notice] = []
+        manager.onNotice = { notices.append($0) }
+        manager.start()
+        manager.consume(.wifi(true))
+        manager.setSleeping(true)
+        manager.consume(.wifi(false))
+        manager.setLocked(true)
+        manager.setSleeping(false)
+        manager.consume(.wifi(false))
+        manager.setLocked(false)
+        manager.consume(.wifi(true))
+        check(notices.isEmpty, "Sleep and lock route flaps stay quiet through wake and unlock")
+        manager.consume(.wifi(false))
+        check(notices == [.wifi(available: false)], "Monitoring resumes after the silent baseline")
+        manager.stop()
         check(engine.consume(.wifi(true)).isEmpty, "Initial route is quiet")
         check(engine.consume(.wifi(true)).isEmpty, "Repeated route is quiet")
         check(engine.consume(.wifi(false)) == [.wifi(available: false)], "Route down is an edge")

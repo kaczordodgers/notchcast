@@ -90,6 +90,15 @@ struct QuitProtectionTests {
               "Escape cancels pending confirmation")
         check(engine.consume(.tick, at: 64, target: target) == .pass, "Cancelled hold cannot fire")
 
+        engine.reset()
+        _ = engine.consume(.keyDown(q, .command, isRepeat: false), at: 70, target: target)
+        _ = engine.consume(.modifiersChanged([]), at: 70.1, target: target)
+        check(engine.consume(.keyDown(q, [], isRepeat: false), at: 70.2, target: target) == .pass,
+              "Modifier change recovers a lost Q release")
+        _ = engine.consume(.keyDown(q, .command, isRepeat: false), at: 71, target: target)
+        _ = engine.consume(.keyDown(.init(code: 0, commandCharacter: "a"), [], isRepeat: false), at: 71.1, target: target)
+        check(engine.consume(.keyDown(q, [], isRepeat: false), at: 71.2, target: target) == .pass,
+              "Another key recovers a lost Q release")
         let suite = "nc.quit.tests.\(UUID())"
         guard let defaults = UserDefaults(suiteName: suite) else { fatalError("Test defaults") }
         defer { defaults.removePersistentDomain(forName: suite) }

@@ -12,11 +12,22 @@ final class TestAudioHardware: SystemAudioHardware {
         var ignoreMute = false
         var switchOnWrite = false
         var writes: [Double] = []
+        var delayedReadBack = false
+        var pendingVolume: Double?
+        var staleReads = 0
     }
     let storage = Mutex(Storage())
 
     func output() -> SystemAudioState.Output? {
-        storage.withLock { .init(device: $0.device, volume: $0.volume, muted: $0.muted) }
+        storage.withLock {
+            if $0.staleReads > 0 {
+                $0.staleReads -= 1
+            } else if let pending = $0.pendingVolume {
+                $0.volume = pending
+                $0.pendingVolume = nil
+            }
+            return .init(device: $0.device, volume: $0.volume, muted: $0.muted)
+        }
     }
 
     func microphone() -> SystemAudioState.Microphone? {
@@ -27,6 +38,11 @@ final class TestAudioHardware: SystemAudioHardware {
         storage.withLock {
             guard $0.device == device else { return false }
             $0.writes.append(volume)
+            if $0.delayedReadBack {
+                $0.pendingVolume = volume
+                $0.staleReads = 20
+                return true
+            }
             if $0.switchOnWrite { $0.device = 2; return true }
             if !$0.ignoreVolume {
                 $0.volume = $0.quantum.map { quantum in (volume / quantum).rounded(.down) * quantum } ?? volume
@@ -78,8 +94,24 @@ struct SystemLevelsTests {
         check(changes.count == 2, "Device replacement establishes a baseline")
         hardware.storage.withLock { $0.device = 1; $0.volume = 0.5; $0.quantum = 0.125; $0.writes = [] }
         let coarse = await service.apply(.step(increasing: true, fine: true))
-        check(coarse == .applied(.init(kind: .volume, level: 0.625, muted: false)), "Coarse USB reports read-back level")
-        check(hardware.storage.withLock { $0.writes.count } == 8, "Ignored fine writes advance until accepted")
+        check(coarse == .fallbackToNativeKeys, "Coarse USB beyond bounded fine retries falls back")
+        check(hardware.storage.withLock { $0.writes.count } == 4, "Fine retries are bounded")
+        hardware.storage.withLock { $0.volume = 0.5; $0.quantum = nil; $0.delayedReadBack = true; $0.writes = [] }
+        check(await service.apply(.step(increasing: true)) == .fallbackToNativeKeys, "Delayed read-back falls back")
+        check(hardware.storage.withLock { ($0.writes.max() ?? 0) <= 0.625 },
+              "Delayed read-back never writes beyond target plus one step")
+        for _ in 0..<21 { _ = hardware.output() }
+        check(hardware.storage.withLock { $0.volume } == 0.625, "Delayed device eventually applies the bounded write")
+        hardware.storage.withLock {
+            $0.delayedReadBack = false; $0.ignoreVolume = true; $0.volume = 0.5
+        }
+        let active = Task { await service.apply(.step(increasing: true)) }
+        while hardware.storage.withLock({ $0.writes.count < 3 }) { await Task.yield() }
+        let pending = Task { await service.apply(.step(increasing: true)) }
+        await Task.yield()
+        let latest = Task { await service.apply(.step(increasing: true)) }
+        _ = await (active.value, pending.value, latest.value)
+        check(hardware.storage.withLock { $0.writes.count } == 6, "Held steps leave at most one pending write operation")
         hardware.storage.withLock { $0.volume = 0.9375; $0.ignoreVolume = true; $0.quantum = nil }
         check(await service.apply(.step(increasing: true)) == .fallbackToNativeKeys, "Ignoring driver falls back")
         hardware.storage.withLock { $0.ignoreVolume = false; $0.volume = 1 }
@@ -98,10 +130,11 @@ struct SystemLevelsTests {
         check(await service.apply(.setVolume(.nan)) == .fallbackToNativeKeys, "Invalid direct value rejected")
         hardware.storage.withLock { $0.volume = 0.5; $0.switchOnWrite = true }
         check(await service.apply(.step(increasing: true)) == .cancelled, "Device switch cancels in-flight adjustment")
-        hardware.storage.withLock { $0.switchOnWrite = false; $0.volume = 0.5; $0.ignoreMute = false }
-        async let first = service.apply(.step(increasing: true))
-        async let second = service.apply(.step(increasing: true))
-        _ = await (first, second)
+        hardware.storage.withLock { $0.switchOnWrite = false; $0.volume = 0.5; $0.ignoreMute = false; $0.writes = [] }
+        let first = Task { await service.apply(.step(increasing: true)) }
+        while hardware.storage.withLock({ $0.writes.isEmpty }) { await Task.yield() }
+        let second = Task { await service.apply(.step(increasing: true)) }
+        _ = await (first.value, second.value)
         check(hardware.storage.withLock { $0.volume } == 0.625, "Concurrent callers serialize read-modify-write")
         hardware.storage.withLock { $0.ignoreVolume = true; $0.volume = 0.5; $0.writes = [] }
         let cancelled = Task { await service.apply(.step(increasing: true, fine: true)) }
