@@ -4,16 +4,18 @@ import WebKit
 
 @MainActor
 enum WebpageWebViewConfiguration {
-    static func make(proxy: ProxyConfiguration) async throws -> WKWebViewConfiguration {
-        let patterns = [
+    static let blockedURLPatterns = [
             #"^https?://([^/@]+@)?\["#,
-            #"^https?://([^/@]+@)?[0-9][0-9a-fx.]*[:/]"#,
+            #"^https?://([^/@]+@)?[0-9]+(\.[0-9]+)*\.?[:/]"#,
+            #"^https?://([^/@]+@)?0x[0-9a-f]+\.?[:/]"#,
             #"^https?://([^/@]+@)?[^/:.]+\.?[:/]"#,
             #"^https?://([^/@]+@)?[^/:]+\.localhost\.?[:/]"#,
             #"^https?://([^/@]+@)?[^/:]+\.local\.?[:/]"#,
             "^wss?://"
         ]
-        let rules: [[String: Any]] = patterns.map {
+
+    static func make(proxy: ProxyConfiguration) async throws -> WKWebViewConfiguration {
+        let rules: [[String: Any]] = blockedURLPatterns.map {
             ["trigger": ["url-filter": $0], "action": ["type": "block"]]
         }
         let data = try JSONSerialization.data(withJSONObject: rules)
