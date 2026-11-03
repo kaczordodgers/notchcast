@@ -935,6 +935,9 @@ run slow mcp-stdio-test    Tinycast/Platform/ExecutableLocator.swift \
                            Tinycast/Features/AI/Model/JSONValue.swift \
                            Tinycast/Features/MCP/Model/*.swift \
                            Tinycast/Features/MCP/Service/*.swift
+# Notchcast: Tests/nc-<Folder>-<name>-test.swift compiles Tinycast/Features/<Folder>/{Model,Service}/*.swift.
+for t in Tests/nc-*-test.swift; do [ -e "$t" ] || continue; n=$(basename "$t" .swift); f=${n#nc-}; run "$n" $(ls Tinycast/Features/${f%%-*}/{Model,Service}/*.swift 2>/dev/null); done
+run now-playing-adapter-test -parse-as-library Tinycast/Features/Music/Model/NowPlaying.swift Tinycast/Features/Music/Model/NowPlayingAdapterReply.swift Tinycast/Features/Music/Service/SystemNowPlayingSource.swift Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
 
 run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 run notchcast-island-geometry-test Tinycast/Features/Notchcast/Island/IslandGeometry.swift Tinycast/Features/Notchcast/Island/IslandMotion.swift Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
