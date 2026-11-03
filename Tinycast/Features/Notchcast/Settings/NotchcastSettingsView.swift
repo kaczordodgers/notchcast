@@ -14,17 +14,15 @@ struct NotchcastSettingsView: View {
             }
             .settingsAnchor(.notchcastIsland)
 
-            Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
-                    Toggle(isOn: binding(feature)) {
-                        SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
-                        Text(feature.subtitle)
-                    }
-                    .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
-                }
-            } header: {
-                SettingsSectionHeader(.notchcastOptions)
-            }
+            featureSection(.notchcastOptions, features: [
+                .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
+                .islandStatusMessages, .islandLiveActivities,
+            ])
+            featureSection(.notchcastLauncher, features: [.launcherFromIsland])
+            featureSection(.notchcastSystem, features: [
+                .lowDiskWarning, .systemNotices, .volumeLevels, .displayBrightness, .quitProtection,
+            ])
+            featureSection(.notchcastActivities, features: [.liveTimers, .dayWeather, .dayMarkets])
 
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
@@ -65,6 +63,20 @@ struct NotchcastSettingsView: View {
 
     private func binding(_ feature: NotchcastFeature) -> Binding<Bool> {
         Binding(get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })
+    }
+
+    private func featureSection(_ anchor: SettingsAnchor, features: [NotchcastFeature]) -> some View {
+        Section {
+            ForEach(features, id: \.self) { feature in
+                Toggle(isOn: binding(feature)) {
+                    SettingsRowTitle(anchor, verbatim: feature.title)
+                    Text(feature.subtitle)
+                }
+                .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
+            }
+        } header: {
+            SettingsSectionHeader(anchor)
+        }
     }
 }
 
