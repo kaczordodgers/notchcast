@@ -15,7 +15,9 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { ![.island, .pastePlain, .pasteImage].contains($0) }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter {
+                    ![.island, .pastePlain, .pasteImage].contains($0)
+                }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)

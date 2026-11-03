@@ -63,7 +63,7 @@ final class PasteImageModule: NotchcastModule {
         hub.refreshPermission()
     }
 
-    private func paste() {
+    func paste() {
         guard token != nil, work == nil else { return }
         saveFailed = false
         guard let app = NSWorkspace.shared.frontmostApplication,
