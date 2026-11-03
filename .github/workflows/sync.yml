@@ -11,9 +11,10 @@ on:
 permissions:
   contents: read
 
-# One run at a time; a newer trigger replaces a pending one, never a running build.
+# Scheduled runs queue one at a time (a newer one replaces a pending one, never a running build). A push or a
+# manual run gets its own group, so a pushed main is always built and tested; a race on main is caught by the lease.
 concurrency:
-  group: sync
+  group: ${{ github.event_name == 'schedule' && 'sync' || format('sync-{0}', github.run_id) }}
   cancel-in-progress: false
 
 env:
@@ -84,9 +85,16 @@ jobs:
         if: needs.plan.outputs.rebase == 'true'
         working-directory: src
         run: |
-          git push --force-with-lease="refs/heads/main:${{ needs.plan.outputs.main }}" "$FORK_SSH" HEAD:refs/heads/main
-      - name: Remember the failure
+          git -c core.hooksPath=/dev/null push --force-with-lease="refs/heads/main:${{ needs.plan.outputs.main }}" "$FORK_SSH" HEAD:refs/heads/main
+          rm -f "$RUNNER_TEMP/deploy-key"
+      - name: Did main move under us?
+        id: raced
         if: failure() && needs.plan.outputs.rebase == 'true'
+        run: |
+          NOW="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)"
+          echo "moved=$([ "$NOW" != "${{ needs.plan.outputs.main }}" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+      - name: Remember the failure
+        if: failure() && needs.plan.outputs.rebase == 'true' && steps.raced.outputs.moved == 'false'
         uses: ./tools/notchcast/actions/remember-failure
         with:
           key: ${{ needs.plan.outputs.main_key }}
@@ -108,7 +116,6 @@ jobs:
         release: ${{ fromJSON(needs.plan.outputs.releases) }}
     env:
       TAG: ${{ matrix.release.tag }}
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -124,6 +131,8 @@ jobs:
       - uses: ./tools/notchcast/actions/xcode
       - name: Read upstream's release
         id: app
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: python3 tools/notchcast/ci.py app-info "$TAG" "$RUNNER_TEMP"
       - name: Replay our commits onto the tag
         working-directory: src
@@ -142,7 +151,7 @@ jobs:
           security create-keychain -p "$KPW" "$KEYCHAIN"
           security set-keychain-settings -lut 21600 "$KEYCHAIN"
           security unlock-keychain -p "$KPW" "$KEYCHAIN"
-          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$P12_PASSWORD" -A -T /usr/bin/codesign
+          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$P12_PASSWORD" -T /usr/bin/codesign
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KPW" "$KEYCHAIN" >/dev/null
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | sed 's/"//g')
           rm -f "$RUNNER_TEMP/cert.p12"
@@ -205,14 +214,16 @@ jobs:
         working-directory: src
         run: |
           if [ -z "$(git ls-remote "$FORK_SSH" "refs/tags/$TAG")" ]; then
-            git push "$FORK_SSH" "refs/tags/$TAG:refs/tags/$TAG"
+            git -c core.hooksPath=/dev/null push "$FORK_SSH" "refs/tags/$TAG:refs/tags/$TAG"
           fi
+          rm -f "$RUNNER_TEMP/deploy-key"
       - name: Publish the release
         env:
           TITLE: ${{ matrix.release.title }}
           PRERELEASE: ${{ matrix.release.prerelease }}
           VERSION: ${{ steps.app.outputs.version }}
           MAIN: ${{ needs.plan.outputs.main }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -a; source tools/notchcast/config.env; set +a
           UPSTREAM="$(git -C src rev-parse "refs/tags/$TAG^{commit}")"

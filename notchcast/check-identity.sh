@@ -3,7 +3,7 @@
 # never mention. Usage: check-identity.sh staged (pre-commit: index + the identity about to commit)
 #   | message <file> (commit-msg) | history [<base>] (CI: HEAD's tree, and identities and messages of <base>..HEAD, default all)
 set -uo pipefail
-PATTERN='gain[s][ ._-]?geek'
+PATTERN='gains?[ ._-]?geek'
 status=0
 hit() { echo "check-identity: $1" >&2; status=1; }
 
