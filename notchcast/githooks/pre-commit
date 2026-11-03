@@ -1,6 +1,11 @@
 #!/bin/bash
-# Refuse a commit whose staged changes contain a secret or a forbidden name. Enable once per clone: git config core.hooksPath notchcast/githooks
+# Refuse a commit whose staged changes contain a secret, a forbidden name or a UI mistake in Swift we add. Enable once per clone: git config core.hooksPath notchcast/githooks
 set -e
 PATH="/opt/homebrew/bin:$PATH"
 "$(git rev-parse --show-toplevel)/notchcast/check-identity.sh" staged
-exec gitleaks git --pre-commit --staged --redact --no-banner --exit-code 1 .
+gitleaks git --pre-commit --staged --redact --no-banner --exit-code 1 .
+# UI mistakes our staged Swift adds (notchcast/design-check.sh); needs upstream fetched (git fetch upstream).
+if git diff --cached --name-only --diff-filter=ACMR -- 'Tinycast/*.swift' | grep -q .; then
+    BASE="$(git merge-base HEAD refs/remotes/upstream/main)" || { echo "pre-commit: no upstream/main; run git fetch upstream" >&2; exit 1; }
+    exec "$(git rev-parse --show-toplevel)/notchcast/design-check.sh" "$BASE" --staged
+fi
