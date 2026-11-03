@@ -23,6 +23,8 @@ final class MicrophoneMuteModule: NotchcastModule {
 
     func stop() {
         isEnabled = false
+        model.setMuted(false)
+        if let failure = model.failures.first { showFailure(failure) }
         model.stop()
     }
 

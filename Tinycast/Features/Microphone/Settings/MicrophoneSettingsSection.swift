@@ -7,6 +7,10 @@ struct MicrophoneSettingsSection: View {
     var body: some View {
         Section {
             NotchcastFeatureToggle(feature: .microphoneMute, anchor: .notchcastMicrophone)
+            if let status = microphone.hotKeyStatus {
+                Text(verbatim: "F5 (OSStatus \(status))")
+                    .foregroundStyle(Theme.Colors.destructive)
+            }
             NotchcastFeatureToggle(feature: .inUseMarks, anchor: .notchcastMicrophone)
             ForEach(Array(microphone.failures.enumerated()), id: \.offset) { _, failure in
                 LabeledContent {

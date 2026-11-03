@@ -8,8 +8,8 @@ final class MusicNowPlayingModule: NotchcastModule {
     let soloist: SoloistSource
     private let system: SystemNowPlayingSource
 
-    init(defaults: UserDefaults) {
-        model = MusicModel(defaults: defaults)
+    init(defaults: UserDefaults, apps: PlayerApps = .workspace()) {
+        model = MusicModel(defaults: defaults, apps: apps)
         system = SystemNowPlayingSource()
         soloist = SoloistSource()
         model.setSystemSource(system)

@@ -148,7 +148,6 @@ struct SettingsHistoryTests {
     static func catalogFindsKnownRows() {
         let cases: [(String, SettingsTab)] = [
             ("hyper", .general),
-            ("caps lock", .general),
             ("launch at login", .general),
             ("automatically check for updates", .general),
             ("popup", .general),
@@ -161,6 +160,8 @@ struct SettingsHistoryTests {
             let found = SettingsSearchCatalog.results(for: query).first
             expect(found?.tab == tab, "“\(query)” lands on \(tab.title)")
         }
+        expect(SettingsSearchCatalog.results(for: "caps lock").contains { $0.tab == .general },
+               "caps lock keeps General discoverable at normal rank")
     }
 
     /// The anchor carries the pane, so a row filed under the wrong one cannot be written.
@@ -175,6 +176,10 @@ struct SettingsHistoryTests {
 
     /// A term found in the title has to beat the same term found only in a breadcrumb.
     static func catalogRanksTitlesFirst() {
+        for (query, tab) in [("clipboard", SettingsTab.clipboard), ("emoji", .emoji), ("notes", .notes),
+                             ("accessibility", .permissions), ("search", .fileSearch), ("privacy", .permissions)] {
+            expect(SettingsSearchCatalog.results(for: query).first?.tab == tab, "\(query) preserves base ranking")
+        }
         let results = SettingsSearchCatalog.results(for: "extensions")
         expect(results.first?.tab == .extensions, "“extensions” opens on its own pane")
         expect(

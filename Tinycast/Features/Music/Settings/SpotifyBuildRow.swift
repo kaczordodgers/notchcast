@@ -25,6 +25,7 @@ struct SpotifyBuildRow: View {
                 Text("Spotify’s player, downloaded from Spotify.")
             }
         }
+        .task { await module.speaker.refreshInstalledBuild() }
     }
 
     private var needsDownload: Bool {

@@ -111,6 +111,15 @@ final class SoloistSpeaker {
         }
     }
 
+    func refreshInstalledBuild() async {
+        let token = generation
+        do {
+            let installed = try await builds.installed(excluding: rejectedBuilds)
+            guard !Task.isCancelled, token == generation, installing == nil else { return }
+            build = installed
+        } catch { installFailure = (error as? SoloistFailure) ?? .filesystem }
+    }
+
     func recheckAfterWake() {
         guard enabled else { return }
         lookForOthers()

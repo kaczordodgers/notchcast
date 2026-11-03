@@ -57,10 +57,13 @@ struct SpotifySettingsSection: View {
         } footer: {
             if preferences.isOn(.spotifyConnect) { Text(SpotifySettingsLinks.termsDescription) }
         }
-        .settingsEnabled(preferences.isOn(.island))
+        .settingsEnabled(preferences.isOn(.island) && preferences.isOn(.musicNowPlaying))
         .onAppear {
             deviceName = module.deviceName
-            coordinator.refreshKey()
+            if preferences.isEnabled(.spotifyConnect) { coordinator.refreshKey() }
+        }
+        .onChange(of: preferences.isEnabled(.spotifyConnect)) { _, enabled in
+            if enabled { coordinator.refreshKey() }
         }
     }
 

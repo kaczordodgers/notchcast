@@ -15,6 +15,7 @@ final class NotchcastKeyMonitor {
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private var muteRegistered = false
+    private var retry: Task<Void, Never>?
     private var activation: NotificationToken?
 
     init(music: MusicNowPlayingModule, blocker: MusicLaunchBlocker, microphone: MicrophoneMuteModule,
@@ -32,11 +33,20 @@ final class NotchcastKeyMonitor {
     }
 
     isolated deinit {
+        retry?.cancel()
         stopTap()
         unregisterMute()
     }
 
     func run() {
+        if retry == nil {
+            retry = Task { [weak self] in
+                while !Task.isCancelled {
+                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                    self?.update()
+                }
+            }
+        }
         withObservationTracking(update) { [weak self] in
             Task { @MainActor [weak self] in self?.run() }
         }
@@ -51,6 +61,7 @@ final class NotchcastKeyMonitor {
             } else {
                 unregisterMute()
                 muteRegistered = false
+                microphone.model.hotKeyStatus = nil
             }
         }
         let media = preferences.isEnabled(.musicLastPlayer) || preferences.isEnabled(.musicBlockAppleMusic)
@@ -58,6 +69,7 @@ final class NotchcastKeyMonitor {
     }
 
     private func registerMute() {
+        microphone.model.hotKeyStatus = nil
         unregisterMute()
         var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
         let installed = InstallEventHandler(
@@ -94,6 +106,7 @@ final class NotchcastKeyMonitor {
     }
 
     private func reportRegistration(_ status: OSStatus) {
+        microphone.model.hotKeyStatus = status
         Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "Microphone")
             .error("Could not register F5 (OSStatus \(status))")
     }
@@ -124,7 +137,7 @@ final class NotchcastKeyMonitor {
         tap = nil
     }
 
-    private func handle(_ event: CGEvent) -> Bool {
+    func handle(_ event: CGEvent) -> Bool {
         guard let event = NSEvent(cgEvent: event), event.subtype.rawValue == 8 else { return false }
         let key = (event.data1 >> 16) & 0xffff
         let down = (event.data1 >> 8) & 0xff == 0x0a
@@ -137,6 +150,7 @@ final class NotchcastKeyMonitor {
         default: return false
         }
         let replacing = preferences.isEnabled(.musicLastPlayer) && music.model.nowPlaying == nil
+            && music.model.canResume
         let soloist = preferences.isEnabled(.spotifyConnect)
             && (music.model.nowPlaying?.origin == .soloist || music.soloist.authState?.loggedIn == true)
         if down {

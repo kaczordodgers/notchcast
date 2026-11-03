@@ -77,9 +77,6 @@ enum SettingsSearchCatalog {
     }
 
     private static func score(_ query: Query, _ entry: SettingsSearchEntry) -> Int? {
-        if entry.keywords.contains(where: { FuzzyMatch.normalized($0) == query.phrase }) {
-            return 3_000_000
-        }
         var titleScore = 0
         var titleMatches = 0
         for term in query.terms {
