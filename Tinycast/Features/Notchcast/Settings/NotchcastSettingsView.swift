@@ -39,11 +39,10 @@ struct NotchcastSettingsView: View {
                         Text(delay.title).tag(delay)
                     }
                 } label: {
-                    SettingsRowTitle(.notchcastHover, "Hover delay")
+                    Text("Hover delay")
                 }
                 .settingsEnabled(preferences.isOn(.islandHoverOpen))
             }
-            .settingsAnchor(.notchcastHover)
             .settingsEnabled(preferences.isOn(.island))
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
