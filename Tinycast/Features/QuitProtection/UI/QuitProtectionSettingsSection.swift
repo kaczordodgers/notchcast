@@ -7,10 +7,8 @@ struct QuitProtectionSettingsSection: View {
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
-        Section {
-            NotchcastFeatureToggle(feature: .quitProtection, anchor: .notchcastQuitProtection,
-                                  title: "Protect ⌘Q", subtitle: "Stops an app from quitting on a single slip.")
-            if preferences.isOn(.quitProtection) {
+        if preferences.isOn(.quitProtection) {
+            Section {
                 Picker(selection: $store.configuration.mode) {
                     Text("Holding ⌘Q").tag(QuitProtectionEngine.Mode.hold)
                     Text("Pressing ⌘Q twice").tag(QuitProtectionEngine.Mode.doublePress)
@@ -30,11 +28,11 @@ struct QuitProtectionSettingsSection: View {
                     }
                 }
                 Button(action: addApplications) { Text(addApp) }
+            } header: {
+                SettingsSectionHeader(.notchcastQuitProtection)
+            } footer: {
+                Text("These apps quit and close without asking.")
             }
-        } header: {
-            SettingsSectionHeader(.notchcastQuitProtection)
-        } footer: {
-            Text("These apps quit and close without asking.")
         }
     }
 

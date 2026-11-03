@@ -50,7 +50,7 @@ final class LiveTimerStore {
         self.defaults = defaults
         self.active = active
         let duration = defaults.double(forKey: "notchcast.liveTimer.defaultDuration")
-        defaultDuration = Self.defaultDurations.contains(duration) ? duration : 900
+        defaultDuration = Self.defaultDurations.contains(duration) ? duration : LiveTimerInput.defaultDuration
         self.clock = clock
         self.calendar = calendar
         let sound = NSSound(contentsOfFile: "/System/Library/Sounds/Glass.aiff", byReference: true)

@@ -5,10 +5,8 @@ struct TimerSettingsSection: View {
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
-        Section {
-            NotchcastFeatureToggle(feature: .liveTimers, anchor: .notchcastTimers,
-                                  title: "Timers", subtitle: "Countdowns and alarms in the island.")
-            if preferences.isOn(.liveTimers) {
+        if preferences.isOn(.liveTimers) {
+            Section {
                 Toggle(isOn: $store.playSoundWhenTimeIsUp) {
                     SettingsRowTitle(.notchcastTimers, "Play sound when time is up")
                 }
@@ -20,10 +18,10 @@ struct TimerSettingsSection: View {
                 } label: {
                     SettingsRowTitle(.notchcastTimers, "Default timer")
                 }
+            } header: {
+                SettingsSectionHeader(.notchcastTimers)
             }
-        } header: {
-            SettingsSectionHeader(.notchcastTimers)
+            .settingsEnabled(preferences.isOn(.island))
         }
-        .settingsEnabled(preferences.isOn(.island))
     }
 }
