@@ -18,7 +18,7 @@ final class ColorPickerService {
     init(
         defaults: UserDefaults = .standard,
         sample: @escaping (@escaping @MainActor (NSColor?) -> Void) -> Void = { completion in
-            NSColorSampler().showSampler { color in completion(color) }
+            NSColorSampler().show { color in completion(color) }
         },
         copy: @escaping (String) -> Bool = { text in
             NSPasteboard.general.clearContents()
