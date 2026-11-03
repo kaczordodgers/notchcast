@@ -24,13 +24,16 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Also replays our commits here, on Linux: a conflict is reported (issue notchcast-sync) without a macOS runner.
     permissions:
       contents: read
       statuses: read
+      issues: write
     outputs:
       rebase: ${{ steps.plan.outputs.rebase }}
-      tested: ${{ steps.plan.outputs.tested }}
+      test_main: ${{ steps.plan.outputs.test_main }}
       main: ${{ steps.plan.outputs.main }}
+      base: ${{ steps.plan.outputs.base }}
       upstream_main: ${{ steps.plan.outputs.upstream_main }}
       main_key: ${{ steps.plan.outputs.main_key }}
       releases: ${{ steps.plan.outputs.releases }}
@@ -39,7 +42,6 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          filter: blob:none
           persist-credentials: false
       - id: plan
         env:
@@ -47,17 +49,19 @@ jobs:
         run: python3 notchcast/ci.py plan
 
   # Upstream moved: replay our commits onto it, build, test, and only then move main (lease on what plan saw).
-  # Nothing to replay but main not tested yet (a push): build and test main as it is; nothing is pushed.
+  # Nothing to replay but main not tested yet (a push): build and test main as it is, once; nothing is pushed.
   # Either way the tested commit gets a green `notchcast/tested` status.
+  # Issues: kind sync for a replay onto new upstream (cause stable across upstream commits), main for main as it is.
   main:
     needs: plan
-    if: needs.plan.outputs.rebase == 'true' || needs.plan.outputs.tested != 'true'
+    if: needs.plan.outputs.rebase == 'true' || needs.plan.outputs.test_main == 'true'
     runs-on: xcode-27
     timeout-minutes: 120
     environment: sync
     permissions:
       contents: read
       statuses: write
+      issues: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -85,6 +89,9 @@ jobs:
           xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO build -quiet
       - uses: ./tools/notchcast/actions/tests
+        with:
+          # A harness that also fails on this upstream commit is not ours.
+          upstream: ${{ needs.plan.outputs.rebase == 'true' && needs.plan.outputs.upstream_main || needs.plan.outputs.base }}
       - uses: ./tools/notchcast/actions/deploy-key
         if: needs.plan.outputs.rebase == 'true'
         with:
@@ -103,6 +110,21 @@ jobs:
         run: |
           gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$(git rev-parse HEAD)" -f state=success -f context=notchcast/tested \
             -f description="Debug build and upstream tests green" -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >/dev/null
+      - name: Close resolved issues
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [ "${{ needs.plan.outputs.rebase }}" != true ] || python3 tools/notchcast/ci.py issue close sync
+          python3 tools/notchcast/ci.py issue close main
+      # A failure here loses this sync's notice (main has already moved), so it never fails the run.
+      - name: Upstream design-system changes
+        if: needs.plan.outputs.rebase == 'true'
+        continue-on-error: true
+        working-directory: src
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ../tools/notchcast/ci.py design-notice . "${{ needs.plan.outputs.base }}" "${{ needs.plan.outputs.upstream_main }}"
       - name: Did main move under us?
         id: raced
         if: failure() && needs.plan.outputs.rebase == 'true'
@@ -110,11 +132,24 @@ jobs:
           NOW="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)"
           echo "moved=$([ "$NOW" != "${{ needs.plan.outputs.main }}" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - name: Remember the failure
-        if: failure() && needs.plan.outputs.rebase == 'true' && steps.raced.outputs.moved == 'false'
+        if: failure() && (needs.plan.outputs.rebase != 'true' || steps.raced.outputs.moved == 'false')
         uses: ./tools/notchcast/actions/remember-failure
         with:
-          key: ${{ needs.plan.outputs.main_key }}
+          key: ${{ needs.plan.outputs.rebase == 'true' && needs.plan.outputs.main_key || format('test-{0}', needs.plan.outputs.main) }}
           deploy-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Report the failure
+        if: failure() && (needs.plan.outputs.rebase != 'true' || steps.raced.outputs.moved == 'false')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN: ${{ needs.plan.outputs.main }}
+          UP: ${{ needs.plan.outputs.upstream_main }}
+          REBASE: ${{ needs.plan.outputs.rebase }}
+        run: |
+          if [ "$REBASE" = true ]; then
+            python3 tools/notchcast/ci.py issue open sync "Sync failed: upstream ${UP:0:7} + main ${MAIN:0:7}" "build or tests red with main $MAIN"
+          else
+            python3 tools/notchcast/ci.py issue open main "main ${MAIN:0:7} fails its build or tests" "test-$MAIN"
+          fi
 
   release:
     needs: [plan, main]
@@ -125,6 +160,7 @@ jobs:
     environment: sync
     permissions:
       contents: write
+      issues: write
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -156,7 +192,10 @@ jobs:
         run: |
           git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main" "+refs/tags/$TAG:refs/tags/$TAG"
           python3 ../tools/notchcast/ci.py replay . "refs/tags/$TAG^{commit}"
+          echo "TAG_COMMIT=$(git rev-parse "refs/tags/$TAG^{commit}")" >> "$GITHUB_ENV"
       - uses: ./tools/notchcast/actions/tests
+        with:
+          upstream: ${{ env.TAG_COMMIT }}
       - name: Import the signing identity
         env:
           P12_BASE64: ${{ secrets.SIGNING_P12_BASE64 }}
@@ -250,9 +289,21 @@ jobs:
           if [ "$PRERELEASE" = "true" ]; then FLAGS+=(--prerelease); fi
           gh release create "$TAG" "dist/$APP_NAME-$VERSION.zip" "dist/$APP_NAME-$VERSION.dmg" \
             -R "$GITHUB_REPOSITORY" --verify-tag --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md" "${FLAGS[@]}"
+      - name: Close this tag's failure issue
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/notchcast/ci.py issue close release "release-$TAG"
       - name: Remember the failure
         if: failure()
         uses: ./tools/notchcast/actions/remember-failure
         with:
           key: release-${{ matrix.release.tag }}-${{ needs.plan.outputs.main }}
           deploy-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Report the failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN: ${{ needs.plan.outputs.main }}
+        run: |
+          python3 tools/notchcast/ci.py issue open release "Release $TAG failed with main ${MAIN:0:7}" "release-$TAG"
