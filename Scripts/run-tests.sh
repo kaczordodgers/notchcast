@@ -946,6 +946,7 @@ run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift 
 run notchcast-island-geometry-test Tinycast/Features/Notchcast/Island/IslandGeometry.swift Tinycast/Features/Notchcast/Island/IslandMotion.swift Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
 run notchcast-island-pages-test Tinycast/Features/Notchcast/Pages/IslandPage.swift Tinycast/Features/Notchcast/Pages/IslandInputState.swift Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 run notchcast-activities-test Tinycast/Features/Notchcast/Activities/*.swift Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+run notchcast-launcher-placement-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
 
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
