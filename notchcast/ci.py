@@ -7,7 +7,8 @@
 
 Our commits are merge-base(main, upstream main)..main. Replaying cherry-picks them in order, except the commit
 "Notchcast: remove upstream workflows", which is made afresh (git rm -r .github/workflows) so an upstream workflow
-edit never conflicts and a new upstream workflow never lands. Any other conflict fails the run; nothing is pushed.
+edit never conflicts and a new upstream workflow never lands. A conflict in the generated project alone is resolved by
+regenerating it with $XCODEGEN. Any other conflict fails the run; nothing is pushed.
 Failures are remembered as refs/notchcast-failed/<main|release-<tag>>-<upstream or tag>-<our main>, so the same
 input is retried only when upstream or our main changes.
 """
@@ -22,6 +23,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REMOVE_WORKFLOWS = "Notchcast: remove upstream workflows"
+PBXPROJ = "Tinycast.xcodeproj/project.pbxproj"
 BOT = {
     "GIT_COMMITTER_NAME": "github-actions[bot]",
     "GIT_COMMITTER_EMAIL": "41898282+github-actions[bot]@users.noreply.github.com",
@@ -131,9 +133,17 @@ def replay(tree, onto):
         picked = subprocess.run(["git", "cherry-pick", "--allow-empty", "--keep-redundant-commits", sha],
                                 cwd=tree, env=dict(os.environ, **BOT), text=True, capture_output=True)
         if picked.returncode:
-            conflicts = run("git", "diff", "--name-only", "--diff-filter=U", cwd=tree)
+            conflicts = run("git", "diff", "--name-only", "--diff-filter=U", cwd=tree).split()
+            if conflicts == [PBXPROJ] and os.environ.get("XCODEGEN"):
+                # The project is generated from project.yml: regenerate it rather than merge it.
+                print(f"  {PBXPROJ} conflicts; regenerating it from project.yml", flush=True)
+                run(os.environ["XCODEGEN"], "generate", "--quiet", cwd=tree)
+                run("git", "add", PBXPROJ, cwd=tree)
+                run("git", "-c", "core.editor=true", "cherry-pick", "--continue", cwd=tree, env=BOT)
+                continue
             subprocess.run(["git", "cherry-pick", "--abort"], cwd=tree, capture_output=True)
-            sys.exit(f"{sha[:10]} {subject!r} does not apply on {onto[:10]}:\n{conflicts or picked.stdout + picked.stderr}")
+            sys.exit(f"{sha[:10]} {subject!r} does not apply on {onto[:10]}:\n"
+                     f"{' '.join(conflicts) or picked.stdout + picked.stderr}")
     print(run("git", "log", "--format=%h %an | %cn | %s", f"{onto}..HEAD", cwd=tree))
 
 
