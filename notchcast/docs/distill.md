@@ -8,8 +8,7 @@ with the added links. Removing imported links does not import them again on the 
 audio with yt-dlp, transcribes it, then publishes `Channel - Title.txt`. Filenames replace filesystem
 reserved characters and limit each component to 100 UTF-8 bytes. Existing files receive a numbered
 suffix. Publication uses a same-directory hard link so the complete file appears without replacing
-another file. An empty transcript is an error. The caller supplies the destination; later settings
-can supply `~/Downloads/Distill/Raw` as their default. No output is ingested or deleted.
+another file. An empty transcript is an error. The caller supplies the destination; the Notchcast module defaults to `~/Downloads/Distill/Raw`. No output is ingested or deleted by Distill.
 
 Unknown web hosts and Spotify go to the injected webpage saver; the default reports it is not connected.
 Browser cookies are off. All child commands use `DownloadRunContext.spawn`, which owns process-group
@@ -47,4 +46,4 @@ prefixes therefore have chunk-level precision. Progress reports completed chunks
 `transcribePCM(file:progress:)` accepts an already normalized Float32 file and is also used by the
 standalone harness. `DISTILL_TEST_ROOT` selects the harness scratch directory; otherwise it uses an
 isolated temporary directory. The harness exercises fake media tools through the real queue context.
-Queue registration and launcher wiring belong to the later integration round.
+Queue registration is owned by the Notchcast modules described in [downloads.md](downloads.md). Typed launcher entries are compiled and tested; launcher registration awaits the command hook.
