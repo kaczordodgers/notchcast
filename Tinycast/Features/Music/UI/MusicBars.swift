@@ -22,7 +22,7 @@ struct MusicBars: View {
             HStack(spacing: Self.gap) {
                 ForEach(Self.offsets.indices, id: \.self) { index in
                     Capsule()
-                        .fill(Theme.Colors.textPrimary)
+                        .fill(NotchcastTheme.musicForeground)
                         .frame(width: Self.barWidth, height: Self.barHeight)
                         .scaleEffect(y: scale(at: context.date, offset: Self.offsets[index]))
                 }
