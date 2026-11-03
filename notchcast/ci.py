@@ -198,12 +198,12 @@ def replay(tree, onto, check=False):
                     run("git", "checkout", "HEAD", "--", path, cwd=tree)
                 else:
                     run("git", "rm", "-q", "-f", "--ignore-unmatch", "--", path, cwd=tree)
-        run("git", "commit", "-q", "--allow-empty", "-C", sha, "--author", AUTHOR, cwd=tree, env=BOT)
+        run("git", "commit", "-q", "--no-verify", "--allow-empty", "-C", sha, "--author", AUTHOR, cwd=tree, env=BOT)
     if not check:
         regenerate(tree, onto)
         run("git", "add", "-A", "--", *GENERATED, cwd=tree)
         message = ["-C", generated_commit] if generated_commit else ["-m", GENERATED_COMMIT]
-        run("git", "commit", "-q", "--allow-empty", *message, "--author", AUTHOR, cwd=tree, env=BOT)
+        run("git", "commit", "-q", "--no-verify", "--allow-empty", *message, "--author", AUTHOR, cwd=tree, env=BOT)
     print(run("git", "log", "--format=%h %an | %cn | %s", f"{onto}..HEAD", cwd=tree))
 
 
