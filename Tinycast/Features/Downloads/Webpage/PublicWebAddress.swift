@@ -2,7 +2,20 @@ import Darwin
 import Foundation
 
 enum PublicWebAddress {
-    enum Refusal: Error { case invalidURL, privateAddress, resolutionFailed }
+    enum Refusal: LocalizedError {
+        case invalidURL, privateAddress, resolutionFailed
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidURL:
+                String(localized: "Enter a public HTTP or HTTPS webpage URL without credentials, using port 80 or 443.")
+            case .privateAddress:
+                String(localized: "Private and loopback addresses cannot be saved as webpages.")
+            case .resolutionFailed:
+                String(localized: "The webpage host could not be resolved to a public address.")
+            }
+        }
+    }
 
     static func validate(_ url: URL) throws {
         guard ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
