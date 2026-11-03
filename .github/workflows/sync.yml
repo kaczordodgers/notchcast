@@ -71,6 +71,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./tools/notchcast/actions/xcode
+      - uses: ./tools/notchcast/actions/xcodegen
       - name: Replay our commits onto upstream main
         if: needs.plan.outputs.rebase == 'true'
         working-directory: src
@@ -144,6 +145,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./tools/notchcast/actions/xcode
+      - uses: ./tools/notchcast/actions/xcodegen
       - name: Read upstream's release
         id: app
         env:
@@ -170,11 +172,10 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KPW" "$KEYCHAIN" >/dev/null
           security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | sed 's/"//g')
           rm -f "$RUNNER_TEMP/cert.p12"
+      # Name and bundle id come from project.yml (Notchcast, app.notchcast); version and build from upstream's release.
       - name: Build (Release, signed, arm64)
         working-directory: src
         env:
-          NAME: ${{ steps.app.outputs.name }}
-          BUNDLE_ID: ${{ steps.app.outputs.bundle_id }}
           VERSION: ${{ steps.app.outputs.version }}
           BUILD: ${{ steps.app.outputs.build }}
         run: |
@@ -184,16 +185,14 @@ jobs:
             ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
             CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
             OTHER_CODE_SIGN_FLAGS="--timestamp=none" \
-            PRODUCT_NAME="$NAME" TINYCAST_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
             MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
             build -quiet
       - name: Verify the app
         env:
-          NAME: ${{ steps.app.outputs.name }}
-          BUNDLE_ID: ${{ steps.app.outputs.bundle_id }}
           VERSION: ${{ steps.app.outputs.version }}
         run: |
           set -a; source tools/notchcast/config.env; set +a
+          NAME="$APP_NAME"
           APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
           ./src/Scripts/verify-signature.sh "$APP"
           codesign --verify --deep --strict "$APP"
@@ -208,17 +207,17 @@ jobs:
           done
       - name: Package zip and dmg
         env:
-          NAME: ${{ steps.app.outputs.name }}
           VERSION: ${{ steps.app.outputs.version }}
         run: |
-          APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
+          set -a; source tools/notchcast/config.env; set +a
+          APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$APP_NAME.app"
           mkdir -p dist
-          # Only ditto keeps the signature verifiable; the in-app updater expands the zip with ditto.
-          ditto -c -k --keepParent --sequesterRsrc "$APP" "dist/Tinycast-$VERSION.zip"
+          # Only ditto keeps the signature verifiable; the updater expands the zip with ditto.
+          ditto -c -k --keepParent --sequesterRsrc "$APP" "dist/$APP_NAME-$VERSION.zip"
           STAGE="$(mktemp -d)"
           cp -R "$APP" "$STAGE/"
           ln -s /Applications "$STAGE/Applications"
-          hdiutil create -quiet -srcfolder "$STAGE" -volname "$NAME" -format UDZO "dist/Tinycast-$VERSION.dmg"
+          hdiutil create -quiet -srcfolder "$STAGE" -volname "$APP_NAME" -format UDZO "dist/$APP_NAME-$VERSION.dmg"
           ls -l dist
       - uses: ./tools/notchcast/actions/deploy-key
         with:
@@ -249,7 +248,7 @@ jobs:
           } > "$RUNNER_TEMP/notes.md"
           FLAGS=()
           if [ "$PRERELEASE" = "true" ]; then FLAGS+=(--prerelease); fi
-          gh release create "$TAG" "dist/Tinycast-$VERSION.zip" "dist/Tinycast-$VERSION.dmg" \
+          gh release create "$TAG" "dist/$APP_NAME-$VERSION.zip" "dist/$APP_NAME-$VERSION.dmg" \
             -R "$GITHUB_REPOSITORY" --verify-tag --title "$TITLE" --notes-file "$RUNNER_TEMP/notes.md" "${FLAGS[@]}"
       - name: Remember the failure
         if: failure()
