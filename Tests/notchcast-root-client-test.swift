@@ -58,6 +58,7 @@ struct FanSMCTest {
         try validateValues()
         try validateSequence()
         try validateRecovery()
+        try validateBattery()
         print("PASS: fan targets, codecs, write order, shared 5s retry window and Auto recovery (fake SMC only)")
     }
 
@@ -66,6 +67,59 @@ struct FanSMCTest {
             try operation()
             preconditionFailure("Expected failure")
         } catch {}
+    }
+
+    private static func validateBattery() throws {
+        final class BatteryFixture: FanSMC.Access {
+            var keys: [String: Int] = [:]
+            var writes: [String: [UInt8]] = [:]
+            var failedProbe: String?
+
+            func info(_ key: String) throws -> FanSMC.Info? {
+                if key == failedProbe { throw FanSMC.Failure.refused }
+                return keys[key].map { .init(size: $0, type: "ui8 ") }
+            }
+
+            func read(_ key: String, info: FanSMC.Info) throws -> [UInt8] {
+                [UInt8](repeating: 0, count: info.size)
+            }
+
+            func write(_ key: String, bytes: [UInt8]) throws { writes[key] = bytes }
+        }
+        for keys in [["CHTE": 4, "CHIE": 1], ["CH0B": 1, "CH0C": 1, "CH0I": 1],
+                     ["CH0C": 1], ["CHTE": 4, "CH0B": 1, "CH0C": 1, "CHIE": 1, "CH0I": 1]] {
+            for off in [false, true] {
+                let fixture = BatteryFixture()
+                fixture.keys = keys
+                try BatterySMC.apply(off ? .batteryChargingOff : .batteryChargingOn, smc: fixture)
+                var expected: [String: [UInt8]] = [:]
+                if keys["CHTE"] != nil { expected["CHTE"] = [off ? 1 : 0, 0, 0, 0] }
+                for key in ["CH0B", "CH0C"] where keys[key] != nil { expected[key] = [off ? 2 : 0] }
+                precondition(fixture.writes == expected)
+                fixture.writes = [:]
+                if keys["CHIE"] != nil || keys["CH0I"] != nil {
+                    try BatterySMC.apply(off ? .batteryAdapterOff : .batteryAdapterOn, smc: fixture)
+                    expected = [:]
+                    if keys["CHIE"] != nil { expected["CHIE"] = [off ? 8 : 0] }
+                    if keys["CH0I"] != nil { expected["CH0I"] = [off ? 1 : 0] }
+                    precondition(fixture.writes == expected)
+                }
+            }
+        }
+        for keys in [[:], ["CHTE": 1], ["CH0B": 1, "CH0C": 4]] {
+            let fixture = BatteryFixture()
+            fixture.keys = keys
+            rejects { try BatterySMC.apply(.batteryChargingOff, smc: fixture) }
+            precondition(fixture.writes.isEmpty)
+        }
+        let failed = BatteryFixture()
+        failed.keys = ["CHTE": 4]
+        failed.failedProbe = "CH0B"
+        rejects { try BatterySMC.apply(.batteryChargingOff, smc: failed) }
+        precondition(failed.writes.isEmpty)
+        precondition(BatterySMC.sleepArguments(.batterySleepOn) == ["-a", "disablesleep", "0"])
+        precondition(BatterySMC.sleepArguments(.batterySleepOff) == ["-a", "disablesleep", "1"])
+        print("PASS: battery byte plans, key probes, preflight failures and sleep arguments (fake SMC only)")
     }
 
     private static func validateValues() throws {
@@ -230,6 +284,10 @@ struct RootClientTest {
             (["ping", "extra"], 64, ""),
             (["fans-auto"], 77, ""), (["fans-medium"], 77, ""), (["fans-max"], 77, ""),
             (["fans-max", "6000"], 64, ""), (["fans-medium", "0.6"], 64, ""),
+            (["battery-charging-on"], 77, ""), (["battery-charging-off"], 77, ""),
+            (["battery-adapter-on"], 77, ""), (["battery-adapter-off"], 77, ""),
+            (["battery-sleep-on"], 77, ""), (["battery-sleep-off"], 77, ""),
+            (["battery-charging-off", "1"], 64, ""), (["battery-sleep-off", "1"], 64, ""),
         ]
         for (arguments, status, expected) in cases {
             let process = Process()
@@ -254,6 +312,7 @@ struct RootClientTest {
         fanCompiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
                                  "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
                                  "notchcast/root/RootContract.swift", "notchcast/root/FanSMC.swift",
+                                 "notchcast/root/BatterySMC.swift",
                                  "Tests/notchcast-root-client-test.swift", "-o", fanTests.path]
         try fanCompiler.run()
         fanCompiler.waitUntilExit()
