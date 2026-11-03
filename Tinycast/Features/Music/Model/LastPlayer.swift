@@ -13,11 +13,16 @@ final class LastPlayer {
     @ObservationIgnored private(set) var revision = 0
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let canPlay: (String) -> Bool
+    @ObservationIgnored private var playable: [String: Bool] = [:]
 
     init(defaults: UserDefaults, canPlay: @escaping (String) -> Bool = { $0 == LastPlayer.spotify }) {
         self.defaults = defaults
         self.canPlay = canPlay
-        bundleID = defaults.string(forKey: Self.key).flatMap { Self.canResume($0) && canPlay($0) ? $0 : nil }
+        if let saved = defaults.string(forKey: Self.key), Self.canResume(saved) {
+            let supported = canPlay(saved)
+            playable[saved] = supported
+            bundleID = supported ? saved : nil
+        }
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -28,7 +33,10 @@ final class LastPlayer {
 
     func hear(_ track: NowPlaying?) {
         guard isEnabled, let track, track.isPlaying, let id = track.bundleID,
-            Self.canResume(id), canPlay(id), id != bundleID else { return }
+            id != bundleID, Self.canResume(id) else { return }
+        let supported = playable[id] ?? canPlay(id)
+        playable[id] = supported
+        guard supported else { return }
         bundleID = id
         defaults.set(id, forKey: Self.key)
     }

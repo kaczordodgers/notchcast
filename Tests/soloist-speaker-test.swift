@@ -148,7 +148,6 @@ struct SoloistSpeakerTest {
         let own = SoloistPeer(pid: 77, path: stale.builds.available[0].executable.path)
         stale.processes.list = [own]
         try stale.files.makeFolders()
-        try stale.files.recordChild(77)
         stale.speaker.setEnabled(true)
         check(stale.processes.stopped == [own] && stale.launcher.children.isEmpty)
         stale.processes.end(77)
@@ -159,12 +158,10 @@ struct SoloistSpeakerTest {
         let unowned = try Fixture()
         unowned.processes.list = [.init(pid: 78, path: unowned.builds.available[0].executable.path)]
         try unowned.files.makeFolders()
-        try unowned.files.recordChild(999)
         unowned.speaker.setEnabled(true)
         check(unowned.processes.stopped == unowned.processes.list && unowned.speaker.state == .waitingForOther)
         let reused = try Fixture()
         try reused.files.makeFolders()
-        try reused.files.recordChild(42)
         reused.processes.list = [other]
         reused.speaker.setEnabled(true)
         check(reused.processes.stopped.isEmpty)
@@ -283,7 +280,7 @@ struct SoloistSpeakerTest {
         let f = try Fixture()
         let previous = SoloistPeer(pid: 123, path: f.builds.available[0].executable.path)
         f.processes.list = [previous]
-        check(f.files.recordedChild() == nil)
+        check(!FileManager.default.fileExists(atPath: f.files.root.appending(path: "notchcast-soloist.pid").path))
         f.speaker.setEnabled(true)
         check(f.processes.stopped == [previous] && f.speaker.state == .waitingForOther)
         f.processes.end(previous.pid)
@@ -297,9 +294,9 @@ struct SoloistSpeakerTest {
         let f = try Fixture()
         f.speaker.setEnabled(true)
         await f.settle()
-        check(f.files.recordedChild() != nil)
+        check(!FileManager.default.fileExists(atPath: f.files.root.appending(path: "notchcast-soloist.pid").path))
         NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
-        check(f.launcher.children[0].stopped && f.files.recordedChild() == nil)
+        check(f.launcher.children[0].stopped)
         check(f.speaker.state == .off)
     }
 

@@ -73,6 +73,8 @@ final class MusicModel {
         }
         let channel = nowPlaying?.origin == .soloist ? soloist : system
         channel.source?.send(command)
+        commandFailure = nil
+        present()
     }
 
     func openReplacement(startingPlayback: Bool, requiresLastPlayer: Bool = false) -> Task<Void, Never> {
@@ -117,8 +119,7 @@ final class MusicModel {
                             do {
                                 try await apps.play(id)
                                 break
-                            } catch PlayerApps.Failure.automation(let status) where
-                                attempt < 2 && (status == -600 || status == -609) {
+                            } catch where attempt < 2 && PlayerApps.isRetryable(error) {
                                 try await sleep(.seconds(1))
                                 try Task.checkCancellation()
                                 guard self?.canReplace(operation, id: id, revision: revision,
@@ -233,6 +234,7 @@ final class MusicModel {
 
     private func present() {
         nowPlaying = MusicSelection.pick(system: system.track, soloist: soloist.track)
+        if nowPlaying?.isPlaying == true { commandFailure = nil }
         lastPlayer.hear(nowPlaying)
         failure = commandFailure
             ?? (system.failed ? .unreadable(.system) : nil)
