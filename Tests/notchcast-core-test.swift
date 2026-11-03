@@ -29,6 +29,13 @@ struct NotchcastCoreTests {
             "islandStatusMessages", "islandLiveActivities", "launcherFromIsland"
         ]
         precondition(m0.isSubset(of: NotchcastFeature.allCases.map(\.rawValue)))
+        let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
+            .displayBrightness, .quitProtection, .liveTimers, .dayWeather, .dayMarkets]
+        for feature in l3 {
+            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
+            let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
+            precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
+        }
         precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
