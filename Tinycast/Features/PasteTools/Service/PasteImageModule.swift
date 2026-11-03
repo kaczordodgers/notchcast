@@ -21,7 +21,7 @@ final class PasteImageModule: NotchcastModule {
     func start() {
         guard token == nil else { return }
         let state = state
-        let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
         token = hub.registerSynchronous(mask: mask) { [weak self] type, event in
             guard event.getIntegerValueField(.keyboardEventKeycode) == kVK_ANSI_V,
                 event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag
