@@ -6,12 +6,13 @@ import Observation
 final class DayMarketsStore {
     private(set) var quotes: [DayMarketQuote] = []
     private(set) var lastError: String?
+    private(set) var failedSymbols: [String] = []
     private(set) var symbols: [String]
     private let defaults: UserDefaults
     private let key = "notchcast.day.marketSymbols"
     private var visible = false
     private var lastAttempt: Date?
-    private var fetching = false
+    private var fetchingGeneration: UUID?
     private var generation = UUID()
     @ObservationIgnored private var task: Task<Void, Never>?
 
@@ -28,7 +29,10 @@ final class DayMarketsStore {
         self.symbols = symbols.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         defaults.set(self.symbols, forKey: key)
         quotes = []
-        generation = UUID()
+        failedSymbols = []
+        lastError = nil
+        lastAttempt = nil
+        setVisible(visible)
     }
 
     func setVisible(_ visible: Bool) {
@@ -47,26 +51,32 @@ final class DayMarketsStore {
 
     func refresh() async {
         let now = Date()
-        guard visible, !fetching, lastAttempt.map({ now.timeIntervalSince($0) >= 60 }) ?? true else { return }
+        guard DayMarketsPolicy.canRefresh(visible: visible, fetching: fetchingGeneration == generation,
+                                         lastAttempt: lastAttempt, now: now) else { return }
         lastAttempt = now
-        fetching = true
-        defer { fetching = false }
         let operation = generation
-        var result: [DayMarketQuote] = []
-        do {
-            for symbol in symbols {
+        fetchingGeneration = operation
+        defer { if fetchingGeneration == operation { fetchingGeneration = nil } }
+        var results: [Result<DayMarketQuote, Error>] = []
+        let requestedSymbols = symbols
+        for symbol in requestedSymbols {
+            do {
                 var url = URLComponents(string: "https://query1.finance.yahoo.com/v8/finance/chart/")!
                 url.path += symbol
                 url.queryItems = [.init(name: "range", value: "5d"), .init(name: "interval", value: "5m")]
                 let quote = try DayMarketQuote.decode(await DayHTTPService.data(url.url!), symbol: symbol)
-                guard !Task.isCancelled, visible, operation == generation else { return }
-                result.append(quote)
+                results.append(.success(quote))
+            } catch {
+                results.append(.failure(error))
             }
-            quotes = result
-            lastError = nil
-        } catch {
-            guard !Task.isCancelled, visible, operation == generation else { return }
-            lastError = error.localizedDescription
+            guard DayMarketsPolicy.canApply(cancelled: Task.isCancelled, visible: visible,
+                                            operation: operation, generation: generation) else { return }
         }
+        guard DayMarketsPolicy.canApply(cancelled: Task.isCancelled, visible: visible,
+                                        operation: operation, generation: generation) else { return }
+        let merged = DayMarketsPolicy.merge(symbols: requestedSymbols, results: results)
+        quotes = merged.quotes
+        failedSymbols = merged.failedSymbols
+        lastError = merged.error
     }
 }

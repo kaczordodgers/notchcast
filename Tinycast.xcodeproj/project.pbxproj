@@ -712,6 +712,7 @@
 		CE270F368B8D824A2B8A0A71 /* ChatHistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = A061D1B64684905BA0E998C5 /* ChatHistoryScreen.swift */; };
 		CEE0B612FFDB0AFFEF23A8A1 /* SearchScopesSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC45597561DCD90F51506F7 /* SearchScopesSection.swift */; };
 		CF109F05BBA91E434687F6ED /* MenuSearchCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4515F099338A535A8736AE0 /* MenuSearchCoordinator.swift */; };
+		CF45C7540666EDB299A4BDFC /* DayMarketsPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 468F66DE6BF8BC6A5EB6DCD6 /* DayMarketsPolicy.swift */; };
 		CF59A1D1C7FE76558B638460 /* ExtensionSearchAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FBBC69BC9727C5E3FE77120 /* ExtensionSearchAccessory.swift */; };
 		CFAC92920F69461FA653AEDA /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB44DCF1B6B9C9846CFB053D /* CameraView.swift */; };
 		CFB516312C4694DDFD99DBCA /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68952539C0BD045BA175CBB6 /* SettingsRootView.swift */; };
@@ -1174,6 +1175,7 @@
 		463FE27F894A8777C8ACCF1D /* FileSearchList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileSearchList.swift; sourceTree = "<group>"; };
 		464CB2558A5F239E5D8808E6 /* DictationKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationKeyManager.swift; sourceTree = "<group>"; };
 		46762A28D73339953019C0AA /* ExtensionsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionsSettingsView.swift; sourceTree = "<group>"; };
+		468F66DE6BF8BC6A5EB6DCD6 /* DayMarketsPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayMarketsPolicy.swift; sourceTree = "<group>"; };
 		46BFB9B782512C1D142F32F3 /* CustomCommandPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommandPreview.swift; sourceTree = "<group>"; };
 		46C117C966BC2990F19E00AB /* MeetingLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingLauncher.swift; sourceTree = "<group>"; };
 		46CECB81C669337C8E6CF7FF /* ExtensionStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionStorage.swift; sourceTree = "<group>"; };
@@ -2976,6 +2978,7 @@
 				6E8A6643A02F4E0112F34BEE /* DayEvent.swift */,
 				642275BD836C0C800AE60ADF /* DayForecast.swift */,
 				365FBE65603D2CFD338BA3F3 /* DayMarketQuote.swift */,
+				468F66DE6BF8BC6A5EB6DCD6 /* DayMarketsPolicy.swift */,
 				4F5DF5506C7D9113DDA5FD3F /* DayWeatherPlace.swift */,
 			);
 			path = Model;
@@ -4363,6 +4366,7 @@
 				67F6CCFC014DF0B19DD4B1BC /* DayForecast.swift in Sources */,
 				54AE0FBD601A7CF1E0DADC4C /* DayHTTPService.swift in Sources */,
 				485950929678D25F94ABFB38 /* DayMarketQuote.swift in Sources */,
+				CF45C7540666EDB299A4BDFC /* DayMarketsPolicy.swift in Sources */,
 				B9140D303B2513C95EAE144F /* DayMarketsStore.swift in Sources */,
 				C6DD93E18CCB9300B7B39504 /* DayStorage.swift in Sources */,
 				C93A258E125C89B403BAA719 /* DayWeatherPlace.swift in Sources */,
