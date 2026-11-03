@@ -44,3 +44,9 @@ Our commits:
    - `notchcast.update` runs `update.sh` every 30 minutes (needs `gh` logged in), unless Notchcast's own "Automatically check for updates" is off (`general.automaticallyCheckForUpdates: false` in `~/.config/app.notchcast/settings.json`; then it logs that and installs nothing): the newest release is installed when it is newer, or when the installed copy is not ours, after checking bundle id, version and our leaf certificate; the old `.app` goes to the Trash and `notchcast.app` is restarted with `launchctl kickstart -k`. Leads run `notchcast/update.sh --install` at each milestone end on both Macs to bypass only that preference; combine with `--dry-run` in either order to check without installing. Settings, data and Keychain items are never touched.
 
 The new bundle id and signature need Accessibility to be granted once.
+
+## Conflict-free PRs
+
+PRs carry no generated files: edit their inputs, regenerate locally before using Xcode (`xcodegen generate`), and leave the generated diff uncommitted. PR CI regenerates before building. After each source push to main, the Generated files workflow runs `ci.py regenerate` and commits only `GENERATED` as `Notchcast: generated files` with the repository identity; each attempt starts from a fresh `origin/main`, its generated-only push is excluded by path filters, and the Actions token starts no further workflow runs. Sync regenerates before every build too.
+
+Fork harnesses are discovered by `notchcast/test-harnesses.sh`, so a PR never edits `Scripts/run-tests.sh`. `Tests/nc-<Folder>-<name>-test.swift` compiles all Model and Service sources of `Tinycast/Features/<Folder>/`. Any other fork harness (`Tests/notchcast-*-test.swift` or an upstream-style name) declares its sources in one or more `// notchcast-sources: <compiler arguments and source globs>` header lines (no spaces in paths). A `notchcast-*` harness without the header fails alone with an error; the rest of the suite still runs.
