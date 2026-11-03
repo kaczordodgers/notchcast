@@ -1,0 +1,14 @@
+name: XcodeGen
+description: Pinned XcodeGen for regenerating a conflicting project during replay; sets XCODEGEN.
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        VERSION: 2.46.0
+        SHA256: 4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806
+      run: |
+        curl -sSfLo "$RUNNER_TEMP/xcodegen.zip" "https://github.com/yonaskolb/XcodeGen/releases/download/${VERSION}/xcodegen.zip"
+        echo "$SHA256  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 -c -
+        unzip -q -o "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP/xcodegen"
+        echo "XCODEGEN=$RUNNER_TEMP/xcodegen/xcodegen/bin/xcodegen" >> "$GITHUB_ENV"
