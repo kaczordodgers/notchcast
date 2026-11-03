@@ -1,0 +1,16 @@
+name: Deploy key
+description: Push over SSH with the repo's write deploy key (GITHUB_TOKEN cannot push commits that touch workflows).
+inputs:
+  key:
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        KEY: ${{ inputs.key }}
+      run: |
+        mkdir -p ~/.ssh && chmod 700 ~/.ssh
+        printf '%s\n' "$KEY" > "$RUNNER_TEMP/deploy-key" && chmod 600 "$RUNNER_TEMP/deploy-key"
+        ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+        echo "GIT_SSH_COMMAND=ssh -i $RUNNER_TEMP/deploy-key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" >> "$GITHUB_ENV"
