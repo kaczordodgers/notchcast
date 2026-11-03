@@ -3,6 +3,17 @@ import Foundation
 @main
 struct NetworkTests {
     static func main() throws {
+        let interfaces: [NetworkInterfaceCandidate] = [
+            .init(name: "en3", isRunning: true, hasAddress: false),
+            .init(name: "utun0", isRunning: true, hasAddress: true),
+            .init(name: "en0", isRunning: true, hasAddress: true),
+            .init(name: "en1", isRunning: true, hasAddress: true),
+            .init(name: "en2", isRunning: false, hasAddress: true)
+        ]
+        precondition(NetworkInterfaceCandidate.select(interfaces, primaryNames: ["utun0"]) == "en0")
+        precondition(NetworkInterfaceCandidate.select(interfaces, primaryNames: ["en1", "en0"]) == "en1")
+        precondition(NetworkInterfaceCandidate.select(interfaces, primaryNames: ["en2"]) == "en0")
+        precondition(NetworkInterfaceCandidate.select(Array(interfaces.prefix(2)), primaryNames: []) == nil)
         var delta = NetworkDelta()
         func counter(_ received: UInt64, _ sent: UInt64, _ time: Double, _ name: String = "en0") -> NetworkDelta.Counter {
             .init(interface: name, received: received, sent: sent, time: time)
