@@ -2,6 +2,7 @@ import Foundation
 
 extension SettingsAnchor {
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
+    static let notchcastExtras = Self(tab: .notchcast, title: "Notchcast")
     static let notchcastOptions = Self(tab: .notchcast, title: "Options")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
@@ -23,13 +24,14 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
         .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
         .init(group: .notchcastShortcuts, "Toggle Island"),
-        .init(.notchcastOptions, "Display Brightness", keywords: ["display", "dimming", "slider"]),
-        .init(.notchcastOptions, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
-        .init(.notchcastOptions, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
-        .init(.notchcastOptions, "Low Disk Warning", keywords: ["storage", "warning"]),
-        .init(.notchcastOptions, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
-        .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
-        .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
-        .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastExtras, "Display Brightness", keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastExtras, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
+        .init(.notchcastExtras, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
+        .init(.notchcastExtras, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastExtras, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastExtras, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastExtras, "Calendar", keywords: ["events", "day", "schedule"]),
+        .init(.notchcastExtras, "Weather", keywords: ["city", "forecast"]),
+        .init(.notchcastExtras, "Markets", keywords: ["symbols", "stocks", "prices"]),
     ]
 }
