@@ -56,6 +56,7 @@ enum DeepLinkConsentPolicy {
             .exportSettings, .importSettings, .importFromRaycast, .checkForUpdates, .settings, .about,
             .support:
             false
+        case .toggleIsland: false
         }
     }
 }
