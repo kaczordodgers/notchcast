@@ -14,6 +14,7 @@ private final class Server {
     let listener: NWListener
     var connections: [NWConnection] = []
     var commands: [String] = []
+    var loggedIn = false
     var port: Int { Int(listener.port!.rawValue) }
 
     init() throws {
@@ -43,12 +44,18 @@ private final class Server {
                       let command = object["command"] as? String else { fatalError("Invalid command") }
                 self.commands.append(command)
                 if command == "get_state" {
-                    self.send(snapshot, connection)
-                    self.send(#"{"type":"auth_state","logged_in":true,"is_active":true,"device_name":"Test"}"#, connection)
+                    self.send(self.loggedIn ? snapshot :
+                        #"{"type":"error","message":"command requires authentication"}"#, connection)
+                } else if command == "get_auth_state" {
+                    self.sendAuth(connection)
                 }
                 self.receive(connection)
             }
         }
+    }
+
+    func sendAuth(_ connection: NWConnection) {
+        send("{\"type\":\"auth_state\",\"logged_in\":\(loggedIn),\"is_active\":true,\"device_name\":\"Test\"}", connection)
     }
 
     func send(_ text: String, _ connection: NWConnection) {
@@ -62,15 +69,53 @@ private final class Server {
     }
 }
 
+@MainActor
+private final class CoverServer {
+    let listener: NWListener
+    var connections: [NWConnection] = []
+    var requests: [String] = []
+    var port: Int { Int(listener.port!.rawValue) }
+
+    init() throws {
+        let parameters = NWParameters.tcp
+        parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
+        listener = try NWListener(using: parameters)
+        listener.newConnectionHandler = { [weak self] connection in
+            Task { @MainActor in
+                guard let self else { return }
+                self.connections.append(connection)
+                connection.start(queue: .main)
+                connection.receive(minimumIncompleteLength: 1, maximumLength: 8192) { data, _, _, _ in
+                    Task { @MainActor in
+                        guard let data, let request = String(data: data, encoding: .utf8) else { return }
+                        self.requests.append(request.components(separatedBy: " ")[1])
+                        if self.requests.count == 1 { return }
+                        let response = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\nConnection: close\r\n\r\ncover"
+                        connection.send(content: Data(response.utf8), completion: .contentProcessed { _ in
+                            connection.cancel()
+                        })
+                    }
+                }
+            }
+        }
+        listener.start(queue: .main)
+    }
+
+    func stop() {
+        connections.forEach { $0.cancel() }
+        listener.cancel()
+    }
+}
+
 @main
 struct SoloistSourceTest {
     @MainActor
-    static func wait(_ condition: () -> Bool) async throws {
+    static func wait(line: UInt = #line, _ condition: () -> Bool) async throws {
         for _ in 0..<500 {
             if condition() { return }
             try await Task.sleep(for: .milliseconds(10))
         }
-        fatalError("Timed out waiting for loopback")
+        fatalError("Timed out waiting for loopback at line \(line)")
     }
 
     @MainActor
@@ -114,25 +159,57 @@ struct SoloistSourceTest {
         }
         let server = try Server()
         defer { server.stop() }
-        try await wait { server.listener.port != nil }
+        try await wait { server.listener.port != nil && server.port > 0 }
         let source = SoloistSource()
         var changes = 0
         source.watch { changes += 1 }
         source.connect(port: server.port)
-        try await wait { source.authState?.loggedIn == true }
+        try await wait { source.authState?.loggedIn == false && server.commands.count == 2 }
+        try await wait {
+            if case .command("command requires authentication") = source.failure { return true }
+            return false
+        }
+        let loggedOut = try await source.read()
+        precondition(loggedOut == nil)
+        server.loggedIn = true
+        server.sendAuth(server.connections[0])
+        try await wait { changes >= 5 && server.commands.count == 3 }
         let received = try await source.read()
         precondition(received == track)
         precondition(changes >= 2)
         commands.forEach { source.send($0.0) }
-        try await wait { server.commands.count == 8 }
-        precondition(Array(server.commands.dropFirst()) == commands.map(\.1))
+        try await wait { server.commands.count == 10 }
+        precondition(Array(server.commands.dropFirst(3)) == commands.map(\.1))
         server.send(#"{"type":"queue_changed"}"#, server.connections[0])
-        try await wait { server.commands.count == 9 }
+        try await wait { server.commands.count == 11 }
         precondition(server.commands.last == "get_state")
+        let coverServer = try CoverServer()
+        defer { coverServer.stop() }
+        try await wait { coverServer.listener.port != nil && coverServer.port > 0 }
+        func coverSnapshot(_ name: String) -> String {
+            let fields = """
+            "visual_identity":{"cover":[{"url":"http://127.0.0.1:\(coverServer.port)/\(name)"}]},
+            "playback":{"duration_ms":331000}
+            """
+            return snapshot.replacingOccurrences(of: #""playback":{"duration_ms":331000}"#, with: fields)
+        }
+        server.send(coverSnapshot("A"), server.connections[0])
+        try await wait { coverServer.requests == ["/A"] }
+        server.send(coverSnapshot("B"), server.connections[0])
+        try await wait { coverServer.requests == ["/A", "/B"] }
+        server.send(coverSnapshot("A"), server.connections[0])
+        try await wait { coverServer.requests == ["/A", "/B", "/A"] }
+        for _ in 0..<500 {
+            if try await source.read()?.artwork == Data("cover".utf8) { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        let artwork = try await source.read()?.artwork
+        precondition(artwork == Data("cover".utf8))
         server.connections[0].cancel()
         try await wait { !source.isConnected }
         let retained = try await source.read()
-        precondition(retained == received)
+        precondition(retained?.title == received?.title && retained?.isPlaying == false)
+        precondition(retained?.position(at: now) == retained?.position(at: now.addingTimeInterval(60)))
         try await wait { server.connections.count == 2 && source.isConnected }
         source.connect(port: nil)
         let disconnected = try await source.read()
