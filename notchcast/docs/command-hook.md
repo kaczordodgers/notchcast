@@ -1,0 +1,34 @@
+# Launcher commands
+
+Define a `NotchcastCommand` beside its feature, then add one array element in
+`NotchcastCommandCatalog.all`:
+
+```swift
+IslandController.launcherCommand,
+```
+
+The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
+`.notchcast`), an `isEnabled` main-actor closure and a main-actor `run` closure.
+The stable ID is `command:nc-<slug>`. Slugs must be unique and URL path safe.
+Execution dismisses the palette, checks availability and runs synchronously.
+
+Catalog entries flow into `CommandCatalog.entries(ownedBy:)`, so the existing
+Notchcast `FeatureCommandsSection` renders alias, shortcut and visibility controls.
+Shortcuts use a typed `HotKeyAction.notchcastCommand` and the ordinary binding store.
+Feature availability also gates hotkey execution. Refresh the index when availability
+changes through `AppIndex.refreshNotchcastCommands()`.
+
+Toggle Island uses `legacyID: "command:toggle-island"` for its entry, retaining
+ranking, aliases, visibility, favorites and `hotkey.command:toggle-island` bindings.
+Its command value also resolves `command:nc-toggle-island`.
+
+Ordinary command deep links use `notchcast://command/nc-<slug>` and existing consent.
+The shorter `/command/<slug>` spelling is deferred: resolving it needs a catalog
+dependency in the pure deep-link parser. Toggle Island's legacy link still works.
+
+`NotchcastLauncher.open()` intentionally remains without a caller. Global shortcuts
+already use upstream `togglePalette`; any new island action needs a design decision.
+
+`notchcast-commands-test` compiles the shipped catalog, registration and hotkey mapping.
+The two upstream index/settings harnesses use empty fork-catalog fixtures through
+one compiler-source hook; no harness registration is added to the upstream runner.
