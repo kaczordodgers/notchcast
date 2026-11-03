@@ -13,7 +13,7 @@ struct QuitProtectionExceptionRow: View {
     var body: some View {
         LabeledContent {
             BarButton(isCompact: true, action: remove) {
-                SymbolImage("xmark", size: Theme.Size.menuIcon).accessibilityHidden(true)
+                SymbolImage(name: "xmark", size: Theme.Size.menuIcon).accessibilityHidden(true)
             }
                 .accessibilityLabel(Text("Remove \(name)"))
         } label: {
