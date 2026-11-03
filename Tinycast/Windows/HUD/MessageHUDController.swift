@@ -15,12 +15,14 @@ final class MessageHUDController {
     }
 
     func show(message: String, tone: DialogTone = .success) {
+        if IslandHUDRouter.show(message, tone: tone) { presenter.dismiss(); return }
         presenter.show(
             MessageHUDView(message: message, accessory: .tone(tone)).environment(\.metrics, metrics))
     }
 
     /// Stays up until the work it reports ends and something replaces it, or `dismiss()` runs.
     func showProgress(message: String, onCancel: (() -> Void)? = nil) {
+        if IslandHUDRouter.showProgress(message, onCancel: onCancel) { presenter.dismiss(); return }
         presenter.show(
             MessageHUDView(message: message, accessory: .progress, onCancel: onCancel)
                 .environment(\.metrics, metrics),
@@ -29,6 +31,7 @@ final class MessageHUDController {
     }
 
     func dismiss() {
+        IslandHUDRouter.dismiss()
         presenter.dismiss()
     }
 
