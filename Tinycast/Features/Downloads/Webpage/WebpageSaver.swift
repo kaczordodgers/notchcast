@@ -27,7 +27,13 @@ struct WebpageSaver: Sendable {
             let suffix = number == 1 ? "" : " (\(number))"
             let output = destination.appendingPathComponent("\(article.filename)\(suffix).md")
             do {
-                try FileManager.default.linkItem(at: staging, to: output)
+                do {
+                    try FileManager.default.linkItem(at: staging, to: output)
+                } catch CocoaError.fileWriteFileExists {
+                    throw CocoaError(.fileWriteFileExists)
+                } catch {
+                    try FileManager.default.moveItem(at: staging, to: output)
+                }
                 return output
             } catch CocoaError.fileWriteFileExists {
                 number += 1
