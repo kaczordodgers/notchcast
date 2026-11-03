@@ -23,6 +23,10 @@ jobs:
         run: |
           git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
           echo "BASE=$(git merge-base HEAD refs/remotes/upstream/main)" >> "$GITHUB_ENV"
+      - name: Allowed commit emails
+        env:
+          COMMIT_RANGE: ${{ github.event_name == 'pull_request' && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || 'refs/remotes/upstream/main..HEAD' }}
+        run: python3 notchcast/check-commit-emails.py "$COMMIT_RANGE"
       - name: Forbidden names in files, messages and identities
         run: notchcast/check-identity.sh history "$BASE"
       - name: Secrets (gitleaks)
