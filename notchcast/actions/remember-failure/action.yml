@@ -1,0 +1,20 @@
+name: Remember a failure
+description: Record refs/notchcast-failed/<key> so the same input is not rebuilt until upstream or main changes.
+inputs:
+  key:
+    required: true
+  deploy-key:
+    required: true
+runs:
+  using: composite
+  steps:
+    - uses: ./tools/notchcast/actions/deploy-key
+      with:
+        key: ${{ inputs.deploy-key }}
+    - shell: bash
+      working-directory: tools
+      env:
+        KEY: ${{ inputs.key }}
+      run: |
+        git push "git@github.com:${GITHUB_REPOSITORY}.git" "HEAD:refs/notchcast-failed/$KEY"
+        echo "::error::Failed; remembered as refs/notchcast-failed/$KEY. Nothing was published."
