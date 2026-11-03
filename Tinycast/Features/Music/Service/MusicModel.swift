@@ -40,6 +40,8 @@ final class MusicModel {
         playback?.cancel()
     }
 
+    var canResume: Bool { lastPlayer.replacement(isInstalled: apps.isInstalled) != nil }
+
     var position: TimeInterval? { nowPlaying?.position(at: now()) }
 
     func setSystemSource(_ source: (any NowPlayingSource)?) { replace(system, with: source) }

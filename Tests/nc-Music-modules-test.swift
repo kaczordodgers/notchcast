@@ -1,0 +1,232 @@
+// notchcast-sources: Tinycast/Features/Music/Model/*.swift
+// notchcast-sources: Tinycast/Features/Music/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastCore.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift
+// notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
+// notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
+// notchcast-sources: Tinycast/Features/Microphone/InUseMarksModule.swift
+// notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
+// notchcast-sources: Tinycast/Features/HotKeys/Service/HotKeyCenter.swift
+// notchcast-sources: Tinycast/Features/HotKeys/Service/KeyShortcut.swift
+// notchcast-sources: Tinycast/Features/HotKeys/Model/HyperKey.swift
+// notchcast-sources: Tinycast/Features/HotKeys/Model/ModifierKey.swift
+// notchcast-sources: Tinycast/Features/HotKeys/Model/HIDKeyMapping.swift
+// notchcast-sources: Tinycast/Features/HotKeys/Model/DoubleTapModifier.swift
+// notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyBinding.swift
+// notchcast-sources: Tinycast/Platform/ASCIIKeyboardLayout.swift
+// notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+import Foundation
+import AppKit
+
+@MainActor
+final class CountingModule: NotchcastModule {
+    var starts = 0
+    var stops = 0
+    func start() { starts += 1 }
+    func stop() { stops += 1 }
+}
+
+@MainActor final class AppCore {}
+
+@MainActor
+final class IslandController: NotchcastModule {
+    static let shared = IslandController()
+    var starts = 0
+    func configurePages(_ core: AppCore) {}
+    func start() { starts += 1 }
+    func stop() {}
+}
+
+@MainActor
+final class NotchcastServices {
+    let music = CountingModule()
+    let lastPlayer = CountingModule()
+    let appleMusic = CountingModule()
+    let spotify = CountingModule()
+    let microphone = CountingModule()
+    let marks = CountingModule()
+    let keys = Keys()
+
+    init(core: AppCore, preferences: NotchcastPreferences) {}
+
+    final class Keys {
+        func run() {}
+    }
+}
+
+@main
+@MainActor
+struct MusicModuleTests {
+    static func main() async {
+        let suite = "music-modules.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        precondition(!preferences.isOn(.spotifyConnect))
+        precondition(preferences.isOn(.musicNowPlaying))
+        precondition(preferences.isOn(.musicLastPlayer))
+        precondition(preferences.isOn(.musicBlockAppleMusic))
+        precondition(preferences.isOn(.microphoneMute))
+        precondition(preferences.isOn(.inUseMarks))
+        let counters = Dictionary(uniqueKeysWithValues: NotchcastFeature.allCases.map { ($0, CountingModule()) })
+        let entries = NotchcastFeature.allCases.map { feature in
+            NotchcastModuleController.Entry(requires: [feature] + feature.dependencies, module: counters[feature]!)
+        }
+        let controller = NotchcastModuleController(entries, preferences: preferences)
+        controller.run()
+        let speaker = counters[.spotifyConnect]!
+        let resume = counters[.musicLastPlayer]!
+        let blocker = counters[.musicBlockAppleMusic]!
+        preferences.set(.spotifyConnect, true)
+        await settle()
+        precondition(speaker.starts == 1)
+        preferences.set(.musicNowPlaying, false)
+        await settle()
+        precondition(speaker.stops == 1 && resume.stops == 1 && blocker.stops == 0)
+        preferences.set(.spotifyConnect, false)
+        preferences.set(.musicNowPlaying, true)
+        await settle()
+        precondition(speaker.starts == 1 && resume.starts == 2)
+        preferences.set(.spotifyConnect, true)
+        await settle()
+        preferences.set(.island, false)
+        await settle()
+        precondition(counters.values.allSatisfy { $0.starts == $0.stops })
+        preferences.set(.island, true)
+        await settle()
+        precondition(speaker.starts == 3)
+        let restored = NotchcastPreferences(suiteName: suite)
+        precondition(restored.isOn(.spotifyConnect))
+        preferences.engineDefaults.set("test-player", forKey: LastPlayer.key)
+        let lastPlayer = LastPlayer(defaults: preferences.engineDefaults, canPlay: { _ in true })
+        precondition(lastPlayer.bundleID == "test-player")
+        let source = SoloistSource()
+        let module = SpotifyConnectModule(source: source, defaults: preferences.engineDefaults)
+        module.setDeviceName("  Studio Mac  ")
+        precondition(module.deviceName == "Studio Mac")
+        precondition(defaults.string(forKey: "spotify.deviceName") == "Studio Mac")
+        module.setDeviceName(" \n ")
+        precondition(module.deviceName == "Notchcast")
+        await registration()
+        routing()
+        await installedBuild()
+        print("PASS: defaults, lifecycle, fork-local persistence, device name and all six production registrations")
+    }
+
+    static func settle() async {
+        for _ in 0..<20 { await Task.yield() }
+    }
+
+    static func registration() async {
+        let suite = "music-registration.\(UUID())"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        let features: [NotchcastFeature] = [
+            .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect, .microphoneMute, .inUseMarks
+        ]
+        for feature in features {
+            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
+            let grants: [NotchcastGrant] = [.musicLastPlayer, .musicBlockAppleMusic].contains(feature)
+                ? [.accessibility] : []
+            precondition(feature.requiredGrants == grants)
+        }
+        NotchcastCore.start(AppCore(), preferences: preferences)
+        let services = NotchcastCore.services!
+        let modules = [services.music, services.lastPlayer, services.appleMusic,
+                       services.spotify, services.microphone, services.marks]
+        precondition(modules.map(\.starts) == [1, 1, 1, 0, 1, 1])
+        precondition(IslandController.shared.starts == 1)
+        preferences.set(.spotifyConnect, true)
+        await settle()
+        precondition(modules.map(\.starts) == [1, 1, 1, 1, 1, 1])
+        preferences.set(.musicNowPlaying, false)
+        await settle()
+        precondition(modules.map(\.stops) == [1, 1, 0, 1, 0, 0])
+        preferences.set(.islandStatusMessages, false)
+        await settle()
+        precondition(modules.map(\.starts) == [1, 1, 1, 1, 1, 1])
+        preferences.set(.musicNowPlaying, true)
+        await settle()
+        for (feature, module) in zip(features, modules) {
+            let before = module.stops
+            preferences.set(feature, false)
+            await settle()
+            precondition(module.stops == before + 1)
+            preferences.set(feature, true)
+            await settle()
+        }
+        preferences.set(.island, false)
+        await settle()
+        precondition(modules.allSatisfy { $0.starts == $0.stops })
+    }
+
+    static func routing() {
+        let suite = "routing.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        var installed = false
+        let apps = PlayerApps(isInstalled: { _ in installed }, isRunning: { _ in false },
+                              open: { _ in }, play: { _ in }, watchLaunches: { _ in [] }, quit: { _ in true })
+        let music = MusicNowPlayingModule(defaults: defaults, apps: apps)
+        let audio = RoutingAudio()
+        let mute = MicrophoneMute(audio: audio, defaults: defaults)
+        let microphone = MicrophoneMuteModule(model: mute, showMessage: { _ in }, showFailure: { _ in })
+        let blocker = MusicLaunchBlocker(apps: apps, openReplacement: { _ in Task {} })
+        let monitor = NotchcastKeyMonitor(music: music, blocker: blocker, microphone: microphone,
+                                         preferences: preferences)
+        for down in [true, false] {
+            let event = NSEvent.otherEvent(with: .systemDefined, location: .zero, modifierFlags: [],
+                timestamp: 0, windowNumber: 0, context: nil, subtype: 8,
+                data1: (16 << 16) | ((down ? 0x0a : 0x0b) << 8), data2: -1)!.cgEvent!
+            precondition(!monitor.handle(event), "no replacement passes media keys through")
+            installed = true
+            precondition(monitor.handle(event), "installed replacement consumes media keys")
+            installed = false
+        }
+        microphone.start()
+        microphone.setMuted(true)
+        precondition(mute.isMuted)
+        microphone.stop()
+        precondition(!mute.isMuted && audio.input.mute[0].value == 0, "stop restores microphone")
+        var reads = 0
+        let key = SoloistKey(read: { reads += 1; throw SoloistFailure.keyUnavailable },
+                            write: { _ in }, presence: { true })
+        precondition((try? key.isSaved) == true && reads == 0, "presence never reads secret")
+        print("PASS: production media-key routing, mute shutdown, Keychain presence")
+    }
+
+    static func installedBuild() async {
+        let key = SoloistKey(read: { nil }, write: { _ in })
+        let builds = RoutingBuilds()
+        let speaker = SoloistSpeaker(key: key, builds: builds, launcher: LiveSoloistLauncher(),
+                                     processes: LiveSoloistProcessList())
+        await speaker.refreshInstalledBuild()
+        precondition(speaker.build == builds.build, "installed build is visible without a key")
+    }
+}
+
+@MainActor
+final class RoutingBuilds: SoloistBuildSource {
+    let build = SoloistBuild(executable: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString),
+                             version: "fixture", built: Date())
+    func installed(excluding: Set<URL>) async throws -> SoloistBuild? { build }
+    func install() async throws -> SoloistBuild { build }
+}
+
+@MainActor
+final class RoutingAudio: MicrophoneAudioAccess {
+    var monitoringFailure: MicrophoneInput.Failure?
+    var input = MicrophoneInput(id: 1, uid: "fixture", mute: [.init(element: 0, value: 0)], volume: [])
+    func inputs() throws(MicrophoneInput.Failure) -> [MicrophoneInput] { [input] }
+    func write(_ levels: [MicrophoneInput.Level], control: MicrophoneInput.Control,
+               on input: MicrophoneInput) throws(MicrophoneInput.Failure) { self.input.mute = levels }
+    func start(change: @escaping @MainActor () -> Void) {}
+    func stop() {}
+}
