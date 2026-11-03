@@ -1,15 +1,33 @@
 import Foundation
 
-nonisolated struct DistillRunner: Sendable {
+nonisolated struct DistillRunner: DownloadRunner {
     typealias SaveWebpage = @Sendable (_ source: URL, _ destination: URL) async throws -> URL
 
     let transcriber: DistillTranscriber
     let workDirectory: URL
     let saveWebpage: SaveWebpage
+    let kind = "distill"
+    let tools: [DownloadTool] = [.ytDlp, .ffmpeg]
+
+    init(transcriber: DistillTranscriber, workDirectory: URL,
+         saveWebpage: @escaping SaveWebpage = { _, _ in
+             throw NSError(domain: "Distill", code: 2, userInfo: [
+                 NSLocalizedDescriptionKey: String(localized: "Webpage saving is not connected to Distill yet.")
+             ])
+         }) {
+        self.transcriber = transcriber
+        self.workDirectory = workDirectory
+        self.saveWebpage = saveWebpage
+    }
+
+    func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? {
+        try await run(source: job.source, destination: context.destination,
+                      times: job.options["timestamps"] == "true", context: context)
+    }
 
     @concurrent
     func run(
-        source: String, destination: URL, times: Bool = false, execution: DistillExecution,
+        source: String, destination: URL, times: Bool = false, context: DownloadRunContext,
         progress: @escaping DistillTranscriber.Progress = { _, _ in }
     ) async throws -> URL {
         try Task.checkCancellation()
@@ -20,9 +38,9 @@ nonisolated struct DistillRunner: Sendable {
         let work = workDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: work) }
-        let metadata = try await execution.spawn("yt-dlp", YtDlpAudio.metadataArguments(link: cleaned))
+        let metadata = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.metadataArguments(link: cleaned))
         let media = try JSONDecoder().decode(YtDlpAudio.Media.self, from: Data(metadata.utf8))
-        _ = try await execution.spawn("yt-dlp", YtDlpAudio.audioArguments(link: cleaned, folder: work))
+        _ = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.audioArguments(link: cleaned, folder: work))
         try Task.checkCancellation()
         let files = try FileManager.default.contentsOfDirectory(at: work, includingPropertiesForKeys: [.isRegularFileKey])
         let audioFiles = try files.filter {
@@ -33,7 +51,7 @@ nonisolated struct DistillRunner: Sendable {
         }
         guard audioFiles.count == 1, let audio = audioFiles.first else { throw CocoaError(.fileReadCorruptFile) }
         let segments = try await transcriber.transcribe(
-            file: audio, workDirectory: work, execution: execution, progress: progress)
+            file: audio, workDirectory: work, context: context, progress: progress)
         let text = DistillTranscript.text(segments, times: times)
         try Task.checkCancellation()
         return try Self.save(text, name: DistillTranscript.fileName(channel: media.channel, title: media.title), in: destination)

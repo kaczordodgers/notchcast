@@ -6,9 +6,18 @@ nonisolated struct DistillTranscriber: Sendable {
 
     let recognize: Recognize
 
+    func text(file: URL, workDirectory: URL, context: DownloadRunContext) async throws -> String {
+        let segments = try await transcribe(file: file, workDirectory: workDirectory, context: context)
+        let text = DistillTranscript.text(segments, times: false)
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw DictationWire.Failure.unavailable
+        }
+        return text
+    }
+
     @concurrent
     func transcribe(
-        file: URL, workDirectory: URL, execution: DistillExecution,
+        file: URL, workDirectory: URL, context: DownloadRunContext,
         progress: @escaping Progress = { _, _ in }
     ) async throws -> [DistillTranscript.Segment] {
         try Task.checkCancellation()
@@ -17,8 +26,13 @@ nonisolated struct DistillTranscriber: Sendable {
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: work) }
         let pcm = work.appending(path: "audio.f32")
-        _ = try await execution.spawn("ffmpeg", Self.arguments(input: file, output: pcm))
-        return try await transcribePCM(file: pcm, progress: progress)
+        _ = try await context.distillSpawn(.ffmpeg, arguments: Self.arguments(input: file, output: pcm))
+        return try await transcribePCM(file: pcm) { completed, total in
+            await context.report(DownloadProgress(
+                fraction: Double(completed) / Double(total),
+                stage: String(localized: "Transcribing \(completed) of \(total)")))
+            await progress(completed, total)
+        }
     }
 
     @concurrent
