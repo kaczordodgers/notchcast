@@ -1,256 +1,266 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-"The downloader did not return an output file." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Der Downloader hat keine Ausgabedatei zurückgegeben."
+    "The downloader did not return an output file." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Downloader hat keine Ausgabedatei zurückgegeben."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El descargador no devolvió un archivo de salida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le téléchargeur n’a renvoyé aucun fichier de sortie."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ダウンローダーから出力ファイルが返されませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다운로더가 출력 파일을 반환하지 않았습니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузчик не вернул выходной файл."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O descarregador não devolveu um ficheiro de saída."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下载器未返回输出文件。"
+          }
+        }
       }
     },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "El descargador no devolvió un archivo de salida."
+    "No captions are available. The Distill transcriber fallback is not connected yet." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Untertitel verfügbar. Die Distill-Transkription als Ersatz ist noch nicht verbunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay subtítulos disponibles. La transcripción alternativa de Distill aún no está conectada."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun sous-titre disponible. La transcription de secours Distill n’est pas encore connectée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "字幕がありません。代替の Distill 文字起こしはまだ接続されていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자막이 없습니다. 대체 Distill 받아쓰기가 아직 연결되지 않았습니다."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Субтитры недоступны. Резервная транскрипция Distill ещё не подключена."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não há legendas disponíveis. A transcrição alternativa do Distill ainda não está ligada."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有可用字幕。Distill 备用转录尚未连接。"
+          }
+        }
       }
     },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Le téléchargeur n’a renvoyé aucun fichier de sortie."
+    "%@ is not installed. Install it with: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ist nicht installiert. Installiere es mit: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ no está instalado. Instálalo con: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ n’est pas installé. Installez-le avec : %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ がインストールされていません。次のコマンドでインストールしてください: %@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@이(가) 설치되어 있지 않습니다. 다음 명령으로 설치하세요: %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ não está instalado. Instale com: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ не установлен. Установите командой: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未安装 %@。请使用以下命令安装：%@"
+          }
+        }
       }
     },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "ダウンローダーから出力ファイルが返されませんでした。"
+    "Tool exited with status %d." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Werkzeug wurde mit Status %d beendet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La herramienta terminó con el estado %d."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’outil s’est terminé avec le code %d."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ツールがステータス %d で終了しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "도구가 상태 %d로 종료되었습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A ferramenta terminou com o estado %d."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструмент завершился с кодом %d."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工具已退出，状态码为 %d。"
+          }
+        }
       }
     },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "다운로더가 출력 파일을 반환하지 않았습니다."
+    "This download type is not available." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Downloadtyp ist nicht verfügbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este tipo de descarga no está disponible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ce type de téléchargement n’est pas disponible."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このダウンロードの種類は利用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 다운로드 유형을 사용할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este tipo de download não está disponível."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот тип загрузки недоступен."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此下载类型不可用。"
+          }
+        }
       }
     },
-    "ru": { "stringUnit": { "state": "translated", "value": "Загрузчик не вернул выходной файл." } },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "O descarregador não devolveu um ficheiro de saída."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "下载器未返回输出文件。"
-      }
-    }
-  }
-},
-"No captions are available. The Distill transcriber fallback is not connected yet." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Keine Untertitel verfügbar. Die Distill-Transkription als Ersatz ist noch nicht verbunden."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "No hay subtítulos disponibles. La transcripción alternativa de Distill aún no está conectada."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Aucun sous-titre disponible. La transcription de secours Distill n’est pas encore connectée."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "字幕がありません。代替の Distill 文字起こしはまだ接続されていません。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "자막이 없습니다. 대체 Distill 받아쓰기가 아직 연결되지 않았습니다."
-      }
-    },
-    "ru": { "stringUnit": { "state": "translated", "value": "Субтитры недоступны. Резервная транскрипция Distill ещё не подключена." } },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Não há legendas disponíveis. A transcrição alternativa do Distill ainda não está ligada."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "没有可用字幕。Distill 备用转录尚未连接。"
-      }
-    }
-  }
-},
-"%@ is not installed. Install it with: %@" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "%@ ist nicht installiert. Installiere es mit: %@"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "%@ no está instalado. Instálalo con: %@"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "%@ n’est pas installé. Installez-le avec : %@"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "%@ がインストールされていません。次のコマンドでインストールしてください: %@"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "%@이(가) 설치되어 있지 않습니다. 다음 명령으로 설치하세요: %@"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "%@ não está instalado. Instale com: %@"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "%@ не установлен. Установите командой: %@"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "未安装 %@。请使用以下命令安装：%@"
-      }
-    }
-  }
-},
-"Tool exited with status %d." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Das Werkzeug wurde mit Status %d beendet."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "La herramienta terminó con el estado %d."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "L’outil s’est terminé avec le code %d."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "ツールがステータス %d で終了しました。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "도구가 상태 %d로 종료되었습니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "A ferramenta terminou com o estado %d."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Инструмент завершился с кодом %d."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "工具已退出，状态码为 %d。"
-      }
-    }
-  }
-},
-"This download type is not available." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Dieser Downloadtyp ist nicht verfügbar."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Este tipo de descarga no está disponible."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Ce type de téléchargement n’est pas disponible."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "このダウンロードの種類は利用できません。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "이 다운로드 유형을 사용할 수 없습니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Este tipo de download não está disponível."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Этот тип загрузки недоступен."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "此下载类型不可用。"
-      }
-    }
-  }
-},
     "" : {
 
     },
@@ -137624,6 +137634,58 @@
         }
       }
     },
+    "Enter a public HTTP or HTTPS webpage URL without credentials, using port 80 or 443." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib eine öffentliche HTTP- oder HTTPS-Webseiten-URL ohne Zugangsdaten mit Port 80 oder 443 ein."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce una URL pública HTTP o HTTPS sin credenciales, con el puerto 80 o 443."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez une URL de page publique HTTP ou HTTPS sans identifiants, sur le port 80 ou 443."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "認証情報を含まない公開 HTTP または HTTPS ページの URL をポート 80 または 443 で入力してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인증 정보 없이 포트 80 또는 443을 사용하는 공개 HTTP 또는 HTTPS 웹페이지 URL을 입력하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduza um URL de página pública HTTP ou HTTPS sem credenciais, usando a porta 80 ou 443."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите URL общедоступной страницы HTTP или HTTPS без учётных данных с портом 80 или 443."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入不含凭据、使用端口 80 或 443 的公开 HTTP 或 HTTPS 网页 URL。"
+          }
+        }
+      }
+    },
     "esc" : {
       "comment" : "Escape keycap legend; keep it short",
       "shouldTranslate" : false
@@ -139233,6 +139295,58 @@
         }
       }
     },
+    "Private and loopback addresses cannot be saved as webpages." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private und Loopback-Adressen können nicht als Webseiten gespeichert werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las direcciones privadas y de bucle local no se pueden guardar como páginas web."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les adresses privées et de bouclage ne peuvent pas être enregistrées comme pages web."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライベートアドレスとループバックアドレスはウェブページとして保存できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사설 및 루프백 주소는 웹페이지로 저장할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os endereços privados e de loopback não podem ser guardados como páginas web."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Частные и петлевые адреса нельзя сохранять как веб-страницы."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将私有地址和环回地址保存为网页。"
+          }
+        }
+      }
+    },
     "reasoning-effort-high" : {
       "comment" : "Reasoning effort, not search sensitivity.",
       "localizations" : {
@@ -140020,6 +140134,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "文件必须包含一个 JSON 对象"
+          }
+        }
+      }
+    },
+    "The webpage host could not be resolved to a public address." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Webseiten-Host konnte nicht in eine öffentliche Adresse aufgelöst werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo resolver el servidor de la página web a una dirección pública."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de résoudre l’hôte de la page web en adresse publique."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウェブページのホストを公開アドレスに解決できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "웹페이지 호스트를 공개 주소로 확인할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível resolver o servidor da página web para um endereço público."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось определить общедоступный адрес узла веб-страницы."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将网页主机解析为公开地址。"
           }
         }
       }

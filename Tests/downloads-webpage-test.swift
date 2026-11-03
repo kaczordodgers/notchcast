@@ -20,6 +20,7 @@ struct DownloadsWebpageTests {
         converter()
         addresses()
         frontMatter()
+        try await runnerRefusals()
         _ = NSApplication.shared
         NSApp.setActivationPolicy(.accessory)
         try await extraction()
@@ -31,6 +32,22 @@ struct DownloadsWebpageTests {
         }
         print("downloads-webpage: \(passes) passed, \(failures) failed")
         if failures > 0 { exit(1) }
+    }
+
+    static func runnerRefusals() async throws {
+        let runner: any DownloadRunner = WebpageRunner()
+        expect(runner.kind == "webpage" && runner.tools.isEmpty, "webpage runner needs no outside tools")
+        let context = DownloadRunContext(destination: URL(filePath: "/unused-webpage-test-destination"))
+        for source in ["file:///etc/passwd", "http://127.0.0.1/", "http://[::1]/"] {
+            let job = DownloadJob(id: UUID().uuidString, kind: "webpage", source: source,
+                                  title: "Refused", created: .now)
+            do {
+                _ = try await runner.run(job, context: context)
+                expect(false, "runner refuses \(source)")
+            } catch let error as PublicWebAddress.Refusal {
+                expect(error.errorDescription?.isEmpty == false, "runner refusal has a clear detail")
+            }
+        }
     }
 
     static func converter() {
