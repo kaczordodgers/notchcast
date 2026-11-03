@@ -22,6 +22,7 @@ enum ScreenTextService {
     ) async throws -> ScreenTextResult {
         try Task.checkCancellation()
         let shareable = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        try Task.checkCancellation()
         guard let display = shareable.displays.first(where: { $0.displayID == selection.displayID })
         else { throw Failure.displayUnavailable }
         let filter = SCContentFilter(display: display, excludingWindows: [])

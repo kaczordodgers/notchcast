@@ -4,9 +4,11 @@
 // notchcast-sources: Tinycast/Features/ScreenText/Service/*.swift
 import Foundation
 import CoreImage
+import AppKit
 
 @main
 enum ScreenTextTest {
+    @MainActor
     static func main() async throws {
         let frame = CGRect(x: -1200, y: 300, width: 1200, height: 800)
         let selection = CaptureAreaSelection.make(
@@ -31,6 +33,17 @@ enum ScreenTextTest {
         let image = CIContext().createCGImage(code, from: code.extent)!
         let result = try await ScreenTextService.recognize(image: image)
         precondition(result == ScreenTextResult(content: "https://example.com/ocr", kind: .qrCode))
+        let textImage = NSImage(size: CGSize(width: 1000, height: 160))
+        textImage.lockFocus()
+        NSColor.white.setFill()
+        CGRect(x: 0, y: 0, width: 1000, height: 160).fill()
+        ("Hello world" as NSString).draw(
+            at: CGPoint(x: 40, y: 50),
+            withAttributes: [.font: NSFont.systemFont(ofSize: 64), .foregroundColor: NSColor.black])
+        textImage.unlockFocus()
+        let raster = textImage.cgImage(forProposedRect: nil, context: nil, hints: nil)!
+        let text = try await ScreenTextService.recognize(image: raster)
+        precondition(text.kind == .text && text.content.contains("Hello world"))
         print("ScreenText: geometry and text processing passed")
     }
 }
