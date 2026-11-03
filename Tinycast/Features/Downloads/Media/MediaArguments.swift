@@ -4,8 +4,10 @@ nonisolated enum MediaArguments {
     enum Format: Sendable { case video, audio }
 
     static func download(source: String, destination: URL, format: Format,
-                         aria2Path: String? = nil, cookies: String? = nil) -> [String] {
+                         aria2Path: String? = nil, cookies: String? = nil,
+                         restart: Bool = false) -> [String] {
         var arguments = common(destination: destination, cookies: cookies)
+        if restart { arguments += ["--no-continue"] }
         arguments += ["--no-quiet", "--progress", "--progress-template",
                       "download:MEDIA_PROGRESS %(progress.downloaded_bytes)s %(progress.total_bytes)s "
                         + "%(progress.total_bytes_estimate)s %(progress.speed)s %(progress.eta)s",
@@ -25,10 +27,17 @@ nonisolated enum MediaArguments {
     }
 
     static func captions(source: String, destination: URL, automatic: Bool,
-                         language: String, cookies: String? = nil) -> [String] {
+                         language: String? = nil, cookies: String? = nil) -> [String] {
         common(destination: destination, cookies: cookies)
             + ["--skip-download", automatic ? "--write-auto-subs" : "--write-subs",
-               "--sub-langs", language, "--sub-format", "vtt/srt", "--", source]
+               "--sub-langs", language ?? (automatic ? ".*-orig" : "all,-live_chat"),
+               "--sub-format", "vtt/srt", "--", source]
+    }
+
+    static func originalLanguage(source: String, cookies: String?) -> [String] {
+        var arguments = ["--ignore-config", "--no-playlist", "--skip-download", "--print", "%(language)s"]
+        if let cookies, !cookies.isEmpty { arguments += ["--cookies-from-browser", cookies] }
+        return arguments + ["--", source]
     }
 
     static func retryNatively(stderr: String, source: String, usedAria2: Bool) -> Bool {
