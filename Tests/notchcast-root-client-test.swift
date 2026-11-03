@@ -59,6 +59,7 @@ struct FanSMCTest {
         try validateSequence()
         try validateRecovery()
         try validateBattery()
+        try validateTools()
         print("PASS: fan targets, codecs, write order, shared 5s retry window and Auto recovery (fake SMC only)")
     }
 
@@ -67,6 +68,35 @@ struct FanSMCTest {
             try operation()
             preconditionFailure("Expected failure")
         } catch {}
+    }
+
+    private static func validateTools() throws {
+        precondition(Spotlight.arguments(.spotlightOff) == ["-a", "-i", "off"])
+        precondition(Spotlight.arguments(.spotlightOn) == ["-a", "-i", "on"])
+        precondition(Spotlight.arguments(.ping) == nil)
+        let sudo = "auth include sudo_local\n"
+        let rule = "auth       sufficient     pam_tid.so\n"
+        for original in ["", "# preserved\n", "auth required pam_other.so"] {
+            let enabled = try TouchIDPolicy.replacement(sudo: sudo, local: original, enabled: true)
+            let expected = original + (original.isEmpty || original.hasSuffix("\n") ? "" : "\n") + rule
+            precondition(enabled == expected)
+            let repeated = try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: true)
+            precondition(repeated == enabled)
+            let disabled = try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: false)
+            precondition(disabled == expected.replacingOccurrences(of: rule, with: ""))
+        }
+        let absent = try TouchIDPolicy.replacement(sudo: sudo, local: nil, enabled: true)
+        precondition(absent == rule)
+        let removed = try TouchIDPolicy.replacement(
+            sudo: sudo, local: "# keep\nauth sufficient pam_tid.so # active\nauth required pam_other.so\n",
+            enabled: false)
+        precondition(removed == "# keep\nauth required pam_other.so\n")
+        rejects { _ = try TouchIDPolicy.replacement(sudo: "", local: nil, enabled: true) }
+        rejects { _ = try TouchIDPolicy.replacement(sudo: sudo + rule, local: nil, enabled: false) }
+        rejects {
+            _ = try TouchIDPolicy.replacement(sudo: sudo, local: "auth required pam_tid.so\n", enabled: true)
+        }
+        print("PASS: Spotlight arguments and pure PAM transforms")
     }
 
     private static func validateBattery() throws {
@@ -282,6 +312,9 @@ struct RootClientTest {
             (["version"], 0, "1\n"), (["ping"], 0, "pong\n"),
             ([], 64, ""), (["unknown"], 64, ""), (["version", "extra"], 64, ""),
             (["ping", "extra"], 64, ""),
+            (["spotlight-off"], 77, ""), (["spotlight-on"], 77, ""),
+            (["sudo-touchid-on"], 77, ""), (["sudo-touchid-off"], 77, ""),
+            (["spotlight-off", "extra"], 64, ""), (["sudo-touchid-on", "extra"], 64, ""),
             (["fans-auto"], 77, ""), (["fans-medium"], 77, ""), (["fans-max"], 77, ""),
             (["fans-max", "6000"], 64, ""), (["fans-medium", "0.6"], 64, ""),
             (["battery-charging-on"], 77, ""), (["battery-charging-off"], 77, ""),
@@ -313,6 +346,7 @@ struct RootClientTest {
                                  "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
                                  "notchcast/root/RootContract.swift", "notchcast/root/FanSMC.swift",
                                  "notchcast/root/BatterySMC.swift",
+                                 "notchcast/root/Spotlight.swift", "notchcast/root/TouchIDPolicy.swift",
                                  "Tests/notchcast-root-client-test.swift", "-o", fanTests.path]
         try fanCompiler.run()
         fanCompiler.waitUntilExit()

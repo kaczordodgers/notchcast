@@ -1,5 +1,15 @@
 # Root helper
 
+`spotlight-off` and `spotlight-on` run `/usr/bin/mdutil -a -i off` and
+`/usr/bin/mdutil -a -i on` respectively, with an empty environment.
+`sudo-touchid-on` adds `auth       sufficient     pam_tid.so` to `/etc/pam.d/sudo_local`;
+`sudo-touchid-off` removes only that rule, preserving unrelated lines. Both validate the
+`sudo_local` include in `/etc/pam.d/sudo`, reject unsupported PAM rules, and refuse symlink,
+non-regular or non-root-owned local files. Writes use a temporary file in `/etc/pam.d`,
+root:wheel ownership, mode 0444, fsync and atomic rename. These four argument-free change verbs
+require root (exit 77 otherwise), return `ok` on success, and use the 12-second change timeout.
+The harness verifies their unprivileged refusal and pure PAM transforms without changing the system.
+
 The fixed program and app client share eleven argument-free verbs. `version` prints the contract version (`1`), and `ping` prints `pong`; neither requires root. Fan and battery verbs require root and print exactly `ok\n` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and hardware failures exit 70, always without output. Only battery sleep verbs launch a process, with fixed arguments and an empty environment.
 
 `RootContract.swift` here is a symlink to the app's contract under
