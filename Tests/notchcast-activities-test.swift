@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
 
 enum DialogTone { case neutral, success, danger }

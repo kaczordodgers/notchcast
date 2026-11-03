@@ -1,3 +1,7 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandPage.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandInputState.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
 
 @main

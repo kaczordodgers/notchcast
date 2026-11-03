@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Island/IslandGeometry.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Island/IslandMotion.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
 import Foundation
 
 @main
