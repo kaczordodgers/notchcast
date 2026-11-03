@@ -507,6 +507,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
 
     /// This display's own corner, unless too little of the bar would stay grabbable.
     private func restoredAnchor(on screen: NSScreen) -> CGPoint? {
+        guard !NotchcastLauncherPlacement.isActive else { return nil }
         guard let offset = core.settings.palettePosition(on: screen.displayKey) else { return nil }
         let stored = PalettePlacement.anchor(for: offset, on: screen.visibleFrame)
         let position =
@@ -524,9 +525,9 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
     }
 
     private func defaultAnchor(on screen: NSScreen) -> CGPoint {
-        PalettePlacement.defaultAnchor(
+        NotchcastLauncherPlacement.anchor(on: screen, width: metrics.size.panelWidth, default: PalettePlacement.defaultAnchor(
             in: screen.visibleFrame, width: metrics.size.panelWidth,
-            topMarginFraction: Theme.Size.paletteTopMarginFraction)
+            topMarginFraction: Theme.Size.paletteTopMarginFraction))
     }
 
     private var metrics: InterfaceMetrics { core.settings.interfaceSize.metrics }
