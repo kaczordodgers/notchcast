@@ -944,6 +944,7 @@ run notchcast-root-client-test -parse-as-library Tinycast/Features/Notchcast/Roo
 run notchcast-core-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 
 run notchcast-tap-hub-test Tinycast/Features/Notchcast/Input/EventTapPolicy.swift Tinycast/Features/Notchcast/Input/EventTapHub.swift Tinycast/Features/Notchcast/Input/EventTapThread.swift
+run notchcast-launcher-placement-test Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
 
 if [ "$emit_db" -eq 1 ]; then
     printf ']\n' >> "$DB"
