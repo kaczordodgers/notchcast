@@ -120,16 +120,16 @@ nonisolated enum KatanaLegacyConverter {
             for move in plan.moves { sound.apply(move, from: source, to: plan.regions) }
         }
         guard let patch0 = patch.blocks[.patch0], let patch2 = patch.blocks[.patch2], let name = patch.blocks[.name],
-              let ampType = patch0[safe: 17].flatMap({ ampTypes[safe: Int($0)] }) else { return nil }
+              let ampType = patch0[katanaSafe: 17].flatMap({ ampTypes[katanaSafe: Int($0)] }) else { return nil }
         sound.set(amp, 7, UInt8(ampType))
         sound.set(0x00, 0, bytes: name)
         guard convertTypes(patch2, into: &sound) else { return nil }
-        if let patch1 = patch.blocks[.patch1], let on = patch1[safe: 0x56] {
-            if on == 0 { sound.set(contour, 0, 0) } else if let select = patch1[safe: 0x57] { sound.set(contour, 0, select + 1) }
+        if let patch1 = patch.blocks[.patch1], let on = patch1[katanaSafe: 0x56] {
+            if on == 0 { sound.set(contour, 0, 0) } else if let select = patch1[katanaSafe: 0x57] { sound.set(contour, 0, select + 1) }
         }
-        if let function = patch2[safe: 30].flatMap({ pedalFunctions[safe: Int($0)] }) { sound.set(0x5E, 0, function) }
+        if let function = patch2[katanaSafe: 30].flatMap({ pedalFunctions[katanaSafe: Int($0)] }) { sound.set(0x5E, 0, function) }
         if let status = patch.blocks[.status] {
-            for index in 0..<5 { if let value = status[safe: 7 + index] { sound.knob[index] = value } }
+            for index in 0..<5 { if let value = status[katanaSafe: 7 + index] { sound.knob[index] = value } }
         }
         convertAssigns(patch, into: &sound)
         let regions = KatanaPatchRegion.all.map { KatanaTone.Region(region: $0.region, bytes: sound.image[$0.region] ?? []) }
@@ -140,13 +140,13 @@ nonisolated enum KatanaLegacyConverter {
         for slot in slots {
             var unsupported = [Bool](repeating: false, count: 3)
             for colour in 0..<3 {
-                guard let value = patch2[safe: slot.first + colour] else { continue }
-                guard let mapped = slot.types[safe: Int(value)] else { return false }
+                guard let value = patch2[katanaSafe: slot.first + colour] else { continue }
+                guard let mapped = slot.types[katanaSafe: Int(value)] else { return false }
                 unsupported[colour] = mapped < 0
                 sound.set(slot.regions[colour], 0, mapped < 0 ? slot.fallback : UInt8(mapped))
             }
-            if let switchIndex = slot.switchIndex, let selector = slot.selector, let shown = patch2[safe: 25 + selector],
-               unsupported[safe: Int(shown)] == true {
+            if let switchIndex = slot.switchIndex, let selector = slot.selector, let shown = patch2[katanaSafe: 25 + selector],
+               unsupported[katanaSafe: Int(shown)] == true {
                 sound.set(switches, switchIndex, 0)
             }
             if slot.switchIndex == nil {
@@ -160,9 +160,9 @@ nonisolated enum KatanaLegacyConverter {
         for (block, region) in [(KatanaMkIIBlock.knobAssign, UInt8(0x5C)), (.pedalAssign, 0x60)] {
             guard let source = patch.blocks[block] else { continue }
             for index in 0..<34 {
-                guard let value = source[safe: index] else { continue }
+                guard let value = source[katanaSafe: index] else { continue }
                 if let table = assignValues[index] {
-                    if let renumbered = table[safe: Int(value)] { sound.set(region, index, renumbered) }
+                    if let renumbered = table[katanaSafe: Int(value)] { sound.set(region, index, renumbered) }
                 } else {
                     sound.set(region, index, value)
                 }
@@ -196,20 +196,20 @@ nonisolated enum KatanaLegacyConverter {
 
         mutating func apply(_ move: Move, from source: [UInt8], to regions: [UInt8]) {
             if move.isWide {
-                guard let high = source[safe: move.src], let low = source[safe: move.src + 1] else { return }
+                guard let high = source[katanaSafe: move.src], let low = source[katanaSafe: move.src + 1] else { return }
                 let value = Int(high) << 7 | Int(low)
                 let nibbles = [value >> 12, value >> 8, value >> 4, value].map { UInt8($0 & 0xF) }
                 for region in regions { set(region, move.dst, bytes: nibbles) }
                 return
             }
             for step in 0..<move.count {
-                guard let byte = source[safe: move.src + step] else { return }
+                guard let byte = source[katanaSafe: move.src + step] else { return }
                 for region in regions { set(region, move.dst + step, byte) }
             }
         }
     }
 }
 
-private nonisolated extension Array {
-    subscript(safe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
+fileprivate nonisolated extension Array {
+    subscript(katanaSafe index: Int) -> Element? { indices.contains(index) ? self[index] : nil }
 }
