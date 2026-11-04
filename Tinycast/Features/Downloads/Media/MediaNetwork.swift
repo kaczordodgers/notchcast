@@ -2,7 +2,8 @@ import Foundation
 
 nonisolated enum MediaNetwork {
     static func expectedSize(_ json: String) -> Int64? {
-        guard let data = json.data(using: .utf8),
+        guard let start = json.split(whereSeparator: \.isNewline).first(where: { $0.hasPrefix("{") }),
+              let data = String(json[start.startIndex...]).data(using: .utf8),
               let info = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
         let formats = info["requested_formats"] as? [[String: Any]] ?? [info]
         guard !formats.isEmpty else { return nil }

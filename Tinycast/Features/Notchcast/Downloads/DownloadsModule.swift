@@ -23,12 +23,9 @@ final class DownloadsModule: NotchcastModule {
     func start() {
         state.start { [services, preferences, readInterfaces] queue in
             for format in [MediaArguments.Format.video, .audio] {
-                queue.register(NotchcastDownloadRunner(MediaDownloadRunner(format: format, networkDecision: {
-                    guard preferences.isOn(.torrentsUseIPhone) else {
-                        return NetMergePolicy.Decision(aria2Arguments: [], usesIPhone: false)
-                    }
-                    return NetMergePolicy.evaluate(interfaces: (try? readInterfaces()) ?? [],
-                                                   kind: .download, sizeBytes: .max, enabled: true)
+                queue.register(NotchcastDownloadRunner(MediaDownloadRunner(format: format, networkInterfaces: {
+                    guard preferences.isOn(.torrentsUseIPhone) else { return [] }
+                    return (try? readInterfaces()) ?? []
                 })) {
                     ["aria2Enabled": preferences.isOn(.downloadsAria2) ? "true" : "false"]
                 })

@@ -2,9 +2,7 @@ import Foundation
 
 struct MediaDownloadRunner: DownloadRunner {
     let format: MediaArguments.Format
-    var networkDecision: @MainActor @Sendable () -> NetMergePolicy.Decision = {
-        NetMergePolicy.Decision(aria2Arguments: [], usesIPhone: false)
-    }
+    var networkInterfaces: @MainActor @Sendable () -> [NetMergePolicy.Interface] = { [] }
     var kind: String { format == .video ? "video" : "audio" }
     var tools: [DownloadTool] { [.ytDlp, .ffmpeg] }
 
@@ -18,25 +16,18 @@ struct MediaDownloadRunner: DownloadRunner {
         }
         try FileManager.default.createDirectory(at: context.destination, withIntermediateDirectories: true)
         let aria2 = job.options["aria2Enabled"] != "false" ? context.tools.find(.aria2c)?.path : nil
-        var decision = aria2 != nil ? await networkDecision()
-            : NetMergePolicy.Decision(aria2Arguments: [], usesIPhone: false)
-        if decision.usesIPhone {
-            var size: Int64?
-            var arguments = MediaArguments.download(
-                source: job.source, destination: context.destination, format: format,
-                cookies: job.options["cookiesFromBrowser"])
-            if let printIndex = arguments.firstIndex(of: "--print") {
-                arguments.removeSubrange(printIndex...printIndex + 1)
-            }
-            arguments.insert(contentsOf: ["--simulate", "--dump-single-json", "--no-progress"],
-                             at: arguments.count - 2)
+        let interfaces = aria2 != nil ? await networkInterfaces() : []
+        var size: Int64?
+        if interfaces.contains(where: { $0.kind == .wifi && $0.hasIPv4 })
+            && interfaces.contains(where: { $0.kind == .iPhoneUSB && $0.hasIPv4 }) {
+            let arguments = MediaArguments.probe(source: job.source,
+                cookies: job.options["cookiesFromBrowser"], format: format)
             if let metadata = try? await context.spawn(executable: executable, arguments: arguments) {
                 size = MediaNetwork.expectedSize(metadata.output)
             }
-            if (size ?? 0) <= NetMergePolicy.bigDownloadBytes {
-                decision = NetMergePolicy.Decision(aria2Arguments: [], usesIPhone: false)
-            }
         }
+        let decision = NetMergePolicy.evaluate(interfaces: interfaces, kind: .download,
+                                               sizeBytes: size, enabled: true)
         try Task.checkCancellation()
         func attempt(aria2Path: String?, restart: Bool = false) async throws -> ChildProcess.Result {
             await context.reportNetwork(aria2Path != nil && decision.usesIPhone)

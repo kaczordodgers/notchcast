@@ -24,6 +24,13 @@ struct MediaNetworkTest {
         }
         let combined = #"{"requested_formats":[{"filesize":150000000},{"filesize_approx":60000000}]}"#
         assert(MediaNetwork.expectedSize(combined) == 210000000)
+        assert(MediaNetwork.expectedSize("[info] selected formats\n" + combined) == 210000000)
+        for format in [MediaArguments.Format.video, .audio] {
+            let probe = MediaArguments.probe(source: "file:///tmp/media.mp4", cookies: "firefox", format: format)
+            assert(probe.contains("--dump-single-json") && probe.contains("--simulate"))
+            assert(!probe.contains("--no-quiet") && !probe.contains("--progress"))
+            assert(probe.contains("firefox") && probe.suffix(2) == ["--", "file:///tmp/media.mp4"])
+        }
         assert(MediaNetwork.expectedSize(#"{"requested_formats":[{"filesize":300000000},{}]}"#) == nil)
         for (enabled, interfaces, size, probes, merged) in [
             (false, [wifi, phone], 300000000, 0, false),
@@ -55,7 +62,8 @@ struct MediaNetworkTest {
           shift
         done
         if [ "$probe" = true ]; then
-          echo probe >> "$dest/probes"
+          echo probe >> "\(root.path)/probes"
+          echo '[info] selected formats'
           echo '{"filesize":\(size)}'
         else
           echo "$args" > "$dest/arguments"
@@ -69,9 +77,7 @@ struct MediaNetworkTest {
             try FileManager.default.createSymbolicLink(at: root.appending(path: name), withDestinationURL: tool)
         }
         let lookup = DownloadToolLookup(directories: [root, URL(filePath: "/usr/bin"), URL(filePath: "/bin")])
-        let runner = MediaDownloadRunner(format: .video, networkDecision: {
-            NetMergePolicy.evaluate(interfaces: interfaces, kind: .download, sizeBytes: .max, enabled: enabled)
-        })
+        let runner = MediaDownloadRunner(format: .video, networkInterfaces: { enabled ? interfaces : [] })
         let job = DownloadJob(id: UUID().uuidString, kind: "video", source: "https://example.com/video",
                               title: "Video", state: .waiting, created: Date(), options: [:])
         _ = try await runner.run(job, context: DownloadRunContext(destination: root, tools: lookup))
