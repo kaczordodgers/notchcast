@@ -54,6 +54,7 @@ struct EditorOpenTests {
         coordinator.refreshCommands = { refreshes += 1 }
         coordinator.reportOpenFailure = {
             precondition($0 as? EditorFailure == .disabled)
+            precondition($0.localizedDescription == "The editor is turned off.")
             failures += 1
         }
         NotchcastCore.editor = coordinator

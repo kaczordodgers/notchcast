@@ -122996,6 +122996,66 @@
         }
       }
     },
+    "That file changed outside the editor." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diese Datei wurde außerhalb des Editors geändert." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ese archivo cambió fuera del editor." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ce fichier a été modifié en dehors de l’éditeur." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "このファイルはエディタの外部で変更されました。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이 파일이 편집기 외부에서 변경되었습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Esse arquivo foi alterado fora do editor." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Этот файл изменён вне редактора." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "该文件已在编辑器外被更改。" } }
+      }
+    },
+    "That file has unsaved changes." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diese Datei enthält nicht gesicherte Änderungen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ese archivo tiene cambios sin guardar." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ce fichier contient des modifications non enregistrées." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "このファイルには未保存の変更があります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이 파일에 저장되지 않은 변경 사항이 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Esse arquivo tem alterações não salvas." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "В этом файле есть несохранённые изменения." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "该文件有未保存的更改。" } }
+      }
+    },
+    "That file type can't be opened in the editor." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dieser Dateityp kann im Editor nicht geöffnet werden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ese tipo de archivo no se puede abrir en el editor." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ce type de fichier ne peut pas être ouvert dans l’éditeur." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "この種類のファイルはエディタで開けません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이 파일 형식은 편집기에서 열 수 없습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Esse tipo de arquivo não pode ser aberto no editor." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Файлы этого типа нельзя открыть в редакторе." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此文件类型无法在编辑器中打开。" } }
+      }
+    },
+    "The editor is still working on that file." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Der Editor arbeitet noch an dieser Datei." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El editor sigue trabajando en ese archivo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L’éditeur travaille encore sur ce fichier." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エディタはまだこのファイルを処理中です。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "편집기가 아직 이 파일을 처리하고 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "O editor ainda está trabalhando nesse arquivo." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Редактор ещё работает с этим файлом." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑器仍在处理该文件。" } }
+      }
+    },
+    "The editor is turned off." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Der Editor ist deaktiviert." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El editor está desactivado." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L’éditeur est désactivé." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エディタはオフになっています。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "편집기가 꺼져 있습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "O editor está desativado." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Редактор выключен." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "编辑器已关闭。" } }
+      }
+    },
     "That file could not be read." : {
       "localizations" : {
         "de" : {
