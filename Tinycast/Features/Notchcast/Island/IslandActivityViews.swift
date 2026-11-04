@@ -19,8 +19,12 @@ struct IslandActivityValue: View {
         HStack(spacing: Theme.Spacing.sm) {
             if let end = activity.endDate {
                 Text(end, style: .timer)
+                    .accessibilityLabel(Text(verbatim: ""))
+                    .accessibilityValue(Text(end, style: .timer))
             } else if let progress = activity.progress {
                 Text(progress, format: .percent.precision(.fractionLength(0)))
+                    .accessibilityLabel(Text(verbatim: ""))
+                    .accessibilityValue(Text(progress, format: .percent.precision(.fractionLength(0))))
             } else {
                 Text(activity.title).lineLimit(1)
             }
@@ -31,7 +35,6 @@ struct IslandActivityValue: View {
         }
         .font(Theme.Typography.rowTrailing)
         .monospacedDigit()
-        .accessibilityLabel(activity.title)
     }
 }
 
