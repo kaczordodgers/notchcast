@@ -23,6 +23,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
 }
 
 extension SettingsSearchCatalog {
@@ -66,7 +67,10 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
+        .init(.notchcastPaste, "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
     ]
 }

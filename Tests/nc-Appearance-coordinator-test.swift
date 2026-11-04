@@ -4,11 +4,11 @@
 // notchcast-sources: Tinycast/Features/Appearance/UI/ThemeImportDialog.swift
 // notchcast-sources: Tinycast/Windows/Dialog/DialogRequest.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import AppKit
 
-enum CommandID: Hashable { case theme }
 enum PaletteMode { case launcher, theme }
 enum AppURLScheme { static let current = "notchcast-fixture" }
 final class VolumeState {}
@@ -16,8 +16,8 @@ final class SnippetArgumentsState {}
 final class ClipboardEditState {}
 
 @MainActor final class AppIndex {
-    var visible = false
-    func setCommandsVisible(_ commands: Set<CommandID>, _ visible: Bool) { self.visible = visible }
+    var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
 }
 
 @MainActor final class PaletteState {
@@ -82,10 +82,10 @@ struct AppearanceCoordinatorTests {
         let controller = NotchcastModuleController(
             [.init(requires: [.appearance], module: coordinator)], preferences: preferences)
         controller.run()
-        precondition(core.appIndex.visible)
+        precondition(coordinator.isEnabled && core.appIndex.refreshes == 1)
         preferences.set(.island, false)
         await settle()
-        precondition(store.isEnabled && core.appIndex.visible)
+        precondition(store.isEnabled && coordinator.isEnabled && core.appIndex.refreshes == 1)
 
         let dark = RaycastThemeCatalog.all.first { $0.appearance == .dark }!
         let light = RaycastThemeCatalog.all.first { $0.appearance == .light }!
@@ -133,7 +133,8 @@ struct AppearanceCoordinatorTests {
         await settle()
         preferences.set(.appearance, false)
         await settle()
-        precondition(!store.isEnabled && !core.appIndex.visible && store.pendingImport == nil)
+        precondition(!store.isEnabled && !coordinator.isEnabled && store.pendingImport == nil)
+        precondition(core.appIndex.refreshes == 2)
         let count = core.messages.count
         core.answer(0)
         await settle()

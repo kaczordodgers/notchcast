@@ -1,14 +1,17 @@
 @MainActor
 enum NotchcastCore {
+    static let eventTapHub = EventTapHub()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
     static let brightness = DisplayBrightnessModule()
+    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: systemLevels, brightness: brightness)
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
-    static let eventTapHub = EventTapHub()
+    static let pasteImage = PasteImageModule(hub: eventTapHub)
+    static private(set) var pastePlain: PlainPasteModule?
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
@@ -24,6 +27,8 @@ enum NotchcastCore {
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
@@ -36,10 +41,13 @@ enum NotchcastCore {
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
+            .init(requires: [], module: levelKeys),
             .init(requires: [.quitProtection], module: quitProtectionModule),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
+            .init(requires: [.pastePlain], module: pastePlain),
+            .init(requires: [.pasteImage], module: pasteImage),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
