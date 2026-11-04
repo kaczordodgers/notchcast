@@ -77,7 +77,7 @@ final class NotchcastPreferences {
         versions[feature, default: 0] += 1
         if enabled { off.remove(feature) } else { off.insert(feature) }
         if [.keepAwake, .fanControl, .systemMonitor].contains(feature) { commandAvailabilityChanged?() }
-        if feature == .colorPicker || feature == .screenshot { onCommandsChanged?() }
+        onCommandsChanged?()
     }
 }
 
