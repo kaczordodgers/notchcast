@@ -27,4 +27,11 @@ enum IslandPage: Int, CaseIterable, Identifiable, Sendable {
     func landingPage(hasLiveActivities: Bool) -> Self {
         self == .home && !hasLiveActivities ? .day : self
     }
+
+    @MainActor func refresh(home: () async -> Void, day: () async -> Void) async {
+        switch self {
+        case .home: await home()
+        case .day: await day()
+        }
+    }
 }
