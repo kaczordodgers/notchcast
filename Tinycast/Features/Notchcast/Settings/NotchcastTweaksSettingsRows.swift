@@ -4,7 +4,7 @@ struct NotchcastTweaksSettingsRows: View {
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
-        ForEach(NotchcastFeature.allCases.filter(\.isSystemTweak), id: \.self) { feature in
+        ForEach(NotchcastFeature.systemToolsSettingsFeatures, id: \.self) { feature in
             Toggle(isOn: Binding(
                 get: { preferences.isOn(feature) },
                 set: { enabled in
@@ -20,7 +20,7 @@ struct NotchcastTweaksSettingsRows: View {
             }
             .settingsEnabled(SystemToolsHelperPolicy.available(feature))
             if feature == .startupItems, preferences.isOn(feature) {
-                List(NotchcastCore.systemTools.items, id: \.path) { item in
+                ForEach(NotchcastCore.systemTools.items, id: \.path) { item in
                     Toggle(item.label, isOn: Binding(
                         get: { item.disabled == false },
                         set: { enabled in

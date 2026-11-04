@@ -94,6 +94,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
+    var isWired: Bool {
+        ![Self.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices].contains(self)
+    }
+
+    static var systemToolsSettingsFeatures: [Self] {
+        [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
+         .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
+    }
+
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool { !isSystemTweak && self != .displayBrightness && self != .quitProtection }
 

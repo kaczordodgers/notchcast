@@ -21,6 +21,12 @@ struct SystemToolsStoreTests {
             precondition(!feature.needsIsland)
         }
         precondition(preferences.isOn(.island))
+        precondition(NotchcastFeature.systemToolsSettingsFeatures == [
+            .startupItems, .notificationCleanup, .sudoTouchID, .spotlightOff
+        ])
+        for feature in [NotchcastFeature.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices] {
+            precondition(!feature.isWired)
+        }
         precondition(NotchcastFeature.notificationCleanup.requiredGrants == [.accessibility])
         var effects: [Bool] = []
         let store = SystemToolsStore(preferences: preferences,

@@ -1,6 +1,8 @@
 // notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift Tinycast/Features/Tweaks/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/SystemTools/Model/*.swift Tinycast/Features/SystemTools/Service/*.swift
+// notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift Tinycast/Platform/ProcessExit.swift
 import Foundation
 
 @main
@@ -38,6 +40,21 @@ struct TweaksStoreTests {
             extraRevert: [FinderCatalog.library(home: URL(filePath: "/fixture"), hidden: true)])
         let decoded = try JSONDecoder().decode(TypingPreferencePlan.self, from: JSONEncoder().encode(library))
         precondition(decoded == library)
+        precondition(SystemToolsProcessRunner.allowedExecutables.contains("/bin/chflags"))
+        precondition(SystemToolsProcessRunner.allowedExecutables.contains("/usr/bin/killall"))
+        do {
+            _ = try SystemToolsProcessRunner().run("/untrusted/journal", arguments: [])
+            preconditionFailure("Untrusted executable accepted")
+        } catch SystemToolsProcessRunner.Failure.invalidExecutable {}
+        let timeout = TweaksStore(read: { _ in nil }, run: { _ in
+            throw SystemToolsProcessRunner.Failure.timedOut
+        }, save: { _ in })
+        timeout.start()
+        do {
+            try await timeout.set("timeout", writes: writes, on: true)
+            preconditionFailure("Expected timeout")
+        } catch SystemToolsProcessRunner.Failure.timedOut {}
+        precondition(!timeout.busy)
         print("8 passed, 0 failed")
     }
 }
