@@ -93,6 +93,7 @@ enum ForkSettingsBackupSchema {
         "monitorAlerts": .bool,
         "lowDiskWarning": .bool,
         "systemNotices": .bool,
+        "accessoryNotices": .bool,
         "volumeLevels": .bool,
         "displayBrightness": .bool,
         "quitProtection": .bool,
