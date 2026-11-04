@@ -90,6 +90,31 @@ struct OpenBotTests {
         let pending = try await client.pending(agent: "fixture-bot")
         precondition(pending.prompts.count == 2 && pending.approvals.count == 1 && pending.browserTakeovers.count == 1)
         precondition(pending.prompts[0].questions[0].question == "Pick a paper color")
+        for routines in ["", ",\"routines\":null"] {
+            let fixture = "[{\"id\":\"fixture-bot\",\"name\":\"Paper Kite\"\(routines)}]"
+            let decoded = try await service(FixtureTransport([(fixture, 200)])).agents()
+            precondition(decoded.count == 1 && decoded[0].routines.isEmpty)
+        }
+        for fixture in ["{}", #"{"prompts":null,"approvals":null,"browserTakeovers":null}"#] {
+            let decoded = try await service(FixtureTransport([(fixture, 200)])).pending(agent: "fixture-bot")
+            precondition(!decoded.isWaiting)
+        }
+        let tolerant = #"{"prompts":[{},{"questions":null},{"questions":[{}, {"question":null}]}]}"#
+        let decoded = try await service(FixtureTransport([(tolerant, 200)])).pending(agent: "fixture-bot")
+        precondition(decoded.prompts.count == 3 && decoded.isWaiting)
+        precondition(decoded.prompts[0].questions.isEmpty && decoded.prompts[1].questions.isEmpty)
+        precondition(decoded.prompts[2].questions.count == 2)
+        precondition(decoded.prompts[2].questions.allSatisfy { $0.question == nil })
+        for answer in ["null", "{}", "[]", "42", "true", #""Paper answer""#] {
+            let fixture = "{\"id\":\"fixture-delivery\",\"status\":\"completed\",\"answer\":\(answer)}"
+            let delivery = try await service(FixtureTransport([(fixture, 200)]))
+                .delivery(agent: "fixture-bot", id: "fixture-delivery")
+            precondition(delivery.answer == (answer == #""Paper answer""# ? "Paper answer" : nil))
+        }
+        await expectFailure(.malformed) { _ = try await service(FixtureTransport([("{}", 200)])).agents() }
+        await expectFailure(.malformed) {
+            _ = try await service(FixtureTransport([("[]", 200)])).pending(agent: "fixture-bot")
+        }
         for status in ["queued", "pending", "running", "completed", "failed", "interrupted", "cancelled", "future"] {
             let fixture = "{\"id\":\"fixture-delivery\",\"status\":\"\(status)\",\"answer\":null}"
             let delivery = try await service(FixtureTransport([(fixture, 200)]))
@@ -146,6 +171,27 @@ struct OpenBotTests {
         module.stop()
         try await Task.sleep(for: .milliseconds(150))
         precondition(module.agents.isEmpty && module.pending.isEmpty && module.failure == nil)
+        let pair = #"[{"id":"disabled","name":"Disabled"},{"id":"healthy","name":"Healthy"}]"#
+        let mixed = FixtureTransport([(pair, 200), ("{}", 403), (#"{"prompts":[{}]}"#, 200)])
+        var waitingCount: Int?
+        let partial = OpenBotAgentsModule(service: service(mixed), report: { count, failure in
+            waitingCount = count
+            precondition(failure == nil)
+        })
+        partial.start()
+        partial.start()
+        await partial.waitUntilIdle()
+        precondition(mixed.requests.withLock { $0.count } == 3)
+        precondition(partial.agents.count == 2 && partial.failure == nil)
+        precondition(partial.pending.values.filter(\.isWaiting).count == 1)
+        precondition(partial.pendingFailures == ["disabled": .forbidden])
+        mixed.responses.withLock { $0 = [(pair, 200), ("{}", 404), (#"{"approvals":[{}]}"#, 200)] }
+        partial.refresh(reportResult: true)
+        await partial.waitUntilIdle()
+        precondition(waitingCount == 1 && partial.agents.count == 2)
+        precondition(partial.pendingFailures == ["disabled": .missing])
+        partial.stop()
+        precondition(partial.pendingFailures.isEmpty)
         precondition(!NotchcastFeature.openBotAgents.defaultEnabled)
         precondition(NotchcastFeature.openBotAgents.isWired && !NotchcastFeature.openBotAgents.needsIsland)
         let commands = [OpenBotAgentsModule.refreshCommand]
@@ -157,5 +203,7 @@ struct OpenBotTests {
         print("PASS: agents, pending questions/counts, receipt, all delivery statuses and malformed JSON")
         print("PASS: HTTP errors, single 401 credential retry, loopback, body limit, UUIDs, token redaction and stop")
         print("PASS: switch defaults off, independent of island; shipped command gate removes command when off")
+        print("PASS: tolerant optional fields and non-string answers; wrong top-level types rejected")
+        print("PASS: double start; isolated 403/404 pending failures, both agents listed, waiting count 1")
     }
 }

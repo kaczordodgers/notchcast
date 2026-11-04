@@ -6,6 +6,7 @@ import Observation
 final class OpenBotAgentsModule {
     private(set) var agents: [OpenBotAgent] = []
     private(set) var pending: [String: OpenBotPending] = [:]
+    private(set) var pendingFailures: [String: OpenBotFailure] = [:]
     private(set) var failure: OpenBotFailure?
     private let service: OpenBotService
     private let report: (Int?, OpenBotFailure?) -> Void
@@ -20,6 +21,7 @@ final class OpenBotAgentsModule {
     }
 
     func start() {
+        guard !enabled else { return }
         enabled = true
         refresh()
     }
@@ -32,6 +34,7 @@ final class OpenBotAgentsModule {
         task = nil
         agents = []
         pending = [:]
+        pendingFailures = [:]
         failure = nil
     }
 
@@ -52,16 +55,28 @@ final class OpenBotAgentsModule {
                 do {
                     let agents = try await service.agents()
                     var pending: [String: OpenBotPending] = [:]
-                    for agent in agents { pending[agent.id] = try await service.pending(agent: agent.id) }
+                    var pendingFailures: [String: OpenBotFailure] = [:]
+                    for agent in agents {
+                        do {
+                            pending[agent.id] = try await service.pending(agent: agent.id)
+                        } catch is CancellationError {
+                            throw CancellationError()
+                        } catch {
+                            try Task.checkCancellation()
+                            pendingFailures[agent.id] = (error as? OpenBotFailure) ?? .unreachable
+                        }
+                    }
                     guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
                     self.agents = agents
                     self.pending = pending
+                    self.pendingFailures = pendingFailures
                     self.failure = nil
                     if reportResult { self.report(pending.values.filter(\.isWaiting).count, nil) }
                 } catch {
                     guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
                     self.agents = []
                     self.pending = [:]
+                    self.pendingFailures = [:]
                     self.failure = (error as? OpenBotFailure) ?? .unreachable
                     if reportResult { self.report(nil, self.failure) }
                 }

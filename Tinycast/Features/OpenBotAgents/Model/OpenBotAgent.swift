@@ -5,6 +5,15 @@ struct OpenBotAgent: Decodable, Sendable, Equatable {
     let name: String
     let routines: [Routine]
 
+    enum CodingKeys: String, CodingKey { case id, name, routines }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = (try? values.decode(String.self, forKey: .id)) ?? ""
+        name = (try? values.decode(String.self, forKey: .name)) ?? ""
+        routines = (try? values.decode([Routine].self, forKey: .routines)) ?? []
+    }
+
     struct Routine: Decodable, Sendable, Equatable {
         let id: String
         let name: String
@@ -15,14 +24,30 @@ struct OpenBotAgent: Decodable, Sendable, Equatable {
 struct OpenBotPending: Decodable, Sendable, Equatable {
     struct Prompt: Decodable, Sendable, Equatable {
         struct Question: Decodable, Sendable, Equatable {
-            let question: String
+            let question: String?
         }
         let questions: [Question]
+
+        enum CodingKeys: String, CodingKey { case questions }
+
+        init(from decoder: any Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            questions = (try? values.decode([Question].self, forKey: .questions)) ?? []
+        }
     }
     struct Item: Decodable, Sendable, Equatable {}
     let prompts: [Prompt]
     let approvals: [Item]
     let browserTakeovers: [Item]
+
+    enum CodingKeys: String, CodingKey { case prompts, approvals, browserTakeovers }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        prompts = (try? values.decode([Prompt].self, forKey: .prompts)) ?? []
+        approvals = (try? values.decode([Item].self, forKey: .approvals)) ?? []
+        browserTakeovers = (try? values.decode([Item].self, forKey: .browserTakeovers)) ?? []
+    }
     var isWaiting: Bool { !prompts.isEmpty || !approvals.isEmpty || !browserTakeovers.isEmpty }
 }
 
@@ -42,6 +67,18 @@ struct OpenBotDelivery: Decodable, Sendable, Equatable {
     let turnId: String?
     let error: String?
     let answer: String?
+
+    enum CodingKeys: String, CodingKey { case id, status, recipientAgentId, turnId, error, answer }
+
+    init(from decoder: any Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = (try? values.decode(String.self, forKey: .id)) ?? ""
+        status = (try? values.decode(Status.self, forKey: .status)) ?? .unknown
+        recipientAgentId = try? values.decode(String.self, forKey: .recipientAgentId)
+        turnId = try? values.decode(String.self, forKey: .turnId)
+        error = try? values.decode(String.self, forKey: .error)
+        answer = try? values.decode(String.self, forKey: .answer)
+    }
 }
 
 struct OpenBotReceipt: Decodable, Sendable {
