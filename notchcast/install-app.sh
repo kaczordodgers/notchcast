@@ -14,6 +14,12 @@ log() { printf '%s\n' "$*"; }
 FINAL='nothing (installation interrupted)'
 trap 'log "left running: $FINAL"' EXIT
 [[ "$WATCH" =~ ^[0-9]+$ ]] || { FINAL='nothing (invalid watch seconds)'; exit 2; }
+# One install at a time: a second one exits 75 and touches nothing.
+if [ -z "${NOTCHCAST_INSTALL_LOCKED:-}" ] && [ -d "${1:-}/Contents" ]; then
+    mkdir -p "$(dirname "$PREVIOUS")"
+    trap - EXIT
+    NOTCHCAST_INSTALL_LOCKED=1 exec lockf -k -t 0 "$(dirname "$PREVIOUS")/install.lock" "$0" "$@"
+fi
 [ "$#" = 1 ] && [ -d "$1/Contents" ] || { FINAL='nothing (usage: install-app.sh <new.app>)'; exit 2; }
 NEW_VERSION="$(version "$1")"
 trash() {
@@ -49,7 +55,8 @@ restart_agent() {
     launchctl kickstart -k "$AGENT" &
     client=$!
     while kill -0 "$client" 2>/dev/null; do
-        if (( SECONDS - start >= 15 )); then
+        # kickstart -k waits out the agent's ThrottleInterval and the old app's exit.
+        if (( SECONDS - start >= 45 )); then
             kill "$client" 2>/dev/null || true
             wait "$client" 2>/dev/null || true
             return 1
@@ -66,6 +73,8 @@ if [ -e "$APP" ]; then
     if [ -e "$PREVIOUS" ]; then trash "$PREVIOUS" "previous $(version "$PREVIOUS")"; fi
     mv "$APP" "$PREVIOUS"
     HAD_PREVIOUS=1
+elif [ -e "$PREVIOUS" ]; then
+    HAD_PREVIOUS=1
 fi
 if ditto "$1" "$APP"; then
     if [ "$LOADED" = 0 ]; then
@@ -79,16 +88,17 @@ if ditto "$1" "$APP"; then
 fi
 log "installation did not stay alive; restoring previous app"
 if [ -e "$APP" ]; then trash "$APP" "failed $NEW_VERSION"; fi
+# The agent stays loaded on every path: a bootout would keep the app down until the next login.
 if [ "$HAD_PREVIOUS" = 1 ]; then
     mv "$PREVIOUS" "$APP"
-    if [ "$LOADED" = 1 ] && restart_agent && watch_agent; then
+    if [ "$LOADED" = 0 ]; then
+        FINAL="nothing (agent is not loaded; restored $(version "$APP"))"
+    elif restart_agent && watch_agent; then
         FINAL="$(version "$APP") (previous)"
     else
-        if [ "$LOADED" = 1 ]; then launchctl bootout "$AGENT" || true; fi
-        FINAL='nothing (restored app did not stay alive or agent is not loaded; check skipped if unloaded)'
+        FINAL="nothing (restored $(version "$APP") did not stay alive)"
     fi
 else
-    if [ "$LOADED" = 1 ]; then launchctl bootout "$AGENT" || true; fi
     FINAL='nothing (no previous app to restore)'
 fi
 exit 1

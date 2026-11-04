@@ -167,9 +167,9 @@ jobs:
         if: steps.plan.outputs.tag != '' && steps.checks.outputs.green != 'true'
         env:
           TESTS: ${{ steps.tests.outcome }}
-          LINT: ${{ steps.checks.outcome }}
+          LINT_GREEN: ${{ steps.checks.outputs.green }}
         run: |
-          echo "::error::Snapshot not published: tests=$TESTS lint=$LINT"
+          echo "::error::Snapshot not published: tests=$TESTS lint-green=${LINT_GREEN:-false}"
           exit 1
       - name: Remove signing material
         if: always()

@@ -6,17 +6,19 @@
 # It replaces only the bundle, keeping one previous app for rollback; settings and data are never touched.
 # The in-app updater stays inert for app.notchcast (ReleaseChannel: development), so this is the update path.
 # Leads run notchcast/update.sh --install at each milestone end on both Macs, even with automatic updates off.
-# Usage: update.sh [--install] [--dry-run] (either order)
+# Usage: update.sh [--install] [--retry] [--dry-run] (any order)
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin"
 
 DRY=0
 INSTALL=0
+RETRY=0
 for arg in "$@"; do
     case "$arg" in
         --dry-run) DRY=1 ;;
         --install) INSTALL=1 ;;
-        *) echo "Usage: update.sh [--install] [--dry-run] (either order)" >&2; exit 2 ;;
+        --retry) RETRY=1 ;;
+        *) echo "Usage: update.sh [--install] [--retry] [--dry-run] (any order)" >&2; exit 2 ;;
     esac
 done
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -106,10 +108,10 @@ if [ "$CMP" = older ] || { [ "$CMP" = same ] && [ "$OURS" = 1 ]; }; then
     log "nothing to install: newest release $WANT, installed $INSTALLED ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
     exit 0
 fi
-# A release that failed its stay-alive check is not retried on a timer; only --install tries it again.
+# A release that failed its stay-alive check is not installed again until someone passes --retry.
 REFUSED="$HOME/Library/Application Support/notchcast/refused-release"
-if [ "$INSTALL" = 0 ] && [ "$(cat "$REFUSED" 2>/dev/null)" = "$WANT" ]; then
-    log "$WANT did not stay alive at its last install; run update.sh --install to try it again"
+if [ "$RETRY" = 0 ] && [ "$(cat "$REFUSED" 2>/dev/null)" = "$WANT" ]; then
+    log "$WANT did not stay alive at its last install; run update.sh --retry to try it again"
     exit 0
 fi
 log "installing $TAG over ${INSTALLED:-nothing} ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
@@ -128,7 +130,10 @@ codesign --verify --deep --strict "$NEW"
 [ "$(plist "$NEW" CFBundleShortVersionString)" = "$WANT" ] || { log "version mismatch; refusing"; exit 1; }
 [ "$(leaf_sha1 "$NEW")" = "$SIGN_SHA1" ] || { log "not signed by $SIGN_IDENTITY; refusing"; exit 1; }
 
-if ! "$HERE/install-app.sh" "$NEW"; then
+STATUS=0
+"$HERE/install-app.sh" "$NEW" || STATUS=$?
+if [ "$STATUS" = 75 ]; then log "another install is running; nothing changed"; exit 0; fi
+if [ "$STATUS" != 0 ]; then
     mkdir -p "$(dirname "$REFUSED")"
     echo "$WANT" > "$REFUSED"
     exit 1
