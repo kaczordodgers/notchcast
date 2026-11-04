@@ -10,7 +10,7 @@ exports and backups. Switches follow the existing Notchcast default of on.
 `NotchcastCore.colorPicker` owns `ColorPickerModule` and its native `ColorPickerService`.
 The switch enables on-demand sampling; disabling invalidates pending sampler output. Enabling never
 opens the sampler. The format picker persists the engine's six formats, with uppercase hex as default.
-`ColorPickerModule.pick(completion:)` is the gated action surface for later command wiring.
+Pick Color (`command:nc-pick-color`) invokes `ColorPickerModule.pick(completion:)` from the launcher.
 
 ## Screenshots
 
@@ -21,6 +21,8 @@ and caller cancellation propagates to the engine. No capture or permission promp
 The destination defaults to Clipboard. File and Clipboard and file enable a folder chooser, with Desktop
 as the engine's default folder. `ScreenshotModule.capture(_:)` accepts the engine's rectangle, window and
 display requests. Rectangle coordinates stay in global Quartz points with a top-left origin.
+Capture Screen (`command:nc-screenshot-display`) captures the display under the pointer to the selected
+destination. Both commands disappear when their switch is off and work with Island off.
 
 Screen Recording appears in the existing Notchcast permissions section while Screenshots is on.
 Its status is read without prompting; Open goes directly to macOS Privacy & Security because upstream's

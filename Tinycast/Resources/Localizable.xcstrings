@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Pick Color" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Farbe auswählen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elegir color" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Choisir une couleur" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "カラーを選択" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "색상 선택" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Escolher cor" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выбрать цвет" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选取颜色" } }
+      }
+    },
+    "Capture Screen" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bildschirm aufnehmen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Capturar pantalla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Capturer l’écran" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "画面をキャプチャ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "화면 캡처" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Capturar ecrã" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Снимок экрана" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "截取屏幕" } }
+      }
+    },
     "Screenshots" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Bildschirmfotos" } },
