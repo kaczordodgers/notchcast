@@ -7,6 +7,7 @@ while read -r _local_ref local_sha _remote_ref _remote_sha; do
         continue
     fi
     base="$(git merge-base "$local_sha" refs/remotes/upstream/main)"
+    python3 "$root/notchcast/check-commit-emails.py" "$base..$local_sha"
     "$root/notchcast/check-identity.sh" history "$base" "$local_sha"
     gitleaks git --log-opts="$base..$local_sha" --redact --no-banner --exit-code 1 .
 done
