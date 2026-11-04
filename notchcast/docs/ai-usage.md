@@ -1,0 +1,28 @@
+# AI usage and Mac link
+
+The `aiUsage`, `aiUsageOtherMac` and `machLink` switches default off. They do not depend on Island.
+The shared Notchcast Options list supplies their toggles; the Mac link section supplies pairing.
+The other-Mac switch is effective only while AI usage and Mac link are enabled.
+
+`AIUsageModule.refresh()` reads the local cache on demand. Starting a module does not read it, and
+there is no refresh timer. The provider accepts an injected directory and clock for fixture tests.
+`AIUsageSnapshotAdapter` projects provider windows into the peer engine's normalized wire readings;
+the wire representation intentionally carries no provider-specific display or reset metadata.
+
+`AIUsageLinkModule` owns the listener and browser. Switching Mac link off stops both and cancels
+incoming work. Incoming requests require both AI usage switches to remain enabled before returning a local
+snapshot. Outbound peer requests retain the engine's one-minute minimum interval.
+
+Enable Mac link on both Macs. Pair with an empty code on one Mac, then enter that code and Pair on
+the other. The code contains the shared authentication secret: transfer it privately. The app stores
+the secret in its bundle-scoped Keychain service and only its identifier in fork-local defaults.
+Unpair removes that secret. Pairing codes are never included in settings backups or logs.
+
+`Tests/notchcast-l5-ai-usage-wire-test.swift` covers default-off lifecycle, a fixture read, a missing
+peer, a real loopback peer response, child dependency changes and teardown. Physical two-Mac pairing
+and Settings rendering require integration verification.
+
+## Local network validation
+
+Local-network privacy may require `NSLocalNetworkUsageDescription` and `NSBonjourServices`.
+Verify discovery and pairing on two Macs before shipping; Info.plist changes are deferred.
