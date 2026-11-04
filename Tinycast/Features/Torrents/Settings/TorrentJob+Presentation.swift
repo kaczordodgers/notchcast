@@ -1,7 +1,15 @@
 import Foundation
 
 extension TorrentJob {
-    var displayName: String { name ?? String(localized: "Finding peers") }
+    var displayName: String {
+        if let name { return name }
+        if source.scheme?.lowercased() == "magnet" {
+            let displayName = URLComponents(url: source, resolvingAgainstBaseURL: false)?
+                .queryItems?.first(where: { $0.name == "dn" })?.value
+            return displayName.flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "Magnet link")
+        }
+        return source.lastPathComponent
+    }
 
     var progress: Double {
         guard bytesTotal > 0 else { return 0 }

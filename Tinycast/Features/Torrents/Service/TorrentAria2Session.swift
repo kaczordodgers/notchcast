@@ -11,6 +11,7 @@ import Foundation
     private var client: TorrentRPCClient?
 
     var processIdentifier: Int32? { process?.processIdentifier }
+    var isAlive: Bool { process?.isRunning == true }
 
     init(stateDirectory: URL, locator: any TorrentToolLocating = TorrentToolLocator()) {
         self.stateDirectory = stateDirectory
@@ -124,7 +125,7 @@ import Foundation
             "--auto-save-interval=1", "--seed-ratio=1.0", "--rpc-save-upload-metadata=false",
             "--dht-file-path=\(stateDirectory.appendingPathComponent("dht.dat").path)",
             "--dht-file-path6=\(stateDirectory.appendingPathComponent("dht6.dat").path)",
-            "--enable-rpc=true", "--rpc-listen-all=false", "--rpc-allow-origin-all=false",
+            "--enable-rpc=true", "--rpc-max-request-size=32M", "--rpc-listen-all=false", "--rpc-allow-origin-all=false",
             "--rpc-listen-port=\(port)", "--rpc-secret=\(secret)", "--disable-ipv6=true",
             "--stop-with-process=\(getpid())", "--daemon=false", "--quiet=true",
         ]

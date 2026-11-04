@@ -25,6 +25,9 @@ struct TorrentSettingsJobRow: View {
                     Button("Try Again") { module.tryAgain(job.id) }
                         .disabled(!module.preferences.isOn(.torrents) || !module.isRunning)
                 }
+                if !job.state.isRunning {
+                    Button("Dismiss") { module.manager.dismiss(job.id) }
+                }
                 // ai-design-check-ignore-next-line sentence-case -- Finder is the macOS app's name
                 Button("Show in Finder") { module.manager.reveal(job.id) }
             }

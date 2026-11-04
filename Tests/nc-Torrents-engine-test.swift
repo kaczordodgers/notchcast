@@ -12,6 +12,7 @@ import Foundation
 
 @main struct TorrentEngineTests {
     @MainActor final class FakeSession: TorrentSession {
+        var isAlive = false
         var starts = 0
         var stops = 0
         var arguments: [String] = []
@@ -21,6 +22,7 @@ import Foundation
         var statuses: [String: TorrentStatus] = [:]
         var failure: TorrentFailure?
         var rejectedHashes = Set<String>()
+        var vanishedGIDs = Set<String>()
         var addContinuation: CheckedContinuation<String, Never>?
         var suspendAdd = false
         var statusContinuation: CheckedContinuation<TorrentStatus, Never>?
@@ -29,6 +31,7 @@ import Foundation
         func start(extraArguments: [String]) async throws {
             if let failure { throw failure }
             starts += 1
+            isAlive = true
             arguments = extraArguments
         }
 
@@ -43,6 +46,7 @@ import Foundation
         }
 
         func status(_ gid: String) async throws -> TorrentStatus {
+            if vanishedGIDs.contains(gid) { throw TorrentFailure.rpc(code: 1, message: "GID not found") }
             if let failure { throw failure }
             if suspendStatus { return await withCheckedContinuation { statusContinuation = $0 } }
             return statuses[gid] ?? TorrentStatus(status: "removed")
@@ -50,10 +54,11 @@ import Foundation
 
         func remove(_ gid: String) async throws {
             removed.append(gid)
+            if vanishedGIDs.contains(gid) { throw TorrentFailure.rpc(code: 1, message: "GID not found") }
             statuses[gid] = TorrentStatus(status: "removed")
         }
 
-        func stop() async { stops += 1 }
+        func stop() async { stops += 1; isAlive = false }
         func terminate() {}
     }
 
@@ -89,8 +94,9 @@ import Foundation
     }
 
     @MainActor static func main() async throws {
-        let root = FileManager.default.temporaryDirectory
-            .appendingPathComponent(".torrent-engine-tests-\(UUID())")
+        let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
+            ?? FileManager.default.temporaryDirectory.path)
+            .appendingPathComponent("engine")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let data = torrent(name: "fixture.bin", payload: Data(repeating: 65, count: 32768))
@@ -133,6 +139,7 @@ import Foundation
     }
 
     @MainActor static func managerChecks(file: URL, magnet: URL, root: URL) async throws {
+        try Data([65]).write(to: root.appendingPathComponent("fixture.bin"))
         let session = FakeSession()
         var date = Date(timeIntervalSince1970: 0)
         var revealed: [URL] = []
@@ -175,6 +182,7 @@ import Foundation
         check(manager.jobs.last?.state == .cancelled, "Cancellation retained")
         let retry = manager.tryAgain(next[0])
         check(retry != nil && retry != next[0], "Retry gets fresh operation identity")
+        check(manager.jobs.count == 3, "Retry replaces its row")
         try await until("Retry admitted") { session.submissions.count == 3 }
         date = date.addingTimeInterval(599)
         try await Task.sleep(for: .milliseconds(40))
@@ -183,6 +191,8 @@ import Foundation
         try await until("Ten minutes without peers fails") { manager.jobs.last?.error == .noPeers }
         await manager.stop()
         check(manager.jobs[0].state == .finished, "Stop preserves completed values")
+        manager.dismiss(ids[0])
+        check(!manager.jobs.contains { $0.id == ids[0] }, "Dismiss removes terminal row")
     }
 
     @MainActor static func cancellationChecks(magnet: URL, root: URL) async throws {
@@ -201,12 +211,12 @@ import Foundation
         try await until("Retry after cancelled add") { session.submissions.count == 2 }
         session.suspendStatus = true
         try await until("Status suspended") { session.statusContinuation != nil }
-        manager.cancel(manager.jobs[1].id)
+        manager.cancel(manager.jobs[0].id)
         session.suspendStatus = false
         session.statusContinuation?.resume(returning: TorrentStatus(status: "complete"))
         session.statusContinuation = nil
         try await until("Late status cleaned up") { session.removed.contains("2") }
-        check(manager.jobs[1].state == .cancelled, "Late completion cannot resurrect cancellation")
+        check(manager.jobs[0].state == .cancelled, "Late completion cannot resurrect cancellation")
         await manager.stop()
     }
 
@@ -246,7 +256,18 @@ import Foundation
         try await until("One job cancels independently") { session.removed.contains("1") }
         check(manager.jobs[2].state.isRunning && session.stops == 0, "Child stays alive for remaining torrent")
         session.failure = .rpcUnavailable
-        try await until("Broken RPC fails remaining jobs") { manager.jobs[2].error == .rpcUnavailable }
+        try await Task.sleep(for: .milliseconds(100))
+        check(manager.jobs[2].state.isRunning && session.stops == 0, "Transport failures preserve living child and jobs")
+        session.failure = nil
+        session.vanishedGIDs.insert("2")
+        let fourth = URL(string: "magnet:?xt=urn:btih:" + String(repeating: "4", count: 40))!
+        manager.enqueue([fourth])
+        try await until("Vanished status fails only that job") { manager.jobs[2].state == .failed }
+        try await until("Benign remove race preserves other job") { session.removed.contains("2") }
+        check(manager.jobs[3].state.isRunning && session.stops == 0, "RPC job error preserves child")
+        session.failure = .rpcUnavailable
+        session.isAlive = false
+        try await until("Dead child fails remaining jobs") { manager.jobs[3].error == .rpcUnavailable }
         await manager.stop()
     }
 
@@ -271,6 +292,7 @@ import Foundation
             else if (message.method === 'aria2.badID') { reply.id = 'wrong'; reply.result = 'bad'; }
             else reply.result = message.params;
             response.setHeader('Content-Type', 'application/json');
+            if (reply.error) response.statusCode = 400;
             response.end(JSON.stringify(reply));
           });
         });
@@ -337,9 +359,18 @@ import Foundation
                        "--bt-exclude-tracker=*", "--interface=127.0.0.1"]
         let manager = TorrentManager(session: session, destination: destination, extraArguments: { offline },
                                      pollInterval: .milliseconds(100))
-        manager.enqueue([file])
+        var large = Data("d7:comment1600000:".utf8)
+        large.append(Data(repeating: 65, count: 1_600_000))
+        large.append(try Data(contentsOf: file).dropFirst())
+        let largeFile = root.appendingPathComponent("large.torrent")
+        try large.write(to: largeFile)
+        manager.enqueue([largeFile])
         try await until("Real loopback RPC finishes local torrent") { !manager.jobs[0].state.isRunning }
-        check(manager.jobs[0].state == .finished, "Real aria2 completion: \(String(describing: manager.jobs[0].error))")
+        check(manager.jobs[0].state == .finished,
+              "Real aria2 accepts 1.6 MB torrent: \(String(describing: manager.jobs[0].error))")
+        let quarantine = getxattr(destination.appendingPathComponent("fixture.bin").path,
+                                  "com.apple.quarantine", nil, 0, 0, 0)
+        check(quarantine > 0, "Completed local torrent is quarantined")
         try await until("Real child exits when idle") { session.processIdentifier == nil }
         let incomplete = root.appendingPathComponent("incomplete.torrent")
         try torrent(name: "incomplete.bin", payload: Data(repeating: 66, count: 65536)).write(to: incomplete)

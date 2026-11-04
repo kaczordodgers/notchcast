@@ -4,11 +4,7 @@ import SystemConfiguration
 
 @MainActor
 final class NetMergeInterfaceMonitor {
-    enum Failure: Error { case dynamicStoreUnavailable, notificationsUnavailable }
-
-    private var store: SCDynamicStore?
-    private var source: CFRunLoopSource?
-    private var onChange: (() -> Void)?
+    enum Failure: Error { case dynamicStoreUnavailable }
 
     func readInterfaces() throws -> [NetMergePolicy.Interface] {
         guard let store = SCDynamicStoreCreate(nil, "NetMergeRead" as CFString, nil, nil),
@@ -31,35 +27,6 @@ final class NetMergeInterfaceMonitor {
         }
     }
 
-    func start(onChange: @escaping () -> Void) throws {
-        stop()
-        var context = SCDynamicStoreContext(
-            version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
-            retain: nil, release: nil, copyDescription: nil
-        )
-        guard let store = SCDynamicStoreCreate(nil, "NetMergeChanges" as CFString, { _, _, context in
-            guard let context else { return }
-            MainActor.assumeIsolated {
-                Unmanaged<NetMergeInterfaceMonitor>.fromOpaque(context).takeUnretainedValue().onChange?()
-            }
-        }, &context) else { throw Failure.dynamicStoreUnavailable }
-        let patterns = ["State:/Network/Interface/[^/]+/IPv4", "Setup:/Network/.*"]
-        guard SCDynamicStoreSetNotificationKeys(store, nil, patterns as CFArray),
-              let source = SCDynamicStoreCreateRunLoopSource(nil, store, 0)
-        else { throw Failure.notificationsUnavailable }
-        self.store = store
-        self.source = source
-        self.onChange = onChange
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
-    }
-
-    func stop() {
-        if let source { CFRunLoopSourceInvalidate(source) }
-        source = nil
-        store = nil
-        onChange = nil
-    }
-
     static func isIPhoneUSB(_ hardwarePort: String) -> Bool {
         let words = hardwarePort.lowercased().split { !$0.isLetter && !$0.isNumber }
         return words.contains("iphone") && words.contains("usb")
@@ -72,7 +39,4 @@ final class NetMergeInterfaceMonitor {
         return value != 0 && value >> 24 != 127 && value >> 16 != 0xA9FE && value >> 24 < 224
     }
 
-    isolated deinit {
-        if let source { CFRunLoopSourceInvalidate(source) }
-    }
 }
