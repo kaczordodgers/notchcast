@@ -52,7 +52,7 @@ enum ScreenTextService {
         var request = RecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
-        request.recognitionLanguages = [Locale.Language(identifier: "pl-PL"), Locale.Language(identifier: "en-US")]
+        request.automaticallyDetectsLanguage = true
         let observations = try await request.perform(on: image)
         try Task.checkCancellation()
         var content = ""
