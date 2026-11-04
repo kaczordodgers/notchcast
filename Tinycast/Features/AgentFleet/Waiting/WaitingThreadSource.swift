@@ -12,9 +12,9 @@ struct WaitingThread: Hashable, Sendable {
 
     static func leadReport(id: String, text: String) -> Self? {
         let kind: Kind
-        if text.hasPrefix("QUESTION:") { kind = .question }
-        else if text.hasPrefix("BLOCKED:") { kind = .blocked }
-        else { return nil }
+        if text.hasPrefix("QUESTION:") { kind = .question } else if text.hasPrefix("BLOCKED:") {
+            kind = .blocked
+        } else { return nil }
         let body = text.dropFirst(kind == .question ? 9 : 8)
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !body.isEmpty else { return nil }
