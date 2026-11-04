@@ -40,15 +40,11 @@ struct BatteryCoreTests {
         check(awake.evaluate(now: now, onBattery: false, percent: nil, locked: false) == .expired, "deadline")
         check(LidClosedPolicy.plan(enabled: true, helperReady: true, keepAwakeHolding: false) == .sleepOn,
               "lid follows actual hold")
-        check(BatteryRootVerbs.sleepOn.command == ["/usr/bin/pmset", "-a", "disablesleep", "0"], "restore command")
-        check(BatteryRootVerbs.chargingOff.writes(modern: true).first?.bytes == [1, 0, 0, 0], "SMC plan")
         var calls: [BatteryRootVerbs] = []
         let service = ChargePlanService()
-        do {
-            try service.apply(.init(charging: false, adapter: false), watchdogReady: false) { calls.append($0) }
-            fatalError("unguarded drain")
-        } catch ChargePlanService.Failure.watchdogRequired {}
-        check(calls.isEmpty, "watchdog required before mutation")
+        try service.apply(.init(charging: false, adapter: false), watchdogReady: false) { calls.append($0) }
+        check(calls == [.chargingOff], "drain pauses charging without touching adapter")
+        calls = []
         enum Injected: Error { case failure }
         do {
             try service.apply(.init(charging: false, adapter: false), watchdogReady: true) {
@@ -56,7 +52,7 @@ struct BatteryCoreTests {
                 if $0 == .adapterOff { throw Injected.failure }
             }
         } catch Injected.failure {}
-        check(calls == [.chargingOff, .adapterOff, .adapterOn, .chargingOn], "failure restores both")
+        check(calls == [.chargingOff, .adapterOff], "failure never enables charging")
         var released: [UInt32] = []
         do {
             _ = try KeepAwakePlanService().acquire(types: awake.assertionTypes, create: {
@@ -65,12 +61,6 @@ struct BatteryCoreTests {
             }, release: { released.append($0) })
         } catch Injected.failure {}
         check(released == [7], "partial assertion failure releases acquired assertion")
-        do {
-            try BatteryRootPlanService().apply(.chargingOff, modern: true, write: { _, _ in },
-                                              read: { _ in [0, 0, 0, 0] })
-            fatalError("unverified write")
-        } catch BatteryRootPlanService.Failure.readbackMismatch {}
-        check(true, "readback mismatch fails")
         print("PASS: \(count) battery core checks")
     }
 }

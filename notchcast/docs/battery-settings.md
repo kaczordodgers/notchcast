@@ -11,9 +11,12 @@ preference changes. Its injected runner owns helper commands and power assertion
 Keep Awake or quitting releases its assertions. The duration starts when Keep Awake is enabled
 and resets if its duration changes; expiration leaves the switch on without renewing the hold.
 
-Battery helper operations require all six `battery-*` verbs in `RootContract.Command`. Until
-then, battery rows show “Needs the Notchcast helper update” and issue no helper commands.
-Adapter disconnection additionally requires a helper watchdog; sailing and calibration drain
-plans stay unapplied until that capability is wired. Keep Awake uses no root helper.
+Battery helper operations require installed helper version 2 or later and the corresponding
+`battery-*` commands in the app contract. The installed version is refreshed at module start
+and when the settings section appears. Older helpers show “Needs the Notchcast helper update”
+and receive no battery commands. Until a watchdog is available, sailing and calibration drain
+plans pause charging without disconnecting the adapter. Failed writes preserve the last applied
+state and show their error in Settings. Repeated evaluations skip unchanged root state.
+Keep Awake uses no root helper.
 
 `Tests/nc-Battery-store-test.swift` uses fake readings, assertions and commands exclusively.

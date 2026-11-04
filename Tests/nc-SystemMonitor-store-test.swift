@@ -92,6 +92,17 @@ struct MonitorStoreTests {
         cancelled.set(.medium)
         await cancelled.waitUntilIdle()
         precondition(cancelled.mode == .auto)
+        let restored = FakeFans()
+        let fans = FanControl(runner: { try await restored.run($0) })
+        fans.restore()
+        await fans.waitUntilIdle()
+        precondition(restored.calls.isEmpty)
+        fans.set(.max)
+        await fans.waitUntilIdle()
+        fans.restore()
+        fans.restore()
+        await fans.waitUntilIdle()
+        precondition(restored.calls == [.fansMax, .fansAuto])
         print("PASS: demand counts, serialized latest request, restore after timeout/failure/cancellation and shutdown")
     }
 }

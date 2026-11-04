@@ -31,7 +31,7 @@ struct BatteryStoreTests {
         var reading = BatteryReading.decode(properties: ["CurrentCapacity": 90, "MaxCapacity": 100,
                                                         "ExternalConnected": true])
         let module = BatteryModule(preferences: preferences, runner: .init(read: { reading },
-            root: { _ in rootCalls += 1 }, create: { _ in
+            root: { _ in rootCalls += 1 }, installed: { true }, version: { "1" }, create: { _ in
             created += 1
             return UInt32(created)
         }, release: { released.append($0) }))
@@ -40,7 +40,7 @@ struct BatteryStoreTests {
         module.start()
         await module.evaluate(now: .now)
         precondition(created == 2)
-        precondition(BatteryModule.needsHelperUpdate && rootCalls == 0)
+        precondition(module.needsHelperUpdate && rootCalls == 0)
         preferences.set(.keepAwake, false)
         await module.evaluate(now: .now)
         precondition(released.sorted() == [1, 2])
@@ -52,6 +52,32 @@ struct BatteryStoreTests {
         await module.waitUntilIdle()
         precondition(released.sorted() == [1, 2, 3, 4])
         precondition(rootCalls == 0)
+        var calls: [BatteryRootVerbs] = []
+        var fail = false
+        let modern = BatteryModule(preferences: preferences, runner: .init(read: {
+            BatteryReading.decode(properties: ["CurrentCapacity": 85, "MaxCapacity": 100,
+                                               "ExternalConnected": true])
+        }, root: {
+            calls.append($0)
+            if fail { throw RootHelperClient.Failure.timedOut }
+        }, installed: { true }, version: { "2" }, create: { _ in 99 }, release: { _ in }))
+        preferences.set(.keepAwake, false)
+        preferences.set(.batterySailing, true)
+        preferences.batteryChargePercent = 80
+        modern.start()
+        for _ in 0..<100 { await Task.yield() }
+        await modern.evaluate(now: .now)
+        precondition(!modern.needsHelperUpdate && calls == [.chargingOff])
+        await modern.evaluate(now: .now)
+        precondition(calls == [.chargingOff])
+        preferences.set(.lidClosedAwake, true)
+        preferences.set(.keepAwake, true)
+        fail = true
+        calls = []
+        await modern.evaluate(now: .now)
+        precondition(modern.failure != nil && calls == [.sleepOff])
+        modern.stop()
+        await modern.waitUntilIdle()
         print("PASS: default-off switches, option bounds, missing verbs no-op, switch-off and quit release")
     }
 }
