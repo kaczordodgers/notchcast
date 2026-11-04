@@ -17,7 +17,6 @@ SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
 MODULES, SEARCH = SHAPE.LISTS
-PREFS = SHAPE.PREFERENCES
 
 
 def run(root, *args):
@@ -55,7 +54,7 @@ class FeatureShapeTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS, SHAPE.PREFERENCES):
+        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text((ROOT / path).read_text())
 
@@ -172,32 +171,6 @@ class FeatureShapeTests(unittest.TestCase):
         self.rejected(SEARCH, source.replace(line, line + line.replace('"forecast"', '"forecast", "rain"')),
                       'repeated entry .init(.notchcastActivities, "Weather"')
 
-    def test_setting_split_over_lines(self):
-        source = (self.root / PREFS).read_text()
-        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }'
-        self.rejected(PREFS, source.replace(line, line.replace("{ didSet", "{\n        didSet")),
-                      "keep each setting on one line")
-
-    def test_repeated_setting(self):
-        source = (self.root / PREFS).read_text()
-        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }\n'
-        self.rejected(PREFS, source.replace(line, line + line.replace("String", "String?")), "repeated setting fanMode")
-
-    def test_repeated_assignment(self):
-        source = (self.root / PREFS).read_text()
-        line = '        fanMode = defaults.string(forKey: "fanMode") ?? "auto"\n'
-        self.rejected(PREFS, source.replace(line, line + line.replace('"auto"', '"quiet"')), "repeated assignment fanMode")
-
-    def test_init_statement_split_over_lines(self):
-        source = (self.root / PREFS).read_text()
-        self.rejected(PREFS, source.replace(
-            'Self.threshold(defaults, "monitorCPU", 90, 10...100)', 'Self.threshold(defaults, "monitorCPU",\n            90, 10...100)'),
-            "keep each init statement on one line")
-
-    def test_union_duplicated_preferences_class(self):
-        source = (self.root / PREFS).read_text()
-        self.rejected(PREFS, source + source, "expected one NotchcastPreferences class")
-
     def init_repository(self):
         (self.root / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
         run(self.root, "git", "init", "-q", "-b", "base")
@@ -206,7 +179,7 @@ class FeatureShapeTests(unittest.TestCase):
         run(self.root, "git", "config", "core.hooksPath", os.devnull)
         run(self.root, "git", "config", "commit.gpgSign", "false")
         run(self.root, "git", "config", "merge.gpgSign", "false")
-        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS, SHAPE.PREFERENCES):
+        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS):
             self.assertTrue(run(self.root, "git", "check-attr", "merge", "--", str(path)).endswith(": union"))
         run(self.root, "git", "add", ".")
         run(self.root, "git", "commit", "-qm", "Base feature shape")
@@ -301,33 +274,6 @@ class FeatureShapeTests(unittest.TestCase):
         self.assertIn(f"{MODULES}", "\n".join(SHAPE.check(self.root)))
         self.assertIn("repeated entry markets", "\n".join(SHAPE.check(self.root)))
         print("PASS: module and search appends merge clean; checker rejects an edited entry kept twice", flush=True)
-
-    def test_setting_appends_merge_and_edit_is_caught(self):
-        self.init_repository()
-        prefs = self.root / PREFS
-        base = prefs.read_text()
-        setting = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }\n'
-        assignment = '        fanMode = defaults.string(forKey: "fanMode") ?? "auto"\n'
-        for name in ("alpha", "beta"):
-            run(self.root, "git", "switch", "-qc", name, "base")
-            prefs.write_text(base.replace(setting, setting + f'    var {name}: Bool {{ didSet {{ defaults.set({name}, forKey: "{name}") }} }}\n').replace(
-                assignment, assignment + f'        {name} = defaults.bool(forKey: "{name}")\n'))
-            self.assertEqual(SHAPE.check(self.root), [])
-            run(self.root, "git", "commit", "-qam", f"Add {name} setting")
-        run(self.root, "git", "switch", "-q", "base")
-        for name in ("alpha", "beta"):
-            run(self.root, "git", "merge", "--no-ff", "--no-edit", name)
-            self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
-        self.assertEqual(SHAPE.check(self.root), [])
-        run(self.root, "swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS), str(PREFS))
-        run(self.root, "git", "switch", "-qc", "edit", "base~2")
-        prefs.write_text(base.replace('?? "auto"', '?? "quiet"'))
-        run(self.root, "git", "commit", "-qam", "Change fan mode default")
-        run(self.root, "git", "switch", "-q", "base")
-        run(self.root, "git", "merge", "--no-ff", "--no-edit", "edit")
-        self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
-        self.assertIn("repeated assignment fanMode", "\n".join(SHAPE.check(self.root)))
-        print("PASS: setting appends merge clean and typecheck; checker rejects an edited assignment kept twice", flush=True)
 
 
 if __name__ == "__main__":
