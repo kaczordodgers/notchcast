@@ -10,12 +10,15 @@ final class OpenBotAgentsModule {
     private(set) var failure: OpenBotFailure?
     private let service: OpenBotService
     private let report: (Int?, OpenBotFailure?) -> Void
+    private let pollInterval: Duration
     private var enabled = false
     private var active = false
     private var operation = UUID()
     @ObservationIgnored private var task: Task<Void, Never>?
 
-    init(service: OpenBotService = .init(), report: @escaping (Int?, OpenBotFailure?) -> Void = { _, _ in }) {
+    init(service: OpenBotService = .init(), pollInterval: Duration = .seconds(30),
+         report: @escaping (Int?, OpenBotFailure?) -> Void = { _, _ in }) {
+        self.pollInterval = pollInterval
         self.service = service
         self.report = report
     }
@@ -49,7 +52,7 @@ final class OpenBotAgentsModule {
         task?.cancel()
         operation = UUID()
         let identity = operation
-        let service = service
+        let service = service, pollInterval = pollInterval
         task = Task { [weak self] in
             var reportResult = reportResult
             repeat {
@@ -83,7 +86,7 @@ final class OpenBotAgentsModule {
                 }
                 reportResult = false
                 guard let self, self.active else { return }
-                do { try await Task.sleep(for: .seconds(30)) } catch { return }
+                do { try await Task.sleep(for: pollInterval) } catch { return }
             } while !Task.isCancelled
         }
     }

@@ -212,7 +212,7 @@ struct OpenBotTests {
         }
         let polling = FixtureTransport([(bots, 200), (empty, 200), (bots, 200), (empty, 200)])
         var reports = 0
-        let active = OpenBotAgentsModule(service: service(polling), report: { count, failure in
+        let active = OpenBotAgentsModule(service: service(polling), pollInterval: .milliseconds(300), report: { count, failure in
             reports += 1
             precondition(count == 0 && failure == nil)
         })
@@ -224,7 +224,7 @@ struct OpenBotTests {
         polling.requests.withLock { $0 = [] }
         polling.responses.withLock { $0 = [(bots, 200), (empty, 200), (bots, 200), (empty, 200)] }
         active.refresh(reportResult: true)
-        let deadline = ContinuousClock.now + .seconds(40)
+        let deadline = ContinuousClock.now + .seconds(5)
         while polling.requests.withLock({ $0.count < 4 }), ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(100))
         }
