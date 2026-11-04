@@ -28,7 +28,10 @@ struct DictationFieldTest {
         let fixture = Fixture()
         Paster.copies = []
         DictationCoordinator.englishTranscriptStage = { _, _ in "Send the report." }
-        defer { DictationCoordinator.englishTranscriptStage = nil }
+        defer {
+            DictationCoordinator.englishTranscriptStage = nil
+            Paster.copies = []
+        }
         fixture.coordinator.triggerStarted(inEnglish: true)
         try await wait { fixture.capture.isRecording }
         fixture.coordinator.triggerFinished()
