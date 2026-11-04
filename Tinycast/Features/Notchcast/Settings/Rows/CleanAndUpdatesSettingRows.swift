@@ -64,12 +64,6 @@ struct NotchcastCleanActionsSettingRow: View {
 struct NotchcastCleaningModeSettingRow: View {
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { _ in
-            if NotchcastCore.cleaning.remaining > 0 {
-                Text(Duration.seconds(NotchcastCore.cleaning.remaining), format: .units())
-            }
-        }
-        Text("Media keys still work.")
         if NotchcastCore.cleaning.needsGrant {
             Text("Accessibility permission is required to start cleaning mode.")
         }

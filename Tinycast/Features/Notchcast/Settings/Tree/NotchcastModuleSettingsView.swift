@@ -58,17 +58,15 @@ private struct NotchcastModuleFeatureRows: View {
                 Text(feature.subtitle)
             }
             switch feature {
-            case .typingTweaks, .iPhoneBackupTweaks:
-                Text("Changes system preferences after confirmation; some changes require signing out.")
-            case .finderTweaks:
-                Text("Changes Finder preferences and restarts Finder after confirmation.")
-                Text("Changes system preferences after confirmation; some changes require signing out.")
             case .dockTweaks:
-                Text("Changes Dock preferences and restarts Dock after confirmation.")
-                Text("Changes system preferences after confirmation; some changes require signing out.")
                 Text("Changes screenshot preferences and restarts SystemUIServer after confirmation.")
-            case .appleAppsTweaks:
-                Text("macOS requires your approval to install this restriction; remove it in System Settings.")
+            case .cleaningMode:
+                Text("Media keys still work.")
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    if NotchcastCore.cleaning.remaining > 0 {
+                        Text("\(Duration.seconds(NotchcastCore.cleaning.remaining).formatted(.units())) left")
+                    }
+                }
             case .cleanAIData:
                 Text("Codex and OpenCode are report-only.")
             default: EmptyView()
