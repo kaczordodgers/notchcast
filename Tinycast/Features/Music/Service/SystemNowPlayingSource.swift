@@ -17,6 +17,7 @@ final class SystemNowPlayingSource: NowPlayingSource {
 
     private(set) var state: State = .stopped
     private(set) var commandFailure: NowPlayingAdapterReply.Failure?
+    var onCommandFailure: (@MainActor () -> Void)?
     private var onChange: (@MainActor () -> Void)?
     private var playback: NowPlaying?
     private var pid: Int32 = 0
@@ -95,6 +96,7 @@ final class SystemNowPlayingSource: NowPlayingSource {
             data.append(10)
             try connection.write(data)
         } catch {
+            receiveCommand(sent: false)
             fail(.commandRejected)
         }
     }
@@ -165,12 +167,17 @@ final class SystemNowPlayingSource: NowPlayingSource {
         case .playback(let next, let pid): playback = next; self.pid = pid
         case .idle: playback = nil; pid = 0
         case .command(let sent):
-            commandFailure = sent ? nil : .commandRejected
+            receiveCommand(sent: sent)
             onChange?()
             return
         }
         state = .watching
         onChange?()
+    }
+
+    func receiveCommand(sent: Bool) {
+        commandFailure = sent ? nil : .commandRejected
+        if !sent { onCommandFailure?() }
     }
 
     private func fail(_ failure: NowPlayingAdapterReply.Failure) {
