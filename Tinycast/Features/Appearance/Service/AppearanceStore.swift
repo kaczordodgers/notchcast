@@ -99,6 +99,12 @@ final class AppearanceStore {
         imported = next
     }
 
+    func replaceImported(_ themes: [RaycastTheme]) throws {
+        guard themes.allSatisfy(\.isValid) else { throw RaycastTheme.ValidationError.invalidTheme }
+        defaults.set(try JSONEncoder().encode(themes), forKey: Self.importedKey)
+        imported = themes
+    }
+
     func install(_ theme: RaycastTheme) throws {
         try add(theme)
         try select(theme, for: theme.appearance)
