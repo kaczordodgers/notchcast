@@ -28,12 +28,92 @@ Deleting a task deletes its descendants. Moving it moves its descendants to the 
 - `func close() throws`
 - Read-only `state`, `directory`, `loadWarnings`, computed `canUndo`, and `static let schemaVersion`.
 
-Opening replays the log off the main actor and follows caller cancellation. Short writes remain synchronous to preserve command ordering. Each record contains `schemaVersion`, `command` and `isUndo`; undo records replay the inverse and consume one history entry, so undo remains available after reload. An append is synchronized before observable state changes. If writing fails, rollback truncates only the failed append; rollback failure blocks subsequent writes.
+Opening replays the log off the main actor and follows caller cancellation. Short writes remain synchronous to preserve command ordering. Each local record contains `schemaVersion`, `command`, `isUndo` and an `envelope`; undo records replay the inverse and consume one history entry, so undo remains available after reload. A receive record holds one atomic `received` envelope batch. An append is synchronized before observable state changes. If writing fails, rollback truncates only the failed append; rollback failure blocks subsequent writes.
 
 An unterminated last record is reported through `LoadWarning.tornLastLine(line:)` and removed before further appends. Newline marks a committed record. A malformed committed record, an invalid replay command or an unsupported schema fails loading without changing the file. The module reports load failures and recovered tails through the app's HUD. There are no snapshots or schema migrations yet.
 
 The application owns one active store for this directory. `close()` disables further writes even if another caller retains the store. Modules expose `init(directory:showFailure:)`, `start()`, `stop()`, `store` and `directory`; callers should use the services-owned module rather than open a competing writer.
 
+## Replication
+
+`TodoReplication(replicaID:)` is the pure replication state. `perform(_:)` validates the command and
+returns its inverse, while recording a `TodoEnvelope` containing the replica ID, per-replica sequence,
+Lamport timestamp, command and before/after changes for affected records. No wall clock is used.
+The store persists its generated UUID replica identity in `replica-id` beside the log. This directory
+is one replica's data; copying a live directory to another writer also copies its identity and is not
+a way to initialize a second replica. Initialize another store and exchange envelopes instead.
+
+`TodoReplication.merge(local:remote:) throws -> TodoReplication` unions envelope identities and
+replays their changes in ascending `(timestamp, replicaID, sequence)` order. Re-delivery is idempotent;
+different payloads for one identity fail with `TodoReplicationError.conflictingEnvelope`. A new local
+command advances beyond the greatest observed Lamport timestamp. Old records without envelopes are
+assigned the local replica ID, sequence and Lamport time in log order. Their bytes remain untouched.
+
+Last write wins applies independently to task title, description, due (the entire `Due` value),
+priority, labels (the entire list), location (project/section/parent together), and completed status
+(`completedAt`). Order, external reference and claim marker are additional independent fields.
+Only changed fields participate: a stale full-task update does not overwrite unrelated newer fields.
+Comments merge by immutable comment ID, retaining concurrent additions; conflicting changes to one
+comment use the same envelope ordering. Project, section, label and filter properties also merge
+independently. Batches and cascades record their complete resulting changes under one timestamp.
+
+A delete removes its record even after earlier edits; a later edit to an absent record is ignored.
+Only an explicit add (including undo of deletion) restores that ID. Tasks under a deleted project or
+missing parent are omitted; a deleted section clears a task's section, and deleted labels are removed
+from its labels. Concurrent parent cycles detach the repeated node's parent edge during a sorted-ID traversal;
+children inherit their surviving root's project and section. These rules repair relationships after
+merging so command validation remains true. All envelopes remain available for a later missing
+dependency to arrive; an incomplete exchange never destroys its pending edits.
+
+`vectorClock` exposes the greatest contiguous received sequence for each replica, rather than the
+greatest observed sequence. `envelopes(after:)` returns everything beyond those prefixes, including
+already-received envelopes beyond a gap. A later exchange fills the gap without skipping edits.
+`TodoStore.receive(_:)` durably appends a validated batch before publishing its merged state. A receive
+containing new envelopes clears local undo history, since inverses could overwrite remote work;
+duplicate-only delivery leaves history unchanged. `replication` is a read-only store snapshot.
+
+`@MainActor TodoSyncTransport` defines `send(_:) throws` and `receive() throws -> [TodoEnvelope]`.
+`TodoFakeSyncTransport.pair()` supplies two in-memory, explicitly owned endpoints; receive drains its
+inbox and sending after the peer has been released throws `disconnected`. Callers exchange vector
+clocks separately and send `replication.envelopes(after: peerClock)`. There is no real transport,
+socket, process, host address, authentication or connection lifecycle in this pack. Future peers come
+from user settings, and the integrating owner must gate that capability.
+
+## Agent requests
+
+`TodoAgentRequest`, `TodoAgentResponse`, `TodoAgentClaim` and `TodoAgentError` are Codable, Equatable,
+Sendable values. Requests support list (optional filter query and section ID), claim, comment, move,
+complete, release and releaseExpired. A task's optional `claim` is an assignee-free marker containing
+agent name, claim/activity dates and its previous section. Older task JSON decodes without it.
+
+`TodoAgentAPI.plan(_:state:now:calendar:staleAfterMinutes:makeID:) throws(TodoAgentError)` returns a
+`TodoAgentPlan` with an atomic command and response. The caller supplies the clock, calendar/time
+zone, timeout and comment-ID generator. `TodoStore.request(_:now:calendar:staleAfterMinutes:makeID:)`
+plans and persists through the normal command path. Pure callers apply the plan's command themselves.
+Failed planning changes nothing. There is no CLI process or local server yet.
+
+Lists exclude completed tasks, preserve order with ID as tie-breaker, and use `TodoFilterEngine`
+with project, section and label names resolved from the store. Comma-list results flatten with ID
+deduplication. `p1` means storage priority 4. Date operands resolve through the date parser using the
+injected calendar/time zone. Claim requires exactly one existing `In progress` section in the task's
+project, moves its subtree there, detaches the task from its former parent, sets the marker and adds a
+dated `claimed by <agent>` comment. The engine never creates workflow sections automatically.
+
+Claiming again as the same agent is idempotent; another agent cannot mutate an active claim. Comments
+and moves refresh its activity time; completion clears the marker. Release clears the marker and
+returns the subtree to the previous section if that section still belongs to the current project,
+otherwise to the project's unsectioned tasks. Before every successful request, claims idle for at
+least the injected N elapsed minutes auto-release; comments also count as activity. `releaseExpired`
+lets an owner run that sweep without another action. No timer is owned by the engine. Concurrent
+offline claims resolve by the claim field's last write wins rule, rather than promising a distributed
+lock. An agent must sync and inspect its marker before relying on exclusive ownership.
+
 ## Proof
 
 `Tests/nc-Todo-store-test.swift` exercises all command variants and their inverses, a persisted undo chain, atomic rejection, schema rejection, torn-tail recovery followed by append/reload, module switch lifecycle independent of the island, and a 1,000-command reload below one second. Harness files stay in a UUID directory and never touch a production store.
+
+`Tests/nc-Todo-sync-test.swift` covers convergence in both orders, each task field's independent merge
+and conflicting last write, equal-clock ties, deletes versus edits, explicit restoration, relationship
+repair, idempotent delivery, vector gaps, fake transport, old logs, durable received batches and claims,
+agent ownership and fake-clock expiry, filter priority mapping, typed failures and JSON round-trips.
+It uses only an in-memory transport and UUID temporary directories.
