@@ -9,6 +9,6 @@ struct IslandPagesView: View {
         pages.content(island.page)
             .id(island.page)
             .transition(.opacity)
-            .animation(reduceMotion ? nil : .easeOut(duration: Theme.Duration.hover), value: island.page)
+            .animation(reduceMotion ? nil : NotchcastTheme.Motion.pageChange, value: island.page)
     }
 }
