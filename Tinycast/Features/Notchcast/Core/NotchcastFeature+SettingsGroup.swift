@@ -8,6 +8,7 @@ extension NotchcastFeature {
         case activities
         case systemTools
         case captureAndDictation
+        case buildStats
         // Keep group appends away from the closing braces during union merges.
     }
 }

@@ -8,24 +8,26 @@ import Observation
 @Observable
 final class NotchcastPreferences {
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored var onCommandsChanged: (() -> Void)?
     private var off: Set<NotchcastFeature>
     private var chargePercent: Int
     private var awakeDuration: Int
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
+    var buildStatsPath: String { didSet { defaults.set(buildStatsPath, forKey: "buildStatsPath") } }
     var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
     var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
     var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
     var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
-    @ObservationIgnored var onCommandsChanged: (() -> Void)?
     var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.allowed(newValue, Self.chargeLimits, 80); defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
 
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        buildStatsPath = defaults.string(forKey: "buildStatsPath") ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
         monitorTemperature = Self.threshold(defaults, "monitorTemperature", 90, 40...110)
