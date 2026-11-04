@@ -105,17 +105,20 @@ final class SoloistSource: NowPlayingSource {
             switch try SoloistProtocol.parse(text, now: Date()) {
             case .auth(let auth):
                 authState = auth
-                if auth.loggedIn { enqueue(SoloistProtocol.getState) } else { queue = nil }
+                if auth.loggedIn {
+                    enqueue(SoloistProtocol.getState)
+                    enqueue(SoloistProtocol.getQueue)
+                } else { queue = nil }
             case .failure(let message): failure = .command(message)
             case .changed:
                 enqueue(SoloistProtocol.getState)
                 let object = try JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any]
-                if queue != nil, object?["type"] as? String == "queue_changed" {
+                if object?["type"] as? String == "queue_changed" {
                     enqueue(SoloistProtocol.getQueue)
                 }
             case .options(let shuffle, let repeatMode):
-                state?.shuffle = shuffle
-                state?.repeatMode = repeatMode
+                if let shuffle { state?.shuffle = shuffle }
+                if let repeatMode { state?.repeatMode = repeatMode }
             case .queue(let items):
                 queue = items
             case .state(let track, let cover):
