@@ -70,7 +70,7 @@ struct ScreenshotModuleTest {
         shouldFail = true
         command.run()
         await module.commandTask?.value
-        precondition(calls == 2 && AppCore.shared.messages == [String(localized: "Capture Screen")])
+        precondition(calls == 2 && AppCore.shared.messages == [String(localized: "Screen Recording access is required.")])
         preferences.set(.screenshot, false)
         await settle()
         precondition(module.commandTask == nil)

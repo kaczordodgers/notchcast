@@ -52,6 +52,18 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case colorPicker
     case screenshot
     case dictationIslandHUD
+    case dictationCleanup
+    case dictationHistory
+    case captureTrimmer
+    case agentAnswer
+    case voiceAsk
+    case recording
+    case screenText
+    case scrollingCapture
+    case dictationEnglish
+    case globeDictation
+    case agentMCPServer
+    case agentChatTools
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -136,6 +148,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: .music
         case .inUseMarks: .music
         case .buildStats: .buildStats
+        case .agentMCPServer: .captureAndDictation
+        case .agentChatTools: .captureAndDictation
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -144,6 +158,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
         case .colorPicker: .captureAndDictation
+        case .screenText: .captureAndDictation
+        case .scrollingCapture: .captureAndDictation
         case .screenshot: .captureAndDictation
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
@@ -151,6 +167,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .remoteScreen: .system
         case .machMBPFans: .system
         case .dictationIslandHUD: .activities
+        case .dictationCleanup: .captureAndDictation
+        case .dictationEnglish: .captureAndDictation
+        case .dictationHistory: .captureAndDictation
+        case .captureTrimmer: .captureAndDictation
+        case .agentAnswer: .captureAndDictation
+        case .voiceAsk: .captureAndDictation
+        case .recording: .captureAndDictation
+        case .globeDictation: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -234,6 +258,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Build statistics")
+        case .agentMCPServer: String(localized: "Agent MCP Server")
+        case .agentChatTools: String(localized: "AI Chat Tools")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -263,6 +289,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
         case .screenshot: String(localized: "Screenshots")
+        case .screenText: String(localized: "Capture Text")
+        case .scrollingCapture: String(localized: "Scrolling Capture")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
         case .hideCommandM: String(localized: "Hide with ⌘M")
@@ -281,6 +309,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
         case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
         case .dictationIslandHUD: String(localized: "Dictation in Island")
+        case .dictationCleanup: String(localized: "AI cleanup")
+        case .dictationEnglish: String(localized: "Dictate in English")
+        case .dictationHistory: String(localized: "Keep dictation history")
+        case .captureTrimmer: String(localized: "Recording Trimmer")
+        case .agentAnswer: String(localized: "Agent Answers")
+        case .voiceAsk: String(localized: "Voice Ask")
+        case .recording: String(localized: "Screen Recording")
+        case .globeDictation: String(localized: "Globe Dictation")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -332,6 +368,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Read a local build snapshot.")
+        case .agentMCPServer: String(localized: "Nothing is exposed until the CLI is available.")
+        case .agentChatTools: String(localized: "Add Notchcast tools to AI chat.")
+        case .dictationEnglish: ""
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -361,6 +400,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
         case .screenshot: String(localized: "Capture an area, window or display.")
+        case .screenText: String(localized: "Copy text from a selected screen area.")
+        case .scrollingCapture: String(localized: "Copy a scrolling area as one image.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
@@ -379,6 +420,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
         case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
         case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
+        case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
+        case .dictationHistory: String(localized: "Keep dictation history")
+        case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.")
+        case .agentAnswer: String(localized: "Reply to waiting agents.")
+        case .voiceAsk: String(localized: "Voice Ask destination")
+        case .recording: String(localized: "Record an area, window or display with system audio.")
+        case .globeDictation: String(localized: "Tap Globe to start or finish dictation, or hold it to talk.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -411,6 +459,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .screenText: [.screenRecording]
+        case .scrollingCapture: [.screenRecording]
+        case .dictationEnglish: [.accessibility]
         case .clearNotifications: [.accessibility]
         case .copyPath: [.accessibility]
         case .smallCommands: [.accessibility]
@@ -426,6 +477,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
         case .switcherQuitKey: [.accessibility]
+        case .voiceAsk: [.accessibility]
+        case .recording: [.screenRecording]
+        case .globeDictation: [.accessibility]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -453,6 +507,8 @@ extension NotchcastFeature {
         case .aiUsageOtherMac: false
         case .machLink: false
         case .colorPicker: false
+        case .screenText: false
+        case .scrollingCapture: false
         case .screenshot: false
         case .buildStats: false
         case .agentPricing: false
@@ -477,6 +533,16 @@ extension NotchcastFeature {
         case .torrents: false
         case .torrentsUseIPhone: false
         case .torrentsKeepSharing: false
+        case .dictationCleanup: false
+        case .dictationEnglish: false
+        case .dictationHistory: false
+        case .captureTrimmer: false
+        case .agentAnswer: false
+        case .voiceAsk: false
+        case .recording: false
+        case .globeDictation: false
+        case .agentMCPServer: false
+        case .agentChatTools: false
         case .displayBrightness: false
         case .quitProtection: false
         case .downloads: false
@@ -519,6 +585,11 @@ extension NotchcastFeature {
         case .spacesOrder: false
         case .switcherQuitKey: false
         case .buildStats: false
+        case .voiceAsk: false
+        case .agentMCPServer: false
+        case .dictationEnglish: false
+        case .agentAnswer: false
+        case .dictationCleanup: false
         case .pastePlain: false
         case .githubSearch: false
         case .clearNotifications: false

@@ -62,5 +62,7 @@ extension NotchcastCommandCatalog {
         FinderToolsCoordinator.cutCommand,
         FinderToolsCoordinator.pasteCommand,
         FinderToolsCoordinator.renameCommand,
+        ScreenTextModule.launcherCommand,
+        ScrollingCaptureModule.launcherCommand,
     ]
 }
