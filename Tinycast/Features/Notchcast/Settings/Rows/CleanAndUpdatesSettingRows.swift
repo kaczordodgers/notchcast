@@ -6,9 +6,6 @@ struct NotchcastCleanActionsSettingRow: View {
     let feature: NotchcastFeature
 
     var body: some View {
-        if feature == .cleanAIData {
-            Text("Codex and OpenCode are report-only.")
-        }
         if feature == .cleanSystem {
             ForEach(CleanSystemPolicy.allowedRoots, id: \.path) { root in
                 LabeledContent(root.path) { Text("Report only") }
@@ -17,18 +14,9 @@ struct NotchcastCleanActionsSettingRow: View {
                 Text("Needs the Notchcast helper update")
             }
         }
-        if feature == .cleanOptimize {
-            ForEach(CleanOptimizeTask.allCases, id: \.self) { task in
-                Button(task.title) { coordinator.optimize(task) }
-                    .settingsEnabled(!coordinator.busy.contains(feature))
-            }
-        } else {
-            Button(feature == .cleanHistory ? "Load history" : "Scan…") {
-                CleanSettingsActions.scan(feature, coordinator: coordinator)
-            }
-                .settingsEnabled(
-                    !coordinator.busy.contains(feature)
-                        && (feature != .cleanSystem || coordinator.rootAvailable))
+        if feature == .cleanSystem {
+            Button("Scan…") { CleanSettingsActions.scan(feature, coordinator: coordinator) }
+                .settingsEnabled(!coordinator.busy.contains(feature) && coordinator.rootAvailable)
         }
         if coordinator.busy.contains(feature) { ProgressView() }
         if let review = coordinator.reviews[feature] {
@@ -76,17 +64,12 @@ struct NotchcastCleanActionsSettingRow: View {
 struct NotchcastCleaningModeSettingRow: View {
 
     var body: some View {
-        LabeledContent {
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                if NotchcastCore.cleaning.remaining > 0 {
-                    Text(Duration.seconds(NotchcastCore.cleaning.remaining), format: .units())
-                }
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            if NotchcastCore.cleaning.remaining > 0 {
+                Text(Duration.seconds(NotchcastCore.cleaning.remaining), format: .units())
             }
-            Button("Start") { NotchcastCore.cleaning.begin() }
-        } label: {
-            SettingsRowTitle(.notchcastCleaning, verbatim: NotchcastFeature.cleaningMode.title)
-            Text("Media keys still work.")
         }
+        Text("Media keys still work.")
         if NotchcastCore.cleaning.needsGrant {
             Text("Accessibility permission is required to start cleaning mode.")
         }
@@ -96,12 +79,6 @@ struct NotchcastCleaningModeSettingRow: View {
 struct NotchcastAppUpdatesSettingRow: View {
 
     var body: some View {
-        LabeledContent {
-            Button("Check") { NotchcastCore.appUpdates.check() }
-                .settingsEnabled(!NotchcastCore.appUpdates.checking)
-        } label: {
-            SettingsRowTitle(.notchcastAppUpdates, verbatim: NotchcastFeature.appUpdates.title)
-        }
         ForEach(NotchcastCore.appUpdates.results, id: \.app.id) { result in
             LabeledContent(result.app.id) {
                 if let newer = result.isNewer {
@@ -119,19 +96,10 @@ struct NotchcastAppUpdatesSettingRow: View {
 struct NotchcastMacUpdateSettingRow: View {
 
     var body: some View {
-        LabeledContent {
-            Button("Run") { NotchcastCore.macUpdate.run(confirm: NotchcastCore.confirmMacUpdate) }
-                .settingsEnabled(!NotchcastCore.macUpdate.running)
-        } label: {
-            SettingsRowTitle(.notchcastMacUpdate, verbatim: NotchcastFeature.macUpdate.title)
-        }
         ForEach(MacUpdateStep.allCases, id: \.self) { step in
             if let event = NotchcastCore.macUpdate.progress.first(where: { $0.step == step }) {
                 LabeledContent(step.title, value: event.state.title)
             }
-        }
-        if NotchcastCore.macUpdate.running {
-            Button("Cancel") { NotchcastCore.macUpdate.cancel() }
         }
 
     }

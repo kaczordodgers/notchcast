@@ -21,7 +21,6 @@ struct NotchcastTweaksPreferenceSettingRow: View {
                 })
         ) {
             SettingsRowTitle(.notchcastTweaksApps, title)
-            Text(subtitle(restart))
         }
         .settingsEnabled(!module.store.busy)
     }
@@ -385,7 +384,6 @@ struct NotchcastKeyRepeatPickerSettingRow: View {
             ForEach(values, id: \.self) { value in Text(value.formatted()).tag(value) }
         } label: {
             SettingsRowTitle(.notchcastTweaksApps, title)
-            Text(subtitle(nil))
         }
         .settingsEnabled(!NotchcastCore.typingTweaks.store.busy)
     }
@@ -423,16 +421,7 @@ struct NotchcastKeyRepeatDelaySettingRow: View {
 struct NotchcastShowLibrarySettingRow: View {
 
     var body: some View {
-        LabeledContent {
-            Button("Show") {
-                Task { await NotchcastCore.finderTweaks.showLibrary() }
-            }
-        } label: {
-            SettingsRowTitle(.notchcastTweaksApps, "Show library")
-            Text("Make your Library folder visible in Finder.")
-        }
-        .settingsEnabled(!NotchcastCore.finderTweaks.store.busy)
-
+        EmptyView()
     }
 }
 
@@ -459,7 +448,6 @@ struct NotchcastNewFinderWindowsSettingRow: View {
             Text("Downloads").tag(true)
         } label: {
             SettingsRowTitle(.notchcastTweaksApps, "New Finder windows")
-            Text(subtitle("Finder"))
         }
         .settingsEnabled(!NotchcastCore.finderTweaks.store.busy)
 

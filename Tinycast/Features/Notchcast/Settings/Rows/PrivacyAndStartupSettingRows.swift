@@ -16,15 +16,7 @@ struct NotchcastAppleRestrictionSettingRow: View {
     let title: LocalizedStringResource
 
     var body: some View {
-        LabeledContent {
-            Button("Install…") {
-                Task { await NotchcastCore.appleAppsTweaks.handOffProfile(restriction) }
-            }
-        } label: {
-            SettingsRowTitle(.notchcastTweaksApps, title)
-            Text("macOS requires your approval to install this restriction; remove it in System Settings.")
-        }
-        .settingsEnabled(!NotchcastCore.appleAppsTweaks.store.busy)
+        EmptyView()
     }
 }
 
@@ -59,21 +51,9 @@ struct NotchcastBookstoreSettingRow: View {
 struct NotchcastIPhoneBackupFolderSettingRow: View {
 
     var body: some View {
-        LabeledContent {
-            Button("Reveal backup folder") {
-                NSWorkspace.shared.selectFile(
-                    nil,
-                    inFileViewerRootedAtPath:
-                        IPhoneBackupPolicy.backupDirectory(
-                            home: FileManager.default.homeDirectoryForCurrentUser
-                        ).path)
-            }
-        } label: {
-            SettingsRowTitle(.notchcastTweaksApps, "iPhone backup folder")
-            Text(
+        Text(
                 IPhoneBackupPolicy.backupDirectory(home: FileManager.default.homeDirectoryForCurrentUser).path
-            )
-        }
+        )
     }
 }
 
