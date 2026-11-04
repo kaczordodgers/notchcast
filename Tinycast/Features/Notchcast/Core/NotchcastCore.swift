@@ -10,6 +10,7 @@ enum NotchcastCore {
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
+    static let showDesktop = ShowDesktopModule(hub: eventTapHub)
     private static var controller: NotchcastModuleController?
 
     static func start(_ core: AppCore) {
@@ -22,6 +23,7 @@ enum NotchcastCore {
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
             .init(requires: [.quitProtection], module: quitProtectionModule),
+            .init(requires: [.showDesktop], module: showDesktop),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
