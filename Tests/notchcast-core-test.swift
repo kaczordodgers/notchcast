@@ -48,6 +48,7 @@ struct NotchcastCoreTests {
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)
         precondition(l3.allSatisfy { preferences.isOn($0) })
+        precondition(![.aiUsage, .aiUsageOtherMac, .machLink].contains { preferences.isOn($0) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))

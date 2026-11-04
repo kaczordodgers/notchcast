@@ -22,6 +22,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case aiUsage
+    case aiUsageOtherMac
+    case machLink
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -80,6 +83,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .aiUsage: .activities
+        case .aiUsageOtherMac: .activities
+        case .machLink: .system
         }
     }
 
@@ -111,6 +117,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .aiUsage: String(localized: "AI Usage")
+        case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
+        case .machLink: String(localized: "Mac Link")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -154,6 +163,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .aiUsage: String(localized: "Read local AI usage on demand.")
+        case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
+        case .machLink: String(localized: "Connect to a paired Mac on the local network.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -202,6 +214,9 @@ extension NotchcastFeature {
         case .switcherQuitKey: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .aiUsage: false
+        case .aiUsageOtherMac: false
+        case .machLink: false
         default: true
         }
     }
