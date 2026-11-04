@@ -44,6 +44,7 @@ final class RecordingModule: NotchcastModule {
     @ObservationIgnored private var startTask: Task<Void, any Error>?
     @ObservationIgnored private var finishTask: Task<URL, any Error>?
     @ObservationIgnored private var cleanupTask: Task<Void, Never>?
+    @ObservationIgnored private var recoveryTask: Task<Void, Never>?
     private static let frameRateKey = "notchcast.recording.frameRate"
     private static let folderKey = "notchcast.recording.folder"
 
@@ -112,7 +113,12 @@ final class RecordingModule: NotchcastModule {
                 try await source.start(writer: writer) { [weak self] error in
                     guard let self, self.operation == identity else { return }
                     self.lastError = error
-                    self.cancel()
+                    self.recoveryTask = Task { [self] in
+                        defer { recoveryTask = nil }
+                        _ = await startTask?.result
+                        guard operation == identity, phase == .recording || phase == .paused else { return }
+                        do { _ = try await finish() } catch { lastError = error }
+                    }
                 }
                 try validate(identity)
                 phase = .recording
@@ -155,7 +161,7 @@ final class RecordingModule: NotchcastModule {
         let task = Task { [self] in
             defer { finishTask = nil }
             do {
-                try await session.source.stop()
+                do { try await session.source.stop() } catch { lastError = error }
                 try validate(session.identity)
                 try await writer.finish(at: end)
                 try validate(session.identity)
@@ -189,6 +195,7 @@ final class RecordingModule: NotchcastModule {
 
     func waitUntilIdle() async {
         _ = await startTask?.result
+        await recoveryTask?.value
         _ = await finishTask?.result
         await cleanupTask?.value
     }
@@ -224,6 +231,7 @@ final class RecordingModule: NotchcastModule {
         startTask?.cancel()
         finishTask?.cancel()
         cleanupTask?.cancel()
+        recoveryTask?.cancel()
         if let session {
             Task { @MainActor in _ = await RecordingModule.dispose(session) }
         }

@@ -3,6 +3,11 @@ import CoreMedia
 import Synchronization
 
 final class RecordingWriter: RecordingWriting {
+    // AVAssetWriter cancellation must be callable while its asynchronous finish is pending.
+    private struct FinishingWriter: @unchecked Sendable {
+        let writer: AVAssetWriter
+    }
+
     private struct State {
         let writer: AVAssetWriter
         let video: AVAssetWriterInput.SampleBufferReceiver
@@ -16,6 +21,7 @@ final class RecordingWriter: RecordingWriting {
     }
 
     private let state: Mutex<State?>
+    private let finishingWriter = Mutex<FinishingWriter?>(nil)
 
     init(url: URL, format: RecordingFormat) throws {
         guard (2...16_384).contains(format.width), (2...16_384).contains(format.height),
@@ -37,6 +43,8 @@ final class RecordingWriter: RecordingWriting {
             AVNumberOfChannelsKey: 2,
             AVEncoderBitRateKey: 160_000,
         ])
+        video.expectsMediaDataInRealTime = true
+        audio.expectsMediaDataInRealTime = true
         guard writer.canAdd(video), writer.canAdd(audio) else { throw RecordingTarget.Failure.writerFailed }
         let videoReceiver = writer.inputReceiver(for: video)
         let audioReceiver = writer.inputReceiver(for: audio)
@@ -100,6 +108,8 @@ final class RecordingWriter: RecordingWriting {
     @concurrent
     func finish(at time: CMTime) async throws {
         guard var finishing = takeState() else { throw CancellationError() }
+        finishingWriter.withLock { $0 = FinishingWriter(writer: finishing.writer) }
+        defer { finishingWriter.withLock { $0 = nil } }
         do {
             try Task.checkCancellation()
             guard let lastVideo = finishing.lastVideo, finishing.failure == nil else {
@@ -108,14 +118,31 @@ final class RecordingWriter: RecordingWriting {
             let end = CMTime(seconds: finishing.timeline.elapsed(at: time.seconds), preferredTimescale: 600_000_000)
             let tail = end - CMTime(value: 1, timescale: CMTimeScale(finishing.frameRate))
             if tail > finishing.lastVideoTime {
-                try await finishing.video.append(Self.retime(lastVideo, to: tail))
+                let sample = try Self.retime(lastVideo, to: tail)
+                for _ in 0..<50 {
+                    try Task.checkCancellation()
+                    if try finishing.video.appendImmediately(sample) { break }
+                    try await Task.sleep(for: .milliseconds(10))
+                }
             }
             try Task.checkCancellation()
             finishing.lastVideo = nil
-            finishing.writer.endSession(atSourceTime: end)
-            finishing.video.finish()
-            finishing.audio.finish()
-            await finishing.writer.finishWriting()
+            await withTaskCancellationHandler {
+                await withCheckedContinuation { continuation in
+                    finishingWriter.withLock { handle in
+                        guard let handle, handle.writer.status == .writing else {
+                            continuation.resume()
+                            return
+                        }
+                        handle.writer.endSession(atSourceTime: end)
+                        finishing.video.finish()
+                        finishing.audio.finish()
+                        handle.writer.finishWriting { continuation.resume() }
+                    }
+                }
+            } onCancel: {
+                self.cancelFinishing()
+            }
             try Task.checkCancellation()
             guard finishing.writer.status == .completed else {
                 throw finishing.writer.error ?? RecordingTarget.Failure.writerFailed
@@ -129,6 +156,11 @@ final class RecordingWriter: RecordingWriting {
     @concurrent
     func cancel() async {
         takeState()?.writer.cancelWriting()
+        cancelFinishing()
+    }
+
+    private func cancelFinishing() {
+        finishingWriter.withLock { $0?.writer.cancelWriting() }
     }
 
     private func takeState() -> sending State? {

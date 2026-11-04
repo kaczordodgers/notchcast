@@ -25,6 +25,7 @@ struct RecordingTests {
         try await cancellation(in: root)
         try await lateResults(in: root)
         try await writer(in: root)
+        try await pacedWriter(in: root)
         print("PASS recording timeline, naming, preferences, switch lifecycle, cancellation and H.264/AAC writer")
     }
 
@@ -181,10 +182,28 @@ struct RecordingTests {
         } catch RecordingTarget.Failure.targetUnavailable { }
         expect(module.phase == .idle && module.lastError != nil, "native errors surface and release resources")
         source.startFailure = nil
+        let beforeStop = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+        let previousCount = beforeStop.filter { $0.pathExtension == "mp4" }.count
+        source.stopFailure = RecordingTarget.Failure.targetUnavailable
         try await module.record(.display(1))
-        source.onFailure?(RecordingTarget.Failure.writerFailed)
+        source.onFailure?(RecordingTarget.Failure.targetUnavailable)
         await module.waitUntilIdle()
-        expect(module.phase == .idle && module.lastError != nil, "unexpected source failure cancels recording")
+        expect(module.phase == .idle && module.lastError != nil, "stream stop finalizes recording")
+        let saved = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+        let savedCount = saved.filter { $0.pathExtension == "mp4" }.count
+        expect(savedCount == previousCount + 1, "closed window preserves the take")
+        source.stopFailure = nil
+        let failedWriter = FakeWriter(failFinish: true)
+        let failedModule = RecordingModule(
+            defaults: defaults, defaultFolder: root, makeSource: { source },
+            makeWriter: { url, _ in try Data("broken".utf8).write(to: url); return failedWriter }, sleep: { })
+        failedModule.start()
+        try await failedModule.record(.display(1))
+        source.onFailure?(RecordingTarget.Failure.writerFailed)
+        await failedModule.waitUntilIdle()
+        let afterFailure = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+        expect(afterFailure.filter { $0.pathExtension == "mp4" }.count == savedCount, "writer failure discards take")
+        expect(failedModule.phase == .idle && failedModule.lastError != nil, "writer failure releases session")
         let blockedWriter = FakeWriter(holdFinish: true)
         let finishingModule = RecordingModule(
             defaults: defaults, defaultFolder: root, makeSource: { FakeSource() },
@@ -262,9 +281,13 @@ struct RecordingTests {
         } catch RecordingTarget.Failure.noFrames { }
     }
 
-    private static func video(at seconds: Double) throws -> CMSampleBuffer {
+    private static func video(
+        at seconds: Double, width: Int = 64, height: Int = 64,
+        duration: CMTime = CMTime(value: 1, timescale: 60)
+    ) throws -> CMSampleBuffer {
         var pixel: CVPixelBuffer?
-        precondition(CVPixelBufferCreate(kCFAllocatorDefault, 64, 64, kCVPixelFormatType_32BGRA, nil, &pixel) == noErr)
+        precondition(CVPixelBufferCreate(kCFAllocatorDefault, width, height, kCVPixelFormatType_32BGRA,
+            [kCVPixelBufferIOSurfacePropertiesKey: [:]] as CFDictionary, &pixel) == noErr)
         let image = pixel!
         CVPixelBufferLockBaseAddress(image, [])
         memset(CVPixelBufferGetBaseAddress(image), 0, CVPixelBufferGetDataSize(image))
@@ -272,12 +295,51 @@ struct RecordingTests {
         var description: CMVideoFormatDescription?
         precondition(CMVideoFormatDescriptionCreateForImageBuffer(
             allocator: kCFAllocatorDefault, imageBuffer: image, formatDescriptionOut: &description) == noErr)
-        var timing = CMSampleTimingInfo(duration: CMTime(value: 1, timescale: 60),
+        var timing = CMSampleTimingInfo(duration: duration,
             presentationTimeStamp: CMTime(seconds: seconds, preferredTimescale: 600_000), decodeTimeStamp: .invalid)
         var sample: CMSampleBuffer?
         precondition(CMSampleBufferCreateReadyWithImageBuffer(allocator: kCFAllocatorDefault, imageBuffer: image,
             formatDescription: description!, sampleTiming: &timing, sampleBufferOut: &sample) == noErr)
         return sample!
+    }
+
+    private static func pacedWriter(in root: URL) async throws {
+        let url = root.appendingPathComponent("paced.mp4")
+        let writer = try RecordingWriter(url: url, format: RecordingFormat(width: 1280, height: 720, frameRate: 30))
+        writer.begin(at: .zero)
+        for frame in 0..<30 {
+            try writer.append(video(at: Double(frame) / 10, width: 1280, height: 720, duration: .invalid), track: .video)
+            try writer.append(audio(at: Double(frame) / 10), track: .systemAudio)
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        try await writer.finish(at: CMTime(seconds: 3, preferredTimescale: 600))
+        let asset = AVURLAsset(url: url)
+        let tracks = try await asset.loadTracks(withMediaType: .video)
+        let reader = try AVAssetReader(asset: asset)
+        let output = AVAssetReaderTrackOutput(track: tracks[0], outputSettings: nil)
+        reader.add(output)
+        reader.startReading()
+        var frames = 0
+        while output.copyNextSampleBuffer() != nil { frames += 1 }
+        expect(frames >= 30, "paced live capture retains every frame: \(frames)")
+        print("PASS paced 1280x720 capture retains \(frames) frames and finishes")
+        for attempt in 0..<3 {
+            let cancelling = try RecordingWriter(url: root.appendingPathComponent("cancel-\(attempt).mp4"),
+                format: RecordingFormat(width: 1280, height: 720, frameRate: 30))
+            cancelling.begin(at: .zero)
+            for frame in 0..<30 {
+                try cancelling.append(video(at: Double(frame) / 30, width: 1280, height: 720), track: .video)
+            }
+            let clock = ContinuousClock()
+            let start = clock.now
+            let finish = Task { try await cancelling.finish(at: CMTime(seconds: 3, preferredTimescale: 600)) }
+            try await Task.sleep(for: .milliseconds(1))
+            finish.cancel()
+            await cancelling.cancel()
+            _ = await finish.result
+            expect(start.duration(to: clock.now) < .seconds(2), "cancel releases in-flight native finish")
+        }
+        print("PASS cancellation releases native writer finish")
     }
 
     private static func audio(at seconds: Double) throws -> CMSampleBuffer {
@@ -309,6 +371,7 @@ struct RecordingTests {
         var holdPreparation = false
         var holdStart = false
         var startFailure: (any Error)?
+        var stopFailure: (any Error)?
         var pendingPreparation: CheckedContinuation<Void, Never>?
         var pendingStart: CheckedContinuation<Void, Never>?
         var onFailure: (@MainActor (any Error) -> Void)?
@@ -326,7 +389,11 @@ struct RecordingTests {
             if holdStart { await withCheckedContinuation { pendingStart = $0 } }
             if let startFailure { throw startFailure }
         }
-        func stop() async throws { stops += 1; outputWriter = nil }
+        func stop() async throws {
+            stops += 1
+            outputWriter = nil
+            if let stopFailure { throw stopFailure }
+        }
     }
 
     private final class FakeWriter: RecordingWriting {
@@ -334,12 +401,17 @@ struct RecordingTests {
         let finishes = Mutex(0)
         let pendingFinish = Mutex<CheckedContinuation<Void, Never>?>(nil)
         let holdFinish: Bool
-        init(holdFinish: Bool = false) { self.holdFinish = holdFinish }
+        let failFinish: Bool
+        init(holdFinish: Bool = false, failFinish: Bool = false) {
+            self.holdFinish = holdFinish
+            self.failFinish = failFinish
+        }
         func begin(at time: CMTime) { }
         func append(_ sample: CMSampleBuffer, track: RecordingFormat.Track) throws { }
         func setPaused(_ paused: Bool, at time: CMTime) { }
         func finish(at time: CMTime) async throws {
             finishes.withLock { $0 += 1 }
+            if failFinish { throw RecordingTarget.Failure.writerFailed }
             if holdFinish { await withCheckedContinuation { continuation in pendingFinish.withLock { $0 = continuation } } }
         }
         func cancel() async { cancelled.withLock { $0 = true } }
