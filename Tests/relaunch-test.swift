@@ -121,6 +121,11 @@ struct RelaunchTests {
 }
 
 @MainActor
+enum NotchcastCore {
+    static func stopForTermination() async { }
+}
+
+@MainActor
 final class AppCore {
     static let shared = AppCore()
     let activationPolicy = ActivationPolicy()
