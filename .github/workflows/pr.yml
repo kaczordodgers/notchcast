@@ -4,6 +4,8 @@ name: PR
 on:
   pull_request:
     branches: [main]
+    # ready_for_review builds a draft once it is marked ready; drafts themselves never use the Actions pool.
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
 
 permissions:
@@ -15,6 +17,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: xcode-27
     timeout-minutes: 90
     steps:
