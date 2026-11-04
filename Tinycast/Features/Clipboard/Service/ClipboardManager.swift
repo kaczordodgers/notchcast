@@ -12,6 +12,7 @@ final class ClipboardManager {
         .init("com.apple.is-sensitive")
     ]
 
+    var pasteboardDidChange: ((NSPasteboard) -> Void)?
     private let store: ClipboardStore
     private let settings: AppSettings
     private var timer: Timer?
@@ -146,6 +147,7 @@ final class ClipboardManager {
         // The pasteboard carries no source, so attribute it to the frontmost app.
         let sourceBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         if let sourceBundleID, settings.clipboardDisabledApps.contains(sourceBundleID) { return }
+        defer { pasteboardDidChange?(pb) }
 
         // Ahead of the text branch: Finder puts the file's *name* on `.string` beside its URL.
         if let paths = Self.fileURLs(on: pb) {
