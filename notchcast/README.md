@@ -26,6 +26,7 @@ Our commits:
 
 ## Secrets and checks
 
+- `main` has a ruleset requiring the `build` check for PR merges; only deploy-key pushes (sync replay, generated files) bypass it, because a user-owned repo cannot exempt the GitHub Actions app.
 - Actions secrets live in the environment `sync`, which only `main` may use: `SIGNING_P12_BASE64` and `SIGNING_P12_PASSWORD` (the self-signed code-signing identity) and `DEPLOY_KEY` (write deploy key `notchcast-actions`; `GITHUB_TOKEN` cannot push commits that touch workflow files). The same material is kept outside git on the maintainer's Mac. The public leaf fingerprint is `SIGN_SHA1` in `config.env`.
 - `.github/workflows/leaks.yml` and the hooks in `notchcast/githooks` run gitleaks and `check-identity.sh` (no employer name in files, commit messages or commit identities). Per clone, before the first commit: `git config core.hooksPath notchcast/githooks`, a repo-local `user.email` noreply address, and `git remote set-url --push upstream DISABLED`.
 - Sync commits use `github-actions[bot]`; snapshot annotated tags use the repository identity.
@@ -47,7 +48,7 @@ The new bundle id and signature need Accessibility to be granted once.
 
 ## Conflict-free PRs
 
-PRs carry no generated files: edit their inputs, regenerate locally before using Xcode (`xcodegen generate`), and leave the generated diff uncommitted. PR CI regenerates before building. After each source push to main, the Generated files workflow runs `ci.py regenerate` and commits only `GENERATED` as `Notchcast: generated files` with the repository identity; each attempt starts from a fresh `origin/main`, its generated-only push is excluded by path filters, and the Actions token starts no further workflow runs. Sync regenerates before every build too.
+PRs carry no generated files: edit their inputs, regenerate locally before using Xcode (`xcodegen generate`), and leave the generated diff uncommitted. PR CI regenerates before building. After each source push to main, the Generated files workflow runs `ci.py regenerate` and commits only `GENERATED` as `Notchcast: generated files` with the repository identity; each attempt starts from a fresh `origin/main`, it pushes with the deploy key, which the main ruleset exempts, and path filters keep its generated-only push from starting Generated files or Sync. Sync regenerates before every build too.
 
 Fork harnesses are discovered by `notchcast/test-harnesses.sh`, so a PR never edits `Scripts/run-tests.sh`. `Tests/nc-<Folder>-<name>-test.swift` compiles all Model and Service sources of `Tinycast/Features/<Folder>/`. Any other fork harness (`Tests/notchcast-*-test.swift` or an upstream-style name) declares its sources in one or more `// notchcast-sources: <compiler arguments and source globs>` header lines (no spaces in paths). A `notchcast-*` harness without the header fails alone with an error; the rest of the suite still runs.
 
