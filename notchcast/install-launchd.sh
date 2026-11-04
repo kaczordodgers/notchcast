@@ -46,12 +46,22 @@ PLIST
     echo "loaded $label -> $LOGS/$name.log"
 }
 
+# Login Items shows the executable, so a job runs through a named wrapper rather than /bin/bash.
+named_job() { # name program...
+    local wrapper="$HOME/Library/Application Support/notchcast/jobs/$1"; shift
+    mkdir -p "$(dirname "$wrapper")"
+    printf '#!/bin/bash\nexec %s\n' "$(printf '%q ' "$@")" > "$wrapper"
+    chmod 755 "$wrapper"
+    /bin/bash -n "$wrapper"
+    echo "$wrapper"
+}
+
 install_update() {
     agent notchcast.update update \
         '<key>StartInterval</key><integer>1800</integer>
 <key>ProcessType</key><string>Background</string>
 <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>' \
-        /bin/bash "$HERE/update.sh" ${UPDATE_ARG:+"$UPDATE_ARG"}
+        "$(named_job 'Notchcast update' /bin/bash "$HERE/update.sh" ${UPDATE_ARG:+"$UPDATE_ARG"})"
 }
 
 install_kick() {
@@ -59,7 +69,7 @@ install_kick() {
         '<key>StartInterval</key><integer>600</integer>
 <key>ProcessType</key><string>Background</string>
 <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>' \
-        /bin/bash "$HERE/kick.sh"
+        "$(named_job 'Notchcast sync check' /bin/bash "$HERE/kick.sh")"
 }
 
 install_app() {
