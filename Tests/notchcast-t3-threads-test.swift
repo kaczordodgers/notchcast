@@ -61,7 +61,11 @@ import Synchronization
         module.setDemand(false, for: "panel")
         let stoppedCount = count.withLock { $0 }
         try await Task.sleep(for: .milliseconds(20))
-        precondition(count.withLock { $0 } == stoppedCount)
+        // A read already dispatched off-main may enter its runner after cancellation.
+        precondition(count.withLock { $0 } <= stoppedCount + 1)
+        let drainedCount = count.withLock { $0 }
+        try await Task.sleep(for: .milliseconds(20))
+        precondition(count.withLock { $0 } == drainedCount)
         module.stop()
         let continuation = Mutex<CheckedContinuation<Data, Never>?>(nil)
         let delayed = T3ThreadsModule(source: .init(runner: {

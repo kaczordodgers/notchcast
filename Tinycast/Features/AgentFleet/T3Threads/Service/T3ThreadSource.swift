@@ -9,6 +9,7 @@ struct T3ThreadSource: Sendable {
     }
 
     func read() async throws -> [T3Thread] {
+        try Task.checkCancellation()
         let data = try await runner()
         try Task.checkCancellation()
         return try Self.decode(data)
