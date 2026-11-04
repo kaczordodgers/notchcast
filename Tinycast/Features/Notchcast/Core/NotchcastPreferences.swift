@@ -14,94 +14,25 @@ final class NotchcastPreferences {
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
-    var greenMaximizeExcludedApps: String {
-        didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") }
-    }
-    enum HoverDelay: Double, CaseIterable, Identifiable {
-        case short = 0.1, standard = 0.3, medium = 0.5, long = 1
-        var id: Double { rawValue }
-        var title: String {
-            Duration.seconds(rawValue).formatted(.units(
-                allowed: [.seconds], width: .abbreviated,
-                fractionalPart: .show(length: rawValue < 1 ? 1 : 0)))
-        }
-    }
-
-    var islandHoverDelay: HoverDelay {
-        didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") }
-    }
-    var fanMode: String {
-        didSet { defaults.set(fanMode, forKey: "fanMode") }
-    }
-    var batteryJournalData: Data? {
-        get { defaults.data(forKey: "batteryOwnershipJournal") }
-        set { defaults.set(newValue, forKey: "batteryOwnershipJournal") }
-    }
-    var fanJournalData: Data? {
-        get { defaults.data(forKey: "fanOwnershipJournal") }
-        set { defaults.set(newValue, forKey: "fanOwnershipJournal") }
-    }
     var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
     var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
     var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
     var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
-    var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.allowed(newValue, Self.chargeLimits, 80); defaults.set(chargePercent, forKey: "batteryChargePercent") } }
+    var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.chargeLimits.last(where: { $0 <= newValue }) ?? 60; defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
-    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
-    static let chargeLimits = [60, 70, 80, 90]
-    var batteryCalibrationCompletedAt: Date? {
-        get { defaults.object(forKey: "batteryCalibrationCompletedAt") as? Date }
-        set { defaults.set(newValue, forKey: "batteryCalibrationCompletedAt") }
-    }
-    var batteryRootDirty: Bool {
-        get { defaults.bool(forKey: "batteryRootDirty") }
-        set { defaults.set(newValue, forKey: "batteryRootDirty") }
-    }
-    var batteryOwnsNativeLimit: Bool {
-        get { defaults.bool(forKey: "batteryOwnsNativeLimit") }
-        set { defaults.set(newValue, forKey: "batteryOwnsNativeLimit") }
-    }
-    var batteryDirtyVerbs: [String] {
-        get { defaults.stringArray(forKey: "batteryDirtyVerbs") ?? [] }
-        set { defaults.set(newValue, forKey: "batteryDirtyVerbs") }
-    }
-    var batteryOwnedLimit: Int {
-        get { defaults.integer(forKey: "batteryOwnedLimit") }
-        set { defaults.set(newValue, forKey: "batteryOwnedLimit") }
-    }
-    var batteryPriorLimit: Int {
-        get { defaults.integer(forKey: "batteryPriorLimit") }
-        set { defaults.set(newValue, forKey: "batteryPriorLimit") }
-    }
-    static let awakeDurations = [15, 30, 60, 120, 240]
-    private var chargePercent: Int
-    var batteryChargePercent: Int {
-        get { chargePercent }
-        set {
-            chargePercent = Self.chargeLimits.last(where: { $0 <= newValue }) ?? 60
-            defaults.set(chargePercent, forKey: "batteryChargePercent")
-        }
-    }
-    private var awakeDuration: Int
-    var keepAwakeMinutes: Int {
-        get { awakeDuration }
-        set {
-            awakeDuration = Self.awakeDurations.contains(newValue) ? newValue : 60
-            defaults.set(awakeDuration, forKey: "keepAwakeMinutes")
-        }
-    }
-    static let shared = NotchcastPreferences(
-        suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
-    @ObservationIgnored private let defaults: UserDefaults
     let audioPriority: AudioPriorityPreferences
-    var audioPriorityEnabled: Bool {
-        get { isOn(.audioPriority) }
-        set { set(.audioPriority, newValue) }
-    }
+    var audioPriorityEnabled: Bool { get { isOn(.audioPriority) } set { set(.audioPriority, newValue) } }
     @ObservationIgnored var commandAvailabilityChanged: (() -> Void)?
-    private var off: Set<NotchcastFeature>
+    var batteryJournalData: Data? { get { defaults.data(forKey: "batteryOwnershipJournal") } set { defaults.set(newValue, forKey: "batteryOwnershipJournal") } }
+    var fanJournalData: Data? { get { defaults.data(forKey: "fanOwnershipJournal") } set { defaults.set(newValue, forKey: "fanOwnershipJournal") } }
+    var batteryCalibrationCompletedAt: Date? { get { defaults.object(forKey: "batteryCalibrationCompletedAt") as? Date } set { defaults.set(newValue, forKey: "batteryCalibrationCompletedAt") } }
+    var batteryRootDirty: Bool { get { defaults.bool(forKey: "batteryRootDirty") } set { defaults.set(newValue, forKey: "batteryRootDirty") } }
+    var batteryOwnsNativeLimit: Bool { get { defaults.bool(forKey: "batteryOwnsNativeLimit") } set { defaults.set(newValue, forKey: "batteryOwnsNativeLimit") } }
+    var batteryDirtyVerbs: [String] { get { defaults.stringArray(forKey: "batteryDirtyVerbs") ?? [] } set { defaults.set(newValue, forKey: "batteryDirtyVerbs") } }
+    var batteryOwnedLimit: Int { get { defaults.integer(forKey: "batteryOwnedLimit") } set { defaults.set(newValue, forKey: "batteryOwnedLimit") } }
+    var batteryPriorLimit: Int { get { defaults.integer(forKey: "batteryPriorLimit") } set { defaults.set(newValue, forKey: "batteryPriorLimit") } }
 
     init(suiteName: String) {
         audioPriority = AudioPriorityPreferences(suiteName: suiteName)
@@ -114,19 +45,10 @@ final class NotchcastPreferences {
         monitorDisk = Self.threshold(defaults, "monitorDisk", 10, 1...50)
         monitorBattery = Self.threshold(defaults, "monitorBattery", 15, 1...50)
         fanMode = defaults.string(forKey: "fanMode") ?? "auto"
-        chargePercent = Self.allowed(defaults.integer(forKey: "batteryChargePercent"), Self.chargeLimits, 80)
+        chargePercent = Self.chargeLimits.last(where: { $0 <= (defaults.object(forKey: "batteryChargePercent") as? Int ?? 80) }) ?? 60
         awakeDuration = Self.allowed(defaults.integer(forKey: "keepAwakeMinutes"), Self.awakeDurations, 60)
-        let percent = defaults.object(forKey: "batteryChargePercent") as? Int ?? 80
-        chargePercent = Self.chargeLimits.last(where: { $0 <= percent }) ?? 60
-        let minutes = defaults.integer(forKey: "keepAwakeMinutes")
-        awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Self.featuresOff(defaults)
-        off = Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool
-                ?? (!$0.isSystemFeature && $0.settingsGroup != .clean
-                    && $0 != .spacesOrder && $0 != .switcherQuitKey))
-        })
     }
 
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
@@ -141,7 +63,7 @@ final class NotchcastPreferences {
 
 extension NotchcastPreferences {
     static let shared = NotchcastPreferences(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
-    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
+    static let chargeLimits = [60, 70, 80, 90]
     static let awakeDurations = [15, 30, 60, 120, 240]
 
     enum HoverDelay: Double, CaseIterable, Identifiable {
