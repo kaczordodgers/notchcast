@@ -17,6 +17,14 @@ when hatchzip refuses in-place extraction. Listings with symlinks or no entries 
 as do volumes without exclusive rename support. If final validation fails after in-place consumption,
 the staging folder is published visibly with a recovered name.
 
+Extraction writes an atomic JSON sidecar beside staging at running, finished-extract and publishing
+transitions. Launch checks remembered archive directories; opening the same archive also checks its
+sidecar. Finished output is published visibly, with a recovered name on collision. Interrupted keep
+jobs retain their source and discard staging; interrupted in-place journals remain available through
+Try Again. Unclaimed nonempty staging is recovered visibly, while empty staging is removed.
+Orderly shutdown cancels the worker and signals the child process group. There is no parent-death
+watchdog: a hard app kill relies on recovery at the next launch.
+
 `Open archives with Notchcast` defaults off and also depends on Archives. Enabling it calls
 `ArchiveDefaultApplicationService` for the declared archive UTIs. Disabling it, including by disabling
 Archives, gives handlers still owned by this app back to Archive Utility. Handler writes are

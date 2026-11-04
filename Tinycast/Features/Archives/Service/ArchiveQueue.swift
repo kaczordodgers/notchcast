@@ -50,6 +50,12 @@ final class ArchiveQueue {
         await worker?.value
     }
 
+    func addRecovered(_ recovered: [ArchiveJob]) {
+        for job in recovered where !jobs.contains(where: { $0.archive.path == job.archive.path }) {
+            jobs.append(job)
+        }
+    }
+
     private func startNext() {
         guard activeID == nil, let index = nextQueuedIndex() else { return }
         let job = jobs[index]

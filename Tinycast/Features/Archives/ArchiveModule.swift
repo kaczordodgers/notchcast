@@ -14,6 +14,7 @@ final class ArchiveModule: NotchcastModule {
     @ObservationIgnored private let application: URL
     @ObservationIgnored private var observationGeneration = 0
     @ObservationIgnored private var defaultApplicationTask: Task<Void, Never>?
+    @ObservationIgnored private var recoveryTask: Task<Void, Never>?
     @ObservationIgnored private var desiredDefaultApplication = false
     @ObservationIgnored private var appliedDefaultApplication = false
     @ObservationIgnored private var defaultApplicationMayBeClaimed = false
@@ -33,16 +34,32 @@ final class ArchiveModule: NotchcastModule {
         queue = ArchiveQueue(runner: ArchiveExtractionRunner(locator: locator))
     }
 
-    isolated deinit { defaultApplicationTask?.cancel() }
+    isolated deinit {
+        defaultApplicationTask?.cancel()
+        recoveryTask?.cancel()
+    }
 
     func start() {
         guard !isRunning, preferences.isOn(.archives) else { return }
         isRunning = true
         observationGeneration += 1
+        let generation = observationGeneration
+        recoveryTask = Task { [weak self] in
+            do {
+                let recovered = try await Self.recoverArchives()
+                guard let self, !Task.isCancelled, self.isRunning,
+                      self.observationGeneration == generation else { return }
+                self.queue.addRecovered(recovered)
+            } catch {
+                guard let self, !Task.isCancelled, self.observationGeneration == generation else { return }
+                self.defaultApplicationFailure = String(describing: error)
+            }
+        }
         observeDefaultApplication(generation: observationGeneration)
     }
 
     func stop() {
+        recoveryTask?.cancel()
         isRunning = false
         observationGeneration += 1
         queue.stop()
@@ -50,6 +67,7 @@ final class ArchiveModule: NotchcastModule {
     }
 
     func prepareForTermination() async {
+        recoveryTask?.cancel()
         isRunning = false
         observationGeneration += 1
         queue.stop()
@@ -78,6 +96,10 @@ final class ArchiveModule: NotchcastModule {
 
     @concurrent private static func locateTool(_ locator: any ArchiveToolLocating) async -> URL? {
         locator.locate()
+    }
+
+    @concurrent private static func recoverArchives() async throws -> [ArchiveJob] {
+        try ArchiveRecovery.recoverKnown()
     }
 
     private func observeDefaultApplication(generation: Int) {
