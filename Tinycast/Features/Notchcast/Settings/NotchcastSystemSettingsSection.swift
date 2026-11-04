@@ -6,7 +6,7 @@ struct NotchcastSystemSettingsSection: View {
     var body: some View {
         Section {
             ForEach(NotchcastFeature.allCases.filter {
-                $0.isSystemFeature && $0 != .monitorAlerts && $0 != .accessoryBatteries && $0 != .audioPriority && $0.settingsGroup != .tools
+                $0.isWired && $0.isSystemFeature && $0 != .monitorAlerts && $0 != .accessoryBatteries && $0 != .audioPriority && $0.settingsGroup != .tools
             }, id: \.self) { feature in
                 Toggle(isOn: Binding(
                     get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
