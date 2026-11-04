@@ -14,6 +14,8 @@ import AVFoundation
 import Foundation
 
 @MainActor final class AppCore {
+    enum Tone { case danger, neutral, success }
+    func showMessage(_ text: String, tone: Tone) {}
     static let shared = AppCore()
     var appIndex: AppCore { self }
     func refreshNotchcastCommands() {}

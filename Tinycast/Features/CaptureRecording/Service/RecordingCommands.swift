@@ -73,19 +73,4 @@ extension RecordingModule {
         } catch is CancellationError {
         } catch { report(Self.failureMessage(error), true) }
     }
-
-    static func failureMessage(_ error: any Error) -> String {
-        if error is CaptureAreaService.Failure {
-            return String(localized: "Screen Recording access is required.")
-        }
-        return switch error as? RecordingTarget.Failure {
-        case .permissionDenied: String(localized: "Screen Recording access is required.")
-        case .disabled: String(localized: "Capture is disabled.")
-        case .invalidTarget, .targetUnavailable: String(localized: "Capture area is unavailable.")
-        case .busy: String(localized: "A recording is already in progress.")
-        case .notRecording: String(localized: "No recording is in progress.")
-        case .noFrames: String(localized: "The recording contains no frames.")
-        case .invalidFolder, .writerFailed, nil: String(localized: "Could not save the recording.")
-        }
-    }
 }

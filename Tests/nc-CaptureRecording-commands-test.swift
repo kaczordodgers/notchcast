@@ -101,13 +101,35 @@ enum SettingsTab { case notchcast }
         let publishedBefore = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "mp4" }.count
         try module.setPaused(true)
+        preferences.set(.recording, false)
         module.stop()
         await module.waitUntilIdle()
         let publishedAfter = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "mp4" }.count
         precondition(publishedAfter == publishedBefore + 1 && !module.enabled)
+        precondition(AppCore.shared.messages.last?.0 == "Recording saved")
+        precondition(AppCore.shared.messages.last?.1 == .success)
         precondition(!RecordingCommands.stop.isEnabled())
         module.start()
+        preferences.set(.recording, true)
+        try await module.record(.display(1))
+        source.holdStop = true
+        preferences.set(.recording, false)
+        module.stop()
+        while source.stopContinuation == nil { await Task.yield() }
+        module.start()
+        preferences.set(.recording, true)
+        source.holdStop = false
+        source.stopContinuation?.resume()
+        source.stopContinuation = nil
+        await module.waitUntilIdle()
+        precondition(module.enabled && module.phase == .idle)
+        RecordingCommands.screen.run()
+        await module.commandTask?.value
+        precondition(module.phase == .recording)
+        _ = try await module.finish()
+        precondition(RecordingModule.failureMessage(NSError(domain: "start", code: 1)) == "Recording failed.")
+        print("PASS off/on during held save preserves enabled state; Record Screen works; success HUD")
         source.denied = true
         await module.executeRecordingCommand(.record(.display(1)), report: { if $1 { failures.append($0) } })
         precondition(failures.last == "Screen Recording access is required.")
@@ -129,7 +151,7 @@ enum SettingsTab { case notchcast }
         await countdown.waitUntilIdle()
         let afterCountdown = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "mp4" }.count
-        precondition(afterCountdown == publishedAfter && countdown.phase == .idle)
+        precondition(afterCountdown == publishedAfter + 2 && countdown.phase == .idle)
         print("PASS countdown switch-off writes nothing; paused switch-off publishes")
         print("PASS phase refresh hook, readable failures, switch-off publishes active take")
         print("PASS screen/area targets, cancelled selection, pause/resume, published URL reveal")
@@ -141,6 +163,8 @@ enum SettingsTab { case notchcast }
     var target: RecordingTarget?
     var starts = 0
     var denied = false
+    var holdStop = false
+    var stopContinuation: CheckedContinuation<Void, Never>?
     func prepare(_ target: RecordingTarget, frameRate: Int) async throws -> RecordingFormat {
         if denied { throw RecordingTarget.Failure.permissionDenied }
         self.target = target
@@ -150,7 +174,9 @@ enum SettingsTab { case notchcast }
         starts += 1
         writer.begin(at: .zero)
     }
-    func stop() async throws {}
+    func stop() async throws {
+        if holdStop { await withCheckedContinuation { stopContinuation = $0 } }
+    }
 }
 
 final class RecordingWriter: RecordingWriting {

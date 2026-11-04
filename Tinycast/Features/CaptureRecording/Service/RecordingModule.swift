@@ -38,6 +38,7 @@ final class RecordingModule: NotchcastModule {
     }
     private(set) var lastError: (any Error)?
     private(set) var enabled = false
+    private var requestedEnabled = false
     @ObservationIgnored let commandArea: CaptureAreaService
     @ObservationIgnored var commandTask: Task<Void, Never>?
     @ObservationIgnored private let refreshCommands: () -> Void
@@ -86,20 +87,35 @@ final class RecordingModule: NotchcastModule {
             ?? defaultFolder
     }
 
-    func start() { enabled = true }
+    func start() {
+        requestedEnabled = true
+        enabled = true
+    }
 
     func stop() {
+        requestedEnabled = false
         commandArea.stop()
         guard shutdownTask == nil else { return }
         if phase == .recording || phase == .paused || phase == .stopping {
+            let reportSave = !NotchcastPreferences.shared.isOn(.recording)
             shutdownTask = Task { [self] in
                 defer { shutdownTask = nil }
                 if phase == .recording || phase == .paused {
-                    do { _ = try await finish() } catch { lastError = error }
+                    do {
+                        _ = try await finish()
+                        if reportSave {
+                            AppCore.shared.showMessage(String(localized: "Recording saved"), tone: .success)
+                        }
+                    } catch {
+                        lastError = error
+                        if reportSave {
+                            AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
+                        }
+                    }
                 } else {
                     _ = await finishTask?.result
                 }
-                enabled = false
+                enabled = requestedEnabled
                 refreshCommands()
             }
             return
@@ -231,6 +247,22 @@ final class RecordingModule: NotchcastModule {
         await recoveryTask?.value
         _ = await finishTask?.result
         await cleanupTask?.value
+    }
+
+    static func failureMessage(_ error: any Error) -> String {
+        if error is CaptureAreaService.Failure {
+            return String(localized: "Screen Recording access is required.")
+        }
+        return switch error as? RecordingTarget.Failure {
+        case .permissionDenied: String(localized: "Screen Recording access is required.")
+        case .disabled: String(localized: "Capture is disabled.")
+        case .invalidTarget, .targetUnavailable: String(localized: "Capture area is unavailable.")
+        case .busy: String(localized: "A recording is already in progress.")
+        case .notRecording: String(localized: "No recording is in progress.")
+        case .noFrames: String(localized: "The recording contains no frames.")
+        case .invalidFolder, .writerFailed: String(localized: "Could not save the recording.")
+        case nil: String(localized: "Recording failed.")
+        }
     }
 
     private func validate(_ identity: UUID) throws {

@@ -11,6 +11,9 @@ import CoreMedia
 import Foundation
 
 @MainActor final class AppCore {
+    enum Tone { case danger, neutral, success }
+    var messages: [(String, Tone)] = []
+    func showMessage(_ text: String, tone: Tone) { messages.append((text, tone)) }
     static let shared = AppCore()
     var appIndex: AppCore { self }
     func refreshNotchcastCommands() {}
@@ -28,6 +31,9 @@ struct RecordingModuleTests {
         let source = ScreenRecordingSource()
         let module = RecordingModule(defaults: defaults, defaultFolder: root, makeSource: { source }, sleep: {})
         let preferences = NotchcastPreferences(suiteName: suite)
+        let previous = NotchcastPreferences.shared.isOn(.recording)
+        defer { NotchcastPreferences.shared.set(.recording, previous) }
+        NotchcastPreferences.shared.set(.recording, false)
         preferences.set(.recording, false)
         let controller = NotchcastModuleController([.init(requires: [.recording], module: module)], preferences: preferences)
         controller.run()
@@ -47,6 +53,9 @@ struct RecordingModuleTests {
         await settle { !module.enabled }
         await module.waitUntilIdle()
         precondition(source.stops > 0 && module.phase == .idle)
+        precondition(AppCore.shared.messages.last?.0 == "Recording failed.")
+        precondition(AppCore.shared.messages.last?.1 == .danger)
+        print("PASS switch-off save failure reports danger HUD")
         print("PASS recording module switch, record entry point, writer failure message and teardown")
     }
 
