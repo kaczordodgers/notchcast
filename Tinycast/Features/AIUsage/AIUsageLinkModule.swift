@@ -101,8 +101,8 @@ final class AIUsageLinkModule: NotchcastModule {
             throw MachLinkMessage.Failure.disconnected
         }
         let path = preferences.aiUsageCachePath
-        guard provider != nil || !path.isEmpty else { throw MachLinkMessage.Failure.disconnected }
-        let provider = provider ?? AIUsageProvider(cacheDirectory: URL(fileURLWithPath: path))
+        let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
+            path: path, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
         let response = try await MachLinkUsagePeerChannel.response(to: request, provider: provider)
         try Task.checkCancellation()
         guard preferences.isOn(.aiUsage), preferences.isOn(.aiUsageOtherMac) else {

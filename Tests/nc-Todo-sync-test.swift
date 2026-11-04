@@ -4,6 +4,19 @@ import Foundation
 
 @main @MainActor
 struct TodoSyncTests {
+    static func precondition(_ condition: @autoclosure () -> Bool,
+                             _ message: @autoclosure () -> String = "",
+                             file: StaticString = #file, line: UInt = #line) {
+        if !condition() { preconditionFailure(message(), file: file, line: line) }
+    }
+
+    static func preconditionFailure(_ message: @autoclosure () -> String = "",
+                                    file: StaticString = #file, line: UInt = #line) -> Never {
+        let reason = "\(file):\(line): Precondition failed: \(message()) (SIGTRAP, signal 5)\n"
+        FileHandle.standardError.write(Data(reason.utf8))
+        fatalError(reason, file: file, line: line)
+    }
+
     static let now = Date(timeIntervalSince1970: 1_800_000_000)
     static let project = TodoProject(id: UUID().uuidString, name: "Work")
     static let backlog = TodoSection(id: UUID().uuidString, name: "Backlog", projectID: project.id)

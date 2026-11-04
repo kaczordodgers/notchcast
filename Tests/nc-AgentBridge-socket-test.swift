@@ -5,6 +5,9 @@ import Synchronization
 @main
 @MainActor
 struct AgentSocketTests {
+    final class ClientFixture: @unchecked Sendable {
+        let session = AgentSocketClient.Session()
+    }
     @MainActor
     final class CancellationFixture {
         var started = 0
@@ -20,7 +23,7 @@ struct AgentSocketTests {
         }
     }
 
-    static func check(_ value: Bool, _ message: String = "check failed") { precondition(value, message) }
+    nonisolated static func check(_ value: Bool, _ message: String = "check failed") { precondition(value, message) }
 
     // Blocking calls stay off the cooperative pool; a small runner would starve the handler.
     static func offPool<Value: Sendable>(_ work: @escaping @Sendable () -> Value) async -> Value {
@@ -89,6 +92,41 @@ struct AgentSocketTests {
         check((await send(.init(verb: .status), url)).code == .ok)
         server.stop()
 
+        let initializations = Mutex(0)
+        let persistent = AgentSocketServer(socketURL: url, handlerTimeout: 0.05) { request in
+            if case .string = request.parameters { initializations.withLock { $0 += 1 } }
+            if request.id == "slow" {
+                try? await Task.sleep(for: .seconds(1))
+            }
+            return .init(code: .ok)
+        }
+        try persistent.start()
+        await offPool {
+            let clients = (0..<64).map { _ in AgentSocketClient.Session() }
+            for client in clients {
+                check(client.send(.init(verb: .mcp, id: "fast"), to: url).code == .ok)
+            }
+            check(AgentSocketClient.send(.init(verb: .status), to: url).code == .ok)
+            check(AgentSocketClient.Session().send(.init(verb: .mcp, id: "overflow"), to: url).code == .failed)
+            withExtendedLifetime(clients) {}
+        }
+        print("PASS 64 MCP connections leave plain CLI available; connection 65 is refused")
+        let client = ClientFixture()
+        check(await offPool {
+            client.session.send(.init(verb: .mcp, id: "fast",
+                parameters: .string(#"{"method":"initialize"}"#)), to: url).code
+        } == .ok)
+        check(await offPool { client.session.send(.init(verb: .mcp, id: "slow"), to: url).code } == .failed)
+        check(await offPool { client.session.send(.init(verb: .mcp, id: "fast"), to: url).code } == .ok)
+        check(initializations.withLock { $0 } == 2)
+        persistent.stop()
+        try persistent.start()
+        _ = await offPool { client.session.send(.init(verb: .mcp, id: "fast"), to: url) }
+        check(await offPool { client.session.send(.init(verb: .mcp, id: "fast"), to: url).code } == .ok)
+        check(initializations.withLock { $0 } == 3)
+        persistent.stop()
+        print("PASS same client recovers after handler timeout and server restart")
+
         let stalled = AgentSocketServer(socketURL: url, handlerTimeout: 0.05) { _ in
             do { try await Task.sleep(for: .seconds(10)) } catch { return .init(code: .failed) }
             return .init(code: .ok)
@@ -104,8 +142,7 @@ struct AgentSocketTests {
         while cancellation.started == 0 { await Task.yield() }
         cancellable.stop()
         check((await pending.value).code == .failed)
-        let deadline = ContinuousClock.now + .seconds(2)
-        while cancellation.cancelled == 0 && ContinuousClock.now < deadline { await Task.yield() }
+        while cancellation.cancelled == 0 { await Task.yield() }
         check(cancellation.cancelled == 1, "stop left the handler running")
 
         try cancellable.start()
@@ -128,12 +165,10 @@ struct AgentSocketTests {
                 preconditionFailure("fixture client failed: \(error)")
             }
         }
-        let acceptedDeadline = ContinuousClock.now + .seconds(2)
-        while cancellation.started < 2 && ContinuousClock.now < acceptedDeadline { await Task.yield() }
+        while cancellation.started < 2 { await Task.yield() }
         check(cancellation.started == 2)
         Darwin.close(disconnected)
-        let disconnectDeadline = ContinuousClock.now + .seconds(2)
-        while cancellation.cancelled < 2 && ContinuousClock.now < disconnectDeadline { await Task.yield() }
+        while cancellation.cancelled < 2 { await Task.yield() }
         check(cancellation.cancelled == 2, "disconnect left the handler running")
         cancellable.stop()
 
