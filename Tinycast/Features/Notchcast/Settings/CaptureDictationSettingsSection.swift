@@ -5,6 +5,7 @@ struct CaptureDictationSettingsSection: View {
         Section {
             ColorPickerSettingsSection(module: NotchcastCore.colorPicker)
             ScreenshotSettingsSection(module: NotchcastCore.screenshot)
+            DictationEnglishSettingsSection()
             DictationHistorySettingsSection()
             DictationCleanupSettingsSection(module: NotchcastCore.dictationCleanup)
             CaptureTrimmerSettingsSection()

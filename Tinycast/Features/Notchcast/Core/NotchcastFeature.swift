@@ -43,6 +43,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case recording
     case screenText
     case scrollingCapture
+    case dictationEnglish
     case globeDictation
     case agentMCPServer
     case agentChatTools
@@ -112,6 +113,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherAliasSpace: .launcher
         case .dictationIslandHUD: .activities
         case .dictationCleanup: .captureAndDictation
+        case .dictationEnglish: .captureAndDictation
         case .dictationHistory: .captureAndDictation
         case .captureTrimmer: .captureAndDictation
         case .agentAnswer: .captureAndDictation
@@ -213,6 +215,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
         case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .dictationCleanup: String(localized: "AI cleanup")
+        case .dictationEnglish: String(localized: "Dictate in English")
         case .dictationHistory: String(localized: "Keep dictation history")
         case .captureTrimmer: String(localized: "Recording Trimmer")
         case .agentAnswer: String(localized: "Agent Answers")
@@ -247,6 +250,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .screenshot: String(localized: "Capture an area, window or display.")
         case .agentMCPServer: String(localized: "Nothing is exposed until the CLI is available.")
         case .agentChatTools: String(localized: "Add Notchcast tools to AI chat.")
+        case .dictationEnglish: ""
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -313,6 +317,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         switch self {
         case .screenText: [.screenRecording]
         case .scrollingCapture: [.screenRecording]
+        case .dictationEnglish: [.accessibility]
         case .screenshot: [.screenRecording]
         case .musicNowPlaying: []
         case .musicLastPlayer: [.accessibility]
@@ -367,6 +372,7 @@ extension NotchcastFeature {
         case .torrentsUseIPhone: false
         case .torrentsKeepSharing: false
         case .dictationCleanup: false
+        case .dictationEnglish: false
         case .dictationHistory: false
         case .captureTrimmer: false
         case .agentAnswer: false
