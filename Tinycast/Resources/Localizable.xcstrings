@@ -157584,12 +157584,6 @@
             "value": "작업: %lld"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zadania: %lld"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -157640,12 +157634,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "가져온 작업: %lld"
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zaimportowane zadania: %lld"
           }
         },
         "pt": {
@@ -157700,12 +157688,6 @@
             "value": "Todoist JSON 내보내기 가져오기…"
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Importuj eksport JSON Todoist…"
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -157758,12 +157740,6 @@
             "value": "이 파일은 Todoist JSON 내보내기가 아닙니다."
           }
         },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ten plik nie jest eksportem JSON Todoist."
-          }
-        },
         "pt": {
           "stringUnit": {
             "state": "translated",
@@ -157814,12 +157790,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Todoist 작업, 프로젝트, 섹션 및 라벨 배열이 포함된 JSON 객체를 지원합니다."
-          }
-        },
-        "pl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Obsługuje obiekt JSON z tablicami zadań, projektów, sekcji i etykiet Todoist."
           }
         },
         "pt": {

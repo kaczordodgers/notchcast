@@ -145,7 +145,7 @@ task comments. Attachments and activity history are excluded.
 
 `TodoistExportSource.export() async throws -> Data` is the transport boundary;
 `FixtureExportSource(url:)` reads a fixture off-main through
-`TodoistImportClient.export(from:)`. No network client, token storage or settings button is wired.
+`TodoistImportClient.export(from:)`. No network client or token storage is wired; the Settings import button reads a JSON export.
 `Tests/nc-Todo-import-test.swift` uses only the hand-written fake export in `Tests/Fixtures/`.
 
 ## Store harness
