@@ -23,6 +23,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .agentConfirmation: .islandOptions
         case .island: .island
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
