@@ -42,6 +42,7 @@ final class AgentActionIndex {
     }
 
     func start() { isRunning = true }
+    func unregister(_ id: String) { actions[id] = nil; states[id] = nil; actionIDs = actions.keys.sorted(); stateIDs = states.keys.sorted() }
 
     func unregisterAll() {
         stop()
