@@ -26,6 +26,16 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case batteryCalibration
     case keepAwake
     case lidClosedAwake
+    case settingsBackup
+    case showDesktop
+    case spacesOrder
+    case hideCommandM
+    case middleClick
+    case greenMaximize
+    case machineSetupProfile
+    case agentConfirmation
+    case eventReminder
+    case switcherQuitKey
     case linkQuickFixes
     case downloads
     case downloadsAria2
@@ -78,6 +88,16 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .distill: .activities
         case .distillTimestamps: .activities
         case .distillConvert: .activities
+        case .settingsBackup: .system
+        case .showDesktop: .system
+        case .spacesOrder: .system
+        case .hideCommandM: .system
+        case .middleClick: .system
+        case .greenMaximize: .system
+        case .machineSetupProfile: .system
+        case .agentConfirmation: .islandOptions
+        case .eventReminder: .activities
+        case .switcherQuitKey: .launcher
         }
     }
 
@@ -106,12 +126,22 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .greenMaximize: String(localized: "Green Button Maximizes")
+        case .middleClick: String(localized: "Trackpad Middle Click")
+        case .hideCommandM: String(localized: "Hide with ⌘M")
+        case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
+        case .showDesktop: String(localized: "Show Desktop with F3")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .settingsBackup: String(localized: "Settings Backup")
+        case .machineSetupProfile: String(localized: "Machine Setup Profile")
+        case .agentConfirmation: String(localized: "Agent Confirmation")
+        case .eventReminder: String(localized: "Event Reminders")
+        case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
         case .downloads: String(localized: "Downloads")
         case .downloadsAria2: String(localized: "Fast Downloads with aria2c")
@@ -146,12 +176,22 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
+        case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
+        case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
+        case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
+        case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
+        case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
+        case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
+        case .eventReminder: String(localized: "Show calendar alerts in the island.")
+        case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         case .downloads: String(localized: "Download video, audio, transcripts and webpages from clipboard links.")
         case .downloadsAria2: String(localized: "Use aria2c for faster media downloads when it is installed.")
@@ -164,6 +204,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .showDesktop: [.accessibility]
+        case .hideCommandM: [.accessibility]
+        case .middleClick: [.accessibility]
+        case .greenMaximize: [.accessibility]
+        case .switcherQuitKey: [.accessibility]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -177,10 +222,20 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .spacesOrder: false
+        case .switcherQuitKey: false
         case .urlCleaner: false
         case .convertFiles: false
         case .mediaTools: false
         case .commandRunner: false
+        case .settingsBackup: false
+        case .showDesktop: false
+        case .spacesOrder: false
+        case .hideCommandM: false
+        case .middleClick: false
+        case .greenMaximize: false
+        case .machineSetupProfile: false
+        case .switcherQuitKey: false
         case .displayBrightness: false
         case .quitProtection: false
         case .downloads: false
@@ -194,6 +249,8 @@ extension NotchcastFeature {
 
     var defaultEnabled: Bool {
         switch self {
+        case .spacesOrder: false
+        case .switcherQuitKey: false
         case .urlCleaner: false
         case .convertFiles: false
         case .mediaTools: false
