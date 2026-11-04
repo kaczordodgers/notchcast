@@ -1,6 +1,78 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Planned" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Geplant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Planificado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Prévu" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "予定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "예정" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Planeado" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Запланировано" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已计划" } }
+      }
+    },
+    "Already satisfied" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bereits erfüllt" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ya satisfecho" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Déjà satisfait" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "設定済み" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이미 충족됨" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Já satisfeito" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Уже выполнено" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已满足" } }
+      }
+    },
+    "Applied" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Angewendet" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aplicado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Appliqué" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "適用済み" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "적용됨" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Aplicado" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Применено" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已应用" } }
+      }
+    },
+    "Needs helper" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Hilfsprogramm erforderlich" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Requiere un auxiliar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Assistant requis" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ヘルパーが必要" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "헬퍼 필요" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Requer auxiliar" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Требуется помощник" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "需要辅助程序" } }
+      }
+    },
+    "Failed" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Fehlgeschlagen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fallido" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Échec" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "失敗" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "실패" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Falhou" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ошибка" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "失败" } }
+      }
+    },
+    "Not run" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nicht ausgeführt" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No ejecutado" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Non exécuté" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "未実行" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "실행 안 됨" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não executado" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не выполнено" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未运行" } }
+      }
+    },
     "Agent Confirmation" : {
       "localizations" : {
         "pt" : {
