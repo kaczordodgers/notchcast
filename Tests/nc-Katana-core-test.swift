@@ -11,6 +11,7 @@
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 import Foundation
+import Darwin
 
 @MainActor
 final class FakeKatanaTransport: KatanaTransport {
@@ -121,6 +122,7 @@ struct KatanaTests {
         try imports()
         try pitch()
         try await client()
+        try await lockTransactions()
         try await audio()
         try await repository()
         for path in CommandLine.arguments.dropFirst() {
@@ -129,6 +131,54 @@ struct KatanaTests {
             expect(!tones.isEmpty, "Reference file \(url.lastPathComponent)")
         }
         print("Katana: \(checks) checks passed; fake MIDI/audio only")
+    }
+
+    static func lockTransactions() async throws {
+        let file = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: file) }
+        let fake = FakeKatanaTransport()
+        let client = KatanaClient(transport: fake, lockPath: file.path, lockTimeout: .milliseconds(220))
+        client.start()
+        try await client.refresh()
+        expect(!FileManager.default.fileExists(atPath: file.path), "Missing lock stays missing")
+        try Data().write(to: file)
+        let other = open(file.path, O_RDWR)
+        guard other >= 0 else { fatalError("Open test lock") }
+        defer { close(other) }
+        expect(flock(other, LOCK_EX | LOCK_NB) == 0, "Hold external lock")
+        let count = fake.packets.count
+        let start = ContinuousClock.now
+        await rejects(.ampBusy) { try await client.refresh() }
+        expect(start.duration(to: .now) >= .milliseconds(220), "Busy waits for deadline")
+        expect(fake.packets.count == count, "Busy sends no MIDI")
+        let waiting = Task { try await client.refresh() }
+        try await Task.sleep(for: .milliseconds(50))
+        expect(fake.packets.count == count, "Waiting sends no MIDI")
+        flock(other, LOCK_UN)
+        try await waiting.value
+        expect(flock(other, LOCK_EX | LOCK_NB) == 0, "Success releases lock")
+        flock(other, LOCK_UN)
+        fake.refuse = 0
+        await rejects(.verificationFailed) { try await client.refresh() }
+        expect(flock(other, LOCK_EX | LOCK_NB) == 0, "Failure releases lock")
+        let cancelledWait = Task { try await client.refresh() }
+        try await Task.sleep(for: .milliseconds(30))
+        cancelledWait.cancel()
+        do { try await cancelledWait.value; fatalError("Wait cancellation accepted") } catch is CancellationError {}
+        flock(other, LOCK_UN)
+        fake.refuse = nil
+        fake.pauseNext = true
+        let cancelled = Task { try await client.refresh() }
+        while fake.pause == nil { await Task.yield() }
+        expect(flock(other, LOCK_EX | LOCK_NB) != 0, "MIDI transaction holds lock")
+        cancelled.cancel()
+        fake.pause?.resume()
+        fake.pause = nil
+        do { try await cancelled.value; fatalError("Transaction cancellation accepted") } catch is CancellationError {}
+        expect(flock(other, LOCK_EX | LOCK_NB) == 0, "Cancellation releases lock")
+        flock(other, LOCK_UN)
+        try await client.refresh()
+        expect(FileManager.default.fileExists(atPath: file.path), "Existing lock is retained")
     }
 
     static func framing() throws {
