@@ -464,16 +464,16 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .mediaTools: String(localized: "Compress media, make GIFs and extract text locally.")
         case .convertFiles: String(localized: "Convert local files beside the originals.")
         case .urlCleaner: String(localized: "Remove tracking parameters from copied links.")
-        case .musicNowPlaying: String(localized: "Show what is playing")
-        case .musicLastPlayer: String(localized: "Resume last player")
-        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
-        case .spotifyConnect: String(localized: "Spotify Connect speaker")
-        case .microphoneMute: String(localized: "Microphone mute")
-        case .inUseMarks: String(localized: "In-use marks")
+        case .musicNowPlaying: String(localized: "Show track information in the island.")
+        case .musicLastPlayer: String(localized: "Send playback controls to the last active player.")
+        case .musicBlockAppleMusic: String(localized: "Prevent media keys from launching Apple Music.")
+        case .spotifyConnect: String(localized: "Use this Mac as a Spotify playback device.")
+        case .microphoneMute: String(localized: "Press F5 to mute or unmute microphones.")
+        case .inUseMarks: String(localized: "Show when the camera or microphone is in use.")
         case .buildStats: String(localized: "Read a local build snapshot.")
         case .agentMCPServer: String(localized: "Nothing is exposed until the CLI is available.")
         case .agentChatTools: String(localized: "Add Notchcast tools to AI chat.")
-        case .dictationEnglish: ""
+        case .dictationEnglish: String(localized: "Use English for dictation.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -526,11 +526,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiFeaturesOff: String(localized: "Choose which Apple intelligence features to disable.")
         case .spotlightOff: String(localized: "Turn off Spotlight indexing.")
         case .privacyChoices: String(localized: "Choose macOS privacy restrictions.")
-        case .typingTweaks: String(localized: "Enable confirmed system preference changes.")
-        case .finderTweaks: String(localized: "Enable confirmed system preference changes.")
-        case .dockTweaks: String(localized: "Enable confirmed system preference changes.")
-        case .appleAppsTweaks: String(localized: "Enable confirmed system preference changes.")
-        case .iPhoneBackupTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .typingTweaks: String(localized: "Changes system preferences after confirmation; some changes require signing out.")
+        case .finderTweaks: String(localized: "Changes Finder preferences and restarts Finder after confirmation.")
+        case .dockTweaks: String(localized: "Changes Dock preferences and restarts Dock after confirmation.")
+        case .appleAppsTweaks: String(localized: "macOS requires your approval to install this restriction; remove it in System Settings.")
+        case .iPhoneBackupTweaks: String(localized: "Changes system preferences after confirmation; some changes require signing out.")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
         case .backupStatus: String(localized: "Warns when backups fail or become stale.")
         case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
@@ -545,7 +545,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
         case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
-        case .dictationHistory: String(localized: "Keep dictation history")
+        case .dictationHistory: String(localized: "Save transcripts for later review.")
         case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.")
         case .captureEditor: String(localized: "Mark up a capture and copy it.")
         case .agentAnswer: String(localized: "Reply to waiting agents.")
@@ -611,9 +611,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
         case .switcherQuitKey: [.accessibility]
-        case .voiceAsk: [.accessibility]
+        case .voiceAsk: [.accessibility, .microphone]
         case .recording: [.screenRecording]
-        case .globeDictation: [.accessibility]
+        case .globeDictation: [.accessibility, .microphone]
+        case .dayCalendar: [.calendars]
+        case .eventReminder: [.calendars]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -875,5 +877,7 @@ extension NotchcastFeature {
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
     case screenRecording
+    case microphone
+    case calendars
     case bluetooth
 }

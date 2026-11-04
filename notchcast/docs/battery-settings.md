@@ -1,7 +1,6 @@
 # Battery and energy settings
 
-`NotchcastSystemSettingsSection` owns the system monitor, fan, battery and energy rows in
-Settings > Notchcast. These switches default off and work independently of the island.
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands. These switches default off and work independently of the island.
 Charge limits are 60, 70, 80 and 90%; keep-awake durations are 15–240 minutes.
 Both options persist in the fork-local preferences suite.
 
