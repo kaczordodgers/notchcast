@@ -21,6 +21,7 @@ final class NotchcastPreferences {
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
     var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.allowed(newValue, Self.chargeLimits, 80); defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
+    @ObservationIgnored private var versions: [NotchcastFeature: Int] = [:]
 
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
@@ -38,11 +39,14 @@ final class NotchcastPreferences {
         off = Self.featuresOff(defaults)
     }
 
+    func revision(_ feature: NotchcastFeature) -> Int { versions[feature, default: 0] }
+
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
 
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
+        versions[feature, default: 0] += 1
         if enabled { off.remove(feature) } else { off.insert(feature) }
     }
 }

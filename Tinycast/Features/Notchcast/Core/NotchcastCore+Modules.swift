@@ -1,6 +1,11 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
+import Foundation
+
 extension NotchcastCore {
+    static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast") + ".urlCleaner"))
+    static let mediaTools = MediaToolsModule()
+    static let convertFiles = ConvertFilesModule()
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
@@ -24,6 +29,10 @@ extension NotchcastCore {
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let downloadServices = NotchcastDownloadServices(core: core)
         return [
+            .init(requires: [.urlCleaner], module: urlCleaner),
+            .init(requires: [.convertFiles], module: convertFiles),
+            .init(requires: [.mediaTools], module: mediaTools),
+            .init(requires: [], module: NotchcastToolsCommands(core: core)),
             .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
             .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),

@@ -45,8 +45,20 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case distillTimestamps
     case distillConvert
 
+    case urlCleaner
+
+    case convertFiles
+
+    case mediaTools
+
+    case commandRunner
+
     var settingsGroup: SettingsGroup {
         switch self {
+        case .commandRunner: .launcher
+        case .mediaTools: .activities
+        case .convertFiles: .activities
+        case .urlCleaner: .system
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -95,6 +107,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .commandRunner: String(localized: "Command Runner")
+        case .mediaTools: String(localized: "Media Tools")
+        case .convertFiles: String(localized: "Convert Files")
+        case .urlCleaner: String(localized: "URL cleaner")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -143,6 +159,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .commandRunner: String(localized: "Run commands from a host profile.")
+        case .mediaTools: String(localized: "Compress media, make GIFs and extract text locally.")
+        case .convertFiles: String(localized: "Convert local files beside the originals.")
+        case .urlCleaner: String(localized: "Remove tracking parameters from copied links.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -212,6 +232,10 @@ extension NotchcastFeature {
         return switch self {
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
+        case .urlCleaner: false
+        case .convertFiles: false
+        case .mediaTools: false
+        case .commandRunner: false
         case .settingsBackup: false
         case .showDesktop: false
         case .spacesOrder: false
@@ -234,7 +258,15 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        switch self {
+        case .spacesOrder: false
+        case .switcherQuitKey: false
+        case .urlCleaner: false
+        case .convertFiles: false
+        case .mediaTools: false
+        case .commandRunner: false
+        default: !isSystemFeature && !isLauncherKeysFeature
+        }
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
