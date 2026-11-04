@@ -35,6 +35,16 @@ enum ForkSettingsBackupEngine {
         current.merging(try decode(data)) { _, restored in restored }
     }
 
+    static func newest(in names: [String]) -> String? {
+        names.compactMap { name -> (String, Int)? in
+            guard name.hasPrefix("settings-"), name.hasSuffix(".plist") else { return nil }
+            let digits = name.dropFirst(9).dropLast(6)
+            guard !digits.isEmpty, digits.allSatisfy({ $0.isASCII && $0.isNumber }),
+                  let day = Int(digits) else { return nil }
+            return (name, day)
+        }.max { $0.1 == $1.1 ? $0.0 < $1.0 : $0.1 < $1.1 }?.0
+    }
+
     private static func validated(_ values: [String: Any]) throws -> [String: Any] {
         var result: [String: Any] = [:]
         for (key, range) in ranges {
