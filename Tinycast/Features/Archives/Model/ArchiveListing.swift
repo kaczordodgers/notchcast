@@ -38,7 +38,8 @@ nonisolated struct ArchiveListing: Sendable {
     private mutating func parse(_ line: String) throws {
         if line == "      Size  Name" || line.isEmpty { return }
         let fields = line.components(separatedBy: ", ")
-        if fields.count == 3, fields[0].hasSuffix(" entry") || fields[0].hasSuffix(" entries") {
+        if !line.dropFirst(10).hasPrefix("  "), fields.count == 3,
+           fields[0].hasSuffix(" entry") || fields[0].hasSuffix(" entries") {
             guard let count = Int(fields[0].split(separator: " ")[0]),
                   count == entries.count, fields[1].hasSuffix(" uncompressed"),
                   let bytes = Self.bytes(String(fields[1].dropLast(" uncompressed".count))) else {

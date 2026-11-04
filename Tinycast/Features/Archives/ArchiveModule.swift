@@ -28,6 +28,8 @@ final class ArchiveModule: NotchcastModule {
         self.locator = locator
         self.defaultApplications = defaultApplications
         self.application = application
+        appliedDefaultApplication = preferences.archiveHandlersClaimed
+        defaultApplicationMayBeClaimed = preferences.archiveHandlersClaimed
         queue = ArchiveQueue(runner: ArchiveExtractionRunner(locator: locator))
     }
 
@@ -110,6 +112,7 @@ final class ArchiveModule: NotchcastModule {
                 try await defaultApplications.setEnabled(enabled, application: application)
                 appliedDefaultApplication = enabled
                 defaultApplicationMayBeClaimed = enabled
+                preferences.archiveHandlersClaimed = enabled
                 defaultApplicationFailure = nil
             } catch {
                 appliedDefaultApplication = !desiredDefaultApplication

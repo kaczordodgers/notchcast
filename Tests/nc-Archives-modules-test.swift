@@ -110,6 +110,13 @@ struct ArchiveModulesTests {
         preferences.set(.archivesDefaultApp, true)
         try await until { service.calls == [true] }
         precondition(service.applications == [application])
+        await settle()
+        let reopenedService = FakeArchiveDefaults()
+        let reopened = ArchiveModule(preferences: NotchcastPreferences(suiteName: suite),
+            locator: Locator(tool: nil), defaultApplications: reopenedService)
+        reopened.start()
+        await settle()
+        precondition(reopenedService.calls.isEmpty, "launch preserves user's current handler")
         preferences.set(.archivesDefaultApp, false)
         try await until { service.calls == [true, false] }
         preferences.set(.archivesDefaultApp, true)
@@ -190,7 +197,9 @@ struct ArchiveModulesTests {
     static func cancellation() async throws {
         let suite = "archive-stop.\(UUID())"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
-        let root = FileManager.default.temporaryDirectory.appending(path: "archives-module-\(UUID())")
+        let scratch = ProcessInfo.processInfo.environment["ARCHIVES_TEST_ROOT"]
+            .map { URL(fileURLWithPath: $0) } ?? FileManager.default.temporaryDirectory
+        let root = scratch.appending(path: "archives-module-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? ArchiveFiles.removeStaging(root) }
         let tool = root.appending(path: "hatchzip")

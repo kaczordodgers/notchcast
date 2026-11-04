@@ -95,6 +95,7 @@
 				<string>com.rarlab.rar-archive</string>
 				<string>public.tar-archive</string>
 				<string>org.gnu.gnu-zip-tar-archive</string>
+				<string>org.gnu.gnu-zip-archive</string>
 				<string>app.notchcast.split-archive</string>
 			</array>
 		</dict>
@@ -146,7 +147,6 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>tgz</string>
-					<string>tar.gz</string>
 				</array>
 			</dict>
 		</dict>

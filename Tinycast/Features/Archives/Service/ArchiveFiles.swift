@@ -2,6 +2,13 @@ import Darwin
 import Foundation
 
 nonisolated enum ArchiveFiles {
+    static func supportsExclusiveRename(_ parent: URL) -> Bool {
+        let source = parent.appending(path: ".notchcast-probe-\(UUID().uuidString)")
+        let target = parent.appending(path: ".notchcast-probe-\(UUID().uuidString)")
+        guard mkdir(source.path, 0o700) == 0 else { return false }
+        defer { _ = rmdir(source.path); _ = rmdir(target.path) }
+        return renamex_np(source.path, target.path, UInt32(RENAME_EXCL)) == 0
+    }
     static func quarantine(_ archive: URL) throws -> Data? {
         let size = getxattr(archive.path, "com.apple.quarantine", nil, 0, 0, XATTR_NOFOLLOW)
         if size < 0 {
@@ -24,7 +31,7 @@ nonisolated enum ArchiveFiles {
             for item in try children(folder) {
                 result.append(item)
                 guard result.count <= 100_000 else { throw ArchiveFailure.tooManyEntries }
-                let info = try attributes(item)
+                guard let info = try attributesIfPresent(item) else { continue }
                 if info.st_mode & S_IFMT == S_IFDIR { folders.append(item) }
             }
         }
@@ -33,7 +40,7 @@ nonisolated enum ArchiveFiles {
 
     static func bytes(_ root: URL) throws -> Int64 {
         try items(root).reduce(Int64(0)) { total, item in
-            let info = try attributes(item)
+            guard let info = try attributesIfPresent(item) else { return total }
             return total + (info.st_mode & S_IFMT == S_IFREG ? info.st_size : 0)
         }
     }
@@ -57,7 +64,7 @@ nonisolated enum ArchiveFiles {
         let top = try children(staging)
         guard !top.isEmpty else { throw ArchiveFailure.invalidListing }
         let root = top.count == 1 ? top[0] : staging
-        let boundary = root.path + "/"
+        let boundary = root.resolvingSymlinksInPath().path + "/"
         let remaining = [root] + (try attributes(root).st_mode & S_IFMT == S_IFDIR ? try items(root) : [])
         for item in remaining {
             try Task.checkCancellation()
@@ -98,7 +105,10 @@ nonisolated enum ArchiveFiles {
         guard status == 0 else { throw ArchiveFailure.filesystem("quarantine write: \(errno)") }
     }
 
-    static func publish(_ root: URL, staging: URL, archive: URL) throws -> URL {
+    static func publish(
+        _ root: URL, staging: URL, archive: URL,
+        exclusiveRename: (String, String) -> Int32 = { renamex_np($0, $1, UInt32(RENAME_EXCL)) }
+    ) throws -> URL {
         let base = root == staging ? ArchiveFormat.baseName(archive) : root.lastPathComponent
         let isFile = try attributes(root).st_mode & S_IFMT == S_IFREG
         let suffix = isFile || root.pathExtension.lowercased() == "app" ? root.pathExtension : ""
@@ -107,7 +117,21 @@ nonisolated enum ArchiveFiles {
             try Task.checkCancellation()
             let name = number == 1 ? base : "\(stem) \(number)" + (suffix.isEmpty ? "" : ".\(suffix)")
             let target = archive.deletingLastPathComponent().appending(path: name)
-            if renamex_np(root.path, target.path, UInt32(RENAME_EXCL)) == 0 { return target }
+            if root == staging, chmod(root.path, 0o755) != 0 {
+                throw ArchiveFailure.filesystem("publish permissions: \(errno)")
+            }
+            if exclusiveRename(root.path, target.path) == 0 { return target }
+            if errno == ENOTSUP {
+                if mkdir(target.path, 0o755) == 0 {
+                    do {
+                        let destination = target.appending(path: root == staging ? "Contents" : root.lastPathComponent)
+                        try FileManager.default.moveItem(at: root, to: destination)
+                        return destination
+                    } catch {
+                        throw ArchiveFailure.filesystem("visible recovery at \(target.path): \(error)")
+                    }
+                }
+            }
             guard errno == EEXIST else { throw ArchiveFailure.filesystem("publish: \(errno)") }
         }
         throw ArchiveFailure.filesystem("publish: exhausted names")
@@ -119,8 +143,18 @@ nonisolated enum ArchiveFiles {
         return info
     }
 
+    private static func attributesIfPresent(_ url: URL) throws -> stat? {
+        var info = stat()
+        if lstat(url.path, &info) == 0 { return info }
+        if errno == ENOENT { return nil }
+        throw ArchiveFailure.filesystem("stat: \(errno)")
+    }
+
     private static func children(_ folder: URL) throws -> [URL] {
-        guard let directory = opendir(folder.path) else { throw ArchiveFailure.filesystem("opendir: \(errno)") }
+        guard let directory = opendir(folder.path) else {
+            if errno == ENOENT { return [] }
+            throw ArchiveFailure.filesystem("opendir: \(errno)")
+        }
         defer { closedir(directory) }
         var result: [URL] = []
         errno = 0
