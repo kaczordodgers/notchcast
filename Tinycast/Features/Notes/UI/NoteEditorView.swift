@@ -225,7 +225,9 @@ struct NoteEditorView: NSViewRepresentable {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.isContinuousSpellCheckingEnabled = false
+        textView.isContinuousSpellCheckingEnabled = UserDefaults(
+            suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast"
+        )?.object(forKey: "editorSpellChecking") as? Bool ?? true
         textView.smartInsertDeleteEnabled = false
         textView.usesFindBar = true
         textView.allowsUndo = true
