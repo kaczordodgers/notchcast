@@ -6,10 +6,12 @@ enum CommandCatalog {
         CommandID.allCases
         .filter { !$0.isQueryDriven }
         .map { makeEntry($0) }
+        .appendingNotchcastCommands()
         .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
 
     nonisolated static func entries(ownedBy owner: SettingsTab) -> [AppEntry] {
         owner.ownedCommands.map { makeEntry($0) }
+            .appendingNotchcastCommands(ownedBy: owner)
     }
 
     static func command(for entry: AppEntry) -> CommandID? {
@@ -66,7 +68,6 @@ extension SettingsTab {
         case .emoji: [.searchEmoji]
         case .calendar:
             [.joinNextMeeting, .mySchedule, .createEvent, .copyMeetingLink, .openInCalendar]
-        case .notchcast: [.toggleIsland]
         default: []
         }
     }
