@@ -32,6 +32,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .windowsSwitcher: .launcher
         }
     }
 
