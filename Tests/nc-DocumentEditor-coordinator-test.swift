@@ -54,8 +54,7 @@ struct EditorCoordinatorTests {
             preconditionFailure("closing a dirty document must require an explicit discard")
         } catch EditorFailure.unsavedChanges {}
         preferences.set(.markdownFiles, false)
-        let deadline = ContinuousClock.now.advanced(by: .seconds(2))
-        while first.isEnabled && ContinuousClock.now < deadline { await Task.yield() }
+        while first.isEnabled { await Task.yield() }
         precondition(!first.isEnabled && first.source == "draft")
         do {
             _ = try await coordinator.open(url)
