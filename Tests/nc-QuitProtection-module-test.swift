@@ -30,12 +30,19 @@ enum ASCIIKeyboardLayout {
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let hub = EventTapHub()
-        let module = QuitProtectionModule(store: QuitProtectionStore(defaults: defaults), hub: hub) {
-            .init(processIdentifier: 42, bundleIdentifier: "test.app", name: "Test")
+        let store = QuitProtectionStore(defaults: defaults)
+        store.configuration.mode = .doublePress
+        var targetReads = 0
+        let module = QuitProtectionModule(store: store, hub: hub) {
+            targetReads += 1
+            return .init(processIdentifier: 42, bundleIdentifier: "test.app", name: "Test")
         }
         module.start()
         module.start()
         precondition(hub.count == 1)
+        let idleReads = targetReads
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        precondition(targetReads == idleReads, "Idle protection must not poll the target")
         let event = CGEvent(keyboardEventSource: nil, virtualKey: 12, keyDown: true)!
         event.flags = .maskCommand
         event.setIntegerValueField(.keyboardEventAutorepeat, value: 0)
@@ -48,6 +55,11 @@ enum ASCIIKeyboardLayout {
             precondition(hub.handler?(.keyDown, physical) == .swallow,
                          "code \(event.getIntegerValueField(.keyboardEventKeycode)) flags \(event.flags.rawValue)")
         }
+        RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.05))
+        precondition(module.notice != nil)
+        CFRunLoopAddCommonMode(CFRunLoopGetMain(), CFRunLoopMode(RunLoop.Mode.eventTracking.rawValue as CFString))
+        RunLoop.main.run(mode: .eventTracking, before: Date(timeIntervalSinceNow: 0.8))
+        precondition(module.notice == nil, "Deadline must fire in tracking mode")
         module.stop()
         module.stop()
         precondition(hub.count == 0 && module.notice == nil)

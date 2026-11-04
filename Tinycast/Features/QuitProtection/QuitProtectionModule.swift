@@ -14,6 +14,7 @@ final class QuitProtectionModule: NotchcastModule {
     private var timer: Timer?
     private var layoutSource: String?
     private var activation: NotificationToken?
+    private var inputSourceChange: NotificationToken?
     private var trusted = false
 
     private final class SharedSession: Sendable {
@@ -50,11 +51,12 @@ final class QuitProtectionModule: NotchcastModule {
 
     func start() {
         guard registration == nil else { return }
+        refreshLayout()
         refresh()
         let mask = [CGEventType.keyDown, .keyUp, .flagsChanged].reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }
-        registration = hub.registerSynchronous(mask: mask) { [state] type, event in
+        registration = hub.registerSynchronous(mask: mask) { [state, weak self] type, event in
             guard event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag else { return .pass }
-            return state.value.withLock { session in
+            let verdict: EventTapHub.Verdict = state.value.withLock { session in
                 let code = UInt16(truncatingIfNeeded: event.getIntegerValueField(.keyboardEventKeycode))
                 let key = QuitProtectionEngine.Key(code: code, commandCharacter: session.characters[code])
                 var modifiers: QuitProtectionEngine.Modifiers = []
@@ -73,6 +75,8 @@ final class QuitProtectionModule: NotchcastModule {
                 }
                 return session.consume(input) ? .swallow : .pass
             }
+            DispatchQueue.main.async { [weak self] in self?.updatePendingPress() }
+            return verdict
         }
         let center = NSWorkspace.shared.notificationCenter
         activation = NotificationToken(center.addObserver(
@@ -80,9 +84,14 @@ final class QuitProtectionModule: NotchcastModule {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refresh() }
         }, center: center)
-        timer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
-        }
+        let inputCenter = DistributedNotificationCenter.default()
+        inputSourceChange = NotificationToken(inputCenter.addObserver(
+            forName: Notification.Name(kTISNotifySelectedKeyboardInputSourceChanged as String),
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            MainActor.assumeIsolated { self?.refreshLayout() }
+        }, center: inputCenter)
+        observeConfiguration()
     }
 
     func stop() {
@@ -91,6 +100,7 @@ final class QuitProtectionModule: NotchcastModule {
         timer?.invalidate()
         timer = nil
         activation = nil
+        inputSourceChange = nil
         layoutSource = nil
         state.value.withLock { $0 = Session() }
         notice = nil
@@ -106,6 +116,30 @@ final class QuitProtectionModule: NotchcastModule {
         }
     }
 
+    private func observeConfiguration() {
+        withObservationTracking {
+            state.value.withLock { $0.engine.configuration = store.configuration }
+        } onChange: { [weak self] in
+            DispatchQueue.main.async {
+                guard let self, self.registration != nil else { return }
+                self.observeConfiguration()
+                self.updatePendingPress()
+            }
+        }
+    }
+
+    private func refreshLayout() {
+        let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue()
+        let sourceID = source.flatMap { TISGetInputSourceProperty($0, kTISPropertyInputSourceID) }
+            .map { Unmanaged<CFString>.fromOpaque($0).takeUnretainedValue() as String }
+        guard sourceID != layoutSource || state.value.withLock({ $0.characters.isEmpty }) else { return }
+        layoutSource = sourceID
+        let characters = (0..<128).reduce(into: [UInt16: String]()) { result, code in
+            result[UInt16(code)] = ASCIIKeyboardLayout.character(for: code, modifiers: UInt32(cmdKey >> 8))
+        }
+        state.value.withLock { $0.characters = characters }
+    }
+
     private func refresh() {
         let currentTrust = AXIsProcessTrusted()
         if currentTrust != trusted {
@@ -113,25 +147,32 @@ final class QuitProtectionModule: NotchcastModule {
             hub.refreshPermission()
         }
         let target = frontmostTarget()
-        let source = TISCopyCurrentKeyboardInputSource()?.takeRetainedValue()
-        let sourceID = source.flatMap { TISGetInputSourceProperty($0, kTISPropertyInputSourceID) }
-            .map { Unmanaged<CFString>.fromOpaque($0).takeUnretainedValue() as String }
-        let characters = sourceID == layoutSource ? nil : (0..<128).reduce(into: [UInt16: String]()) { result, code in
-            result[UInt16(code)] = ASCIIKeyboardLayout.character(for: code, modifiers: UInt32(cmdKey >> 8))
-        }
-        layoutSource = sourceID
+        state.value.withLock { $0.target = target }
+        updatePendingPress()
+    }
+
+    private func updatePendingPress() {
+        guard registration != nil else { return }
+        timer?.invalidate()
+        timer = nil
         let result = state.value.withLock { session in
             session.engine.configuration = store.configuration
-            session.target = target
-            if let characters { session.characters = characters }
             _ = session.consume(.tick)
             let actions = session.actions
             session.actions.removeAll()
-            return (session.notice, actions)
+            return (session.notice, actions, session.engine.deadline)
         }
         notice = result.0
+        if let deadline = result.2 {
+            let timer = Timer(timeInterval: max(0.001, deadline - ProcessInfo.processInfo.systemUptime),
+                              repeats: false) { [weak self] _ in
+                MainActor.assumeIsolated { self?.refresh() }
+            }
+            self.timer = timer
+            RunLoop.main.add(timer, forMode: .common)
+        }
         for (destination, code) in result.1 {
-            guard destination == target else { continue }
+            guard destination == frontmostTarget() else { continue }
             for down in [true, false] {
                 guard let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down) else { continue }
                 event.flags = .maskCommand
