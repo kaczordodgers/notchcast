@@ -722,6 +722,9 @@ final class AppCore {
             reproject: { $0.fileSearchCoordinator.applyLauncherFiles() })
         // Two features, one switch: each coordinator gates only its own command and mode.
         track(
+            { _ in _ = NotchcastPreferences.shared.isOn(.windowsSwitcher) },
+            reproject: { $0.windowSwitchCoordinator.applyEnabled() })
+        track(
             { _ = $0.navigationEnabled },
             reproject: {
                 $0.windowSwitchCoordinator.applyEnabled()

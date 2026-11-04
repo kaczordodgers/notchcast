@@ -25,6 +25,7 @@ final class WindowSwitchCoordinator {
     }
 
     func applyEnabled() {
+        guard WindowsSwitcherIntegration.apply(core) else { return }
         appIndex.setCommandsVisible(
             [.switchWindows, .switchWindowsBackwards], settings.navigationEnabled)
         guard !settings.navigationEnabled else { return }
@@ -33,6 +34,7 @@ final class WindowSwitchCoordinator {
     }
 
     func show(backwards: Bool = false) {
+        guard WindowsSwitcherIntegration.enabled else { return }
         guard settings.navigationEnabled, hasAccessibility() else { return }
         if paletteCoordinator.isShowing(.switchWindows) { return step(by: backwards ? -1 : 1) }
         disarmSwitchOnRelease()
@@ -41,6 +43,7 @@ final class WindowSwitchCoordinator {
 
     /// A link's text filters the list it opens; there is no held chord to switch on release.
     func show(query: String) {
+        guard WindowsSwitcherIntegration.enabled else { return }
         guard settings.navigationEnabled, hasAccessibility() else { return }
         disarmSwitchOnRelease()
         paletteCoordinator.togglePalette(mode: .switchWindows, seeding: query)
@@ -82,11 +85,13 @@ final class WindowSwitchCoordinator {
 
     /// Every open sweeps anew, a restore included: hiding dropped the last snapshot.
     func load() {
+        guard WindowsSwitcherIntegration.enabled else { return }
         guard hasAccessibility() else { return }
         session.present(WindowSwitchSweep.snapshot(ranks: WindowZOrder.appRanks()))
     }
 
     func activate(_ entry: WindowSwitchEntry) {
+        guard WindowsSwitcherIntegration.enabled else { return }
         guard hasAccessibility() else { return }
         // Resolved before the hide: hiding resets the session, which drops the element table.
         guard let element = liveElement(for: entry) else {
