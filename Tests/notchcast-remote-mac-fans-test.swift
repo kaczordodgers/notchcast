@@ -33,9 +33,11 @@ struct RemoteMacFansTest {
         precondition(!preferences.isOn(.remoteMacFans) && !NotchcastFeature.remoteMacFans.needsIsland)
         let fake = FansFakeTransport()
         var notices: [String] = []
+        var changes = 0
         let module = RemoteMacFansModule(preferences: preferences,
-            runner: { try await fake.run($0, $1) }, post: { notices.append($0) })
+            runner: { try await fake.run($0, $1) }, post: { notices.append($0) }, changed: { changes += 1 })
         module.start()
+        precondition(changes == 1 && module.isRunning)
         module.set(.max)
         await module.waitUntilIdle()
         preferences.set(.remoteMacFans, true)
@@ -50,6 +52,14 @@ struct RemoteMacFansTest {
                 "exec /usr/bin/sudo -n '/Library/PrivilegedHelperTools/app.notchcast.root' '" + verb + "'"])
         }
         precondition(notices.isEmpty)
+        let before = fake.calls.count
+        module.set(.max)
+        module.set(.medium)
+        module.set(.auto)
+        await module.waitUntilIdle()
+        precondition(fake.calls.count == before + 2)
+        precondition(fake.calls[before].last?.hasSuffix("'fans-max'") == true)
+        precondition(fake.calls.last?.last?.hasSuffix("'fans-auto'") == true)
         fake.status = 255
         module.set(.auto)
         await module.waitUntilIdle()
@@ -65,6 +75,7 @@ struct RemoteMacFansTest {
         precondition(notices.count == 3 && notices.allSatisfy { $0 == notices[0] })
         let count = fake.calls.count
         module.stop()
+        precondition(changes == 2 && !module.isRunning)
         module.set(.auto)
         await module.waitUntilIdle()
         precondition(fake.calls.count == count)
