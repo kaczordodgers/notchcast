@@ -37,6 +37,17 @@ struct ScreenshotOutputTest {
         } catch is CancellationError {}
         let files = try FileManager.default.contentsOfDirectory(atPath: folder.path)
         precondition(files.count == 2)
+        var reported: URL?
+        let saved = try await ScreenshotService.output(original, destination: .both(folder: folder), writeClipboard: { _ in
+            guard let written = try? FileManager.default.contentsOfDirectory(atPath: folder.path) else {
+                preconditionFailure("Missing screenshot folder")
+            }
+            precondition(written.count == 3, "File must exist before clipboard write")
+            return false
+        }, clipboardFailure: { reported = $0 })
+        precondition(saved != nil && saved == reported)
+        let savedData = try Data(contentsOf: saved!)
+        precondition(savedData == original)
         let missing = folder.appendingPathComponent("missing")
         do {
             _ = try await ScreenshotService.save(original, folder: missing, date: date, timeZone: zone)
