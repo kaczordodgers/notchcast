@@ -135,6 +135,8 @@ struct CleanWiringTest {
         let scans = fake.state.withLock { $0.scans }
         preferences.set(.cleanSystem, true)
         coordinator.setEnabled(.cleanSystem, true)
+        precondition(coordinator.rootAvailable)
+        coordinator.helperCurrent = false
         precondition(!coordinator.rootAvailable)
         coordinator.scan(.cleanSystem)
         coordinator.apply(.cleanSystem)
