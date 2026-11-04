@@ -50,6 +50,11 @@ jobs:
         run: |
           python3 notchcast/check-feature-shape.py
           python3 notchcast/check-feature-shape-test.py
+      - name: Legacy command identities
+        working-directory: src
+        run: |
+          python3 notchcast/check-legacy-command-ids.py
+          python3 notchcast/check-legacy-command-ids-test.py
       - name: Build (Debug, unsigned)
         working-directory: src
         run: |
