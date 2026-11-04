@@ -22,6 +22,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastDownloads = Self(tab: .notchcast, title: "Downloads")
 }
 
 extension SettingsSearchCatalog {
@@ -60,10 +61,16 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastActivities, "Convert Files", keywords: ["convert", "pdf", "formats"]),
         .init(.notchcastActivities, "Media Tools", keywords: ["compress", "gif", "resize", "text"]),
         .init(.notchcastLauncher, "Command Runner", keywords: ["catalogue", "shell", "tasks"]),
+        .init(.notchcastActivities, "Downloads", keywords: ["video", "audio", "transcript", "webpage", "clipboard"]),
+        .init(.notchcastActivities, "Fast Downloads with aria2c", keywords: ["download", "speed", "aria2"]),
+        .init(.notchcastActivities, "Distill", keywords: ["links", "transcribe", "media", "queue"]),
+        .init(.notchcastActivities, "Distill Timestamps", keywords: ["transcript", "time", "chunks"]),
+        .init(.notchcastActivities, "Convert Distill Folder", keywords: ["markdown", "pdf", "ocr", "files"]),
     ]
 }

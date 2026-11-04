@@ -12,6 +12,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case displayBrightness
     case quitProtection
     case liveTimers
+    case dayCalendar
     case dayWeather
     case dayMarkets
     case convertFiles
@@ -20,6 +21,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case mediaTools
 
     case commandRunner
+    case downloads, downloadsAria2, distill, distillTimestamps, distillConvert
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -38,8 +40,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
-        case .liveTimers, .dayWeather, .dayMarkets: .activities
-        case .convertFiles: .activities
+                case .convertFiles: .activities
+        case .liveTimers, .dayCalendar, .dayWeather, .dayMarkets, .downloads, .downloadsAria2, .distill,
+             .distillTimestamps, .distillConvert: .activities
         }
     }
 
@@ -64,6 +67,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Display Brightness")
         case .quitProtection: String(localized: "Quit Protection")
         case .liveTimers: String(localized: "Timers")
+        case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .convertFiles: String(localized: "Convert Files")
@@ -73,6 +77,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .downloads: String(localized: "Downloads")
+        case .downloadsAria2: String(localized: "Fast Downloads with aria2c")
+        case .distill: String(localized: "Distill")
+        case .distillTimestamps: String(localized: "Distill Timestamps")
+        case .distillConvert: String(localized: "Convert Distill Folder")
         }
     }
 
@@ -97,6 +106,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
         case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .convertFiles: String(localized: "Convert local files beside the originals.")
@@ -106,6 +116,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .downloads: String(localized: "Download video, audio, transcripts and webpages from clipboard links.")
+        case .downloadsAria2: String(localized: "Use aria2c for faster media downloads when it is installed.")
+        case .distill: String(localized: "Save links and transcribe media into your Distill folder.")
+        case .distillTimestamps: String(localized: "Include approximate chunk timestamps in Distill transcripts.")
+        case .distillConvert: String(localized: "Convert files in your Distill folder to Markdown or text.")
         }
     }
 
@@ -115,11 +130,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .mediaTools: []
         case .commandRunner: []
         case .urlCleaner: []
+        case .downloads, .downloadsAria2, .distill, .distillTimestamps, .distillConvert: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .convertFiles: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
             []
@@ -131,16 +147,20 @@ extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
         ![.urlCleaner, .convertFiles, .mediaTools, .commandRunner, .displayBrightness, .quitProtection].contains(self)
-            && !isSystemFeature
+            && !isSystemFeature && !isDownloadsFeature
     }
 
     var defaultEnabled: Bool {
-        ![.urlCleaner, .convertFiles, .mediaTools, .commandRunner].contains(self) && !isSystemFeature
+        ![.urlCleaner, .convertFiles, .mediaTools, .commandRunner].contains(self) && !isSystemFeature && !isDownloadsFeature
     }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
+    }
+
+    var isDownloadsFeature: Bool {
+        [.downloads, .downloadsAria2, .distill, .distillTimestamps, .distillConvert].contains(self)
     }
 }
 

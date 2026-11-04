@@ -22,9 +22,8 @@ struct NotchcastSettingsView: View {
             NotchcastSystemSettingsSection()
             URLCleanerSettingsSection(module: NotchcastCore.urlCleaner)
 
-            featureSection(.notchcastActivities, group: .activities)
-            TimerSettingsSection(store: NotchcastCore.timers.store)
-            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+            NotchcastExtrasSection()
+            DownloadsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
