@@ -207,12 +207,6 @@ final class DictationCoordinator {
         phase = .transcribing
         panel.state.phase = .transcribing
         field?.isTranscribing = true
-        if settings.dictationPlaysSounds {
-            audioDucker.restoreImmediately()
-            cues.play(.stop)
-        } else {
-            audioDucker.end()
-        }
         // A cancelled chunk keeps its audio: the final pass starts at liveOffset, losing nothing.
         let pendingLive = liveTask
         liveTask = nil
@@ -226,6 +220,13 @@ final class DictationCoordinator {
             guard token == current, !Task.isCancelled else { return }
             await pendingLive?.value
             let samples = await capture.stop()
+            guard token == current, !Task.isCancelled else { return }
+            if settings.dictationPlaysSounds {
+                audioDucker.restoreImmediately()
+                cues.play(.stop)
+            } else {
+                audioDucker.end()
+            }
             // Queued chunks land first: reset would drop them, and the remainder spaces after them.
             if !liveText.isEmpty { await injector.drain() }
             guard token == current else { return }
