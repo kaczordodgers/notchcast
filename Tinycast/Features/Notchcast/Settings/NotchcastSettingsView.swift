@@ -15,7 +15,7 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter { $0 != .island && !$0.isTweak }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)

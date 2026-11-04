@@ -11,6 +11,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks
 
     var title: String {
         switch self {
@@ -29,6 +30,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .typingTweaks: String(localized: "Typing")
+        case .finderTweaks: String(localized: "Finder")
+        case .dockTweaks: String(localized: "Dock and windows")
+        case .appleAppsTweaks: String(localized: "Apple apps")
+        case .iPhoneBackupTweaks: String(localized: "iPhone backup")
         }
     }
 
@@ -49,6 +55,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .typingTweaks, .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks:
+            String(localized: "Enable confirmed system preference changes.")
         }
     }
 
@@ -58,7 +66,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
+            .typingTweaks, .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks:
             []
         }
     }
@@ -66,7 +75,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isTweak }
+
+    var isTweak: Bool {
+        switch self {
+        case .typingTweaks, .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks: true
+        default: false
+        }
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
