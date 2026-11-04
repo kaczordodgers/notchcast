@@ -2,781 +2,781 @@
   "sourceLanguage" : "en",
   "strings" : {
     "Charge Limit" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ladelimit"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ladelimit"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Límite de carga"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite de carga"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limite de charge"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de charge"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "充電上限"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電上限"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "충전 한도"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "충전 한도"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limite de carga"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de carga"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Предел заряда"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предел заряда"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "充电上限"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充电上限"
           }
         }
       }
     },
     "Battery Sailing" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Batterieentladung"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batterieentladung"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Descarga de batería"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarga de batería"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Décharge de la batterie"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Décharge de la batterie"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "バッテリー放電"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリー放電"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "배터리 방전"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배터리 방전"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Descarga da bateria"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descarga da bateria"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Разряд батареи"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разряд батареи"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池放电"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电池放电"
           }
         }
       }
     },
     "Battery Heat Protection" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Batterie-Hitzeschutz"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batterie-Hitzeschutz"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Protección térmica de batería"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protección térmica de batería"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Protection thermique de la batterie"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Protection thermique de la batterie"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "バッテリー熱保護"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリー熱保護"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "배터리 과열 보호"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배터리 과열 보호"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Proteção térmica da bateria"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proteção térmica da bateria"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Защита батареи от перегрева"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Защита батареи от перегрева"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池过热保护"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电池过热保护"
           }
         }
       }
     },
     "Battery Calibration" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Batteriekalibrierung"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batteriekalibrierung"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calibración de batería"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibración de batería"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Étalonnage de la batterie"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Étalonnage de la batterie"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "バッテリー調整"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリー調整"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "배터리 보정"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배터리 보정"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calibração da bateria"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calibração da bateria"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Калибровка батареи"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Калибровка батареи"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池校准"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电池校准"
           }
         }
       }
     },
     "Keep Awake" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ruhezustand verhindern"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruhezustand verhindern"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mantener activo"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantener activo"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maintenir éveillé"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenir éveillé"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スリープを防止"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スリープを防止"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "잠자기 방지"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잠자기 방지"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manter ativo"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manter ativo"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не переходить в сон"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не переходить в сон"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持唤醒"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持唤醒"
           }
         }
       }
     },
     "Keep Awake with Lid Closed" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei geschlossenem Deckel wach bleiben"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei geschlossenem Deckel wach bleiben"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mantener activo con la tapa cerrada"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantener activo con la tapa cerrada"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maintenir éveillé avec le capot fermé"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenir éveillé avec le capot fermé"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "蓋を閉じてもスリープを防止"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓋を閉じてもスリープを防止"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "덮개를 닫아도 잠자기 방지"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "덮개를 닫아도 잠자기 방지"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manter ativo com a tampa fechada"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manter ativo com a tampa fechada"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не засыпать с закрытой крышкой"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не засыпать с закрытой крышкой"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "合盖时保持唤醒"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合盖时保持唤醒"
           }
         }
       }
     },
     "Stop charging at the selected limit." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laden beim gewählten Limit stoppen."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laden beim gewählten Limit stoppen."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Detener la carga en el límite seleccionado."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detener la carga en el límite seleccionado."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arrêter la charge à la limite choisie."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter la charge à la limite choisie."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選択した上限で充電を停止します。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択した上限で充電を停止します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 한도에서 충전을 중지합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 한도에서 충전을 중지합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parar de carregar no limite selecionado."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parar de carregar no limite selecionado."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Останавливать зарядку на выбранном уровне."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Останавливать зарядку на выбранном уровне."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "达到所选上限时停止充电。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "达到所选上限时停止充电。"
           }
         }
       }
     },
     "Use battery power above the charge limit." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Oberhalb des Ladelimits Batteriestrom nutzen."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oberhalb des Ladelimits Batteriestrom nutzen."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar batería por encima del límite de carga."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar batería por encima del límite de carga."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Utiliser la batterie au-dessus de la limite de charge."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utiliser la batterie au-dessus de la limite de charge."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "充電上限を超えるとバッテリーを使用します。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電上限を超えるとバッテリーを使用します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "충전 한도를 넘으면 배터리 전원을 사용합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "충전 한도를 넘으면 배터리 전원을 사용합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar a bateria acima do limite de carga."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar a bateria acima do limite de carga."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Использовать батарею выше предела заряда."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использовать батарею выше предела заряда."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "超过充电上限时使用电池供电。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "超过充电上限时使用电池供电。"
           }
         }
       }
     },
     "Pause charging when the battery is hot." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Laden bei heißer Batterie pausieren."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laden bei heißer Batterie pausieren."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausar la carga si la batería está caliente."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar la carga si la batería está caliente."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suspendre la charge si la batterie est chaude."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre la charge si la batterie est chaude."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "バッテリーが熱いときは充電を一時停止します。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリーが熱いときは充電を一時停止します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "배터리가 뜨거우면 충전을 일시 중지합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배터리가 뜨거우면 충전을 일시 중지합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausar a carga quando a bateria estiver quente."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar a carga quando a bateria estiver quente."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Приостанавливать зарядку при нагреве батареи."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приостанавливать зарядку при нагреве батареи."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池过热时暂停充电。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电池过热时暂停充电。"
           }
         }
       }
     },
     "Run a full battery calibration cycle." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Einen vollständigen Kalibrierungszyklus starten."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einen vollständigen Kalibrierungszyklus starten."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ejecutar un ciclo completo de calibración."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar un ciclo completo de calibración."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Exécuter un cycle complet d’étalonnage."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exécuter un cycle complet d’étalonnage."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "バッテリーの完全な調整サイクルを実行します。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリーの完全な調整サイクルを実行します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "전체 배터리 보정 주기를 실행합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "전체 배터리 보정 주기를 실행합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Executar um ciclo completo de calibração."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Executar um ciclo completo de calibração."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Запустить полный цикл калибровки батареи."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запустить полный цикл калибровки батареи."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "运行完整的电池校准周期。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行完整的电池校准周期。"
           }
         }
       }
     },
     "Prevent idle sleep for the selected duration." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ruhezustand für die gewählte Dauer verhindern."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruhezustand für die gewählte Dauer verhindern."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Evitar el reposo durante el tiempo seleccionado."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evitar el reposo durante el tiempo seleccionado."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Empêcher la veille pendant la durée choisie."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empêcher la veille pendant la durée choisie."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選択した時間、自動スリープを防止します。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択した時間、自動スリープを防止します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 시간 동안 자동 잠자기를 방지합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택한 시간 동안 자동 잠자기를 방지합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Impedir o repouso durante o período selecionado."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impedir o repouso durante o período selecionado."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Предотвращать сон в течение выбранного времени."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предотвращать сон в течение выбранного времени."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在所选时长内防止自动睡眠。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在所选时长内防止自动睡眠。"
           }
         }
       }
     },
     "Keep awake while the lid is closed." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bei geschlossenem Deckel wach bleiben."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei geschlossenem Deckel wach bleiben."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mantener activo mientras la tapa esté cerrada."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantener activo mientras la tapa esté cerrada."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rester éveillé lorsque le capot est fermé."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rester éveillé lorsque le capot est fermé."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "蓋を閉じている間もスリープを防止します。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "蓋を閉じている間もスリープを防止します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "덮개가 닫혀 있는 동안 잠자기를 방지합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "덮개가 닫혀 있는 동안 잠자기를 방지합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manter ativo enquanto a tampa estiver fechada."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manter ativo enquanto a tampa estiver fechada."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не засыпать при закрытой крышке."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не засыпать при закрытой крышке."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "合盖时保持唤醒。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "合盖时保持唤醒。"
           }
         }
       }
     },
     "Needs the Notchcast helper update" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast-Helfer muss aktualisiert werden"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notchcast-Helfer muss aktualisiert werden"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Requiere actualizar el asistente de Notchcast"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requiere actualizar el asistente de Notchcast"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mise à jour de l’assistant Notchcast requise"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour de l’assistant Notchcast requise"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcastヘルパーの更新が必要です"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notchcastヘルパーの更新が必要です"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast 도우미 업데이트 필요"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notchcast 도우미 업데이트 필요"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Requer atualização do auxiliar Notchcast"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requer atualização do auxiliar Notchcast"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Требуется обновление помощника Notchcast"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Требуется обновление помощника Notchcast"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "需要更新 Notchcast 辅助程序"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要更新 Notchcast 辅助程序"
           }
         }
       }
     },
     "Charge limit percent" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ladelimit in Prozent"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ladelimit in Prozent"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Porcentaje límite de carga"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porcentaje límite de carga"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pourcentage limite de charge"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pourcentage limite de charge"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "充電上限の割合"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充電上限の割合"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "충전 한도 백분율"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "충전 한도 백분율"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Percentual limite de carga"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Percentual limite de carga"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Предел заряда в процентах"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предел заряда в процентах"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "充电上限百分比"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "充电上限百分比"
           }
         }
       }
     },
     "Keep-awake duration" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wachhaltedauer"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wachhaltedauer"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Duración de actividad"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duración de actividad"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Durée d’éveil"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Durée d’éveil"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "スリープ防止時間"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スリープ防止時間"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "잠자기 방지 시간"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잠자기 방지 시간"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Duração de atividade"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duração de atividade"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Время бодрствования"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время бодрствования"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "保持唤醒时长"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持唤醒时长"
           }
         }
       }
@@ -138601,6 +138601,58 @@
         }
       }
     },
+    "A webpage is already being saved." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Webseite wird bereits gespeichert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya se está guardando una página web."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une page web est déjà en cours d’enregistrement."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すでにウェブページを保存中です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미 웹페이지를 저장하고 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Já está a ser guardada uma página web."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-страница уже сохраняется."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网页已在保存中。"
+          }
+        }
+      }
+    },
     "Add App…" : {
       "localizations" : {
         "de" : {
@@ -140750,6 +140802,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "中等"
+          }
+        }
+      }
+    },
+    "Enter a public HTTP or HTTPS webpage URL without credentials, using port 80 or 443." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib eine öffentliche HTTP- oder HTTPS-Webseiten-URL ohne Zugangsdaten mit Port 80 oder 443 ein."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce una URL pública HTTP o HTTPS sin credenciales, con el puerto 80 o 443."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez une URL de page publique HTTP ou HTTPS sans identifiants, sur le port 80 ou 443."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "認証情報を含まない公開 HTTP または HTTPS ページの URL をポート 80 または 443 で入力してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "인증 정보 없이 포트 80 또는 443을 사용하는 공개 HTTP 또는 HTTPS 웹페이지 URL을 입력하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduza um URL de página pública HTTP ou HTTPS sem credenciais, usando a porta 80 ou 443."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите URL общедоступной страницы HTTP или HTTPS без учётных данных с портом 80 или 443."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入不含凭据、使用端口 80 或 443 的公开 HTTP 或 HTTPS 网页 URL。"
           }
         }
       }
@@ -142987,6 +143091,58 @@
         }
       }
     },
+    "Private and loopback addresses cannot be saved as webpages." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Private und Loopback-Adressen können nicht als Webseiten gespeichert werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las direcciones privadas y de bucle local no se pueden guardar como páginas web."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les adresses privées et de bouclage ne peuvent pas être enregistrées comme pages web."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライベートアドレスとループバックアドレスはウェブページとして保存できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사설 및 루프백 주소는 웹페이지로 저장할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Os endereços privados e de loopback não podem ser guardados como páginas web."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Частные и петлевые адреса нельзя сохранять как веб-страницы."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将私有地址和环回地址保存为网页。"
+          }
+        }
+      }
+    },
     "Protect ⌘W" : {
       "localizations" : {
         "de" : {
@@ -144246,6 +144402,370 @@
         }
       }
     },
+    "The webpage contains no readable article." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Webseite enthält keinen lesbaren Artikel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La página web no contiene ningún artículo legible."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La page web ne contient aucun article lisible."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このウェブページには読み取り可能な記事がありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 웹페이지에는 읽을 수 있는 기사가 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A página web não contém nenhum artigo legível."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-страница не содержит читаемой статьи."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此网页没有可读的文章。"
+          }
+        }
+      }
+    },
+    "The webpage could not be rendered." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Webseite konnte nicht dargestellt werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo renderizar la página web."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La page web n’a pas pu être affichée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウェブページを表示できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "웹페이지를 렌더링할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível apresentar a página web."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось отобразить веб-страницу."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法呈现网页。"
+          }
+        }
+      }
+    },
+    "The webpage host could not be resolved to a public address." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Webseiten-Host konnte nicht in eine öffentliche Adresse aufgelöst werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo resolver el servidor de la página web a una dirección pública."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de résoudre l’hôte de la page web en adresse publique."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウェブページのホストを公開アドレスに解決できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "웹페이지 호스트를 공개 주소로 확인할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível resolver o servidor da página web para um endereço público."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось определить общедоступный адрес узла веб-страницы."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法将网页主机解析为公开地址。"
+          }
+        }
+      }
+    },
+    "The webpage is too large to save." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Webseite ist zum Speichern zu groß."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La página web es demasiado grande para guardarla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La page web est trop volumineuse pour être enregistrée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウェブページが大きすぎるため保存できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "웹페이지가 너무 커서 저장할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A página web é demasiado grande para guardar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-страница слишком велика для сохранения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网页太大，无法保存。"
+          }
+        }
+      }
+    },
+    "The webpage requires sign-in or a bot check." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Webseite erfordert eine Anmeldung oder eine Bot-Prüfung."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La página web requiere iniciar sesión o una verificación antibots."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La page web nécessite une connexion ou une vérification antibot."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このウェブページにはログインまたはボット確認が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 웹페이지는 로그인 또는 봇 확인이 필요합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A página web requer início de sessão ou uma verificação contra robôs."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-страница требует входа или проверки на ботов."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此网页需要登录或进行机器人验证。"
+          }
+        }
+      }
+    },
+    "The webpage returned HTTP status %lld." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Webseite hat den HTTP-Status %lld zurückgegeben."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La página web devolvió el estado HTTP %lld."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La page web a renvoyé le statut HTTP %lld."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウェブページが HTTP ステータス %lld を返しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "웹페이지가 HTTP 상태 %lld을(를) 반환했습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A página web devolveu o estado HTTP %lld."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Веб-страница вернула статус HTTP %lld."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网页返回了 HTTP 状态 %lld。"
+          }
+        }
+      }
+    },
+    "The webpage took too long to load." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Laden der Webseite hat zu lange gedauert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La página web tardó demasiado en cargarse."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le chargement de la page web a pris trop de temps."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウェブページの読み込みに時間がかかりすぎました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "웹페이지를 불러오는 데 너무 오래 걸렸습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A página web demorou demasiado tempo a carregar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Загрузка веб-страницы заняла слишком много времени."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网页加载时间过长。"
+          }
+        }
+      }
+    },
     "These apps quit and close without asking." : {
       "localizations" : {
         "de" : {
@@ -144294,6 +144814,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这些 App 无需确认即可退出和关闭。"
+          }
+        }
+      }
+    },
+    "This URL does not contain an HTML webpage." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese URL enthält keine HTML-Webseite."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta URL no contiene una página web HTML."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette URL ne contient pas de page web HTML."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この URL には HTML ウェブページがありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 URL에는 HTML 웹페이지가 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este URL não contém uma página web HTML."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Этот URL не содержит веб-страницу HTML."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此 URL 不包含 HTML 网页。"
           }
         }
       }
