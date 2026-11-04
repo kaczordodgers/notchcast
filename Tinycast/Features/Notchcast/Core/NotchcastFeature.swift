@@ -25,6 +25,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case aiUsage
     case aiUsageOtherMac
     case machLink
+    case machRemote
+    case backupStatus
+    case linkHealth
+    case shelfBetweenMacs
+    case sendFiles
+    case updateRemote
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -92,6 +98,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: .activities
         case .aiUsageOtherMac: .activities
         case .machLink: .system
+        case .machRemote: .system
+        case .backupStatus: .system
+        case .linkHealth: .system
+        case .shelfBetweenMacs: .activities
+        case .sendFiles: .system
+        case .updateRemote: .system
         }
     }
 
@@ -126,6 +138,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: String(localized: "AI Usage")
         case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
         case .machLink: String(localized: "Mac Link")
+        case .machRemote: String(localized: "Remote Mac")
+        case .backupStatus: String(localized: "Backup Status")
+        case .linkHealth: String(localized: "Link Health")
+        case .shelfBetweenMacs: String(localized: "Shelf between Macs")
+        case .sendFiles: String(localized: "Send to Remote Mac")
+        case .updateRemote: String(localized: "Update Remote Mac")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -175,6 +193,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: String(localized: "Read local AI usage on demand.")
         case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
         case .machLink: String(localized: "Connect to a paired Mac on the local network.")
+        case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
+        case .backupStatus: String(localized: "Warns when backups fail or become stale.")
+        case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
+        case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.")
+        case .sendFiles: String(localized: "Send selected files to the remote Mac.")
+        case .updateRemote: String(localized: "Run the update on the remote Mac.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -213,6 +237,7 @@ extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
         if isSystemFeature { return false }
+        if startsOff { return false }
         return switch self {
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
@@ -238,7 +263,25 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature && !startsOff
+    }
+
+    var startsOff: Bool {
+        return switch self {
+        case .aiUsage: true
+        case .aiUsageOtherMac: true
+        case .machLink: true
+        case .machRemote: true
+        case .backupStatus: true
+        case .linkHealth: true
+        case .shelfBetweenMacs: true
+        case .sendFiles: true
+        case .updateRemote: true
+        case .machBlockedDialogAlert: true
+        case .remoteScreen: true
+        case .machMBPFans: true
+        default: false
+        }
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
