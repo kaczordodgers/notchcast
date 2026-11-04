@@ -14,7 +14,6 @@ struct NotchcastSettingsView: View {
             }
             .settingsAnchor(.notchcastIsland)
 
-            CaptureDictationSettingsSection()
             featureSection(.notchcastOptions, group: .islandOptions)
             featureSection(.notchcastLauncher, group: .launcher)
             featureSection(.notchcastSystem, group: .system)
@@ -25,6 +24,8 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastActivities, group: .activities)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+
+            CaptureDictationSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
 
