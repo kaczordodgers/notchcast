@@ -636,6 +636,7 @@ struct RootPaletteView: View {
                 advanceTabFocus(backwards: press.modifiers.contains(.shift))
                 return .handled
             }
+            .onKeyPress(keys: [.space], phases: .down) { launcherAliasSpace($0) }
             .modifier(
                 ExtensionShortcutKeys(
                     screen: { menuOpen ? nil : screen as? ExtensionCommandScreen }, selection: sel)
@@ -1486,9 +1487,66 @@ struct RootPaletteView: View {
     }
 
     /// The palette was opened to fill one row's fields, so the caret starts in the first empty one.
+    private func launcherAliasSpace(_ press: KeyPress) -> KeyPress.Result {
+        guard vm.mode == .launcher, searchFocused, argumentFocused == nil, !menuOpen,
+              !vm.isComposing, !vm.isControlListOpen, !isCollapsed,
+              let launcher = screen as? LauncherScreen,
+              let editor = NSApp.keyWindow?.firstResponder as? NSTextView, editor.isFieldEditor
+        else { return .ignored }
+        let candidates: [LauncherAliasSpace.Entry] = launcher.rows.compactMap { row in
+            guard case .entry(let app) = row else { return nil }
+            var entry = LauncherAliasSpace.Entry(
+                id: app.id, alias: core.aliases.alias(for: app.preferenceKey),
+                kind: app.kind == .application ? .application
+                    : app.kind == .systemSettings ? .systemSettings : .command)
+            switch app.kind {
+            case .quicklink:
+                entry.argumentCount = core.quicklinks.quicklink(entryID: app.id).map {
+                    SnippetTemplateEngine.declaredArguments(in: $0.link).count
+                } ?? 0
+            case .customCommand:
+                entry.argumentCount = core.customCommands.command(entryID: app.id)?.arguments.count ?? 0
+            case .extensionCommand:
+                let command = extensions.resolve(app)?.1
+                entry.argumentCount = command?.arguments.count ?? 0
+                entry.hasRequiredArguments = command?.arguments.contains(where: \.required) ?? false
+                entry.isViewCommand = command?.mode == .view
+            default: break
+            }
+            return entry
+        }
+        let range = editor.selectedRange()
+        let decision = LauncherAliasSpace.decide(
+            query: vm.query, caretUTF16: range.location, selectionLength: range.length,
+            hasModifiers: !press.modifiers.isEmpty, entries: candidates,
+            enabled: NotchcastPreferences.shared.isOn(.launcherAliasSpace))
+        switch decision {
+        case .ignore: return .ignored
+        case .insertLiteralSpace(let query): vm.query = query
+        case .focusFirstArgument(let id):
+            guard let index = launcher.rows.firstIndex(where: {
+                if case .entry(let app) = $0 { return app.id == id }
+                return false
+            }) else { return .ignored }
+            vm.selection = index
+            scroll = ScrollIntent(kind: .follow)
+            vm.pendingArgumentEntryID = id
+        case .openView(let id), .run(let id):
+            guard let index = launcher.rows.firstIndex(where: {
+                if case .entry(let app) = $0 { return app.id == id }
+                return false
+            }) else { return .ignored }
+            vm.selection = index
+            scroll = ScrollIntent(kind: .follow)
+            launcher.activate(at: index)
+        }
+        return .handled
+    }
+
     private func focusPendingArgument() {
         guard vm.pendingArgumentEntryID != nil,
             let field = headerAccessory?.firstIncompleteField
+                ?? (NotchcastPreferences.shared.isOn(.launcherAliasSpace) ? headerAccessory?.fieldNames.first : nil)
         else { return }
         argumentFocused = field
         searchFocused = false

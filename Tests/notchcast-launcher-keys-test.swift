@@ -56,6 +56,16 @@ struct LauncherKeysTest {
         precondition(decision("r\\", caret: 1) == .ignore)
         precondition(decision("😀") == .run("unicode"))
         precondition(decision("😀", caret: 1) == .ignore)
+        for query in ["", "r", "r\\", "😀"] {
+            for digit in 1...9 {
+                let favoriteIndex = digit - 1
+                let selectedIndex = LauncherNumberKeys.entryIndex(
+                    digit: digit, query: query, entryCount: 12, enabled: false
+                ) ?? favoriteIndex
+                precondition(selectedIndex == favoriteIndex)
+            }
+            precondition(decision(query, enabled: false) == .ignore)
+        }
         for feature in [NotchcastFeature.launcherNumberKeys, .launcherAliasSpace] {
             precondition(!feature.defaultEnabled && !feature.needsIsland)
             precondition(feature.settingsGroup == .launcher && feature.requiredGrants.isEmpty)
