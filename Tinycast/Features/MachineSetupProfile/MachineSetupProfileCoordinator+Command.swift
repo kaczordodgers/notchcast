@@ -3,7 +3,7 @@ import Foundation
 extension MachineSetupProfileCoordinator {
     nonisolated static let launcherCommand = NotchcastCommand(
         slug: "machine-setup-profile", name: String(localized: "Machine Setup Profile"),
-        sfSymbol: "square.and.arrow.down",
+        sfSymbol: "square.and.arrow.down", feature: .machineSetupProfile,
         isEnabled: { NotchcastPreferences.shared.isOn(.machineSetupProfile) },
         run: {
             guard let file = BackupActions.chooseJSONFile() else { return }

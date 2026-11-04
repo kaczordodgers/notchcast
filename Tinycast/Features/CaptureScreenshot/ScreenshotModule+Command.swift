@@ -2,7 +2,7 @@ import AppKit
 
 extension ScreenshotModule {
     nonisolated static let launcherCommand = NotchcastCommand(
-        slug: "screenshot-display", name: String(localized: "Capture Screen"), sfSymbol: "camera",
+        slug: "screenshot-display", name: String(localized: "Capture Screen"), sfSymbol: "camera", feature: .screenshot,
         isEnabled: { NotchcastPreferences.shared.isOn(.screenshot) },
         run: { NotchcastCore.screenshot.captureDisplay() })
 

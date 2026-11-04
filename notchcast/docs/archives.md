@@ -6,8 +6,7 @@ path after launch-time URLs have been deferred. Only local archive URLs are acce
 files are excluded. Turning Archives off rejects new opens and retries immediately and cancels queued
 and active jobs. Quitting waits for the archive child to stop and staging cleanup to complete.
 
-Settings → Notchcast has one Archives section containing its three switches, the hatchzip location
-or an installation hint, and the queue. Each job exposes its name, progress, state, failure and
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands. Each job exposes its name, progress, state, failure and
 in-place fallback note, with Cancel, Try Again and Show in Finder actions as applicable.
 
 `Extract in place` defaults off. It affects newly opened jobs; retries preserve the original mode
