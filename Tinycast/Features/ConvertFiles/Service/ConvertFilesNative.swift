@@ -7,15 +7,15 @@ nonisolated enum ConvertFilesNative {
     @concurrent
     static func run(operation: String, format: String, inputs: [URL], output: URL) async throws {
         try Task.checkCancellation()
-        func fail(_ message: String) throws -> Never {
-            throw NSError(domain: "ConvertFiles", code: 1, userInfo: [NSLocalizedDescriptionKey: message])
+        func fail(_ message: String = String(localized: "The file cannot be converted with these options.")) throws -> Never {
+            throw ConvertFilesPlan.Failure(message: message)
         }
         if operation.hasPrefix("pdf-") {
             let result = PDFDocument()
             var text = ""
             for input in inputs {
                 try Task.checkCancellation()
-                guard let document = PDFDocument(url: input), !document.isLocked else { try fail("Unreadable or locked PDF.") }
+                guard let document = PDFDocument(url: input), !document.isLocked else { try fail() }
                 var indices = Array(0..<document.pageCount)
                 if operation == "pdf-range" {
                     indices = []
@@ -23,24 +23,24 @@ nonisolated enum ConvertFilesNative {
                         let bounds = part.trimmingCharacters(in: .whitespaces).split(separator: "-")
                         guard let first = bounds.first.flatMap({ Int($0) }), first > 0,
                               let last = bounds.last.flatMap({ Int($0) }), last >= first,
-                              last <= document.pageCount else { try fail("Invalid PDF page range.") }
+                              last <= document.pageCount else { try fail() }
                         indices += (first...last).map { $0 - 1 }
                     }
-                    guard !indices.isEmpty else { try fail("Choose PDF pages.") }
+                    guard !indices.isEmpty else { try fail() }
                 }
                 if operation == "pdf-split" {
                     try FileManager.default.createDirectory(at: output, withIntermediateDirectories: false)
                 }
                 for index in indices {
                     try Task.checkCancellation()
-                    guard let page = document.page(at: index) else { try fail("Unreadable PDF page.") }
+                    guard let page = document.page(at: index) else { try fail() }
                     if operation == "pdf-text" {
                         text += (page.string ?? "") + "\n"
                     } else if operation == "pdf-split" {
                         let single = PDFDocument()
                         single.insert(page, at: 0)
                         guard single.write(to: output.appending(path: "page-\(index + 1).pdf")) else {
-                            try fail("PDF write failed.")
+                            try fail()
                         }
                     } else { result.insert(page, at: result.pageCount) }
                 }
@@ -48,16 +48,16 @@ nonisolated enum ConvertFilesNative {
             try Task.checkCancellation()
             if operation == "pdf-text" {
                 try text.write(to: output, atomically: false, encoding: .utf8)
-            } else if operation != "pdf-split", !result.write(to: output) { try fail("PDF write failed.") }
+            } else if operation != "pdf-split", !result.write(to: output) { try fail() }
         } else if operation == "image" {
             guard let source = CGImageSourceCreateWithURL(inputs[0] as CFURL, nil),
                   let image = CGImageSourceCreateImageAtIndex(source, 0, nil) else {
-                try fail("ImageIO cannot decode this image.")
+                try fail()
             }
             try Task.checkCancellation()
             if format == "pdf" {
                 var box = CGRect(x: 0, y: 0, width: image.width, height: image.height)
-                guard let context = CGContext(output as CFURL, mediaBox: &box, nil) else { try fail("PDF output failed.") }
+                guard let context = CGContext(output as CFURL, mediaBox: &box, nil) else { try fail() }
                 context.beginPDFPage(nil)
                 context.draw(image, in: box)
                 context.endPDFPage()
@@ -65,9 +65,9 @@ nonisolated enum ConvertFilesNative {
             } else {
                 guard let type = UTType(filenameExtension: format),
                       let destination = CGImageDestinationCreateWithURL(output as CFURL, type.identifier as CFString, 1, nil)
-                else { try fail("ImageIO encoder unavailable for \(format).") }
+                else { try fail() }
                 CGImageDestinationAddImage(destination, image, nil)
-                guard CGImageDestinationFinalize(destination) else { try fail("ImageIO encoding failed.") }
+                guard CGImageDestinationFinalize(destination) else { try fail() }
             }
         } else if operation == "data" {
             let input = inputs[0]
@@ -79,13 +79,13 @@ nonisolated enum ConvertFilesNative {
                 guard !trimmed.contains("&"), !trimmed.contains("*"), !trimmed.hasPrefix("!"),
                       !trimmed.contains(": "), !trimmed.contains("#"),
                       !["|", ">"].contains(trimmed), !trimmed.hasPrefix("'") else {
-                    try fail("Unsupported YAML value.")
+                    try fail()
                 }
                 return trimmed
             }
             func quoted(_ value: Any) throws -> String {
                 let data = try JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed, .sortedKeys])
-                guard let text = String(bytes: data, encoding: .utf8) else { try fail("Invalid UTF-8 data.") }
+                guard let text = String(bytes: data, encoding: .utf8) else { try fail() }
                 return text
             }
             let value: Any
@@ -98,14 +98,14 @@ nonisolated enum ConvertFilesNative {
                     try Task.checkCancellation()
                     if line.trimmingCharacters(in: .whitespaces).hasPrefix("#") { continue }
                     guard line.first?.isWhitespace != true, let split = line.firstIndex(of: separator) else {
-                        try fail("Only flat YAML and TOML tables are supported.")
+                        try fail(String(localized: "Only flat YAML and TOML tables are supported."))
                     }
                     let key = line[..<split].trimmingCharacters(in: .whitespaces)
-                    guard !key.isEmpty, map[key] == nil else { try fail("Invalid or duplicate data key.") }
+                    guard !key.isEmpty, map[key] == nil else { try fail() }
                     let raw = String(line[line.index(after: split)...]).trimmingCharacters(in: .whitespaces)
                     guard key.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" }),
                           !raw.isEmpty, !raw.hasPrefix("["), !raw.hasPrefix("{") else {
-                        try fail("Only flat YAML and TOML tables are supported.")
+                        try fail(String(localized: "Only flat YAML and TOML tables are supported."))
                     }
                     map[key] = try scalar(raw)
                 }
@@ -129,49 +129,49 @@ nonisolated enum ConvertFilesNative {
                     } else if current != "\r" || inside { field.append(current) }
                     character = iterator.next()
                 }
-                guard !inside else { try fail("Unclosed CSV quote.") }
+                guard !inside else { try fail() }
                 if !field.isEmpty || !row.isEmpty { row.append(field); rows.append(row) }
-                guard let header = rows.first, Set(header).count == header.count else { try fail("Invalid CSV header.") }
+                guard let header = rows.first, Set(header).count == header.count else { try fail() }
                 value = try rows.dropFirst().map { row -> [String: String] in
                     try Task.checkCancellation()
-                    guard row.count == header.count else { try fail("CSV row width differs from header.") }
+                    guard row.count == header.count else { try fail() }
                     return Dictionary(uniqueKeysWithValues: zip(header, row))
                 }
-            default: try fail("Unsupported input data format.")
+            default: try fail()
             }
             let result: String
             switch format {
             case "json": result = try quoted(value) + "\n"
             case "yaml", "yml", "toml":
-                guard let map = value as? [String: Any] else { try fail("Output requires a table.") }
+                guard let map = value as? [String: Any] else { try fail() }
                 result = try map.keys.sorted().map { key in
                     try Task.checkCancellation()
                     guard key.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" }),
                           !(map[key]! is [Any]), !(map[key]! is [String: Any]) else {
-                        try fail("Output requires a flat table with simple keys.")
+                        try fail(String(localized: "Only flat YAML and TOML tables are supported."))
                     }
                     return key + (format == "toml" ? " = " : ": ") + (try quoted(map[key]!))
                 }.joined(separator: "\n") + "\n"
             case "csv":
                 guard let rows = value as? [[String: Any]], let first = rows.first else {
-                    try fail("CSV requires a nonempty array of tables.")
+                    try fail()
                 }
                 let keys = first.keys.sorted()
                 func csv(_ text: String) -> String { "\"" + text.replacingOccurrences(of: "\"", with: "\"\"") + "\"" }
                 result = try ([keys.map(csv).joined(separator: ",")] + rows.map { row in
                     try Task.checkCancellation()
-                    guard Set(row.keys) == Set(keys) else { try fail("CSV requires matching table keys.") }
+                    guard Set(row.keys) == Set(keys) else { try fail() }
                     return try keys.map { key in
                         let cell = row[key]!
-                        guard !(cell is [Any]), !(cell is [String: Any]) else { try fail("CSV requires scalar cells.") }
+                        guard !(cell is [Any]), !(cell is [String: Any]) else { try fail() }
                         let text = try (cell as? String) ?? quoted(cell)
                         return csv(text)
                     }.joined(separator: ",")
                 }).joined(separator: "\n") + "\n"
-            default: try fail("Unsupported output data format.")
+            default: try fail()
             }
             try result.write(to: output, atomically: false, encoding: .utf8)
-        } else { try fail("Unknown conversion operation.") }
+        } else { try fail() }
         try Task.checkCancellation()
     }
 }

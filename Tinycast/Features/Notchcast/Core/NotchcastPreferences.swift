@@ -47,6 +47,7 @@ final class NotchcastPreferences {
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private var versions: [NotchcastFeature: Int] = [:]
     private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
@@ -72,11 +73,14 @@ final class NotchcastPreferences {
         })
     }
 
+    func revision(_ feature: NotchcastFeature) -> Int { versions[feature, default: 0] }
+
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
 
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
+        versions[feature, default: 0] += 1
         if enabled { off.remove(feature) } else { off.insert(feature) }
     }
 }

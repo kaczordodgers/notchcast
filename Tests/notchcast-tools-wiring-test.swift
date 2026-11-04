@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Tools/NotchcastToolsCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Tools/NotchcastToolsLauncherCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift
@@ -77,6 +78,19 @@ struct NotchcastCommand: Sendable {
         await suspended.settle()
         precondition(!staleApplied)
         suspended.stop()
+        var unrelatedApplied = false
+        let unrelated = NotchcastToolsCommands(preferences: preferences, selection: { [] },
+            post: { _ in }, refresh: {}) { _, _, valid in
+                preferences.set(.mediaTools, !preferences.isOn(.mediaTools))
+                await Task.yield()
+                unrelatedApplied = valid()
+            }
+        preferences.set(.commandRunner, true)
+        unrelated.start()
+        unrelated.perform(.listCommands)
+        await unrelated.settle()
+        precondition(unrelatedApplied)
+        unrelated.stop()
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
