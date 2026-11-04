@@ -8,7 +8,7 @@ AI data lists only the engine's Claude, Codex, OpenCode and worktree sources. Co
 
 History records trash destinations returned by FileManager and uses the history engine's exclusive restore. Restore roots are each record's exact original and trash parent directories. Existing destinations are never overwritten, and the engine rejects unsafe paths and symbolic links. Actions on records without a trash destination remain unavailable.
 
-System root lists the engine's allowed roots. Both Clean helper verbs are checked through `RootContract.Command(rawValue:)`; the current contract has neither, so the row shows “Needs the Notchcast helper update” and starts no work. The helper and its contract are unchanged.
+System root uses helper contract 4 with `clean-system-list` and `clean-system-trash`. Each Scan and each trash batch checks the helper version. Listing and trashing share the protected-parent check; writable parents are excluded from results and refused again before a move. Both sides enforce `CleanSystemPolicy` and reject NUL paths; JSON decoding rejects invalid UTF-8. The helper rechecks file identity and refuses symlink ancestors and traversal before moving files into the invoking user's existing Trash. A batch continues after individual failures and reports their count. Files stay recoverable there; this mode does not report freed bytes.
 
 Each Optimize verb has its own explicit button and confirmation naming what it resets, clears, or rebuilds. The engine provides no size preview, so these questions state that the size is unknown and do not invent an item count. Cancel is the default, as approved for these actions.
 
