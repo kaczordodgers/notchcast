@@ -3,6 +3,11 @@
 // notchcast-sources: Tinycast/Features/Music/Service/Soloist*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
+// notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
+// notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupRestore.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 import CryptoKit
 import Darwin
 import Foundation
@@ -32,6 +37,7 @@ struct SoloistRuntimeTest {
         try archiveChecks()
         try await installerChecks(root: root)
         try downloadSize(root: root)
+        try await leakChecks(files: files)
         logChecks()
         try await processChecks()
         print("PASS: key validation/import, archive refusal, hashed cache, expiry, download backoff, cancellation, scrubbed log")
@@ -234,6 +240,56 @@ struct SoloistRuntimeTest {
         output.consume(Data("fixture-secret\nokay\n".utf8))
         check(lines.withLock { $0.last } == "soloist: okay")
         check(!lines.withLock { $0.joined() }.contains("fixture-secret"))
+    }
+
+    @MainActor
+    private static func leakChecks(files: SoloistFiles) async throws {
+        var stored: String?
+        let key = SoloistKey(read: { stored }, write: { stored = $0 })
+        try key.save("fixture-secret")
+        let arguments = files.arguments(key: try key.value()!, deviceName: "fixture")
+        let lines = Mutex<[String]>([])
+        let launcher = LiveSoloistLauncher(log: { line in lines.withLock { $0.append(line) } })
+        let exited = Mutex(false)
+        let child = try launcher.launch(URL(filePath: "/bin/sh"), arguments:
+            ["-c", "printf '%s\\n' \"$@\"; printf '%s\\n' \"$@\" >&2", "fixture"] + arguments) { _ in
+                exited.withLock { $0 = true }
+            }
+        let deadline = ContinuousClock.now + .seconds(5)
+        while !exited.withLock({ $0 }), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        check(exited.withLock { $0 }, "fixture child did not exit")
+        withExtendedLifetime(child) {}
+        let captured = lines.withLock { $0 }
+        check(captured.filter { $0 == "soloist: <key>" }.count == 2, "stdout/stderr argv not captured")
+        check(!captured.joined().contains("fixture-secret"), "argv leaked to log")
+        do {
+            _ = try launcher.launch(URL(filePath: "/nonexistent/fixture-secret"), arguments: arguments) { _ in }
+            preconditionFailure("missing executable launched")
+        } catch {
+            check(error as? SoloistFailure == .process, "raw launch error escaped")
+            check(!String(describing: error).contains("fixture-secret"), "launch error leaked")
+            check(!(error as? SoloistFailure)!.message.contains("fixture-secret"), "failure message leaked")
+        }
+        check(!lines.withLock { $0.joined() }.contains("fixture-secret"), "failure logged key")
+        let suite = "soloist-backup-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let snapshot = ForkSettingsBackupRestore.snapshot(NotchcastPreferences(suiteName: suite))
+        check(try key.value() == "fixture-secret", "backup fixture key missing")
+        check(!String(describing: snapshot).contains("fixture-secret"), "snapshot leaked key")
+        var hostile = snapshot
+        hostile["soloist.api-key"] = try key.value()
+        let data = try ForkSettingsBackupEngine.encode(hostile, created: .now)
+        check(data.range(of: Data("fixture-secret".utf8)) == nil, "backup bytes leaked key")
+        let decoded = try ForkSettingsBackupEngine.decode(data)
+        check(decoded["soloist.api-key"] == nil, "backup accepted secret field")
+        let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
+        for name in ForkSettingsBackupSchema.allowed.keys {
+            check(name.firstMatch(of: secretName) == nil, "backup allows secret-shaped key \(name)")
+        }
+        print("PASS: fixture argv stdout/stderr, launch failure, saved-key snapshot and backup exclusion")
     }
 
     private static func processChecks() async throws {
