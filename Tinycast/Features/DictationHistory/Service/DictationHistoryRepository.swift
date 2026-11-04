@@ -36,6 +36,10 @@ struct DictationHistoryRepository: Sendable {
             throw CocoaError(.fileWriteInvalidFileName)
         }
         try manager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: directory.path)
+        var folder = directory
+        var values = URLResourceValues()
+        values.isExcludedFromBackup = true
+        try folder.setResourceValues(values)
         for file in try manager.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
             where file.lastPathComponent.hasPrefix(".stage-") {
             try manager.removeItem(at: file)

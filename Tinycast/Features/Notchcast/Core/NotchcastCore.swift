@@ -34,8 +34,9 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
         }
         DictationCleanup.transcriptObserver = { raw, cleaned in
-            await dictationHistory.record(raw: raw, cleaned: cleaned)
+            dictationHistory.enqueue(raw: raw, cleaned: cleaned)
         }
+        dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
         Task { await dictationHistory.maintain() }
         dictationCleanup.reportFailure = { [weak core] in
             core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
