@@ -167,19 +167,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        if isSystemFeature { return false }
+        if startsOff { return false }
         return switch self {
         case .displayBrightness: false
         case .quitProtection: false
-        case .aiUsage: false
-        case .aiUsageOtherMac: false
-        case .machLink: false
-        case .machRemote: false
-        case .backupStatus: false
-        case .linkHealth: false
-        case .shelfBetweenMacs: false
-        case .sendFiles: false
-        case .updateRemote: false
         default: true
         }
     }

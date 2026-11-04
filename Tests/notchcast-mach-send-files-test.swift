@@ -1,9 +1,10 @@
+// notchcast-sources: Tinycast/Features/MachRemote/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachRemote/SendFiles/*.swift
 import Foundation
 
 @MainActor
 final class FakeRemoteShell: RemoteShellRunning {
-    let sshAlias = "remote-test"
+    var sshAlias = "remote-test"
     var calls: [(String, [String])] = []
     var copyStatuses: [Int32] = []
     var cancelCopy = false
@@ -25,6 +26,18 @@ final class FakeRemoteShell: RemoteShellRunning {
 struct SendFilesTests {
     @MainActor static func main() async {
         let source = URL(fileURLWithPath: "/tmp/a file's name")
+        for address in ["", "-bad", "host;echo bad", "user@2001:db8::1"] {
+            let fake = FakeRemoteShell()
+            fake.sshAlias = address
+            var notices: [String] = []
+            let coordinator = SendFilesCoordinator(shell: fake, post: { notices.append($0) })
+            coordinator.sendFinderSelection([source])
+            await coordinator.waitForCompletion()
+            precondition(fake.calls.isEmpty == !MachSSH.isValid(address))
+            if !MachSSH.isValid(address) {
+                precondition(notices == [String(localized: "Set the remote Mac address in Settings")])
+            }
+        }
         precondition(SendFilesPlan.arguments(source: source, alias: "test", staging: "Downloads/.upload") == [
             "-a", "--safe-links", "--progress", "--timeout=30", "-e", "ssh -o BatchMode=yes", "--",
             "/tmp/a file's name", "test:'Downloads/.upload/'",

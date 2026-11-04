@@ -1,14 +1,39 @@
 // notchcast-sources: Tinycast/Features/BackupStatus/Model/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastCore+RemoteNotice.swift
+// notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
 import Foundation
+
+@MainActor enum NotchcastCore {}
+@MainActor enum IslandActivityCenter {
+    static let shared = Presenter()
+    final class Presenter {
+        enum Tone { case neutral }
+        func showMessage(_ text: String, tone: Tone, dwell: Double) {}
+    }
+}
+enum Theme { enum Duration { static let messageHUD = 3.0 } }
 
 @main
 enum BackupStatusTest {
     @MainActor static func main() async throws {
         func check(_ condition: Bool) { precondition(condition) }
+        let noticeSuite = "backup-notice-test." + UUID().uuidString
+        defer { UserDefaults(suiteName: noticeSuite)?.removePersistentDomain(forName: noticeSuite) }
+        let noticePreferences = NotchcastPreferences(suiteName: noticeSuite)
+        var configurationNotices: [String] = []
+        let unconfigured = BackupStatusModule(path: { "" }, post: { text in
+            NotchcastCore.deliverRemoteNotice(text, preferences: noticePreferences) { configurationNotices.append($0) }
+        })
+        noticePreferences.set(.islandStatusMessages, false)
+        unconfigured.start()
+        check(configurationNotices.isEmpty)
+        noticePreferences.set(.islandStatusMessages, true)
+        unconfigured.start()
+        check(configurationNotices == [String(localized: "Backup status path is not configured.")])
         let now = Date(timeIntervalSince1970: 1_793_750_400)
         let stamp = ISO8601DateFormatter().string(from: now)
         func fixture(_ result: String = "ok", changes: [String: Any] = [:]) throws -> Data {

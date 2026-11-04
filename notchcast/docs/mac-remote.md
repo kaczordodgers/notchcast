@@ -5,6 +5,10 @@ have independent switches, all off by default. Disabling the parent stops both m
 gates their launcher commands. File transfers clean up their temporary remote staging directory.
 The Finder Service remains deferred; the launcher command reads Finder's selected files.
 
+The host, terminal directory, update script, backup status file and AI usage cache directory
+are plain Settings fields, empty by default. Missing configuration reports a notice without
+starting the operation. SSH callers share one address validator, including colon support.
+
 `MachRemoteShell` adapts both worker protocols to `MachSSH`. SSH commands use its common
 options and configured address; rsync uses those same options for its remote shell.
 The current process adapter delivers output after process completion, so intermediate progress

@@ -23,6 +23,7 @@ struct NotchcastSettingsView: View {
 
             NotchcastExtrasSection()
             MachRemoteSettingsSection()
+            BackupStatusSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))

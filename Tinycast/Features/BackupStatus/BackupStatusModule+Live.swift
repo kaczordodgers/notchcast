@@ -1,14 +1,14 @@
 import Foundation
 
 extension BackupStatusModule {
-    convenience init() {
-        let url = FileManager.default.homeDirectoryForCurrentUser
-            .appending(path: "Library/Application Support/damian-tools/mac-backup/status.json")
+    convenience init(path: @escaping @MainActor () -> String, post: @escaping @MainActor (String) -> Void) {
         let monitor = BackupStatusFileMonitor()
         self.init(read: {
+            let url = URL(fileURLWithPath: path())
             let task = Task.detached { try Data(contentsOf: url) }
             return try await withTaskCancellationHandler { try await task.value } onCancel: { task.cancel() }
         }, watch: { changed in
+            let url = URL(fileURLWithPath: path())
             monitor.start(url: url, changed: changed)
             return { monitor.stop() }
         }, schedule: { deadline, action in
@@ -18,6 +18,8 @@ extension BackupStatusModule {
                 action()
             }
             return { task.cancel() }
-        }, post: { IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 8) })
+        }, configurationNotice: {
+            path().hasPrefix("/") ? nil : String(localized: "Backup status path is not configured.")
+        }, post: post)
     }
 }

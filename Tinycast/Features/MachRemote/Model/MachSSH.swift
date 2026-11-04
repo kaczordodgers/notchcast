@@ -16,21 +16,23 @@ struct MachSSH: Sendable {
     let address: String
     let runner: Runner
 
-    init(address: String = "mbp", runner: @escaping Runner) {
-        self.address = Self.isValid(address) ? address : "mbp"
+    init(address: String, runner: @escaping Runner) {
+        self.address = address
         self.runner = runner
     }
 
     static func isValid(_ address: String) -> Bool {
         !address.isEmpty && !address.hasPrefix("-") &&
-            address.unicodeScalars.allSatisfy { CharacterSet.alphanumerics.contains($0) || "._-@:".unicodeScalars.contains($0) }
+            address.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || "._-@:".contains($0)) }
     }
 
     func run(_ command: String) async throws -> Result {
-        try await runner("/usr/bin/ssh", Self.options + [address, command])
+        guard Self.isValid(address) else { throw ConfigurationError.address }
+        return try await runner("/usr/bin/ssh", Self.options + [address, command])
     }
 
     func route(thunderboltAddress: String) async throws -> Route {
+        guard Self.isValid(address) else { throw ConfigurationError.address }
         let result = try await runner("/usr/bin/ssh", ["-G", address])
         guard result.status == 0 else { throw RouteError.unavailable }
         let hostname = result.output.split(separator: "\n").compactMap { line -> String? in
@@ -43,9 +45,11 @@ struct MachSSH: Sendable {
 
     enum RouteError: Error { case unavailable }
 
-    var terminalScript: String {
+    func terminalScript(directory: String) throws -> String {
+        guard Self.isValid(address) else { throw ConfigurationError.address }
+        guard !directory.isEmpty else { throw ConfigurationError.path }
         let command = (["/usr/bin/ssh", "-t"] + Self.options +
-            [address, "cd \"$HOME/chad\" && exec /bin/zsh -l"]).map(Self.quote).joined(separator: " ")
+            [address, "cd " + Self.quote(directory) + " && exec /bin/zsh -l"]).map(Self.quote).joined(separator: " ")
         return command + "; status=$?; if [ \"$status\" -eq 255 ]; then printf '%s\\n' " +
             Self.quote(String(localized: "Unable to reach the remote Mac over SSH")) +
             "; fi; exec /bin/zsh -l"
@@ -53,5 +57,15 @@ struct MachSSH: Sendable {
 
     static func quote(_ value: String) -> String {
         "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
+    enum ConfigurationError: LocalizedError {
+        case address, path
+        var errorDescription: String? {
+            switch self {
+            case .address: String(localized: "Set the remote Mac address in Settings")
+            case .path: String(localized: "Remote Mac path is not configured.")
+            }
+        }
     }
 }

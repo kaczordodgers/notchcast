@@ -50,12 +50,20 @@ final class NotchcastPreferences {
     var remoteMacAddress: String {
         didSet { defaults.set(remoteMacAddress, forKey: "remoteMacAddress") }
     }
+    var remoteTerminalDirectory: String { didSet { defaults.set(remoteTerminalDirectory, forKey: "remoteTerminalDirectory") } }
+    var remoteUpdatePath: String { didSet { defaults.set(remoteUpdatePath, forKey: "remoteUpdatePath") } }
+    var backupStatusPath: String { didSet { defaults.set(backupStatusPath, forKey: "backupStatusPath") } }
+    var aiUsageCachePath: String { didSet { defaults.set(aiUsageCachePath, forKey: "aiUsageCachePath") } }
     private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
-        remoteMacAddress = defaults.string(forKey: "remoteMacAddress") ?? "mbp"
+        remoteMacAddress = defaults.string(forKey: "remoteMacAddress") ?? ""
+        remoteTerminalDirectory = defaults.string(forKey: "remoteTerminalDirectory") ?? ""
+        remoteUpdatePath = defaults.string(forKey: "remoteUpdatePath") ?? ""
+        backupStatusPath = defaults.string(forKey: "backupStatusPath") ?? ""
+        aiUsageCachePath = defaults.string(forKey: "aiUsageCachePath") ?? ""
         func threshold(_ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
             let value = defaults.object(forKey: key) as? Int ?? fallback
             return min(range.upperBound, max(range.lowerBound, value))

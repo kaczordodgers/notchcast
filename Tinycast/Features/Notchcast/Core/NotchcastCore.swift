@@ -9,18 +9,15 @@ enum NotchcastCore {
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let macLink = AIUsageLinkModule()
-    static let aiUsage = AIUsageModule(channel: macLink.channel)
+    static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
     static let machRemote = MachRemoteModule()
     static let shelf = ShelfModule()
+    static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
     static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run,
         post: remoteNotice, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run,
         post: remoteNotice, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
 
-    static func remoteNotice(_ text: String) {
-        guard NotchcastPreferences.shared.isOn(.islandStatusMessages) else { return }
-        IslandActivityCenter.shared.showMessage(text, tone: .neutral, dwell: Theme.Duration.messageHUD)
-    }
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }) { text in
         guard NotchcastPreferences.shared.isOn(.islandStatusMessages) else { return }
         IslandActivityCenter.shared.showMessage(text, tone: .neutral, dwell: Theme.Duration.messageHUD)
@@ -41,6 +38,16 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        macLink.listenerRoute = { request in
+            if request.method == "shelf-item" {
+                guard await NotchcastPreferences.shared.isOn(.machLink),
+                      await NotchcastPreferences.shared.isOn(.shelfBetweenMacs) else {
+                    throw MachLinkMessage.Failure.disconnected
+                }
+                return try await ShelfMachLinkTransport.response(to: request, module: shelf)
+            }
+            return nil
+        }
         let shelfChannel = MachLinkShelfChannel(channel: macLink.channel) {
             macLink.isRunning && macLink.isPaired && (!linkHealth.isRunning || linkHealth.health.reachability != .down)
         }
@@ -68,7 +75,7 @@ enum NotchcastCore {
             .init(requires: [.machRemote], module: machRemote),
             .init(requires: [.machRemote, .sendFiles], module: sendFiles),
             .init(requires: [.machRemote, .updateRemote], module: updateRemote),
-            .init(requires: [.backupStatus], module: BackupStatusModule()),
+            .init(requires: [.backupStatus], module: backupStatus),
             .init(requires: [.machLink, .linkHealth], module: linkHealth),
             .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
         ]
