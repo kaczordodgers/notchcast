@@ -4,6 +4,9 @@ import Observation
 @MainActor
 @Observable
 final class NotchcastPreferences {
+    var greenMaximizeExcludedApps: String {
+        didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") }
+    }
     enum HoverDelay: Double, CaseIterable, Identifiable {
         case short = 0.1, standard = 0.3, medium = 0.5, long = 1
         var id: Double { rawValue }
@@ -52,6 +55,7 @@ final class NotchcastPreferences {
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         func threshold(_ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
             let value = defaults.object(forKey: key) as? Int ?? fallback
             return min(range.upperBound, max(range.lowerBound, value))
@@ -68,7 +72,8 @@ final class NotchcastPreferences {
         awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool ?? !$0.isSystemFeature)
+            !(defaults.object(forKey: $0.rawValue) as? Bool
+                ?? (!$0.isSystemFeature && $0 != .spacesOrder && $0 != .switcherQuitKey))
         })
     }
 

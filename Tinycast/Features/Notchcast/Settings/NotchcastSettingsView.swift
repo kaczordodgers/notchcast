@@ -53,6 +53,14 @@ struct NotchcastSettingsView: View {
                 }
                 .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
             }
+            if group == .system {
+                TextField(text: Binding(
+                    get: { preferences.greenMaximizeExcludedApps },
+                    set: { preferences.greenMaximizeExcludedApps = $0 })) {
+                    SettingsRowTitle(.notchcastSystem, "Excluded app bundle IDs (comma-separated)")
+                }
+                .settingsEnabled(preferences.isOn(.greenMaximize))
+            }
             if group == .islandOptions {
                 Picker(selection: Binding(
                     get: { preferences.islandHoverDelay },
