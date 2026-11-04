@@ -6,6 +6,8 @@
 
 import Foundation
 
+enum DialogTone { case success, danger }
+
 @MainActor
 final class ModuleTransport: VoiceAskTransport {
     var calls = 0
@@ -38,8 +40,10 @@ struct VoiceAskModuleTest {
         var starts = 0
         var stops = 0
         var cancels = 0
+        var messages: [(String, DialogTone)] = []
         let module = VoiceAskModule(defaults: defaults, begin: { begins += 1 },
-                                    finish: { "fixture question" }, cancel: { cancels += 1 })
+                                    finish: { "fixture question" }, cancel: { cancels += 1 },
+                                    message: { messages.append(($0, $1)) })
         module.onStart = { starts += 1 }
         module.onStop = { stops += 1 }
         let transport = ModuleTransport()
@@ -57,12 +61,14 @@ struct VoiceAskModuleTest {
         module.release()
         try await wait { module.result != nil }
         precondition(transport.calls == 1 && module.result?.firstLines == ["fixture answer"])
+        precondition(messages.count == 1 && messages[0].0 == "fixture answer" && messages[0].1 == .success)
         transport.fails = true
         module.press(alone: true)
         try await wait { begins == 2 }
         module.release()
         try await wait { module.failure != nil }
         precondition(module.failure == "Fake delivery failed" && transport.calls == 2)
+        precondition(messages.count == 2 && messages[1].0 == "Fake delivery failed" && messages[1].1 == .danger)
         let previousCancels = cancels
         preferences.set(.voiceAsk, false)
         try await wait { !module.enabled }
