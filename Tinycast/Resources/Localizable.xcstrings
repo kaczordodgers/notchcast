@@ -1,6 +1,1254 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+  "Download magnet links and torrent files to Downloads.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Magnet-Links und Torrent-Dateien in Downloads herunterladen."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Descargar enlaces magnet y archivos torrent en Descargas."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Télécharger les liens magnet et les fichiers torrent dans Téléchargements."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "マグネットリンクとトレントファイルをダウンロードフォルダに保存します。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "마그넷 링크와 토렌트 파일을 다운로드 폴더에 저장합니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Transferir ligações magnet e ficheiros torrent para Descargas."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Скачивать magnet-ссылки и торрент-файлы в папку «Загрузки»."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "将磁力链接和种子文件下载到“下载”文件夹。"
+        }
+      }
+    }
+  },
+  "Downloading": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wird heruntergeladen"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Descargando"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Téléchargement en cours"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ダウンロード中"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "다운로드 중"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A transferir"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Загрузка"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在下载"
+        }
+      }
+    }
+  },
+  "Failed": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Fehlgeschlagen"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Error"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Échec"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "失敗"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "실패함"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Falhou"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ошибка"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "失败"
+        }
+      }
+    }
+  },
+  "Finding peers": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Peers werden gesucht"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Buscando pares"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Recherche de pairs"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ピアを検索中"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "피어 찾는 중"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A procurar pares"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Поиск пиров"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在查找节点"
+        }
+      }
+    }
+  },
+  "Finished": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Abgeschlossen"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Finalizado"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Terminé"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "完了"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "완료됨"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Concluído"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Завершено"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "已完成"
+        }
+      }
+    }
+  },
+  "Install aria2c with Homebrew: brew install aria2": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c mit Homebrew installieren: brew install aria2"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Instala aria2c con Homebrew: brew install aria2"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Installer aria2c avec Homebrew : brew install aria2"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Homebrewでaria2cをインストール：brew install aria2"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Homebrew로 aria2c 설치: brew install aria2"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Instalar aria2c com o Homebrew: brew install aria2"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Установите aria2c через Homebrew: brew install aria2"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用 Homebrew 安装 aria2c：brew install aria2"
+        }
+      }
+    }
+  },
+  "Keep sharing until ratio 1.0": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Bis zum Verhältnis 1,0 weiter teilen"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Seguir compartiendo hasta una proporción de 1,0"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continuer le partage jusqu’à un ratio de 1,0"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "共有比率1.0まで共有を続ける"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "공유 비율 1.0까지 공유 유지"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Continuar a partilhar até ao rácio 1,0"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Раздавать до коэффициента 1,0"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "持续做种直到分享率达到 1.0"
+        }
+      }
+    }
+  },
+  "Magnet link": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Magnet-Link"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enlace magnet"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Lien magnet"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "マグネットリンク"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "마그넷 링크"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Link magnet"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Magnet-ссылка"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "磁力链接"
+        }
+      }
+    }
+  },
+  "No peers found in 10 minutes.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "In 10 Minuten wurden keine Peers gefunden."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No se encontraron pares en 10 minutos."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Aucun pair trouvé en 10 minutes."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "10分間ピアが見つかりませんでした。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "10분 동안 피어를 찾지 못했습니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Não foram encontrados pares em 10 minutos."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "За 10 минут пиры не найдены."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "10 分钟内未找到节点。"
+        }
+      }
+    }
+  },
+  "Sharing": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wird geteilt"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Compartiendo"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Partage en cours"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "共有中"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "공유 중"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A partilhar"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Раздача"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "正在做种"
+        }
+      }
+    }
+  },
+  "The aria2c connection could not be verified.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Die aria2c-Verbindung konnte nicht überprüft werden."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No se pudo verificar la conexión con aria2c."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Impossible de vérifier la connexion à aria2c."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2cへの接続を検証できませんでした。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c 연결을 확인할 수 없습니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Não foi possível verificar a ligação ao aria2c."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Не удалось проверить соединение с aria2c."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法验证 aria2c 连接。"
+        }
+      }
+    }
+  },
+  "The aria2c connection failed.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Die aria2c-Verbindung ist fehlgeschlagen."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Falló la conexión con aria2c."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "La connexion à aria2c a échoué."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2cへの接続に失敗しました。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c 연결에 실패했습니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A ligação ao aria2c falhou."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ошибка соединения с aria2c."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c 连接失败。"
+        }
+      }
+    }
+  },
+  "The download failed.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Der Download ist fehlgeschlagen."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "La descarga falló."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Le téléchargement a échoué."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ダウンロードに失敗しました。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "다운로드에 실패했습니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "A transferência falhou."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Загрузка не удалась."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "下载失败。"
+        }
+      }
+    }
+  },
+  "This torrent file or magnet link could not be read.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Diese Torrent-Datei oder dieser Magnet-Link konnte nicht gelesen werden."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No se pudo leer este archivo torrent o enlace magnet."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Impossible de lire ce fichier torrent ou ce lien magnet."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "このトレントファイルまたはマグネットリンクを読み込めませんでした。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "이 토렌트 파일 또는 마그넷 링크를 읽을 수 없습니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Não foi possível ler este ficheiro torrent ou ligação magnet."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Не удалось прочитать этот торрент-файл или magnet-ссылку."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法读取此种子文件或磁力链接。"
+        }
+      }
+    }
+  },
+  "This torrent is already running.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Dieser Torrent läuft bereits."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Este torrent ya está en curso."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Ce torrent est déjà en cours."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "このトレントは既に実行中です。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "이 토렌트는 이미 실행 중입니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Este torrent já está em execução."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Этот торрент уже запущен."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此种子已在下载中。"
+        }
+      }
+    }
+  },
+  "Torrents": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "トレント"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "토렌트"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Торренты"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "种子下载"
+        }
+      }
+    }
+  },
+  "Torrents is off in Settings > Notchcast.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents ist unter Einstellungen > Notchcast deaktiviert."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents está desactivado en Ajustes > Notchcast."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents est désactivé dans Réglages > Notchcast."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "設定 > Notchcastでトレントがオフになっています。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "설정 > Notchcast에서 토렌트가 꺼져 있습니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Torrents está desativado em Ajustes > Notchcast."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Торренты отключены в Настройки > Notchcast."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "种子下载已在设置 > Notchcast 中关闭。"
+        }
+      }
+    }
+  },
+  "Upload as much as you download before stopping.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Vor dem Beenden so viel hochladen wie heruntergeladen wurde."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Subir tantos datos como se descargaron antes de detenerse."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Envoyer autant de données que de données téléchargées avant l’arrêt."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "ダウンロードした量と同じ量をアップロードしてから停止します。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "다운로드한 양만큼 업로드한 후 중지합니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Enviar tantos dados quantos os transferidos antes de parar."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Перед остановкой раздать столько же данных, сколько было скачано."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "上传与下载等量的数据后停止。"
+        }
+      }
+    }
+  },
+  "Use Wi-Fi and iPhone USB Personal Hotspot together.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "WLAN und den persönlichen Hotspot des iPhone über USB gemeinsam verwenden."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Usar Wi-Fi y el punto de acceso personal del iPhone por USB a la vez."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Utiliser ensemble le Wi-Fi et le partage de connexion USB de l’iPhone."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-FiとiPhoneのUSBインターネット共有を併用します。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi와 iPhone USB 개인용 핫스팟을 함께 사용합니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Usar Wi-Fi e o hotspot pessoal USB do iPhone em conjunto."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Использовать Wi-Fi вместе с режимом модема iPhone по USB."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "同时使用 Wi-Fi 和 iPhone USB 个人热点。"
+        }
+      }
+    }
+  },
+  "Use a plugged-in iPhone for big downloads": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Angeschlossenes iPhone für große Downloads verwenden"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Usar un iPhone conectado para descargas grandes"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Utiliser un iPhone branché pour les téléchargements volumineux"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "大きなダウンロードに接続中のiPhoneを使用"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "대용량 다운로드에 연결된 iPhone 사용"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Usar um iPhone ligado para transferências grandes"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Использовать подключённый iPhone для больших загрузок"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用已连接的 iPhone 下载大文件"
+        }
+      }
+    }
+  },
+  "Wi-Fi + iPhone": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "WLAN + iPhone"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi + iPhone"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi + iPhone"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi + iPhone"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi + iPhone"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi + iPhone"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi + iPhone"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Wi-Fi + iPhone"
+        }
+      }
+    }
+  },
+  "aria2c": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c"
+        }
+      }
+    }
+  },
+  "aria2c could not start.": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c konnte nicht gestartet werden."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No se pudo iniciar aria2c."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Impossible de démarrer aria2c."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2cを起動できませんでした。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c를 시작할 수 없습니다."
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Não foi possível iniciar o aria2c."
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Не удалось запустить aria2c."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "无法启动 aria2c。"
+        }
+      }
+    }
+  },
+  "aria2c not found": {
+    "localizations": {
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c nicht gefunden"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No se encontró aria2c"
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c introuvable"
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2cが見つかりません"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c를 찾을 수 없음"
+        }
+      },
+      "pt": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c não encontrado"
+        }
+      },
+      "ru": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "aria2c не найден"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "未找到 aria2c"
+        }
+      }
+    }
+  },
     "Allow Accessibility access to mute microphones with F5.": {
       "localizations": {
         "de": {

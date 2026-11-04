@@ -29,6 +29,7 @@ struct NotchcastSettingsView: View {
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+            NotchcastTorrentSettings(module: NotchcastCore.torrents)
 
             NotchcastSystemSettingsSection()
 
@@ -63,7 +64,7 @@ struct NotchcastSettingsView: View {
     private var options: [NotchcastFeature] {
         let own: Set<NotchcastFeature> = [.island, .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic,
                                           .spotifyConnect, .microphoneMute, .inUseMarks]
-        return NotchcastFeature.allCases.filter { !own.contains($0) && !$0.isSystemFeature }
+        return NotchcastFeature.allCases.filter { !own.contains($0) && !$0.isSystemFeature && !$0.isTorrentFeature }
     }
 
     /// Grants needed by the switches that are on, in a stable order.

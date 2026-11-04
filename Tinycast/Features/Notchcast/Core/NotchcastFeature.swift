@@ -19,14 +19,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case torrents
+    case torrentsUseIPhone
+    case torrentsKeepSharing
+
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
-    var defaultOn: Bool { self != .spotifyConnect && !isSystemFeature }
+    var defaultOn: Bool { self != .spotifyConnect && self != .torrentsKeepSharing && !isSystemFeature }
 
     var dependencies: [Self] {
         switch self {
-        case .island: []
+        case .island, .torrents: []
+        case .torrentsUseIPhone, .torrentsKeepSharing: [.torrents]
         case .musicLastPlayer, .spotifyConnect: [.island, .musicNowPlaying]
         default: needsIsland ? [.island] : []
         }
@@ -64,6 +69,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .torrents: String(localized: "Torrents")
+        case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
+        case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
         }
     }
 
@@ -99,6 +107,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
+        case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
+        case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
         }
     }
 
@@ -112,7 +123,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .musicNowPlaying, .spotifyConnect, .inUseMarks,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
+            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
+            .torrents, .torrentsUseIPhone, .torrentsKeepSharing:
             []
         }
     }
