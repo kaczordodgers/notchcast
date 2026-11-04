@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadLauncherCommands.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands+Action.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
@@ -93,6 +96,9 @@ enum QuicklinkDestination {
 @MainActor final class AppCore {
     static let shared = AppCore()
     let paletteCoordinator = PaletteCoordinator()
+    let appIndex = AppIndex()
+    enum Tone { case danger }
+    func showMessage(_ text: String, tone: Tone) {}
 }
 
 @MainActor final class PaletteCoordinator {
@@ -104,6 +110,31 @@ enum QuicklinkDestination {
         restoredFocus = restoreFocus
         isVisible = false
     }
+}
+
+@MainActor final class AppIndex {
+    func refreshNotchcastCommands() {}
+}
+@MainActor final class NotchcastPreferences {
+    static let shared = NotchcastPreferences()
+    private var off: Set<NotchcastFeature> = []
+    func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
+    func set(_ feature: NotchcastFeature, _ enabled: Bool) {
+        if enabled { off.remove(feature) } else { off.insert(feature) }
+    }
+}
+@MainActor final class DownloadsModule {
+    var commandTask: Task<Void, Never>?
+}
+@MainActor final class DistillModule {
+    var commandTask: Task<Void, Never>?
+}
+@MainActor struct NotchcastDownloadCommands {
+    let downloads: DownloadsModule
+    let distill: DistillModule
+    let preferences: NotchcastPreferences
+    let status: (String) -> Void
+    func perform(_ action: Action) async {}
 }
 
 @main @MainActor struct NotchcastCommandsTest {
@@ -136,6 +167,36 @@ enum QuicklinkDestination {
         palette.isVisible = true
         NotchcastCommandCatalog.perform("command:toggle-island")
         assert(palette.hideCalls == 1 && !palette.restoredFocus && island.runs == 3)
+        let preferences = NotchcastPreferences.shared
+        let switches: [NotchcastFeature] = [.downloads, .distill, .distillConvert]
+        let previous = switches.map { preferences.isOn($0) }
+        defer { for (feature, enabled) in zip(switches, previous) { preferences.set(feature, enabled) } }
+        for feature in switches { preferences.set(feature, true) }
+        let expected: [(String, NotchcastFeature)] = [
+            ("command:nc-download-video", .downloads),
+            ("command:nc-download-audio", .downloads),
+            ("command:nc-download-youtube-transcript", .downloads),
+            ("command:nc-save-webpage-as-markdown", .downloads),
+            ("command:nc-add-links-to-distill", .distill),
+            ("command:nc-run-distill", .distill),
+            ("command:nc-convert-distill-folder", .distillConvert),
+            ("command:nc-open-downloads-folder", .downloads),
+            ("command:nc-open-distill-folder", .distill),
+        ]
+        assert(commands.count == expected.count + 1)
+        for (id, feature) in expected {
+            let command = NotchcastCommandCatalog.command(for: id)!
+            assert(command.owner == .notchcast && !command.sfSymbol.isEmpty)
+            assert(command.isEnabled())
+            preferences.set(feature, false)
+            assert(!command.isEnabled())
+            assert(!CommandCatalog.all.filter { NotchcastCommandCatalog.isEnabled($0.id) }.contains { $0.id == id })
+            assert(NotchcastCommandCatalog.dispatch(id, dismiss: { preconditionFailure("Disabled command dismissed") }))
+            preferences.set(feature, true)
+        }
+        preferences.set(.distill, false)
+        assert(!NotchcastDownloadLauncherCommands.convert.isEnabled())
+        print("PASS: nine Downloads/Distill registrations, owners, switch visibility and disabled dispatch")
         print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility and dispatch")
     }
 }

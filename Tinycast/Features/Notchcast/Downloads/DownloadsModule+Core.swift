@@ -6,5 +6,7 @@ extension DownloadsModule {
                   file: AppPaths.applicationSupport().appending(path: "Notchcast/downloads.json"),
                   destination: NotchcastDownloadDestinations.downloads,
                   report: { [weak core] in core?.showMessage($0, tone: .danger) })
+        NotchcastDownloadLauncherCommands.downloads = self
+        NotchcastDownloadLauncherCommands.trackAvailability(core)
     }
 }

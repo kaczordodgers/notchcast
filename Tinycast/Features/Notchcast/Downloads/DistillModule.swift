@@ -4,6 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class DistillModule: NotchcastModule {
+    var commandTask: Task<Void, Never>?
     let state: DownloadsQueueController
     private(set) var links: DistillQueue?
     @ObservationIgnored private let preferences: NotchcastPreferences
@@ -38,6 +39,8 @@ final class DistillModule: NotchcastModule {
     }
 
     func stop() {
+        commandTask?.cancel()
+        commandTask = nil
         operation = nil
         links = nil
         state.stop()
