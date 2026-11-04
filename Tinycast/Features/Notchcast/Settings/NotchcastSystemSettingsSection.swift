@@ -12,7 +12,7 @@ struct NotchcastSystemSettingsSection: View {
                     get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
                     SettingsRowTitle(.notchcastMonitor, verbatim: feature.title)
                     Text(feature.subtitle)
-                    if (feature == .batterySailing || feature == .batteryHeatProtection),
+                    if feature == .batterySailing || feature == .batteryHeatProtection || feature == .batteryCalibration,
                        NotchcastCore.battery.chargingUnsupported {
                         Text("Not supported on this Mac").foregroundStyle(.secondary)
                     }
@@ -24,7 +24,8 @@ struct NotchcastSystemSettingsSection: View {
                     }
                 }
                 .settingsEnabled(feature != .fanControl || preferences.isOn(.systemMonitor))
-                .settingsEnabled(!(feature == .batterySailing || feature == .batteryHeatProtection)
+                .settingsEnabled(!(feature == .batterySailing || feature == .batteryHeatProtection
+                                   || feature == .batteryCalibration)
                                  || preferences.isOn(feature) || !NotchcastCore.battery.chargingUnsupported)
             }
             Picker(selection: Binding(get: { preferences.fanMode }, set: {

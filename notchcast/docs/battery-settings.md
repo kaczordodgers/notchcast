@@ -23,9 +23,13 @@ plans pause charging without disconnecting the adapter. Failed writes invalidate
 state and show their error in Settings. Repeated evaluations skip confirmed unchanged root state.
 Keep Awake uses no root helper.
 
-Root changes and native-limit ownership are marked in fork-local preferences before writes.
-Launch repairs marked changes even with every switch off; failed repairs retain their markers.
+Root changes are marked per verb in fork-local preferences before writes. Native-limit ownership
+records the attempted and prior limits; cleanup re-reads the limit before clearing it.
+Launch repair runs once, including when the helper gate reopens, without overriding active features.
+Failed repairs retain their markers for the next launch; unsupported verbs clear their own markers.
+An owned native limit is reissued once after a battery-to-adapter transition.
 An existing macOS charge limit is read without claiming ownership. Calibration stops on relaunch
 and turns its switch off on completion, recording the completion date.
+Unsupported charging control also turns calibration off and labels it unsupported in Settings.
 
 `Tests/nc-Battery-store-test.swift` uses fake readings, assertions and commands exclusively.

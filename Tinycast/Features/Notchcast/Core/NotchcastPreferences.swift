@@ -38,6 +38,18 @@ final class NotchcastPreferences {
         get { defaults.bool(forKey: "batteryOwnsNativeLimit") }
         set { defaults.set(newValue, forKey: "batteryOwnsNativeLimit") }
     }
+    var batteryDirtyVerbs: [String] {
+        get { defaults.stringArray(forKey: "batteryDirtyVerbs") ?? [] }
+        set { defaults.set(newValue, forKey: "batteryDirtyVerbs") }
+    }
+    var batteryOwnedLimit: Int {
+        get { defaults.integer(forKey: "batteryOwnedLimit") }
+        set { defaults.set(newValue, forKey: "batteryOwnedLimit") }
+    }
+    var batteryPriorLimit: Int {
+        get { defaults.integer(forKey: "batteryPriorLimit") }
+        set { defaults.set(newValue, forKey: "batteryPriorLimit") }
+    }
     static let awakeDurations = [15, 30, 60, 120, 240]
     private var chargePercent: Int
     var batteryChargePercent: Int {

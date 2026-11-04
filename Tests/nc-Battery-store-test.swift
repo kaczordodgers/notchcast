@@ -12,6 +12,7 @@ import Foundation
 @MainActor
 struct BatteryStoreTests {
     static func main() async {
+        await roundThreeCases()
         await safetyCases()
         let suite = "battery-store-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
@@ -74,14 +75,18 @@ struct BatteryStoreTests {
         precondition(rootCalls == 0)
         var calls: [BatteryRootVerbs] = []
         var fail = false
+        var currentLimit: Int? = 70
         let modern = BatteryModule(preferences: preferences, runner: .init(read: {
             BatteryReading.decode(properties: ["CurrentCapacity": 85, "MaxCapacity": 100,
                                                "ExternalConnected": true])
         }, root: {
             calls.append($0)
             if fail { throw RootHelperClient.Failure.timedOut }
+            if $0.rawValue.hasPrefix("charge-limit-") {
+                currentLimit = Int($0.rawValue.components(separatedBy: "-").last ?? "")
+            }
         }, installed: { true }, version: { "2" }, create: { _ in 99 }, release: { _ in },
-           supports: { _ in true }, readLimit: { 70 }))
+           supports: { _ in true }, readLimit: { currentLimit }))
         preferences.set(.keepAwake, false)
         preferences.set(.batterySailing, true)
         preferences.batteryChargePercent = 80
@@ -163,10 +168,11 @@ struct BatteryStoreTests {
         }
         preferences.batteryRootDirty = true
         preferences.batteryOwnsNativeLimit = true
+        preferences.batteryOwnedLimit = 80
         var repairCalls: [BatteryRootVerbs] = []
         let repair = BatteryModule(preferences: preferences, runner: .init(read: { nil },
             root: { repairCalls.append($0) }, installed: { true }, version: { "2" },
-            create: { _ in 0 }, release: { _ in }, readLimit: { nil }))
+            create: { _ in 0 }, release: { _ in }, readLimit: { 80 }))
         repair.repairAtLaunch()
         await repair.waitUntilIdle()
         precondition(repairCalls == [.adapterOn, .chargingOn, .sleepOn, .chargeLimitOff])
@@ -184,7 +190,7 @@ struct BatteryStoreTests {
         stop.refreshHelper()
         stop.stop()
         await stop.waitUntilIdle()
-        precondition(!preferences.batteryRootDirty && repairCalls.suffix(3) == [.adapterOn, .chargingOn, .sleepOn])
+        precondition(!preferences.batteryRootDirty && repairCalls.last == .chargingOn)
         print("PASS: stored limit rounding, startup cleanup once, missing verbs, switch-off and quit release")
     }
 
@@ -200,6 +206,7 @@ struct BatteryStoreTests {
         var created = 0
         var released = 0
         var nativeFailure = false
+        var currentLimit: Int? = 85
         var unsupported = false
         var pending: CheckedContinuation<Void, Never>?
         var suspendToggle = false
@@ -209,6 +216,9 @@ struct BatteryStoreTests {
         }, root: { verb in
             calls.append(verb)
             if verb == .chargeLimit80 && nativeFailure { throw RootHelperClient.Failure.timedOut }
+            if verb.rawValue.hasPrefix("charge-limit-") {
+                currentLimit = Int(verb.rawValue.components(separatedBy: "-").last ?? "")
+            }
             if verb == .chargingOff && unsupported {
                 throw RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit)
             }
@@ -220,7 +230,7 @@ struct BatteryStoreTests {
         }, installed: { true }, version: { "2" }, create: { _ in
             created += 1
             return UInt32(created)
-        }, release: { _ in released += 1 }, readLimit: { 85 }))
+        }, release: { _ in released += 1 }, readLimit: { currentLimit }))
         precondition(!preferences.isOn(.batteryCalibration))
         module.start()
         for _ in 0..<100 { await Task.yield() }
@@ -289,8 +299,11 @@ struct BatteryStoreTests {
         await module.evaluate(now: .now)
         await module.evaluate(now: .now)
         precondition(module.chargingUnsupported)
+        precondition(!preferences.isOn(.batteryCalibration))
         let count = calls.count
+        preferences.set(.batteryCalibration, true)
         await module.evaluate(now: .now)
+        precondition(!preferences.isOn(.batteryCalibration))
         precondition(calls.count == count)
         module.stop()
         await module.waitUntilIdle()
@@ -307,6 +320,7 @@ struct BatteryStoreTests {
             root: { _ in }, installed: { true }, version: { "2" }, create: { _ in 0 },
             release: { _ in }, readLimit: {
                 if missing { throw RootHelperClient.Failure.executionFailed(RootContract.usageExit) }
+                if pending != nil { return 85 }
                 return try await withCheckedThrowingContinuation { pending = $0 }
             }))
         module.start()
@@ -324,5 +338,146 @@ struct BatteryStoreTests {
         precondition(!module.nativeLimitAvailable && module.failure == nil)
         module.stop()
         await module.waitUntilIdle()
+    }
+
+    static func roundThreeCases() async {
+        let suite = "battery-round-three.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let prefs = NotchcastPreferences(suiteName: suite)
+        prefs.batteryRootDirty = true
+        var calls: [BatteryRootVerbs] = []
+        let repair = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: {
+            calls.append($0)
+            if $0 == .adapterOn { throw RootHelperClient.Failure.timedOut }
+            if $0 == .chargingOn { throw RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit) }
+        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }))
+        repair.repairAtLaunch()
+        await repair.waitUntilIdle()
+        for _ in 0..<3 { await repair.evaluate(now: .now) }
+        precondition(calls == [.adapterOn, .chargingOn, .sleepOn])
+        precondition(prefs.batteryDirtyVerbs == ["battery-adapter"] && repair.failure == nil)
+        var version = "1"
+        calls = []
+        let reopening = BatteryModule(preferences: prefs, runner: .init(read: { nil },
+            root: { calls.append($0) }, installed: { true }, version: { version },
+            create: { _ in 1 }, release: { _ in }, readLimit: { nil }))
+        reopening.start()
+        for _ in 0..<100 { await Task.yield() }
+        precondition(calls.isEmpty)
+        version = "2"
+        reopening.refreshHelper()
+        for _ in 0..<100 { await Task.yield() }
+        await reopening.evaluate(now: .now)
+        await reopening.evaluate(now: .now)
+        precondition(calls == [.adapterOn] && !prefs.batteryRootDirty)
+        reopening.stop()
+        await reopening.waitUntilIdle()
+        prefs.batteryRootDirty = true
+        prefs.batteryDirtyVerbs = ["battery-adapter"]
+
+        for installed in [false, true] {
+            prefs.set(.keepAwake, true)
+            var assertions = 0
+            let unavailable = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
+                preconditionFailure("Closed gate must not write")
+            }, installed: { installed }, version: { "1" }, create: { _ in assertions += 1; return UInt32(assertions) },
+               release: { _ in }))
+            unavailable.start()
+            for _ in 0..<100 { await Task.yield() }
+            await unavailable.evaluate(now: .now)
+            precondition(assertions == 2)
+            unavailable.stop()
+            await unavailable.waitUntilIdle()
+        }
+
+        prefs.batteryRootDirty = false
+        prefs.batteryDirtyVerbs = []
+        prefs.set(.batteryChargeLimit, true)
+        var connected = false
+        var current: Int? = 85
+        var failWrite = true
+        calls = []
+        let native = BatteryModule(preferences: prefs, runner: .init(read: {
+            BatteryReading.decode(properties: ["CurrentCapacity": 90, "MaxCapacity": 100,
+                                               "ExternalConnected": connected])
+        }, root: {
+            calls.append($0)
+            if failWrite { throw RootHelperClient.Failure.timedOut }
+            if connected { current = $0 == .chargeLimitOff ? nil : 80 }
+        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }, readLimit: { current }))
+        native.start()
+        for _ in 0..<100 { await Task.yield() }
+        await native.evaluate(now: .now)
+        let relaunch = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
+            preconditionFailure("Unconfirmed write must not clear the user's limit on relaunch")
+        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }, readLimit: { current }))
+        relaunch.repairAtLaunch()
+        await relaunch.waitUntilIdle()
+        precondition(current == 85 && !prefs.batteryOwnsNativeLimit)
+        prefs.set(.batteryChargeLimit, false)
+        await native.evaluate(now: .now)
+        precondition(!calls.contains(.chargeLimitOff) && current == 85 && !prefs.batteryOwnsNativeLimit)
+        failWrite = false
+        prefs.set(.batteryChargeLimit, true)
+        await native.evaluate(now: .now)
+        let beforePlug = calls.count
+        connected = true
+        await native.evaluate(now: .now)
+        precondition(calls.count == beforePlug + 1 && calls.last == .chargeLimit80)
+        await native.evaluate(now: .now)
+        precondition(calls.count == beforePlug + 1)
+        native.stop()
+        await native.waitUntilIdle()
+        prefs.batteryRootDirty = true
+        prefs.batteryDirtyVerbs = ["battery-adapter", "battery-charging", "battery-sleep"]
+        prefs.batteryOwnsNativeLimit = true
+        prefs.batteryOwnedLimit = 80
+        prefs.set(.batteryChargeLimit, false)
+        prefs.set(.batterySailing, true)
+        prefs.set(.lidClosedAwake, true)
+        calls = []
+        let active = BatteryModule(preferences: prefs, runner: .init(read: {
+            BatteryReading.decode(properties: ["CurrentCapacity": 95, "MaxCapacity": 100,
+                                               "ExternalConnected": true])
+        }, root: {
+            calls.append($0)
+            if $0 == .adapterOn || $0 == .chargeLimitOff { throw RootHelperClient.Failure.timedOut }
+        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }, readLimit: { 80 }))
+        active.start()
+        for _ in 0..<100 { await Task.yield() }
+        await active.evaluate(now: .now)
+        let held = calls
+        for _ in 0..<3 { await active.evaluate(now: .now) }
+        precondition(calls == held && calls.contains(.chargingOff) && calls.contains(.sleepOff))
+        precondition(!calls.contains(.chargingOn) && !calls.contains(.sleepOn))
+        precondition(calls.filter { $0 == .chargeLimitOff }.count == 1)
+        active.stop()
+        await active.waitUntilIdle()
+
+        prefs.batteryRootDirty = false
+        prefs.batteryDirtyVerbs = []
+        prefs.batteryOwnsNativeLimit = false
+        prefs.set(.lidClosedAwake, false)
+        var versions = 0
+        calls = []
+        let transient = BatteryModule(preferences: prefs, runner: .init(read: {
+            BatteryReading.decode(properties: ["CurrentCapacity": 95, "MaxCapacity": 100,
+                                               "ExternalConnected": true])
+        }, root: { calls.append($0) }, installed: { true }, version: {
+            versions += 1
+            if versions == 1 { throw RootHelperClient.Failure.timedOut }
+            return "2"
+        }, create: { _ in 1 }, release: { _ in }, readLimit: { nil }))
+        transient.start()
+        for _ in 0..<100 { await Task.yield() }
+        precondition(!transient.needsHelperUpdate)
+        await transient.evaluate(now: .now)
+        for _ in 0..<100 { await Task.yield() }
+        precondition(versions >= 2 && calls.contains(.chargingOff))
+        prefs.set(.batterySailing, false)
+        await transient.evaluate(now: .now)
+        precondition(calls.last == .chargingOn)
+        transient.stop()
+        await transient.waitUntilIdle()
     }
 }
