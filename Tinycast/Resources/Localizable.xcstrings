@@ -53838,6 +53838,58 @@
         }
       }
     },
+    "Daily walking goal reached." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tägliches Gehziel erreicht."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objetivo diario de caminata alcanzado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Objectif quotidien de marche atteint."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日のウォーキング目標を達成しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일일 걷기 목표를 달성했습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meta diária de caminhada atingida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ежедневная цель ходьбы достигнута."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已达到每日步行目标。"
+          }
+        }
+      }
+    },
     "Dark" : {
       "comment" : "Appearance option; also an emoji skin tone",
       "localizations" : {
@@ -173154,6 +173206,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "走步机控制功能暂不可用。"
+          }
+        }
+      }
+    },
+    "Walking pad: time to lubricate the belt (%lld km)." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Laufband: Zeit, das Band zu schmieren (%lld km)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cinta de caminar: es hora de lubricar la banda (%lld km)."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tapis de marche : il est temps de lubrifier la bande (%lld km)."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ウォーキングパッド：ベルトに注油する時期です（%lld km）。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "워킹패드: 벨트에 윤활유를 바를 때입니다(%lld km)."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esteira: hora de lubrificar a correia (%lld km)."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Беговая дорожка: пора смазать полотно (%lld км)."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "走步机：该给跑带加润滑油了（%lld 公里）。"
           }
         }
       }
