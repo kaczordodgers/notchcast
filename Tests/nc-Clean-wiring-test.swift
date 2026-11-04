@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
+// notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
+// notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
 // notchcast-sources: Tinycast/Features/Clean/*/*.swift
 // notchcast-sources: Tinycast/Features/Clean/CleanCoordinator.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
