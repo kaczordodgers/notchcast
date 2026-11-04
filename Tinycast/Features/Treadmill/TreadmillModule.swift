@@ -19,7 +19,8 @@ extension TreadmillCoordinator {
         let support = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Library/Application Support")
         let repository = TreadmillRepository(
             directory: support.appending(path: bundleID).appending(path: "notchcast/treadmill"),
-            legacyDirectories: [support.appending(path: "urevo-treadmill"), support.appending(path: "Orion/walk")])
+            legacyDirectories: [support.appending(path: "urevo-treadmill"), support.appending(path: "Orion/walk")],
+            legacyLubeDirectory: support.appending(path: "urevo-treadmill"))
         let defaults = UserDefaults(suiteName: bundleID + ".notchcast")!
         return TreadmillCoordinator(transport: UnavailableTreadmillTransport(),
                                     history: TreadmillHistoryStore(repository: repository),

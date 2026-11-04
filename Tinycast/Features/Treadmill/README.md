@@ -18,6 +18,7 @@ launcher, hotkey and CLI registration wait for the command hook.
   Live counters checkpoint every 30 seconds and on phase changes; final counters always flush.
 - A failed or corrupt archive is reported and never overwritten. Malformed legacy JSONL lines are
   skipped independently; old folders are read only. Import is committed with its completion flag.
+  Only the old treadmill folder supplies lubrication marks; another history source cannot reset them.
 - Old JSONL records from the treadmill and Orion walk folders are deduplicated by start timestamp.
   Phone totals are deduplicated by their counters, including across time zones. They contribute to
   period totals and the odometer, but never to daily chart buckets or the walk count.
