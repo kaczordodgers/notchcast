@@ -5,15 +5,172 @@ It writes one small binary property list per UTC day in the current app channel'
 Support `fork-settings-backups` folder. A check runs on enable and hourly while enabled.
 Existing daily files are preserved. Turning the switch off cancels subsequent checks.
 
-This supplements upstream's backup engine; its hidden Settings pane remains untouched.
-Only fork-local monitor thresholds, hover delay, charge percentage and keep-awake duration travel.
-Feature switches, capability grants, credentials, upstream settings and store files are excluded.
-Unknown keys are ignored on read and preserved in the current destination by the restore engine.
-The entire archive is validated before returning a merged restore result. Wrong versions,
-malformed values and archives larger than 1 MiB fail without changing preferences.
+This supplements upstream's hidden Backup feature; upstream settings remain out of scope.
+The writer captures effective main-actor values, including values never written to defaults.
+It reads switches with `isOn` and preferences through their getters and stores, then writes off main.
+The previous statement that feature switches are excluded has been removed. Carried switches are
+preferences, not capability grants: Accessibility, Calendar, microphone and other TCC grants are
+never copied and continue to gate their features. Root-helper switches and `agentConfirmation`
+remain excluded, as do AgentGrantStore grants, credentials, tokens and API keys.
 
-This engine-only increment does not expose import, export or restore controls. The restore engine
-returns a validated merge to its caller; it does not apply it to running feature state.
-No network or other application's data is involved. Automatic retention is not applied.
+Format 2 uses `settings-v2-<day>.plist`. Selection ignores old `settings-<day>.plist` files;
+there is no format-1 compatibility path. Format 3 is refused. The newest file must be a regular file
+of at most 1 MiB before reading; FIFOs and symbolic links are refused without blocking.
+Restore validates every value before confirmation and again before writing. Any unknown key,
+including a root or nested JSON key, wrong type, unsupported choice or out-of-range value refuses
+the whole file and leaves memory and defaults unchanged. Plist booleans are distinct from numbers.
+Missing keys stay untouched. A bad newest file is refused without falling back.
+Switches apply through `NotchcastPreferences.set`; other values use setters and store APIs.
+Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
+opening the folder has its own task. Missing backups show a notice.
+Open Settings Backup Folder creates and opens the folder. Both commands work with the switch off.
+Restoring weather or markets can refetch from their fixed hosts when running or visible,
+without credentials. Automatic retention is not applied.
+
+## Explicit allowlist
+
+`Model/ForkSettingsBackupSchema.swift` is the sole key/type policy, one key per line.
+JSON-backed preferences travel as bounded strings with explicit nested field validation, not Data.
+Optional weather and theme selections use JSON null. Theme colors and slot appearance are validated.
+The low-level encoder silently drops unknown and invalid entries; the app writer supplies effective
+values and skips invalid keys individually. It never copies the raw defaults domain.
+
+| Key | Type / limits | Reason |
+| --- | --- | --- |
+| island | Bool | Presentation switch |
+| islandExternalDisplays | Bool | Presentation switch |
+| islandFullScreen | Bool | Presentation switch |
+| islandHoverOpen | Bool | Presentation switch |
+| islandStatusMessages | Bool | Presentation switch |
+| islandLiveActivities | Bool | Presentation switch |
+| launcherFromIsland | Bool | Launcher preference |
+| launcherNumberKeys | Bool | Launcher preference |
+| launcherAliasSpace | Bool | Launcher preference |
+| monitorAlerts | Bool | Local monitor switch |
+| lowDiskWarning | Bool | Warning preference |
+| systemNotices | Bool | Notice preference |
+| volumeLevels | Bool | TCC-gated feature preference |
+| displayBrightness | Bool | TCC-gated feature preference |
+| quitProtection | Bool | TCC-gated feature preference |
+| liveTimers | Bool | Timer feature preference |
+| dayCalendar | Bool | TCC-gated calendar preference |
+| dayWeather | Bool | Weather feature preference |
+| dayMarkets | Bool | Markets feature preference |
+| dictationIslandHUD | Bool | Presentation switch |
+| settingsBackup | Bool | Backup preference |
+| showDesktop | Bool | TCC-gated feature preference |
+| musicNowPlaying | Bool | Read-only now-playing observation |
+| musicLastPlayer | Bool | Remembers player and routes manual media keys |
+| inUseMarks | Bool | Read-only microphone/camera indicators |
+| archivesInPlace | Bool | Manual extraction mode |
+| quickLookSpace | Bool | Launcher Quick Look on Space |
+| markdownFiles | Bool | Editor handling of Markdown files |
+| plainTextFiles | Bool | Editor handling of plain text files |
+| editorSpellChecking | Bool | Editor spelling preference |
+| hideCommandM | Bool | TCC-gated feature preference |
+| middleClick | Bool | TCC-gated feature preference |
+| greenMaximize | Bool | TCC-gated feature preference |
+| machineSetupProfile | Bool | Planning feature preference |
+| eventReminder | Bool | TCC-gated calendar preference |
+| switcherQuitKey | Bool | TCC-gated feature preference |
+| linkQuickFixes | Bool | Manual feature preference |
+| buildStats | Bool | Local snapshot feature preference |
+| buildStatsPath | String, 4096 characters | Local snapshot path |
+| greenMaximizeExcludedApps | String, 16384 characters | App exceptions |
+| monitorCPU | Int, 10...100 | Threshold |
+| monitorTemperature | Int, 40...110 | Threshold |
+| monitorMemory | Int, 0...1 | Threshold mode |
+| monitorDisk | Int, 1...50 | Threshold |
+| monitorBattery | Int, 1...50 | Threshold |
+| islandHoverDelay | 0.1, 0.3, 0.5, 1 | Known delays |
+| notchcast.liveTimer.defaultDuration | 300, 600, 900, 1500, 1800, 3600 | Default duration |
+| notchcast.liveTimer.playSound | Bool | Sound preference |
+| notchcast.quitProtection.quitEnabled | Bool | Shortcut configuration |
+| notchcast.quitProtection.closeEnabled | Bool | Shortcut configuration |
+| notchcast.quitProtection.mode | String: hold, doublePress | Known modes |
+| notchcast.quitProtection.exceptions | String array: 500 × 256 characters | App exceptions |
+| notchcast.day.marketSymbols | String array: 100 × 64 characters | Selected symbols |
+| notchcast.day.excludedCalendars | String array: 500 × 256 characters | Calendar exclusions |
+| notchcast.day.weatherPlace | JSON String ≤262144 bytes | Name/country ≤256, latitude ±90, longitude ±180 |
+| dictationCleanup | JSON String ≤262144 bytes | Plain cleanup configuration; no key material |
+| notchcast.appearance.surface | String: glass, black, matte | Surface style |
+| notchcast.appearance.theme.backgroundOpacity | Double, 0.2...1 | Surface opacity |
+| notchcast.appearance.theme.light | JSON String ≤262144 bytes | Selected light theme |
+| notchcast.appearance.theme.dark | JSON String ≤262144 bytes | Selected dark theme |
+| notchcast.appearance.themes.imported | JSON String ≤262144 bytes | Up to 100 themes |
+
+Theme JSON contains only name/author (256 characters each), appearance (light/dark) and 12 hex colors.
+Cleanup JSON contains only effort (low/medium/high),
+promptAddition (16384 characters), and up to 500 vocabulary terms: spelling (256 characters) and
+misheardForms (50 strings of 256 characters). Its API key uses a separate Keychain service and is
+never read by backup. No inventoried JSON blob mixes a credential field with these plain fields.
+
+## Exclusions
+
+| Key or store | Reason |
+| --- | --- |
+| spacesOrder | Changes the macOS Spaces ordering preference |
+| musicBlockAppleMusic | Terminates Apple Music after a media-key launch; changes OS app state |
+| spotifyConnect | Uses a saved key and starts the speaker process/network service |
+| microphoneMute | Start reapplies mute to system audio devices; stop unmutes |
+| archives | Start observes archivesDefaultApp and can change system-wide handlers |
+| archivesDefaultApp | Changes system-wide file associations |
+| torrents | Enables network transfers through an aria2 daemon |
+| torrentsUseIPhone | Enables use of an additional network interface |
+| torrentsKeepSharing | Enables continued uploads |
+| music.lastPlayer | Runtime remembered player, not configuration |
+| spotify.deviceName | Configuration of a credential-backed network speaker; retained locally |
+| microphone.muted / microphone.muted.restore | OS mute intent and device restoration state |
+| archiveHandlersClaimed | OS association ownership state |
+| archiveRecoveryParents | Runtime archive recovery journal locations |
+| fanControl | Reaches root helper |
+| batteryChargeLimit | Reaches root helper |
+| batterySailing | Reaches root helper |
+| batteryHeatProtection | Reaches root helper |
+| batteryCalibration | Reaches root helper |
+| lidClosedAwake | Reaches root helper |
+| fanMode | Root fan policy; explicitly excluded |
+| batteryChargePercent | Root charge policy |
+| agentConfirmation | Consent gate; restore must never disable it |
+| agentActionGrants / AgentGrantStore | Capability grants, in a separate consent suite |
+| notchcast.liveTimer.entries | Running timer state |
+| notchcast.lowDisk.isLow | Current warning spell state |
+| spacesOrderOriginal | Saved system state for later restoration |
+| AgentAuditStore | Runtime audit history, not a preference |
+| weather cache, market quotes, monitor samples, battery state | Runtime/cache data |
+| Keychain, credentials, tokens, API keys, TCC grants | Secrets and capabilities |
+| Upstream preferences and stores | Upstream hidden Backup owns them |
+
+The root-helper inventory found only BatteryModule and FanControl callers outside RootHelperClient
+itself. System Monitor gates fan control; Keep Awake starts BatteryModule and can send
+battery-sleep-off. `systemMonitor`, `keepAwake` and `keepAwakeMinutes` are excluded.
+Cleanup enablement and baseURL are excluded nested fields and are refused on import.
+Restored promptAddition changes cleanup instructions sent to the current endpoint. It can affect
+punctuation, wording and formatting within DictationCleanupGuard's lexical checks; those checks
+limit changes but do not guarantee semantic equivalence.
+
+Snapshots skip individual invalid keys and log only their names. Appearance snapshots read defaults
+without constructing AppearanceStore. Apply updates a running store if one exists. No store is
+owned at launch today: restore constructs a temporary store to persist selections and refresh colors;
+surface style uses AppStorage, and a later store reads the restored values.
+
+Additional included keys: `pastePlain`, `finderCutPaste`, `finderRename`, `pasteImage` (Bool;
+Accessibility still gates their actions), and `notchcast.colorPicker.format` (hex, hexLowercase,
+rgb, hsl, swiftUIColor, nsColorLiteral).
+`colorPicker` is allowed: start only enables the manual sampler. `screenshot`,
+`notchcast.screenshot.destination` and `notchcast.screenshot.folder` are excluded as
+screen-recording capability and capture-output policy. `backupRunNow` and `backupBrowseRestore` are
+excluded: they run the machine backup tool with its repository password command.
+The document editor's font, theme and pairing preferences are not carried yet.
+
+## Adding switches
+
+Other leads must classify every new `NotchcastFeature` explicitly in `allowed` or `excluded`,
+one entry per line, and add snapshot/apply wiring for any new plain store preference. Never infer
+inclusion from `allCases`. The engine harness fails for unclassified or doubly classified switches.
+The schema has a `merge=union` entry in `.gitattributes`; rerun the guard after merging.
+Read `NotchcastFeature.swift` after every main merge for duplicate var headers or stray bodies,
+and treat every typecheck warning as a failure, even when the shape checker passes.
 
 Run `./Scripts/run-tests.sh nc-SettingsBackup-engine-test` for the data-loss protection harness.
+Run `./Scripts/run-tests.sh nc-SettingsBackup-restore-test` for real preference restore checks.
