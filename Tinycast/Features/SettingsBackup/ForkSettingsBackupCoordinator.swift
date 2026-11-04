@@ -86,9 +86,9 @@ final class ForkSettingsBackupCoordinator {
 
 extension ForkSettingsBackupCoordinator {
     nonisolated static let restoreCommand = NotchcastCommand(slug: "restore-settings-backup",
-        name: String(localized: "Restore Settings Backup"), sfSymbol: "clock.arrow.circlepath",
+        name: String(localized: "Restore Settings Backup"), sfSymbol: "clock.arrow.circlepath", feature: .settingsBackup,
         run: { NotchcastCore.settingsBackupRestore.restore() })
     nonisolated static let openCommand = NotchcastCommand(slug: "open-settings-backup-folder",
-        name: String(localized: "Open Settings Backup Folder"), sfSymbol: "folder",
+        name: String(localized: "Open Settings Backup Folder"), sfSymbol: "folder", feature: .settingsBackup,
         run: { NotchcastCore.settingsBackupRestore.openFolder() })
 }

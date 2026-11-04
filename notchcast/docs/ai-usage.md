@@ -1,7 +1,7 @@
 # AI usage and Mac link
 
 The `aiUsage`, `aiUsageOtherMac` and `machLink` switches default off. They do not depend on Island.
-The shared Notchcast Options list supplies their toggles; the Mac link section supplies pairing.
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands.
 The other-Mac switch is effective only while AI usage and Mac link are enabled.
 
 `AIUsageModule.refresh()` reads the local cache on demand. Starting a module does not read it, and
