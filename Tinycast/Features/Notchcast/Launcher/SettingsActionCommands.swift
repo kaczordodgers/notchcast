@@ -131,4 +131,3 @@ enum SettingsActionCommands {
         CleanSettingsActions.scan(feature, coordinator: NotchcastCore.clean.coordinator)
     }
 }
-
