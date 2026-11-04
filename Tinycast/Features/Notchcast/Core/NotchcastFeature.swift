@@ -144,7 +144,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: String(localized: "Read local AI usage on demand.")
         case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
         case .machLink: String(localized: "Connect to a paired Mac on the local network.")
-        case .remoteMacScreen: String(localized: "Open the remote Mac in Screen Sharing.")
+        case .remoteMacScreen: String(localized: "Screen Sharing needs a hostname or IP address; SSH aliases are not supported.")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
         case .backupStatus: String(localized: "Warns when backups fail or become stale.")
         case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
