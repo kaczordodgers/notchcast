@@ -5,20 +5,32 @@ struct NotchcastSystemSettingsSection: View {
 
     var body: some View {
         Section {
-            ForEach(NotchcastFeature.allCases.filter { $0.isSystemFeature && $0 != .monitorAlerts }, id: \.self) { feature in
+            ForEach(NotchcastFeature.allCases.filter {
+                $0.isSystemFeature && $0 != .monitorAlerts && $0 != .accessoryBatteries && $0 != .audioPriority && $0.settingsGroup != .tools
+            }, id: \.self) { feature in
                 Toggle(isOn: Binding(
                     get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
                     SettingsRowTitle(.notchcastMonitor, verbatim: feature.title)
                     Text(feature.subtitle)
+                    if feature == .batterySailing || feature == .batteryHeatProtection || feature == .batteryCalibration,
+                       NotchcastCore.battery.chargingUnsupported {
+                        Text("Not supported on this Mac").foregroundStyle(.secondary)
+                    }
                     if feature != .systemMonitor && feature != .fanControl && feature != .keepAwake,
-                       NotchcastCore.battery.needsHelperUpdate {
+                       NotchcastCore.battery.needsHelperUpdate
+                        || (feature == .batteryChargeLimit && !NotchcastCore.battery.nativeLimitAvailable) {
                         Text("Needs the Notchcast helper update")
                             .foregroundStyle(.secondary)
                     }
                 }
                 .settingsEnabled(feature != .fanControl || preferences.isOn(.systemMonitor))
+                .settingsEnabled(!(feature == .batterySailing || feature == .batteryHeatProtection
+                                   || feature == .batteryCalibration)
+                                 || preferences.isOn(feature) || !NotchcastCore.battery.chargingUnsupported)
             }
-            Picker(selection: $preferences.fanMode) {
+            Picker(selection: Binding(get: { preferences.fanMode }, set: {
+                NotchcastCore.setFanMode(FanControl.Mode(rawValue: $0) ?? .auto)
+            })) {
                 Text("Auto").tag("auto")
                 Text("Medium").tag("medium")
                 Text("Max").tag("max")
@@ -32,6 +44,11 @@ struct NotchcastSystemSettingsSection: View {
                 }
             } label: {
                 SettingsRowTitle(.notchcastChargePercent, "Charge limit percent")
+                if let limit = NotchcastCore.battery.nativeLimit {
+                    Text(Double(limit) / 100, format: .percent)
+                } else if NotchcastCore.battery.nativeLimitAvailable {
+                    Text("Off")
+                }
             }
             .settingsEnabled(preferences.isOn(.batteryChargeLimit))
             Picker(selection: $preferences.keepAwakeMinutes) {
@@ -83,6 +100,7 @@ struct NotchcastSystemSettingsSection: View {
                 }
             }
             .settingsEnabled(preferences.isOn(.systemMonitor) && preferences.isOn(.monitorAlerts))
+            NotchcastAccessoriesSettingsRows()
         } header: {
             SettingsSectionHeader(.notchcastMonitor)
         }
