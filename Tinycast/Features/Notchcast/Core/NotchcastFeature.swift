@@ -22,6 +22,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case machineSetupProfile
     case agentConfirmation
     case eventReminder
+    case switcherQuitKey
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -43,6 +44,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .settingsBackup: .system
         case .machineSetupProfile: .system
         case .eventReminder: .activities
+        case .switcherQuitKey: .launcher
         }
     }
 
@@ -82,6 +84,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .machineSetupProfile: String(localized: "Machine Setup Profile")
         case .agentConfirmation: String(localized: "Agent Confirmation")
         case .eventReminder: String(localized: "Event Reminders")
+        case .switcherQuitKey: String(localized: "Switcher Quit Key")
         }
     }
 
@@ -121,6 +124,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
+        case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         }
     }
 
@@ -134,6 +138,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .greenMaximize: [.accessibility]
         case .settingsBackup: []
         case .agentConfirmation: []
+        case .switcherQuitKey: [.accessibility]
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .eventReminder: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
@@ -150,7 +155,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.machineSetupProfile, .settingsBackup, .displayBrightness, .quitProtection, .showDesktop, .spacesOrder,
+        ![.switcherQuitKey, .machineSetupProfile, .settingsBackup, .displayBrightness,
+          .quitProtection, .showDesktop, .spacesOrder,
           .hideCommandM, .middleClick, .greenMaximize].contains(self) && !isSystemFeature
     }
 

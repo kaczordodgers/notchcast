@@ -72,7 +72,8 @@ final class NotchcastPreferences {
         awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool ?? (!$0.isSystemFeature && $0 != .spacesOrder))
+            !(defaults.object(forKey: $0.rawValue) as? Bool
+                ?? (!$0.isSystemFeature && $0 != .spacesOrder && $0 != .switcherQuitKey))
         })
     }
 
