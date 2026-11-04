@@ -24,6 +24,10 @@ Its command value also resolves `command:nc-toggle-island`.
 
 Ordinary command deep links use `notchcast://command/nc-<slug>` without consent,
 preserving Toggle Island's prior consent behavior.
+Page commands live beside `IslandPage`, with one catalog line per page. `island-home`
+and `island-day` open the requested page with key focus, including Home without live
+activities. Both require the island; Day also requires weather or markets. Preference
+changes refresh command availability in the index.
 The shorter `/command/<slug>` spelling is deferred: resolving it needs a catalog
 dependency in the pure deep-link parser. Toggle Island's legacy link still works.
 
