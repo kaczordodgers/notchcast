@@ -15,12 +15,12 @@ enum Paster {
     static let tinycastEventTag: Int64 = 0x54494E59
 }
 
-struct NotchcastCommand {
+struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
+    let isEnabled: @MainActor @Sendable () -> Bool
+    let run: @MainActor @Sendable () -> Void
 }
 
 @MainActor enum NotchcastCore {

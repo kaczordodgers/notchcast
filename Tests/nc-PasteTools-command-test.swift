@@ -1,12 +1,12 @@
 // notchcast-sources: Tinycast/Features/PasteTools/Service/PlainPasteModule+Command.swift
 import Foundation
 
-struct NotchcastCommand {
+struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
+    let isEnabled: @MainActor @Sendable () -> Bool
+    let run: @MainActor @Sendable () -> Void
 }
 
 @MainActor final class PlainPasteModule {
