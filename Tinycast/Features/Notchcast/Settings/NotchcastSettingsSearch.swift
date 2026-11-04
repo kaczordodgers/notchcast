@@ -30,6 +30,7 @@ extension SettingsSearchCatalog {
     static let notchcast: [SettingsSearchEntry] = [
         .init(.notchcastCaptureAndDictation, "AI Chat Tools", keywords: ["agents", "mcp", "server"]),
         .init(.notchcastCaptureAndDictation, "Add Notchcast to AI chat", keywords: ["mcp", "tools"]),
+        .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
