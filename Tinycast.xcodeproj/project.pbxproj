@@ -662,6 +662,7 @@
 		5E937FEA120E3A8050B97411 /* KatanaToneStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F154D1D77837028A4228D0A3 /* KatanaToneStore.swift */; };
 		5ECB01E37249B1A47B1190A4 /* AgentMCPModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA388A7A5EFEA75B8B1E41E9 /* AgentMCPModule.swift */; };
 		5EFFB1E7D84965D155133A67 /* ChatTitle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE8C8077B002AFD9A9C496EF /* ChatTitle.swift */; };
+		5F112819BD0A59305BDCEA24 /* RootWait.swift in Sources */ = {isa = PBXBuildFile; fileRef = A21F524098A0D6546BFD9A7C /* RootWait.swift */; };
 		5F310A41DF06AC9945DB4988 /* MachSSHProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52F57AFF4586BF188D3B78DA /* MachSSHProcessRunner.swift */; };
 		5F8C325B03F2BDB35E17DE68 /* ScreenTextModule+Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E0619FFDFAD890ED1FFD40B /* ScreenTextModule+Command.swift */; };
 		5FB708EC91426C41762AB96B /* CalculatorHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2D032AC22E53BB9997E492F /* CalculatorHistoryStore.swift */; };
@@ -2972,6 +2973,7 @@
 		A178C17DB989B6D2D71C021E /* ExtensionActionsPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionActionsPanel.swift; sourceTree = "<group>"; };
 		A17C22B5CE1449E12331FA94 /* WindowLayoutEditorPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutEditorPanel.swift; sourceTree = "<group>"; };
 		A19F19B3E6552AFB312DDB8E /* SMCWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SMCWire.swift; sourceTree = "<group>"; };
+		A21F524098A0D6546BFD9A7C /* RootWait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootWait.swift; sourceTree = "<group>"; };
 		A241E2A5C76DC20952085CBF /* KeyboardBrightnessService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardBrightnessService.swift; sourceTree = "<group>"; };
 		A2A9BEAFC68C106DB8A4FF17 /* TodoReplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoReplication.swift; sourceTree = "<group>"; };
 		A2BB93BC8E1694F14B0194AA /* HyperKeySettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HyperKeySettingsSection.swift; sourceTree = "<group>"; };
@@ -7962,6 +7964,7 @@
 				24A7F17B868B1B7E8BA825A0 /* RootContract.swift */,
 				D12ECA687281A850DDF96537 /* RootHelperClient.swift */,
 				9B855EDBA4558ABB097BCDA9 /* RootToolPath.swift */,
+				A21F524098A0D6546BFD9A7C /* RootWait.swift */,
 			);
 			path = Root;
 			sourceTree = "<group>";
@@ -10658,6 +10661,7 @@
 				21BCDCCF463A32334ED27767 /* RootHelperClient.swift in Sources */,
 				47E13BC63F8BE11EDF25EA82 /* RootPaletteView.swift in Sources */,
 				55E5DFFE627C64E9E6E6A4EF /* RootToolPath.swift in Sources */,
+				5F112819BD0A59305BDCEA24 /* RootWait.swift in Sources */,
 				B076DE322213FBD43C04B886 /* RowClick.swift in Sources */,
 				9A80D2997DCF835AF225A586 /* RunningAppsMonitor.swift in Sources */,
 				EC89200804A0B3ABDAD773F1 /* SMCClient.swift in Sources */,
