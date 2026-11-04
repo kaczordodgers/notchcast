@@ -8,6 +8,7 @@ final class SystemNoticesModule: NotchcastModule {
     init(manager: SystemNoticesManager = SystemNoticesManager()) { self.manager = manager }
 
     func start() {
+        AppCore.shared.appIndex.refreshNotchcastCommands()
         manager.onNotice = { [weak self] notice in
             self?.latest = notice
         }
@@ -15,6 +16,7 @@ final class SystemNoticesModule: NotchcastModule {
     }
 
     func stop() {
+        AppCore.shared.appIndex.refreshNotchcastCommands()
         manager.stop()
         manager.onNotice = nil
         latest = nil
