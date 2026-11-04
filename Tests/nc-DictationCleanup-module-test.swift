@@ -29,6 +29,7 @@ import Foundation
 @MainActor enum DictationCleanup {
     static var installs = 0
     static func install() { installs += 1; DictationCoordinator.transcriptStage = {} }
+    static func uninstall() { DictationCoordinator.transcriptStage = nil }
 }
 
 @main struct CleanupModuleTest {
