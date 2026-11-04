@@ -291,6 +291,9 @@ struct AgentSessionTests {
     }
 
     static func exclusion(_ root: URL) throws {
+        expect(!AgentSessionIndex.allows(root.appendingPathComponent("sub/agent-2784f2ac.jsonl")), "Excluded agent file name rejected")
+        expect(!AgentSessionIndex.allows(root.appendingPathComponent("AGENT-2784F2AC-wal")), "Excluded agent side file rejected")
+        expect(AgentSessionIndex.allows(root.appendingPathComponent("sub/agent-1234abcd.jsonl")), "Other agent files allowed")
         let forbidden = root.appendingPathComponent("nested/agent-2784f2ac")
         try FileManager.default.createDirectory(at: forbidden, withIntermediateDirectories: true)
         defer { expect(rmdir(forbidden.path) == 0, "Empty excluded fixture removed without opening it") }
