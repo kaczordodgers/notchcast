@@ -93,6 +93,26 @@ struct MonitorStoreTests {
         await cancelled.waitUntilIdle()
         precondition(cancelled.mode == .auto)
         let restored = FakeFans()
+        var persisted = FanControl.Mode.auto
+        var failures = 0
+        var attempts = 0
+        let retrying = FanControl(confirmed: { persisted = $0 }, failed: { failures += 1 }, runner: { command in
+            if command == .fansMax { throw RootHelperClient.Failure.launchFailed }
+        })
+        for _ in 0..<2 {
+            retrying.set(.max)
+            await retrying.waitUntilIdle()
+            attempts += 1
+            precondition(persisted == .auto && retrying.mode == .auto && failures == attempts)
+        }
+        let recovery = FakeFans()
+        let crashed = FanControl(mode: .max, confirmed: { persisted = $0 },
+                                 runner: { try await recovery.run($0) })
+        crashed.restore()
+        await crashed.waitUntilIdle()
+        crashed.restore()
+        await crashed.waitUntilIdle()
+        precondition(recovery.calls == [.fansAuto] && persisted == .auto)
         let fans = FanControl(runner: { try await restored.run($0) })
         fans.restore()
         await fans.waitUntilIdle()

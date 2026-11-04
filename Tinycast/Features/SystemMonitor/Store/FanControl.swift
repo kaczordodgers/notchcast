@@ -22,11 +22,18 @@ final class FanControl {
     @ObservationIgnored private var pending: Mode?
     @ObservationIgnored private var applying: Mode?
     @ObservationIgnored private var worker: Task<Void, Never>?
+    @ObservationIgnored private let confirmed: (Mode) -> Void
+    @ObservationIgnored private let failed: () -> Void
 
-    init(runner: @escaping @Sendable (RootContract.Command) async throws -> Void = {
+    init(mode: Mode = .auto, confirmed: @escaping (Mode) -> Void = { _ in },
+         failed: @escaping () -> Void = {},
+         runner: @escaping @Sendable (RootContract.Command) async throws -> Void = {
         _ = try await RootHelperClient().run($0)
     }) {
         self.runner = runner
+        self.mode = mode
+        self.confirmed = confirmed
+        self.failed = failed
     }
 
     func set(_ requested: Mode) {
@@ -40,12 +47,18 @@ final class FanControl {
                 do {
                     try await runner(next.command)
                     mode = next
+                    confirmed(next)
                     unavailable = false
                 } catch {
                     unavailable = true
+                    failed()
                     if next != .auto {
                         // Restore before accepting another manual request after an uncertain result.
-                        do { try await runner(.fansAuto); mode = .auto } catch { pending = nil }
+                        do {
+                            try await runner(.fansAuto)
+                            mode = .auto
+                            confirmed(.auto)
+                        } catch { pending = nil }
                     }
                 }
             }

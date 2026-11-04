@@ -108,6 +108,7 @@ enum FanControl {
 
 @MainActor enum NotchcastCore {
     static let battery = BatteryModule()
+    static func setFanMode(_ mode: FanControl.Mode) { NotchcastPreferences.shared.fanMode = mode.rawValue }
 }
 
 @MainActor final class NotchcastPreferences {

@@ -14,6 +14,8 @@ enum NotchcastCore {
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
 
+    static func setFanMode(_ mode: FanControl.Mode) { monitor?.fans.set(mode) }
+
     static func stopForTermination() async {
         battery.stop()
         await battery.waitUntilIdle()
@@ -27,8 +29,12 @@ enum NotchcastCore {
             core?.appIndex.refreshNotchcastCommands()
         }
         IslandController.shared.configurePages(core)
-        let monitor = MonitorModule(preferences: .shared)
+        let monitor = MonitorModule(preferences: .shared, fanFailure: { [weak core] in
+            core?.showMessage(String(localized: "Could not change fan mode."), tone: .danger)
+        })
         self.monitor = monitor
+        if !NotchcastPreferences.shared.isOn(.systemMonitor)
+            || !NotchcastPreferences.shared.isOn(.fanControl) { monitor.fans.restore() }
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
