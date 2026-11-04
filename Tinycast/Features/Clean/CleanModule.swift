@@ -340,18 +340,18 @@ final class CleanModule: NotchcastModule {
             process.standardInput = FileHandle.nullDevice
             process.standardOutput = outputHandle
             process.standardError = errorHandle
-            let exited = DispatchSemaphore(value: 0)
-            process.terminationHandler = { _ in exited.signal() }
-            try process.run()
+            let exit = try process.runObservingExit()
             let deadline = ContinuousClock.now.advanced(by: .seconds(timeout))
-            while exited.wait(timeout: .now() + 0.05) == .timedOut {
+            while process.isRunning {
                 if Task.isCancelled || ContinuousClock.now >= deadline {
                     if process.isRunning { kill(process.processIdentifier, SIGKILL) }
-                    exited.wait()
+                    exit.wait()
                     try Task.checkCancellation()
                     throw Failure.toolFailed
                 }
+                Thread.sleep(forTimeInterval: 0.05)
             }
+            exit.wait()
             try Task.checkCancellation()
             func text(_ url: URL) throws -> String {
                 let handle = try FileHandle(forReadingFrom: url)
