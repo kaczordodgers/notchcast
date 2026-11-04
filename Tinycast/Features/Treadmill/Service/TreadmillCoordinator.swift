@@ -50,7 +50,7 @@ final class TreadmillCoordinator {
     func setEnabled(_ capability: Capability, _ enabled: Bool) {
         switch capability {
         case .walk:
-            if !enabled, walkEnabled {
+            if !enabled, walkEnabled, connected || engine.walk != nil || engine.isStarting {
                 do { try stopWalk() } catch { report(error) }
             }
             walkEnabled = enabled

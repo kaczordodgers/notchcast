@@ -306,6 +306,15 @@ private struct TreadmillTests {
                "Treadmill switches work without island")
         coordinator.setEnabled(.history, true)
         expect(transport.opens == 0 && transport.sent.isEmpty, "Enabling never opens transport")
+        coordinator.setEnabled(.walk, false)
+        expect(transport.opens == 0 && transport.sent.isEmpty && coordinator.lastError == nil,
+               "Idle disable leaves a phone-started walk alone without connecting")
+        coordinator.setEnabled(.walk, true)
+        await coordinator.stopForTermination()
+        expect(transport.opens == 0 && transport.sent.isEmpty && coordinator.lastError == nil,
+               "Idle termination needs no nearby pad")
+        coordinator.setEnabled(.walk, true)
+        coordinator.setEnabled(.history, true)
         try coordinator.stopWalk()
         expect(transport.opens == 1 && transport.sent == [TreadmillProtocol.stop],
                "Stop connects even with no known walk")
@@ -326,12 +335,18 @@ private struct TreadmillTests {
         coordinator.disconnect()
         transport.sent = []
         coordinator.setEnabled(.walk, false)
-        expect(transport.sent == [TreadmillProtocol.stop] && !coordinator.connected,
-               "Disabling unknown state sends Stop before closing")
+        expect(transport.sent.isEmpty && !coordinator.connected,
+               "Disabling disconnected idle state does not send Stop")
         coordinator.setEnabled(.walk, true)
         transport.sent = []
         try coordinator.startWalk()
         expect(transport.sent.count == 1, "Start opens injected transport once")
+        coordinator.setEnabled(.walk, false)
+        expect(transport.sent.last == TreadmillProtocol.stop && transport.sentAtClose == transport.sent,
+               "Disabling a pending start sends Stop before closing")
+        coordinator.setEnabled(.walk, true)
+        transport.sent = []
+        try coordinator.startWalk()
         transport.emit(short(2, 3))
         transport.emit(status(3, steps: 100))
         try coordinator.faster()

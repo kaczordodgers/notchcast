@@ -27,7 +27,7 @@ launcher, hotkey and CLI registration remain outside this core-only port.
   per calendar day. Lube becomes due at each 200 km mark after the last recorded lubrication.
 - Walk and history switches are independent of the island. Turning history off gates its commands
   and goal events; the walk still records recovery and finished sessions to avoid losing progress.
-- Turning Walk off sends Stop before closing the transport and invalidating queued callbacks.
+- Turning Walk off sends Stop only with a connection, known walk or pending start, then disconnects.
 - Stop connects even without a known walk. Toggle queries unknown status and starts only on an idle reply.
 
 ## Integration still pending
