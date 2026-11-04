@@ -116,6 +116,9 @@ struct SystemLevelRoutingTests {
         let suite = "nc-keys-test-\(UUID())"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
+        // Both start off on a fresh install (NotchcastFeature.startsOff); this harness routes them while on.
+        preferences.set(.volumeLevels, true)
+        preferences.set(.displayBrightness, true)
         let hub = EventTapHub()
         let hardware = RoutingAudioHardware()
         let levels = SystemLevelsModule(service: .init(hardware: hardware, observeHardware: false))
