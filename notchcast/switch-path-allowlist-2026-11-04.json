@@ -9,6 +9,7 @@
   "katana": "channel/tone commands or a production AgentDeviceActions.register(.katana) call",
   "agentPricing": "same sessions view showing pricingReport",
   "captureTrimmer": "trimmer UI (opened after a recording) calling save",
+  "captureEditor": "editor view in the open notch, then unhide",
   "agentAnswer": "T3/bot transport, waiting-item source, reply UI",
   "voiceAsk": "concrete transport + configure call; destination setting exists",
   "recording": "launcher command or hotkey, target picker, stop/pause control",

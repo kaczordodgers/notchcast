@@ -80,6 +80,7 @@ extension NotchcastCore {
     static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.live()
     static let captureTrimmer = CaptureTrimmerModule.live()
+    static let captureEditor = CaptureEditorCoordinator()
     static let agentAnswer = AgentAnswerModule()
     static let recording = RecordingModule()
     static private(set) var voiceAsk: VoiceAskModule?
@@ -184,6 +185,7 @@ extension NotchcastCore {
             .init(requires: [.archives], module: archives),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.captureTrimmer], module: captureTrimmer),
+            .init(requires: [.captureEditor], module: captureEditor),
             .init(requires: [.agentAnswer], module: agentAnswer),
             .init(requires: [.recording], module: recording),
             .init(requires: [.voiceAsk], module: voiceAskModule),
