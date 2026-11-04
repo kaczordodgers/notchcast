@@ -22,7 +22,7 @@ extension TreadmillCoordinator {
             legacyDirectories: [support.appending(path: "urevo-treadmill"), support.appending(path: "Orion/walk")],
             legacyLubeDirectory: support.appending(path: "urevo-treadmill"))
         let defaults = UserDefaults(suiteName: bundleID + ".notchcast")!
-        return TreadmillCoordinator(transport: UnavailableTreadmillTransport(),
+        return TreadmillCoordinator(transport: BluetoothTreadmillTransport(),
                                     history: TreadmillHistoryStore(repository: repository),
                                     preferences: TreadmillPreferences(defaults: defaults),
                                     reminders: TreadmillReminders(enabled: {
