@@ -31,5 +31,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastOptions, "Remote Mac", keywords: ["ssh", "terminal", "Remote Mac address"]),
+        .init(.notchcastRemoteMac, "Remote Mac address", keywords: ["ssh", "host", "alias"]),
     ]
 }
