@@ -678,7 +678,6 @@ extension NotchcastFeature {
         .killProcess,
         .launcherAnswers,
         .treadmillWalk,
-        .katana,
         .agentAnswer,
         .voiceAsk,
         .agentMCPServer,
