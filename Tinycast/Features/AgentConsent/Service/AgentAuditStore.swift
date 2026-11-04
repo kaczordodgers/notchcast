@@ -5,6 +5,9 @@ final class AgentAuditStore: Sendable {
     private let directory: URL
     private let maximumBytes: Int
     private let lock = Mutex(())
+    private let skippedLines = Mutex(0)
+
+    var skippedLineCount: Int { skippedLines.withLock { $0 } }
 
     init(directory: URL, maximumBytes: Int = 1_048_576) {
         self.directory = directory
@@ -56,14 +59,20 @@ final class AgentAuditStore: Sendable {
         try Task.checkCancellation()
         return try lock.withLock { _ in
             var result: [AgentAuditEntry] = []
+            var skipped = 0
             for name in ["audit.previous.jsonl", "audit.jsonl"] {
                 let url = directory.appendingPathComponent(name)
                 guard FileManager.default.fileExists(atPath: url.path) else { continue }
                 let data = try Data(contentsOf: url)
                 for line in data.split(separator: 0x0A) {
-                    result.append(try JSONDecoder().decode(AgentAuditEntry.self, from: Data(line)))
+                    do {
+                        result.append(try JSONDecoder().decode(AgentAuditEntry.self, from: Data(line)))
+                    } catch {
+                        skipped += 1
+                    }
                 }
             }
+            skippedLines.withLock { $0 = skipped }
             return result
         }
     }
