@@ -663,7 +663,6 @@ extension NotchcastFeature {
         .aiUsage,
         .aiUsageOtherMac,
         .inUseMarks,
-        .systemMonitor,
         .dayWeather,
         .dayMarkets,
         .treadmillHistory,
