@@ -192,6 +192,7 @@ struct MusicModuleTests {
                               open: { _ in }, play: { _ in }, watchLaunches: { launch = $0; return [] },
                               quit: { _ in quits += 1; return true })
         let music = MusicNowPlayingModule(defaults: defaults, apps: apps)
+        music.model.lastPlayer.setEnabled(true)
         let audio = RoutingAudio()
         let mute = MicrophoneMute(audio: audio, defaults: defaults)
         let microphone = MicrophoneMuteModule(model: mute, showMessage: { _ in }, showFailure: { _ in })

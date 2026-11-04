@@ -37,6 +37,27 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         }
     }
 
+    enum SettingsGroup: Sendable {
+        case island, islandOptions, launcher, system, activities, music, torrents
+    }
+
+    var settingsGroup: SettingsGroup {
+        switch self {
+        case .island: .island
+        case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
+             .islandStatusMessages, .islandLiveActivities: .islandOptions
+        case .launcherFromIsland: .launcher
+        case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
+             .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
+             .batterySailing, .batteryHeatProtection, .batteryCalibration,
+             .keepAwake, .lidClosedAwake: .system
+        case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .torrents, .torrentsUseIPhone, .torrentsKeepSharing: .torrents
+        case .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect,
+             .microphoneMute, .inUseMarks: .music
+        }
+    }
+
     var title: String {
         switch self {
         case .island: String(localized: "Island")

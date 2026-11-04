@@ -10,7 +10,6 @@ final class NotchcastServices {
     let marks: InUseMarksModule
     let settings: SpotifySettingsCoordinator
     let keys: NotchcastKeyMonitor
-    let eventTapHub = NotchcastCore.eventTapHub
     private let commandFeedback: MusicCommandFeedback
 
     init(core: AppCore, preferences: NotchcastPreferences) {
@@ -26,7 +25,7 @@ final class NotchcastServices {
         marks = InUseMarksModule(model: InUseMarks(isMuted: { [weak mute] in mute?.isMuted == true }))
         settings = SpotifySettingsCoordinator(module: spotify, core: core)
         keys = NotchcastKeyMonitor(music: music, blocker: appleMusic.blocker, microphone: microphone,
-                                    preferences: preferences, hub: eventTapHub)
+                                    preferences: preferences, hub: NotchcastCore.eventTapHub)
     }
 }
 
