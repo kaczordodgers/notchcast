@@ -28,7 +28,7 @@ enum ScreenTextService {
         let filter = SCContentFilter(display: display, excludingWindows: [])
         let configuration = SCStreamConfiguration()
         configuration.sourceRect = selection.sourceRect
-        let scale = CGFloat(display.width) / selection.displayFrame.width
+        let scale = CGFloat(filter.pointPixelScale)
         configuration.width = max(1, Int(ceil(selection.rect.width * scale)))
         configuration.height = max(1, Int(ceil(selection.rect.height * scale)))
         configuration.showsCursor = false
