@@ -173,9 +173,9 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_repeated_search_entry_with_new_keywords(self):
         source = (self.root / SEARCH).read_text()
-        line = '        .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),\n'
-        self.rejected(SEARCH, source.replace(line, line + line.replace('"forecast"', '"forecast", "rain"')),
-                      'repeated entry .init(.notchcastActivities, "Weather"')
+        line = '        .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),\n'
+        self.rejected(SEARCH, source.replace(line, line + line.replace('"sound"', '"sound", "ring"')),
+                      'repeated entry .init(.notchcastActivities, "Timers"')
 
     def test_setting_split_over_lines(self):
         source = (self.root / PREFS).read_text()
@@ -280,7 +280,7 @@ class FeatureShapeTests(unittest.TestCase):
         modules, search = self.root / MODULES, self.root / SEARCH
         base = (modules.read_text(), search.read_text())
         anchor = "            .init(requires: [.island, .dayMarkets], module: markets),\n"
-        row = '        .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),\n'
+        row = '        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),\n'
         for name in ("alpha", "beta"):
             run(self.root, "git", "switch", "-qc", name, "base")
             modules.write_text(base[0].replace(

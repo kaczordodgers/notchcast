@@ -653,8 +653,44 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     var isWired: Bool {
-        ![Self.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices].contains(self)
+        !Self.unwired.contains(self)
     }
+
+    /// Switches kept out of Settings until a user can reach them; the code stays.
+    /// Each reason is in notchcast/switch-path-allowlist-*.json. Unhide = delete its line.
+    static let unwired: Set<Self> = [
+        .githubSearch,
+        .aiUsage,
+        .aiUsageOtherMac,
+        .inUseMarks,
+        .dayWeather,
+        .dayMarkets,
+        .treadmillHistory,
+        .agentSessions,
+        .agentPricing,
+        .captureTrimmer,
+        .recording,
+        .backupRunNow,
+        .backupBrowseRestore,
+        .markdownFiles,
+        .plainTextFiles,
+        .buildStats,
+        .killProcess,
+        .launcherAnswers,
+        .treadmillWalk,
+        .katana,
+        .agentAnswer,
+        .voiceAsk,
+        .agentMCPServer,
+        .agentChatTools,
+        .cleanSystem,
+        .linkQuickFixes,
+        .remoteScreen,
+        .machMBPFans,
+        .macSetup,
+        .agentConfirmation,
+        .machineSetupProfile,
+    ]
 
     static var systemToolsSettingsFeatures: [Self] {
         [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess,

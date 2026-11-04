@@ -63,10 +63,10 @@ struct NotchcastCoreTests {
         precondition(NotchcastFeature.dayCalendar.needsIsland)
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultEnabled })
-        precondition(l3.allSatisfy { preferences.isOn($0) })
+        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == ($0.defaultEnabled && $0.isWired) })
+        precondition(l3.filter(\.isWired).allSatisfy { preferences.isOn($0) })
         precondition(![.aiUsage, .aiUsageOtherMac, .machLink].contains { preferences.isOn($0) })
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultEnabled })
+        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == ($0.defaultEnabled && $0.isWired) })
         precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
         precondition(!preferences.isOn(.torrentsKeepSharing))
         precondition(NotchcastFeature.torrents.dependencies.isEmpty)
@@ -80,7 +80,7 @@ struct NotchcastCoreTests {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))
             preferences.set(feature, true)
-            precondition(NotchcastPreferences(suiteName: suite).isOn(feature))
+            precondition(NotchcastPreferences(suiteName: suite).isOn(feature) == feature.isWired)
         }
         let otherSuite = suite + ".other"
         defer { UserDefaults(suiteName: otherSuite)?.removePersistentDomain(forName: otherSuite) }

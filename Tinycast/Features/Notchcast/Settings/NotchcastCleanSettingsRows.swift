@@ -5,7 +5,7 @@ struct NotchcastCleanSettingsRows: View {
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
-        ForEach(CleanCoordinator.features, id: \.self) { feature in
+        ForEach(CleanCoordinator.features.filter(\.isWired), id: \.self) { feature in
             Toggle(isOn: binding(feature)) {
                 SettingsRowTitle(.notchcastClean, verbatim: feature.title)
                 Text(feature.subtitle)
