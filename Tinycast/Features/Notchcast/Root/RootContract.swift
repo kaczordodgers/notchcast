@@ -2,7 +2,7 @@ import Foundation
 
 enum RootContract {
     static let helperPath = "/Library/PrivilegedHelperTools/app.notchcast.root"
-    static let version = "3"
+    static let version = "4"
     static let usageExit: Int32 = 64
     static let unsupportedExit: Int32 = 69
     static let unauthorizedCallerExit: Int32 = 78
@@ -24,6 +24,8 @@ enum RootContract {
     enum Command: String, CaseIterable, Sendable {
         case version
         case ping
+        case cleanSystemList = "clean-system-list"
+        case cleanSystemTrash = "clean-system-trash"
         case chargeLimit60 = "charge-limit-60"
         case chargeLimit70 = "charge-limit-70"
         case chargeLimit80 = "charge-limit-80"
@@ -61,6 +63,7 @@ enum RootContract {
             switch self {
             case .version: RootContract.version + "\n"
             case .ping: "pong\n"
+            case .cleanSystemList, .cleanSystemTrash: "ok\n"
             case .chargeLimitRead: "off\n"
             case .chargeLimit60, .chargeLimit70, .chargeLimit80, .chargeLimit90, .chargeLimitOff: "ok\n"
             case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: "ok\n"
@@ -74,6 +77,7 @@ enum RootContract {
         var operation: Operation {
             switch self {
             case .version, .ping, .chargeLimitRead: .read
+            case .cleanSystemList, .cleanSystemTrash: .spotlight
             case .chargeLimit60, .chargeLimit70, .chargeLimit80, .chargeLimit90, .chargeLimitOff: .change
             case .spotlightOff, .spotlightOn: .spotlight
             case .sudoTouchIDOn, .sudoTouchIDOff: .change
@@ -108,6 +112,7 @@ enum RootContract {
             switch command {
             case .version: self = .version(RootContract.version)
             case .ping: self = .pong
+            case .cleanSystemList, .cleanSystemTrash: self = .ok
             case .chargeLimitRead: return nil
             case .chargeLimit60, .chargeLimit70, .chargeLimit80, .chargeLimit90, .chargeLimitOff: self = .ok
             case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: self = .ok
