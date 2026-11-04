@@ -32,12 +32,15 @@ struct NotchcastCoreTests {
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
         precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
         let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
-            .displayBrightness, .quitProtection, .liveTimers, .dayWeather, .dayMarkets]
+            .displayBrightness, .quitProtection, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets]
         for feature in l3 {
             precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
+        precondition(NotchcastFeature.dayCalendar.needsIsland)
+        precondition(!NotchcastFeature.displayBrightness.needsIsland)
+        precondition(!NotchcastFeature.quitProtection.needsIsland)
         precondition(l3.allSatisfy { preferences.isOn($0) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
