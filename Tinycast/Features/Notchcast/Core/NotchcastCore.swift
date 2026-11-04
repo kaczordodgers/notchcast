@@ -52,6 +52,7 @@ enum NotchcastCore {
             monitor.fans.restore(preservingPreference: true, silently: true)
         }
         let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.audioPriority], module: AudioPriorityModule()),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),

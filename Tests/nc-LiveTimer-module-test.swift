@@ -5,6 +5,9 @@
 // notchcast-sources: Tinycast/Features/LiveTimer/Service/*.swift
 
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
+// notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
+// notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
+// notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
 
 import Foundation
 

@@ -83,9 +83,15 @@ final class NotchcastPreferences {
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored var commandAvailabilityChanged: (() -> Void)?
+    let audioPriority: AudioPriorityPreferences
+    var audioPriorityEnabled: Bool {
+        get { isOn(.audioPriority) }
+        set { set(.audioPriority, newValue) }
+    }
     private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
+        audioPriority = AudioPriorityPreferences(suiteName: suiteName)
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""

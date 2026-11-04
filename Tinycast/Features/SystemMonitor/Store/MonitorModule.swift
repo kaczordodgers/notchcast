@@ -3,7 +3,7 @@ import Observation
 
 @MainActor
 final class MonitorModule: NotchcastModule {
-    let store = MonitorStore()
+    let store: MonitorStore
     let fans: FanControl
     let alerts: MonitorAlerts
     private let preferences: NotchcastPreferences
@@ -11,8 +11,10 @@ final class MonitorModule: NotchcastModule {
     private var observationID: UUID?
 
     init(preferences: NotchcastPreferences, alertSink: @escaping (String) -> Void = { _ in },
-         fanFailure: @escaping () -> Void = {}) {
-        fans = FanControl(confirmed: { preferences.fanMode = $0.rawValue }, failed: fanFailure,
+         fanFailure: @escaping () -> Void = {}, store: MonitorStore = MonitorStore(),
+         fans: FanControl? = nil) {
+        self.store = store
+        self.fans = fans ?? FanControl(confirmed: { preferences.fanMode = $0.rawValue }, failed: fanFailure,
                           journalData: preferences.fanJournalData,
                           persist: { preferences.fanJournalData = $0 })
         alerts = MonitorAlerts(sink: alertSink)

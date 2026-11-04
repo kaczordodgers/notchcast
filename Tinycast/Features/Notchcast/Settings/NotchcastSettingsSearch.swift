@@ -28,6 +28,7 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastSystem, "Audio device priority", keywords: ["sound", "outputs", "microphones"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
