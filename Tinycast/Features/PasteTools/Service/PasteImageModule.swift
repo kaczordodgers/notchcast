@@ -86,7 +86,7 @@ final class PasteImageModule: NotchcastModule {
         AXUIElementCopyAttributeValue(finder, kAXFocusedUIElementAttribute as CFString, &focused)
         if let focused, CFGetTypeID(focused) == AXUIElementGetTypeID() {
             var role: CFTypeRef?
-            let element = unsafeBitCast(focused, to: AXUIElement.self)
+            let element = unsafeDowncast(focused, to: AXUIElement.self)
             AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role)
             if role as? String == kAXTextFieldRole || role as? String == kAXTextAreaRole {
                 Paster.postCommandV()
