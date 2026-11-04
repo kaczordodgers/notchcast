@@ -69,5 +69,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)",
               keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
     ]
 }
