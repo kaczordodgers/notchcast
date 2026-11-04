@@ -7,6 +7,9 @@ enum NotchcastCore {
 
     static func stopForTermination() async {
         settingsBackup.stop()
+        await editor.flushForTermination()
+        machineBackup.stop()
+        await machineBackup.waitUntilIdle()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
