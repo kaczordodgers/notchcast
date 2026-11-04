@@ -84,11 +84,11 @@ if [ -d "$APP" ]; then
     [ "$(leaf_sha1 "$APP")" = "$SIGN_SHA1" ] && OURS=1
 fi
 
-# Versions compare as (x, y, z, stable-after-beta, beta number); never install a lower version than the installed one.
-VKEY='def vkey: ltrimstr("v") | capture("^(?<a>[0-9]+)[.](?<b>[0-9]+)[.](?<c>[0-9]+)(-[a-z]+[.](?<n>[0-9]+))?$")
-    | [(.a|tonumber), (.b|tonumber), (.c|tonumber), (if .n then 0 else 1 end), ((.n // "0")|tonumber)];'
+# Snapshot revisions sort after their mirror and before the next upstream version.
+VKEY='def vkey: ltrimstr("v") | capture("^(?<a>[0-9]+)[.](?<b>[0-9]+)[.](?<c>[0-9]+)(-[a-z]+[.](?<n>[0-9]+))?([.]snapshot[.](?<s>[0-9]+))?$")
+    | [(.a|tonumber), (.b|tonumber), (.c|tonumber), (if .n then 0 else 1 end), ((.n // "0")|tonumber), ((.s // "0")|tonumber)];'
 TAG="$(gh release list -R "$FORK_REPO" -L 30 --json tagName,isDraft,isPrerelease \
-    --jq "$VKEY [.[] | select(.isDraft | not) | select(.tagName | test(\"^v[0-9]+[.][0-9]+[.][0-9]+(-[a-z]+[.][0-9]+)?$\"))]
+    --jq "$VKEY [.[] | select(.isDraft | not) | select(.tagName | test(\"^v[0-9]+[.][0-9]+[.][0-9]+(-[a-z]+[.][0-9]+)?([.]snapshot[.][0-9]+)?$\"))]
           | sort_by(.tagName | vkey) | last | .tagName // empty")"
 [ -n "$TAG" ] || { log "no $FORK_REPO release yet"; exit 0; }
 WANT="${TAG#v}"
