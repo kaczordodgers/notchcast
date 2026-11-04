@@ -1,7 +1,8 @@
 # Remote Mac SSH
 
 The Remote Mac switch defaults off and does not require the island. The address is a
-fork-local preference, defaulting to the SSH alias `mbp`. Disabling it removes the
+fork-local preference, empty by default. An invalid or missing address reports a Settings notice.
+Disabling the switch removes the
 command from launcher availability and prevents command execution.
 
 `MachSSH(address:runner:)` accepts an asynchronous injectable process runner.
