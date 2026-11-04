@@ -163,6 +163,7 @@ final class DeepLinkCoordinator {
     /// The catalogs' rows always exist; a row you made is known by the name it resolves to.
     private func exists(_ action: HotKeyAction) -> Bool {
         switch action {
+        case .notchcastCommand(let id): NotchcastCommandCatalog.command(for: id) != nil
         case .command, .systemAction, .windowCommand: true
         default: hotKeys.displayName?(action) != nil
         }
@@ -260,6 +261,7 @@ final class DeepLinkCoordinator {
 
     private func run(_ action: HotKeyAction, with input: DeepLinkInput) -> Bool {
         switch action {
+        case .notchcastCommand(let id): NotchcastCommandCatalog.perform(id); return true
         case .command(let id):
             return runCommand(id, with: input)
         case .quicklink(let id):

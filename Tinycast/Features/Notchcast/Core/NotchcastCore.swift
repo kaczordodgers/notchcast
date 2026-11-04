@@ -7,23 +7,42 @@ enum NotchcastCore {
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
+    static let macLink = AIUsageLinkModule()
+    static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let quitProtection = QuitProtectionStore()
     static let github = GitHubModule()
     static let clearNotifications = ClearNotificationsModule()
     static let answers = LauncherAnswersModule()
     static let copyPath = CopyPathModule()
     static let smallCommands = SmallCommandsModule()
+    static let eventTapHub = EventTapHub()
+    static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     private static var controller: NotchcastModuleController?
+    private static var monitor: MonitorModule?
+    static let battery = BatteryModule(preferences: .shared, runner: .live)
+
+    static func stopForTermination() async {
+        battery.stop()
+        await battery.waitUntilIdle()
+        monitor?.stop()
+        await monitor?.fans.waitUntilIdle()
+    }
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
+        let monitor = MonitorModule(preferences: .shared)
+        self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
+            .init(requires: [.systemMonitor], module: monitor),
+            .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
+                .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
+            .init(requires: [.quitProtection], module: quitProtectionModule),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
@@ -32,6 +51,8 @@ enum NotchcastCore {
             .init(requires: [.launcherAnswers], module: answers),
             .init(requires: [.copyPath], module: copyPath),
             .init(requires: [.smallCommands], module: smallCommands),
+            .init(requires: [.aiUsage], module: aiUsage),
+            .init(requires: [.machLink], module: macLink),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

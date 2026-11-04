@@ -15,7 +15,7 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter { $0 != .island && !$0.isSystemFeature }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
@@ -31,6 +31,10 @@ struct NotchcastSettingsView: View {
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
             LauncherToolsSettingsSection()
+
+            AIUsageSettingsSection(link: NotchcastCore.macLink)
+
+            NotchcastSystemSettingsSection()
 
             Section {
                 Picker(selection: Binding(
