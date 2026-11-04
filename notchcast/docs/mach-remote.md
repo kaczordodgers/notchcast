@@ -15,7 +15,7 @@ or an SSH failure throws rather than claiming a route. This client is independen
 of the TLS MachLink transport.
 
 Open Remote Mac Terminal opens Terminal with an interactive SSH session in the
-remote user's `$HOME/chad` workspace. Exit 255 prints the localized reachability
+configured remote workspace. Exit 255 prints the localized reachability
 message. A local login shell remains after SSH exits. There is no polling.
 
 Harnesses use synthetic SSH configuration output and fake runners exclusively.

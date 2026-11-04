@@ -12,6 +12,7 @@ final class BackupStatusModule: NotchcastModule {
     private let now: @MainActor () -> Date
     private let post: @MainActor (String) -> Void
     private let staleAfter: TimeInterval
+    private let configurationNotice: @MainActor () -> String?
     private var cancelWatch: Cancel?
     private var cancelDeadline: Cancel?
     private var reading: Task<Void, Never>?
@@ -22,17 +23,23 @@ final class BackupStatusModule: NotchcastModule {
 
     init(read: @escaping @MainActor () async throws -> Data, watch: @escaping Watch,
          schedule: @escaping Schedule, now: @escaping @MainActor () -> Date = { Date() },
-         staleAfter: TimeInterval = 7200, post: @escaping @MainActor (String) -> Void) {
+         staleAfter: TimeInterval = 7200, configurationNotice: @escaping @MainActor () -> String? = { nil },
+         post: @escaping @MainActor (String) -> Void) {
         self.read = read
         self.watch = watch
         self.schedule = schedule
         self.now = now
         self.staleAfter = staleAfter
+        self.configurationNotice = configurationNotice
         self.post = post
     }
 
     func start() {
         guard !running else { return }
+        if let notice = configurationNotice() {
+            post(notice)
+            return
+        }
         running = true
         cancelWatch = watch { [weak self] in self?.reload() }
         reload()

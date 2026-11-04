@@ -49,11 +49,15 @@ final class SendFilesCoordinator {
     }
 
     private func transfer(_ urls: [URL]) async {
+        guard MachSSH.isValid(shell.sshAlias) else {
+            post(MachSSH.ConfigurationError.address.localizedDescription)
+            report = Report(sent: 0, failed: urls.count, outcome: .needsAttention)
+            return
+        }
         var result = Report()
         let staging = "Downloads/.notchcast-upload-" + UUID().uuidString
         guard !urls.isEmpty, urls.allSatisfy({ $0.isFileURL && $0.path.hasPrefix("/") }),
-              !shell.sshAlias.isEmpty, !shell.sshAlias.hasPrefix("-"),
-              shell.sshAlias.allSatisfy({ $0.isLetter || $0.isNumber || "-_.@".contains($0) }) else {
+              MachSSH.isValid(shell.sshAlias) else {
             report = Report(sent: 0, failed: urls.count, outcome: .needsAttention)
             post(String(localized: "Select files in Finder and configure the remote Mac.", table: "SendFiles"))
             return

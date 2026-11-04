@@ -21,11 +21,22 @@ import Foundation
             let route = try await connection.route(thunderboltAddress: "192.0.2.1")
             assert(route == expected)
         }
-        assert(MachSSH(address: "-bad", runner: ssh.runner).address == "mbp")
+        for address in ["", "-bad", "host;echo bad"] {
+            do {
+                _ = try await MachSSH(address: address, runner: ssh.runner).run("uptime")
+                assertionFailure("Invalid address ran")
+            } catch MachSSH.ConfigurationError.address {}
+        }
+        assert(MachSSH.isValid("user@2001:db8::1"))
+        let script = try ssh.terminalScript(directory: "/workspace")
+        do {
+            _ = try ssh.terminalScript(directory: "")
+            assertionFailure("Missing directory accepted")
+        } catch MachSSH.ConfigurationError.path {}
         assert(!MachSSH.isValid("host;echo bad"))
-        assert(ssh.terminalScript.contains("exec /bin/zsh -l"))
-        assert(ssh.terminalScript.contains("Unable to reach the remote Mac over SSH"))
-        assert(ssh.terminalScript.contains("$HOME/chad"))
+        assert(script.contains("exec /bin/zsh -l"))
+        assert(script.contains("Unable to reach the remote Mac over SSH"))
+        assert(script.contains("/workspace"))
         print("Mach SSH passed")
     }
 }

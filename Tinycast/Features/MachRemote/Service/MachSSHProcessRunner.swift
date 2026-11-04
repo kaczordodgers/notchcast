@@ -15,9 +15,16 @@ enum MachSSHProcessRunner {
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
         return try await withTaskCancellationHandler {
-            let exit = try process.runObservingExit()
-            if Task.isCancelled { process.terminate() }
-            exit.wait()
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, any Error>) in
+                process.terminationHandler = { _ in continuation.resume() }
+                do {
+                    try process.run()
+                    if Task.isCancelled { process.terminate() }
+                } catch {
+                    process.terminationHandler = nil
+                    continuation.resume(throwing: error)
+                }
+            }
             try Task.checkCancellation()
             return MachSSH.Result(status: process.terminationStatus,
                                   output: String(bytes: try Data(contentsOf: url), encoding: .utf8) ?? "")

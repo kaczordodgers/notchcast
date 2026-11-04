@@ -8,27 +8,29 @@ final class UpdateRemoteCoordinator {
     private(set) var progress = UpdateRemoteProgress()
     private(set) var result: UpdateRemoteProgress.Result?
     @ObservationIgnored private let runner: any UpdateRemoteShellRunning
+    @ObservationIgnored private let scriptPath: String
     @ObservationIgnored private let post: @MainActor (String) -> Void
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var operation = UUID()
 
-    init(runner: any UpdateRemoteShellRunning, post: @escaping @MainActor (String) -> Void) {
+    init(runner: any UpdateRemoteShellRunning, scriptPath: String = "", post: @escaping @MainActor (String) -> Void) {
         self.runner = runner
+        self.scriptPath = scriptPath
         self.post = post
     }
 
-    static func arguments(alias: String) -> [String]? {
-        guard !alias.isEmpty, !alias.hasPrefix("-"),
-              alias.allSatisfy({ $0.isASCII && ($0.isLetter || $0.isNumber || "._-@".contains($0)) })
+    static func arguments(alias: String, scriptPath: String = "") -> [String]? {
+        guard MachSSH.isValid(alias), !scriptPath.isEmpty
         else { return nil }
         return ["-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "--", alias,
-                "exec \"$HOME/chad/bin/update-mbp.sh\""]
+                "exec " + MachSSH.quote(scriptPath)]
     }
 
     func start() {
         guard !isRunning else { return }
-        guard let arguments = Self.arguments(alias: runner.sshAlias) else {
-            finish(.unreachable)
+        guard let arguments = Self.arguments(alias: runner.sshAlias, scriptPath: scriptPath) else {
+            result = .unreachable
+            post((MachSSH.isValid(runner.sshAlias) ? MachSSH.ConfigurationError.path : .address).localizedDescription)
             return
         }
         isRunning = true

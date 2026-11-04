@@ -73,6 +73,10 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Send to Remote Mac", keywords: ["files", "Finder"]),
         .init(.notchcastSystem, "Update Remote Mac", keywords: ["update", "ssh"]),
         .init(.notchcastRemoteMac, "Remote Mac address", keywords: ["ssh", "host", "alias"]),
+        .init(.notchcastRemoteMac, "Remote terminal directory"),
+        .init(.notchcastRemoteMac, "Remote update script path"),
+        .init(.notchcastSystem, "Backup status file path"),
+        .init(.notchcastActivities, "AI usage cache directory"),
         .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
     ]
 }
