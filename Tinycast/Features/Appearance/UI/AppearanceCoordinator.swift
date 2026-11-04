@@ -1,5 +1,6 @@
 import AppKit
 import Observation
+import OSLog
 
 @MainActor @Observable
 final class AppearanceCoordinator: NotchcastModule {
@@ -111,7 +112,11 @@ final class AppearanceCoordinator: NotchcastModule {
         guard ["raycast", AppURLScheme.current].contains(url.scheme?.lowercased() ?? ""),
             url.host(percentEncoded: false)?.lowercased() == "theme"
         else { return false }
-        guard isEnabled else { return true }
+        guard isEnabled else {
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Appearance")
+                .notice("Theme link ignored because Appearance is disabled.")
+            return true
+        }
         importLink(url.absoluteString)
         return true
     }
