@@ -1,9 +1,8 @@
 # Typing and app preference wiring
 
 Five independent Notchcast switches default off: Typing, Finder, Dock and Windows,
-Apple Apps and iPhone Backup. They do not depend on the island. The integration
-section should include `NotchcastTweaksAppsSettingsRows()` inside its Form Section.
-The rows are deliberately not included by `NotchcastSettingsView`.
+Apple Apps and iPhone Backup. They do not depend on the island.
+`NotchcastSettingsView` includes `NotchcastTweaksAppsSettingsRows()` in its Tweaks section.
 
 Preference changes confirm first, capture the prior values and persist a rollback
 journal in the bundle-specific Notchcast defaults suite before running commands.
