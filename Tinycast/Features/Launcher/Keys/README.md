@@ -4,12 +4,14 @@ Pure synchronous engines; callers supply entry rows in display order, excluding 
 files, headers and fallback rows. A nil number-key result delegates to the existing
 favorite handler. Only digits 1 through 9 are intercepted, only with a nonempty query.
 The caller dispatches these after checking the Command chord.
+`rowIndex` resolves the actual result or favourite row, including a leading card.
 
 Alias input uses the editor's UTF-16 caret offset and selection length. The caller
 gates launcher mode, search focus, composition, menus, control lists and collapsed
 state before evaluating Space. Pass all held modifiers as `hasModifiers`. Map entry
 kind from `AppEntry.Kind`, never from its ID. An optional-only view opens its search;
 other entries with arguments focus the first field, including optional fields.
+Duplicate aliases and aliases that prefix a longer space-separated alias leave Space as text.
 
 Both feature switches default off and require no island. No commands are registered.
 The previous-screen launcher hotkey toggle is outside this engine pack.
