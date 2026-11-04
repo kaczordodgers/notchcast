@@ -31,6 +31,7 @@ extension NotchcastCore {
     static let screenshot = ScreenshotModule()
     static let dictationCleanup = DictationCleanupModule.live()
     static let captureTrimmer = CaptureTrimmerModule.live()
+    static let agentAnswer = AgentAnswerModule()
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
@@ -65,6 +66,7 @@ extension NotchcastCore {
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.captureTrimmer], module: captureTrimmer),
+            .init(requires: [.agentAnswer], module: agentAnswer),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
