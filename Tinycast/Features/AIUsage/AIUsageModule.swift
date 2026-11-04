@@ -30,8 +30,10 @@ final class AIUsageModule: NotchcastModule {
     }
 
     func start() {
+        guard !isRunning else { return }
+        generation += 1
         isRunning = true
-        trackPeerPolicy()
+        trackPeerPolicy(generation: generation)
     }
 
     func stop() {
@@ -56,12 +58,12 @@ final class AIUsageModule: NotchcastModule {
         try await otherMac.refresh()
     }
 
-    private func trackPeerPolicy() {
-        guard isRunning else { return }
+    private func trackPeerPolicy(generation operation: Int) {
+        guard isRunning, generation == operation else { return }
         withObservationTracking {
             configurePeer()
         } onChange: { [weak self] in
-            Task { @MainActor [weak self] in self?.trackPeerPolicy() }
+            Task { @MainActor [weak self] in self?.trackPeerPolicy(generation: operation) }
         }
     }
 

@@ -2,7 +2,7 @@ import Foundation
 
 nonisolated struct AIUsageProvider: Sendable {
     let cacheDirectory: URL
-    var staleAfter: TimeInterval = 15 * 60
+    var staleAfter: TimeInterval = OtherMacUsageSnapshot.staleAfter
     var clock: @Sendable () -> Date = { Date() }
 
     @concurrent

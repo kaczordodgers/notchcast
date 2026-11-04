@@ -41,13 +41,14 @@ import Foundation
     func configure(peerEnabled: Bool, providers: Set<String>) {
         guard self.peerEnabled != peerEnabled || self.providers != providers else { return }
         generation += 1
+        lastRequest = nil
         self.peerEnabled = peerEnabled
         self.providers = providers
         peer = nil
         peerStatus = peerEnabled ? .missing : .disabled
     }
 
-    func readings(maximumAge: TimeInterval = 300) -> [OtherMacUsageEngine.Reading] {
+    func readings(maximumAge: TimeInterval = OtherMacUsageSnapshot.staleAfter) -> [OtherMacUsageEngine.Reading] {
         OtherMacUsageEngine.merge(
             local: local, peer: peer, now: clock(), maximumAge: maximumAge,
             peerFailed: peerStatus == .failed, localFailed: localFailed

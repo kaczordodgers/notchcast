@@ -1,9 +1,14 @@
 import Foundation
 import Security
+import CryptoKit
 
 struct MachLinkPairing: Sendable {
     let id: UUID
     let secret: Data
+
+    var discoveryHash: String {
+        SHA256.hash(data: Data(id.uuidString.utf8)).prefix(12).map { String(format: "%02x", $0) }.joined()
+    }
 
     init(id: UUID, secret: Data) throws {
         guard secret.count == 32 else { throw MachLinkMessage.Failure.invalidPairing }

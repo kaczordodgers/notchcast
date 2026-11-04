@@ -49,7 +49,10 @@ import Foundation
         precondition(merge(nil, remote).count == 1)
         precondition(merge(nil, nil).isEmpty)
         precondition(merge(nil, snapshot("old", 0.2, 301))[0].isStale)
-        precondition(!merge(nil, snapshot("boundary", 0.2, 300))[0].isStale)
+        precondition(merge(nil, snapshot("boundary", 0.2, 300))[0].isStale)
+        var stale = remote
+        stale.readings[0].isStale = true
+        precondition(merge(nil, stale)[0].isStale)
         let source = Source()
         source.snapshot = local
         let channel = Channel()
@@ -61,10 +64,14 @@ import Foundation
         precondition(channel.requestedProviders == ["provider"])
         try await service.refresh()
         precondition(channel.requests == 1)
+        service.configure(peerEnabled: false, providers: ["provider"])
+        service.configure(peerEnabled: true, providers: ["provider"])
+        try await service.refresh()
+        precondition(channel.requests == 2)
         now = now.addingTimeInterval(60)
         channel.fails = true
         try await service.refresh()
-        precondition(service.peerStatus == .failed && channel.requests == 2)
+        precondition(service.peerStatus == .failed && channel.requests == 3)
         precondition(service.readings()[0].value.usedFraction == 0.4)
         source.snapshot = OtherMacUsageSnapshot(readings: [])
         now = now.addingTimeInterval(60)
@@ -74,7 +81,7 @@ import Foundation
         service.configure(peerEnabled: false, providers: ["provider"])
         now = now.addingTimeInterval(60)
         try await service.refresh()
-        precondition(channel.requests == 3 && service.readings().isEmpty)
+        precondition(channel.requests == 4 && service.readings().isEmpty)
         service.configure(peerEnabled: true, providers: ["provider"])
         channel.fails = false
         channel.beforeReturn = { service.configure(peerEnabled: false, providers: ["provider"]) }

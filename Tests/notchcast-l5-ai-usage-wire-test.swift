@@ -61,6 +61,7 @@ struct AIUsageWiringTest {
         channel.endpoint = .hostPort(host: "127.0.0.1", port: server.port!)
         let snapshot = try await channel.requestUsageSnapshot(providers: ["fixture"], timeout: .seconds(5))
         precondition(snapshot.readings.first?.usedFraction == 0.42)
+        precondition(snapshot.readings.first?.isStale == true)
         let connected = AIUsageModule(provider: provider, preferences: preferences, channel: channel)
         connected.start()
         try await connected.refresh()
@@ -68,6 +69,14 @@ struct AIUsageWiringTest {
         preferences.set(.aiUsageOtherMac, false)
         for _ in 0..<30 { await Task.yield() }
         precondition(connected.otherMac.peerStatus == .disabled)
+        connected.stop()
+        connected.start()
+        connected.stop()
+        connected.start()
+        preferences.set(.aiUsageOtherMac, true)
+        for _ in 0..<30 { await Task.yield() }
+        try await connected.refresh()
+        precondition(connected.otherMac.peerStatus == .available)
         connected.stop()
         preferences.set(.aiUsage, false)
         preferences.set(.machLink, false)

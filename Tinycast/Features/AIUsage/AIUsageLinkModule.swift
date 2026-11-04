@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import SystemConfiguration
 
 @MainActor
 @Observable
@@ -73,11 +74,16 @@ final class AIUsageLinkModule: NotchcastModule {
         guard isRunning, let pairing = channel.pairing else { return }
         let provider = provider
         let preferences = preferences
-        try channel.manager.start(pairing: pairing, name: ProcessInfo.processInfo.hostName) { request in
-            guard await preferences.isOn(.aiUsage) else { throw MachLinkMessage.Failure.disconnected }
+        let name = SCDynamicStoreCopyLocalHostName(nil) as String? ?? UUID().uuidString
+        try channel.manager.start(pairing: pairing, name: name) { request in
+            guard await preferences.isOn(.aiUsage), await preferences.isOn(.aiUsageOtherMac) else {
+                throw MachLinkMessage.Failure.disconnected
+            }
             let response = try await MachLinkUsagePeerChannel.response(to: request, provider: provider)
             try Task.checkCancellation()
-            guard await preferences.isOn(.aiUsage) else { throw MachLinkMessage.Failure.disconnected }
+            guard await preferences.isOn(.aiUsage), await preferences.isOn(.aiUsageOtherMac) else {
+                throw MachLinkMessage.Failure.disconnected
+            }
             return response
         }
         failed = false
