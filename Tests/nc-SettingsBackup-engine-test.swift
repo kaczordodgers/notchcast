@@ -17,6 +17,7 @@ struct SettingsBackupTest {
             "island": false, "greenMaximizeExcludedApps": "com.example.app",
             "notchcast.day.marketSymbols": ["BTC-USD"]]
         for key in excluded { original[key] = true }
+        original["keepAwakeMinutes"] = 240
         original["fanMode"] = "manual"
         original["batteryChargePercent"] = 95
         let data = try ForkSettingsBackupEngine.encode(original, created: .now)
