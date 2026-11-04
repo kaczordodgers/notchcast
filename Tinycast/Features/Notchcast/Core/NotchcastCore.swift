@@ -13,6 +13,7 @@ enum NotchcastCore {
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
+        let downloadServices = NotchcastDownloadServices(core: core)
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
@@ -22,8 +23,8 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
-            .init(requires: [.downloads], module: DownloadsModule(core: core)),
-            .init(requires: [.distill], module: DistillModule(core: core)),
+            .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
+            .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

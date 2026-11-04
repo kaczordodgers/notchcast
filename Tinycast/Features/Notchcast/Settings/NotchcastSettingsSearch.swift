@@ -9,6 +9,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastDownloads = Self(tab: .notchcast, title: "Downloads")
 }
 
 extension SettingsSearchCatalog {

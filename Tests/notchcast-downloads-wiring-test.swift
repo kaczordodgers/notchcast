@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/*Module.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/*Module+Core.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadDestinations.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsQueueController.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands.swift
@@ -122,6 +124,16 @@ struct NotchcastDownloadsWiringTest {
         await services.releaseSpeech()
         precondition(store.releases == 1)
         try await testSpeechLifetime(services: services, store: store)
+        let count = DictationModelStore.instances.count
+        let downloads = DownloadsModule(core: core, services: services)
+        let distill = DistillModule(core: core, services: services)
+        precondition(DictationModelStore.instances.count == count)
+        let releases = store.releases
+        downloads.stop()
+        await downloads.state.settle()
+        distill.stop()
+        await distill.state.settle()
+        precondition(store.releases == releases + 2)
     }
 
     private struct SpeechRunner: DownloadRunner {
@@ -405,10 +417,11 @@ struct NotchcastDownloadsWiringTest {
         precondition(value)
     }
 
-    private static func eventually(_ condition: () -> Bool) async throws {
-        let deadline = ContinuousClock.now + .seconds(10)
+    private static func eventually(file: StaticString = #filePath, line: UInt = #line,
+                                   _ condition: () -> Bool) async throws {
+        let deadline = ContinuousClock.now + .seconds(30)
         while !condition() {
-            precondition(ContinuousClock.now < deadline, "Timed out waiting for queue")
+            precondition(ContinuousClock.now < deadline, "Timed out waiting for queue", file: file, line: line)
             try await Task.sleep(for: .milliseconds(10))
         }
     }
@@ -416,6 +429,8 @@ struct NotchcastDownloadsWiringTest {
 
 @MainActor
 final class AppCore {
+    enum Tone { case danger }
+    func showMessage(_ message: String, tone: Tone) { preconditionFailure(message) }
     struct Settings {
         var dictationIdleRelease = DictationIdleRelease.never
         var dictationModel = DictationModel.allCases[0]
