@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case windowsSwitcher
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -60,6 +61,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .windowsSwitcher: String(localized: "Switch Windows")
         }
     }
 
@@ -89,6 +91,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .windowsSwitcher: String(localized: "Switching windows reads and raises other apps' windows.")
         }
     }
 
@@ -102,13 +105,17 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
             []
+        case .windowsSwitcher: [.accessibility]
         }
     }
 }
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        self != .displayBrightness && self != .quitProtection && !isSystemFeature
+            && self != .windowsSwitcher
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
