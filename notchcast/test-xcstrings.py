@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Standalone catalog merge and PR policy harness."""
 import json
+import itertools
 from pathlib import Path
 import runpy
 import subprocess
@@ -28,6 +29,10 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(result.count('"Notchcast"'), 5)
         self.assertIn('Text("Shared")', result)
         self.assertEqual(rewrite(result, {'Fork'}), (result, 0))
+        result, count = rewrite('var title: LocalizedStringResource { switch self {\n'
+                                'case .day: "Day"\n} }', {'Day', 'Notchcast'})
+        self.assertEqual(count, 1)
+        self.assertEqual(rewrite(result, {'Day', 'Notchcast'}), (result, 0))
 
     def test_migration_interpolation_comments_and_unknown_context(self):
         rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
@@ -143,15 +148,17 @@ class CatalogTests(unittest.TestCase):
         self.assertFalse(check({}, dict(Listed={}), '', '', ['Listed']))
 
     def test_git_operations(self):
-        for operation in ('branch-first', 'main-first', 'rebase', 'cherry-pick'):
+        for operation, catalog_path in itertools.product(
+                ('branch-first', 'main-first', 'rebase', 'cherry-pick'),
+                (tool['CATALOG'], 'Tinycast/Resources/Notchcast.xcstrings')):
             with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
                 def git(*args, check=True):
-                    return subprocess.run(['git', *args], cwd=directory, check=check,
+                    return subprocess.run(['git', '-C', directory, *args], cwd=directory, check=check,
                                           capture_output=True, text=True)
                 git('init', '-b', 'main')
                 git('config', 'user.name', 'Catalog Test')
                 git('config', 'user.email', 'test@example.com')
-                path = Path(directory) / tool['CATALOG']
+                path = Path(directory) / catalog_path
                 path.parent.mkdir(parents=True)
                 base = catalog(Alpha={}, Deleted={}, Key={'value': 'old'}, Omega={})
                 path.write_text(base)
@@ -176,7 +183,7 @@ class CatalogTests(unittest.TestCase):
                 else:
                     git('cherry-pick', 'branch', check=False)
                 result = subprocess.run(['python3', str(ROOT / 'xcstrings-union.py'),
-                                         '--git', '--main-ref', 'main'], cwd=directory,
+                                         '--git', '--main-ref', 'main', '--catalog', catalog_path], cwd=directory,
                                         capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(path.read_text(), merge(base, main, branch))
