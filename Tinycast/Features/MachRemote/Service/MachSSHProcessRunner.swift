@@ -20,7 +20,7 @@ enum MachSSHProcessRunner {
             exit.wait()
             try Task.checkCancellation()
             return MachSSH.Result(status: process.terminationStatus,
-                                  output: String(decoding: try Data(contentsOf: url), as: UTF8.self))
+                                  output: String(bytes: try Data(contentsOf: url), encoding: .utf8) ?? "")
         } onCancel: {
             if process.isRunning { process.terminate() }
         }
