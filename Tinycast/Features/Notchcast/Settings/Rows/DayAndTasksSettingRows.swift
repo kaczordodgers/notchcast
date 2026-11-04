@@ -20,6 +20,7 @@ struct MarketSymbolsSettingRow: View {
             SettingsRowTitle(.notchcastDay, "Symbols")
             Text("Yahoo Finance symbols, separated by commas.")
         }
+        .textFieldStyle(.roundedBorder)
         .onAppear { symbols = markets.symbols.joined(separator: ", ") }
         .onSubmit(saveSymbols)
         .onDisappear(perform: saveSymbols)

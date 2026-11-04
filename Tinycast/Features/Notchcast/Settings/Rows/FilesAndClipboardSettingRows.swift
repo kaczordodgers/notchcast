@@ -65,6 +65,7 @@ struct URLCleanerCustomParametersSettingRow: View {
 
     var body: some View {
         TextField("Custom parameters", text: $draft.custom)
+            .textFieldStyle(.roundedBorder)
             .focused($focused)
             .onAppear { draft = URLCleanerRulesDraft(module.rules) }
             .onSubmit { save() }
@@ -86,6 +87,7 @@ struct URLCleanerDisabledParametersSettingRow: View {
 
     var body: some View {
         TextField("Disabled parameters", text: $draft.disabled)
+            .textFieldStyle(.roundedBorder)
             .focused($focused)
             .onAppear { draft = URLCleanerRulesDraft(module.rules) }
             .onSubmit { save() }
@@ -107,6 +109,7 @@ struct URLCleanerSiteParametersSettingRow: View {
 
     var body: some View {
         TextField("Per-site parameters", text: $draft.sites)
+            .textFieldStyle(.roundedBorder)
             .focused($focused)
             .onAppear { draft = URLCleanerRulesDraft(module.rules) }
             .onSubmit { save() }

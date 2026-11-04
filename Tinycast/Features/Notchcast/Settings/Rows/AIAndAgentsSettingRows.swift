@@ -5,6 +5,7 @@ struct AIUsageCacheDirectorySettingRow: View {
 
     var body: some View {
         TextField("AI usage cache directory", text: $preferences.aiUsageCachePath)
+            .textFieldStyle(.roundedBorder)
     }
 }
 
@@ -14,6 +15,7 @@ struct BuildStatsSnapshotSettingRow: View {
 
     var body: some View {
         TextField("Snapshot path", text: $preferences.buildStatsPath)
+            .textFieldStyle(.roundedBorder)
         Text(verbatim: status)
             .lineLimit(1)
             .task(id: LoadRequest(path: preferences.buildStatsPath, enabled: preferences.isOn(.buildStats))) {
@@ -97,5 +99,6 @@ struct VoiceAskDestinationSettingRow: View {
 
     var body: some View {
         TextField("Voice Ask destination", text: $module.destination)
+            .textFieldStyle(.roundedBorder)
     }
 }

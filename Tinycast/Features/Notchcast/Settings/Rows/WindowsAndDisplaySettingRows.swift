@@ -10,6 +10,7 @@ struct ExcludedBundleIDsSettingRow: View {
             set: { preferences.greenMaximizeExcludedApps = $0 })) {
             SettingsRowTitle(.notchcastSystem, "Excluded app bundle IDs (comma-separated)")
         }
+        .textFieldStyle(.roundedBorder)
     }
 }
 
@@ -41,6 +42,7 @@ struct QuitProtectionExceptionsSettingRow: View {
     @Bindable var store: QuitProtectionStore
 
     var body: some View {
+        Text("These apps quit and close without asking.")
         if store.configuration.exceptions.isEmpty {
             Text("Nothing here yet.").foregroundStyle(.secondary)
         }
@@ -49,7 +51,6 @@ struct QuitProtectionExceptionsSettingRow: View {
                 store.configuration.exceptions.remove(identifier)
             }
         }
-        Text("These apps quit and close without asking.")
     }
 }
 
