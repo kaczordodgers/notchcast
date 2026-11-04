@@ -141,12 +141,17 @@ struct FanSMCTest {
         events = []
         rejects {
             try NativeChargeLimit.apply(write: { events.append("confirmed") }, enable: {
-                precondition(NativeChargeLimit.bounded(timeout: .milliseconds(10)) {
+                _ = try NativeChargeLimit.bounded(timeout: .milliseconds(10)) {
                     Thread.sleep(forTimeInterval: 0.1)
                     return true
-                } == nil)
-                throw FanSMC.Failure.refused
+                }
             }, restore: { events.append("restored") })
+        }
+        precondition(events == ["confirmed"])
+        events = []
+        rejects {
+            try NativeChargeLimit.apply(write: { events.append("confirmed") },
+                enable: { throw FanSMC.Failure.refused }, restore: { events.append("restored") })
         }
         precondition(events == ["confirmed", "restored"])
         events = []
@@ -385,7 +390,18 @@ struct RootClientTest {
         compiler.waitUntilExit()
         precondition(compiler.terminationStatus == 0, "Helper compilation failed")
 
-        print("PASS: helper compilation only; executable invocation skipped")
+        for (arguments, expected): ([String], Int32) in [
+            (["invalid"], 64), (["charge-limit-80"], 77), (["fans-auto"], 77),
+        ] {
+            let process = Process()
+            process.executableURL = helper
+            process.arguments = arguments
+            process.standardOutput = FileHandle.nullDevice
+            process.standardError = FileHandle.nullDevice
+            try process.run()
+            process.waitUntilExit()
+            precondition(process.terminationReason == .exit && process.terminationStatus == expected)
+        }
         let fanTests = directory.appendingPathComponent("fan-tests")
         let fanCompiler = Process()
         fanCompiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
