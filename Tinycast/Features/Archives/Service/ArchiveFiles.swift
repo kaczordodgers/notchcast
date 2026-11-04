@@ -107,6 +107,7 @@ nonisolated enum ArchiveFiles {
 
     static func publish(
         _ root: URL, staging: URL, archive: URL,
+        recovered: Bool = false,
         exclusiveRename: (String, String) -> Int32 = { renamex_np($0, $1, UInt32(RENAME_EXCL)) }
     ) throws -> URL {
         let base = root == staging ? ArchiveFormat.baseName(archive) : root.lastPathComponent
@@ -115,7 +116,8 @@ nonisolated enum ArchiveFiles {
         let stem = suffix.isEmpty ? base : String(base.dropLast(suffix.count + 1))
         for number in 1..<10_000 {
             try Task.checkCancellation()
-            let name = number == 1 ? base : "\(stem) \(number)" + (suffix.isEmpty ? "" : ".\(suffix)")
+            let duplicate = recovered ? "\(stem) (recovered)" + (number == 2 ? "" : " \(number - 1)") : "\(stem) \(number)"
+            let name = number == 1 ? base : duplicate + (suffix.isEmpty ? "" : ".\(suffix)")
             let target = archive.deletingLastPathComponent().appending(path: name)
             if root == staging, chmod(root.path, 0o755) != 0 {
                 throw ArchiveFailure.filesystem("publish permissions: \(errno)")

@@ -11,12 +11,28 @@ struct ArchivesEngineTest {
     }
 
     @MainActor static func main() async throws {
+        if CommandLine.arguments.count == 3, CommandLine.arguments[1] == "--crash-runner" {
+            let root = URL(fileURLWithPath: CommandLine.arguments[2])
+            let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+            try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
+            try Data("crash payload".utf8).write(to: staging.appending(path: "runner-output"))
+            try ArchiveRecovery(archive: root.appending(path: "runner.zip"), staging: staging,
+                                inPlace: false, state: .finishedExtract).save()
+            try Data().write(to: root.appending(path: "runner-ready"))
+            while true { try await Task.sleep(for: .seconds(1)) }
+        }
         let scratch = ProcessInfo.processInfo.environment["ARCHIVES_TEST_ROOT"]
             .map { URL(fileURLWithPath: $0) } ?? FileManager.default.temporaryDirectory
         let root = scratch.appending(path: "archives-engine-\(UUID().uuidString)")
+        let savedParents = UserDefaults.standard.stringArray(forKey: "archiveRecoveryParents")
+        UserDefaults.standard.set([], forKey: "archiveRecoveryParents")
+        defer { UserDefaults.standard.set(savedParents, forKey: "archiveRecoveryParents") }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? ArchiveFiles.removeStaging(root) }
         try rules()
+        try crashRecovery(root)
+        try await killedRunner(root)
+        try await restoreDefaults()
         let fallbackStage = root.appending(path: "fallback-stage")
         try FileManager.default.createDirectory(at: fallbackStage, withIntermediateDirectories: false,
                                                attributes: [.posixPermissions: 0o700])
@@ -49,6 +65,101 @@ struct ArchivesEngineTest {
 
     static func expect(_ condition: Bool, _ message: String) {
         if !condition { fatalError(message) }
+    }
+
+    static func crashRecovery(_ root: URL) throws {
+        for state in [ArchiveRecovery.State.running, .finishedExtract, .publishing] {
+            let archive = root.appending(path: "crash-\(state.rawValue).zip")
+            try Data("source".utf8).write(to: archive)
+            let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+            try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
+            try Data("payload".utf8).write(to: staging.appending(path: "crash-\(state.rawValue)"))
+            var record = ArchiveRecovery(archive: archive, staging: staging, inPlace: false, state: state)
+            record.owner = 0
+            try record.save()
+            if state == .finishedExtract {
+                try Data("existing".utf8).write(to: root.appending(path: "crash-\(state.rawValue)"))
+            }
+            let output = try ArchiveRecovery.recover(in: root, archive: archive)
+            expect(!ArchiveFiles.exists(staging) && !ArchiveFiles.exists(record.sidecar), "durable recovery cleaned")
+            expect(ArchiveFiles.exists(archive), "recovery preserves keep source")
+            expect((output != nil) == (state != .running), "finished crash publishes; running crash cleans")
+            if state == .finishedExtract {
+                expect(output?.lastPathComponent == "crash-finishedExtract (recovered)", "collision recovers visibly")
+            }
+        }
+        print("PASS: durable running, finished-extract and publishing crash recovery")
+        let archive = root.appending(path: "partial.zip")
+        try Data("partial archive".utf8).write(to: archive)
+        let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
+        try Data("partial output".utf8).write(to: staging.appending(path: "partial"))
+        var record = ArchiveRecovery(archive: archive, staging: staging, inPlace: true, state: .running)
+        record.owner = 0
+        try record.save()
+        let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
+        let data = try JSONSerialization.data(withJSONObject: ["output": staging.path, "total_size": 14,
+                                                              "parts": [[archive.path, 15]]])
+        try data.write(to: journal)
+        let jobs = try ArchiveRecovery.recoverKnown()
+        expect(jobs.contains { $0.archive.path == archive.path && $0.state == .cancelled
+            && $0.recovery?.staging.path == staging.path && $0.mode == .inPlace }, "in-place marked resumable")
+        expect(try Data(contentsOf: journal) == data, "journal unchanged")
+        expect(try String(contentsOf: archive, encoding: .utf8) == "partial archive", "partial archive unchanged")
+        expect(ArchiveFiles.exists(staging.appending(path: "partial")), "partial staging preserved")
+        for empty in [true, false] {
+            let orphan = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+            try FileManager.default.createDirectory(at: orphan, withIntermediateDirectories: false)
+            if !empty { try Data("orphan".utf8).write(to: orphan.appending(path: "orphan-output")) }
+            try ArchiveRecovery.recover(in: root)
+            expect(!ArchiveFiles.exists(orphan), "orphan staging removed or published")
+            if !empty { expect(ArchiveFiles.exists(root.appending(path: "orphan-output")), "orphan output visible") }
+        }
+        try FileManager.default.removeItem(at: journal)
+        try ArchiveFiles.removeStaging(staging)
+        try record.remove()
+        print("PASS: unfinished in-place stays resumable; nonempty and empty orphans recovered")
+    }
+
+    @MainActor static func killedRunner(_ root: URL) async throws {
+        let child = Process()
+        child.executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
+        child.arguments = ["--crash-runner", root.path]
+        let exit = try child.runObservingExit()
+        defer { if child.isRunning { kill(child.processIdentifier, SIGKILL) } }
+        let deadline = ContinuousClock.now.advanced(by: .seconds(10))
+        while !ArchiveFiles.exists(root.appending(path: "runner-ready")) {
+            guard child.isRunning, ContinuousClock.now < deadline else { fatalError("runner not ready") }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        kill(child.processIdentifier, SIGKILL)
+        exit.wait()
+        expect(child.terminationReason == .uncaughtSignal && child.terminationStatus == SIGKILL, "runner killed")
+        try ArchiveRecovery.recover(in: root)
+        expect(try String(contentsOf: root.appending(path: "runner-output"), encoding: .utf8) == "crash payload",
+               "SIGKILL of app-side runner recovers visibly")
+        print("PASS: SIGKILL of app-side runner publishes durable output visibly")
+    }
+
+    @MainActor static func restoreDefaults() async throws {
+        let application = URL(fileURLWithPath: "/Applications/Fixture.app")
+        let types = Array(ArchiveFormat.typeIdentifiers.prefix(4))
+        var attempted: [String] = []
+        do {
+            try await ArchiveDefaultApplicationService.apply(
+                enabled: false, application: application, supported: Set(types.prefix(3)),
+                current: { $0 == types[2] ? URL(fileURLWithPath: "/Applications/Other.app") : application }
+            ) { identifier in
+                attempted.append(identifier)
+                throw ArchiveFailure.filesystem("failure-\(identifier)")
+            }
+            fatalError("restore errors lost")
+        } catch {
+            expect(attempted == Array(types.prefix(2)), "restore filters unsupported and other-app types")
+            let message = String(describing: error)
+            expect(attempted.allSatisfy { message.contains("failure-\($0)") }, "restore collects each type error")
+        }
+        print("PASS: fake default application service filters restore types and collects per-type errors")
     }
 
     static func listing(_ entries: [(String, Bool)], total: String = "12 B") throws -> ArchiveListing {
@@ -115,6 +226,7 @@ struct ArchivesEngineTest {
         log = archive.parent / 'calls'
         with log.open('a') as file: file.write(args[0] + ' ' + archive.name + '\n')
         if args[0] == 'list':
+            if archive.name == 'unsafe-list.zip': sys.exit(1)
             print('       4 B  result/file.txt')
             print('1 entry, 4 B uncompressed, 100 B zip archive')
         elif args[0] == 'check':
@@ -199,6 +311,26 @@ struct ArchivesEngineTest {
         try await wait(missing)
         expect(missing.jobs[0].failure == .toolMissing, "missing tool typed")
         try await inPlace(root, tool: tool)
+        let unsafeListing = root.appending(path: "unsafe-list.zip")
+        try Data("source".utf8).write(to: unsafeListing)
+        do {
+            _ = try await ArchiveExtractionRunner(locator: Locator(tool: tool)).extract(unsafeListing)
+            fatalError("unsafe listing accepted")
+        } catch {
+            expect(error as? ArchiveFailure == .unsafePath("unsafe-list.zip"), "listing exit 1 is unsafe")
+        }
+        let early = root.appending(path: "early.zip")
+        try Data("source".utf8).write(to: early)
+        var earlyStaging: URL?
+        let earlyTask = Task {
+            try await ArchiveExtractionRunner(locator: Locator(tool: tool)).extract(early, mode: .inPlace) { update in
+                earlyStaging = update.recovery.staging
+                withUnsafeCurrentTask { $0?.cancel() }
+            }
+        }
+        do { _ = try await earlyTask.value; fatalError("early cancellation ignored") } catch is CancellationError {}
+        guard let earlyStaging else { fatalError("early staging not reported") }
+        expect(!ArchiveFiles.exists(earlyStaging), "early in-place cancel cleans empty staging")
         let staleArchive = root.appending(path: "stale.zip")
         try Data("archive".utf8).write(to: staleArchive)
         let staleStage = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
@@ -242,7 +374,7 @@ struct ArchivesEngineTest {
         expect(defaultQueue.jobs[0].failure == .existingProgress, "default mode never grants destructive resume")
         queue.retry(id)
         try await wait(queue)
-        expect(queue.jobs[1].state == .finished, "in-place retry resumes")
+        expect(queue.jobs[1].state == .finished, "in-place retry resumes: \(String(describing: queue.jobs[1].failure))")
         expect(queue.jobs[1].output != nil, "in-place result published")
         expect(!ArchiveFiles.exists(journal), "resume completes journal cleanup")
         let calls = try String(contentsOf: root.appending(path: "calls"), encoding: .utf8)
@@ -358,11 +490,11 @@ struct ArchivesEngineTest {
         deadline = time.monotonic() + 15
         while child.poll() is None and time.monotonic() < deadline:
             if journal.exists():
-                child.send_signal(signal.SIGINT)
+                child.send_signal(signal.SIGKILL)
                 break
             time.sleep(.001)
         status = child.wait(timeout=15)
-        assert status == 130 and journal.exists(), 'real extraction did not pause'
+        assert status == -9 and journal.exists(), 'real extraction was not killed'
         """#
         let pause = try await ArchiveProcess.run(tool: URL(fileURLWithPath: "/usr/bin/python3"),
                                                arguments: ["-c", script, tool.path, archive.path, staging.path])

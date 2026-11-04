@@ -34,12 +34,12 @@ nonisolated enum ArchiveProcess {
             if Task.isCancelled || failure != nil {
                 if stopped == nil {
                     stopped = .now
-                    if process.isRunning { process.interrupt() }
+                    if process.isRunning { signalGroup(process, SIGINT) }
                 } else if let stopped, process.isRunning {
                     if stopped.duration(to: .now) > .seconds(3) {
-                        kill(process.processIdentifier, SIGKILL)
+                        signalGroup(process, SIGKILL)
                     } else if stopped.duration(to: .now) > .seconds(1) {
-                        process.terminate()
+                        signalGroup(process, SIGTERM)
                     }
                 }
             }
@@ -76,5 +76,11 @@ nonisolated enum ArchiveProcess {
         case 5: throw ArchiveFailure.passwordRequired
         default: throw ArchiveFailure.toolFailed(status)
         }
+    }
+
+    private static func signalGroup(_ process: Process, _ signal: Int32) {
+        let identifier = process.processIdentifier
+        let target = getpgid(identifier) == identifier ? -identifier : identifier
+        kill(target, signal)
     }
 }

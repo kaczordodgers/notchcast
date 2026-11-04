@@ -16,14 +16,23 @@ struct ArchiveDefaultApplicationService: ArchiveDefaultApplicationSetting {
         }
         let declarations = Bundle(url: target)?.infoDictionary?["CFBundleDocumentTypes"] as? [[String: Any]] ?? []
         let supported = Set(declarations.flatMap { $0["LSItemContentTypes"] as? [String] ?? [] })
+        try await Self.apply(enabled: enabled, application: application, supported: supported,
+                             current: { workspace.urlForApplication(toOpen: UTType(importedAs: $0)) }) {
+            try await workspace.setDefaultApplication(at: target, toOpen: UTType(importedAs: $0))
+        }
+    }
+
+    static func apply(
+        enabled: Bool, application: URL, supported: Set<String>,
+        current: (String) -> URL?, set: (String) async throws -> Void
+    ) async throws {
         var failures: [String] = []
         for identifier in ArchiveFormat.typeIdentifiers {
             if !enabled, !supported.contains(identifier) { continue }
-            let type = UTType(importedAs: identifier)
-            if !enabled, workspace.urlForApplication(toOpen: type)?.standardizedFileURL != application.standardizedFileURL {
+            if !enabled, current(identifier)?.standardizedFileURL != application.standardizedFileURL {
                 continue
             }
-            do { try await workspace.setDefaultApplication(at: target, toOpen: type) } catch {
+            do { try await set(identifier) } catch {
                 failures.append("\(identifier): \(error)")
             }
         }

@@ -17,6 +17,9 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
     ) async throws -> URL {
         guard ArchiveFormat.accepts(archive), archive.isFileURL else { throw ArchiveFailure.unsupportedFormat }
         guard let tool = locator.locate() else { throw ArchiveFailure.toolMissing }
+        if let output = try ArchiveRecovery.recover(in: archive.deletingLastPathComponent(), archive: archive) {
+            return output
+        }
         if mode == .inPlace, let recovery, recovery.readyToPublish {
             try ArchiveJournal.validateStaging(recovery.staging, archive: archive)
             return try await finishInPlace(recovery, archive: archive)
@@ -24,6 +27,9 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         let plan = try await plan(archive, tool: tool, requested: mode, previous: recovery)
         var update = Progress(recovery: plan.recovery, mode: plan.mode, fallback: plan.fallback)
         let staging = plan.recovery.staging
+        var durable = ArchiveRecovery(archive: archive, staging: staging,
+                                      inPlace: plan.mode == .inPlace, state: .running)
+        try durable.save()
         do {
             await progress(update)
             let flags = plan.mode == .inPlace ? ["-y", "-q", "--keep-free", "2GB"] : ["--keep-archive", "-q"]
@@ -38,6 +44,8 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
                 }
             }
             try ArchiveProcess.validate(extraction.status)
+            durable.state = .finishedExtract
+            try durable.save()
             if plan.mode == .inPlace {
                 update.recovery.readyToPublish = true
                 await progress(update)
@@ -47,11 +55,14 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             return try finish(plan.recovery, archive: archive)
         } catch {
             if plan.mode == .keepArchive {
-                try cleanupKeepProgress(archive, staging: staging)
+                try Self.cleanupKeepProgress(archive, staging: staging)
                 try ArchiveFiles.removeStaging(staging)
+                try durable.remove()
             } else if !ArchiveFiles.exists(URL(fileURLWithPath: archive.path + ".hatchzip")),
-                      ArchiveFiles.exists(archive), (try? ArchiveFiles.bytes(staging)) == 0 {
+                      ArchiveFiles.exists(archive),
+                      (try? FileManager.default.contentsOfDirectory(atPath: staging.path).isEmpty) == true {
                 try ArchiveFiles.removeStaging(staging)
+                try durable.remove()
             }
             throw error
         }
@@ -70,7 +81,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         let parent = archive.deletingLastPathComponent()
         if let journal = try ArchiveJournal.read(archive) {
             if journal.mode == .keepArchive, ArchiveFiles.exists(archive) {
-                try cleanupKeepProgress(archive, staging: journal.recovery.staging)
+                try Self.cleanupKeepProgress(archive, staging: journal.recovery.staging)
                 try ArchiveFiles.removeStaging(journal.recovery.staging)
                 return try await plan(archive, tool: tool, requested: requested, previous: nil)
             }
@@ -131,20 +142,27 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             do { return try finish(recovery, archive: archive) } catch {
                 let recoveredArchive = archive.deletingLastPathComponent()
                     .appending(path: "\(ArchiveFormat.baseName(archive)) (recovered).zip")
-                return try ArchiveFiles.publish(recovery.staging, staging: recovery.staging,
-                                                archive: recoveredArchive)
+                let output = try ArchiveFiles.publish(recovery.staging, staging: recovery.staging,
+                                                      archive: recoveredArchive)
+                try ArchiveRecovery(archive: archive, staging: recovery.staging,
+                                    inPlace: true, state: .publishing).remove()
+                return output
             }
         }.value
     }
 
     private func finish(_ recovery: ArchiveJob.Recovery, archive: URL) throws -> URL {
+        let durable = ArchiveRecovery(archive: archive, staging: recovery.staging,
+                                      inPlace: false, state: .publishing)
+        try durable.save()
         let root = try ArchiveFiles.prepare(recovery.staging, quarantine: recovery.quarantine)
         let output = try ArchiveFiles.publish(root, staging: recovery.staging, archive: archive)
         try ArchiveFiles.removeStaging(recovery.staging)
+        try durable.remove()
         return output
     }
 
-    private func cleanupKeepProgress(_ archive: URL, staging: URL) throws {
+    static func cleanupKeepProgress(_ archive: URL, staging: URL) throws {
         let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
         guard ArchiveFiles.exists(journal) else { return }
         let data = try Data(contentsOf: journal)
