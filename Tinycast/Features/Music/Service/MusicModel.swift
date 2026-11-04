@@ -40,9 +40,17 @@ final class MusicModel {
         playback?.cancel()
     }
 
+    var canResume: Bool { lastPlayer.isEnabled && lastPlayer.replacement(isInstalled: apps.isInstalled) != nil }
+
     var position: TimeInterval? { nowPlaying?.position(at: now()) }
 
     func setSystemSource(_ source: (any NowPlayingSource)?) { replace(system, with: source) }
+
+    func reportCommandFailure() {
+        guard isEnabled else { return }
+        commandFailure = .playbackFailed(nowPlaying?.bundleID ?? "")
+        present()
+    }
     func setSoloistSource(_ source: (any NowPlayingSource)?) { replace(soloist, with: source) }
 
     func setEnabled(_ enabled: Bool) {
@@ -67,13 +75,18 @@ final class MusicModel {
         playback?.cancel()
         playback = nil
         replacementID = UUID()
-        if nowPlaying == nil, lastPlayer.isEnabled, command == .play || command == .togglePlayPause {
+        if nowPlaying == nil, command == .play || command == .togglePlayPause {
+            guard lastPlayer.isEnabled else {
+                commandFailure = .noReplacement
+                present()
+                return
+            }
             playback = openReplacement(startingPlayback: true, requiresLastPlayer: true)
             return
         }
         let channel = nowPlaying?.origin == .soloist ? soloist : system
-        channel.source?.send(command)
         commandFailure = nil
+        channel.source?.send(command)
         present()
     }
 
@@ -234,7 +247,6 @@ final class MusicModel {
 
     private func present() {
         nowPlaying = MusicSelection.pick(system: system.track, soloist: soloist.track)
-        if nowPlaying?.isPlaying == true { commandFailure = nil }
         lastPlayer.hear(nowPlaying)
         failure = commandFailure
             ?? (system.failed ? .unreadable(.system) : nil)
