@@ -25,8 +25,8 @@ Registration requires no changes in Tests. Git uses `merge=union` for this file 
 concurrent registrations merge cleanly. After every merge, check the file by hand:
 union merging can keep the same registration twice, and it keeps both the old and the
 new line when one branch removes or edits a registration while another adds one, so a
-removed command can come back. Change the legacy ID of Toggle Island only with a
-migration: no harness guards it.
+removed command can come back.
+`notchcast/check-legacy-command-ids.py` guards Toggle Island's persisted legacy ID in its real source before the CI Debug build; change it only with a migration.
 
 The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
 `.notchcast`), an `isEnabled` main-actor closure and a main-actor `run` closure.
