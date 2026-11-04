@@ -31,12 +31,21 @@ struct SettingsBackupTest {
             try archive(["monitorCPU": "bad"]), try archive(["monitorCPU": true]),
             try archive(["monitorCPU": 70.5]), try archive(["monitorCPU": 101]),
             try archive(["island": 1]), try archive(["keepAwakeMinutes": 45]),
+            try archive(["dictationCleanup": "broken"]),
+            try archive(["dictationCleanup": "{}", "notchcast.dictationCleanup.settings": "{}"]),
             try archive(["islandHoverDelay": 0.4]), try archive(["future": true]),
             try archive(["notchcast.quitProtection.mode": "future"]),
             try archive(["notchcast.day.marketSymbols": [String(repeating: "x", count: 65)]]),
             try archive(["notchcast.dictationCleanup.settings": "{\"apiKey\":\"secret\"}"]),
             try archive(["monitorCPU": 70], extra: ["future": true])]
-        for key in excluded { invalid.append(try archive(["monitorCPU": 70, key: true])) }
+        let retired: Set<String> = ["archivesInPlace", "machineSetupProfile"]
+        let cleanup = #"{"effort":"high","promptAddition":"","vocabulary":[]}"#
+        for key in excluded.subtracting(retired) { invalid.append(try archive(["monitorCPU": 70, key: true])) }
+        let early = try ForkSettingsBackupEngine.decode(archive(["monitorCPU": 70, "archivesInPlace": true,
+            "machineSetupProfile": false, "dictationCleanup": cleanup]))
+        precondition(early["archivesInPlace"] == nil && early["machineSetupProfile"] == nil)
+        precondition(early["monitorCPU"] as? Int == 70 && early["notchcast.dictationCleanup.settings"] as? String == cleanup)
+        print("PASS: archives from before #199 skip retired switches and still restore")
         for input in invalid {
             do { _ = try ForkSettingsBackupEngine.decode(input); preconditionFailure("Accepted invalid archive") } catch { }
         }

@@ -98,6 +98,10 @@ struct NotchcastCommand: Sendable {
         editorDefaults.removePersistentDomain(forName: editorDomain)
         defer { editorDefaults.removePersistentDomain(forName: editorDomain) }
         let complete = try ForkSettingsBackupState.live.snapshot()
+        for feature: NotchcastFeature in [.urlCleaner, .dictationHistory, .captureTrimmer] {
+            precondition(complete[feature.rawValue] as? Bool == NotchcastPreferences.shared.isOn(feature), feature.rawValue)
+        }
+        print("PASS: snapshots record urlCleaner, dictationHistory, captureTrimmer as they are")
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
             bundleIdentifier: Bundle.main.bundleIdentifier!)
@@ -105,6 +109,24 @@ struct NotchcastCommand: Sendable {
         cleanup.isEnabled = true
         cleanup.baseURL = "http://localhost:8317"
         try cleanupStore.save(cleanup)
+        let legacyCleanup = #"{"effort":"high","promptAddition":"Use commas","vocabulary":[{"spelling":"Tinycast","misheardForms":["tiny cast"]}]}"#
+        let legacy = try PropertyListSerialization.data(fromPropertyList:
+            ["format": 2, "created": Date.now, "preferences": ["dictationCleanup": legacyCleanup]],
+            format: .binary, options: 0)
+        for enabled in [false, true] {
+            NotchcastPreferences.shared.set(.dictationCleanup, enabled)
+            try cleanupStore.save(cleanup)
+            let decoded = try ForkSettingsBackupEngine.decode(legacy)
+            precondition(decoded["dictationCleanup"] == nil)
+            try ForkSettingsBackupState.live.apply(decoded)
+            let restored = try cleanupStore.read()
+            precondition(restored.effort == .high && restored.promptAddition == "Use commas")
+            precondition(restored.vocabulary.first?.spelling == "Tinycast")
+            precondition(restored.vocabulary.first?.misheardForms == ["tiny cast"])
+            precondition(NotchcastPreferences.shared.isOn(.dictationCleanup) == enabled)
+            precondition(restored.isEnabled && restored.baseURL == cleanup.baseURL)
+        }
+        print("PASS: legacy cleanup archive restores settings and preserves both switch states")
         var changed = complete
         changed["notchcast.editor.font"] = "system"
         changed["notchcast.editor.theme"] = "system"
@@ -209,7 +231,8 @@ struct NotchcastCommand: Sendable {
             ForkSettingsBackupState.applyQuit($0, to: store)
         })
         let saved = try state.snapshot()
-        for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks] {
+        for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks,
+                                        .urlCleaner, .dictationHistory, .captureTrimmer] {
             let original = preferences.isOn(feature)
             preferences.set(feature, !original)
             let captured = try state.snapshot()

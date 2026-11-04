@@ -14,6 +14,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootHelperClient.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootWait.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootToolPath.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 import Foundation
