@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 [[ $# = 1 && $1 =~ ^[0-9]+$ ]] || { echo 'usage: local-ci.sh <pr>' >&2; exit 2; }
+PR=$1
 tools=$(cd "$(dirname "$0")/.." && pwd)
 cd "$tools"
 metadata=$(gh pr view "$1" -R kaczordodgers/notchcast --json headRefOid,baseRefOid)
@@ -31,6 +32,11 @@ finish() {
     if [ "$owned" -eq 1 ]; then rm -rf "$tree" || code=1; fi
     rm -rf "$scratch"
     echo "$state: $description; log: $log"
+    # Wake the T3 thread that started the build: build-wake.py only watches Actions runs, so nothing else does.
+    if [ -n "${T3CODE_THREAD_ID:-}" ]; then
+        echo "build/local $state on #$PR ${head:0:8}: $description; log: $log ... continue." |
+            /usr/bin/python3 "$HOME/chad/bin/t3_send.py" "$T3CODE_THREAD_ID" - || true
+    fi
     exit "$code"
 }
 trap finish EXIT
