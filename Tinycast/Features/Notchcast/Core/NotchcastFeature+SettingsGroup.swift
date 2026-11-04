@@ -7,11 +7,15 @@ extension NotchcastFeature {
         case system
         case activities
         case systemTools
+        case clean
+        case tools
+        case tweaks
         case music
         case tasks
         case torrents
         case archives
         case clipboard
+        case appearance
         case finder
         case captureAndDictation
         case buildStats

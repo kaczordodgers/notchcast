@@ -74,6 +74,7 @@ enum ForkSettingsBackupSchema {
     ])
 
     static let allowed: [String: Value] = [
+        "appearance": .bool,
         "island": .bool,
         "islandExternalDisplays": .bool,
         "islandFullScreen": .bool,
@@ -158,6 +159,11 @@ enum ForkSettingsBackupSchema {
     ]
 
     static let excluded: Set<String> = [
+        "agentActions",
+        "agentCLI",
+        "treadmillWalk",
+        "treadmillHistory",
+        "katana",
         "screenText",
         "scrollingCapture",
         "dictationEnglish",
@@ -230,5 +236,30 @@ enum ForkSettingsBackupSchema {
         "notchcast.liveTimer.entries",
         "notchcast.lowDisk.isLow",
         "spacesOrderOriginal",
+        "accessoryBatteries",
+        "audioPriority",
+        "cleaningMode",
+        "appUpdates",
+        "macUpdate",
+        "cleanJunk",
+        "cleanHistory",
+        "cleanAIData",
+        "cleanDisk",
+        "cleanPurge",
+        "cleanOptimize",
+        "cleanSystem",
+        "startupItems",
+        "notificationCleanup",
+        "sudoTouchID",
+        "killProcess",
+        "macSetup",
+        "aiFeaturesOff",
+        "spotlightOff",
+        "privacyChoices",
+        "typingTweaks",
+        "finderTweaks",
+        "dockTweaks",
+        "appleAppsTweaks",
+        "iPhoneBackupTweaks",
     ]
 }

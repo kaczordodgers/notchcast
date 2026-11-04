@@ -27,16 +27,27 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case inUseMarks
     case systemMonitor
     case fanControl
+    case accessoryBatteries
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
     case volumeLevels
+    case audioPriority
     case displayBrightness
     case quitProtection
     case liveTimers
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case agentActions
+    case agentCLI
+    case treadmillWalk
+    case treadmillHistory
+    case katana
+    case appearance
+    case cleaningMode
+    case appUpdates
+    case macUpdate
     case machRemote
     case backupStatus
     case linkHealth
@@ -70,6 +81,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case batteryCalibration
     case keepAwake
     case lidClosedAwake
+    case cleanJunk
+    case cleanHistory
+    case cleanAIData
+    case cleanDisk
+    case cleanPurge
+    case cleanOptimize
+    case cleanSystem
     case settingsBackup
     case showDesktop
     case spacesOrder
@@ -81,6 +99,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case startupItems
+    case notificationCleanup
+    case sudoTouchID
+    case killProcess
+    case macSetup
+    case aiFeaturesOff
+    case spotlightOff
+    case privacyChoices
+    case typingTweaks
+    case finderTweaks
+    case dockTweaks
+    case appleAppsTweaks
+    case iPhoneBackupTweaks
     case downloads
     case downloadsAria2
     case distill
@@ -128,6 +159,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .audioPriority: .systemTools
+        case .cleaningMode: .tools
+        case .appUpdates: .tools
+        case .macUpdate: .tools
         case .tasks: .tasks
         case .githubSearch: .launcher
         case .clearNotifications: .launcher
@@ -177,6 +212,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .globeDictation: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
+        case .accessoryBatteries: .systemTools
         case .monitorAlerts: .systemTools
         case .lowDiskWarning: .system
         case .systemNotices: .system
@@ -202,6 +238,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentSessions: .activities
         case .agentPricing: .agentPricing
         case .dayMarkets: .activities
+        case .cleanJunk: .clean
+        case .cleanHistory: .clean
+        case .cleanAIData: .clean
+        case .cleanDisk: .clean
+        case .cleanPurge: .clean
+        case .cleanOptimize: .clean
+        case .cleanSystem: .clean
         case .settingsBackup: .system
         case .showDesktop: .system
         case .spacesOrder: .system
@@ -212,6 +255,25 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .agentActions: .system
+        case .agentCLI: .system
+        case .treadmillWalk: .activities
+        case .treadmillHistory: .activities
+        case .katana: .system
+        case .appearance: .appearance
+        case .startupItems: .tweaks
+        case .notificationCleanup: .tweaks
+        case .sudoTouchID: .tweaks
+        case .killProcess: .tweaks
+        case .macSetup: .tweaks
+        case .aiFeaturesOff: .tweaks
+        case .spotlightOff: .tweaks
+        case .privacyChoices: .tweaks
+        case .typingTweaks: .tweaks
+        case .finderTweaks: .tweaks
+        case .dockTweaks: .tweaks
+        case .appleAppsTweaks: .tweaks
+        case .iPhoneBackupTweaks: .tweaks
         case .downloads: .activities
         case .downloadsAria2: .activities
         case .distill: .activities
@@ -238,6 +300,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .audioPriority: String(localized: "Audio device priority")
+        case .cleaningMode: String(localized: "Cleaning mode")
+        case .appUpdates: String(localized: "App updates")
+        case .macUpdate: String(localized: "Update this Mac")
         case .tasks: String(localized: "Tasks")
         case .githubSearch: String(localized: "GitHub Search")
         case .clearNotifications: String(localized: "Clear Notifications")
@@ -272,6 +338,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .systemMonitor: String(localized: "System Monitor")
         case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
+        case .accessoryBatteries: String(localized: "Accessory batteries")
         case .lowDiskWarning: String(localized: "Low Disk Warning")
         case .systemNotices: String(localized: "System Notices")
         case .volumeLevels: String(localized: "Volume in Island")
@@ -280,6 +347,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .agentActions: String(localized: "Agent access")
+        case .agentCLI: String(localized: "Command line tool")
+        case .treadmillWalk: String(localized: "Walking Pad")
+        case .treadmillHistory: String(localized: "Walk History")
+        case .katana: String(localized: "Katana")
+        case .appearance: String(localized: "Custom appearance")
         case .agentSessions: String(localized: "Agent Session Logs")
         case .agentPricing: String(localized: "Agent API Value")
         case .pastePlain: String(localized: "Paste Plain Text")
@@ -296,6 +369,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .startupItems: String(localized: "Startup Items")
+        case .notificationCleanup: String(localized: "Notification Cleanup")
+        case .sudoTouchID: String(localized: "Touch ID for sudo")
+        case .killProcess: String(localized: "Kill Process")
+        case .macSetup: String(localized: "Mac Setup Presets")
+        case .aiFeaturesOff: String(localized: "AI Features Off")
+        case .spotlightOff: String(localized: "Spotlight Indexing Off")
+        case .privacyChoices: String(localized: "Privacy Choices")
+        case .typingTweaks: String(localized: "Typing")
+        case .finderTweaks: String(localized: "Finder")
+        case .dockTweaks: String(localized: "Dock and windows")
+        case .appleAppsTweaks: String(localized: "Apple apps")
+        case .iPhoneBackupTweaks: String(localized: "iPhone backup")
         case .machRemote: String(localized: "Remote Mac")
         case .backupStatus: String(localized: "Backup Status")
         case .linkHealth: String(localized: "Link Health")
@@ -323,6 +409,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .cleanJunk: String(localized: "Junk")
+        case .cleanHistory: String(localized: "Clean history")
+        case .cleanAIData: String(localized: "AI data")
+        case .cleanDisk: String(localized: "Disk analyzer")
+        case .cleanPurge: String(localized: "Project purge")
+        case .cleanOptimize: String(localized: "Optimize")
+        case .cleanSystem: String(localized: "System root")
         case .settingsBackup: String(localized: "Settings Backup")
         case .machineSetupProfile: String(localized: "Machine Setup Profile")
         case .agentConfirmation: String(localized: "Agent Confirmation")
@@ -348,6 +441,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .audioPriority: String(localized: "Choose devices automatically when they connect or disconnect.")
+        case .cleaningMode: String(localized: "Press Escape five times to exit; ends after 300 seconds.")
+        case .appUpdates: String(localized: "Check installed apps for updates on demand.")
+        case .macUpdate: String(localized: "Run maintenance only after confirmation.")
         case .tasks: String(localized: "Keep tasks on this Mac.")
         case .githubSearch: String(localized: "Search GitHub repositories and starred projects.")
         case .clearNotifications: String(localized: "Clear notifications from Notification Center. Requires English system language.")
@@ -381,8 +478,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherNumberKeys: String(localized: "Open the first nine search results with Command-1 through Command-9.")
         case .launcherAliasSpace: String(localized: "Press Space after an exact alias to open its command.")
         case .systemMonitor: String(localized: "Monitor system performance.")
-        case .monitorAlerts: String(localized: "Evaluate alerts while the Monitor page is open.")
+        case .monitorAlerts: String(localized: "Sample your Mac in the background while alerts are on.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
+        case .accessoryBatteries: String(localized: "Show connected accessory battery levels.")
         case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.")
         case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.")
         case .volumeLevels: String(localized: "Replaces the macOS volume overlay.")
@@ -391,6 +489,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .agentActions: String(localized: "Expose actions and read-only state to local agents.")
+        case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
+        case .treadmillWalk: String(localized: "Walking pad controls are not available yet.")
+        case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
+        case .katana: String(localized: "Katana channels, tones and USB audio.")
+        case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
         case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
         case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
@@ -407,6 +511,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .startupItems: String(localized: "Manage user LaunchAgents and inspect system items.")
+        case .notificationCleanup: String(localized: "Dismiss disk-ejection alerts automatically.")
+        case .sudoTouchID: String(localized: "Use Touch ID to authorize sudo.")
+        case .killProcess: String(localized: "Adds a command to stop a process.")
+        case .macSetup: String(localized: "Apply reversible macOS preferences.")
+        case .aiFeaturesOff: String(localized: "Choose which Apple intelligence features to disable.")
+        case .spotlightOff: String(localized: "Turn off Spotlight indexing.")
+        case .privacyChoices: String(localized: "Choose macOS privacy restrictions.")
+        case .typingTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .finderTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .dockTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .appleAppsTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .iPhoneBackupTweaks: String(localized: "Enable confirmed system preference changes.")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
         case .backupStatus: String(localized: "Warns when backups fail or become stale.")
         case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
@@ -433,6 +550,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .cleanJunk: String(localized: "Runs only when you click an action.")
+        case .cleanHistory: String(localized: "Runs only when you click an action.")
+        case .cleanAIData: String(localized: "Runs only when you click an action.")
+        case .cleanDisk: String(localized: "Runs only when you click an action.")
+        case .cleanPurge: String(localized: "Runs only when you click an action.")
+        case .cleanOptimize: String(localized: "Runs only when you click an action.")
+        case .cleanSystem: String(localized: "Runs only when you click an action.")
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
@@ -459,6 +583,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .cleaningMode: [.accessibility]
         case .screenText: [.screenRecording]
         case .scrollingCapture: [.screenRecording]
         case .dictationEnglish: [.accessibility]
@@ -483,6 +608,40 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .notificationCleanup: [.accessibility]
+        case .startupItems: []
+        case .sudoTouchID: []
+        case .killProcess: []
+        case .macSetup: []
+        case .aiFeaturesOff: []
+        case .spotlightOff: []
+        case .privacyChoices: []
+        case .island: []
+        case .islandExternalDisplays: []
+        case .islandFullScreen: []
+        case .islandHoverOpen: []
+        case .islandStatusMessages: []
+        case .islandLiveActivities: []
+        case .launcherFromIsland: []
+        case .lowDiskWarning: []
+        case .systemNotices: []
+        case .liveTimers: []
+        case .dayWeather: []
+        case .dayMarkets: []
+        case .typingTweaks: []
+        case .finderTweaks: []
+        case .dockTweaks: []
+        case .appleAppsTweaks: []
+        case .iPhoneBackupTweaks: []
+        case .systemMonitor: []
+        case .monitorAlerts: []
+        case .fanControl: []
+        case .batteryChargeLimit: []
+        case .batterySailing: []
+        case .batteryHeatProtection: []
+        case .batteryCalibration: []
+        case .keepAwake: []
+        case .lidClosedAwake: []
         case .pastePlain: [.accessibility]
         case .finderCutPaste: [.accessibility]
         case .finderRename: [.accessibility]
@@ -496,6 +655,19 @@ extension NotchcastFeature {
     /// One arm per exception; NotchcastFeature+Logic.swift excludes system features.
     var needsIslandArm: Bool {
         switch self {
+    var isWired: Bool {
+        ![Self.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices].contains(self)
+    }
+
+    static var systemToolsSettingsFeatures: [Self] {
+        [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
+         .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
+    }
+
+    /// Shows only in the island, so its switch follows the island switch in Settings.
+    var needsIsland: Bool {
+        if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
+        return switch self {
         case .tasks: false
         case .githubSearch: false
         case .clearNotifications: false
@@ -544,6 +716,11 @@ extension NotchcastFeature {
         case .agentChatTools: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .agentActions: false
+        case .agentCLI: false
+        case .treadmillWalk: false
+        case .treadmillHistory: false
+        case .appearance: false
         case .downloads: false
         case .downloadsAria2: false
         case .distill: false
@@ -574,6 +751,29 @@ extension NotchcastFeature {
     /// Default unless a system or launcher keys feature (NotchcastFeature+Logic.swift).
     var defaultEnabledArm: Bool {
         switch self {
+    var isSystemTweak: Bool {
+        switch self {
+        case .startupItems: true
+        case .notificationCleanup: true
+        case .sudoTouchID: true
+        case .killProcess: true
+        case .macSetup: true
+        case .aiFeaturesOff: true
+        case .spotlightOff: true
+        case .privacyChoices: true
+        case .typingTweaks: true
+        case .finderTweaks: true
+        case .dockTweaks: true
+        case .appleAppsTweaks: true
+        case .iPhoneBackupTweaks: true
+        default: false
+        }
+    }
+    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
+
+    var defaultEnabled: Bool {
+        if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
+        return switch self {
         case .tasks: false
         case .spotifyConnect: false
         case .archivesInPlace: false
@@ -617,6 +817,13 @@ extension NotchcastFeature {
         case .agentSessions: false
         case .agentPricing: false
         default: true
+        }
+    }
+
+    var isSystemFeature: Bool {
+        switch self {
+        case .katana: true
+        default: settingsGroup == .systemTools || settingsGroup == .tools
         }
     }
 }

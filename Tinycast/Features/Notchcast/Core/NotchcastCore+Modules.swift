@@ -1,8 +1,27 @@
+import Foundation
+
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 import Foundation
 
 extension NotchcastCore {
+    static let katana = KatanaModule()
+    static let treadmillWalk = TreadmillModule(treadmill, capability: .walk)
+    static let treadmillHistory = TreadmillModule(treadmill, capability: .history)
+    static let treadmill = TreadmillCoordinator.live()
+    static let agents = AgentBridgeModule()
+    static let agentCLI = AgentCLIModule()
+    static let systemTools = SystemToolsModule()
+    static let tweaks = TweaksModule()
+    static let typingTweaks = TweaksModule(key: "typingTweaksPlans")
+    static let finderTweaks = TweaksModule(key: "finderTweaksPlans")
+    static let dockTweaks = TweaksModule(key: "dockTweaksPlans")
+    static let appleAppsTweaks = TweaksModule(key: "appleAppsTweaksPlans")
+    static let iPhoneBackupTweaks = TweaksModule(key: "iPhoneBackupTweaksPlans")
+    static let cleaning = CleaningModeModule(engine: CleaningModeEngine(hub: eventTapHub), granted: { Permissions.isAccessibilityTrusted() })
+    static let appUpdates = AppUpdatesModule.live()
+    static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
+    static let clean = CleanModule()
     static let macLink = AIUsageLinkModule()
     static let github = GitHubModule()
     static let clearNotifications = ClearNotificationsModule()
@@ -70,6 +89,8 @@ extension NotchcastCore {
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        agents.configure(core)
+        agentCLI.configure(index: agents.index)
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
         let chatTools = AgentChatToolsModule(store: core.mcpSettings, binaryPath: binaryPath, isBinaryInstalled: { FileManager.default.isExecutableFile(atPath: binaryPath) }, onChange: { [weak core] in core?.mcpCoordinator.applyEnabled() })
         agentChatTools = chatTools
@@ -87,6 +108,24 @@ extension NotchcastCore {
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
+            .init(requires: [.katana], module: katana),
+            .init(requires: [.treadmillWalk], module: treadmillWalk),
+            .init(requires: [.treadmillHistory], module: treadmillHistory),
+            .init(requires: [.agentActions], module: agents),
+            .init(requires: [.agentActions, .agentCLI], module: agentCLI),
+            .init(requires: [.appearance], module: core.appearanceCoordinator),
+            .init(requires: [], requiresAny: [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess], module: systemTools),
+            .init(requires: [], requiresAny: [.macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices], module: tweaks),
+            .init(requires: [.typingTweaks], module: typingTweaks),
+            .init(requires: [.finderTweaks], module: finderTweaks),
+            .init(requires: [.dockTweaks], module: dockTweaks),
+            .init(requires: [.appleAppsTweaks], module: appleAppsTweaks),
+            .init(requires: [.iPhoneBackupTweaks], module: iPhoneBackupTweaks),
+            .init(requires: [.cleaningMode], module: cleaning),
+            .init(requires: [.appUpdates], module: appUpdates),
+            .init(requires: [.macUpdate], module: macUpdate),
+            .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
+            .init(requires: [.audioPriority], module: AudioPriorityModule()),
             .init(requires: [.githubSearch], module: github),
             .init(requires: [.clearNotifications], module: clearNotifications),
             .init(requires: [.launcherAnswers], module: answers),

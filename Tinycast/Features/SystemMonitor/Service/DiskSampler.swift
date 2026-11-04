@@ -8,7 +8,7 @@ nonisolated struct DiskSampler: Sendable {
 
     func read() -> [DiskVolume] {
         let keys: Set<URLResourceKey> = [.volumeNameKey, .volumeIsLocalKey,
-            .volumeTotalCapacityKey, .volumeAvailableCapacityKey]
+            .volumeTotalCapacityKey, .volumeAvailableCapacityKey, .volumeIsReadOnlyKey]
         let urls = FileManager.default.mountedVolumeURLs(
             includingResourceValuesForKeys: Array(keys), options: .skipHiddenVolumes) ?? []
         return urls.compactMap { url in
@@ -22,7 +22,8 @@ nonisolated struct DiskSampler: Sendable {
                   let available = capacity.volumeAvailableCapacity, available >= 0 else { return nil }
             return DiskVolume(name: values.volumeName ?? url.lastPathComponent,
                               mountPath: url.path, total: UInt64(total),
-                              available: UInt64(min(total, available)))
+                              available: UInt64(min(total, available)),
+                              isReadOnly: capacity.volumeIsReadOnly == true)
         }.sorted { $0.mountPath < $1.mountPath }
     }
 

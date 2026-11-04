@@ -232,7 +232,7 @@ struct NotchcastCommand: Sendable {
         precondition(defaults.bool(forKey: "notchcast.quitProtection.quitEnabled"))
         preferences.greenMaximizeExcludedApps = "com.example.app"
         preferences.fanMode = "manual"
-        preferences.batteryChargePercent = 95
+        preferences.batteryChargePercent = 90
         for feature in NotchcastFeature.allCases where ForkSettingsBackupSchema.excluded.contains(feature.rawValue) {
             preferences.set(feature, false)
         }
@@ -262,7 +262,7 @@ struct NotchcastCommand: Sendable {
         }
         try state.apply(["monitorCPU": 75])
         precondition(preferences.greenMaximizeExcludedApps == "com.example.app" && preferences.fanMode == "manual")
-        precondition(preferences.batteryChargePercent == 95)
+        precondition(preferences.batteryChargePercent == 90)
         for feature in NotchcastFeature.allCases where ForkSettingsBackupSchema.excluded.contains(feature.rawValue) {
             precondition(!preferences.isOn(feature))
         }
@@ -294,7 +294,7 @@ struct NotchcastCommand: Sendable {
         script.answer(true)
         await coordinator.settled()
         precondition(preferences.monitorCPU == 90 && reports == [true])
-        precondition(preferences.fanMode == "manual" && preferences.batteryChargePercent == 95)
+        precondition(preferences.fanMode == "manual" && preferences.batteryChargePercent == 90)
         for feature in NotchcastFeature.allCases where ForkSettingsBackupSchema.excluded.contains(feature.rawValue) {
             precondition(!preferences.isOn(feature))
         }
