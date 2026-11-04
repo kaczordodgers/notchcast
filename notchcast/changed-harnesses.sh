@@ -5,7 +5,7 @@ cd "$(git rev-parse --show-toplevel)"
 source notchcast/config.env
 export CI_SKIP_TESTS
 python3 - "$@" <<'PY'
-import glob
+import fnmatch
 import os
 from pathlib import Path
 import shlex
@@ -29,9 +29,11 @@ for path in sorted(Path('Tests').glob('*-test.swift')):
     if not headers and name.startswith('nc-'):
         folder = name.split('-')[1]
         patterns = [f'Tinycast/Features/{folder}/{part}/*.swift' for part in ('Model', 'Service')]
-    sources = {source for pattern in patterns for source in glob.glob(pattern)}
-    sources.update(pattern for pattern in patterns if not glob.has_magic(pattern))
-    if all_tests or str(path) in changed or sources & changed:
+    # Against the changed paths, not the tree: a deleted source no longer exists to glob.
+    touched = any(fnmatch.fnmatchcase(file, pattern) for pattern in patterns for file in changed)
+    if all_tests or str(path) in changed or touched:
         selected.add(name)
-print('\n'.join(sorted(selected - set(os.environ['CI_SKIP_TESTS'].split()))))
+# CI_SKIP_TESTS names what the hosted VM cannot run; a Mac runs them, and core always runs.
+skipped = set(os.environ['CI_SKIP_TESTS'].split()) if os.environ.get('GITHUB_ACTIONS') else set()
+print('\n'.join(sorted((selected - skipped) | {'notchcast-core-test'})))
 PY
