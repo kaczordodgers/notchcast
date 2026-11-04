@@ -87,6 +87,7 @@ extension NotchcastCore {
             .init(requires: [.agentChatTools], module: chatTools),
             .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
+            .init(requires: [.dictationEnglish], module: DictationEnglishModule(hub: eventTapHub, coordinator: core.dictationCoordinator)),
             .init(requires: [.scrollingCapture], module: scrollingCapture),
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),

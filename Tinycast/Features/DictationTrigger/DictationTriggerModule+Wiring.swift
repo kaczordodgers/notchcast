@@ -5,7 +5,8 @@ extension NotchcastCore {
             isRecording: { [weak core] in core?.dictationCoordinator.triggerIsRecording == true }
         ) { [weak core] action in
             switch action {
-            case .start: core?.dictationCoordinator.triggerStarted()
+            case .start:
+                core?.dictationCoordinator.triggerStarted(inEnglish: NotchcastPreferences.shared.isOn(.dictationEnglish))
             case .finish: core?.dictationCoordinator.triggerFinished()
             case .cancel: core?.dictationCoordinator.cancel()
             }
