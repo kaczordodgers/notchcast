@@ -1,6 +1,12 @@
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
+        ClearNotificationsModule.launcherCommand,
+        CopyPathModule.launcherCommand,
+        SmallCommandsModule.passwordCommand,
+        SmallCommandsModule.shortenCommand,
+        SmallCommandsModule.noiseCommand,
+        SmallCommandsModule.airDropCommand,
         TodoCommands.addFromClipboard,
         TodoCommands.completeNext,
         TodoCommands.undoLast,
@@ -68,5 +74,9 @@ extension NotchcastCommandCatalog {
         FinderToolsCoordinator.renameCommand,
         ScreenTextModule.launcherCommand,
         ScrollingCaptureModule.launcherCommand,
+        BlockedDialogModule.checkCommand,
+        ShelfModule.sendCommand,
+        TweakProfileCommands.ai,
+        TweakProfileCommands.privacy,
     ]
 }
