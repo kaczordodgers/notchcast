@@ -24,6 +24,12 @@ extension TreadmillCoordinator {
         let defaults = UserDefaults(suiteName: bundleID + ".notchcast")!
         return TreadmillCoordinator(transport: UnavailableTreadmillTransport(),
                                     history: TreadmillHistoryStore(repository: repository),
-                                    preferences: TreadmillPreferences(defaults: defaults))
+                                    preferences: TreadmillPreferences(defaults: defaults),
+                                    reminders: TreadmillReminders(enabled: {
+                                        [.treadmillHistory, .island, .islandStatusMessages]
+                                            .allSatisfy { NotchcastPreferences.shared.isOn($0) }
+                                    }, present: {
+                                        IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 8)
+                                    }))
     }
 }
