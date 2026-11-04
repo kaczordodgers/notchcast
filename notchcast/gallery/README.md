@@ -1,9 +1,11 @@
 # Offscreen gallery
 
 Run `notchcast/gallery/snap.sh [--out <empty-directory>]`. It builds a Debug app
-through `~/chad/bin/build-queue.py` when available, otherwise `xcodebuild`. Build
-products, the disposable home and helper executables stay in a unique
-`~/agents/nc-design/gallery.XXXXXX` directory. `--app <Debug.app>` or
+through the executable in `NOTCHCAST_BUILD_WRAPPER` when set, otherwise `xcodebuild`.
+The wrapper receives the build command and arguments. Incremental build products
+default to `~/Library/Caches/NotchcastGallery/DerivedData`. The disposable home and
+helpers use a temporary directory under `NOTCHCAST_GALLERY_SCRATCH_ROOT` (default
+`TMPDIR`, then `/tmp`), removed on exit except the default shots folder. `--app <Debug.app>` or
 `NOTCHCAST_GALLERY_APP` reuses a previously built gallery app.
 `NOTCHCAST_GALLERY_DERIVED_DATA` reuses an existing scratch build directory for
 the next incremental build, avoiding a second full build on a small disk.
@@ -11,7 +13,10 @@ the next incremental build, avoiding a second full build on a small disk.
 One output folder contains PNGs at 2x, matching `*-layout.json`, `manifest.txt`,
 `coverage.json`, `inventory.json`, `inventory.md`, `run.log` and `layout-check.log`.
 The manifest is written before rendering. Missing PNGs or layout files, capture
-errors and offscreen-check failures make the command fail. Layout findings are
+errors and offscreen-check failures make the command fail. `check-pixels.swift`
+also rejects nearly transparent or uniform PNGs, naming each failed page. It samples
+alpha coverage against the measured surface and quantized colour diversity across
+the canvas; this is a blank-output guard, not a visual correctness test. Layout findings are
 reported independently: `python3 notchcast/gallery/check-layout.py <out>` exits
 nonzero for findings. They do not modify the product or suppress successful captures.
 
@@ -39,12 +44,25 @@ shipped switch. A listed view does not imply every possible state is covered.
 `CFFIXED_USER_HOME` and `HOME` must point to the same marked disposable home.
 The early Debug launch hook bypasses normal startup, menu extras, onboarding,
 hotkeys and module startup. The runner additionally denies network access,
-Keychain service access and reads/writes under the real home except scratch and
+Keychain service access (`com.apple.SecurityServer` and `com.apple.securityd.xpc`)
+and reads/writes under the real home except scratch and
 the supplied app. It never launches the installed copy, orders a window or
 activates an app. The independent WindowServer/process monitor checks the run
-and descendants for visible windows and focus changes. It cannot observe a
+and descendants for visible windows and focus changes. Ownership follows PID ancestry,
+owned sessions and the responsible PID. A LaunchServices launch (relaunch, URL open) is its
+own responsible process, so any copy of the gallery bundle or of the installed
+`app.notchcast` started during the run also counts as the run's. The standalone
+DEBUG monitor uses macOS's exported responsibility query; it is not linked into the app.
+Other apps taking focus are logged as notes, even when launched during capture.
+It cannot observe a
 window shorter than its 100 ms sample interval; absence of WindowServer is an
 error, never a pass. No sleep-prevention or user-activity assertion is made.
+
+The gallery harness compiles a generic-password query probe and launches it through
+the same `isolate.py` profile. It requires service-denial status (`errSecParam` or
+`errSecNotAvailable`); success and `errSecItemNotFound` fail the harness. The probe
+queries a random, nonexistent service and never writes a Keychain item. This checks
+generic-password query isolation, not every Security framework operation.
 
 Layout coordinates are AppKit bottom-left points within the canvas. The JSON
 records raw accessibility frames and roles/labels, the silhouette bounding
