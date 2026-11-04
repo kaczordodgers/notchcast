@@ -8,12 +8,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    # A generated-only push is tested at the next kick, as it was when GITHUB_TOKEN pushed it.
-    paths-ignore:
-      - Tinycast.xcodeproj/project.pbxproj
-      - Tinycast/Resources/RaycastRuntime.generated.js
-      - README.md
-      - README.upstream.md
 
 permissions:
   contents: read

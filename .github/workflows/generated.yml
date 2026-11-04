@@ -20,7 +20,6 @@ jobs:
   regenerate:
     runs-on: macos-15
     timeout-minutes: 15
-    environment: sync
     steps:
       - uses: actions/checkout@v7
         with:
@@ -30,11 +29,6 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      # The deploy key, not GITHUB_TOKEN: the main ruleset exempts deploy keys only (a user-owned repo cannot exempt
-      # the GitHub Actions app), so this push to main still lands without a PR.
-      - uses: ./notchcast/actions/deploy-key
-        with:
-          key: ${{ secrets.DEPLOY_KEY }}
       - name: Regenerate and push, retrying if main moved
         shell: bash
         run: |
@@ -52,11 +46,8 @@ jobs:
           PY
             git diff --cached --quiet && exit 0
             git commit -m 'Notchcast: generated files'
-            if git push "git@github.com:$GITHUB_REPOSITORY.git" HEAD:main; then exit 0; fi
+            if git push origin HEAD:main; then exit 0; fi
             git reset --hard HEAD^
           done
           echo 'main kept moving; regeneration will retry on the next source push' >&2
           exit 1
-      - name: Remove the deploy key
-        if: always()
-        run: rm -f "$RUNNER_TEMP/deploy-key"
