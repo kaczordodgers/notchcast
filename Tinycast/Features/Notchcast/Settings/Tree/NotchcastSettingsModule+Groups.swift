@@ -174,6 +174,7 @@ extension NotchcastSettingsModule {
                 .feature(.screenshot, settings: [.captureScreenshotDestination]),
                 .feature(.scrollingCapture, settings: []),
                 .feature(.screenText, settings: [.captureScreenTextLineBreaks]),
+                .feature(.captureEditor, settings: []),
             ]),
             // ai-design-check-ignore-next-line sentence-case -- Matches the feature row title.
             .init(title: "Color Picker", items: [

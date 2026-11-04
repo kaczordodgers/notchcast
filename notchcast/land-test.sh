@@ -1,9 +1,29 @@
 #!/bin/bash
 set -euo pipefail
 root=$(git rev-parse --show-toplevel)
-mkdir -p "$HOME/agents/nc-ci-guard/land-test"
-scratch=$(mktemp -d "$HOME/agents/nc-ci-guard/land-test/run.XXXXXX")
+mkdir -p "$HOME/agents/nc-local-ci"
+scratch=$(mktemp -d "$HOME/agents/nc-local-ci/land-test.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT
+source "$root/notchcast/local-build-status.sh"
+gh() { jq -s "${@: -1}" "$status_fixture"; }
+status_fixture="$scratch/status"
+printf '%s\n' '{"id":1,"context":"build/local","creator":{"login":"kaczordodgers"},"url":"https://api.github.com/repos/kaczordodgers/notchcast/statuses/head","state":"success"}' > "$status_fixture"
+local_build_green head
+echo 'PASS: local success accepted'
+if local_build_green other; then exit 1; fi
+echo 'PASS: different sha refused'
+printf '%s\n' '{"id":2,"context":"build/local","creator":{"login":"kaczordodgers"},"url":"https://api.github.com/repos/kaczordodgers/notchcast/statuses/head","state":"failure"}' >> "$status_fixture"
+if local_build_green head; then exit 1; fi
+echo 'PASS: local failure refused'
+printf '%s\n' '{"id":1,"context":"build/local","url":"https://api.github.com/repos/kaczordodgers/notchcast/statuses/head","state":"success","creator":{"login":"other"}}' > "$status_fixture"
+if local_build_green head; then exit 1; fi
+echo 'PASS: other creator refused'
+rm "$status_fixture"
+unset -f gh
+if [ "${1:-}" = --statuses ]; then
+    echo 'PASS: local build status fixtures'
+    exit 0
+fi
 git clone --quiet --no-hardlinks "$root" "$scratch/repo"
 cd "$scratch/repo"
 git config user.name Damian
@@ -23,8 +43,13 @@ for name, value in values.items():
     assert count == 1, name
 s = s.replace('        return switch self {\n', '        return switch self {\n        case .landingFixture: false\n')
 p.write_text(s)
+import json
+p = Path('notchcast/switch-paths.json')
+paths = json.loads(p.read_text())
+paths['landingFixture'] = 'Synthetic feature used only by the merged-tree landing test.'
+p.write_text(json.dumps(paths, indent=2) + '\n')
 PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-paths.json
 git commit --quiet -m 'Fixture: add enum case'
 a=$(git rev-parse HEAD)
 "$root/notchcast/changed-harnesses.sh" "$base" "$a" > "$scratch/selected"
