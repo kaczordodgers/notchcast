@@ -25,14 +25,6 @@ enum AgentDeviceActions {
             try index.register(.init(action: action, isAvailable: { backend.isAvailable }, run: { parameters in
                 try Task.checkCancellation()
                 guard backend.isAvailable else { throw AgentReply.Code.failed }
-                if device == .katana, case .object(let fields) = parameters,
-                   case .number(let channel)? = fields["channel"], ![0, 1, 2, 5, 6].contains(channel) {
-                    throw AgentReply.Code.badRequest
-                }
-                if operation == "tone", case .object(let fields) = parameters,
-                   case .string(let toneID)? = fields["toneID"], toneID.isEmpty {
-                    throw AgentReply.Code.badRequest
-                }
                 return try await backend.perform(operation, parameters: parameters)
             }))
         }
@@ -47,10 +39,12 @@ enum AgentDeviceActions {
         case (.treadmill, "speed"):
             .init(properties: ["speed": .init(kind: .number, minimum: 1, maximum: 6)], required: ["speed"])
         case (.katana, "channel"):
-            .init(properties: ["channel": .init(kind: .integer, minimum: 0, maximum: 6)], required: ["channel"])
+            .init(properties: ["channel": .init(kind: .integer,
+                allowedValues: [0, 1, 2, 5, 6].map { .number(Double($0)) })], required: ["channel"])
         case (.katana, "tone"):
-            .init(properties: ["toneID": .init(kind: .string),
-                               "channel": .init(kind: .integer, minimum: 0, maximum: 6)],
+            .init(properties: ["toneID": .init(kind: .string, minimumLength: 1),
+                               "channel": .init(kind: .integer,
+                                allowedValues: [0, 1, 2, 5, 6].map { .number(Double($0)) })],
                   required: ["toneID", "channel"])
         default: .init()
         }

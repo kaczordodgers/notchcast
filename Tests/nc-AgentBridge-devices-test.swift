@@ -60,11 +60,23 @@ struct AgentDeviceTests {
             let reply = await index.handle(.init(verb: .run, id: "device.treadmill.speed", parameters: parameters))
             precondition(reply.code == .badRequest)
         }
-        for channel in [3.0, 4.0, 7.0, 1.5] {
-            let reply = await index.handle(.init(verb: .run, id: "device.katana.channel",
-                                                parameters: .object(["channel": .number(channel)])))
-            precondition(reply.code == .badRequest && katana.calls.isEmpty)
+        var consentCalls = 0
+        index.authorize = { _, _ in consentCalls += 1; return true }
+        for dryRun in [false, true] {
+            for channel in [3.0, 4.0, 7.0, 1.5] {
+                for operation in ["channel", "tone"] {
+                    var fields: [String: AgentJSON] = ["channel": .number(channel)]
+                    if operation == "tone" { fields["toneID"] = .string("fixture") }
+                    let reply = await index.handle(.init(verb: .run, id: "device.katana.\(operation)",
+                        parameters: .object(fields), dryRun: dryRun))
+                    precondition(reply.code == .badRequest && katana.calls.isEmpty)
+                }
+            }
+            let emptyTone = await index.handle(.init(verb: .run, id: "device.katana.tone",
+                parameters: .object(["toneID": .string(""), "channel": .number(1)]), dryRun: dryRun))
+            precondition(emptyTone.code == .badRequest && katana.calls.isEmpty)
         }
+        precondition(consentCalls == 0)
         let tone = AgentRequest(verb: .run, id: "device.katana.tone",
                                 parameters: .object(["toneID": .string("fixture"), "channel": .number(1)]))
         let written = await index.handle(tone)

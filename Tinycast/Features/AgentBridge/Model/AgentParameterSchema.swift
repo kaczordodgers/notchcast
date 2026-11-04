@@ -6,10 +6,14 @@ struct AgentParameterSchema: Sendable {
         let kind: Kind
         var minimum: Double?
         var maximum: Double?
+        var allowedValues: [AgentJSON]?
+        var minimumLength: Int?
 
         func accepts(_ value: AgentJSON) -> Bool {
-            switch (kind, value) {
-            case (.string, .string), (.boolean, .bool): true
+            guard allowedValues.map({ $0.contains(value) }) ?? true else { return false }
+            return switch (kind, value) {
+            case (.string, .string(let text)): minimumLength.map { text.count >= $0 } ?? true
+            case (.boolean, .bool): true
             case (.number, .number(let number)), (.integer, .number(let number)):
                 number.isFinite && (kind != .integer || number.rounded() == number)
                     && (minimum.map { number >= $0 } ?? true)
@@ -22,6 +26,8 @@ struct AgentParameterSchema: Sendable {
             var fields: [String: AgentJSON] = ["type": .string(kind.rawValue)]
             if let minimum { fields["minimum"] = .number(minimum) }
             if let maximum { fields["maximum"] = .number(maximum) }
+            if let allowedValues { fields["enum"] = .array(allowedValues) }
+            if let minimumLength { fields["minLength"] = .number(Double(minimumLength)) }
             return .object(fields)
         }
     }
