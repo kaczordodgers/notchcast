@@ -8,6 +8,7 @@
 // notchcast-sources: Tinycast/Features/Launcher/Model/SearchRelevance.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
 import Foundation
+import UniformTypeIdentifiers
 
 @main
 struct ArchiveRoutingTests {
@@ -29,7 +30,11 @@ struct ArchiveRoutingTests {
             let tags = imported["UTTypeTagSpecification"] as? [String: Any]
             extensions += tags?["public.filename-extension"] as? [String] ?? []
         }
-        precondition(Set(["7z", "rar", "tgz", "tar.gz", "001"]).isSubset(of: Set(extensions)))
+        precondition(Set(["7z", "rar", "tgz", "001"]).isSubset(of: Set(extensions)))
+        precondition(!extensions.contains("tar.gz"))
+        let gzip = UTType(filenameExtension: "gz")!
+        precondition(gzip.identifier == "org.gnu.gnu-zip-archive")
+        precondition(identifiers.contains(gzip.identifier))
         precondition(!extensions.contains("gz"))
         let core = try String(contentsOf: root.appending(path: "Tinycast/App/AppCore.swift"), encoding: .utf8)
         let route = core.components(separatedBy: "func handleOpenURL(_ url: URL)")[1]
@@ -71,7 +76,7 @@ struct ArchiveRoutingTests {
             .passwordRequired, .damagedArchive, .existingProgress, .toolFailed(4), .filesystem("fixture")
         ]
         precondition(failures.allSatisfy { !$0.message.isEmpty })
-        print("PASS: archive document types, alternate rank, tar.gz/split tags, no plain gz claim")
+        print("PASS: archive document types, alternate rank, gzip UTI probe, split tags, plain gz routing refusal")
         print("PASS: deferred open-file hook, quit hook, one settings section, search targets, job/failure presentation")
     }
 }

@@ -49,6 +49,9 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             if plan.mode == .keepArchive {
                 try cleanupKeepProgress(archive, staging: staging)
                 try ArchiveFiles.removeStaging(staging)
+            } else if !ArchiveFiles.exists(URL(fileURLWithPath: archive.path + ".hatchzip")),
+                      ArchiveFiles.exists(archive), (try? ArchiveFiles.bytes(staging)) == 0 {
+                try ArchiveFiles.removeStaging(staging)
             }
             throw error
         }
@@ -66,6 +69,11 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         let manager = FileManager.default
         let parent = archive.deletingLastPathComponent()
         if let journal = try ArchiveJournal.read(archive) {
+            if journal.mode == .keepArchive, ArchiveFiles.exists(archive) {
+                try cleanupKeepProgress(archive, staging: journal.recovery.staging)
+                try ArchiveFiles.removeStaging(journal.recovery.staging)
+                return try await plan(archive, tool: tool, requested: requested, previous: nil)
+            }
             guard requested == .inPlace else { throw ArchiveFailure.existingProgress }
             var recovery = journal.recovery
             if let previous, previous.staging.path == recovery.staging.path { recovery = previous }
@@ -80,12 +88,19 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             throw ArchiveFailure.unsafePath(archive.lastPathComponent)
         }
         let listingResult = try await ArchiveProcess.run(tool: tool, arguments: ["list", archive.path], captureListing: true)
+        if listingResult.status == 1 { throw ArchiveFailure.unsafePath(archive.lastPathComponent) }
         try ArchiveProcess.validate(listingResult.status)
         guard let listing = listingResult.listing, let total = listing.totalBytes else { throw ArchiveFailure.invalidListing }
         try ArchiveRules.validate(listing, archiveBytes: ArchiveFiles.attributes(archive).st_size)
         var effective = requested
         var fallback: ArchiveJob.Fallback?
-        if requested == .inPlace {
+        if requested == .inPlace,
+           listing.entries.isEmpty || listing.entries.contains(where: \.isSymlink)
+            || !ArchiveFiles.supportsExclusiveRename(parent) {
+            effective = .keepArchive
+            fallback = .inPlaceCheckRefused(1)
+        }
+        if effective == .inPlace {
             let check = try await ArchiveProcess.run(
                 tool: tool, arguments: ["check", "--keep-free", "2GB", "-o", parent.path, archive.path])
             if check.status != 0 {
@@ -112,7 +127,14 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
 
     private func finishInPlace(_ recovery: ArchiveJob.Recovery, archive: URL) async throws -> URL {
         // Released archive bytes make publication a critical section even after cancellation.
-        try await Task.detached { try finish(recovery, archive: archive) }.value
+        try await Task.detached {
+            do { return try finish(recovery, archive: archive) } catch {
+                let recoveredArchive = archive.deletingLastPathComponent()
+                    .appending(path: "\(ArchiveFormat.baseName(archive)) (recovered).zip")
+                return try ArchiveFiles.publish(recovery.staging, staging: recovery.staging,
+                                                archive: recoveredArchive)
+            }
+        }.value
     }
 
     private func finish(_ recovery: ArchiveJob.Recovery, archive: URL) throws -> URL {

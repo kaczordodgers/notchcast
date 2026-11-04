@@ -11,10 +11,32 @@ struct ArchivesEngineTest {
     }
 
     @MainActor static func main() async throws {
-        let root = FileManager.default.temporaryDirectory.appending(path: "archives-engine-\(UUID().uuidString)")
+        let scratch = ProcessInfo.processInfo.environment["ARCHIVES_TEST_ROOT"]
+            .map { URL(fileURLWithPath: $0) } ?? FileManager.default.temporaryDirectory
+        let root = scratch.appending(path: "archives-engine-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? ArchiveFiles.removeStaging(root) }
         try rules()
+        let fallbackStage = root.appending(path: "fallback-stage")
+        try FileManager.default.createDirectory(at: fallbackStage, withIntermediateDirectories: false,
+                                               attributes: [.posixPermissions: 0o700])
+        try Data("safe".utf8).write(to: fallbackStage.appending(path: "payload"))
+        let fallbackOutput = try ArchiveFiles.publish(fallbackStage, staging: fallbackStage,
+            archive: root.appending(path: "fallback.zip"), exclusiveRename: { _, _ in errno = ENOTSUP; return -1 })
+        expect(try Data(contentsOf: fallbackOutput.appending(path: "payload")) == Data("safe".utf8), "ENOTSUP publishes content")
+        expect(!fallbackOutput.path.contains("/.notchcast-"), "fallback is visible")
+        print("PASS: ENOTSUP exclusive publication preserves visible content")
+        let realParent = root.appending(path: "real-parent")
+        let aliasParent = root.appending(path: "alias-parent")
+        let linkedStage = realParent.appending(path: "stage/Folder")
+        try FileManager.default.createDirectory(at: linkedStage, withIntermediateDirectories: true)
+        try Data("linked".utf8).write(to: linkedStage.appending(path: "file"))
+        try FileManager.default.createSymbolicLink(atPath: linkedStage.appending(path: "link").path,
+                                                 withDestinationPath: "file")
+        try FileManager.default.createSymbolicLink(atPath: aliasParent.path, withDestinationPath: realParent.path)
+        let prepared = try ArchiveFiles.prepare(aliasParent.appending(path: "stage"), quarantine: nil)
+        expect(prepared.lastPathComponent == "Folder", "symlinked parent uses resolved boundary")
+        print("PASS: safe relative symlink under symlinked parent")
         try await fakeTool(root)
         if let tool = ArchiveToolLocator().locate() {
             try await realTool(root, tool: tool)
@@ -65,6 +87,8 @@ struct ArchivesEngineTest {
             try ArchiveRules.validate(listing([("huge", false)], total: "5.1 GB"), archiveBytes: 1)
         }
         try ArchiveRules.validate(listing([("huge", false)], total: "5 GB"), archiveBytes: 1)
+        let comma = try listing([("file, 1 B uncompressed, tail", false)])
+        expect(comma.entries.first?.path == "file, 1 B uncompressed, tail", "comma filename parsed")
         var excessive = ArchiveListing()
         refuses(.tooManyEntries) {
             for _ in 0...100_000 { try excessive.feed(Data("       1 B  x\n".utf8)) }
@@ -175,6 +199,16 @@ struct ArchivesEngineTest {
         try await wait(missing)
         expect(missing.jobs[0].failure == .toolMissing, "missing tool typed")
         try await inPlace(root, tool: tool)
+        let staleArchive = root.appending(path: "stale.zip")
+        try Data("archive".utf8).write(to: staleArchive)
+        let staleStage = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: staleStage, withIntermediateDirectories: false)
+        let staleJournal: [String: Any] = ["keep": true, "output": staleStage.path,
+                                         "total_size": 4, "parts": [[staleArchive.path, 7]]]
+        try JSONSerialization.data(withJSONObject: staleJournal).write(to: URL(fileURLWithPath: staleArchive.path + ".hatchzip"))
+        let restarted = try await ArchiveExtractionRunner(locator: Locator(tool: tool)).extract(staleArchive)
+        expect(ArchiveFiles.exists(restarted) && !ArchiveFiles.exists(staleStage), "stale keep job restarts")
+        print("PASS: stale keep journal cleaned and archive reopened")
     }
 
     @MainActor static func inPlace(_ root: URL, tool: URL) async throws {
@@ -226,15 +260,13 @@ struct ArchivesEngineTest {
         expect(ArchiveFiles.exists(published), "late cancellation still publishes consumed archive")
         let failed = root.appending(path: "post-fail.zip")
         try Data("archive".utf8).write(to: failed)
-        let failedID = queue.enqueue(failed, mode: .inPlace)
+        queue.enqueue(failed, mode: .inPlace)
         try await wait(queue)
-        guard let pending = queue.jobs.last?.recovery else { fatalError("publication recovery missing") }
-        expect(pending.readyToPublish && queue.jobs.last?.state == .failed, "publication failure retains recovery")
-        try FileManager.default.removeItem(at: pending.staging.appending(path: "result/bad"))
-        queue.retry(failedID)
-        try await wait(queue)
-        expect(queue.jobs.last?.state == .finished, "retry publishes completed extraction without source archive")
-        print("PASS: in-place cancellation/resume, keep fallback, late cancellation, publication retry")
+        guard let recovered = queue.jobs.last?.output else { fatalError("visible recovery missing") }
+        expect(queue.jobs.last?.state == .finished && ArchiveFiles.exists(recovered), "consumed archive recovered visibly")
+        expect(!recovered.lastPathComponent.hasPrefix("."), "recovered folder is visible")
+        expect(try ArchiveFiles.attributes(recovered).st_mode & 0o777 == 0o755, "normal staging permissions")
+        print("PASS: in-place cancellation/resume, keep fallback, late cancellation, visible recovery")
     }
 
     @MainActor static func realTool(_ root: URL, tool: URL) async throws {
@@ -302,9 +334,10 @@ struct ArchivesEngineTest {
         try await realResume(root, runner: runner, tool: tool)
         for name in ["unsafe.zip", "collision.zip", "badlink.zip"] {
             do {
-                _ = try await runner.extract(root.appending(path: name))
+                _ = try await runner.extract(root.appending(path: name), mode: .inPlace)
                 fatalError("unsafe extraction succeeded")
             } catch is ArchiveFailure {}
+            expect(ArchiveFiles.exists(root.appending(path: name)), "unsafe in-place source preserved")
         }
         expect(!ArchiveFiles.exists(root.appending(path: "escaped.txt")), "no path escape")
     }
