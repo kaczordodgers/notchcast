@@ -1,6 +1,7 @@
 import Foundation
 import ObjectiveC
 import IOKit.ps
+import Synchronization
 
 enum NativeChargeLimit {
     static func parse(_ output: String) throws -> Int? {
@@ -62,10 +63,15 @@ enum NativeChargeLimit {
             throw FanSMC.Failure.refused
         }
         guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
-              let source = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue(),
-              source as String == kIOPMACPowerKey else { throw FanSMC.Failure.refused }
-        let ui = limit == nil ? nil : try PowerUI()
+              let source = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() else {
+            throw FanSMC.Failure.refused
+        }
+        let ui = limit == nil || source as String != kIOPMACPowerKey ? nil : try PowerUI()
         if let ui, !ui.supported { throw FanSMC.Failure.refused }
+        let enabled = try ui.map { ui in
+            guard let enabled = ui.invoke("isMCLCurrentlyEnabled:") else { throw FanSMC.Failure.refused }
+            return enabled
+        }
         let domain = "com.apple.smartcharging.topoffprotection" as CFString
         let user = kCFPreferencesCurrentUser
         let host = kCFPreferencesCurrentHost
@@ -76,32 +82,54 @@ enum NativeChargeLimit {
             CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
                 CFNotificationName("com.apple.smartcharging.defaultschanged" as CFString), nil, nil, true)
         }
-        do {
+        try apply(write: {
             CFPreferencesSetValue(keys[0], limit.map { $0 as CFNumber }, domain, user, host)
             CFPreferencesSetValue(keys[1], limit.map { _ in 1 as CFNumber }, domain, user, host)
             try notify()
-            if let ui {
-                guard let enabled = ui.invoke("isMCLCurrentlyEnabled:") else {
-                    throw FanSMC.Failure.refused
-                }
-                if !enabled {
-                    guard ui.invoke("enableMCL:") == true else { throw FanSMC.Failure.refused }
-                    try notify()
-                }
+            for (key, expected) in zip(keys, [limit, limit.map { _ in 1 }]) {
+                let actual = CFPreferencesCopyValue(key, domain, user, host)
+                if let expected {
+                    guard let number = actual as? NSNumber, number == NSNumber(value: expected) else {
+                        throw FanSMC.Failure.refused
+                    }
+                } else if actual != nil { throw FanSMC.Failure.refused }
             }
-            guard try read() == limit.map({ "\($0)\n" }) ?? "off\n" else {
-                throw FanSMC.Failure.refused
+        }, enable: {
+            if let ui, enabled == false {
+                guard ui.invoke("enableMCL:") == true else { throw FanSMC.Failure.refused }
             }
-        } catch {
+        }, restore: {
             for (key, value) in zip(keys, prior) {
                 CFPreferencesSetValue(key, value, domain, user, host)
             }
             try notify()
+        })
+    }
+
+    static func apply(write: () throws -> Void, enable: () throws -> Void,
+                      restore: () throws -> Void) throws {
+        do {
+            try write()
+            try enable()
+        } catch {
+            try restore()
             throw error
         }
     }
 
-    private final class PowerUI {
+    static func bounded(timeout: DispatchTimeInterval = .seconds(4),
+                        _ operation: @escaping @Sendable () -> Bool?) -> Bool? {
+        let result = Mutex<Bool?>(nil)
+        let finished = DispatchSemaphore(value: 0)
+        DispatchQueue.global().async {
+            result.withLock { $0 = operation() }
+            finished.signal()
+        }
+        guard finished.wait(timeout: .now() + timeout) == .success else { return nil }
+        return result.withLock { $0 }
+    }
+
+    private final class PowerUI: @unchecked Sendable {
         private let client: AnyObject
 
         init() throws {
@@ -121,6 +149,10 @@ enum NativeChargeLimit {
         }
 
         func invoke(_ name: String) -> Bool? {
+            NativeChargeLimit.bounded { self.invokeSynchronously(name) }
+        }
+
+        private func invokeSynchronously(_ name: String) -> Bool? {
             let selector = NSSelectorFromString(name)
             guard let method = class_getInstanceMethod(type(of: client), selector) else { return nil }
             typealias Query = @convention(c)

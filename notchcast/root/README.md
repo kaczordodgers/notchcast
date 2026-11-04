@@ -4,11 +4,15 @@
 `mclLimitValue` and `MCLFeatureState = 1` in `com.apple.smartcharging.topoffprotection`
 for root/current host, after pinning `HOME=/var/root` and removing `CFFIXED_USER_HOME`. They synchronize and post the Darwin notification
 `com.apple.smartcharging.defaultschanged`; on AC, when MCL is disabled, they call PowerUI's
-`enableMCL:` and notify again. `charge-limit-off` deletes both keys, synchronizes and notifies.
-All five require root and AC power, take no arguments and return `ok\n` only after a matching `pmset -g battlimit` read-back, with the change timeout. On battery they fail before writing because immediate application cannot be confirmed. Failures restore both prior preference values and synchronize and notify again; this does not guarantee reversal of an already applied hardware change.
+`enableMCL:` as the final step. `charge-limit-off` deletes both keys, synchronizes and notifies.
+All five require root, take no arguments and return `ok\n` after confirming the preferences.
+Adoption follows asynchronously; change verbs never invoke `pmset`. On battery they skip PowerUI;
+the policy is adopted at the next plug-in. PowerUI queries and enablement each have a four-second
+deadline, below the client's twelve-second timeout. Failures restore both prior preference values,
+synchronize and notify again. There is no fallible step after successful enablement.
 `charge-limit-read` needs no root and parses `/usr/bin/pmset -g battlimit`, returning a percentage
 or `off`, followed by a newline, with the read timeout. Malformed or conflicting limits fail.
-The harness checks a fixed duplicate-entry output fixture and unprivileged write refusal.
+The harness checks fixed parser fixtures, transaction ordering and a simulated enablement timeout.
 No privileged operation is exercised by these tests.
 
 The MCL preferences and PowerUI mechanism is ported from Damian Tools' BatteryHelper,
@@ -23,12 +27,12 @@ non-regular or non-root-owned local files. Writes use a temporary file in `/etc/
 root:wheel ownership, mode 0444, fsync and atomic rename. These four argument-free change verbs
 require root (exit 77 otherwise) and return `ok` on success. Spotlight uses a 60-second timeout;
 Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never written.
-The harness verifies their unprivileged refusal and pure PAM transforms without changing the system.
+The harness verifies pure PAM transforms without changing the system.
 
 The fixed program and app client share twenty-five argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
 ` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and operation failures exit 70, always without output. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
 
-`standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings and unprivileged refusal without invoking pmset.
+`standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings without invoking pmset.
 
 On the inspected MacBook Pro, `pmset -g cap` and `pmset -g custom` omit `autopoweroff`. The installed pmset binary still names the setting and its manual describes it for supported platforms, so the verbs remain available; their hardware effect on this Mac is unverified.
 
@@ -60,7 +64,7 @@ Read operations time out after 3 seconds; Spotlight changes after 60 seconds; ot
 The `notchcast-root-client-test` harness covers parsing, replies, unsafe paths, permission policy,
 timeout selection, process reaping and cancellation. Its processes are ordinary `/bin/sleep`
 fixtures; it never invokes sudo or installs anything.
-It also compiles the helper sources in a temporary directory and checks the executable's replies and exits.
+It also compiles the helper sources in a temporary directory, without launching the helper.
 
 ## Battery operations
 
@@ -89,4 +93,4 @@ Actual privileged operations require separate hardware validation.
 
 All manual-mode retries share one five-second window. Any manual-operation failure attempts the complete Auto sequence before reporting failure. A failed key-info call is an error, not evidence that `Ftst` is absent. Numeric encodings follow the key's reported type (`flt ` little-endian, `fpe2` and unsigned integers big-endian); invalid sizes, unsupported types and overflow are rejected.
 
-The harness compiles the shipped fan implementation with an in-memory SMC fixture to check targets, encoding bytes, retry timing, write order and failure recovery. Executable fan verbs run only without root and must fail before opening SMC. Live hardware verification and app lifecycle wiring are separate work.
+The harness compiles the shipped fan implementation with an in-memory SMC fixture to check targets, encoding bytes, retry timing, write order and failure recovery. Live hardware verification and app lifecycle wiring are separate work.
