@@ -41,6 +41,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
         .init(.notchcastLauncher, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(.notchcastLauncher, "Quick Look on Space", keywords: ["file", "preview", "markdown"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
         .init(.notchcastFanMode, "Fan mode"),

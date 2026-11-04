@@ -7,6 +7,7 @@ enum NotchcastCore {
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
+    static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
@@ -36,6 +37,7 @@ enum NotchcastCore {
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
             .init(requires: [.quitProtection], module: quitProtectionModule),
+            .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
