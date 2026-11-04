@@ -18,6 +18,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case machLink
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case machMBPFans
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -34,6 +35,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake, .machLink: .system
         case .liveTimers, .dayWeather, .dayMarkets, .aiUsage, .aiUsageOtherMac: .activities
+        case .machMBPFans: .system
         }
     }
 
@@ -66,6 +68,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .machMBPFans: String(localized: "Other Mac Fans")
         }
     }
 
@@ -98,6 +101,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .machMBPFans: String(localized: "Control fans on the paired Mac.")
         }
     }
 
@@ -105,6 +109,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .machMBPFans: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
@@ -121,6 +126,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink].contains(self)
             && !isSystemFeature
+            && self != .machMBPFans
     }
 
     var isSystemFeature: Bool {

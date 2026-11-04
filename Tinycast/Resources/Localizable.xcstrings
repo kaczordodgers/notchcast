@@ -1,6 +1,110 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+"Other Mac Fans" : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Lüfter des anderen Mac"
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Ventiladores del otro Mac"
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Ventilateurs de l’autre Mac"
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "もう一方のMacのファン"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "다른 Mac 팬"
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Ventoinhas do outro Mac"
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Вентиляторы другого Mac"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "另一台 Mac 的风扇"
+      }
+    }
+  }
+},
+"Control fans on the paired Mac." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Lüfter auf dem gekoppelten Mac steuern."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Controla los ventiladores del Mac enlazado."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Contrôler les ventilateurs du Mac jumelé."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "ペアリングしたMacのファンを制御します。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "페어링된 Mac의 팬을 제어합니다."
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Controle as ventoinhas do Mac emparelhado."
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Управление вентиляторами сопряжённого Mac."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "控制已配对 Mac 的风扇。"
+      }
+    }
+  }
+},
     "Monitor Alerts": {
       "localizations": {
         "de": {
