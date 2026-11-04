@@ -16,6 +16,7 @@ struct NotchcastSettingsView: View {
 
             featureSection(.notchcastOptions, group: .islandOptions)
             featureSection(.notchcastLauncher, group: .launcher)
+            LauncherToolsSettingsSection()
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
@@ -24,8 +25,6 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastActivities, group: .activities)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
-            LauncherToolsSettingsSection()
-
             AIUsageSettingsSection(link: NotchcastCore.macLink)
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
