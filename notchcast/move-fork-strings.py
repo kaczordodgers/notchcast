@@ -76,11 +76,14 @@ def rewrite(source, keys):
     static = {json.dumps(key.replace('%%', '%'), ensure_ascii=False) for key in keys}
     dynamic = [key for key in keys if '%' in key]
     for start, end, literal in literals(source):
-        if literal not in static and not ('\\(' in literal and any(
-                REFERENCED(key, literal) for key in dynamic)):
+        candidates = keys if literal.startswith('"""') else dynamic
+        if literal not in static and not (('\\(' in literal or literal.startswith('"""')) and any(
+                REFERENCED(key, literal) for key in candidates)):
             continue
         before = source[:start]
         after = source[end:]
+        if re.search(r'\btable(?:Name)?:\s*$', before):
+            continue
         if re.match(r'\s*,\s*table(?:Name)?:\s*"Notchcast"', after):
             continue
         if re.search(r'(?:String\(localized:|LocalizedStringResource\()\s*$', before):
