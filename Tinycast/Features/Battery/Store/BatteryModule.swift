@@ -91,7 +91,7 @@ final class BatteryModule: NotchcastModule {
             do {
                 let version = try await self.runner.version()
                 try Task.checkCancellation()
-                self.needsHelperUpdate = (Int(version) ?? 0) < 2
+                self.needsHelperUpdate = (Int(version) ?? 0) < 3
                 if self.running { self.schedule() }
             } catch {
                 if !Task.isCancelled { self.failure = error }
@@ -182,6 +182,7 @@ final class BatteryModule: NotchcastModule {
             rootChanged = enabled || on(.lidClosedAwake)
             failure = nil
         } catch {
+            if error as? RootHelperClient.Failure == .reinstallRequired { needsHelperUpdate = true }
             failure = error
         }
     }
