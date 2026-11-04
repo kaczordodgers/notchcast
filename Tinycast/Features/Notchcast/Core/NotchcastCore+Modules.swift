@@ -27,6 +27,8 @@ extension NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackup = ForkSettingsBackupModule()
+    static let settingsBackupRestore = ForkSettingsBackupCoordinator()
+    static let eventReminder = EventReminderModule(store: AppCore.shared.calendarStore)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
     static let dictationCleanup = DictationCleanupModule.live()
@@ -36,6 +38,11 @@ extension NotchcastCore {
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
+    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
+    static let archives = ArchiveModule(preferences: .shared)
+    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".editor")!))
+    static let quickLook = QuickLookCoordinator(preferences: .shared)
+    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let voiceRecording = VoiceAskRecording(core: core)
@@ -69,6 +76,7 @@ extension NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
+            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: eventReminder),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
@@ -77,7 +85,11 @@ extension NotchcastCore {
             .init(requires: [.recording], module: recording),
             .init(requires: [.voiceAsk], module: voiceAsk),
             .init(requires: [.dictationHistory], module: dictationHistory),
-            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
+            .init(requires: [.torrents], module: torrents),
+            .init(requires: [.archives], module: archives),
+            .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
+            .init(requires: [.quickLookSpace], module: quickLook),
+            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
         ]
     }
 }
