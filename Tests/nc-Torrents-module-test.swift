@@ -7,7 +7,7 @@
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentS*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentTool*.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastFeature+Logic.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift

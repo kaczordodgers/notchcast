@@ -324,11 +324,9 @@ extension NotchcastFeature {
         }
     }
 
-    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
-
-    var defaultEnabled: Bool {
-        if isSystemFeature || isLauncherKeysFeature { return false }
-        return switch self {
+    /// Default unless a system or launcher keys feature (NotchcastFeature+Logic.swift).
+    var defaultEnabledArm: Bool {
+        switch self {
         case .spotifyConnect: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
@@ -340,8 +338,6 @@ extension NotchcastFeature {
         default: true
         }
     }
-
-    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

@@ -5,10 +5,7 @@ extension NotchcastFeature {
 
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
-    var defaultEnabled: Bool {
-        !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .pastePlain
-            && self != .switcherQuitKey && !isLauncherKeysFeature
-    }
+    var defaultEnabled: Bool { !isSystemFeature && !isLauncherKeysFeature && defaultEnabledArm }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
 }

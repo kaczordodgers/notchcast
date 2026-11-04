@@ -48,6 +48,18 @@ let pinned: [String: Bool] = [
     "pasteImage": true,
     "colorPicker": true,
     "screenshot": true,
+    "musicNowPlaying": true,
+    "musicLastPlayer": true,
+    "musicBlockAppleMusic": true,
+    "spotifyConnect": false,
+    "microphoneMute": true,
+    "inUseMarks": true,
+    "archives": true,
+    "archivesInPlace": false,
+    "archivesDefaultApp": false,
+    "torrents": true,
+    "torrentsUseIPhone": true,
+    "torrentsKeepSharing": false,
 ]
 
 @main
