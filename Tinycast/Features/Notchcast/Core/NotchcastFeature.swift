@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case linkQuickFixes
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -31,6 +32,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .linkQuickFixes: .system
         }
     }
 
@@ -60,6 +62,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .linkQuickFixes: String(localized: "Link Quick Fixes")
         }
     }
 
@@ -89,6 +92,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         }
     }
 
@@ -100,7 +104,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
+            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake, .linkQuickFixes:
             []
         }
     }
@@ -112,7 +116,7 @@ extension NotchcastFeature {
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
+         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake, .linkQuickFixes].contains(self)
     }
 }
 
