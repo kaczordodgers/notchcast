@@ -234,6 +234,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
             }
         }
         applyPreferences()
+        setCommandAvailable(true)
     }
 
     private func watchPointer() {
