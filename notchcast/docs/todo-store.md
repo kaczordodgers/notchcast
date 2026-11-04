@@ -1,6 +1,6 @@
 # Task store
 
-Tasks are local and disabled by default. Settings > Notchcast has a separate Tasks section. Enabling it starts `TodoModule` through `NotchcastModuleController.Entry(requires: [.tasks], module: tasks)`; disabling it cancels loading, closes the log and releases the store. It has no island dependency or permission grants.
+Tasks are local and disabled by default. Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands. Enabling it starts `TodoModule` through `NotchcastModuleController.Entry(requires: [.tasks], module: tasks)`; disabling it cancels loading, closes the log and releases the store. It has no island dependency or permission grants.
 
 `TodoStore` owns the state under the channel's Application Support directory, in `Todo/commands.jsonl`. Settings shows that directory and, while loaded, the total task count including completed tasks. No workflow sections are created automatically.
 

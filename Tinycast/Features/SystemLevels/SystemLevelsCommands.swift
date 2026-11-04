@@ -9,7 +9,7 @@ enum SystemLevelsCommands {
 
     private static func command(_ percent: Int, _ name: String.LocalizationValue) -> NotchcastCommand {
         NotchcastCommand(
-            slug: "volume-\(percent)", name: String(localized: name), sfSymbol: "speaker.wave.2",
+            slug: "volume-\(percent)", name: String(localized: name), sfSymbol: "speaker.wave.2", feature: .volumeLevels,
             isEnabled: { NotchcastPreferences.shared.isOn(.island) && NotchcastPreferences.shared.isOn(.volumeLevels) },
             run: {
                 let service = NotchcastCore.systemLevels.service

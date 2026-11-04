@@ -2,8 +2,8 @@ import AppKit
 
 extension LinkQuickFixModule {
     nonisolated static let launcherCommand = NotchcastCommand(
-        slug: "fix-mac-link", name: String(localized: "Fix Mac Link"), sfSymbol: "link",
-        feature: .linkQuickFixes,
+        slug: "fix-mac-link", name: String(localized: "Fix Mac Link"),
+        sfSymbol: "link", feature: .linkQuickFixes,
         isEnabled: { NotchcastPreferences.shared.isOn(.linkQuickFixes) },
         run: { Task { await NotchcastCore.linkQuickFixes.run() } })
 
