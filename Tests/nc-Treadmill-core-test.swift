@@ -13,6 +13,7 @@ import Foundation
 private final class FakeTreadmillTransport: TreadmillTransport {
     var maintainsConnection = false
     var onReady: (() -> Void)?
+    var onFailure: (((any Error)?) -> Void)?
     var onBytes: ((Data) -> Void)?
     var onDisconnect: (() -> Void)?
     var sent: [Data] = []
@@ -418,6 +419,20 @@ private struct TreadmillTests {
         persistent.onReady?()
         expect(reconnecting.connected && persistent.sent.last == TreadmillProtocol.queryStatus,
                "Ready connects and queries status through the protocol")
+        persistent.onFailure?(TreadmillBluetoothFailure.padAbsent)
+        persistent.onFailure?(TreadmillBluetoothFailure.padAbsent)
+        expect(reconnecting.lastError as? TreadmillBluetoothFailure == .padAbsent,
+               "Repeated absence preserves the transport error")
+        persistent.onFailure?(nil)
+        expect(reconnecting.lastError == nil, "Transport recovery clears its own error")
+        persistent.failSend = true
+        persistent.onReady?()
+        expect(reconnecting.lastError as? TreadmillFailure == .unavailable, "Send failure is reported")
+        persistent.onFailure?(nil)
+        persistent.onFailure?(TreadmillBluetoothFailure.padAbsent)
+        expect(reconnecting.lastError as? TreadmillFailure == .unavailable,
+               "Transport recovery and absence preserve unrelated errors")
+        persistent.failSend = false
         persistent.emit(status(3, steps: 100))
         let walk = reconnecting.engine.walk
         expect(walk != nil, "Remote walk is tracked")

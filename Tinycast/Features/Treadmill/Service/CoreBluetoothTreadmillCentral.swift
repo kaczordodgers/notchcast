@@ -12,6 +12,13 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     private var pad: CBPeripheral?
     private var writer: CBCharacteristic?
     private var active = false
+    private let defaults: UserDefaults
+    private static let padIDKey = "treadmill.padID"
+
+    init(defaults: UserDefaults = UserDefaults(suiteName:
+         (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!) {
+        self.defaults = defaults
+    }
 
     func start() {
         active = true
@@ -21,11 +28,20 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
         }
     }
 
-    func scan() {
-        guard manager?.state == .poweredOn else { return }
+    func scan() -> Bool {
+        guard let manager, manager.state == .poweredOn else { return false }
         active = true
-        manager?.scanForPeripherals(withServices: nil,
+        if pad != nil { return false }
+        if let id = defaults.string(forKey: Self.padIDKey).flatMap(UUID.init(uuidString:)),
+           let known = manager.retrievePeripherals(withIdentifiers: [id]).first {
+            pad = known
+            known.delegate = self
+            connect()
+            return false
+        }
+        manager.scanForPeripherals(withServices: nil,
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+        return true
     }
 
     func connect() {
@@ -71,6 +87,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         guard active, peripheral === pad else { return }
+        defaults.set(peripheral.identifier.uuidString, forKey: Self.padIDKey)
         peripheral.discoverServices([Self.service])
     }
 
@@ -90,7 +107,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
         guard active, peripheral === pad else { return }
         guard error == nil, let service = peripheral.services?.first(where: { $0.uuid == Self.service })
-        else { onEvent?(.failed); return }
+        else { completeSetup(success: false) { self.manager?.cancelPeripheralConnection(peripheral) }; return }
         peripheral.discoverCharacteristics([Self.notify, Self.write], for: service)
     }
 
@@ -102,7 +119,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
               let write = service.characteristics?.first(where: { $0.uuid == Self.write }),
               notify.properties.contains(.notify),
               !write.properties.intersection([.write, .writeWithoutResponse]).isEmpty
-        else { onEvent?(.failed); return }
+        else { completeSetup(success: false) { self.manager?.cancelPeripheralConnection(peripheral) }; return }
         writer = write
         peripheral.setNotifyValue(true, for: notify)
     }
@@ -110,7 +127,13 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic,
                     error: (any Error)?) {
         guard active, peripheral === pad, characteristic.uuid == Self.notify else { return }
-        onEvent?(error == nil && characteristic.isNotifying ? .ready : .failed)
+        completeSetup(success: error == nil && characteristic.isNotifying) {
+            self.manager?.cancelPeripheralConnection(peripheral)
+        }
+    }
+
+    func completeSetup(success: Bool, cancel: () -> Void) {
+        if success { onEvent?(.ready) } else { cancel() }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic,

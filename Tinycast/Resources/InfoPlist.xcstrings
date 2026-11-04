@@ -108,7 +108,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Notchcast использует Bluetooth для переключения Bluetooth и подключения к вашей беговой дорожке."
+            "value" : "Notchcast использует Bluetooth для выполнения действия «Переключить Bluetooth» и подключения к вашей беговой дорожке."
           }
         },
         "zh-Hans" : {

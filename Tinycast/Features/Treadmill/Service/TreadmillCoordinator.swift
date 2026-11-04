@@ -40,10 +40,15 @@ final class TreadmillCoordinator {
         transport.onReady = { [weak self] in
             guard let self, self.walkEnabled else { return }
             self.connected = true
-            self.lastError = nil
+            if self.lastError is TreadmillBluetoothFailure { self.lastError = nil }
             do { try self.transport.send(TreadmillProtocol.queryStatus) } catch { self.report(error) }
         }
-        transport.onFailure = { [weak self] error in self?.lastError = error }
+        transport.onFailure = { [weak self] error in
+            guard let self, self.lastError == nil || self.lastError is TreadmillBluetoothFailure else { return }
+            let failure = error as? TreadmillBluetoothFailure
+            guard (self.lastError as? TreadmillBluetoothFailure) != failure else { return }
+            self.lastError = failure
+        }
     }
 
     isolated deinit {

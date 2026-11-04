@@ -4,7 +4,7 @@ import Foundation
 protocol TreadmillBluetoothCentral: AnyObject {
     var onEvent: ((TreadmillBluetoothEvent) -> Void)? { get set }
     func start()
-    func scan()
+    func scan() -> Bool
     func connect()
     func write(_ data: Data) throws
     func stop()
@@ -72,8 +72,7 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
                 self.central.connect()
             } else {
                 self.onFailure?(TreadmillBluetoothFailure.padAbsent)
-                self.central.scan()
-                self.deadline()
+                if self.central.scan() { self.deadline() }
             }
         }
     }
@@ -84,8 +83,7 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
         case .poweredOn:
             powered = true
             onFailure?(nil)
-            central.scan()
-            deadline()
+            if central.scan() { deadline() }
         case .discovered:
             timeout?.cancel()
             central.connect()
@@ -97,6 +95,7 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
         case .bytes(let data):
             if ready { onBytes?(data) }
         case .disconnected:
+            timeout?.cancel()
             ready = false
             onDisconnect?()
             if wanted, powered { central.connect() }
