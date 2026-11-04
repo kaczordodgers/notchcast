@@ -180,11 +180,18 @@ final class CleanModule: NotchcastModule {
                 }) else { throw Failure.toolFailed }
             }
         case .cleanSystem:
-            guard RootContract.Command(rawValue: CleanCoordinator.rootScanCommand) != nil,
-                  RootContract.Command(rawValue: CleanCoordinator.rootTrashCommand) != nil else {
-                throw Failure.helperUpdate
+            let client = CleanSystemRootClient(run: { try await RootHelperClient().clean($0, input: $1) },
+                policy: .init(roots: CleanSystemPolicy.allowedRoots, now: .now,
+                              cacheAge: 30 * 86_400, logAge: 30 * 86_400))
+            let entries = try await client.list()
+            return .init(items: entries.map {
+                .init(id: URL(fileURLWithPath: $0.path), size: $0.size)
+            }) { paths in
+                let selected = entries.filter { entry in paths.contains { $0.path == entry.path } }
+                guard selected.count == paths.count else { throw Failure.itemsChanged }
+                let skipped = try await client.trash(selected)
+                if skipped > 0 { throw Failure.skipped(skipped) }
             }
-            throw Failure.helperUpdate
         default: throw Failure.itemsChanged
         }
     }
@@ -217,8 +224,10 @@ final class CleanModule: NotchcastModule {
 
     private enum Failure: LocalizedError {
         case itemsChanged, helperUpdate, toolFailed
+        case skipped(Int)
         var errorDescription: String? {
             switch self {
+            case .skipped(let count): String(localized: "\(count) entries skipped")
             case .itemsChanged: String(localized: "Some items changed or could not be processed. Scan again to review them.")
             case .helperUpdate: String(localized: "Needs the Notchcast helper update")
             case .toolFailed: String(localized: "The Clean tool could not complete the request.")

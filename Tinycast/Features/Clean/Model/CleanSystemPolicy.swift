@@ -23,10 +23,10 @@ struct CleanSystemPolicy: Sendable {
 
     func reason(for entry: CleanSystemEntry) -> CleanSystemPlan.Reason? {
         let path = entry.path
-        guard path.hasPrefix("/"), !path.split(separator: "/").contains(".."),
+        guard !path.utf8.contains(0), path.hasPrefix("/"), !path.split(separator: "/").contains(".."),
               !path.split(separator: "/").contains("."), !entry.hasSymlinkComponent,
               entry.isRegularFile, entry.size >= 0,
-              URL(fileURLWithPath: path).standardizedFileURL.path == path,
+              "/" + path.split(separator: "/").joined(separator: "/") == path,
               let root = roots.sorted(by: { $0.path.count > $1.path.count }).first(where: {
                   path == $0.path || path.hasPrefix($0.path + "/")
               }), path != root.path else { return nil }
