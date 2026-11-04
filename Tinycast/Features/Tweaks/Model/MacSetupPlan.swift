@@ -1,7 +1,7 @@
 import Foundation
 
 nonisolated struct MacSetupPlan: Equatable, Sendable {
-    struct Change: Equatable, Sendable {
+    struct Change: Codable, Equatable, Sendable {
         let preference: TweakPreference
         let before: TweakValue
         let after: TweakValue
