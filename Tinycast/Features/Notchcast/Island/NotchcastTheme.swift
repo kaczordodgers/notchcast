@@ -40,7 +40,7 @@ enum NotchcastTheme {
     enum Pill {
         /// A monitor pill's height when the menu bar reads none; two lines of song need it.
         static let fallbackHeight: CGFloat = 30
-        static let width: CGFloat = 300
+        // No width token: the pill is as wide as its content (insets + artwork + gap + text + bars).
         static let topGap = Theme.Spacing.xs
         static let inset = Theme.Spacing.xl
         static let artwork = fallbackHeight - Theme.Spacing.xs * 2
@@ -58,9 +58,9 @@ enum NotchcastTheme {
         static let restingLevel = 0.6
     }
 
-    /// An open page that is not the launcher: narrow, since a player has little to show.
+    /// An open page that is not the launcher. No width token: each page is as wide as its own content,
+    /// never another page's or the morph's width (look-decisions, 3 Nov 23:21).
     enum Open {
-        static let pageWidth: CGFloat = 440
         static let headerHeight = Theme.Size.headerHeight
         static let pageInset = Theme.Spacing.md * 2
         static let sectionGap = Theme.Spacing.sectionSpacing
