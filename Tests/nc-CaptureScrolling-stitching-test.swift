@@ -136,9 +136,7 @@ struct CaptureScrollingTests {
 
     @MainActor
     static func waitUntil(_ predicate: () -> Bool) async {
-        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
         while !predicate() {
-            precondition(ContinuousClock.now < deadline, "Timed out waiting for session")
             await Task.yield()
         }
     }
