@@ -9,9 +9,11 @@ struct AgentSessionAccumulator: Sendable {
     private var codexHeaderRead = false
     private var explicitCodexUsage = false
     private var copilotFinalResponse = false
+    private let calendar: Calendar
 
-    init(provider: AgentSession.Provider, id: String) {
+    init(provider: AgentSession.Provider, id: String, calendar: Calendar) {
         session = AgentSession(id: id, provider: provider)
+        self.calendar = calendar
     }
 
     mutating func consume(_ line: Data) -> Bool {
@@ -58,7 +60,7 @@ struct AgentSessionAccumulator: Sendable {
             if recentOrder.count > 256 { recentUsage[recentOrder.removeFirst()] = nil }
         }
         guard added != .init() || cost != nil else { return }
-        let day = Date(timeIntervalSince1970: floor(date.timeIntervalSince1970 / 86_400) * 86_400)
+        let day = calendar.startOfDay(for: date)
         if let index = session.usage.firstIndex(where: { $0.model == name && $0.day == day }) {
             session.usage[index].tokens += added
             if let cost { session.usage[index].reportedCost = (session.usage[index].reportedCost ?? 0) + cost }

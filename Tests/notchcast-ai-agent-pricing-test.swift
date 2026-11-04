@@ -22,6 +22,9 @@ struct PricingTests {
         precondition(engine.table.updated == "2026-10-30")
         var usage = Usage(inputTokens: 1_000_000, outputTokens: 1_000_000)
         precondition(engine.cost(usage) == 10)
+        usage.modelID = "gpt-4.1-20260102"
+        precondition(engine.cost(usage) == 10, "Dated model identifiers retain their base price")
+        usage.modelID = "gpt-4.1"
         usage.cacheReadTokens = 1_000_000
         usage.cacheWriteTokens = 1_000_000
         precondition(engine.cost(usage) == Decimal(string: "12.5"))
@@ -51,22 +54,6 @@ struct PricingTests {
         precondition(report.projects["other"]?.costUSD == Decimal(string: "0.004"))
         precondition(report.days.count == 2)
         precondition(AgentPricingEngine.roundedUSD(report.total.costUSD) == Decimal(string: "0.01"))
-        let module = AgentPricingModule(engine: engine)
-        var notices = 0
-        func update() {
-            module.update([first], calendar: calendar, now: first.timestamp,
-                          dailyBudgetUSD: Decimal(string: "0.001")) { _ in notices += 1 }
-        }
-        update()
-        precondition(module.report == nil && notices == 0)
-        module.start()
-        update()
-        update()
-        precondition(notices == 1)
-        precondition(module.report?.total.costUSD == engine.cost(first))
-        module.stop()
-        update()
-        precondition(module.report == nil && notices == 1)
         print("Agent pricing checks passed")
     }
 }

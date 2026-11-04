@@ -59,9 +59,11 @@ struct AgentSessionIndex: Sendable {
     private var cursors: [String: Cursor] = [:]
     private var databases: [String: AgentSessionDatabase] = [:]
     private let onAccess: @Sendable (URL) -> Void
+    let calendar: Calendar
 
-    init(onAccess: @escaping @Sendable (URL) -> Void = { _ in }) {
+    init(calendar: Calendar = .current, onAccess: @escaping @Sendable (URL) -> Void = { _ in }) {
         self.onAccess = onAccess
+        self.calendar = calendar
     }
 
     mutating func refresh(roots: [Root]) throws -> Snapshot {
@@ -73,11 +75,28 @@ struct AgentSessionIndex: Sendable {
         cursors = cursors.filter { seen.contains($0.key) }
         databases = databases.filter { seen.contains($0.key) }
         var sessions: [String: AgentSession] = [:]
-        let all = cursors.values.map(\.accumulator.session) + databases.values.flatMap(\.sessions)
+        let all = cursors.keys.sorted().compactMap { cursors[$0]?.accumulator.session }
+            + databases.keys.sorted().flatMap { databases[$0]?.sessions ?? [] }
         for session in all where session.startedAt != nil {
-            if let existing = sessions[session.id],
-               existing.lastActivityAt ?? .distantPast >= session.lastActivityAt ?? .distantPast { continue }
-            sessions[session.id] = session
+            guard let existing = sessions[session.id] else {
+                sessions[session.id] = session
+                continue
+            }
+            var merged = (existing.lastActivityAt ?? .distantPast) >= (session.lastActivityAt ?? .distantPast)
+                ? existing : session
+            merged.startedAt = min(existing.startedAt ?? .distantFuture, session.startedAt ?? .distantFuture)
+            merged.usage = existing.usage
+            for usage in session.usage {
+                if let index = merged.usage.firstIndex(where: { $0.model == usage.model && $0.day == usage.day }) {
+                    merged.usage[index].tokens += usage.tokens
+                    if let cost = usage.reportedCost {
+                        merged.usage[index].reportedCost = (merged.usage[index].reportedCost ?? 0) + cost
+                    }
+                } else {
+                    merged.usage.append(usage)
+                }
+            }
+            sessions[session.id] = merged
         }
         snapshot.sessions = sessions.values.sorted { $0.id < $1.id }
         return snapshot
@@ -125,7 +144,7 @@ struct AgentSessionIndex: Sendable {
                     _ = try inspect(URL(fileURLWithPath: url.path + suffix))
                 }
                 seen.insert(url.path)
-                var database = databases[url.path] ?? AgentSessionDatabase()
+                var database = databases[url.path] ?? AgentSessionDatabase(calendar: calendar)
                 try database.refresh(url: url, inode: information.st_ino, onAccess: onAccess)
                 snapshot.statistics.databaseRowsRead += database.rowsRead
                 databases[url.path] = database
@@ -151,7 +170,7 @@ struct AgentSessionIndex: Sendable {
         if cursor == nil || cursor?.stamp.inode != stamp.inode || UInt64(stamp.size) < cursor?.offset ?? 0
             || (cursor?.stamp.size == stamp.size && cursor?.stamp != stamp) {
             cursor = Cursor(stamp: stamp, accumulator: .init(provider: provider,
-                id: provider.rawValue + ":" + url.deletingPathExtension().lastPathComponent))
+                id: provider.rawValue + ":" + url.deletingPathExtension().lastPathComponent, calendar: calendar))
         }
         guard var current = cursor else { return }
         onAccess(url)

@@ -25,6 +25,8 @@ struct AgentSessionTests {
         free(resolved)
         try FileManager.default.createDirectory(at: temporary, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: temporary) }
+        try sharedIdentity(temporary.appendingPathComponent("shared"))
+        localDays()
         try claude(temporary.appendingPathComponent("claude"))
         try codex(temporary.appendingPathComponent("codex"))
         try copilot(temporary.appendingPathComponent("copilot"))
@@ -39,6 +41,38 @@ struct AgentSessionTests {
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
         guard condition() else { fatalError(message) }
+    }
+
+    static func sharedIdentity(_ root: URL) throws {
+        for (path, input) in [("session.jsonl", 100), ("session/subagents/child.jsonl", 200)] {
+            try append(["type": "assistant", "sessionId": "parent", "timestamp": timestamp,
+                        "message": ["id": path, "model": "gpt-4.1", "usage": ["input_tokens": input]]],
+                       to: root.appendingPathComponent(path))
+        }
+        var index = AgentSessionIndex()
+        let result = try index.refresh(roots: [.init(provider: .claude, url: root)])
+        expect(result.sessions.count == 1, "Shared native identity stays one session")
+        expect(result.sessions[0].usage.reduce(Int64(0)) { $0 + $1.tokens.input } == 300,
+               "Parent and subagent usage must both survive")
+        let unchanged = try index.refresh(roots: [.init(provider: .claude, url: root)])
+        expect(unchanged.sessions == result.sessions, "Shared usage is stable across refreshes")
+    }
+
+    static func localDays() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Warsaw")!
+        var accumulator = AgentSessionAccumulator(provider: .claude, id: "local", calendar: calendar)
+        let before = AgentSessionAccumulator.date("2026-01-01T22:30:00Z")!
+        let after = AgentSessionAccumulator.date("2026-01-01T23:30:00Z")!
+        accumulator.addUsage(.init(input: 100), model: "gpt-4.1", at: before)
+        accumulator.addUsage(.init(input: 200), model: "gpt-4.1", at: after)
+        expect(accumulator.session.usage.count == 2, "Warsaw midnight splits usage into local days")
+        expect(accumulator.session.usage[1].day == calendar.startOfDay(for: after), "Local day retained")
+        let report = AgentSessionPricing.report([accumulator.session], calendar: calendar)
+        expect(report?.days[calendar.startOfDay(for: before)]?.costUSD == Decimal(string: "0.0002"),
+               "Before midnight is priced on the previous local day")
+        expect(report?.days[calendar.startOfDay(for: after)]?.costUSD == Decimal(string: "0.0004"),
+               "After midnight is priced on the next local day")
     }
 
     static func append(_ object: [String: Any], to url: URL) throws {

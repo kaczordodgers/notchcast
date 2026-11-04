@@ -2,6 +2,7 @@ import Foundation
 import SQLite3
 
 struct AgentSessionDatabase: Sendable {
+    let calendar: Calendar
     private struct Checkpoint: Sendable, Equatable {
         let created: Int64
         let updated: Int64
@@ -54,7 +55,7 @@ struct AgentSessionDatabase: Sendable {
                 nextIndexed[id] = session
                 return
             }
-            var accumulator = AgentSessionAccumulator(provider: .opencode, id: "opencode:" + id)
+            var accumulator = AgentSessionAccumulator(provider: .opencode, id: "opencode:" + id, calendar: calendar)
             accumulator.context(project: text(statement, 1), model: nil)
             accumulator.activity(at: AgentSessionAccumulator.date(checkpoint.created))
             try readMessages(database, table: messageTable, id: id, accumulator: &accumulator)
