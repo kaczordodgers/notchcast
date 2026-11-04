@@ -13,6 +13,13 @@ Both files use `merge=union`; run `python3 notchcast/check-feature-shape.py` and
 The checker rejects repeated enum cases and repeated feature cases within a switch: union
 can retain both the old and edited arm when another branch appends nearby.
 
+Modules register in `Core/NotchcastCore+Modules.swift`: one `static let` line and one entry
+line each. Settings search anchors and rows live one per line in
+`Settings/NotchcastSettingsSearch.swift`. Both files use `merge=union`; the same checker
+rejects an entry split over lines, a repeated `static` name, a module registered twice and
+a search row whose anchor and title repeat. It cannot tell a renamed module or a retitled
+row from a new one: after a merge, check that an edited line did not come back beside its edit.
+
 Define a `NotchcastCommand` beside its feature, then add one array element in
 `Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift`:
 
@@ -25,8 +32,8 @@ Registration requires no changes in Tests. Git uses `merge=union` for this file 
 concurrent registrations merge cleanly. After every merge, check the file by hand:
 union merging can keep the same registration twice, and it keeps both the old and the
 new line when one branch removes or edits a registration while another adds one, so a
-removed command can come back. Change the legacy ID of Toggle Island only with a
-migration: no harness guards it.
+removed command can come back.
+`notchcast/check-legacy-command-ids.py` guards Toggle Island's persisted legacy ID in its real source before the CI Debug build; change it only with a migration.
 
 The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
 `.notchcast`), an `isEnabled` main-actor closure and a main-actor `run` closure.

@@ -1,5 +1,7 @@
 import Foundation
 
+/// One line per anchor and per entry, so branches that add rows merge by union.
+/// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
@@ -31,6 +33,8 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
+        .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -66,6 +70,13 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastSystem, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
+        .init(.notchcastSystem, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
+        .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
+        .init(.notchcastSystem, "Hide with ⌘M", keywords: ["minimize", "command m"]),
+        .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
+        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),
@@ -74,6 +85,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastSpotify, "Device name", keywords: ["soloist", "speaker name"]),
         .init(group: .notchcastSpotify, "Download Soloist", keywords: ["soloist", "update", "build", "expiry"]),
         .init(.notchcastMicrophone, "Microphone mute", keywords: ["mute", "f5", "mic"]),
-        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"])
+        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"]),
     ]
 }
