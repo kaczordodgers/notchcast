@@ -1,6 +1,110 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Trackpad Middle Click" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trackpad-Mittelklick"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clic central del trackpad"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clic central du trackpad"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "トラックパッドの中クリック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "트랙패드 가운데 클릭"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clique central do trackpad"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Средний щелчок трекпадом"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "触控板中键点按"
+          }
+        }
+      }
+    },
+    "Three-finger taps and presses middle-click; paused during Three Finger Drag." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippen und Drücken mit drei Fingern erzeugt einen Mittelklick; bei Drei-Finger-Ziehen pausiert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los toques y clics con tres dedos generan un clic central; se pausa al arrastrar con tres dedos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touchez ou cliquez avec trois doigts pour un clic central ; suspendu pendant le glissement à trois doigts."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "3本指のタップやクリックで中クリックします。3本指のドラッグ中は一時停止します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세 손가락 탭과 누르기로 가운데 클릭합니다. 세 손가락 드래그 사용 시 일시 중지됩니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toques e cliques com três dedos geram um clique central; pausado ao arrastar com três dedos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Касание и нажатие тремя пальцами выполняют средний щелчок; при перетягивании тремя пальцами функция приостановлена."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "三指轻点或按下可执行中键点按；启用三指拖移时暂停。"
+          }
+        }
+      }
+    },
     "A webpage is already being saved." : {
       "localizations" : {
         "de" : {

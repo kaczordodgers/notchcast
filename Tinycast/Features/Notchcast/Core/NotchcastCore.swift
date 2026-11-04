@@ -9,6 +9,7 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
+    static let middleClick = MiddleClickModule(hub: eventTapHub)
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     private static var controller: NotchcastModuleController?
 
@@ -17,6 +18,7 @@ enum NotchcastCore {
         IslandController.shared.configurePages(core)
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
+            .init(requires: [.middleClick], module: middleClick),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
