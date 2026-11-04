@@ -69,6 +69,7 @@ struct DictationHistoryTests {
         let filePermissions = try FileManager.default.attributesOfItem(atPath: history.path)
         precondition((filePermissions[.posixPermissions] as? Int) == 0o600)
         let pending = directory.appendingPathComponent("pending.jsonl")
+        await module.waitUntilIdle()
         let current = try repository.recent()
         try JSONEncoder().encode(current[0]).write(to: pending)
         let recovered = try repository.recent()
