@@ -46,6 +46,37 @@ struct MonitorAlertsTests {
         evaluate(95, 300, demand: 0)
         precondition(calls.count == 4)
 
+        var sustainedCalls = 0
+        let sustained = MonitorAlerts { _ in sustainedCalls += 1 }
+        let sustainedRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [
+            .cpu: .init(direction: .above, threshold: 90, recoverValue: 80)
+        ]
+        func highSample() -> MonitorSnapshot {
+            MonitorSnapshot(cpu: CPUReading(
+                usage: .init(totalPercent: 95, userPercent: 95, systemPercent: 0),
+                cores: [], loadAverage: nil))
+        }
+        func check(_ sample: MonitorSnapshot, enabled: Bool = true, demand: Int = 1,
+                   time: Double = 0) {
+            sustained.evaluate(sample, rules: sustainedRules, enabled: enabled, demand: demand,
+                               at: Date(timeIntervalSince1970: time))
+        }
+        let first = highSample()
+        check(first)
+        check(first)
+        check(first)
+        precondition(sustainedCalls == 0, "preference observations cannot recount a sample")
+        let second = highSample()
+        check(second)
+        check(second, enabled: false, demand: 0)
+        check(second, time: 3600)
+        precondition(sustainedCalls == 0, "resuming cannot evaluate the retained snapshot")
+        check(highSample(), time: 3602)
+        check(highSample(), time: 3604)
+        precondition(sustainedCalls == 0, "zero demand clears the previous breach streak")
+        check(highSample(), time: 3606)
+        precondition(sustainedCalls == 1)
+
         var diskCalls = 0
         let diskAlerts = MonitorAlerts { _ in diskCalls += 1 }
         let diskRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [

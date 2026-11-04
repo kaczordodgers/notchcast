@@ -5,6 +5,7 @@ final class MonitorAlerts {
     private var rules: [MonitorAlertRule.Metric: MonitorAlertRule] = [:]
     private var configuration: [MonitorAlertRule.Metric: MonitorAlertRule] = [:]
     private let sink: (String) -> Void
+    private var lastSampleID: UUID?
 
     init(sink: @escaping (String) -> Void = { _ in }) { self.sink = sink }
 
@@ -12,7 +13,15 @@ final class MonitorAlerts {
         _ snapshot: MonitorSnapshot, rules configured: [MonitorAlertRule.Metric: MonitorAlertRule],
         enabled: Bool, demand: Int, at now: Date
     ) {
-        guard enabled, demand > 0 else { return }
+        if demand == 0 {
+            for metric in rules.keys { rules[metric]?.resetBreaches() }
+        }
+        guard enabled, demand > 0 else {
+            lastSampleID = snapshot.id
+            return
+        }
+        guard lastSampleID != snapshot.id else { return }
+        lastSampleID = snapshot.id
         let pressure = snapshot.memory?.pressure.map { pressure in
             switch pressure { case .normal: 0.0; case .warning: 1.0; case .critical: 2.0 }
         }
