@@ -187,3 +187,12 @@ struct SystemLevelRoutingTests {
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")
     }
 }
+
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    let appIndex = CommandIndexFixture()
+}
+@MainActor final class CommandIndexFixture {
+    private(set) var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
+}
