@@ -11,8 +11,15 @@ final class KatanaClient {
     @ObservationIgnored private let transport: (any KatanaTransport)?
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var operation: UUID?
+    @ObservationIgnored private let backupDirectory: URL
 
-    init(transport: (any KatanaTransport)? = nil) { self.transport = transport }
+    init(transport: (any KatanaTransport)? = nil,
+         backupDirectory: URL = URL.applicationSupportDirectory
+            .appending(path: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
+            .appending(path: "Katana/backups")) {
+        self.transport = transport
+        self.backupDirectory = backupDirectory
+    }
 
     var isConnected: Bool { isEnabled && transport?.connectionID != nil }
 
@@ -42,6 +49,7 @@ final class KatanaClient {
 
     func loadTone(_ tone: KatanaTone, to target: KatanaChannel) async throws {
         try await perform { context in
+            if target != .panel { try await self.backup(target, context: context) }
             try await self.select(target, context: context)
             for region in tone.regions {
                 try await self.writeRegion(region.region, bytes: region.bytes, context: context)
@@ -57,6 +65,7 @@ final class KatanaClient {
                     try await self.unmute(context: context)
                     throw error
                 }
+                try await self.unmute(context: context)
             }
             self.toneName = tone.name
         }
@@ -111,10 +120,9 @@ final class KatanaClient {
     }
 
     private func unmute(context: Context) async throws {
-        guard isCurrent(context) else { return }
         let recovery = Task { @MainActor in
-            guard self.isCurrent(context) else { return }
-            try await self.write(KatanaSysEx.previewMute, [0], context: context)
+            guard context.transport.connectionID == context.connection else { return }
+            try await context.transport.send(KatanaSysEx.write(KatanaSysEx.previewMute, [0]))
         }
         try await recovery.value
     }
@@ -141,8 +149,40 @@ final class KatanaClient {
     }
 
     private func write(_ address: Int, _ bytes: [UInt8], context: Context) async throws {
+        if address != KatanaSysEx.patchWrite && address != KatanaSysEx.export {
+            try Task.checkCancellation()
+            guard isCurrent(context) else { throw CancellationError() }
+            try await context.transport.send(KatanaSysEx.write(address, bytes))
+            try Task.checkCancellation()
+            guard isCurrent(context) else { throw CancellationError() }
+            return
+        }
         let message = try await exchange(KatanaSysEx.write(address, bytes), context: context)
         guard message.address == address, message.data == bytes else { throw KatanaError.verificationFailed }
+    }
+
+    private func backup(_ target: KatanaChannel, context: Context) async throws {
+        let slot = Int(target.rawValue + 1) * 0x10
+        func region(_ region: UInt8, count: Int, page: Int = 0) async throws -> [UInt8] {
+            var bytes: [UInt8] = []
+            for offset in stride(from: 0, to: count, by: 128) {
+                let high = slot + page
+                let address = KatanaSysEx.patchAddress(region: region, offset: offset)
+                    + ((high >> 7) << 24) + ((high & 0x7F) << 16)
+                bytes += try await read(address, count: min(128, count - offset), context: context)
+            }
+            return bytes
+        }
+        var regions: [KatanaTone.Region] = []
+        for known in KatanaPatchRegion.all {
+            regions.append(try await .init(region: known.region, bytes: region(known.region, count: known.length)))
+        }
+        let tone = try await KatanaTone(regions: regions, knob: region(0x1C, count: 5, page: 1),
+                                       knobSolo: region(0x1E, count: 1, page: 1))
+        let file = backupDirectory.appending(path: "\(target.rawValue)-\(UUID().uuidString).json")
+        try await KatanaToneRepository.backup(tone, to: file)
+        try Task.checkCancellation()
+        guard isCurrent(context) else { throw CancellationError() }
     }
 
     private func select(_ target: KatanaChannel, context: Context) async throws {

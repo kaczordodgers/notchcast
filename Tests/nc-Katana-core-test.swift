@@ -21,7 +21,18 @@ final class FakeKatanaTransport: KatanaTransport {
     var pauseNext = false
     var pauseAddress: Int?
 
+    func send(_ packet: [UInt8]) async throws {
+        _ = try await respond(packet)
+    }
+
     func exchange(_ packet: [UInt8]) async throws -> [UInt8] {
+        let message = try KatanaSysEx.decode(packet)
+        guard message.command == 0x11 || [KatanaSysEx.patchWrite, KatanaSysEx.export].contains(message.address)
+        else { fatalError("Command has no echo") }
+        return try await respond(packet)
+    }
+
+    private func respond(_ packet: [UInt8]) async throws -> [UInt8] {
         let message = try KatanaSysEx.decode(packet)
         packets.append(message)
         if pauseNext || pauseAddress == message.address {
@@ -42,6 +53,12 @@ final class FakeKatanaTransport: KatanaTransport {
             return try KatanaSysEx.write(0, [0, 0])
         }
         var bytes = memory[message.address] ?? Array(repeating: 0, count: count)
+        if message.address >= 0x20100000, message.address < 0x22000000 {
+            let region = UInt8((message.address >> 8) & 0x7F)
+            let offset = Int(message.address & 0x7F)
+            let defaults = KatanaGen3Defaults.image()[region] ?? []
+            if defaults.count >= offset + count { bytes = Array(defaults[offset..<(offset + count)]) }
+        }
         if message.address == corruptRead { bytes[0] ^= 1 }
         return try KatanaSysEx.write(message.address, bytes)
     }
@@ -200,14 +217,29 @@ struct KatanaTests {
     @MainActor
     static func client() async throws {
         let fake = FakeKatanaTransport()
-        let client = KatanaClient(transport: fake)
+        let backups = FileManager.default.temporaryDirectory.appending(path: "katana-backups-\(UUID())")
+        defer { try? FileManager.default.removeItem(at: backups) }
+        let client = KatanaClient(transport: fake, backupDirectory: backups)
         await rejects(.disabled) { try await client.selectChannel(.b1) }
         client.start()
         fake.staleReads = 2
         try await client.selectChannel(.b1)
         expect(client.channel == .b1, "Wait for matching channel")
         expect(fake.packets.filter { $0.address == KatanaSysEx.selectChannel }.count == 1, "One select write")
+        fake.packets = []
+        fake.refuse = 0x20200000
+        await rejects(.verificationFailed) { try await client.loadTone(tone(), to: .a1) }
+        expect(!fake.packets.contains { $0.address == KatanaSysEx.selectChannel
+            || $0.address == KatanaSysEx.patchWrite }, "Incomplete backup prevents overwrite")
+        fake.refuse = nil
         try await client.loadTone(tone(), to: .a2)
+        let files = try FileManager.default.contentsOfDirectory(at: backups, includingPropertiesForKeys: nil)
+        expect(files.count == 1, "Slot backup persisted before load")
+        expect(try JSONDecoder().decode(KatanaTone.self, from: Data(contentsOf: files[0])).regions.count
+               == KatanaPatchRegion.all.count, "Backup retains all regions")
+        let backupRead = fake.packets.firstIndex { $0.address == 0x20300000 }!
+        let firstWrite = fake.packets.firstIndex { $0.address == 0x20000000 && $0.command == 0x12 }!
+        expect(backupRead < firstWrite, "Read stored slot before editing")
         expect(fake.packets.contains { $0.address == KatanaSysEx.export && $0.data == [0x40, 2] }, "Export acknowledgement")
         expect(fake.memory[0x20011C00] == [1, 2, 3, 4, 5], "Knob layer preserved")
         fake.packets = []
@@ -263,6 +295,18 @@ struct KatanaTests {
         fake.pause = nil
         do { try await load.value; fatalError("Cancelled load succeeded") } catch is CancellationError {}
         expect(fake.memory[KatanaSysEx.previewMute] == [0], "Cancellation unmutes on the same connection")
+        fake.pauseAddress = KatanaSysEx.previewMute
+        let stopped = Task { try await client.loadTone(tone(), to: .a1) }
+        while fake.pause == nil { await Task.yield() }
+        client.stop()
+        fake.pause?.resume()
+        fake.pause = nil
+        do { try await stopped.value; fatalError("Stopped load succeeded") } catch is CancellationError {}
+        expect(fake.memory[KatanaSysEx.previewMute] == [0], "Stop after mute still unmutes")
+        expect(NotchcastFeature.katana.isSystemFeature, "Katana defaults off as a System feature")
+        expect(!FileManager.default.fileExists(atPath: "Tinycast/Features/Katana/README.md"),
+               "Katana documentation cannot collide with bundled README")
+        expect(FileManager.default.fileExists(atPath: "notchcast/docs/katana.md"), "Katana docs live in fork docs")
         let module = KatanaModule()
         expect(NotchcastFeature.katana.settingsGroup == .system, "Katana uses the System settings group")
         module.start()

@@ -2,6 +2,13 @@ import Foundation
 
 enum KatanaToneRepository {
     @concurrent
+    static func backup(_ tone: KatanaTone, to file: URL) async throws {
+        let data = try JSONEncoder().encode(tone)
+        try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try data.write(to: file, options: .atomic)
+    }
+
+    @concurrent
     static func load(from url: URL) async throws -> [KatanaTone] {
         guard FileManager.default.fileExists(atPath: url.path) else { return [] }
         let data = try read(url)

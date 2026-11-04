@@ -117,7 +117,7 @@ extension NotchcastFeature {
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
+         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake, .katana].contains(self)
     }
 }
 
