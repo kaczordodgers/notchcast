@@ -2,10 +2,10 @@
 
 `charge-limit-60`, `charge-limit-70`, `charge-limit-80`, and `charge-limit-90` set
 `mclLimitValue` and `MCLFeatureState = 1` in `com.apple.smartcharging.topoffprotection`
-for the signed-in console user/current host. They synchronize and post the Darwin notification
+for root/current host, after pinning `HOME=/var/root` and removing `CFFIXED_USER_HOME`. They synchronize and post the Darwin notification
 `com.apple.smartcharging.defaultschanged`; on AC, when MCL is disabled, they call PowerUI's
 `enableMCL:` and notify again. `charge-limit-off` deletes both keys, synchronizes and notifies.
-All five require root, take no arguments and return `ok\n` with the change timeout.
+All five require root and AC power, take no arguments and return `ok\n` only after a matching `pmset -g battlimit` read-back, with the change timeout. On battery they fail before writing because immediate application cannot be confirmed. Failures restore both prior preference values and synchronize and notify again; this does not guarantee reversal of an already applied hardware change.
 `charge-limit-read` needs no root and parses `/usr/bin/pmset -g battlimit`, returning a percentage
 or `off`, followed by a newline, with the read timeout. Malformed or conflicting limits fail.
 The harness checks a fixed duplicate-entry output fixture and unprivileged write refusal.
@@ -29,6 +29,8 @@ The fixed program and app client share twenty-five argument-free verbs. `version
 ` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and operation failures exit 70, always without output. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
 
 `standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings and unprivileged refusal without invoking pmset.
+
+On the inspected MacBook Pro, `pmset -g cap` and `pmset -g custom` omit `autopoweroff`. The installed pmset binary still names the setting and its manual describes it for supported platforms, so the verbs remain available; their hardware effect on this Mac is unverified.
 
 `RootContract.swift` here is a symlink to the app's contract under
 `Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no

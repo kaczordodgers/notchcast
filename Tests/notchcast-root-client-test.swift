@@ -134,11 +134,12 @@ struct FanSMCTest {
         )
         """
         let current = try NativeChargeLimit.parse(fixture)
-        let empty = try NativeChargeLimit.parse("Battery level limits:\n(\n)\n")
+        let empty = try NativeChargeLimit.parse("No battery level limits set\n")
         let terminated = try NativeChargeLimit.parse(fixture.replacingOccurrences(of: "Terminated = 0",
             with: "Terminated = 1"))
         precondition(current == 80 && empty == nil && terminated == nil)
         rejects { _ = try NativeChargeLimit.parse("unavailable") }
+        rejects { _ = try NativeChargeLimit.parse("No battery level limits set\nextra") }
         rejects { _ = try NativeChargeLimit.parse(fixture.replacingOccurrences(of: "Soc = 80", with: "Soc = 101")) }
         print("PASS: native charge limit parser, duplicate limits, off, terminated and invalid output")
     }
@@ -333,6 +334,9 @@ struct RootClientTest {
         }
         precondition(RootContract.version == "2")
         precondition(RootContract.Reply(command: .version, output: "2\n") == .version("2"))
+        for invalid in [" 2 \n\n", "2", "02\n", "2\n\n", "+2\n"] {
+            precondition(RootContract.Reply(command: .version, output: invalid) == nil)
+        }
         precondition(RootContract.Reply(command: .ping, output: "pong") == nil)
         precondition(RootContract.Command.chargeLimitRead.operation == .read)
         precondition(RootContract.Reply(command: .chargeLimitRead, output: "80\n") == .chargeLimit(80))

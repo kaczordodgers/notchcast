@@ -1,10 +1,10 @@
 import Foundation
-import SystemConfiguration
 import ObjectiveC
 import IOKit.ps
 
 enum NativeChargeLimit {
     static func parse(_ output: String) throws -> Int? {
+        if output == "No battery level limits set\n" { return nil }
         guard output.hasPrefix("Battery level limits:"), let start = output.firstIndex(of: "(") else {
             throw FanSMC.Failure.invalidValue
         }
@@ -58,26 +58,46 @@ enum NativeChargeLimit {
         case .chargeLimitOff: limit = nil
         default: throw FanSMC.Failure.invalidValue
         }
-        var uid: uid_t = 0
-        guard let user = SCDynamicStoreCopyConsoleUser(nil, &uid, nil), uid != 0,
-              user as String != "loginwindow" else { throw FanSMC.Failure.refused }
+        guard setenv("HOME", "/var/root", 1) == 0, unsetenv("CFFIXED_USER_HOME") == 0 else {
+            throw FanSMC.Failure.refused
+        }
+        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
+              let source = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue(),
+              source as String == kIOPMACPowerKey else { throw FanSMC.Failure.refused }
         let ui = limit == nil ? nil : try PowerUI()
         if let ui, !ui.supported { throw FanSMC.Failure.refused }
         let domain = "com.apple.smartcharging.topoffprotection" as CFString
+        let user = kCFPreferencesCurrentUser
         let host = kCFPreferencesCurrentHost
+        let keys = ["mclLimitValue", "MCLFeatureState"] as [CFString]
+        let prior = keys.map { CFPreferencesCopyValue($0, domain, user, host) }
         func notify() throws {
             guard CFPreferencesSynchronize(domain, user, host) else { throw FanSMC.Failure.refused }
             CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
                 CFNotificationName("com.apple.smartcharging.defaultschanged" as CFString), nil, nil, true)
         }
-        CFPreferencesSetValue("mclLimitValue" as CFString, limit.map { $0 as CFNumber }, domain, user, host)
-        CFPreferencesSetValue("MCLFeatureState" as CFString, limit.map { _ in 1 as CFNumber }, domain, user, host)
-        try notify()
-        if let ui, let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
-           let source = IOPSGetProvidingPowerSourceType(info)?.takeRetainedValue(),
-           source as String == kIOPMACPowerKey, ui.invoke("isMCLCurrentlyEnabled:") == false {
-            guard ui.invoke("enableMCL:") == true else { throw FanSMC.Failure.refused }
+        do {
+            CFPreferencesSetValue(keys[0], limit.map { $0 as CFNumber }, domain, user, host)
+            CFPreferencesSetValue(keys[1], limit.map { _ in 1 as CFNumber }, domain, user, host)
             try notify()
+            if let ui {
+                guard let enabled = ui.invoke("isMCLCurrentlyEnabled:") else {
+                    throw FanSMC.Failure.refused
+                }
+                if !enabled {
+                    guard ui.invoke("enableMCL:") == true else { throw FanSMC.Failure.refused }
+                    try notify()
+                }
+            }
+            guard try read() == limit.map({ "\($0)\n" }) ?? "off\n" else {
+                throw FanSMC.Failure.refused
+            }
+        } catch {
+            for (key, value) in zip(keys, prior) {
+                CFPreferencesSetValue(key, value, domain, user, host)
+            }
+            try notify()
+            throw error
         }
     }
 
