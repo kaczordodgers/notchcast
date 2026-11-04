@@ -16,6 +16,7 @@ struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
+    let feature: NotchcastFeature?
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }
@@ -92,8 +93,8 @@ struct NotchcastCommand: Sendable {
         for (path, needle) in [
             ("Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift",
              "preferences.set(.scrollingCapture, $0)"),
-            ("Tinycast/Features/Notchcast/Settings/CaptureDictationSettingsSection.swift",
-             "ScrollingCaptureSettingsSection()"),
+            ("Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift",
+             ".feature(.scrollingCapture, settings: [])"),
             ("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift",
              ".init(requires: [.scrollingCapture], module: scrollingCapture)"),
             ("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift", "ScrollingCaptureModule.launcherCommand")

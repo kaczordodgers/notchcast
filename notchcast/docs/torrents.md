@@ -1,6 +1,6 @@
 # Torrents
 
-Settings > Notchcast has one Torrents section. Torrents and using a connected iPhone default on;
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands. Torrents and using a connected iPhone default on;
 sharing until ratio 1.0 defaults off. Neither downloading nor its settings require the island.
 The iPhone and sharing switches are disabled while Torrents is off. Preferences stay in the
 bundle-scoped Notchcast store, outside upstream settings mirrors and backups.
