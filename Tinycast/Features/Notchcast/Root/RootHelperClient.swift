@@ -83,8 +83,12 @@ struct RootHelperClient: Sendable {
         }
     }
 
-    @concurrent
     private static func reap(_ exit: ProcessExit) async {
-        exit.wait()
+        await withCheckedContinuation { continuation in
+            Thread.detachNewThread {
+                exit.wait()
+                continuation.resume()
+            }
+        }
     }
 }
