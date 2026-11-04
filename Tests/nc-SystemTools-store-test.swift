@@ -33,8 +33,10 @@ struct SystemToolsStoreTests {
         }
         precondition(NotchcastFeature.notificationCleanup.requiredGrants == [.accessibility])
         var effects: [Bool] = []
+        precondition(SystemToolsHelperPolicy.available(.sudoTouchID))
+        precondition(SystemToolsHelperPolicy.available(.spotlightOff))
         let store = SystemToolsStore(preferences: preferences,
-                                    available: SystemToolsHelperPolicy.available) { _, enabled in
+                                    available: { $0 != .sudoTouchID && $0 != .spotlightOff }) { _, enabled in
             effects.append(enabled)
         }
         try await store.set(.sudoTouchID, enabled: true)
