@@ -1,9 +1,15 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
-    case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
-    case islandStatusMessages, islandLiveActivities, launcherFromIsland
-    case systemMonitor, fanControl
+    case island
+    case islandExternalDisplays
+    case islandFullScreen
+    case islandHoverOpen
+    case islandStatusMessages
+    case islandLiveActivities
+    case launcherFromIsland
+    case systemMonitor
+    case fanControl
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -11,28 +17,45 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case displayBrightness
     case quitProtection
     case liveTimers
+    case dayCalendar
     case dayWeather
     case dayMarkets
-    case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
-    case keepAwake, lidClosedAwake
+    case batteryChargeLimit
+    case batterySailing
+    case batteryHeatProtection
+    case batteryCalibration
+    case keepAwake
+    case lidClosedAwake
     case linkQuickFixes
-
-    enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities
-    }
 
     var settingsGroup: SettingsGroup {
         switch self {
         case .island: .island
-        case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-             .islandStatusMessages, .islandLiveActivities: .islandOptions
+        case .islandExternalDisplays: .islandOptions
+        case .islandFullScreen: .islandOptions
+        case .islandHoverOpen: .islandOptions
+        case .islandStatusMessages: .islandOptions
+        case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
-        case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
-             .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
-             .batterySailing, .batteryHeatProtection, .batteryCalibration,
-             .keepAwake, .lidClosedAwake: .system
-        case .liveTimers, .dayWeather, .dayMarkets: .activities
-        case .linkQuickFixes: .system
+        case .systemMonitor: .systemTools
+        case .fanControl: .systemTools
+        case .monitorAlerts: .systemTools
+        case .lowDiskWarning: .system
+        case .systemNotices: .system
+        case .volumeLevels: .system
+        case .displayBrightness: .system
+        case .quitProtection: .system
+        case .batteryChargeLimit: .systemTools
+        case .batterySailing: .systemTools
+        case .batteryHeatProtection: .systemTools
+        case .batteryCalibration: .systemTools
+        case .keepAwake: .systemTools
+        case .lidClosedAwake: .systemTools
+        case .linkQuickFixes: .systemTools
+        case .liveTimers: .activities
+        case .dayCalendar: .activities
+        case .dayWeather: .activities
+        case .dayMarkets: .activities
         }
     }
 
@@ -54,6 +77,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Display Brightness")
         case .quitProtection: String(localized: "Quit Protection")
         case .liveTimers: String(localized: "Timers")
+        case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .batteryChargeLimit: String(localized: "Charge Limit")
@@ -84,6 +108,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
         case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
@@ -99,25 +124,26 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
-        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
-            .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake, .linkQuickFixes:
-            []
+        case .volumeLevels: [.accessibility]
+        case .displayBrightness: [.accessibility]
+        case .quitProtection: [.accessibility]
+        default: []
         }
     }
 }
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
-
-    var isSystemFeature: Bool {
-        [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake, .linkQuickFixes].contains(self)
+    var needsIsland: Bool {
+        if isSystemFeature { return false }
+        return switch self {
+        case .displayBrightness: false
+        case .quitProtection: false
+        default: true
+        }
     }
+
+    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
