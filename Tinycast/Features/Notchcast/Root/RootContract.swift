@@ -98,9 +98,8 @@ enum RootContract {
                 return
             }
             if command == .version {
-                let version = output.trimmingCharacters(in: .whitespacesAndNewlines)
-                guard Int(version) != nil else { return nil }
-                self = .version(version)
+                guard let version = Int(output.dropLast()), output == "\(version)\n" else { return nil }
+                self = .version(String(version))
                 return
             }
             guard output == command.output else { return nil }
