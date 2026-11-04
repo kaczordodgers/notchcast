@@ -19,7 +19,7 @@ extension SettingsAnchor {
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
-    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
 }
