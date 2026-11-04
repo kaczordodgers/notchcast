@@ -16,7 +16,7 @@ struct NotchcastSettingsView: View {
 
             Section {
                 ForEach(NotchcastFeature.allCases.filter {
-                    ![.island, .pastePlain, .pasteImage].contains($0)
+                    ![.island, .pastePlain, .pasteImage].contains($0) && !$0.isSystemFeature
                 }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
@@ -33,6 +33,8 @@ struct NotchcastSettingsView: View {
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+
+            NotchcastSystemSettingsSection()
 
             Section {
                 Picker(selection: Binding(
