@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 GROUPS = FEATURE.with_name("NotchcastFeature+SettingsGroup.swift")
+LOGIC = FEATURE.with_name("NotchcastFeature+Logic.swift")  # not merge=union: multi-line logic lives here
 # Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
 LISTS = {
     Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift"): r'^"([^"]+)"',
@@ -60,7 +61,7 @@ def case_errors(code):
                     errors.append((line, "multi-case arm; use one arm per feature"))
                 if (end + 1 >= len(tokens) or tokens[end][0] != ":"
                         or tokens[end][1] != line or tokens[end + 1][1] != line):
-                    errors.append((line, "keep each feature arm on one line"))
+                    errors.append((line, "keep each feature arm on one line" + UNION_HINT))
             else:
                 while end < len(tokens) and re.fullmatch(r"[A-Za-z_]\w*", tokens[end][0]):
                     names.append(tokens[end])
@@ -71,7 +72,7 @@ def case_errors(code):
                 if len(names) > 1:
                     errors.append((line, "declare only one enum case per line"))
                 if names and names[0][1] != line:
-                    errors.append((line, "keep each enum case on one line"))
+                    errors.append((line, "keep each enum case on one line" + UNION_HINT))
             for name, name_line in names:
                 if name in scope["cases"]:
                     label = f".{name} in switch" if scope["kind"] == "switch" else f"{name} in {scope['name']}"
@@ -79,6 +80,55 @@ def case_errors(code):
                     errors.append((name_line, f"repeated case {label} (first declared on line {first})"))
                 else:
                     scope["cases"][name] = name_line
+    return errors
+
+
+UNION_HINT = ("; a duplicated block came from a union merge: take main's file "
+              "(git checkout origin/main -- <file>) and add your lines")
+ARM = re.compile(r"(?:case\s+\.\w+|default)\s*:\s*\S")
+
+
+def body_errors(code):
+    """Union feature files hold cases and `switch self` bodies of one-line arms; nothing else spans lines.
+
+    A union merge appends lines it cannot place: a second multi-line body after ours (Swift then returns the
+    last expression and only warns), a body inside a switch, or a repeated property header. Logic lives in
+    NotchcastFeature+Logic.swift, which is not merge=union, so git reports a real conflict there instead.
+    """
+    errors = []
+    lines = code.split("\n")
+    depth = 0
+    names = {}
+    index = 0
+    while index < len(lines):
+        stripped = lines[index].strip()
+        opens = stripped.count("{") - stripped.count("}")
+        if depth == 0:
+            names.clear()
+        member = re.match(r"(?:(?:public|private|fileprivate|internal|static|nonisolated|@\w+)\s+)*"
+                          r"(var|func|init|subscript)\b\s*(\w*)", stripped)
+        if member and depth >= 1:
+            name = member[2] or member[1]
+            if name in names:
+                errors.append((index + 1, f"repeated {member[1]} {name} (first on line {names[name]})" + UNION_HINT))
+            names.setdefault(name, index + 1)
+            if opens > 0:
+                end, level = index + 1, opens
+                while end < len(lines) and level > 0:
+                    level += lines[end].count("{") - lines[end].count("}")
+                    end += 1
+                body = [(number + 1, lines[number].strip()) for number in range(index + 1, end - 1)
+                        if lines[number].strip()]
+                if not body or body[0][1] != "switch self {" or body[-1][1] != "}":
+                    errors.append((index + 1, f"{name}: a body over several lines must be one `switch self` "
+                                              "in a union file; move logic to NotchcastFeature+Logic.swift" + UNION_HINT))
+                else:
+                    errors.extend((number, f"{name}: only one-line `case .x: value` arms belong in its switch" + UNION_HINT)
+                                  for number, line in body[1:-1] if not ARM.match(line))
+                index = end
+                continue
+        depth += opens
+        index += 1
     return errors
 
 
@@ -105,14 +155,14 @@ def preference_errors(source):
             in_init = True
         elif in_class and depth == 1 and re.match(r"(?:@\w+\s+)*(?:private\s+|fileprivate\s+)?(?:let|var)\s", stripped):
             if balance:
-                errors.append((number, "keep each setting on one line"))
+                errors.append((number, "keep each setting on one line" + UNION_HINT))
             name = re.search(r"\b(?:let|var)\s+(\w+)", stripped)[1]
             if name in names:
                 errors.append((number, f"repeated setting {name} (first on line {names[name]})"))
             names.setdefault(name, number)
         elif in_init and depth == 2 and stripped and stripped != "}":
             if balance:
-                errors.append((number, "keep each init statement on one line"))
+                errors.append((number, "keep each init statement on one line" + UNION_HINT))
             target = re.match(r"(?:self\.)?(\w+)\s*=[^=]", stripped)
             if target:
                 if target[1] in assigned:
@@ -170,6 +220,7 @@ def check(root):
             for match in re.finditer(rf"\benum\s+{name}\b", code):
                 declarations[name].append((path, code.count("\n", 0, match.start()) + 1))
         errors.extend(f"{path}:{line}: {message}" for line, message in case_errors(code))
+        errors.extend(f"{path}:{line}: {message}" for line, message in body_errors(code))
     for path, identity in LISTS.items():
         try:
             source = (root / path).read_text()

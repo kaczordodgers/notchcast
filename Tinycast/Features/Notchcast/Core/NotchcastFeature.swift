@@ -652,55 +652,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
-    var isWired: Bool {
-        !Self.unwired.contains(self)
-    }
-
-    /// Switches kept out of Settings until a user can reach them; the code stays.
-    /// Each reason is in notchcast/switch-path-allowlist-*.json. Unhide = delete its line.
-    static let unwired: Set<Self> = [
-        .githubSearch,
-        .aiUsage,
-        .aiUsageOtherMac,
-        .inUseMarks,
-        .dayWeather,
-        .dayMarkets,
-        .treadmillHistory,
-        .agentSessions,
-        .agentPricing,
-        .captureTrimmer,
-        .recording,
-        .backupRunNow,
-        .backupBrowseRestore,
-        .markdownFiles,
-        .plainTextFiles,
-        .buildStats,
-        .killProcess,
-        .launcherAnswers,
-        .treadmillWalk,
-        .katana,
-        .agentAnswer,
-        .voiceAsk,
-        .agentMCPServer,
-        .agentChatTools,
-        .cleanSystem,
-        .linkQuickFixes,
-        .remoteScreen,
-        .machMBPFans,
-        .macSetup,
-        .agentConfirmation,
-        .machineSetupProfile,
-    ]
-
-    static var systemToolsSettingsFeatures: [Self] {
-        [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
-         .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
-    }
-
-    /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool {
-        if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
-        return switch self {
+    var needsIslandArm: Bool {
+        switch self {
         case .tasks: false
         case .githubSearch: false
         case .clearNotifications: false
@@ -799,11 +752,8 @@ extension NotchcastFeature {
         default: false
         }
     }
-    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
-
-    var defaultEnabled: Bool {
-        if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
-        return switch self {
+    var defaultEnabledArm: Bool {
+        switch self {
         case .tasks: false
         case .spotifyConnect: false
         case .archivesInPlace: false
@@ -850,12 +800,6 @@ extension NotchcastFeature {
         }
     }
 
-    var isSystemFeature: Bool {
-        switch self {
-        case .katana: true
-        default: settingsGroup == .systemTools || settingsGroup == .tools
-        }
-    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

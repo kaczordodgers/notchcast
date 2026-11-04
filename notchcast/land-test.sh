@@ -16,15 +16,19 @@ import re
 p = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift')
 s = p.read_text().replace('    case island\n', '    case landingFixture\n    case island\n', 1)
 values = {'dependencies': '[]', 'settingsGroup': '.activities', 'title': '"Fixture"', 'subtitle': '"Fixture."',
-          'requiredGrants': '[]'}
+          'requiredGrants': '[]', 'needsIslandArm': 'false', 'defaultEnabledArm': 'false'}
 for name, value in values.items():
     s, count = re.subn(rf'(var {name}: [^\n]+ {{\n        switch self {{\n)',
                        rf'\g<1>        case .landingFixture: {value}\n', s)
     assert count == 1, name
-s = s.replace('        return switch self {\n', '        return switch self {\n        case .landingFixture: false\n')
 p.write_text(s)
+p = Path('Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift')
+s = p.read_text()
+head = 'static let allowed: [String: Value] = [\n'
+assert head in s
+p.write_text(s.replace(head, head + '        "landingFixture": .bool,\n', 1))
 PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift
 git commit --quiet -m 'Fixture: add enum case'
 a=$(git rev-parse HEAD)
 "$root/notchcast/changed-harnesses.sh" "$base" "$a" > "$scratch/selected"
@@ -71,16 +75,10 @@ status=0
 [ "$status" -eq 1 ]
 grep 'REFUSED: merge conflict' "$scratch/conflict.log"
 git switch --quiet -c fixture-warning "$base"
-python3 - <<'PY'
-from pathlib import Path
-import re
-p = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift')
-s, count = re.subn(r'(var defaultEnabled: Bool \{.*?\n        \}\n)', r'\g<1>        !isSystemFeature\n', p.read_text(), count=1, flags=re.S)
-assert count == 1
-p.write_text(s)
-PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-git commit --quiet -m 'Fixture: a second body after the first'
+logic=Tinycast/Features/Notchcast/Core/NotchcastFeature+Logic.swift
+printf 'extension NotchcastFeature {\n    var warningFixture: Bool {\n        let unused = 1\n        return true\n    }\n}\n' >> "$logic"
+git add "$logic"
+git commit --quiet -m 'Fixture: a warning'
 status=0
 "$root/notchcast/land.sh" --check "$base" HEAD > "$scratch/warning.log" 2>&1 || status=$?
 [ "$status" -eq 1 ]

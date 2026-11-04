@@ -9,6 +9,7 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlerts.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlertPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+Logic.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift

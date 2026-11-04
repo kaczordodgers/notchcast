@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+Logic.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
