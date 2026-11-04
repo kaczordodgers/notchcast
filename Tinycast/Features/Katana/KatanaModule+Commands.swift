@@ -27,6 +27,7 @@ extension KatanaModule {
     func selectChannel(_ channel: KatanaChannel, report: (String, Bool) -> Void) async {
         do {
             try await client.selectChannel(channel)
+            guard !Task.isCancelled, NotchcastPreferences.shared.isOn(.katana) else { return }
             let message: String
             switch channel {
             case .panel: message = String(localized: "Katana Panel Selected")
@@ -36,7 +37,10 @@ extension KatanaModule {
             case .b2: message = String(localized: "Katana B2 Selected")
             }
             report(message, false)
+        } catch is CancellationError {
+            return
         } catch {
+            guard !Task.isCancelled, NotchcastPreferences.shared.isOn(.katana) else { return }
             report(error.localizedDescription, true)
         }
     }

@@ -43,10 +43,14 @@ enum DialogTone: Sendable {
     var packets: [KatanaSysEx.Message] = []
     var channel: UInt8 = 0
     var fail = false
+    var cancel = false
+    var disable = false
     func start() throws {}
     func stop() {}
     func connect(_ name: String) throws {}
     func send(_ bytes: [UInt8]) throws {
+        if cancel { throw CancellationError() }
+        if disable { NotchcastPreferences.shared.enabled = false }
         if fail { throw KatanaError.verificationFailed }
         let message = try KatanaSysEx.decode(bytes)
         packets.append(message)
@@ -99,6 +103,19 @@ enum DialogTone: Sendable {
         precondition(AppCore.shared.messages[0].1 == .danger)
         precondition(AppCore.shared.messages[0].0 == KatanaError.verificationFailed.localizedDescription)
         print("PASS: transport failure reports existing KatanaError with danger")
+        midi.fail = false
+        midi.cancel = true
+        var reports = 0
+        await module.selectChannel(.a1) { _, _ in reports += 1 }
+        precondition(reports == 0)
+        midi.cancel = false
+        midi.disable = true
+        await module.selectChannel(.a1) { _, _ in reports += 1 }
+        precondition(reports == 0)
+        midi.fail = true
+        await module.selectChannel(.a1) { _, _ in reports += 1 }
+        precondition(reports == 0)
+        print("PASS: cancellation and switch-off suppress success and danger reports")
         NotchcastPreferences.shared.enabled = false
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
         print("PASS: switch off removes all five commands")
@@ -108,5 +125,12 @@ enum DialogTone: Sendable {
             precondition(catalog.contains("        KatanaModule.\(name)Command,"))
         }
         print("PASS: production catalog includes all five commands")
+        let settings = try String(contentsOfFile:
+            "Tinycast/Features/Notchcast/Settings/NotchcastSystemSettingsSection.swift", encoding: .utf8)
+        precondition(settings.contains("$0 != .katana"))
+        let feature = try String(contentsOfFile:
+            "Tinycast/Features/Notchcast/Core/NotchcastFeature.swift", encoding: .utf8)
+        precondition(feature.contains("case .katana: .system"))
+        print("PASS: Katana stays in System and is excluded from System Monitor")
     }
 }

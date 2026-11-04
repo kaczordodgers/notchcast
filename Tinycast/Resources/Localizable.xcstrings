@@ -12010,54 +12010,54 @@
         }
       }
     },
-    "Katana channels, tones and USB audio." : {
+    "Switch Katana amp channels from the launcher." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Katana-Kanäle, Sounds und USB-Audio."
+            "value" : "Katana-Verstärkerkanäle über den Launcher wechseln."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Canales, tonos y audio USB de Katana."
+            "value" : "Cambia los canales del amplificador Katana desde el lanzador."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Canaux, sons et audio USB Katana."
+            "value" : "Changez les canaux de l’ampli Katana depuis le lanceur."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Katanaのチャンネル、音色、USBオーディオ。"
+            "value" : "ランチャーからKatanaアンプのチャンネルを切り替えます。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Katana 채널, 톤 및 USB 오디오."
+            "value" : "런처에서 Katana 앰프 채널을 전환합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Canais, sons e áudio USB do Katana."
+            "value" : "Alterne os canais do amplificador Katana pelo iniciador."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Каналы, тембры и USB-аудио Katana."
+            "value" : "Переключайте каналы усилителя Katana из лаунчера."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Katana 通道、音色和 USB 音频。"
+            "value" : "从启动器切换 Katana 音箱通道。"
           }
         }
       }
