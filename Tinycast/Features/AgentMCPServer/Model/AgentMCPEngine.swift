@@ -25,7 +25,9 @@ final class AgentMCPEngine {
         guard let request = value as? [String: Any], request["jsonrpc"] as? String == "2.0",
               let method = request["method"] as? String,
               request["id"] == nil || request["id"] is String || request["id"] is NSNull
-                || ((request["id"] as? NSNumber).map { String(cString: $0.objCType) != "c" } ?? false) else {
+                || ((request["id"] as? NSNumber).map {
+                    String(cString: $0.objCType) != "c" && $0.doubleValue.isFinite
+                } ?? false) else {
             return response(id: NSNull(), error: -32600, message: "Invalid request")
         }
         let id = request["id"] ?? NSNull()
@@ -61,10 +63,11 @@ final class AgentMCPEngine {
                     }]
                 case "tools/call":
                     guard let name = params["name"] as? String,
-                          ["agents.list", "agents.send", "agents.wait", "agents.interrupt"].contains(name) else {
+                          AgentMCPAction.allowedNames.contains(name) else {
                         return response(id: id, error: -32602, message: "Action refused")
                     }
-                    guard let arguments = (params["arguments"] ?? [:]) as? [String: Any] else {
+                    guard let arguments = (params["arguments"] ?? [:]) as? [String: Any],
+                          JSONSerialization.isValidJSONObject(arguments) else {
                         return response(id: id, error: -32602, message: "Invalid arguments")
                     }
                     let actions = try await backend.actions()
@@ -75,12 +78,16 @@ final class AgentMCPEngine {
                     let output = try await backend.call(name, arguments: JSONSerialization.data(withJSONObject: arguments))
                     result = ["content": [["type": "text", "text": String(bytes: output, encoding: .utf8) ?? ""]]]
                 case "resources/list":
-                    result = ["resources": try await backend.states().map {
+                    result = ["resources": try await backend.states().filter {
+                        AgentMCPAction.allowedNames.contains($0.id)
+                    }.map {
                         ["uri": "notchcast-state:" + $0.id, "name": $0.title, "mimeType": "application/json"]
                     }]
                 case "resources/read":
                     guard let uri = params["uri"] as? String,
-                          let state = try await backend.states().first(where: { "notchcast-state:" + $0.id == uri }) else {
+                          let state = try await backend.states().first(where: {
+                              AgentMCPAction.allowedNames.contains($0.id) && "notchcast-state:" + $0.id == uri
+                          }) else {
                         return response(id: id, error: -32602, message: "Unknown resource")
                     }
                     try validate(operation)
@@ -107,7 +114,8 @@ final class AgentMCPEngine {
         if let error {
             object["error"] = ["code": error, "message": message]
         } else { object["result"] = result }
-        guard var data = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys) else { return nil }
+        guard JSONSerialization.isValidJSONObject(object),
+              var data = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys) else { return nil }
         data.append(0x0A)
         return data
     }
