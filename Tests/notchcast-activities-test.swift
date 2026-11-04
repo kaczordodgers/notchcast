@@ -108,6 +108,24 @@ struct NotchcastActivitiesTests {
         shared.message?.onCancel?()
         precondition(cancelled)
         shared.presenter = nil
+        precondition(!IslandHUDRouter.showProgress("Fallback progress", onCancel: nil))
+        precondition(shared.message == nil)
+        shared.presenter = presenter
+        precondition(IslandHUDRouter.showProgress("Another progress", onCancel: nil))
+        shared.presenter = nil
+        precondition(!IslandHUDRouter.show("Fallback result", tone: .success))
+        precondition(shared.message == nil)
+        shared.presenter = presenter
+        precondition(IslandHUDRouter.showProgress("Disabled progress", onCancel: nil))
+        preferences.set(.islandStatusMessages, false)
+        precondition(!IslandHUDRouter.showProgress("Off", onCancel: nil))
+        precondition(shared.message == nil)
+        preferences.set(.islandStatusMessages, true)
+        precondition(IslandHUDRouter.showProgress("Disabled result", onCancel: nil))
+        preferences.set(.islandStatusMessages, false)
+        precondition(!IslandHUDRouter.show("Off", tone: .success))
+        precondition(shared.message == nil)
+        shared.presenter = nil
         IslandHUDRouter.dismiss()
         precondition(shared.message == nil)
         print("PASS priority, deadlines, removal, updates, dwell re-arm, replacement, switch, routing and cancellation")
