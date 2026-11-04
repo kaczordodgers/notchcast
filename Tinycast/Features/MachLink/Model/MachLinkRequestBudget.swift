@@ -1,6 +1,6 @@
 import Foundation
 
 enum MachLinkRequestBudget {
-    static let responder: Duration = .seconds(8)
-    static let requester: Duration = .seconds(10)
+    static let responder = RootContract.Operation.change.timeout * 2 + .seconds(2)
+    static let requester = responder + .seconds(2)
 }

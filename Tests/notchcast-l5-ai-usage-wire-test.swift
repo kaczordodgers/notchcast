@@ -8,6 +8,7 @@
 // notchcast-sources: Tinycast/Features/MachBlockedDialog/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachBlockedDialog/Service/BlockedDialogWindows.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift

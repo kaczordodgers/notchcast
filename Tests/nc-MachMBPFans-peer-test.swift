@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkRequestBudget.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/MachLinkManager+Peers.swift
 // notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
@@ -14,7 +15,6 @@ import Synchronization
 @MainActor final class MonitorModule {
     let fans = FanControl(runner: { _ in await HelperEdge.apply() })
 }
-enum RootContract { enum Command: Sendable { case fansAuto, fansMedium, fansMax } }
 struct RootHelperClient {
     enum Failure: Error { case executionFailed(Int) }
     func run(_ command: RootContract.Command) async throws {}
@@ -66,8 +66,9 @@ struct SMCClient {
 }
 @main struct FanPeerTest {
     @MainActor static func main() async throws {
-        precondition(MachLinkRequestBudget.requester > MachLinkRequestBudget.responder)
-        precondition(MachLinkRequestBudget.responder > .seconds(5))
+        let applyAndRestore = RootContract.Operation.change.timeout * 2
+        precondition(MachLinkRequestBudget.responder == applyAndRestore + .seconds(2))
+        precondition(MachLinkRequestBudget.requester == MachLinkRequestBudget.responder + .seconds(2))
         let peer = MachLinkManager()
         var calls = 0
         let monitor = MonitorModule()

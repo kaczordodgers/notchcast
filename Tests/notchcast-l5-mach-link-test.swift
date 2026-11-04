@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 import Foundation

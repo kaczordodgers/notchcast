@@ -11,6 +11,6 @@ extension RemoteFanModule {
             case .mid: String(localized: "Medium")
             case .max: String(localized: "Maximum")
             }
-            NotchcastCore.remoteResult(String(localized: "Fan mode") + ": " + mode)
+            NotchcastCore.remoteResult(String(localized: "Fan mode: \(mode)"))
         } catch { NotchcastCore.remoteResult(String(localized: "Could not change fan mode.")) } } })
 }
