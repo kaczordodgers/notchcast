@@ -43,6 +43,9 @@ extension NotchcastCore {
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
+    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".editor")!))
+    static let quickLook = QuickLookCoordinator(preferences: .shared)
+    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
@@ -97,6 +100,9 @@ extension NotchcastCore {
             .init(requires: [.recording], module: recording),
             .init(requires: [.voiceAsk], module: voiceAsk),
             .init(requires: [.dictationHistory], module: dictationHistory),
+            .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
+            .init(requires: [.quickLookSpace], module: quickLook),
+            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }

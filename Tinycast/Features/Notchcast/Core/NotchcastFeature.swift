@@ -70,6 +70,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case torrents
     case torrentsUseIPhone
     case torrentsKeepSharing
+    case backupRunNow
+    case backupBrowseRestore
+    case quickLookSpace
+    case markdownFiles
+    case plainTextFiles
+    case editorSpellChecking
     case buildStats
 
     var dependencies: [Self] {
@@ -135,6 +141,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
         case .linkQuickFixes: .systemTools
+        case .backupRunNow: .system
+        case .backupBrowseRestore: .system
+        case .quickLookSpace: .launcher
+        case .markdownFiles: .system
+        case .plainTextFiles: .system
+        case .editorSpellChecking: .system
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -171,8 +183,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Build statistics")
-        case .colorPicker: String(localized: "Color Picker")
-        case .screenshot: String(localized: "Screenshots")
         case .agentMCPServer: String(localized: "Agent MCP Server")
         case .agentChatTools: String(localized: "AI Chat Tools")
         case .island: String(localized: "Island")
@@ -200,6 +210,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .finderRename: String(localized: "Finder Rename")
         case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
+        case .colorPicker: String(localized: "Color Picker")
+        case .screenshot: String(localized: "Screenshots")
         case .screenText: String(localized: "Capture Text")
         case .scrollingCapture: String(localized: "Scrolling Capture")
         case .greenMaximize: String(localized: "Green Button Maximizes")
@@ -234,6 +246,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Event Reminders")
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
+        case .backupRunNow: String(localized: "Back Up Now")
+        case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
+        case .quickLookSpace: String(localized: "Quick Look on Space")
+        case .markdownFiles: String(localized: "Markdown Files")
+        case .plainTextFiles: String(localized: "Plain Text Files")
+        case .editorSpellChecking: String(localized: "Editor Spell Checking")
         }
     }
 
@@ -246,8 +264,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Read a local build snapshot.")
-        case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
-        case .screenshot: String(localized: "Capture an area, window or display.")
         case .agentMCPServer: String(localized: "Nothing is exposed until the CLI is available.")
         case .agentChatTools: String(localized: "Add Notchcast tools to AI chat.")
         case .dictationEnglish: ""
@@ -276,6 +292,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
+        case .screenshot: String(localized: "Capture an area, window or display.")
         case .screenText: String(localized: "Copy text from a selected screen area.")
         case .scrollingCapture: String(localized: "Copy a scrolling area as one image.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
@@ -309,6 +327,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
+        case .backupRunNow: String(localized: "Allow starting the configured backup job.")
+        case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
+        case .quickLookSpace: String(localized: "Preview an arrow-selected file with Space.")
+        case .markdownFiles: String(localized: "Edit Markdown documents outside the notes folder.")
+        case .plainTextFiles: String(localized: "Edit plain text while preserving its file encoding.")
+        case .editorSpellChecking: String(localized: "Check spelling in the editor.")
         }
     }
 
@@ -383,6 +407,12 @@ extension NotchcastFeature {
         case .agentChatTools: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .backupRunNow: false
+        case .backupBrowseRestore: false
+        case .quickLookSpace: false
+        case .markdownFiles: false
+        case .plainTextFiles: false
+        case .editorSpellChecking: false
         case .pastePlain: false
         case .finderCutPaste: false
         case .finderRename: false
@@ -404,6 +434,8 @@ extension NotchcastFeature {
         case .switcherQuitKey: false
         case .buildStats: false
         case .voiceAsk: false
+        case .agentMCPServer: false
+        case .dictationEnglish: false
         case .agentAnswer: false
         case .dictationCleanup: false
         case .pastePlain: false

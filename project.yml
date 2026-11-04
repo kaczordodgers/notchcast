@@ -58,6 +58,9 @@ targets:
       - path: Tinycast/Features/Music/NowPlayingAdapter/now-playing.pl
         buildPhase: resources
     dependencies:
+      - target: MarkdownPreview
+        embed: true
+        codeSign: true
       - target: NowPlayingAdapter
         link: false
         embed: true
@@ -109,6 +112,37 @@ targets:
           PRODUCT_NAME: Notchcast Dev
         Release:
           PRODUCT_NAME: Notchcast
+
+  MarkdownPreview:
+    type: app-extension
+    platform: macOS
+    productName: NotchcastMarkdownPreview
+    sources:
+      - NotchcastMarkdownPreview
+      - Tinycast/Features/MarkdownQuickLook/Model/MarkdownQuickLookDocument.swift
+      - Tinycast/Features/MarkdownQuickLook/Service/MarkdownQuickLookReader.swift
+      - Tinycast/Features/Notes/Model/NoteMarkdown.swift
+      - Tinycast/Features/Notes/Model/NoteMarkdownParser.swift
+      - Tinycast/Features/Notes/Model/NoteInlineScanner.swift
+      - Tinycast/Features/Notes/UI/NoteMarkdownStyler.swift
+      - Tinycast/Features/Notes/UI/NoteMarkdownTypography.swift
+      - Tinycast/Features/Notes/UI/NoteBlockDecoration.swift
+      - Tinycast/Features/Notes/UI/NoteBlockLayoutFragment.swift
+      - Tinycast/Features/Notes/UI/NoteLayoutFragmentProvider.swift
+      - Tinycast/Features/Notes/UI/NoteCheckboxGeometry.swift
+      - Tinycast/DesignSystem/Theme.swift
+      - Tinycast/Platform/Appearance.swift
+    settings:
+      base:
+        PRODUCT_NAME: NotchcastMarkdownPreview
+        EXECUTABLE_NAME: NotchcastMarkdownPreview
+        WRAPPER_NAME: NotchcastMarkdownPreview.appex
+        PRODUCT_MODULE_NAME: NotchcastMarkdownPreview
+        PRODUCT_BUNDLE_IDENTIFIER: "$(TINYCAST_BUNDLE_IDENTIFIER).markdown-preview"
+        INFOPLIST_FILE: NotchcastMarkdownPreview/Info.plist
+        CODE_SIGN_ENTITLEMENTS: NotchcastMarkdownPreview/MarkdownPreview.entitlements
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
 
   ClipboardTextHelper:
     type: tool
