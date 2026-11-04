@@ -12,6 +12,7 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let dictationCleanup = DictationCleanupModule.live()
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
@@ -25,6 +26,10 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        dictationCleanup.reportFailure = { [weak core] in
+            core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
+        }
+        dictationCleanup.load()
         NotchcastPreferences.shared.onCommandsChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
         }
@@ -46,6 +51,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.dictationCleanup], module: dictationCleanup),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

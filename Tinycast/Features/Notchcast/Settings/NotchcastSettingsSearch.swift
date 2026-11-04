@@ -64,5 +64,11 @@ extension SettingsSearchCatalog {
         .init(.notchcastCaptureAndDictation, "Screenshots", keywords: ["screen capture", "image"]),
         .init(.notchcastCaptureAndDictation, "Screenshot destination", keywords: ["clipboard", "file", "save"]),
         .init(.notchcastCaptureAndDictation, "Screenshot folder", keywords: ["directory", "desktop"]),
+        .init(.notchcastCaptureAndDictation, "AI cleanup"),
+        .init(.notchcastCaptureAndDictation, "Cleanup endpoint"),
+        .init(.notchcastCaptureAndDictation, "Cleanup effort"),
+        .init(.notchcastCaptureAndDictation, "Cleanup prompt addition"),
+        .init(.notchcastCaptureAndDictation, "Cleanup vocabulary"),
+        .init(.notchcastCaptureAndDictation, "Cleanup API key"),
     ]
 }
