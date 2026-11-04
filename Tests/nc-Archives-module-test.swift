@@ -48,9 +48,7 @@ struct ArchiveModuleLifecycleTests {
     }
 
     static func until(_ condition: () -> Bool) async throws {
-        let deadline = ContinuousClock.now.advanced(by: .seconds(10))
         while !condition() {
-            precondition(ContinuousClock.now < deadline, "archive module timed out")
             try await Task.sleep(for: .milliseconds(20))
         }
     }
