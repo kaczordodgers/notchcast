@@ -3,5 +3,8 @@ extension NotchcastCommandCatalog {
         IslandController.launcherCommand,
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
+        BatteryModule.launcherCommand,
+        FanControl.maxCommand,
+        FanControl.autoCommand,
     ]
 }

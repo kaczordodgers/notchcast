@@ -12,6 +12,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case launcherAliasSpace
     case systemMonitor
     case fanControl
+    case accessoryBatteries
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -55,6 +56,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherAliasSpace: .launcher
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
+        case .accessoryBatteries: .systemTools
         case .monitorAlerts: .systemTools
         case .lowDiskWarning: .system
         case .systemNotices: .system
@@ -100,6 +102,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .systemMonitor: String(localized: "System Monitor")
         case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
+        case .accessoryBatteries: String(localized: "Accessory batteries")
         case .lowDiskWarning: String(localized: "Low Disk Warning")
         case .systemNotices: String(localized: "System Notices")
         case .volumeLevels: String(localized: "Volume in Island")
@@ -144,6 +147,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .systemMonitor: String(localized: "Monitor system performance.")
         case .monitorAlerts: String(localized: "Sample your Mac in the background while alerts are on.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
+        case .accessoryBatteries: String(localized: "Show connected accessory battery levels.")
         case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.")
         case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.")
         case .volumeLevels: String(localized: "Replaces the macOS volume overlay.")

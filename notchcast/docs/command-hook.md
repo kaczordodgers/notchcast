@@ -51,6 +51,11 @@ Shortcuts use a typed `HotKeyAction.notchcastCommand` and the ordinary binding s
 Feature availability also gates hotkey execution. Refresh the index when availability
 changes through `AppIndex.refreshNotchcastCommands()`.
 
+BatteryModule owns `nc-keep-awake`, which pauses or resumes its assertion without changing
+the Keep Awake switch. FanControl owns `nc-fans-max` and `nc-fans-auto`; these update the
+same fan-mode preference as Settings and require both System Monitor and Fan Control.
+Changes to these feature switches refresh the command index through NotchcastPreferences.
+
 Toggle Island uses `legacyID: "command:toggle-island"` for its entry, retaining
 ranking, aliases, visibility, favorites and `hotkey.command:toggle-island` bindings.
 Its command value also resolves `command:nc-toggle-island`.

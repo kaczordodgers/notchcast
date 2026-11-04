@@ -1,7 +1,7 @@
 import Foundation
 
 struct ChargePolicy: Sendable, Equatable {
-    struct Decision: Sendable, Equatable {
+    struct Decision: Sendable, Equatable, Codable {
         var charging: Bool
         var adapter: Bool
         static let release = Self(charging: true, adapter: true)

@@ -9,6 +9,7 @@ extension SettingsAnchor {
     static let notchcastAlertMemory = Self(tab: .notchcast, title: "Memory pressure threshold")
     static let notchcastAlertDisk = Self(tab: .notchcast, title: "Disk free threshold")
     static let notchcastAlertBattery = Self(tab: .notchcast, title: "Battery threshold")
+    static let notchcastAccessories = Self(tab: .notchcast, title: "Accessory batteries")
     static let notchcastChargePercent = Self(tab: .notchcast, title: "Charge limit percent")
     static let notchcastAwakeDuration = Self(tab: .notchcast, title: "Keep-awake duration")
     static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor"))
@@ -50,6 +51,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastLauncher, "Alias and Space", keywords: ["alias", "space", "arguments"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
+        .init(.notchcastAccessories, "Accessory batteries", keywords: ["bluetooth", "charging", "mouse", "keyboard"]),
         .init(.notchcastFanMode, "Fan mode"),
         .init(.notchcastMonitor, "Charge Limit"),
         .init(.notchcastMonitor, "Battery Sailing"),
