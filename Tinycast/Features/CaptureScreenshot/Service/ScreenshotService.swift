@@ -1,0 +1,124 @@
+import AppKit
+import ImageIO
+import ScreenCaptureKit
+import UniformTypeIdentifiers
+
+enum ScreenshotService {
+    static func hasScreenRecordingAccess() -> Bool {
+        CGPreflightScreenCaptureAccess()
+    }
+
+    @discardableResult
+    static func requestScreenRecordingAccess() -> Bool {
+        CGRequestScreenCaptureAccess()
+    }
+
+    @MainActor
+    @discardableResult
+    static func capture(
+        _ request: ScreenshotRequest,
+        destination: ScreenshotRequest.Destination,
+        pasteboard: NSPasteboard = .general,
+        isEnabled: @MainActor () -> Bool
+    ) async throws -> URL? {
+        guard isEnabled() else { throw ScreenshotRequest.Failure.disabled }
+        guard hasScreenRecordingAccess() || requestScreenRecordingAccess() else {
+            throw ScreenshotRequest.Failure.permissionDenied
+        }
+        let data = try await png(request)
+        try Task.checkCancellation()
+        switch destination {
+        case .clipboard, .both:
+            let item = NSPasteboardItem()
+            guard item.setData(data, forType: .png) else {
+                throw ScreenshotRequest.Failure.clipboardFailed
+            }
+            pasteboard.clearContents()
+            guard pasteboard.writeObjects([item]) else {
+                throw ScreenshotRequest.Failure.clipboardFailed
+            }
+        case .file:
+            break
+        }
+        switch destination {
+        case .clipboard:
+            return nil
+        case .file(let folder), .both(let folder):
+            return try await save(data, folder: folder)
+        }
+    }
+
+    @concurrent
+    private static func png(_ request: ScreenshotRequest) async throws -> Data {
+        try Task.checkCancellation()
+        let configuration = SCScreenshotConfiguration()
+        configuration.showsCursor = false
+        configuration.ignoreShadows = true
+        configuration.dynamicRange = .sdr
+        let output: SCScreenshotOutput
+        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        try Task.checkCancellation()
+        let ownApplications = content.applications.filter {
+            $0.processID == ProcessInfo.processInfo.processIdentifier
+                || $0.bundleIdentifier == Bundle.main.bundleIdentifier
+        }
+        switch request {
+        case .rect(let rect):
+            guard ScreenshotFilename.isValid(rect: rect) else {
+                throw ScreenshotRequest.Failure.invalidRect
+            }
+            guard let display = content.displays.first(where: { $0.frame.contains(rect) }) else {
+                throw ScreenshotRequest.Failure.targetUnavailable
+            }
+            let filter = SCContentFilter(display: display, excludingApplications: ownApplications, exceptingWindows: [])
+            configuration.sourceRect = rect.offsetBy(dx: -display.frame.minX, dy: -display.frame.minY)
+            output = try await SCScreenshotManager.captureScreenshot(contentFilter: filter, configuration: configuration)
+        case .window, .display:
+            let filter: SCContentFilter
+            switch request {
+            case .window(let id):
+                guard let window = content.windows.first(where: { $0.windowID == id }) else {
+                    throw ScreenshotRequest.Failure.targetUnavailable
+                }
+                filter = SCContentFilter(desktopIndependentWindow: window)
+            case .display(let id):
+                guard let display = content.displays.first(where: { $0.displayID == id }) else {
+                    throw ScreenshotRequest.Failure.targetUnavailable
+                }
+                filter = SCContentFilter(display: display, excludingApplications: ownApplications, exceptingWindows: [])
+            case .rect:
+                throw ScreenshotRequest.Failure.invalidRect
+            }
+            output = try await SCScreenshotManager.captureScreenshot(contentFilter: filter, configuration: configuration)
+        }
+        try Task.checkCancellation()
+        guard let image = output.sdrImage else { throw ScreenshotRequest.Failure.encodingFailed }
+        let data = NSMutableData()
+        guard let encoder = CGImageDestinationCreateWithData(data, UTType.png.identifier as CFString, 1, nil) else {
+            throw ScreenshotRequest.Failure.encodingFailed
+        }
+        CGImageDestinationAddImage(encoder, image, nil)
+        guard CGImageDestinationFinalize(encoder) else { throw ScreenshotRequest.Failure.encodingFailed }
+        return data as Data
+    }
+
+    @concurrent
+    static func save(
+        _ data: Data, folder: URL?, date: Date = Date(), timeZone: TimeZone = .current
+    ) async throws -> URL {
+        let directory = try folder ?? FileManager.default.url(
+            for: .desktopDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+        let stem = ScreenshotFilename.stem(date: date, timeZone: timeZone)
+        var collision = 0
+        while true {
+            try Task.checkCancellation()
+            let url = directory.appendingPathComponent(ScreenshotFilename.name(stem: stem, collision: collision))
+            do {
+                try data.write(to: url, options: .withoutOverwriting)
+                return url
+            } catch CocoaError.fileWriteFileExists {
+                collision += 1
+            }
+        }
+    }
+}
