@@ -4,13 +4,17 @@ import Observation
 @MainActor
 final class MonitorModule: NotchcastModule {
     let store = MonitorStore()
-    let fans = FanControl()
+    let fans: FanControl
     let alerts: MonitorAlerts
     private let preferences: NotchcastPreferences
     private var running = false
     private var observationID: UUID?
 
-    init(preferences: NotchcastPreferences, alertSink: @escaping (String) -> Void = { _ in }) {
+    init(preferences: NotchcastPreferences, alertSink: @escaping (String) -> Void = { _ in },
+         fanFailure: @escaping () -> Void = {}) {
+        let enabled = preferences.isOn(.systemMonitor) && preferences.isOn(.fanControl)
+        fans = FanControl(mode: enabled ? .auto : FanControl.Mode(rawValue: preferences.fanMode) ?? .auto,
+                          confirmed: { preferences.fanMode = $0.rawValue }, failed: fanFailure)
         alerts = MonitorAlerts(sink: alertSink)
         self.preferences = preferences
     }

@@ -44927,6 +44927,19 @@
         }
       }
     },
+    "Could not change fan mode." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Der Lüftermodus konnte nicht geändert werden." } },
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Could not change fan mode." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo cambiar el modo del ventilador." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible de modifier le mode du ventilateur." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ファンモードを変更できませんでした。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "팬 모드를 변경할 수 없습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível alterar o modo do ventilador." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось изменить режим вентилятора." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法更改风扇模式。" } }
+      }
+    },
     "Could not refresh" : {
       "localizations" : {
         "de" : {

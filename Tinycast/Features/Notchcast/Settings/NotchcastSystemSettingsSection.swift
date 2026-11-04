@@ -27,7 +27,9 @@ struct NotchcastSystemSettingsSection: View {
                 .settingsEnabled(!(feature == .batterySailing || feature == .batteryHeatProtection)
                                  || preferences.isOn(feature) || !NotchcastCore.battery.chargingUnsupported)
             }
-            Picker(selection: $preferences.fanMode) {
+            Picker(selection: Binding(get: { preferences.fanMode }, set: {
+                NotchcastCore.setFanMode(FanControl.Mode(rawValue: $0) ?? .auto)
+            })) {
                 Text("Auto").tag("auto")
                 Text("Medium").tag("medium")
                 Text("Max").tag("max")
