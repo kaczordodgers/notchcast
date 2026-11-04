@@ -11,7 +11,6 @@ extension SettingsAnchor {
     static let notchcastAwakeDuration = Self(tab: .notchcast, title: "Keep-awake duration")
     static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor"))
     static let notchcastFanMode = Self(tab: .notchcast, title: "Fan mode")
-    static let notchcastExtras = Self(tab: .notchcast, title: "Notchcast")
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
     static let notchcastOptions = Self(tab: .notchcast, title: LocalizedStringResource("Island Options"))
     static let notchcastLauncher = Self(tab: .notchcast, title: "Launcher")
@@ -61,8 +60,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastSystem, "Agent access"),
         .init(.notchcastSystem, "Command line tool"),
-        .init(.notchcastActivities, "Calendar"),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
     ]
