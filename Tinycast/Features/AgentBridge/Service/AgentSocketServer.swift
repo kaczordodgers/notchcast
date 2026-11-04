@@ -51,7 +51,8 @@ final class AgentSocketServer: Sendable {
     private let readTimeout: Duration
     private let handlerTimeout: TimeInterval
 
-    init(socketURL: URL, readTimeout: Duration = .seconds(5), handlerTimeout: TimeInterval = 30,
+    init(socketURL: URL, readTimeout: Duration = .seconds(5),
+         handlerTimeout: TimeInterval = AgentRequestTiming.serverTimeout / .seconds(1),
          handler: @escaping Handler) {
         self.socketURL = socketURL
         self.handler = handler
