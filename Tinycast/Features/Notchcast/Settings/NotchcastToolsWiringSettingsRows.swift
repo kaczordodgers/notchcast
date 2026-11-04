@@ -5,6 +5,11 @@ struct NotchcastToolsWiringSettingsRows: View {
 
     var body: some View {
         row(.cleaningMode, anchor: .notchcastCleaning) {
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                if NotchcastCore.cleaning.remaining > 0 {
+                    Text(Duration.seconds(NotchcastCore.cleaning.remaining), format: .units())
+                }
+            }
             Button("Start") { NotchcastCore.cleaning.begin() }
         }
         if NotchcastCore.cleaning.needsGrant {
@@ -16,7 +21,10 @@ struct NotchcastToolsWiringSettingsRows: View {
         }
         ForEach(NotchcastCore.appUpdates.results, id: \.app.id) { result in
             LabeledContent(result.app.id) {
-                Text(result.latest ?? String(localized: "Unknown"))
+                if let newer = result.isNewer {
+                    Text(newer ? String(localized: "Update available") : String(localized: "Up to date"))
+                    if let latest = result.latest { Text(latest) }
+                } else { Text("Unknown") }
             }
         }
         row(.macUpdate, anchor: .notchcastMacUpdate) {
@@ -52,6 +60,7 @@ struct NotchcastToolsWiringSettingsRows: View {
         } label: {
             SettingsRowTitle(anchor, verbatim: feature.title)
             Text(feature.subtitle)
+            if feature == .cleaningMode { Text("Media keys still work.") }
         }
     }
 }

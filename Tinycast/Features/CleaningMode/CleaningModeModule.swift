@@ -7,6 +7,7 @@ final class CleaningModeModule: NotchcastModule {
     private let granted: () -> Bool
     private var enabled = false
     var needsGrant = false
+    var remaining: Double { engine.remaining }
 
     init(engine: CleaningModeEngine, granted: @escaping () -> Bool) {
         self.engine = engine

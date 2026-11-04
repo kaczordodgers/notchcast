@@ -5,7 +5,9 @@ struct NotchcastSystemSettingsSection: View {
 
     var body: some View {
         Section {
-            ForEach(NotchcastFeature.allCases.filter { $0.isSystemFeature && $0 != .monitorAlerts }, id: \.self) { feature in
+            ForEach(NotchcastFeature.allCases.filter {
+                $0.isSystemFeature && $0 != .monitorAlerts && $0.settingsGroup != .tools
+            }, id: \.self) { feature in
                 Toggle(isOn: Binding(
                     get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
                     SettingsRowTitle(.notchcastMonitor, verbatim: feature.title)

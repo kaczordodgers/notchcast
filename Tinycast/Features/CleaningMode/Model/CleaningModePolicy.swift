@@ -13,6 +13,7 @@ struct CleaningModePolicy: Sendable {
     private(set) var unlock = CleaningUnlockCounter()
     private var deadline: TimeInterval = 0
     static let maximumDuration: TimeInterval = 300
+    func remaining(now: TimeInterval) -> TimeInterval { isActive ? max(0, deadline - now) : 0 }
 
     mutating func start(now: TimeInterval) {
         guard !isActive else { return }

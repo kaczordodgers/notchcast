@@ -21,6 +21,7 @@ final class CleaningModeEngine {
     private var cancelPoll: (() -> Void)?
 
     var isActive: Bool { state.policy.withLock { $0.isActive } }
+    var remaining: TimeInterval { state.policy.withLock { $0.remaining(now: now()) } }
     var unlockProgress: Int { state.policy.withLock { $0.unlock.progress } }
 
     init(

@@ -5,6 +5,15 @@ import Foundation
 @main
 struct AppUpdatesTest {
     static func main() async throws {
+        for body in [
+            "<enclosure sparkle:version=\"20\"/><sparkle:minimumSystemVersion>26</sparkle:minimumSystemVersion>",
+            "<enclosure/><sparkle:version>20</sparkle:version>",
+            "<enclosure sparkle:version=\"20\"/>"
+        ] {
+            let fixture = Data("<rss xmlns:sparkle=\"urn:sparkle\"><channel><item>\(body)</item></channel></rss>".utf8)
+            let releases = try AppUpdateFeed.releases(fixture)
+            precondition(releases.first?.build == "20")
+        }
         for (left, right, expected) in [
             ("1.2", "1.2.0", ComparisonResult.orderedSame),
             ("1.9", "1.10", .orderedAscending),
@@ -13,6 +22,15 @@ struct AppUpdatesTest {
         ] {
             precondition(AppUpdateVersion.compare(left, right) == expected)
         }
+        let caskData = Data(#"{"casks":[{"token":"fixture","artifacts":[{"app":["Fixture.app"]}]}]}"#.utf8)
+        precondition(AppUpdateFeed.caskApplications(caskData)["Fixture.app"] == "fixture")
+        let brewChecker = AppUpdatesChecker(fetch: { _ in preconditionFailure("Unexpected fetch") },
+            outdated: { Data(#"{"casks":[{"name":"fixture","current_version":"2"}]}"#.utf8) })
+        let brewRows = try await brewChecker.check(apps: [
+            .init(id: "new", version: "1", build: "1", cask: "fixture"),
+            .init(id: "current", version: "1", build: "1", cask: "current")
+        ], now: Date(timeIntervalSince1970: 0)).results
+        precondition(brewRows.map(\.isNewer) == [true, false])
         for value in ["1.2beta", "1.2 (42)", "", "latest", "1..2", "18446744073709551616"] {
             precondition(AppUpdateVersion.compare(value, "2") == nil)
         }

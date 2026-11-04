@@ -31,6 +31,7 @@ enum NotchcastCore {
         cleaning.stop()
         appUpdates.stop()
         macUpdate.stop()
+        await macUpdate.waitUntilIdle()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()

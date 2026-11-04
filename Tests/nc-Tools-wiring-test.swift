@@ -14,8 +14,17 @@ import Foundation
 @MainActor
 final class ToolsFakeRunner: MacUpdateProcessRunning {
     var calls = 0
+    var blocks = false
+    var reaped = false
     func run(_ command: MacUpdateCommand) async throws -> MacUpdateRunner.Result {
         calls += 1
+        if blocks {
+            do { try await Task.sleep(for: .seconds(20)) } catch {
+                await Task.detached { try? await Task.sleep(for: .milliseconds(350)) }.value
+                reaped = true
+                throw error
+            }
+        }
         return .init(status: 0, output: "")
     }
 }
@@ -23,7 +32,10 @@ final class ToolsFakeRunner: MacUpdateProcessRunning {
 @main
 struct ToolsWiringTests {
     @MainActor
-    static func main() async {
+    static func main() async throws {
+        let core = try String(contentsOfFile:
+            "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", encoding: .utf8)
+        precondition(core.contains("await macUpdate.waitUntilIdle()"), "Quit must await update teardown")
         let suite = "tools-tests-" + UUID().uuidString
         let prefs = NotchcastPreferences(suiteName: suite)
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
@@ -97,7 +109,14 @@ struct ToolsWiringTests {
         mac.run { true }
         while mac.running { await Task.yield() }
         precondition(runner.calls == 4 && mac.progress.count == 4)
+        runner.blocks = true
+        mac.run { true }
+        while runner.calls == 4 { await Task.yield() }
         mac.stop()
+        let began = ContinuousClock.now
+        await mac.waitUntilIdle()
+        precondition(runner.reaped && ContinuousClock.now - began >= .milliseconds(300))
+        precondition(ContinuousClock.now - began < .seconds(2))
         print("PASS defaults off; denied Start; stop unregisters; fake results; stale results dropped; confirmation")
     }
 }

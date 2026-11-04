@@ -8,6 +8,7 @@ nonisolated struct MacUpdateCommand: Equatable, Sendable {
     var path: String
     var arguments: [String]
     var timeout: Duration = .seconds(900)
+    var searchPath = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 }
 
 nonisolated enum MacUpdatePlan: Sendable {
@@ -43,9 +44,13 @@ nonisolated enum MacUpdatePlan: Sendable {
                     commands.append(MacUpdateCommand(
                         path: brew, arguments: ["upgrade", "--cask", "--greedy", String(parts[index + 1])],
                         timeout: .seconds(1800)))
-                } else if real.contains("/node_modules/"),
-                          let npm = folders.map({ $0 + "/npm" }).first(where: exists) {
-                    commands.append(MacUpdateCommand(path: npm, arguments: ["install", "-g", package + "@latest"]))
+                } else if real.contains("/node_modules/") {
+                    guard let npm = folders.map({ $0 + "/npm" }).first(where: exists) else { continue }
+                    let resolved = resolve(npm)
+                    let directory = URL(filePath: resolved).deletingLastPathComponent().path
+                    commands.append(MacUpdateCommand(path: resolved,
+                        arguments: ["install", "-g", package + "@latest"],
+                        searchPath: directory + ":" + folders.joined(separator: ":") + ":/usr/bin:/bin"))
                 } else if name == "claude" {
                     commands.append(MacUpdateCommand(path: path, arguments: ["update"]))
                 }

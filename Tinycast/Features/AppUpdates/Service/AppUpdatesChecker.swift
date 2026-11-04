@@ -12,11 +12,13 @@ struct AppUpdatesChecker: Sendable {
 
     func check(apps: [AppUpdate.App], now: Date) async throws -> Snapshot {
         var casks: [String: String] = [:]
+        var brewAvailable = false
         if apps.contains(where: { $0.cask != nil }) {
             do {
                 let data = try await outdated()
                 guard data.count <= AppUpdateFeed.limit else { throw URLError(.dataLengthExceedsMaximum) }
                 let root = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                brewAvailable = root?["casks"] is [[String: Any]]
                 for row in root?["casks"] as? [[String: Any]] ?? [] {
                     if let name = row["name"] as? String, let version = row["current_version"] as? String {
                         casks[name] = version
@@ -25,6 +27,7 @@ struct AppUpdatesChecker: Sendable {
             } catch is CancellationError { throw CancellationError() } catch { casks = [:] }
         }
         let versions = casks
+        let hasBrewResults = brewAvailable
         let results = try await withThrowingTaskGroup(of: (Int, AppUpdate).self) { group in
             var next = 0
             var rows: [(Int, AppUpdate)] = []
@@ -32,7 +35,8 @@ struct AppUpdatesChecker: Sendable {
                 guard next < apps.count else { return }
                 let index = next
                 next += 1
-                group.addTask { (index, try await self.check(apps[index], casks: versions)) }
+                group.addTask { (index, try await self.check(apps[index], casks: versions,
+                                                           brewAvailable: hasBrewResults)) }
             }
             for _ in 0..<min(max(1, width), 8) { add() }
             while let row = try await group.next() {
@@ -46,7 +50,8 @@ struct AppUpdatesChecker: Sendable {
         return Snapshot(checkedAt: now, results: results)
     }
 
-    private func check(_ app: AppUpdate.App, casks: [String: String]) async throws -> AppUpdate {
+    private func check(_ app: AppUpdate.App, casks: [String: String],
+                       brewAvailable: Bool) async throws -> AppUpdate {
         try Task.checkCancellation()
         var source: AppUpdate.Source?
         do {
@@ -69,7 +74,8 @@ struct AppUpdatesChecker: Sendable {
                 link = (row["trackViewUrl"] as? String).flatMap(URL.init(string:))
             } else if let token = app.cask {
                 source = .homebrew
-                guard let version = casks[token] else { throw URLError(.resourceUnavailable) }
+                guard brewAvailable else { throw URLError(.resourceUnavailable) }
+                let version = casks[token] ?? app.version
                 latest = version
                 comparison = AppUpdateVersion.compare(app.version, latest)
                 link = URL(string: "https://formulae.brew.sh/cask/")?.appendingPathComponent(token)

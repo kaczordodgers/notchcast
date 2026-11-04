@@ -47,7 +47,10 @@ final class MacUpdateService {
 
     func stop() async {
         task?.cancel()
-        await task?.value
+        let deadline = ContinuousClock.now + .seconds(2)
+        while task != nil && ContinuousClock.now < deadline {
+            await Task.detached { try? await Task.sleep(for: .milliseconds(25)) }.value
+        }
     }
 
     private func perform(_ progress: AsyncStream<Progress>.Continuation) async {

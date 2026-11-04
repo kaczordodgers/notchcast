@@ -3,14 +3,15 @@ import Darwin
 
 struct AppUpdateBrewRunner: Sendable {
     var path = "/opt/homebrew/bin/brew"
+    var arguments = ["outdated", "--cask", "--json=v2"]
 
     @concurrent func outdated() async throws -> Data {
         guard path.hasPrefix("/"), FileManager.default.isExecutableFile(atPath: path) else {
-            return Data("{\"casks\":[]}".utf8)
+            throw URLError(.resourceUnavailable)
         }
         let process = Process()
         process.executableURL = URL(filePath: path)
-        process.arguments = ["outdated", "--cask", "--json=v2"]
+        process.arguments = arguments
         process.environment = ["HOMEBREW_NO_AUTO_UPDATE": "1", "HOMEBREW_NO_ANALYTICS": "1",
                                "PATH": "/usr/bin:/bin:/usr/sbin:/sbin"]
         let pipe = Pipe()

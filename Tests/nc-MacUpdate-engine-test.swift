@@ -27,7 +27,36 @@ struct MacUpdateTests {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
+        let sentinel = root.appendingPathComponent("survived")
+        let ready = root.appendingPathComponent("ready")
+        let script = root.appendingPathComponent("step.sh")
+        try """
+        #!/bin/sh
+        (/bin/sleep 1; /usr/bin/touch "\(sentinel.path)") &
+        /usr/bin/touch "\(ready.path)"
+        wait
+        """.write(to: script, atomically: true, encoding: .utf8)
+        let processTask = Task {
+            try await MacUpdateRunner().run(.init(path: "/bin/sh", arguments: [script.path]))
+        }
+        while !FileManager.default.fileExists(atPath: ready.path) {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        processTask.cancel()
+        do { _ = try await processTask.value; assertionFailure("Cancellation lost") } catch is CancellationError {}
+        try await Task.sleep(for: .milliseconds(1200))
+        precondition(!FileManager.default.fileExists(atPath: sentinel.path), "Grandchild survived cancel")
         let app = root.appendingPathComponent("Updated.app")
+        let npmPlan = MacUpdatePlan.make(.commandLineTools, home: root.path,
+            exists: { $0 == "/opt/homebrew/bin/codex" || $0 == "/opt/homebrew/bin/npm" },
+            resolve: { $0.hasSuffix("/npm") ? "/fixture/runtime/bin/npm" : "/fixture/node_modules/codex" })
+        guard case .commands(let npmCommands) = npmPlan else { preconditionFailure("Missing npm plan") }
+        precondition(npmCommands.first?.path == "/fixture/runtime/bin/npm")
+        precondition(npmCommands.first?.searchPath.hasPrefix("/fixture/runtime/bin:") == true)
+        let missingNpm = MacUpdatePlan.make(.commandLineTools, home: root.path,
+            exists: { $0 == "/opt/homebrew/bin/claude" }, resolve: { _ in "/fixture/node_modules/claude" })
+        guard case .skipped(let reason) = missingNpm else { preconditionFailure("Missing npm must skip") }
+        precondition(!reason.isEmpty)
         try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
         let lock = root.appendingPathComponent("maintenance.lock")
         func service(_ runner: FakeRunner, missing: Bool = false,

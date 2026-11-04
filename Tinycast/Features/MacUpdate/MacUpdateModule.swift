@@ -14,12 +14,16 @@ final class MacUpdateModule: NotchcastModule {
     init(service: MacUpdateService) { self.service = service }
     func start() { enabled = true }
     func stop() { enabled = false; cancel(); progress = [] }
+    func waitUntilIdle() async { await service.stop() }
     func cancel() {
         generation = UUID()
         service.cancel()
         task?.cancel()
         task = nil
         running = false
+        progress = progress.map {
+            .init(step: $0.step, state: $0.state == .running ? .cancelled : $0.state)
+        }
     }
 
     func run(confirm: @escaping () async -> Bool) {
