@@ -63,6 +63,10 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | musicLastPlayer | Bool | Remembers player and routes manual media keys |
 | inUseMarks | Bool | Read-only microphone/camera indicators |
 | archivesInPlace | Bool | Manual extraction mode |
+| quickLookSpace | Bool | Launcher Quick Look on Space |
+| markdownFiles | Bool | Editor handling of Markdown files |
+| plainTextFiles | Bool | Editor handling of plain text files |
+| editorSpellChecking | Bool | Editor spelling preference |
 | hideCommandM | Bool | TCC-gated feature preference |
 | middleClick | Bool | TCC-gated feature preference |
 | greenMaximize | Bool | TCC-gated feature preference |
@@ -155,7 +159,9 @@ Accessibility still gates their actions), and `notchcast.colorPicker.format` (he
 rgb, hsl, swiftUIColor, nsColorLiteral).
 `colorPicker` is allowed: start only enables the manual sampler. `screenshot`,
 `notchcast.screenshot.destination` and `notchcast.screenshot.folder` are excluded as
-screen-recording capability and capture-output policy.
+screen-recording capability and capture-output policy. `backupRunNow` and `backupBrowseRestore` are
+excluded: they run the machine backup tool with its repository password command.
+The document editor's font, theme and pairing preferences are not carried yet.
 
 ## Adding switches
 

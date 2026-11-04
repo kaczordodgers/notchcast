@@ -4,6 +4,6 @@ final class LiveTimerModule: NotchcastModule {
 
     init(store: LiveTimerStore = LiveTimerStore(active: false)) { self.store = store }
 
-    func start() { store.resume() }
-    func stop() { store.stop() }
+    func start() { AppCore.shared.appIndex.refreshNotchcastCommands(); store.resume() }
+    func stop() { AppCore.shared.appIndex.refreshNotchcastCommands(); store.stop() }
 }
