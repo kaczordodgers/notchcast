@@ -138,6 +138,8 @@ enum QuicklinkDestination {
             palette.hidePalette(restoreFocus: false)
         }))
         assert(palette.hideCalls == 1 && !palette.restoredFocus && island.runs == 3)
+        NotchcastCommandCatalog.perform(commands[0].entry.id)
+        assert(palette.hideCalls == 2 && !palette.restoredFocus && island.runs == 4)
         print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility and dispatch")
     }
 }
