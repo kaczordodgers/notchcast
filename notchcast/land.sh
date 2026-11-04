@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
 refuse() { echo "REFUSED: $*" >&2; exit 1; }
@@ -20,8 +21,9 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
         gh api "repos/kaczordodgers/notchcast/commits/$1/check-runs?check_name=build&filter=all" \
             --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end'
     }
-    green() { [ "$(build "$1")" = success ]; }
+    green() { [ "$(build "$1")" = success ] || local_build_green "$1"; }
     verdict=$(build "$head")
+    if local_build_green "$head"; then verdict=success; fi
     [ "$verdict" = success ] || [ "$verdict" = none ] || [ "$verdict" = cancelled ] \
         || refuse "build is $verdict on ${head:0:8}: wait for it or fix it (cancel a pending one to use a green head that differs only in generated files)"
     if [ "$verdict" != success ]; then
@@ -30,7 +32,7 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
         branch=$(jq -r .headRefName <<< "$metadata")
         generated=$(python3 -c 'from notchcast.ci import GENERATED; print("\n".join(GENERATED))')
         proven=
-        for sha in $(gh run list -R kaczordodgers/notchcast -w PR -b "$branch" -L 30 --json headSha,conclusion \
+        for sha in $(git rev-list --max-count=30 "$head") $(gh run list -R kaczordodgers/notchcast -w PR -b "$branch" -L 30 --json headSha,conclusion \
                 --jq '.[] | select(.conclusion == "success") | .headSha' | awk '!seen[$0]++'); do
             git fetch -q origin "$sha" 2>/dev/null && green "$sha" || continue
             [ -n "$(git diff --name-only "$sha" "$head" | grep -vxF "$generated")" ] || { proven=$sha; break; }
