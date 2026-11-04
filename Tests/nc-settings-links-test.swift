@@ -22,7 +22,7 @@ struct NotchcastSettingsLinksTests {
             precondition(anchor.tab == NotchcastSettingsModule.module(of: feature).tab)
             let entries = SettingsSearchCatalog.notchcast.filter {
                 guard case .row = $0.target else { return false }
-                return $0.title == feature.title
+                return $0.title == (feature == .colorPicker ? String(localized: "Pick Color") : feature.title)
             }
             if feature.isWired {
                 precondition(!entries.isEmpty, "Missing search entry: \(feature)")

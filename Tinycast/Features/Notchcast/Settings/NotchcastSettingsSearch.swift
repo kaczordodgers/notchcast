@@ -58,14 +58,14 @@ extension SettingsSearchCatalog {
     static let notchcast: [SettingsSearchEntry] = {
         let candidates: [SettingsSearchEntry] =
         NotchcastSettingsModule.allCases.flatMap { module in
-            [.init(pane: module.tab)] + module.visibleGroups.flatMap { group -> [SettingsSearchEntry] in
+            (module == .dictation ? [] : [.init(pane: module.tab)]) + module.visibleGroups.flatMap { group -> [SettingsSearchEntry] in
                 let anchor = SettingsAnchor(tab: module.tab, title: group.title)
                 let header: [SettingsSearchEntry] = group.items.compactMap(\.feature).contains {
                     $0.title == group.title.resolved()
                 } ? [] : [.init(group: anchor, group.title, keywords: [module.title])]
                 return header +
                     group.items.compactMap(\.feature).filter(\.isWired).map { feature in
-                        .init(anchor, LocalizedStringResource(stringLiteral: feature.title), keywords: [module.title])
+                        .init(feature: feature, anchor: anchor, keywords: [module.title])
                     }
             }
         } + [
@@ -165,7 +165,7 @@ extension SettingsSearchCatalog {
         .init(group: .notchcastChargePercent, "Charge limit percent"),
         .init(group: .notchcastAwakeDuration, "Keep-awake duration"),
         .init(group: .notchcast(feature: .island), "Toggle Island"),
-        .init(group: .notchcast(feature: .colorPicker), "Color Picker", keywords: ["colour", "eyedropper", "sample"]),
+        .init(group: .notchcast(feature: .colorPicker), "Pick Color", keywords: ["colour", "eyedropper", "sample"]),
         .init(group: .notchcast(feature: .colorPicker), "Color format", keywords: ["colour", "hex", "rgb", "hsl"]),
         .init(group: .notchcast(feature: .screenshot), "Screenshots", keywords: ["screen capture", "image"]),
         .init(group: .notchcast(feature: .screenText), "Capture Text", keywords: ["ocr", "recognize", "barcode", "qr"]),
@@ -259,6 +259,13 @@ extension SettingsSearchCatalog {
 }
 
 extension SettingsSearchEntry {
+    init(feature: NotchcastFeature, anchor: SettingsAnchor, keywords: [String]) {
+        tab = anchor.tab
+        target = .row(anchor, feature.title)
+        title = feature == .colorPicker ? String(localized: "Pick Color") : feature.title
+        self.keywords = keywords + [feature.title]
+    }
+
     init(merging entry: Self, keywords: [String]) {
         tab = entry.tab
         target = entry.target
