@@ -13,7 +13,7 @@ extension IslandPage {
             name = String(localized: "Show Island Day")
         }
         return NotchcastCommand(
-            slug: slug, name: name, sfSymbol: symbol,
+            slug: slug, name: name, sfSymbol: symbol, feature: .island,
             isEnabled: {
                 let preferences = NotchcastPreferences.shared
                 guard IslandController.shared.commandsAvailable, preferences.isOn(.island) else { return false }

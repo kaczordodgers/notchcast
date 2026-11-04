@@ -16,7 +16,7 @@
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
-enum SettingsTab: Sendable { case notchcast }
+enum SettingsTab: Sendable { case notchcast, notchcastMusicAndSound }
 struct AppEntry: Sendable {
  let id: String
  let name: String
