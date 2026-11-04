@@ -10,6 +10,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case launcherFromIsland
     case launcherNumberKeys
     case launcherAliasSpace
+    case musicNowPlaying
+    case musicLastPlayer
+    case musicBlockAppleMusic
+    case spotifyConnect
+    case microphoneMute
+    case inUseMarks
     case systemMonitor
     case fanControl
     case monitorAlerts
@@ -40,8 +46,23 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case switcherQuitKey
     case linkQuickFixes
 
+    var dependencies: [Self] {
+        switch self {
+        case .island: []
+        case .musicLastPlayer: [.island, .musicNowPlaying]
+        case .spotifyConnect: [.island, .musicNowPlaying]
+        default: needsIsland ? [.island] : []
+        }
+    }
+
     var settingsGroup: SettingsGroup {
         switch self {
+        case .musicNowPlaying: .music
+        case .musicLastPlayer: .music
+        case .musicBlockAppleMusic: .music
+        case .spotifyConnect: .music
+        case .microphoneMute: .music
+        case .inUseMarks: .music
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -85,6 +106,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .musicNowPlaying: String(localized: "Show what is playing")
+        case .musicLastPlayer: String(localized: "Resume last player")
+        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
+        case .spotifyConnect: String(localized: "Spotify Connect speaker")
+        case .microphoneMute: String(localized: "Microphone mute")
+        case .inUseMarks: String(localized: "In-use marks")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -128,6 +155,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .musicNowPlaying: String(localized: "Show what is playing")
+        case .musicLastPlayer: String(localized: "Resume last player")
+        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
+        case .spotifyConnect: String(localized: "Spotify Connect speaker")
+        case .microphoneMute: String(localized: "Microphone mute")
+        case .inUseMarks: String(localized: "In-use marks")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -172,6 +205,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .musicNowPlaying: []
+        case .musicLastPlayer: [.accessibility]
+        case .musicBlockAppleMusic: [.accessibility]
+        case .spotifyConnect: []
+        case .microphoneMute: [.accessibility]
+        case .inUseMarks: []
         case .showDesktop: [.accessibility]
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
@@ -209,7 +248,13 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        if isSystemFeature || isLauncherKeysFeature { return false }
+        return switch self {
+        case .spotifyConnect: false
+        case .spacesOrder: false
+        case .switcherQuitKey: false
+        default: true
+        }
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }

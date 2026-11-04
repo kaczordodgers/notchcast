@@ -18,6 +18,10 @@ extension SettingsAnchor {
     static let notchcastLauncher = Self(tab: .notchcast, title: "Launcher")
     static let notchcastSystem = Self(tab: .notchcast, title: "System")
     static let notchcastActivities = Self(tab: .notchcast, title: "Activities")
+    static let notchcastMusic = Self(tab: .notchcast, title: "Music")
+    // ai-design-check-ignore-next-line sentence-case -- Spotify Connect is a product name.
+    static let notchcastSpotify = Self(tab: .notchcast, title: "Spotify Connect")
+    static let notchcastMicrophone = Self(tab: .notchcast, title: "Microphone")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
@@ -75,5 +79,14 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
+        .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
+        .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),
+        .init(.notchcastSpotify, "Spotify Connect speaker", keywords: ["soloist", "spotify", "speaker", "connect", "phone"]),
+        .init(.notchcastSpotify, "API key", keywords: ["soloist", "key", "developer"]),
+        .init(.notchcastSpotify, "Device name", keywords: ["soloist", "speaker name"]),
+        .init(group: .notchcastSpotify, "Download Soloist", keywords: ["soloist", "update", "build", "expiry"]),
+        .init(.notchcastMicrophone, "Microphone mute", keywords: ["mute", "f5", "mic"]),
+        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"]),
     ]
 }

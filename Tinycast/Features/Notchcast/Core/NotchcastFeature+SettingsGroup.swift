@@ -7,6 +7,7 @@ extension NotchcastFeature {
         case system
         case activities
         case systemTools
+        case music
         // Keep group appends away from the closing braces during union merges.
     }
 }
