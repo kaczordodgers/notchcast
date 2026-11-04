@@ -55,7 +55,8 @@ if [ -n "$reason" ] || [ "$DRY" = 1 ]; then
     [ -z "$main_sha" ] || snapshots="$(gh run list -R "$FORK_REPO" -w snapshot.yml -L 30 --json headSha,status,conclusion --jq "[.[] | select(.headSha == \"$main_sha\")
         | select(.status != \"completed\" or .conclusion == \"success\")] | length" 2>&1)" || snapshots="unknown ($snapshots)"
     # Unknown skips only the snapshot: Sync still starts, and snapshot.yml's hourly schedule covers the gap.
-    if [ "$snapshots" != 0 ]; then snapshot="skip: $snapshots run(s) for main ${main_sha:0:8} queued, running or green"
+    if [[ "$snapshots" == unknown* ]]; then snapshot="skip: Snapshot runs $snapshots"
+    elif [ "$snapshots" != 0 ]; then snapshot="skip: $snapshots run(s) for main ${main_sha:0:8} queued, running or green"
     else snapshot="dispatch for main ${main_sha:0:8}"; fi
     if [ "$DRY" = 1 ]; then log "would ${reason:+start sync ($reason); }snapshot: $snapshot"
     else

@@ -51,6 +51,7 @@ jobs:
           notchcast/check-bundle-readme.sh
       - name: New modules have a harness (warning only)
         if: github.event_name == 'pull_request'
+        continue-on-error: true
         working-directory: src
         run: |
           python3 notchcast/check-module-harness.py "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
