@@ -13,14 +13,14 @@ it is never a path, raw MIDI packet or shell argument. Unknown IDs must fail bef
 
 ## Remaining wiring
 
-This base has neither device engine nor AgentConsentPolicy. Once their branches are integrated,
-the owning modules must register backends and connect index authorization to the island confirmation
-policy. Katana transactions must use the same per-transaction lock as the external katana.py CLI.
+AgentBridgeModule wires index authorization to AgentConsentPolicy and records execution attempts
+through AgentAuditStore, with parameter values redacted. Dangerous actions are refused even with
+persistent grants while island confirmation is unavailable. No confirmation UI is installed here.
+The treadmill (#87) and Katana (#100) engines are not on main. Once integrated, their owning modules
+must register AgentDeviceBackend adapters on the configured index and bind availability to connection
+state and feature switches. Katana transactions must use the same per-transaction lock as the external katana.py CLI.
 The external CLI retains raw reads/writes, offline preset tools, backups, restore and research;
 this bridge never launches it or duplicates those tools. No production backend is installed here.
-
-Merging current main into the agent branch conflicts in core, settings, the core harness and strings;
-that dependency update belongs to the agent branch owner before this is a landing candidate.
 
 ## Left for the look
 
