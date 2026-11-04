@@ -1,5 +1,6 @@
 @MainActor
 enum NotchcastCore {
+    static let eventTapHub = EventTapHub()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -8,7 +9,7 @@ enum NotchcastCore {
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
-    static let pasteImage = PasteImageModule()
+    static let pasteImage = PasteImageModule(hub: eventTapHub)
     static private(set) var pastePlain: PlainPasteModule?
     private static var controller: NotchcastModuleController?
 
