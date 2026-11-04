@@ -48,6 +48,7 @@ targets:
           - Features/Dictation/Helper
           - Features/FileSearch/Helper
           - Features/Music/NowPlayingAdapter
+          - Features/AgentBridge/Helper
           - Features/Todo/README.md
           - Resources/EmojiKeywords
       # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
@@ -59,6 +60,13 @@ targets:
       - path: Tinycast/Features/Music/NowPlayingAdapter/now-playing.pl
         buildPhase: resources
     dependencies:
+      - target: NotchcastCLI
+        link: false
+        embed: true
+        codeSign: true
+        copy:
+          destination: wrapper
+          subpath: Contents/Helpers
       - target: MarkdownPreview
         embed: true
         codeSign: true
@@ -114,6 +122,18 @@ targets:
         Release:
           PRODUCT_NAME: Notchcast
 
+  NotchcastCLI:
+    type: tool
+    platform: macOS
+    sources:
+      - Tinycast/Features/AgentBridge/Helper
+      - Tinycast/Features/AgentBridge/Model
+      - Tinycast/Features/AgentBridge/Service/AgentSocketIO.swift
+      - Tinycast/Features/AgentBridge/Service/AgentSocketClient.swift
+    settings:
+      base:
+        EXECUTABLE_NAME: notchcast
+        PRODUCT_MODULE_NAME: NotchcastCLI
   MarkdownPreview:
     type: app-extension
     platform: macOS

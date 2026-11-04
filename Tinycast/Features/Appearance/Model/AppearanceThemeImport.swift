@@ -9,7 +9,7 @@ struct AppearanceThemeImport: Identifiable, Equatable, Sendable {
     let target: RaycastThemeLink.Target
 
     var title: String {
-        let name = target.theme?.name ?? "Tinycast"
+        let name = target.theme?.name ?? String(localized: "Default")
         switch target.appearance {
         case .light: return String(localized: "Use “\(name)” as your light theme?")
         case .dark: return String(localized: "Use “\(name)” as your dark theme?")

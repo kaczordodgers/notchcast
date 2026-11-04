@@ -3,6 +3,7 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastAppearance = Self(tab: .notchcast, title: "Appearance")
     static let notchcastClean = Self(tab: .notchcast, title: "Clean")
     static let notchcastCleaning = Self(tab: .notchcast, title: "Cleaning mode")
     static let notchcastAppUpdates = Self(tab: .notchcast, title: "App updates")
@@ -71,6 +72,12 @@ extension SettingsSearchCatalog {
         .init(.notchcastCaptureAndDictation, "AI Chat Tools", keywords: ["agents", "mcp", "server"]),
         .init(.notchcastCaptureAndDictation, "Add Notchcast to AI chat", keywords: ["mcp", "tools"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
+        .init(.notchcastAppearance, "Custom appearance", keywords: ["enable", "colours", "colors", "theme"]),
+        .init(.notchcastAppearance, "Surface", keywords: ["glass", "black", "matte", "material"]),
+        .init(.notchcastAppearance, "Light theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Dark theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Theme backdrop", keywords: ["opacity", "background", "transparency"]),
+        .init(.notchcastAppearance, "Import from link", keywords: ["theme", "raycast", "ray.so", "url"]),
         .init(.notchcastArchives, "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
         .init(.notchcastArchives, "Extract in place", keywords: ["shrink", "space", "destructive"]),
         .init(.notchcastArchives, "Open archives with Notchcast", keywords: ["default", "handler", "Archive Utility"]),
@@ -178,6 +185,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Back Up Now", keywords: ["backup", "restic", "launchd"]),
         .init(.notchcastSystem, "Browse and Restore Backups", keywords: ["snapshot", "restic", "restore"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastSystem, "Agent access"),
+        .init(.notchcastSystem, "Command line tool"),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
@@ -192,6 +201,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastSystem, "Katana", keywords: ["guitar", "amp", "tone", "tuner", "recording", "usb"]),
+        .init(.notchcastActivities, "Walking Pad", keywords: ["treadmill", "walk", "speed", "pause"]),
+        .init(.notchcastActivities, "Walk History", keywords: ["treadmill", "goal", "steps", "lubrication"]),
         .init(.notchcastTweaks, "Startup Items", keywords: ["launchagents"]),
         .init(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"]),
         .init(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"]),
