@@ -11,7 +11,7 @@ preference changes. Its injected runner owns helper commands and power assertion
 Keep Awake or quitting releases its assertions. The duration starts when Keep Awake is enabled
 and resets if its duration changes; expiration leaves the switch on without renewing the hold.
 
-Battery helper operations require installed helper version 2 or later and the corresponding
+Battery helper operations require installed helper version 3 or later and the corresponding
 `battery-*` commands in the app contract. The installed version is refreshed at module start
 and when the settings section appears. Older helpers show “Needs the Notchcast helper update”
 and receive no battery commands. Until a watchdog is available, sailing and calibration drain
