@@ -1,8 +1,13 @@
 import Foundation
+import Observation
 
 @MainActor
+@Observable
 final class BotHostModule: NotchcastModule, BotHostClient {
-    private var enabled = false
+    private(set) var enabled = false
+    private(set) var states: [String: BotHostState] = [:]
+    private(set) var pendingCounts: [String: Int] = [:]
+    var isConfigured: Bool { client != nil }
     private var generation = UUID()
     private var client: (any BotHostClient)?
 
@@ -17,6 +22,8 @@ final class BotHostModule: NotchcastModule, BotHostClient {
 
     func stop() {
         enabled = false
+        states = [:]
+        pendingCounts = [:]
         generation = UUID()
     }
 
@@ -39,11 +46,15 @@ final class BotHostModule: NotchcastModule, BotHostClient {
     }
 
     func status(botID: String) async throws -> BotHostState {
-        try await call { try await $0.status(botID: botID) }
+        let result = try await call { try await $0.status(botID: botID) }
+        states[botID] = result
+        return result
     }
 
     func pending(botID: String) async throws -> [BotHostPending] {
-        try await call { try await $0.pending(botID: botID) }
+        let result = try await call { try await $0.pending(botID: botID) }
+        pendingCounts[botID] = result.count
+        return result
     }
 
     func answer(botID: String, requestID: String, text: String) async throws -> BotHostState {

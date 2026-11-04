@@ -132,6 +132,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
+    var defaultEnabled: Bool {
+        !isSystemFeature && ![.t3Threads, .fleetPanel, .agentIsland].contains(self)
+    }
+
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
         ![.t3Threads, .fleetPanel, .agentIsland, .displayBrightness, .quitProtection].contains(self) && !isSystemFeature

@@ -30,6 +30,10 @@ enum NotchcastCore {
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
+        let wiring = AgentFleetWiring(threads: t3Threads, fleet: fleet, island: agentIsland,
+            bots: botHost, preferences: .shared) {
+                IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 5)
+            }
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island, .agentIsland], module: agentIsland),
             .init(requires: [.island], module: IslandController.shared),
@@ -48,6 +52,11 @@ enum NotchcastCore {
             .init(requires: [.t3Threads], module: t3Threads),
             .init(requires: [.fleetPanel], module: fleet),
             .init(requires: [.botHost], module: botHost),
+            .init(requires: [.agentIsland], module: agentIsland),
+            .init(requires: [], module: wiring),
+            .init(requires: [], module: AgentFleetBotCommands(bots: botHost, preferences: .shared,
+                refresh: { core.appIndex.refreshNotchcastCommands() },
+                post: { IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 5) })),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

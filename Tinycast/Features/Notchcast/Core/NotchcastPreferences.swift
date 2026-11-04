@@ -68,7 +68,7 @@ final class NotchcastPreferences {
         awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool ?? (!$0.isSystemFeature && ![.t3Threads, .fleetPanel, .agentIsland].contains($0)))
+            !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
         })
     }
 
