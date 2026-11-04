@@ -176,3 +176,15 @@ Patch-queue hygiene implied by the code: keep fork code in fork-only files and l
 - **Coordinator access:** `core.<name>Coordinator` member chains (cross-feature edges; the main coupling signal).
 - **Persistence keys:** string literals passed to `forKey:` and `appendingPathComponent("*.json|*.sqlite3")` (feature → storage edges).
 - **Build graph:** `project.yml` target `sources` lists (helper targets compile specific feature files) and `Tests/*.swift` upstream source lists in `Scripts/run-tests.sh` and fork source headers (which shipped files each harness compiles).
+
+## Ownership
+
+Notchcast deliberately keeps its composition inside `Tinycast/Features/Notchcast/` to minimize upstream rebase conflicts: the sole Notchcast startup hook in `AppCore.start()` is `NotchcastCore.start(self)`. This is a fork-specific exception to upstream's rule that `AppCore` owns all long-lived state, not an instance ownership tree rooted in `AppCore`.
+
+`NotchcastCore` retains the static feature modules, quit-protection store and event-tap hub, plus the monitor module and `NotchcastModuleController` created at startup. The controller retains its module entries and preferences. Existing process-lifetime singletons are `IslandController.shared` (panels, page coordinator, input state and observers), `IslandActivityCenter.shared` (activities, messages and dismissal task, with a weak presenter), and `NotchcastPreferences.shared` (observable preferences persisted in the bundle-specific `.notchcast` UserDefaults suite).
+
+`NotchcastCore.start` is guarded against duplicate startup, configures island pages once, registers modules and runs the controller. `NotchcastModuleController` observes feature switches: every `requires` switch must be on, and a nonempty `requiresAny` group needs at least one switch on; transitions call each module's `start()` or `stop()` once. Disabling a feature stops its resources without releasing its process-lifetime instance. Island shutdown clears its activity presenter, closes panels and the open page, cancels hover work and removes observers and event monitors. Termination separately calls `NotchcastCore.stopForTermination()` from `AppDelegate` to stop and await battery and monitor fan work; there is no controller-wide termination stop.
+
+New features register a module in `NotchcastCore` with their switch requirements and own their resources through `start()`/`stop()`; add no new `AppCore` lines. Add no new singletons unless the module needs a tap-thread or AppKit-global handle; ordinary feature state belongs to the module.
+
+See [command-hook.md](command-hook.md) for the fork's command integration seam.
