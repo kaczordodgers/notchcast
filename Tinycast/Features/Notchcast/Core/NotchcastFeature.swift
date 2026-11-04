@@ -66,6 +66,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dictationCleanup
     case dictationHistory
     case captureTrimmer
+    case captureEditor
     case agentAnswer
     case voiceAsk
     case recording
@@ -206,6 +207,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationEnglish: .captureAndDictation
         case .dictationHistory: .captureAndDictation
         case .captureTrimmer: .captureAndDictation
+        case .captureEditor: .captureAndDictation
         case .agentAnswer: .captureAndDictation
         case .voiceAsk: .captureAndDictation
         case .recording: .captureAndDictation
@@ -399,6 +401,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationEnglish: String(localized: "Dictate in English")
         case .dictationHistory: String(localized: "Keep dictation history")
         case .captureTrimmer: String(localized: "Recording Trimmer")
+        case .captureEditor: String(localized: "Capture Editor")
         case .agentAnswer: String(localized: "Agent Answers")
         case .voiceAsk: String(localized: "Voice Ask")
         case .recording: String(localized: "Screen Recording")
@@ -540,6 +543,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
         case .dictationHistory: String(localized: "Keep dictation history")
         case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.")
+        case .captureEditor: String(localized: "Mark up a capture and copy it.")
         case .agentAnswer: String(localized: "Reply to waiting agents.")
         case .voiceAsk: String(localized: "Voice Ask destination")
         case .recording: String(localized: "Record an area, window or display with system audio.")
@@ -669,6 +673,7 @@ extension NotchcastFeature {
         .agentSessions,
         .agentPricing,
         .captureTrimmer,
+        .captureEditor,
         .recording,
         .backupRunNow,
         .backupBrowseRestore,
@@ -740,6 +745,7 @@ extension NotchcastFeature {
         case .dictationEnglish: false
         case .dictationHistory: false
         case .captureTrimmer: false
+        case .captureEditor: false
         case .agentAnswer: false
         case .voiceAsk: false
         case .recording: false
@@ -805,6 +811,7 @@ extension NotchcastFeature {
         return switch self {
         case .tasks: false
         case .spotifyConnect: false
+        case .captureEditor: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
         case .torrentsKeepSharing: false
