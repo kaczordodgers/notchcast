@@ -2,9 +2,16 @@ import AppKit
 
 @MainActor
 final class AgentThreadsModule: NotchcastModule {
-    let state = AgentThreadsState()
-    func start() { state.start() }
-    func stop() { state.stop() }
+    let state: AgentThreadsState
+    private let availabilityChanged: () -> Void
+
+    init(state: AgentThreadsState = AgentThreadsState(), availabilityChanged: @escaping () -> Void = {}) {
+        self.state = state
+        self.availabilityChanged = availabilityChanged
+    }
+
+    func start() { state.start(); availabilityChanged() }
+    func stop() { state.stop(); availabilityChanged() }
     func setActive(_ active: Bool) { state.setActive(active) }
 
     nonisolated static let refreshCommand = NotchcastCommand(

@@ -1,11 +1,40 @@
-// notchcast-sources: Tinycast/Features/AgentThreads/Model/*.swift
+// notchcast-sources: -lsqlite3 Tinycast/Features/AgentThreads/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift Tinycast/Platform/ProcessExit.swift
 import Foundation
+import SQLite3
+
+@MainActor protocol NotchcastModule { func start(); func stop() }
+enum TestFeature { case agentThreads }
+enum TestTone { case neutral }
+struct NotchcastCommand {
+    let slug: String
+    let name: String
+    let sfSymbol: String
+    let feature: TestFeature
+    let isEnabled: @MainActor () -> Bool
+    let run: @MainActor () -> Void
+}
+@MainActor final class NotchcastPreferences {
+    static let shared = NotchcastPreferences()
+    func isOn(_ feature: TestFeature) -> Bool { true }
+}
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    func showMessage(_ message: String, tone: TestTone) {}
+}
+@MainActor enum NotchcastCore { static let agentThreads = AgentThreadsModule() }
+
+private struct FakeProjects: AgentThreadProjectReading {
+    var values = [AgentThreadProject(id: "demo", title: "Demo")]
+    func projects() async throws -> [AgentThreadProject] { values }
+}
 
 @MainActor
 private final class CallCounter {
     var show = 0
     var replacement: Data?
+    var lists: [[String]] = []
 }
 
 private struct FakeRunner: AgentThreadRunning {
@@ -13,17 +42,24 @@ private struct FakeRunner: AgentThreadRunning {
     var delay = false
     var listData: Data?
     var counter: CallCounter?
+    var failedProject: String?
+    var failedShow = false
     func run(arguments: [String]) async throws -> Data {
         if delay { try? await Task.sleep(for: .milliseconds(80)) }
         if let failure { throw failure }
         if arguments.contains("show") {
             await MainActor.run { counter?.show += 1 }
+            if failedShow { throw AgentThreadFailure.commandFailed }
             return Data(#"{"thread":{"status":"waiting","pendingRequestCount":2}}"#.utf8)
+        }
+        if arguments.contains("list") {
+            await MainActor.run { counter?.lists.append(arguments) }
+            if let failedProject, arguments.contains(failedProject) { throw AgentThreadFailure.commandFailed }
         }
         if let replacement = await counter?.replacement { return replacement }
         if let listData { return listData }
         return Data("""
-        [{"threadId":"sample","title":"Example","project":"Demo","model":"Example Model",
+        [{"threadId":"sample","title":"Example","projectId":"demo","model":"Example Model",
         "status":"running","link":"https://example.com/thread","updatedAt":"2026-01-01T12:00:00Z"}]
         """.utf8)
     }
@@ -37,10 +73,10 @@ struct AgentThreadsTest {
         let environment = AgentThreadRunner.environment(for: "/opt/homebrew/bin/t3", inheriting: ["KEEP": "yes"])
         precondition(environment == ["PATH": "/opt/homebrew/bin:/usr/bin:/bin", "KEEP": "yes"])
         let data = try await runner.run(arguments: [])
-        let rows = try AgentThreadParser.list(data)
+        let rows = try AgentThreadParser.list(data, project: "Demo")
         precondition(rows.count == 1 && rows[0].title == "Example" && rows[0].project == "Demo")
         let envelope = Data("{\"threads\":".utf8) + data + Data("}".utf8)
-        let enveloped = try AgentThreadParser.list(envelope)
+        let enveloped = try AgentThreadParser.list(envelope, project: "Demo")
         precondition(enveloped == rows)
         let statuses: [(String?, AgentThread.Phase)] = [
             ("idle", .stale), (nil, .stale), ("preparing", .starting), ("queued", .starting),
@@ -68,7 +104,7 @@ struct AgentThreadsTest {
                     #"{"threadId":"bad","link":"https://example.com","updatedAt":"invalid"}"#,
                     #"{"threadId":42}"#] {
             let mixed = Data("[\(bad),".utf8) + data.dropFirst()
-            let parsed = try AgentThreadParser.list(mixed)
+            let parsed = try AgentThreadParser.list(mixed, project: "Demo")
             precondition(parsed == rows)
         }
         precondition(AgentThreadParser.phase("future-status") == .stale)
@@ -97,7 +133,7 @@ struct AgentThreadsTest {
                 .run(arguments: ["2"])
             preconditionFailure("Timeout not enforced")
         } catch { precondition(error as? AgentThreadFailure == .timeout) }
-        let state = AgentThreadsState(runner: runner, now: { now })
+        let state = AgentThreadsState(runner: runner, projects: FakeProjects(), now: { now })
         state.start()
         await state.waitUntilIdle()
         precondition(state.status == .ready && state.threads.first?.pendingCount == 2)
@@ -107,17 +143,17 @@ struct AgentThreadsTest {
         state.stop()
         state.refresh()
         precondition(state.status == .idle && state.threads.isEmpty)
-        let unavailable = AgentThreadsState(runner: FakeRunner(failure: .unavailable))
+        let unavailable = AgentThreadsState(runner: FakeRunner(failure: .unavailable), projects: FakeProjects())
         unavailable.start()
         await unavailable.waitUntilIdle()
         precondition(unavailable.status == .unavailable)
         precondition(unavailable.waitingMessage == String(localized: "T3 CLI not found."))
-        let timeout = AgentThreadsState(runner: FakeRunner(failure: .timeout))
+        let timeout = AgentThreadsState(runner: FakeRunner(failure: .timeout), projects: FakeProjects())
         timeout.start()
         await timeout.waitUntilIdle()
         precondition(timeout.status == .failed)
         precondition(timeout.waitingMessage == String(localized: "Could not refresh agent threads."))
-        let late = AgentThreadsState(runner: FakeRunner(delay: true))
+        let late = AgentThreadsState(runner: FakeRunner(delay: true), projects: FakeProjects())
         late.start()
         await Task.yield()
         late.setActive(false)
@@ -132,7 +168,8 @@ struct AgentThreadsTest {
         {"threadId":"running-example","status":"running","link":"https://example.com/running","updatedAt":"2026-01-01T12:00:00Z"},
         {"threadId":"waiting-example","status":"waiting","link":"https://example.com/waiting","updatedAt":"2026-01-01T12:00:00Z"}]
         """.utf8)
-        let counted = AgentThreadsState(runner: FakeRunner(listData: list, counter: counter), now: { now })
+        let counted = AgentThreadsState(runner: FakeRunner(listData: list, counter: counter),
+                                        projects: FakeProjects(), now: { now })
         counted.start()
         await counted.waitUntilIdle()
         precondition(counted.status == .ready && counter.show == 3)
@@ -146,6 +183,62 @@ struct AgentThreadsTest {
         }
         await counted.waitUntilIdle()
         precondition(opened == URL(string: "https://example.com/new"))
+        let temporary = Process()
+        let output = Pipe()
+        temporary.executableURL = URL(filePath: "/usr/bin/mktemp")
+        temporary.arguments = ["-d", FileManager.default.homeDirectoryForCurrentUser
+            .appending(path: "agents/nc-engines-3/fix.XXXXXX").path]
+        temporary.standardOutput = output
+        try temporary.run()
+        temporary.waitUntilExit()
+        precondition(temporary.terminationStatus == 0)
+        let scratch = String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        defer { try? FileManager.default.removeItem(atPath: scratch) }
+        let databaseURL = URL(filePath: scratch).appending(path: "projects.sqlite")
+        var database: OpaquePointer?
+        precondition(sqlite3_open(databaseURL.path, &database) == SQLITE_OK)
+        precondition(sqlite3_exec(database, """
+            CREATE TABLE projection_projects (project_id TEXT PRIMARY KEY, title TEXT NOT NULL,
+                deleted_at TEXT, archived_at TEXT);
+            INSERT INTO projection_projects VALUES ('demo', 'Demo', NULL, NULL),
+                ('other', 'Other', NULL, NULL), ('deleted', 'Deleted', 'date', NULL),
+                ('archived', 'Archived', NULL, 'date');
+            """, nil, nil, nil) == SQLITE_OK)
+        sqlite3_close(database)
+        let projects = AgentThreadProjects(url: databaseURL)
+        let discovered = try await projects.projects()
+        precondition(Set(discovered.map(\.id)) == ["demo", "other"])
+        let partialCounter = CallCounter()
+        let partial = AgentThreadsState(runner: FakeRunner(counter: partialCounter, failedProject: "other",
+                                                         failedShow: true), projects: projects, now: { now })
+        partial.start()
+        await partial.waitUntilIdle()
+        precondition(partial.status == .ready && partial.threads.count == 1)
+        precondition(partial.threads[0].project == "Demo" && partial.threads[0].phase == .running)
+        precondition(Set(partialCounter.lists) == Set([
+            ["thread", "list", "--project", "demo", "--json"],
+            ["thread", "list", "--project", "other", "--json"]]))
+        let missingDB = AgentThreadsState(runner: runner,
+            projects: AgentThreadProjects(url: URL(filePath: scratch).appending(path: "missing.sqlite")))
+        missingDB.start()
+        await missingDB.waitUntilIdle()
+        precondition(missingDB.status == .unavailable)
+        precondition(!FileManager.default.fileExists(atPath: URL(filePath: scratch).appending(path: "missing.sqlite").path))
+        precondition(sqlite3_open(databaseURL.path, &database) == SQLITE_OK)
+        precondition(sqlite3_exec(database, "DROP TABLE projection_projects", nil, nil, nil) == SQLITE_OK)
+        sqlite3_close(database)
+        let missingTable = AgentThreadsState(runner: runner, projects: projects)
+        missingTable.start()
+        await missingTable.waitUntilIdle()
+        precondition(missingTable.status == .failed)
+        var availabilityCalls = 0
+        let module = AgentThreadsModule(state: partial, availabilityChanged: { availabilityCalls += 1 })
+        module.start()
+        module.stop()
+        precondition(availabilityCalls == 2)
+        print("PASS: SQLite active projects only; missing file/table; per-project arguments and names")
+        print("PASS: partial list failure; show failure preserves phase; availability changed on start and stop")
         print("PASS: child PATH preserves environment; refresh completion selects waiting link; failure messages")
         let catalog = try String(contentsOfFile:
             "Tinycast/Features/AgentThreads/AgentThreadsModule.swift", encoding: .utf8)

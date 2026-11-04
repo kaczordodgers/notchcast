@@ -4,7 +4,7 @@ enum AgentThreadParser {
     private struct Row: Decodable {
         let threadId: String
         let title: String?
-        let project: String?
+        let projectId: String?
         let model: String?
         let status: String?
         let link: URL
@@ -19,7 +19,7 @@ enum AgentThreadParser {
 
     enum Failure: Error { case invalidData }
 
-    static func list(_ data: Data) throws -> [AgentThread] {
+    static func list(_ data: Data, project: String = "") throws -> [AgentThread] {
         let decoder = JSONDecoder()
         let value = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
         let rows: [Any]
@@ -40,7 +40,7 @@ enum AgentThreadParser {
                   let date = ISO8601DateFormatter().date(from: row.updatedAt)
                     ?? fractionalDate(row.updatedAt),
                   ids.insert(row.threadId).inserted else { return nil }
-            return AgentThread(id: row.threadId, title: row.title ?? "", project: row.project ?? "",
+            return AgentThread(id: row.threadId, title: row.title ?? "", project: project,
                                model: row.model ?? "", phase: phase(row.status), pendingCount: 0,
                                link: row.link, updatedAt: date, settled: row.settled ?? false)
         }

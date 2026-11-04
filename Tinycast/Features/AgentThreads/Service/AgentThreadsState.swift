@@ -8,6 +8,7 @@ final class AgentThreadsState {
     private(set) var threads: [AgentThread] = []
     private(set) var status = Status.idle
     private let runner: any AgentThreadRunning
+    private let projects: any AgentThreadProjectReading
     private let now: @Sendable () -> Date
     private var enabled = false
     private var active = false
@@ -15,8 +16,10 @@ final class AgentThreadsState {
     @ObservationIgnored private var task: Task<Void, Never>?
 
     init(runner: any AgentThreadRunning = AgentThreadRunner(),
+         projects: any AgentThreadProjectReading = AgentThreadProjects(),
          now: @escaping @Sendable () -> Date = { Date() }) {
         self.runner = runner
+        self.projects = projects
         self.now = now
     }
 
@@ -58,17 +61,32 @@ final class AgentThreadsState {
         cancel()
         let identity = operation
         status = .loading
-        task = Task { [weak self, runner, now] in
+        task = Task { [weak self, runner, projects, now] in
             var completion = completion
             repeat {
                 do {
-                    let data = try await runner.run(arguments: ["thread", "list", "--json"])
-                    var rows = try AgentThreadParser.list(data)
+                    let projects = try await projects.projects()
+                    var rows: [AgentThread] = []
+                    var successes = 0
+                    var listFailure: any Error = AgentThreadFailure.commandFailed
+                    for project in projects {
+                        try Task.checkCancellation()
+                        do {
+                            let data = try await runner.run(arguments:
+                                ["thread", "list", "--project", project.id, "--json"])
+                            rows += try AgentThreadParser.list(data, project: project.title)
+                            successes += 1
+                        } catch { listFailure = error }
+                    }
+                    if !projects.isEmpty && successes == 0 { throw listFailure }
                     for index in rows.indices where rows[index].phase == .starting
                         || rows[index].phase == .running || rows[index].phase.waiting {
                         try Task.checkCancellation()
-                        let detail = try await runner.run(arguments: ["thread", "show", rows[index].id, "--json"])
-                        rows[index] = try AgentThreadParser.show(detail, updating: rows[index])
+                        if let detail = try? await runner.run(arguments:
+                            ["thread", "show", rows[index].id, "--json"]),
+                           let updated = try? AgentThreadParser.show(detail, updating: rows[index]) {
+                            rows[index] = updated
+                        }
                     }
                     guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
                     self.threads = AgentThreadParser.select(rows, now: now())

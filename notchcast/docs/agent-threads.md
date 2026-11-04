@@ -3,7 +3,7 @@
 ## Invariants
 
 - Disabled by default; disabling removes both launcher commands and cancels work.
-- Reads only the T3 CLI; never opens its database or calls its server directly.
+- Reads only active project IDs and titles from `projection_projects` in the local state database; thread data comes from the CLI, with no direct server calls.
 - Waiting threads precede active threads and threads finished within the last 30 minutes.
 - No island page or new view is included.
 
@@ -13,7 +13,9 @@
 
 ## Service
 
-`AgentThreadsState` refreshes on start and command invocation. `setActive` enables 15-second polling for a future page; inactive has no timer. Cancelling a refresh restores ready when a snapshot exists, otherwise idle. Stop cancels work and invalidates its operation identity. The injected runner permits synthetic harnesses. Production resolves executable absolute paths and enforces a ten-second timeout.
+`AgentThreadProjects` opens `~/.t3/userdata/statev2.sqlite` read-only with a 500 ms busy timeout, selects only non-deleted, non-archived projects, and closes immediately. Missing files or tables report unavailable or failed. The project reader and CLI runner are injected for synthetic harnesses. Each project gets `thread list --project <project_id> --json`; its database title supplies the project name, while list rows decode `projectId`. Failed project lists are skipped; all failed lists fail the refresh. Failed show calls preserve the list phase. An empty project list is ready with no threads.
+
+`AgentThreadsState` refreshes on start and command invocation. `setActive` enables 15-second polling for a future page; inactive has no timer. Cancelling a refresh restores ready when a snapshot exists, otherwise idle. Stop cancels work and invalidates its operation identity. Production resolves executable absolute paths and enforces a ten-second timeout. Module start and stop notify launcher command availability.
 
 ## Commands
 
