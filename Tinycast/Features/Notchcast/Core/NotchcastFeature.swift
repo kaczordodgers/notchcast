@@ -43,6 +43,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case switcherQuitKey
     case linkQuickFixes
     case machBlockedDialogAlert
+    case remoteScreen
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -56,6 +57,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
         case .machBlockedDialogAlert: .system
+        case .remoteScreen: .system
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -135,6 +137,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
         case .machBlockedDialogAlert: String(localized: "Other Mac Dialog Alerts")
+        case .remoteScreen: String(localized: "Remote Screen")
         }
     }
 
@@ -182,6 +185,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         case .machBlockedDialogAlert: String(localized: "Check for system dialogs on the paired Mac on demand.")
+        case .remoteScreen: String(localized: "Request screen sharing with the paired Mac.")
         }
     }
 
@@ -221,6 +225,7 @@ extension NotchcastFeature {
         case .aiUsage: false
         case .aiUsageOtherMac: false
         case .machLink: false
+        case .remoteScreen: false
         default: true
         }
     }
