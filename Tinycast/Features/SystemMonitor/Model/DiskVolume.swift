@@ -5,6 +5,7 @@ nonisolated struct DiskVolume: Sendable, Equatable {
     let mountPath: String
     let total: UInt64
     let available: UInt64
+    var isReadOnly = false
 
     func isLowSpace(thresholdPercent: Double = 10) -> Bool {
         guard total > 0, thresholdPercent.isFinite else { return false }
