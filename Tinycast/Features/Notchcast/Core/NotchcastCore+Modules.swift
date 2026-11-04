@@ -100,6 +100,7 @@ extension NotchcastCore {
         let voiceRecording = VoiceAskRecording(core: core)
         let voiceAskModule = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel)
         self.voiceAsk = voiceAskModule
+        voiceAskModule.configure(transport: VoiceAskCLITransport.production())
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)
         let plainPasteModule = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = plainPasteModule
