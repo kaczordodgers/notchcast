@@ -29,6 +29,7 @@ final class NotchcastPreferences {
         self.defaults = defaults
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter { defaults.object(forKey: $0.rawValue) as? Bool == false })
+        if defaults.object(forKey: "spacesOrder") == nil { off.insert(.spacesOrder) }
     }
 
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
