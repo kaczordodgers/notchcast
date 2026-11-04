@@ -15,13 +15,19 @@ enum ForkSettingsBackupRestore {
         for feature in NotchcastFeature.allCases where ForkSettingsBackupSchema.allowed[feature.rawValue] != nil {
             values[feature.rawValue] = preferences.isOn(feature)
         }
+        for feature: NotchcastFeature in [.urlCleaner, .dictationHistory, .captureTrimmer] {
+            values[feature.rawValue] = preferences.engineDefaults.object(forKey: feature.rawValue) as? Bool ?? false
+        }
         return values
     }
 
     static func apply(_ values: [String: Any], to preferences: NotchcastPreferences) throws {
         try ForkSettingsBackupEngine.validate(values)
         for feature in NotchcastFeature.allCases {
-            if let enabled = values[feature.rawValue] as? Bool { preferences.set(feature, enabled) }
+            if let enabled = values[feature.rawValue] as? Bool {
+                preferences.engineDefaults.set(enabled, forKey: feature.rawValue)
+                preferences.set(feature, enabled)
+            }
         }
         if let value = values["greenMaximizeExcludedApps"] as? String { preferences.greenMaximizeExcludedApps = value }
         if let value = values["buildStatsPath"] as? String { preferences.buildStatsPath = value }

@@ -31,6 +31,8 @@ struct SettingsBackupTest {
             try archive(["monitorCPU": "bad"]), try archive(["monitorCPU": true]),
             try archive(["monitorCPU": 70.5]), try archive(["monitorCPU": 101]),
             try archive(["island": 1]), try archive(["keepAwakeMinutes": 45]),
+            try archive(["dictationCleanup": "broken"]),
+            try archive(["dictationCleanup": "{}", "notchcast.dictationCleanup.settings": "{}"]),
             try archive(["islandHoverDelay": 0.4]), try archive(["future": true]),
             try archive(["notchcast.quitProtection.mode": "future"]),
             try archive(["notchcast.day.marketSymbols": [String(repeating: "x", count: 65)]]),
