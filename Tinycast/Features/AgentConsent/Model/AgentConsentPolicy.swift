@@ -9,10 +9,12 @@ enum AgentConsentPolicy {
         case allow, ask, refuse
     }
 
-    struct Grant: Codable, Equatable, Sendable {
+    struct Grant: Codable, Equatable, Sendable, Identifiable {
         let agentID: String
         let actionID: String
         let expiresAt: Date?
+
+        var id: [String] { [agentID, actionID] }
 
         func covers(agentID: String, actionID: String, now: Date) -> Bool {
             self.agentID == agentID && self.actionID == actionID
