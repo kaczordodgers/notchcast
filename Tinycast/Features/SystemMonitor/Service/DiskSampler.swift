@@ -25,9 +25,10 @@ nonisolated struct DiskSampler: Sendable {
                               mountPath: url.path, total: UInt64(total),
                               available: UInt64(min(total, available)),
                               isReadOnly: capacity.volumeIsReadOnly == true,
-                              isEjectable: values.volumeIsInternal != true &&
-                                  values.volumeIsRootFileSystem != true &&
-                                  (values.volumeIsEjectable == true || values.volumeIsInternal == false))
+                              isEjectable: DiskVolume.canEject(isLocal: values.volumeIsLocal,
+                                  isInternal: values.volumeIsInternal,
+                                  isRoot: values.volumeIsRootFileSystem,
+                                  isEjectable: values.volumeIsEjectable))
         }.sorted { $0.mountPath < $1.mountPath }
     }
 

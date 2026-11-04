@@ -8,9 +8,10 @@ nonisolated enum DiskEjectService {
             .volumeIsRootFileSystemKey, .volumeIsEjectableKey]
         do {
             let values = try url.resourceValues(forKeys: keys)
-            guard values.volumeIsLocal != false, values.volumeIsInternal != true,
-                  values.volumeIsRootFileSystem != true,
-                  values.volumeIsEjectable == true || values.volumeIsInternal == false
+            guard DiskVolume.canEject(isLocal: values.volumeIsLocal,
+                                     isInternal: values.volumeIsInternal,
+                                     isRoot: values.volumeIsRootFileSystem,
+                                     isEjectable: values.volumeIsEjectable)
             else { return .notEjectable }
             guard !Task.isCancelled else { return .gone }
             try NSWorkspace.shared.unmountAndEjectDevice(at: url)

@@ -2,7 +2,9 @@ import Foundation
 
 extension MonitorStore {
     func ejectState(at url: URL) -> DiskEjectState {
-        ejectStates[url.standardizedFileURL.path] ?? .idle
+        let path = url.standardizedFileURL.path
+        guard latest.volumes.contains(where: { $0.mountPath == path }) else { return .idle }
+        return ejectStates[path] ?? .idle
     }
 
     @discardableResult
@@ -24,10 +26,6 @@ extension MonitorStore {
         }
         switch result {
         case .busy(let error):
-            guard latest.volumes.contains(where: { $0.mountPath == path && $0.isEjectable }) else {
-                ejectStates[path] = nil
-                return .gone
-            }
             ejectStates[path] = .failed(error)
         case .ejected, .gone, .notEjectable: ejectStates[path] = nil
         }

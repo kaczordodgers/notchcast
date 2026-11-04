@@ -8,6 +8,7 @@ import Foundation
 final class EjectProbe {
     var calls = 0
     var gate: CheckedContinuation<DiskEjectResult, Never>?
+    var snapshot = MonitorSnapshot()
 
     func eject(_ url: URL) async -> DiskEjectResult {
         calls += 1
@@ -19,6 +20,16 @@ final class EjectProbe {
 @MainActor
 struct DiskEjectTests {
     static func main() async {
+        precondition(DiskVolume.canEject(isLocal: true, isInternal: nil,
+                                        isRoot: false, isEjectable: true))
+        precondition(!DiskVolume.canEject(isLocal: true, isInternal: true,
+                                         isRoot: false, isEjectable: true))
+        precondition(DiskVolume.canEject(isLocal: true, isInternal: false,
+                                        isRoot: false, isEjectable: false))
+        precondition(!DiskVolume.canEject(isLocal: false, isInternal: false,
+                                         isRoot: false, isEjectable: true))
+        precondition(!DiskVolume.canEject(isLocal: true, isInternal: false,
+                                         isRoot: true, isEjectable: true))
         let external = URL(filePath: "/Volumes/Fake")
         let probe = EjectProbe()
         let store = MonitorStore(sample: {
@@ -58,6 +69,14 @@ struct DiskEjectTests {
         let retry = await store.ejectVolume(at: external, using: { _ in .ejected })
         guard case .ejected = retry else { fatalError("retry") }
         guard case .idle = store.ejectState(at: external) else { fatalError("idle state") }
+        let closed = Task { await store.ejectVolume(at: external, using: fake) }
+        while probe.gate == nil { await Task.yield() }
+        store.release()
+        probe.gate?.resume(returning: .busy(error))
+        probe.gate = nil
+        guard case .busy = await closed.value else { fatalError("closed page result") }
+        guard case .failed = store.ejectState(at: external) else { fatalError("closed page state") }
+        store.acquire()
         let cancelled = Task { await store.ejectVolume(at: external, using: fake) }
         while probe.gate == nil { await Task.yield() }
         cancelled.cancel()
@@ -73,6 +92,22 @@ struct DiskEjectTests {
         let stale = await pending.value
         precondition(awaitResultIsNil(stale))
         guard case .idle = store.ejectState(at: external) else { fatalError("stale state") }
+        let sampled = MonitorStore(sample: { await probe.snapshot })
+        probe.snapshot = MonitorSnapshot(volumes: [
+            DiskVolume(name: "Fake", mountPath: external.path, total: 100,
+                       available: 50, isEjectable: true)
+        ])
+        sampled.acquire()
+        sampled.start()
+        while sampled.latest.volumes.isEmpty { await Task.yield() }
+        _ = await sampled.ejectVolume(at: external, using: { _ in .busy(error) })
+        guard case .failed = sampled.ejectState(at: external) else { fatalError("sampled failure") }
+        sampled.release()
+        probe.snapshot = MonitorSnapshot()
+        sampled.acquire()
+        while !sampled.latest.volumes.isEmpty { await Task.yield() }
+        guard case .idle = sampled.ejectState(at: external) else { fatalError("removed volume state") }
+        sampled.stop()
         print("Disk eject checks passed (injected ejectors only)")
     }
 

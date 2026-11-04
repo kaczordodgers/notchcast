@@ -8,6 +8,12 @@ nonisolated struct DiskVolume: Sendable, Equatable {
     var isReadOnly = false
     var isEjectable = false
 
+    static func canEject(isLocal: Bool?, isInternal: Bool?, isRoot: Bool?,
+                         isEjectable: Bool?) -> Bool {
+        isLocal != false && isInternal != true && isRoot != true &&
+            (isEjectable == true || isInternal == false)
+    }
+
     func isLowSpace(thresholdPercent: Double = 10) -> Bool {
         guard total > 0, thresholdPercent.isFinite else { return false }
         return Double(available) / Double(total) * 100 < min(100, max(0, thresholdPercent))

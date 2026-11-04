@@ -37,7 +37,8 @@ nonisolated struct MonitorSnapshot: Sendable {
 @Observable
 final class MonitorStore {
     var ejectStates: [String: DiskEjectState] = [:]
-    var ejectLifecycle: (enabled: Bool, generation: Int) { (enabled, generation) }
+    var ejectLifecycle: (enabled: Bool, generation: Int) { (enabled, ejectGeneration) }
+    @ObservationIgnored private var ejectGeneration = 0
     private(set) var latest = MonitorSnapshot()
     private(set) var histories: [String: MonitorHistory] = [:]
     private(set) var demand = 0
@@ -49,7 +50,7 @@ final class MonitorStore {
     init(sample: (@Sendable () async -> MonitorSnapshot)? = nil) { self.sample = sample }
 
     func start() { enabled = true; update() }
-    func stop() { enabled = false; update() }
+    func stop() { enabled = false; ejectGeneration += 1; update() }
     func acquire() { demand += 1; update() }
     func release() { demand = max(0, demand - 1); update() }
 
