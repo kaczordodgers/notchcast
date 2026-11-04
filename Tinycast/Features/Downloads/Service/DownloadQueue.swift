@@ -46,6 +46,13 @@ final class DownloadQueue {
         pump()
     }
 
+    func unregister(_ kind: String) {
+        runners[kind] = nil
+        for job in jobs where job.kind == kind && !job.state.isFinished {
+            cancel(job.id)
+        }
+    }
+
     @discardableResult
     func enqueue(
         kind: String, sources: [String], options: [String: String] = [:], group: String? = nil
