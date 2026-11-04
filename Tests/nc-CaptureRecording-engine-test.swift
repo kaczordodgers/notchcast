@@ -323,7 +323,7 @@ struct RecordingTests {
         while output.copyNextSampleBuffer() != nil { frames += 1 }
         expect(frames >= 30, "paced live capture retains every frame: \(frames)")
         print("PASS paced 1280x720 capture retains \(frames) frames and finishes")
-        for attempt in 0..<3 {
+        for attempt in 0..<10 {
             let finishingTask = Mutex<Task<Void, any Error>?>(nil)
             let beganFinalizing = Mutex(false)
             let cancelling = try RecordingWriter(url: root.appendingPathComponent("cancel-\(attempt).mp4"),
