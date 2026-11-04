@@ -7,7 +7,7 @@ import Observation
 @Observable
 final class PasteImageModule: NotchcastModule {
     private(set) var saveFailed = false
-    private let hub = EventTapHub()
+    private let hub: EventTapHub
     private let state = OSAllocatedUnfairLock(initialState: State())
     private var refresh: Task<Void, Never>?
     private var work: Task<Void, Never>?
@@ -17,6 +17,8 @@ final class PasteImageModule: NotchcastModule {
         var eligible = false
         var filter = PasteImagePolicy()
     }
+
+    init(hub: EventTapHub) { self.hub = hub }
 
     func start() {
         guard token == nil else { return }
@@ -28,9 +30,10 @@ final class PasteImageModule: NotchcastModule {
             else { return .pass }
             let repeatKey = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
             let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskControl, .maskAlternate]
+            let commandOnly = event.flags.intersection(modifiers) == .maskCommand
             let take = state.withLock { state in
                 state.filter.take(down: type == .keyDown, repeatKey: repeatKey,
-                    eligible: state.eligible && event.flags.intersection(modifiers) == .maskCommand)
+                    eligible: state.eligible && commandOnly)
             }
             guard take else { return .pass }
             if type == .keyDown && !repeatKey {

@@ -215,13 +215,21 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
 
     private func observePreferences(identity: UUID) {
         withObservationTracking {
-            applyPreferences()
+            let preferences = NotchcastPreferences.shared
+            _ = preferences.isOn(.islandExternalDisplays)
+            _ = preferences.isOn(.islandFullScreen)
+            _ = preferences.isOn(.islandHoverOpen)
+            _ = preferences.isOn(.islandLiveActivities)
+            _ = preferences.isOn(.islandStatusMessages)
+            _ = IslandActivityCenter.shared.activities
+            _ = IslandActivityCenter.shared.message
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, observationID == identity else { return }
                 observePreferences(identity: identity)
             }
         }
+        applyPreferences()
     }
 
     private func watchPointer() {
