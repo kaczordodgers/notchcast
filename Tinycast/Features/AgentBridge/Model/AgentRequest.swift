@@ -1,7 +1,14 @@
 import Foundation
 
 struct AgentRequest: Codable, Equatable, Sendable {
-    enum Verb: String, Codable, Sendable { case list, get, run, audit, status }
+    enum Verb: String, Codable, Sendable {
+        case list
+        case get
+        case run
+        case audit
+        case status
+        case mcp
+    }
 
     let verb: Verb
     var id: String?
@@ -40,6 +47,7 @@ struct AgentRequest: Codable, Equatable, Sendable {
         switch verb {
         case .list, .audit, .status:
             guard values.isEmpty else { throw AgentReply.Code.badRequest }
+        case .mcp: guard values.isEmpty else { throw AgentReply.Code.badRequest }
         case .get:
             guard values.count == 1, !values[0].isEmpty else { throw AgentReply.Code.badRequest }
             request.id = values[0]
@@ -60,6 +68,7 @@ struct AgentRequest: Codable, Equatable, Sendable {
         case .list, .audit, .status: return id == nil && parameters == .object([:])
         case .get: return id?.isEmpty == false && parameters == .object([:])
         case .run: return id?.isEmpty == false
+        case .mcp: return isValidMCP
         }
     }
 }

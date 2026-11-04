@@ -46,6 +46,7 @@ final class AgentBridgeModule: NotchcastModule {
                 }))
             }))
             configured = true
+            NotchcastCore.agentMCPServer.configure(index: index)
         } catch {
             index.unregisterAll()
             Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "AgentBridge")
