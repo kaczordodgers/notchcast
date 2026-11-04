@@ -17,6 +17,8 @@ owned=0
 finish() {
     code=$?
     trap - EXIT
+    # The build runs inside $tree, which is removed below; t3_send.py fails from a deleted working directory.
+    cd "$root"
     minutes=$(( (SECONDS - started + 59) / 60 ))
     step=$(cat "$scratch/step" 2>/dev/null || echo setup)
     state=failure
