@@ -5,6 +5,7 @@ import Observation
 @Observable
 final class NotchcastPreferences {
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored var onCommandsChanged: (() -> Void)?
     private var off: Set<NotchcastFeature>
     private var chargePercent: Int
     private var awakeDuration: Int
@@ -41,12 +42,20 @@ final class NotchcastPreferences {
     func revision(_ feature: NotchcastFeature) -> Int { versions[feature, default: 0] }
 
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
+    func isEnabled(_ feature: NotchcastFeature) -> Bool {
+        isOn(feature) && feature.dependencies.allSatisfy(isEnabled)
+    }
+
+    var engineDefaults: UserDefaults { defaults }
+
+    var archiveHandlersClaimed: Bool { get { defaults.bool(forKey: "archiveHandlersClaimed") } set { defaults.set(newValue, forKey: "archiveHandlersClaimed") } }
 
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
         versions[feature, default: 0] += 1
         if enabled { off.remove(feature) } else { off.insert(feature) }
+        if feature == .colorPicker || feature == .screenshot { onCommandsChanged?() }
     }
 }
 
