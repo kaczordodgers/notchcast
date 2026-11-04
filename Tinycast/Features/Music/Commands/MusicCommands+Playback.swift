@@ -3,7 +3,7 @@ import Foundation
 extension MusicCommands {
     nonisolated static let resumeLastPlayerCommand =
         NotchcastCommand(slug: "resume-last-player", name: String(localized: "Resume Last Player"),
-                         sfSymbol: "play", isEnabled: {
+                         sfSymbol: "play", feature: .musicLastPlayer, isEnabled: {
                              NotchcastPreferences.shared.isEnabled(.musicLastPlayer)
                          }, run: { resumeLastPlayer() })
     nonisolated static let speakerOnCommand =
@@ -12,7 +12,7 @@ extension MusicCommands {
         speakerCommand("spotify-connect-speaker-off", name: String(localized: "Spotify Connect Speaker Off"), on: false)
 
     nonisolated private static func speakerCommand(_ slug: String, name: String, on: Bool) -> NotchcastCommand {
-        NotchcastCommand(slug: slug, name: name, sfSymbol: "hifispeaker", isEnabled: { enabled }, run: {
+        NotchcastCommand(slug: slug, name: name, sfSymbol: "hifispeaker", feature: .spotifyConnect, isEnabled: { enabled }, run: {
             guard enabled else { return }
             let current = NotchcastPreferences.shared.isOn(.spotifyConnect)
             if current == on {
