@@ -1,3 +1,5 @@
+// notchcast-sources: Tinycast/Features/Appearance/Model/*.swift
+// notchcast-sources: Tinycast/Features/Appearance/Service/*.swift
 import AppKit
 import SwiftUI
 
