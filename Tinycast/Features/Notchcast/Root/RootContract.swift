@@ -4,6 +4,7 @@ enum RootContract {
     static let helperPath = "/Library/PrivilegedHelperTools/app.notchcast.root"
     static let version = "3"
     static let usageExit: Int32 = 64
+    static let unsupportedExit: Int32 = 69
     static let unauthorizedCallerExit: Int32 = 78
 
     enum Operation: Sendable {
