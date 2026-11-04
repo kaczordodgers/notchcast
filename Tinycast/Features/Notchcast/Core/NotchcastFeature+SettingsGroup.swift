@@ -8,12 +8,14 @@ extension NotchcastFeature {
         case activities
         case systemTools
         case music
+        case tasks
         case torrents
         case archives
         case clipboard
         case finder
         case captureAndDictation
         case buildStats
+        case agentPricing
         // Keep group appends away from the closing braces during union merges.
     }
 }

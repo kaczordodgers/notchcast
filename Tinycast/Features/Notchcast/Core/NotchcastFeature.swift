@@ -1,6 +1,7 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
+    case tasks
     case island
     case islandExternalDisplays
     case islandFullScreen
@@ -28,6 +29,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case agentSessions
+    case agentPricing
     case pastePlain
     case finderCutPaste
     case finderRename
@@ -95,6 +98,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .tasks: .tasks
         case .musicNowPlaying: .music
         case .musicLastPlayer: .music
         case .musicBlockAppleMusic: .music
@@ -150,6 +154,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
+        case .agentSessions: .activities
+        case .agentPricing: .agentPricing
         case .dayMarkets: .activities
         case .settingsBackup: .system
         case .showDesktop: .system
@@ -176,6 +182,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .tasks: String(localized: "Tasks")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
@@ -205,6 +212,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .agentSessions: String(localized: "Agent Session Logs")
+        case .agentPricing: String(localized: "Agent API Value")
         case .pastePlain: String(localized: "Paste Plain Text")
         case .finderCutPaste: String(localized: "Finder Cut and Paste")
         case .finderRename: String(localized: "Finder Rename")
@@ -257,6 +266,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .tasks: String(localized: "Keep tasks on this Mac.")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
@@ -287,6 +297,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
+        case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
         case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
         case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
         case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
@@ -374,11 +386,13 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .tasks: false
         case .colorPicker: false
         case .screenText: false
         case .scrollingCapture: false
         case .screenshot: false
         case .buildStats: false
+        case .agentPricing: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -389,6 +403,7 @@ extension NotchcastFeature {
         case .greenMaximize: false
         case .machineSetupProfile: false
         case .switcherQuitKey: false
+        case .agentSessions: false
         case .archives: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
@@ -426,6 +441,7 @@ extension NotchcastFeature {
     var defaultEnabled: Bool {
         if isSystemFeature || isLauncherKeysFeature { return false }
         return switch self {
+        case .tasks: false
         case .spotifyConnect: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
@@ -439,6 +455,8 @@ extension NotchcastFeature {
         case .agentAnswer: false
         case .dictationCleanup: false
         case .pastePlain: false
+        case .agentSessions: false
+        case .agentPricing: false
         default: true
         }
     }

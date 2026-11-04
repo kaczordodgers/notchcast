@@ -66,6 +66,7 @@ final class NotchcastServices {
     let spotify = CountingModule()
     let microphone = CountingModule()
     let marks = CountingModule()
+    let tasks = CountingModule()
     let keys = Keys()
 
     init(core: AppCore, preferences: NotchcastPreferences) {}
@@ -136,6 +137,13 @@ struct MusicModuleTests {
 
     static func settle() async {
         for _ in 0..<20 { await Task.yield() }
+    }
+
+    static func waitUntil(_ condition: @MainActor () -> Bool) async {
+        let deadline = ContinuousClock.now + .seconds(10)
+        while !condition(), ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
     }
 
     static func registration() async {
@@ -245,10 +253,10 @@ struct MusicModuleTests {
         await settle()
         precondition(music.model.failure == .noReplacement, "a swallowed key keeps its replacement decision")
         let beforeRetry = hub.refreshes
-        try? await Task.sleep(for: .milliseconds(1100))
+        await waitUntil { hub.refreshes > beforeRetry }
         precondition(hub.refreshes > beforeRetry, "untrusted registration retries without activation")
         trusted = true
-        try? await Task.sleep(for: .milliseconds(1100))
+        await waitUntil { mute.hotKeyStatus == nil }
         precondition(mute.hotKeyStatus == nil, "permission grant clears F5 warning automatically")
         let afterGrant = hub.refreshes
         try? await Task.sleep(for: .milliseconds(1100))
@@ -258,7 +266,7 @@ struct MusicModuleTests {
         microphone.start()
         let f5 = CGEvent(keyboardEventSource: nil, virtualKey: 96, keyDown: true)!
         precondition(hub.handler!(.keyDown, f5) == .swallow)
-        for _ in 0..<200 where !mute.isMuted { try? await Task.sleep(for: .milliseconds(10)) }
+        await waitUntil { mute.isMuted }
         precondition(mute.isMuted, "F5 toggles mute through hub")
         microphone.setMuted(false)
         f5.setIntegerValueField(.keyboardEventAutorepeat, value: 1)
