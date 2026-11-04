@@ -7,6 +7,7 @@ struct CaptureDictationSettingsSection: View {
             ScreenshotSettingsSection(module: NotchcastCore.screenshot)
             DictationHistorySettingsSection()
             DictationCleanupSettingsSection(module: NotchcastCore.dictationCleanup)
+            CaptureTrimmerSettingsSection()
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }
