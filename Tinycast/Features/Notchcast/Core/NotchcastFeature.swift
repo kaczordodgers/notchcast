@@ -31,6 +31,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case shelfBetweenMacs
     case sendFiles
     case updateRemote
+    case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -51,9 +52,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case machBlockedDialogAlert
     case remoteScreen
     case machMBPFans
+    case buildStats
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -66,6 +69,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .machBlockedDialogAlert: .system
         case .remoteScreen: .system
         case .machMBPFans: .system
+        case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -109,6 +113,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -144,6 +149,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .shelfBetweenMacs: String(localized: "Shelf between Macs")
         case .sendFiles: String(localized: "Send to Remote Mac")
         case .updateRemote: String(localized: "Update Remote Mac")
+        case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -164,6 +170,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -199,6 +206,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.")
         case .sendFiles: String(localized: "Send selected files to the remote Mac.")
         case .updateRemote: String(localized: "Run the update on the remote Mac.")
+        case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -238,6 +246,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -268,7 +277,8 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature && !startsOff
+        !isSystemFeature && self != .buildStats && self != .spacesOrder
+            && self != .switcherQuitKey && !isLauncherKeysFeature && !startsOff
     }
 
     var startsOff: Bool {
