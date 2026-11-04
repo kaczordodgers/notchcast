@@ -68,6 +68,16 @@ def metadata(base):
     return failed
 
 
+def annotated_tag(sha):
+    content = git("cat-file", "-p", sha)
+    failed = inspect(content, f"tag {sha[:12]}")
+    tagger = re.search(r"^tagger .*<(.*)>", content, re.M)
+    if tagger and tagger.group(1) not in ALLOWED:
+        print(f"check-identity: tag {sha[:12]}: non-allowed tagger email")
+        failed = True
+    return failed
+
+
 def app(bundle):
     root = Path(bundle)
     if not root.is_dir():
@@ -75,7 +85,8 @@ def app(bundle):
     failed = False
     for path in sorted(root.rglob("*")):
         failed |= inspect(str(path.relative_to(root)), "file name")
-        if path.is_file():
+        # CodeResources is base64 hashes, whose random runs match the id shapes.
+        if path.is_file() and "_CodeSignature" not in path.parts:
             content = subprocess.check_output(["strings", "-a", str(path)]).decode("utf-8", errors="replace")
             failed |= inspect(content, str(path.relative_to(root)))
     return failed
@@ -83,7 +94,7 @@ def app(bundle):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=["staged", "message", "history", "diff", "metadata", "app"])
+    parser.add_argument("mode", choices=["staged", "message", "history", "diff", "metadata", "app", "tag"])
     parser.add_argument("target", nargs="?")
     parser.add_argument("head", nargs="?", default="HEAD")
     args = parser.parse_args()
@@ -94,6 +105,8 @@ def main():
     base = args.target or "refs/remotes/upstream/main"
     if args.mode == "app":
         return app(base)
+    if args.mode == "tag":
+        return annotated_tag(base)
     if args.mode == "message":
         return inspect(Path(base).read_text(), "commit message")
     if args.mode == "staged":
