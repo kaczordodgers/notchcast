@@ -14,6 +14,7 @@ final class NotchcastPreferences {
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
+    var buildStatsPath: String { didSet { defaults.set(buildStatsPath, forKey: "buildStatsPath") } }
     var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
     var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
     var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
@@ -25,6 +26,7 @@ final class NotchcastPreferences {
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        buildStatsPath = defaults.string(forKey: "buildStatsPath") ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
         monitorTemperature = Self.threshold(defaults, "monitorTemperature", 90, 40...110)
