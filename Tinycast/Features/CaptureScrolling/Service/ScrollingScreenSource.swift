@@ -23,7 +23,18 @@ enum ScrollingScreenSource {
             throw ScrollingCaptureSession.Failure.invalidRect
         }
         let excluded = content.windows.filter { excludingWindows.contains($0.windowID) }
-        let filter = SCContentFilter(display: display, excludingWindows: excluded)
+        let ownApplications = content.applications.filter {
+            $0.processID == ProcessInfo.processInfo.processIdentifier
+        }
+        let filter: SCContentFilter
+        if excludingWindows.isEmpty {
+            filter = SCContentFilter(display: display, excludingApplications: ownApplications, exceptingWindows: [])
+        } else {
+            let ownWindows = content.windows.filter {
+                $0.owningApplication?.processID == ProcessInfo.processInfo.processIdentifier
+            }
+            filter = SCContentFilter(display: display, excludingWindows: excluded + ownWindows)
+        }
         let configuration = SCScreenshotConfiguration()
         configuration.sourceRect = local
         configuration.width = max(1, Int((local.width * CGFloat(filter.pointPixelScale)).rounded()))
