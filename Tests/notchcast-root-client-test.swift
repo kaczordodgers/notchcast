@@ -391,7 +391,7 @@ struct RootClientTest {
         precondition(compiler.terminationStatus == 0, "Helper compilation failed")
 
         for (arguments, expected): ([String], Int32) in [
-            (["invalid"], 64), (["charge-limit-80"], 77), (["fans-auto"], 77),
+            (["invalid"], 64), (["charge-limit-80"], 78), (["fans-auto"], 78),
         ] {
             let process = Process()
             process.executableURL = helper

@@ -51,6 +51,18 @@ if [ -n "$(/usr/bin/git -C "$source_directory" status --porcelain -- .)" ]; then
     exit 65
 fi
 printf 'Installing the helper from commit %s.\n' "$(/usr/bin/git -C "$source_directory" rev-parse HEAD)"
+app=/Applications/Notchcast.app
+if [ "$dry_run" -eq 1 ]; then
+    team=INSTALL_SIGNING_TEAM
+    printf 'Would verify %s and bake its Apple signing team into the helper.\n' "$app"
+else
+    /usr/bin/codesign --verify --strict -R 'anchor apple generic and identifier app.notchcast' "$app"
+    team=$(/usr/bin/codesign -dv "$app" 2>&1 | /usr/bin/sed -n 's/^TeamIdentifier=//p')
+    if [[ ! "$team" =~ ^[A-Z0-9]{10}$ ]]; then
+        printf 'A signed Notchcast app with an Apple signing team is required.\n' >&2
+        exit 65
+    fi
+fi
 if [ "$dry_run" -eq 1 ]; then
     stage='<private temporary directory>'
     step /usr/bin/mktemp -d /private/tmp/notchcast-root.XXXXXX
@@ -61,7 +73,13 @@ fi
 
 step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$source_directory/BatterySMC.swift" "$source_directory/Spotlight.swift" "$source_directory/SudoTouchID.swift" "$source_directory/TouchIDPolicy.swift" "$source_directory/Power.swift" "$stage/"
 step /usr/bin/shasum -a 256 "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift"
-step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" \
+step /bin/cp "$source_directory/RootCaller.swift" "$stage/RootCaller.swift"
+if [ "$dry_run" -eq 1 ]; then
+    printf 'Would generate CallerRequirement.swift with the verified signing team.\n'
+else
+    printf 'enum CallerRequirement { static let team = "%s" }\n' "$team" > "$stage/CallerRequirement.swift"
+fi
+step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/CallerRequirement.swift" "$stage/RootCaller.swift" "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" \
     "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift" -o "$stage/helper"
 if [ "$dry_run" -eq 1 ]; then
     printf 'Would write %s with exactly one rule:\n' "$stage/notchcast"

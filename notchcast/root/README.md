@@ -1,5 +1,24 @@
 # Root helper
 
+## Caller authorization
+
+Every verb except `version` and `ping` first authenticates its caller. Failure exits silently
+with `RootContract.unauthorizedCallerExit` (78), before opening hardware or reading/changing policy.
+The immediate parent must satisfy Apple's sudo code requirement. Its parent must satisfy
+`anchor apple generic`, identifier `app.notchcast`, and the signing team baked into the helper
+from the verified `/Applications/Notchcast.app` during installation. Unsigned installations fail closed.
+Security.framework checks dynamic code using kernel audit tokens obtained through task name ports;
+parent relationships and process start times are rechecked to reject PID reuse during traversal.
+The app must use hardened runtime without debugger, disabled library validation or DYLD environment
+entitlements. The source-tree helper has no signing team and cannot authorize protected verbs.
+
+This blocks arbitrary user processes from using the NOPASSWD grant, including signed apps from
+other teams. It does not establish per-action user consent: compromised authorized app code,
+an unsafe app command/deeplink, or another app signed with this identity can still invoke verbs.
+Root and the signing authority remain trusted. Existing installations must reinstall the helper;
+updating the app alone does not repair an old helper. Development/ad-hoc builds cannot use it.
+The non-root caller harness injects accepted/rejected identities and exercises the live rejection path.
+
 `charge-limit-60`, `charge-limit-70`, `charge-limit-80`, and `charge-limit-90` set
 `mclLimitValue` and `MCLFeatureState = 1` in `com.apple.smartcharging.topoffprotection`
 for root/current host, after pinning `HOME=/var/root` and removing `CFFIXED_USER_HOME`. They synchronize and post the Darwin notification
