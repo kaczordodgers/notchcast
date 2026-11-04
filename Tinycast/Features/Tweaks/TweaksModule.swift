@@ -23,13 +23,17 @@ final class TweaksModule: NotchcastModule {
         var plans: [String: TypingPreferencePlan] = [:]
         do {
             if let data { plans = try JSONDecoder().decode([String: TypingPreferencePlan].self, from: data) }
-            guard plans.values.allSatisfy({ plan in
-                (plan.apply + plan.revert).allSatisfy {
-                    SystemToolsProcessRunner.allowedExecutables.contains($0.executable)
-                }
-            }) else { throw SystemToolsProcessRunner.Failure.invalidExecutable }
+            let valid = plans.filter { $0.value.permitsJournal(home: NSHomeDirectory()) }
+            if valid.count != plans.count {
+                plans = valid
+                defaults.set(try JSONEncoder().encode(plans), forKey: key)
+                throw SystemToolsProcessRunner.Failure.invalidExecutable
+            }
             journalFailure = nil
-        } catch { journalFailure = error.localizedDescription }
+        } catch {
+            defaults.set(try? JSONEncoder().encode(plans), forKey: key)
+            journalFailure = error.localizedDescription
+        }
         store = TweaksStore(plans: plans, read: TypingPreferenceService().readPreference,
                             run: Self.run, save: { plans in
             defaults.set(try JSONEncoder().encode(plans), forKey: key)
@@ -41,7 +45,6 @@ final class TweaksModule: NotchcastModule {
         if let journalFailure { core.showMessage(journalFailure) }
     }
     func start() {
-        guard journalFailure == nil else { return }
         running = true
         wantsEnabled = true
         if stopping == nil { store.start() }

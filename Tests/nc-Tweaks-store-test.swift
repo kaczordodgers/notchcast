@@ -40,6 +40,16 @@ struct TweaksStoreTests {
             extraRevert: [FinderCatalog.library(home: URL(filePath: "/fixture"), hidden: true)])
         let decoded = try JSONDecoder().decode(TypingPreferencePlan.self, from: JSONEncoder().encode(library))
         precondition(decoded == library)
+        precondition(library.permitsJournal(home: "/fixture"))
+        precondition(!TypingPreferencePlan(entries: [], extraRevert: [
+            .init(executable: "/usr/bin/open", arguments: ["/fixture/Evil.app"])
+        ]).permitsJournal(home: "/fixture"))
+        var reverted: [TypingPreferencePlan.Command] = []
+        let missing = TweaksStore(plans: ["absent": .init(entries: [
+            .init(write: .init("KeyRepeat", .integer(2)), previous: nil)
+        ])], read: { _ in nil }, run: { reverted += $0 }, save: { _ in })
+        try await missing.stop()
+        precondition(reverted.isEmpty && missing.plans.isEmpty)
         precondition(SystemToolsProcessRunner.allowedExecutables.contains("/bin/chflags"))
         precondition(SystemToolsProcessRunner.allowedExecutables.contains("/usr/bin/killall"))
         do {

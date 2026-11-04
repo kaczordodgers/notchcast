@@ -10,6 +10,8 @@ nonisolated struct StartupItemService: Sendable {
             loaded = true
         } catch is CancellationError {
             throw CancellationError()
+        } catch SystemToolsProcessRunner.Failure.failed(113) {
+            loaded = false
         } catch {
             loaded = nil
         }

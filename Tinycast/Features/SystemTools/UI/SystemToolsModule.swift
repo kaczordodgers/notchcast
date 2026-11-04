@@ -9,6 +9,7 @@ final class SystemToolsModule: NotchcastModule {
     private var core: AppCore?
     private let runner = SystemToolsProcessRunner()
     private var running = false
+    private var refreshTask: Task<Void, Never>?
     private let notificationCleanup = NotificationCleanupObserver()
     @ObservationIgnored private lazy var store = SystemToolsStore(preferences: .shared,
                                               available: SystemToolsHelperPolicy.available,
@@ -24,13 +25,25 @@ final class SystemToolsModule: NotchcastModule {
     }
 
     func configure(_ core: AppCore) { self.core = core }
-    func start() { running = true; notificationCleanup.start() }
-    func stop() { running = false; notificationCleanup.stop() }
+    func start() {
+        running = true
+        notificationCleanup.start()
+        refreshTask = Task { await refresh() }
+    }
+    func stop() {
+        running = false
+        refreshTask?.cancel()
+        refreshTask = nil
+        notificationCleanup.stop()
+    }
 
     func set(_ feature: NotchcastFeature, enabled: Bool) async {
         guard !busy, SystemToolsHelperPolicy.available(feature) else { return }
         busy = true
-        defer { busy = false }
+        defer {
+            busy = false
+            if running { refreshTask = Task { await refresh() } }
+        }
         do {
             if feature == .sudoTouchID || feature == .spotlightOff {
                 guard let core, await core.confirm(title: feature.title, message: feature.subtitle,

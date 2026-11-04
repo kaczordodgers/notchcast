@@ -51,7 +51,7 @@ final class TweaksStore {
             try save(plans)
             try await run(plan.apply)
         } else if let plan = plans[identifier] {
-            try await run(plan.revert)
+            try await restore(plan)
             plans.removeValue(forKey: identifier)
             try save(plans)
         }
@@ -69,9 +69,18 @@ final class TweaksStore {
     private func revert() async throws {
         for identifier in plans.keys.sorted() {
             guard let plan = plans[identifier] else { continue }
-            try await run(plan.revert)
+            try await restore(plan)
             plans.removeValue(forKey: identifier)
             try save(plans)
         }
+    }
+
+    private func restore(_ plan: TypingPreferencePlan) async throws {
+        var commands = plan.extraRevert ?? []
+        for entry in plan.entries.reversed() {
+            if entry.previous == nil, try read(entry.write.preference) == nil { continue }
+            commands += TypingPreferencePlan(entries: [entry]).revert
+        }
+        try await run(commands)
     }
 }

@@ -54,6 +54,17 @@ nonisolated struct TypingPreferencePlan: Sendable, Equatable, Codable {
     }
 
     var apply: [Command] { entries.map { Self.command($0.write.preference, value: $0.write.value) } + (extraApply ?? []) }
+
+    func permitsJournal(home: String) -> Bool {
+        let library = URL(filePath: home).appendingPathComponent("Library").path
+        return entries.allSatisfy {
+            !$0.write.preference.domain.hasPrefix("-") && !$0.write.preference.domain.contains("/")
+                && !$0.write.preference.key.hasPrefix("-") && !$0.write.preference.key.isEmpty
+        } && ((extraApply ?? []) + (extraRevert ?? [])).allSatisfy {
+            $0.executable == "/bin/chflags" && $0.arguments.count == 2
+                && ["hidden", "nohidden"].contains($0.arguments[0]) && $0.arguments[1] == library
+        }
+    }
     var revert: [Command] {
         (extraRevert ?? []) + entries.reversed().map { Self.command($0.write.preference, value: $0.previous) }
     }

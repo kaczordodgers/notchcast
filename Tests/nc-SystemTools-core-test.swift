@@ -1,3 +1,7 @@
+// notchcast-sources: Tinycast/Features/SystemTools/Model/*.swift Tinycast/Features/SystemTools/Service/*.swift
+// notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift
+// notchcast-sources: Tinycast/Features/Tweaks/Service/*.swift
 import Foundation
 
 @main
@@ -47,6 +51,12 @@ struct SystemToolsTests {
             throw ProbeFailure.failed
         }
         expect(unknown.loaded == nil, "failed probe is unknown")
+        let unloaded = try StartupItemService().status(item, uid: 501, disabledText: "") { _, _ in
+            throw SystemToolsProcessRunner.Failure.failed(113)
+        }
+        expect(unloaded.loaded == false, "113 means unloaded")
+        expect(try unloaded.commands(enabled: true, uid: 501, home: home).count == 2,
+               "unloaded agents can bootstrap")
         expect(try StartupItemService().status(item, uid: 501, disabledText: "") { _, _ in "" }.loaded == true,
                "next probe still succeeds")
 

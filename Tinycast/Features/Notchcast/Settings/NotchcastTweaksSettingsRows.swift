@@ -21,15 +21,19 @@ struct NotchcastTweaksSettingsRows: View {
             .settingsEnabled(SystemToolsHelperPolicy.available(feature))
             if feature == .startupItems, preferences.isOn(feature) {
                 ForEach(NotchcastCore.systemTools.items, id: \.path) { item in
+                    if item.disabled == nil {
+                        Text(verbatim: item.label)
+                    } else {
                     Toggle(item.label, isOn: Binding(
                         get: { item.disabled == false },
                         set: { enabled in
                             Task { await NotchcastCore.systemTools.set(item, enabled: enabled) }
                         }))
                         .settingsEnabled(item.kind == .userAgent && !NotchcastCore.systemTools.busy)
+                    }
                 }
-                .task { await NotchcastCore.systemTools.refresh() }
             }
         }
+        .task { await NotchcastCore.systemTools.refresh() }
     }
 }
