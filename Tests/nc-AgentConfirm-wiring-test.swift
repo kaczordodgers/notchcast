@@ -20,7 +20,12 @@ struct ConfirmationWiringTests {
         var maximum = 0
         var answer = 0
         let authorization = AgentConfirmationAuthorization(grants: grants, isEnabled: { enabled },
-            timeout: .seconds(5)) { _, choices in
+            timeout: .seconds(5)) { action, message, choices in
+            precondition(message == "local-cli · \(action.id)")
+            if action.danger == .dangerous {
+                precondition(choices == [.allowOnce, .deny])
+                precondition(!choices.contains(.alwaysAllow))
+            }
             prompts += 1
             active += 1
             maximum = max(maximum, active)
@@ -65,15 +70,34 @@ struct ConfirmationWiringTests {
         precondition(!refused)
         precondition(grants.grants.count == 1)
         let timeout = AgentConfirmationAuthorization(grants: grants, isEnabled: { true },
-            timeout: .milliseconds(5)) { _, _ in
+            timeout: .milliseconds(5)) { _, _, _ in
             try? await Task.sleep(for: .milliseconds(20))
             return 0
         }
-        let expired = await timeout.authorize(dangerous, parameters: .null)
-        precondition(!expired)
+        precondition(AgentRequestTiming.confirmationTimeout < AgentRequestTiming.serverTimeout)
+        index.authorize = { action, parameters in
+            await timeout.authorize(action, parameters: parameters)
+        }
+        try index.register(.init(action: dangerous, run: { _ in
+            preconditionFailure("Timed-out action must not run")
+        }))
+        let expired = await index.handle(AgentRequest(verb: .run, id: dangerous.id))
+        precondition(expired.code == .declined && expired.code.exit == 5)
+        let detailed = AgentAction(id: "details", title: "Details", parameters: .init(properties: [
+            "secret": .init(kind: .string, secret: true),
+            "zebra": .init(kind: .string), "alpha": .init(kind: .number)
+        ]))
+        let message = detailed.confirmationMessage(parameters: .object([
+            "zebra": .string(String(repeating: "x", count: 61)),
+            "secret": .string("never-display-this"), "alpha": .number(2)
+        ]))
+        precondition(message == "local-cli · details\nalpha: 2\nsecret: •••\nzebra: "
+            + String(repeating: "x", count: 60) + "…")
+        precondition(!message.contains("never-display-this"))
+        precondition(detailed.confirmationMessage(parameters: .object([:])) == "local-cli · details")
         try? await Task.sleep(for: .milliseconds(30))
         authorization.stop()
         timeout.stop()
-        print("PASS: switch, single execution, persistent consent grant, dangerous refusal, exit 5, serialized queue, timeout")
+        print("PASS: switch, single execution, grants, dangerous choices, exit 5 timeout, serialized queue, sorted parameters, truncation, secret masking")
     }
 }

@@ -13,8 +13,9 @@ final class AgentBridgeModule: NotchcastModule {
             let grants = try AgentGrantStore(bundleIdentifier: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
             let audit = AgentAuditStore(directory: AppPaths.applicationSupport().appending(path: "agent"))
             let confirmation = AgentConfirmationAuthorization(grants: grants,
-                isEnabled: { NotchcastPreferences.shared.isOn(.agentConfirmation) }) { action, choices in
-                await core.choose(title: action.title, message: "local-cli · \(action.id)",
+                isEnabled: { NotchcastPreferences.shared.isOn(.agentConfirmation) },
+                timeout: AgentRequestTiming.confirmationTimeout) { action, message, choices in
+                await core.choose(title: action.title, message: message,
                     symbol: "checkmark.shield", options: choices.map { choice in
                         switch choice {
                         case .allowOnce: DialogAction(title: String(localized: "Allow once"))
