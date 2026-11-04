@@ -19,14 +19,18 @@ enum LauncherAliasSpace {
 
     static func decide(
         query: String, caretUTF16: Int, selectionLength: Int = 0,
-        hasModifiers: Bool, entries: [Entry], enabled: Bool
+        hasModifiers: Bool, entries: [Entry], enabled: Bool, aliases: [String] = []
     ) -> Decision {
         guard enabled, !query.isEmpty, !hasModifiers, selectionLength == 0,
               caretUTF16 == query.utf16.count else { return .ignore }
         if query.hasSuffix("\\") {
             return .insertLiteralSpace(String(query.dropLast()) + " ")
         }
-        guard let entry = entries.first(where: { $0.alias == query }),
+        let matches = entries.filter { $0.alias == query }
+        guard matches.count == 1,
+              aliases.filter({ $0 == query }).count <= 1,
+              !(aliases + entries.compactMap(\.alias)).contains(where: { $0.hasPrefix(query + " ") }),
+              let entry = matches.first,
               entry.kind != .application, entry.kind != .systemSettings else { return .ignore }
         if entry.isViewCommand && !entry.hasRequiredArguments { return .openView(entry.id) }
         if entry.argumentCount > 0 { return .focusFirstArgument(entry.id) }

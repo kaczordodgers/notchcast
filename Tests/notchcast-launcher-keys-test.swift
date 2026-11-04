@@ -56,17 +56,43 @@ struct LauncherKeysTest {
         precondition(decision("r\\", caret: 1) == .ignore)
         precondition(decision("😀") == .run("unicode"))
         precondition(decision("😀", caret: 1) == .ignore)
+        let ambiguous: [Entry] = [
+            .init(id: "first", alias: "g", kind: .command),
+            .init(id: "second", alias: "g", kind: .command)
+        ]
+        let longer: [Entry] = [
+            .init(id: "short", alias: "g", kind: .command),
+            .init(id: "long", alias: "g s", kind: .command)
+        ]
+        for candidates in [ambiguous, longer, longer.reversed().map { $0 }] {
+            precondition(LauncherAliasSpace.decide(
+                query: "g", caretUTF16: 1, hasModifiers: false, entries: candidates, enabled: true
+            ) == .ignore)
+        }
+        precondition(LauncherAliasSpace.decide(
+            query: "g", caretUTF16: 1, hasModifiers: false, entries: [longer[0]], enabled: true,
+            aliases: ["g", "g s"]) == .ignore)
+        precondition(LauncherAliasSpace.decide(
+            query: "g s", caretUTF16: 3, hasModifiers: false, entries: [longer[1]], enabled: true,
+            aliases: ["g", "g s"]) == .run("long"))
         for query in ["", "r", "r\\", "😀"] {
             for digit in 1...9 {
-                let favoriteIndex = digit - 1
-                let selectedIndex = LauncherNumberKeys.entryIndex(
-                    digit: digit, query: query, entryCount: 12, enabled: false
-                ) ?? favoriteIndex
-                precondition(selectedIndex == favoriteIndex)
+                for hasCard in [false, true] {
+                    let selectedRow = LauncherNumberKeys.rowIndex(
+                        digit: digit, query: query, entryRows: [2, 5, 9], favoriteCount: 9,
+                        hasLeadCard: hasCard, enabled: false)
+                    precondition(selectedRow == digit - 1 + (hasCard ? 1 : 0))
+                }
             }
             precondition(decision(query, enabled: false) == .ignore)
         }
         for feature in [NotchcastFeature.launcherNumberKeys, .launcherAliasSpace] {
+            precondition(LauncherNumberKeys.rowIndex(
+                digit: 1, query: "r", entryRows: [2, 5, 9], favoriteCount: 0,
+                hasLeadCard: false, enabled: false) == nil)
+            precondition(LauncherNumberKeys.rowIndex(
+                digit: 2, query: "r", entryRows: [2, 5, 9], favoriteCount: 9,
+                hasLeadCard: true, enabled: true) == 5)
             precondition(!feature.defaultEnabled && !feature.needsIsland)
             precondition(feature.settingsGroup == .launcher && feature.requiredGrants.isEmpty)
         }
