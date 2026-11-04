@@ -202,7 +202,7 @@ struct RootClientTest {
         for arguments in invalid {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
-        precondition(RootContract.Reply(command: .version, output: "2\n") == nil)
+        precondition(RootContract.Reply(command: .version, output: "2\n") == .version("2"))
         precondition(RootContract.Reply(command: .ping, output: "pong") == nil)
         precondition(RootContract.Operation.change.timeout == .seconds(12))
     }

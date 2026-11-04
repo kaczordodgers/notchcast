@@ -16,7 +16,7 @@ struct NotchcastSettingsView: View {
 
             Section {
                 ForEach(NotchcastFeature.allCases.filter {
-                    $0 != .island && !$0.belongsToCaptureAndDictation
+                    $0 != .island && !$0.belongsToCaptureAndDictation && !$0.isSystemFeature
                 }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
@@ -33,6 +33,8 @@ struct NotchcastSettingsView: View {
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
             CaptureDictationSettingsSection()
+
+            NotchcastSystemSettingsSection()
 
             Section {
                 Picker(selection: Binding(
