@@ -2,6 +2,13 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/*.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorStore.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/FanControl.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorModule.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlerts.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlertPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootHelperClient.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootToolPath.swift
@@ -67,6 +74,41 @@ struct MonitorStoreTests {
         await settle()
         precondition(probe.count == count)
         store.stop()
+
+        let suite = "monitor-module-test.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        preferences.set(.systemMonitor, true)
+        preferences.set(.monitorAlerts, false)
+        let module = MonitorModule(preferences: preferences, store: store, alertSink: { _ in })
+        let initialCount = probe.count
+        module.start()
+        await settle()
+        precondition(store.demand == 0 && probe.count == initialCount)
+        for _ in 0..<3 {
+            preferences.set(.monitorAlerts, true)
+            await settle()
+            module.start()
+            precondition(store.demand == 1)
+            preferences.set(.monitorAlerts, false)
+            await settle()
+            precondition(store.demand == 0)
+        }
+        preferences.set(.monitorAlerts, true)
+        await settle()
+        module.stop()
+        module.stop()
+        precondition(store.demand == 0)
+        module.start()
+        await settle()
+        precondition(store.demand == 1)
+        preferences.set(.systemMonitor, false)
+        await settle()
+        precondition(store.demand == 0)
+        module.stop()
+        preferences.set(.monitorAlerts, false)
+        await settle()
+        precondition(store.demand == 0)
 
         for failure in [RootHelperClient.Failure.timedOut, .launchFailed, .executionFailed(2)] {
             let fake = FakeFans()

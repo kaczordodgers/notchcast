@@ -138,7 +138,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherNumberKeys: String(localized: "Open the first nine search results with Command-1 through Command-9.")
         case .launcherAliasSpace: String(localized: "Press Space after an exact alias to open its command.")
         case .systemMonitor: String(localized: "Monitor system performance.")
-        case .monitorAlerts: String(localized: "Evaluate alerts while the Monitor page is open.")
+        case .monitorAlerts: String(localized: "Sample your Mac in the background while alerts are on.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
         case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.")
         case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.")

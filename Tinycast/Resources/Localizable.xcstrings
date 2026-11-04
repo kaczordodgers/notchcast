@@ -885,54 +885,54 @@
         }
       }
     },
-    "Evaluate alerts while the Monitor page is open.": {
+    "Sample your Mac in the background while alerts are on.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Warnungen auswerten, während die Monitorseite geöffnet ist."
+            "value": "Deinen Mac im Hintergrund überwachen, solange Warnungen aktiviert sind."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Evaluar alertas mientras la página Monitor esté abierta."
+            "value": "Supervisar tu Mac en segundo plano mientras las alertas estén activadas."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Évaluer les alertes lorsque la page Moniteur est ouverte."
+            "value": "Surveiller votre Mac en arrière-plan lorsque les alertes sont activées."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "モニターページを開いている間にアラートを評価します。"
+            "value": "アラートがオンの間、バックグラウンドでMacを監視します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "모니터 페이지가 열려 있는 동안 알림을 평가합니다."
+            "value": "알림이 켜져 있는 동안 백그라운드에서 Mac을 모니터링합니다."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Avaliar alertas enquanto a página Monitor estiver aberta."
+            "value": "Monitorizar o Mac em segundo plano enquanto os alertas estiverem ativados."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Проверять оповещения, пока открыта страница монитора."
+            "value": "Отслеживать показатели Mac в фоновом режиме, пока оповещения включены."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在监视器页面打开时评估提醒。"
+            "value": "提醒开启时，在后台监测 Mac。"
           }
         }
       }
