@@ -19,6 +19,8 @@ trap 'rm -rf "$WORK"' EXIT
 mkdir "$WORK/base" "$WORK/ours"
 git archive "$BASE" "${DIRS[@]}" | tar -x -C "$WORK/base"
 git archive "$TARGET" "${DIRS[@]}" | tar -x -C "$WORK/ours"
+# Island and page values come from the island kit (notchcast/check-kit.py).
+python3 "$TOP/notchcast/check-kit.py" --root "$WORK/ours"
 # The baseline file lands in the base copy (the checker writes it to its working directory); its exit code is the
 # base's own findings, not ours.
 (cd "$WORK/base" && "${CHECK[@]}" --write-baseline "${DIRS[@]}" >/dev/null) || true
