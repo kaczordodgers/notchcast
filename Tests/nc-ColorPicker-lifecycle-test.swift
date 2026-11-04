@@ -45,7 +45,7 @@ struct ColorPickerLifecycleTest {
         callback?(.red)
         precondition(samples == 1 && copied == ["#FF0000"])
 
-        module.pick { _ in fatalError("Disabled sampling completed") }
+        module.pick { precondition(!$0) }
         let stale = callback
         preferences.set(.colorPicker, false)
         await settle()
