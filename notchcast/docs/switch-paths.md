@@ -1,0 +1,9 @@
+# Switch user paths
+
+`python3 notchcast/check-feature-shape.py` includes `check-switch-paths.py`, so the existing CI and `land.sh` calls enforce user paths without changing either caller. The standalone checker also accepts a repository root for fixture testing.
+
+Every `NotchcastFeature` case needs a catalog-reachable command gated by `isEnabled` using `isOn(.feature)` or `isEnabled(.feature)`, or an explicit `feature: .feature` command owner. Comments, strings, uncataloged command declarations and module startup do not count. This is a conservative source check, not Swift execution or call-graph analysis: indirect command factories and helper gates are documented in `switch-paths.json` alongside automatic, page, hotkey and existing Settings actions. New commands should use direct gates or the feature owner field so their coverage is mechanically detected. A declared reason is reviewed source evidence, not proof that its runtime remains functional.
+
+`switch-path-allowlist-2026-11-04.json` records missing paths from the November 4 switch audit. Six of its 41 dead/hidden-dead entries already have gated catalog commands (systemMonitor, lowDiskWarning, systemNotices, dayWeather, dayMarkets and agentSessions), so the static command criterion leaves 35 exceptions. A command may still have incomplete output behaviour; this guard checks reachability, not feature completeness. Remove an exception when wiring a command or adding a declared path: keeping it fails the guard. Unknown switches and empty reasons also fail.
+
+Run mutation proofs with `python3 notchcast/check-switch-paths-test.py <scratch-directory>`. It copies production sources there and proves baseline acceptance, clearNotifications rejection without its exception, acceptance after each supported gate form, rejection of an uncataloged command, stale-exception rejection and rejection of a new switch without a path.
