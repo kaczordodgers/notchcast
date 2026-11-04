@@ -20,6 +20,7 @@ struct NotchcastSettingsView: View {
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
+            URLCleanerSettingsSection(module: NotchcastCore.urlCleaner)
 
             featureSection(.notchcastActivities, group: .activities)
             TimerSettingsSection(store: NotchcastCore.timers.store)

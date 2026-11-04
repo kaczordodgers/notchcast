@@ -1,6 +1,7 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
+    case urlCleaner
     case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
     case islandStatusMessages, islandLiveActivities, launcherFromIsland
     case systemMonitor, fanControl
@@ -13,8 +14,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case convertFiles
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case mediaTools
+
+    case commandRunner
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -22,6 +27,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .mediaTools: .activities
+        case .commandRunner: .launcher
+        case .urlCleaner: .system
         case .island: .island
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
@@ -31,11 +39,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .convertFiles: .activities
         }
     }
 
     var title: String {
         switch self {
+        case .mediaTools: String(localized: "Media Tools")
+        case .commandRunner: String(localized: "Command Runner")
+        case .urlCleaner: String(localized: "URL cleaner")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -54,6 +66,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .convertFiles: String(localized: "Convert Files")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -65,6 +78,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .mediaTools: String(localized: "Compress media, make GIFs and extract text locally.")
+        case .commandRunner: String(localized: "Run commands from a host profile.")
+        case .urlCleaner: String(localized: "Remove tracking parameters from copied links.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -83,6 +99,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .convertFiles: String(localized: "Convert local files beside the originals.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -95,7 +112,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .mediaTools: []
+        case .commandRunner: []
+        case .urlCleaner: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .convertFiles: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
@@ -108,7 +129,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        ![.urlCleaner, .convertFiles, .mediaTools, .commandRunner, .displayBrightness, .quitProtection].contains(self)
+            && !isSystemFeature
+    }
+
+    var defaultEnabled: Bool {
+        ![.urlCleaner, .convertFiles, .mediaTools, .commandRunner].contains(self) && !isSystemFeature
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
