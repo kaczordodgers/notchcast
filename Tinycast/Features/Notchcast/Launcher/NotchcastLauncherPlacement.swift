@@ -8,10 +8,9 @@ enum NotchcastLauncherPlacement {
     }
 
     static func anchor(on screen: NSScreen, width: CGFloat) -> CGPoint? {
-        NotchcastLauncherGeometry.anchor(
-            frame: screen.frame, safeAreaTop: screen.safeAreaInsets.top,
-            auxiliaryLeft: screen.auxiliaryTopLeftArea,
-            auxiliaryRight: screen.auxiliaryTopRightArea,
-            width: width, active: isActive)
+        let island = NSApp.windows.compactMap { $0 as? IslandPanel }
+            .first { $0.displayFrame == screen.frame }
+        return NotchcastLauncherGeometry.anchor(
+            islandFrame: island?.launcherPlacementFrame, width: width, active: isActive)
     }
 }
