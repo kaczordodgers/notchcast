@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 final class SoloistKey {
     private static let account = UUID(uuidString: "8CA166D0-0F2B-45CD-9306-B2CD5640EC54")!
+    private let presence: (() throws -> Bool)?
     private let read: () throws -> String?
     private let write: (String?) throws -> Void
     var onChange: (() -> Void)?
@@ -10,15 +11,17 @@ final class SoloistKey {
     convenience init(store: KeychainSecretStore = KeychainSecretStore(scope: "soloist")) {
         self.init(read: { try store.secret(for: Self.account) }, write: { key in
             if let key { try store.setSecret(key, for: Self.account) } else { try store.removeSecret(for: Self.account) }
-        })
+        }, presence: { try store.hasSecret(for: Self.account) })
     }
 
-    init(read: @escaping () throws -> String?, write: @escaping (String?) throws -> Void) {
+    init(read: @escaping () throws -> String?, write: @escaping (String?) throws -> Void,
+         presence: (() throws -> Bool)? = nil) {
+        self.presence = presence
         self.read = read
         self.write = write
     }
 
-    var isSaved: Bool { get throws { try value() != nil } }
+    var isSaved: Bool { get throws { try presence?() ?? (value() != nil) } }
 
     func value() throws -> String? {
         do { return try read().map(SoloistKeyValidation.validated) } catch { throw SoloistFailure.keyUnavailable }
