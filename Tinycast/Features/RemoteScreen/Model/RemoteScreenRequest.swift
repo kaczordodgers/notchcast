@@ -27,5 +27,5 @@ struct RemoteScreenRequest: Codable, Equatable, Sendable {
         }
     }
 
-    enum Failure: Error { case invalidHost, unavailable, invalidResponse }
+    enum Failure: Error { case invalidHost, unavailable, invalidResponse, peerDisabled, sharingDisabled }
 }
