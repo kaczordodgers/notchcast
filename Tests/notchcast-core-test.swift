@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import Foundation
@@ -38,12 +39,15 @@ struct NotchcastCoreTests {
         }
         print("fresh defaults off: \(NotchcastFeature.allCases.filter { !preferences.isOn($0) }.map(\.rawValue))")
         let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
-            .displayBrightness, .quitProtection, .liveTimers, .dayWeather, .dayMarkets]
+            .displayBrightness, .quitProtection, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets]
         for feature in l3 {
             precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
+        precondition(NotchcastFeature.dayCalendar.needsIsland)
+        precondition(!NotchcastFeature.displayBrightness.needsIsland)
+        precondition(!NotchcastFeature.quitProtection.needsIsland)
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))
