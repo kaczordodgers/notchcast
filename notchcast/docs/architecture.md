@@ -185,6 +185,8 @@ Notchcast deliberately keeps its composition inside `Tinycast/Features/Notchcast
 
 `NotchcastCore.start` is guarded against duplicate startup, configures island pages once, registers modules and runs the controller. `NotchcastModuleController` observes feature switches: every `requires` switch must be on, and a nonempty `requiresAny` group needs at least one switch on; transitions call each module's `start()` or `stop()` once. Disabling a feature stops its resources without releasing its process-lifetime instance. Island shutdown clears its activity presenter, closes panels and the open page, cancels hover work and removes observers and event monitors. Termination separately calls `NotchcastCore.stopForTermination()` from `AppDelegate` to stop and await battery and monitor fan work; there is no controller-wide termination stop.
 
+Battery and fan termination drains share a three-second budget. Root helper timeout and cancellation abandon the child without sending a signal; its detached exit observer can finish later. Ownership journals remain available for repair on the next launch.
+
 New features register a module in `NotchcastCore` with their switch requirements and own their resources through `start()`/`stop()`; add no new `AppCore` lines. Add no new singletons unless the module needs a tap-thread or AppKit-global handle; ordinary feature state belongs to the module.
 
 See [command-hook.md](command-hook.md) for the fork's command integration seam.
