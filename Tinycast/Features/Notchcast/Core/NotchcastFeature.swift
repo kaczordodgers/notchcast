@@ -683,6 +683,7 @@ extension NotchcastFeature {
         .voiceAsk,
         .agentMCPServer,
         .agentChatTools,
+        .cleanSystem,
         .linkQuickFixes,
         .remoteScreen,
         .machMBPFans,
