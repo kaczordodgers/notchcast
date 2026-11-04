@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import Foundation
@@ -21,6 +22,11 @@ func settle() async {
 @MainActor
 struct NotchcastCoreTests {
     static func main() async {
+        for feature: NotchcastFeature in [.showDesktop, .spacesOrder, .hideCommandM,
+                                         .middleClick, .greenMaximize] {
+            precondition(feature.settingsGroup == .system)
+            precondition(!feature.needsIsland && !feature.isSystemFeature)
+        }
         let suite = "notchcast-core-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -32,13 +38,16 @@ struct NotchcastCoreTests {
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
         precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
         let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
-            .displayBrightness, .quitProtection, .liveTimers, .dayWeather, .dayMarkets]
+            .displayBrightness, .quitProtection, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets]
         for feature in l3 {
             precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
         precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultEnabled })
+        precondition(NotchcastFeature.dayCalendar.needsIsland)
+        precondition(!NotchcastFeature.displayBrightness.needsIsland)
+        precondition(!NotchcastFeature.quitProtection.needsIsland)
         precondition(l3.allSatisfy { preferences.isOn($0) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)

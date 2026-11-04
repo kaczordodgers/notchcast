@@ -20,7 +20,7 @@ extension SettingsAnchor {
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
-    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
     static let notchcastTweaks = Self(tab: .notchcast, title: "Tweaks")
@@ -29,6 +29,8 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
+        .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -87,6 +89,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
         .init(.notchcastLauncher, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(.notchcastLauncher, "Launcher Number Keys", keywords: ["command", "results", "1", "9"]),
+        .init(.notchcastLauncher, "Alias and Space", keywords: ["alias", "space", "arguments"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
         .init(.notchcastFanMode, "Fan mode"),
@@ -105,16 +109,22 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastSystem, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
+        .init(.notchcastSystem, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
+        .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
+        .init(.notchcastSystem, "Hide with ⌘M", keywords: ["minimize", "command m"]),
+        .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
+        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)",
+              keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
     ] + NotchcastFeature.systemToolsSettingsFeatures.map {
         switch $0 {
-        case .startupItems:
-            SettingsSearchEntry(.notchcastTweaks, "Startup Items", keywords: ["launchagents"])
-        case .notificationCleanup:
-            SettingsSearchEntry(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"])
-        case .sudoTouchID:
-            SettingsSearchEntry(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"])
+        case .startupItems: SettingsSearchEntry(.notchcastTweaks, "Startup Items", keywords: ["launchagents"])
+        case .notificationCleanup: SettingsSearchEntry(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"])
+        case .sudoTouchID: SettingsSearchEntry(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"])
         default: SettingsSearchEntry(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"])
         }
     }
