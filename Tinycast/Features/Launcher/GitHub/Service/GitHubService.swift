@@ -43,7 +43,7 @@ struct GitHubService: Sendable {
     func starred() async throws -> [GitHubRepository] {
         var repos: [GitHubRepository] = []
         var page = 1
-        while true {
+        while page <= 10 {
             try Task.checkCancellation()
             let body = try await request(path: "/user/starred", items: [
                 URLQueryItem(name: "per_page", value: "100"),
@@ -61,6 +61,7 @@ struct GitHubService: Sendable {
             if batch.count < 100 { return repos }
             page += 1
         }
+        return repos
     }
 
     func trending() async throws -> [GitHubRepository] {
@@ -73,7 +74,7 @@ struct GitHubService: Sendable {
             else { return nil }
             let description = article.firstMatch(of:
                 /<p class="col-9[^"]*">\s*(.*?)\s*<\/p>/.dotMatchesNewlines())
-                .map { String($0.output.1).replacingOccurrences(of: "&amp;", with: "&") }
+                .map { GitHubHTMLEntities.decode(String($0.output.1)) }
             let stars = article.firstMatch(of:
                 /href="\/[^\"]+\/stargazers"[^>]*>.*?<\/svg>\s*([\d,]+)\s*<\/a>/.dotMatchesNewlines())
                 .flatMap { Int($0.output.1.replacingOccurrences(of: ",", with: "")) } ?? 0

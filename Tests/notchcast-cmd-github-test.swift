@@ -2,6 +2,7 @@
 // notchcast-sources: Tinycast/Features/Launcher/GitHub/Service/*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 import Foundation
+import Synchronization
 
 @main
 struct GitHubTest {
@@ -50,6 +51,27 @@ struct GitHubTest {
         }, token: { UUID().uuidString })
         let starred = try await stars.starred()
         precondition(starred.first?.isStarred == true)
+        precondition(GitHubHTMLEntities.decode("&lt;&gt;&quot;&apos;&#39;&#x1F680;&copy;&NotEqualTilde;&amp;lt;")
+                     == "<>\"''🚀©≂̸&lt;")
+        let calls = Mutex(0)
+        let capped = GitHubService(fetch: { request in
+            calls.withLock { $0 += 1 }
+            let body = "[" + Array(repeating: fixture, count: 100).joined(separator: ",") + "]"
+            return (Data(body.utf8), HTTPURLResponse(url: request.url!, statusCode: 200,
+                                                    httpVersion: nil, headerFields: nil)!)
+        }, token: { "fixture" })
+        let cached = GitHubSearchSession(service: capped, sleep: { _ in })
+        for query in ["swift", "language", "missing"] {
+            cached.search(query, scope: .starred)
+            for _ in 0..<500 where cached.state == .loading { try await Task.sleep(for: .milliseconds(10)) }
+            precondition(cached.state == .ready)
+        }
+        precondition(calls.withLock { $0 } == 10)
+        cached.cancel()
+        cached.search("swift", scope: .starred)
+        for _ in 0..<500 where cached.state == .loading { try await Task.sleep(for: .milliseconds(10)) }
+        precondition(calls.withLock { $0 } == 20)
+        print("Verified: starred session cache, refresh invalidation, ten-page cap and HTML5 entities")
         let debounced = GitHubService(fetch: { request in
             let parts = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
             precondition(parts.queryItems?.first(where: { $0.name == "q" })?.value == "new")

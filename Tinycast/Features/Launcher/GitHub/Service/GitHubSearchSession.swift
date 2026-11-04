@@ -17,6 +17,7 @@ final class GitHubSearchSession {
     @ObservationIgnored private let service: GitHubService
     @ObservationIgnored private let sleep: @Sendable (Duration) async throws -> Void
     @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var starredTask: Task<[GitHubRepository], Error>?
     private var revision = 0
     private var starredNames: Set<String> = []
 
@@ -26,10 +27,14 @@ final class GitHubSearchSession {
         self.sleep = sleep
     }
 
-    deinit { task?.cancel() }
+    deinit { task?.cancel(); starredTask?.cancel() }
 
     func search(_ text: String, scope: Scope = .repositories) {
-        cancel()
+        cancelSearch()
+        if scope == .starred, starredTask == nil {
+            starredTask = Task { [service] in try await service.starred() }
+        }
+        let starredTask = starredTask
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let stamp = revision
         state = .loading
@@ -40,7 +45,7 @@ final class GitHubSearchSession {
                 var repos: [GitHubRepository]
                 switch scope {
                 case .repositories: repos = try await service.search(query)
-                case .starred: repos = try await service.starred()
+                case .starred: repos = try await starredTask!.value
                 }
                 try Task.checkCancellation()
                 guard let self, self.revision == stamp else { return }
@@ -65,6 +70,12 @@ final class GitHubSearchSession {
     }
 
     func cancel() {
+        starredTask?.cancel()
+        starredTask = nil
+        cancelSearch()
+    }
+
+    private func cancelSearch() {
         revision &+= 1
         task?.cancel()
         task = nil
