@@ -27,6 +27,10 @@ struct NotchcastSettingsView: View {
             }
 
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            TextField("Excluded app bundle IDs (comma-separated)", text: Binding(
+                get: { preferences.greenMaximizeExcludedApps },
+                set: { preferences.greenMaximizeExcludedApps = $0 }))
+                .settingsEnabled(preferences.isOn(.greenMaximize))
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
