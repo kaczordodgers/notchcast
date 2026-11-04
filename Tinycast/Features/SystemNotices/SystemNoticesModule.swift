@@ -11,6 +11,7 @@ final class SystemNoticesModule: NotchcastModule {
         AppCore.shared.appIndex.refreshNotchcastCommands()
         manager.onNotice = { [weak self] notice in
             self?.latest = notice
+            Self.postNotice(notice)
         }
         manager.start()
     }
