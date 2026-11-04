@@ -6,6 +6,7 @@ enum NowPlayingAdapterReply: Equatable, Sendable {
         case invalidReply
         case oversizedReply
         case commandRejected
+        case unsupportedCommand
     }
 
     case playback(NowPlaying, pid: Int32)
@@ -51,7 +52,22 @@ enum NowPlayingAdapterReply: Equatable, Sendable {
             title: title, artist: artist, album: album,
             app: reply["displayName"] as? String ?? bundleID ?? "", bundleID: bundleID,
             duration: duration, elapsed: elapsed, stamp: now, isPlaying: playing,
-            artwork: artwork, origin: .system
+            artwork: artwork, origin: .system,
+            shuffle: number(value("ShuffleMode")).flatMap { mode in
+                switch mode {
+                case 1: false
+                case 2, 3: true
+                default: nil
+                }
+            },
+            repeatMode: number(value("RepeatMode")).flatMap { mode in
+                switch mode {
+                case 1: .off
+                case 2: .one
+                case 3: .all
+                default: nil
+                }
+            }
         ), pid: pid)
     }
 
