@@ -35,8 +35,13 @@ struct VoiceAskTransportTest {
     {"threadId":"thread-7f3c2a","runId":"run-4d2e81","status":"waiting","reply":null,"error":null}
     """#
 
-    @MainActor static func expect(_ error: VoiceAskCLIError, _ operation: () async throws -> Void) async throws {
-        do { try await operation(); preconditionFailure("Expected an error") } catch let actual as VoiceAskCLIError {
+    @MainActor static func expect(_ error: VoiceAskCLIError, line: UInt = #line,
+                                  _ operation: () async throws -> Void) async throws {
+        FileHandle.standardError.write(Data("EXPECT at line \(line): \(error)\n".utf8))
+        do {
+            try await operation()
+            preconditionFailure("Expected an error at line \(line)")
+        } catch let actual as VoiceAskCLIError {
             precondition(actual.localizedDescription == error.localizedDescription)
         }
     }

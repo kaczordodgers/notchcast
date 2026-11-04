@@ -53,6 +53,7 @@ enum VoiceAskProcessRunner {
             if process.isRunning { process.terminate() }
             grace = Task { @MainActor in
                 do { try await Task.sleep(for: .seconds(2)) } catch { return }
+                guard !Task.isCancelled else { return }
                 if process.isRunning { kill(process.processIdentifier, SIGKILL) }
                 writer.cancel()
                 reader.cancel()
@@ -61,12 +62,18 @@ enum VoiceAskProcessRunner {
         }
         let timer = Task {
             do { try await Task.sleep(for: timeout) } catch { return }
+            guard !Task.isCancelled else { return }
             timedOut = true
             stop()
         }
         return try await withTaskCancellationHandler {
             defer { timer.cancel(); grace?.cancel() }
-            await Task.detached { exit.wait() }.value
+            await withCheckedContinuation { continuation in
+                Thread.detachNewThread { @Sendable in
+                    exit.wait()
+                    continuation.resume()
+                }
+            }
             let data = await reader.result
             let diagnostic = await errorReader.result
             let written = await writer.result
