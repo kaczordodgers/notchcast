@@ -146,6 +146,7 @@ enum ForkSettingsBackupSchema {
         "notchcast.day.weatherPlace": .json(.optional(place)),
         "dictationHistory": .bool,
         "captureTrimmer": .bool,
+        "captureEditor": .bool,
         "screenText.removeLineBreaks": .bool,
         "notchcast.dictationCleanup.settings": .json(cleanup),
         "notchcast.editor.font": .string(13, ["system", "jetBrainsMono"]),
