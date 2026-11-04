@@ -10,7 +10,7 @@ enum CleanSystem {
     }
 
     static func inspect(_ path: String) throws -> CleanSystemEntry {
-        guard path.hasPrefix("/"), "/" + path.split(separator: "/").joined(separator: "/") == path,
+        guard !path.utf8.contains(0), path.hasPrefix("/"), "/" + path.split(separator: "/").joined(separator: "/") == path,
               !path.split(separator: "/").contains(where: { $0 == ".." || $0 == "." })
         else { throw Failure.refused }
         var current = ""
@@ -41,29 +41,39 @@ enum CleanSystem {
                 while let relative = walker.nextObject() as? String {
                     let path = root.path + "/" + relative
                     guard let entry = try? inspect(path) else { walker.skipDescendants(); continue }
+                    guard let parent = try? directory((path as NSString).deletingLastPathComponent,
+                                                      owner: 0, protected: true) else { continue }
+                    close(parent)
                     if policy.reason(for: entry) != nil, seen.insert(path).inserted { entries.append(entry) }
                 }
             }
             return try JSONEncoder().encode(entries)
         }
         let data = try FileHandle.standardInput.read(upToCount: 4097) ?? Data()
-        guard data.count <= 4096 else { throw Failure.refused }
+        guard data.count <= 4096, String(bytes: data, encoding: .utf8) != nil
+        else { throw Failure.refused }
         let entry = try JSONDecoder().decode(CleanSystemEntry.self, from: data)
         try validate(entry, policy: policy)
         guard let rawUID = ProcessInfo.processInfo.environment["SUDO_UID"],
               let uid = uid_t(rawUID), uid != 0, let user = getpwuid(uid)
         else { throw Failure.refused }
         let trash = String(cString: user.pointee.pw_dir) + "/.Trash"
-        let destination = try directory(trash, owner: uid, protected: false)
+        try Self.trash(entry, policy: policy, destination: trash, owner: uid, sourceOwner: 0)
+        return Data("ok\n".utf8)
+    }
+
+    static func trash(_ entry: CleanSystemEntry, policy: CleanSystemPolicy,
+                      destination trash: String, owner: uid_t, sourceOwner: uid_t) throws {
+        try validate(entry, policy: policy)
+        let destination = try directory(trash, owner: owner, protected: false)
         defer { close(destination) }
         let source = try directory((entry.path as NSString).deletingLastPathComponent,
-                                   owner: 0, protected: true)
+                                   owner: sourceOwner, protected: true)
         defer { close(source) }
         try validate(entry, policy: policy)
         let name = UUID().uuidString + "-" + (entry.path as NSString).lastPathComponent
         guard renameatx_np(source, (entry.path as NSString).lastPathComponent,
                            destination, name, UInt32(RENAME_EXCL)) == 0 else { throw Failure.refused }
-        return Data("ok\n".utf8)
     }
 
     private static func directory(_ path: String, owner: uid_t, protected: Bool) throws -> Int32 {
@@ -77,7 +87,7 @@ enum CleanSystem {
                 descriptor = next
                 if protected {
                     var info = stat()
-                    guard fstat(descriptor, &info) == 0, info.st_uid == owner,
+                    guard fstat(descriptor, &info) == 0, (info.st_uid == 0 || info.st_uid == owner),
                           info.st_mode & 0o022 == 0 else { throw Failure.refused }
                 }
             }

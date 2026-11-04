@@ -23,7 +23,7 @@ struct CleanSystemPolicy: Sendable {
 
     func reason(for entry: CleanSystemEntry) -> CleanSystemPlan.Reason? {
         let path = entry.path
-        guard path.hasPrefix("/"), !path.split(separator: "/").contains(".."),
+        guard !path.utf8.contains(0), path.hasPrefix("/"), !path.split(separator: "/").contains(".."),
               !path.split(separator: "/").contains("."), !entry.hasSymlinkComponent,
               entry.isRegularFile, entry.size >= 0,
               "/" + path.split(separator: "/").joined(separator: "/") == path,

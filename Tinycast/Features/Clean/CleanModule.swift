@@ -11,7 +11,6 @@ final class CleanModule: NotchcastModule {
     nonisolated private static let history = CleanHistoryStore(
         logPath: AppPaths.applicationSupport().appendingPathComponent("clean-history.jsonl"))
     private var running = false
-    private var helperCheck: Task<Void, Never>?
     private weak var core: AppCore?
     private let preferences = NotchcastPreferences.shared
     lazy var coordinator = CleanCoordinator(
@@ -36,19 +35,11 @@ final class CleanModule: NotchcastModule {
 
     func start() {
         running = true
-        coordinator.helperCurrent = false
-        helperCheck = Task { [weak self] in
-            let reply = try? await RootHelperClient().run(.version)
-            guard !Task.isCancelled, let self, running else { return }
-            coordinator.helperCurrent = reply == .version(RootContract.version)
-        }
         observeSwitches()
     }
 
     func stop() {
         running = false
-        helperCheck?.cancel()
-        helperCheck = nil
         coordinator.stop()
     }
 
@@ -196,12 +187,10 @@ final class CleanModule: NotchcastModule {
             return .init(items: entries.map {
                 .init(id: URL(fileURLWithPath: $0.path), size: $0.size)
             }) { paths in
-                for path in paths {
-                    try Task.checkCancellation()
-                    guard let entry = entries.first(where: { $0.path == path.path })
-                    else { throw Failure.itemsChanged }
-                    try await client.trash(entry)
-                }
+                let selected = entries.filter { entry in paths.contains { $0.path == entry.path } }
+                guard selected.count == paths.count else { throw Failure.itemsChanged }
+                let skipped = try await client.trash(selected)
+                if skipped > 0 { throw Failure.skipped(skipped) }
             }
         default: throw Failure.itemsChanged
         }
@@ -235,8 +224,10 @@ final class CleanModule: NotchcastModule {
 
     private enum Failure: LocalizedError {
         case itemsChanged, helperUpdate, toolFailed
+        case skipped(Int)
         var errorDescription: String? {
             switch self {
+            case .skipped(let count): String(localized: "\(count) entries skipped")
             case .itemsChanged: String(localized: "Some items changed or could not be processed. Scan again to review them.")
             case .helperUpdate: String(localized: "Needs the Notchcast helper update")
             case .toolFailed: String(localized: "The Clean tool could not complete the request.")

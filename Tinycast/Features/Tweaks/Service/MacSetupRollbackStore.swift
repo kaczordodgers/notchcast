@@ -17,10 +17,17 @@ nonisolated struct MacSetupRollbackStore: Sendable {
                write: (TweakPreference, TweakValue) throws -> Void) -> TweakPlanRunner.Receipt {
         var completed: [MacSetupPlan.Change] = []
         do {
-            guard try self.read().isEmpty else { throw MacSetupPlan.Failure.drift }
+            var journal = try self.read()
             for change in plan.changes {
                 guard try read(change.preference) == change.before else { throw MacSetupPlan.Failure.drift }
-                try save(completed + [change])
+                if let index = journal.firstIndex(where: { $0.preference == change.preference }) {
+                    guard journal[index].after == change.before else { throw MacSetupPlan.Failure.drift }
+                    journal[index] = .init(preference: change.preference,
+                        before: journal[index].before, after: change.after)
+                } else {
+                    journal.append(change)
+                }
+                try save(journal)
                 try write(change.preference, change.after)
                 completed.append(change)
             }

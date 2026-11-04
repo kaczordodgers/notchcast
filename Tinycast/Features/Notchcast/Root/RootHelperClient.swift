@@ -16,10 +16,17 @@ struct RootHelperClient: Sendable {
 
     @concurrent
     func clean(_ command: RootContract.Command, input: Data) async throws -> Data {
+        guard [.version, .cleanSystemList, .cleanSystemTrash].contains(command)
+        else { throw Failure.invalidResponse }
+        return try await execute(command, input: input)
+    }
+
+    @concurrent
+    private func execute(_ command: RootContract.Command, input: Data) async throws -> Data {
         try Task.checkCancellation()
         try Self.refuseWhileAbandonedRuns()
         if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
-        guard [.version, .cleanSystemList, .cleanSystemTrash].contains(command), input.count <= 4096
+        guard input.count <= 4096
         else { throw Failure.invalidResponse }
         let directory = FileManager().temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager().createDirectory(at: directory, withIntermediateDirectories: false,
@@ -41,12 +48,17 @@ struct RootHelperClient: Sendable {
         process.standardInput = request
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
-        let exit = try process.runObservingExit()
+        let exit: ProcessExit
+        do { exit = try process.runObservingExit() }
+        catch { throw Failure.launchFailed }
         do {
             try await Self.wait(for: process, exit: exit, timeout: command.operation.timeout)
         } catch {
             Self.abandoned.withLock { $0.append(process) }
             throw error
+        }
+        guard process.terminationReason == .exit else {
+            throw Failure.executionFailed(process.terminationStatus)
         }
         try Self.validateExitStatus(process.terminationStatus)
         try Task.checkCancellation()
@@ -65,27 +77,11 @@ struct RootHelperClient: Sendable {
 
     @concurrent
     func run(_ command: RootContract.Command) async throws -> RootContract.Reply {
-        try Task.checkCancellation()
-        try Self.refuseWhileAbandonedRuns()
-        if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
-        let process = Process()
-        let output = Pipe()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
-        process.arguments = ["-n", RootContract.helperPath] + command.arguments
-        process.environment = [:]
-        process.currentDirectoryURL = URL(fileURLWithPath: "/")
-        process.standardInput = FileHandle.nullDevice
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        let exit: ProcessExit
-        try Task.checkCancellation()
-        do {
-            exit = try process.runObservingExit()
-        } catch {
-            throw Failure.launchFailed
-        }
-        return try await run(command, process: process, exit: exit, output: output,
-                             timeout: command.operation.timeout)
+        let data = try await execute(command, input: Data())
+        guard data.count <= 4096, let text = String(bytes: data, encoding: .utf8),
+              let reply = RootContract.Reply(command: command, output: text)
+        else { throw Failure.invalidResponse }
+        return reply
     }
 
     func run(_ command: RootContract.Command, process: Process, exit: ProcessExit,

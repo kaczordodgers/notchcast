@@ -3,6 +3,7 @@ import CoreFoundation
 
 nonisolated struct MacSetupService: Sendable {
     let store: MacSetupRollbackStore
+    let write: @Sendable (TweakPreference, TweakValue) throws -> Void
 
     @concurrent func apply(_ plan: MacSetupPlan) async -> TweakPlanRunner.Receipt {
         store.apply(plan, read: read, write: write)
@@ -30,8 +31,4 @@ nonisolated struct MacSetupService: Sendable {
         throw MacSetupPlan.Failure.missingReading
     }
 
-    private func write(_ preference: TweakPreference, _ value: TweakValue) throws {
-        let command = TweakCommand.preference(preference, value: value)
-        _ = try SystemToolsProcessRunner().run(command.executable, arguments: command.arguments)
-    }
 }

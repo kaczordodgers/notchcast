@@ -19,6 +19,11 @@ struct MacSetupRollbackTests {
             values[preference] = value
         }
         precondition(receipt.failure == nil && receipt.completed.count == 2)
+        let later = try MacSetupPlan(desired: [(first, .integer(3))], readings: values)
+        let repeated = store.apply(later, read: { values[$0]! }) { values[$0] = $1 }
+        precondition(repeated.failure == nil && values[first] == .integer(3))
+        let earliest = try store.read()
+        precondition(earliest.first?.before == .absent)
         try MacSetupRollbackStore(url: url).rollback(read: { values[$0]! }) { values[$0] = $1 }
         let cleared = try store.read()
         precondition(values == original && cleared.isEmpty)
