@@ -8,6 +8,7 @@ final class SystemLevelsModule: NotchcastModule {
     init(service: SystemLevelsService = SystemLevelsService()) { self.service = service }
 
     func start() {
+        AppCore.shared.appIndex.refreshNotchcastCommands()
         service.onLevelChange = { [weak self] notice in
             self?.latest = notice
         }
@@ -15,6 +16,7 @@ final class SystemLevelsModule: NotchcastModule {
     }
 
     func stop() {
+        AppCore.shared.appIndex.refreshNotchcastCommands()
         service.stop()
         service.onLevelChange = nil
         latest = nil

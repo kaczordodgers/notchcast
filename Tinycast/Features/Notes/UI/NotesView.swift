@@ -53,6 +53,7 @@ struct NotesView: View {
             NoteEditorView(
                 input: notes.editorInput,
                 rendersMarkdown: notes.rendersMarkdown,
+                spellCheckingEnabled: NotchcastPreferences.shared.isOn(.editorSpellChecking),
                 onSourceChange: notes.updateSource,
                 onCharacterCountChange: notes.updateCharacterCount,
                 onFormattingChange: notes.updateFormatting,

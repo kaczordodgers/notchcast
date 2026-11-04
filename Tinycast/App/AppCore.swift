@@ -768,7 +768,10 @@ final class AppCore {
         track(
             { _ = $0.quickActionsEnabled },
             reproject: { $0.quickActionCoordinator.applyEnabled() })
-        track({ _ = $0.calendarEnabled }, reproject: { $0.calendarCoordinator.applyEnabled() })
+        track({ _ = $0.calendarEnabled }, reproject: {
+            $0.calendarCoordinator.applyEnabled()
+            $0.appIndex.refreshNotchcastCommands()
+        })
         track(
             {
                 _ = $0.calendarShowInLauncher
