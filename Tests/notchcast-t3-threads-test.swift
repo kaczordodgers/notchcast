@@ -12,6 +12,16 @@ import Synchronization
 }
 
 @main struct T3ThreadsTest {
+    @MainActor
+    static func waitUntil(_ message: String, _ condition: () -> Bool) async throws {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(5))
+        while !condition() {
+            precondition(clock.now < deadline, "Timed out: \(message)")
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
     @MainActor static func main() async throws {
         let fixture = Data("""
         {"threads":[{"threadId":"sample","title":"Synthetic","status":"running",
@@ -55,7 +65,9 @@ import Synchronization
         try await Task.sleep(for: .milliseconds(20))
         precondition(count.withLock { $0 } == 0)
         module.setDemand(true, for: "panel")
-        try await Task.sleep(for: .milliseconds(40))
+        try await waitUntil("repeated polls publish their snapshot") {
+            count.withLock { $0 } > 1 && module.hasSnapshot && module.pendingThreads.count == 1
+        }
         precondition(count.withLock { $0 } > 1)
         precondition(module.activeThreads.count == 1 && module.pendingThreads.count == 1)
         module.setDemand(false, for: "panel")
@@ -73,7 +85,7 @@ import Synchronization
         }))
         delayed.setDemand(true, for: "alerts")
         delayed.start()
-        while continuation.withLock({ $0 == nil }) { await Task.yield() }
+        try await waitUntil("delayed poll starts") { continuation.withLock { $0 != nil } }
         delayed.stop()
         continuation.withLock { $0?.resume(returning: fixture); $0 = nil }
         try await Task.sleep(for: .milliseconds(20))
