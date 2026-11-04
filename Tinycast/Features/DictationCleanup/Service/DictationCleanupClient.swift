@@ -32,7 +32,7 @@ struct DictationCleanupHTTPClient: DictationCleanupClient {
         configuration.urlCache = nil
         configuration.httpCookieStorage = nil
         configuration.urlCredentialStorage = nil
-        configuration.timeoutIntervalForResource = 4
+        configuration.timeoutIntervalForResource = request.timeoutInterval
         let session = URLSession(configuration: configuration, delegate: RedirectBlocker(), delegateQueue: nil)
         defer { session.invalidateAndCancel() }
         let (data, response) = try await session.data(for: request)
@@ -41,7 +41,8 @@ struct DictationCleanupHTTPClient: DictationCleanupClient {
     }
 
     static func request(
-        raw: String, language: String?, settings: DictationCleanupSettings, key: String
+        raw: String, language: String?, settings: DictationCleanupSettings, key: String,
+        systemPrompt: String? = nil
     ) throws -> URLRequest {
         guard let base = URL(string: settings.baseURL),
               ["http", "https"].contains(base.scheme),
@@ -58,7 +59,7 @@ struct DictationCleanupHTTPClient: DictationCleanupClient {
         request.setValue("application/json", forHTTPHeaderField: "content-type")
         request.httpBody = try JSONSerialization.data(withJSONObject: [
             "model": "claude-sonnet-5-5", "max_tokens": 4_096,
-            "system": DictationCleanupPrompt.system(settings: settings, language: language),
+            "system": systemPrompt ?? DictationCleanupPrompt.system(settings: settings, language: language),
             "output_config": ["effort": settings.effort.rawValue],
             "messages": [["role": "user", "content": raw]]
         ])

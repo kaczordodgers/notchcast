@@ -8,6 +8,7 @@ final class HotKeyManager {
     var onDictationPressed: (() -> Void)?
     var onDictationReleased: (() -> Void)?
     var onDictationCancelled: (() -> Void)?
+    var globeReserved = false { didSet { syncModifierTaps() } }
     var dictationEnabled = false {
         didSet {
             guard dictationEnabled != oldValue else { return }
@@ -324,6 +325,9 @@ final class HotKeyManager {
 
     /// A hold reserves its physical modifier across both tap gestures.
     func conflictOwner(of binding: HotKeyBinding, excluding action: HotKeyAction) -> String? {
+        if globeReserved, binding.conflicts(with: .globe, holdsModifier: true) {
+            return String(localized: "Globe Dictation")
+        }
         for candidate in candidateActions where candidate != action {
             guard let other = self.binding(for: candidate) else { continue }
             let holdsModifier =
@@ -411,6 +415,7 @@ final class HotKeyManager {
         let holdKey = dictationHoldToTalk ? dictationBinding?.holdKey : nil
         for action in candidateActions {
             guard let binding = binding(for: action), binding.usesModifierTapMonitor else { continue }
+            if globeReserved, binding.conflicts(with: .globe, holdsModifier: true) { continue }
             if action == .dictation, !dictationEnabled { continue }
             if action == .dictation, dictationHoldToTalk {
                 guard holdKey != nil, conflictOwner(of: binding, excluding: action) == nil else {
