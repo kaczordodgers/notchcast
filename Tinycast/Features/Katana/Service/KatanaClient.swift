@@ -12,13 +12,18 @@ final class KatanaClient {
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var operation: UUID?
     @ObservationIgnored private let backupDirectory: URL
+    @ObservationIgnored private let ampLock: KatanaAmpLock
 
     init(transport: (any KatanaTransport)? = nil,
          backupDirectory: URL = URL.applicationSupportDirectory
             .appending(path: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
-            .appending(path: "Katana/backups")) {
+            .appending(path: "Katana/backups"),
+         lockPath: String = FileManager.default.homeDirectoryForCurrentUser
+            .appending(path: ".katana-venv/amp.lock").path,
+         lockTimeout: Duration = .seconds(10)) {
         self.transport = transport
         self.backupDirectory = backupDirectory
+        ampLock = KatanaAmpLock(path: lockPath, timeout: lockTimeout)
     }
 
     var isConnected: Bool { isEnabled && transport?.connectionID != nil }
@@ -107,6 +112,8 @@ final class KatanaClient {
         defer { if operation == id { operation = nil } }
         let context = Context(generation: generation, connection: connection, transport: transport)
         do {
+            let descriptor = try await ampLock.acquire()
+            defer { ampLock.release(descriptor) }
             try await write(0x7F000001, [1], context: context)
             try await action(context)
         } catch {
