@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case eventReminder
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -31,6 +32,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .eventReminder: .activities
         }
     }
 
@@ -60,6 +62,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .eventReminder: String(localized: "Event Reminders")
         }
     }
 
@@ -89,6 +92,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .eventReminder: String(localized: "Show calendar alerts in the island.")
         }
     }
 
@@ -96,6 +100,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .eventReminder: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
