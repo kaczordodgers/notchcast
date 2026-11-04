@@ -2,6 +2,7 @@
 @MainActor
 enum NotchcastCore {
     private static var controller: NotchcastModuleController?
+    static private(set) var services: NotchcastServices?
     private static var monitor: MonitorModule?
 
     static func stopForTermination() async {
@@ -12,13 +13,16 @@ enum NotchcastCore {
         await monitor?.fans.waitUntilIdle()
     }
 
-    static func start(_ core: AppCore) {
+    static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
+        let services = NotchcastServices(core: core, preferences: preferences)
+        self.services = services
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
-        let controller = NotchcastModuleController(entries(core: core, monitor: monitor), preferences: .shared)
+        let controller = NotchcastModuleController(entries(core: core, monitor: monitor) + services.moduleEntries, preferences: preferences)
         self.controller = controller
         controller.run()
+        services.keys.run()
     }
 }

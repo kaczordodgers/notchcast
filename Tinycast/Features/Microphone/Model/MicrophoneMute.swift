@@ -8,6 +8,7 @@ final class MicrophoneMute {
         case volume([MicrophoneInput.Level])
     }
 
+    var hotKeyStatus: Int32?
     private(set) var isMuted = false
     private(set) var failures: [MicrophoneInput.Failure] = []
 
