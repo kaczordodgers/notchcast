@@ -1,0 +1,12 @@
+#!/bin/bash
+set -euo pipefail
+PATH="/opt/homebrew/bin:$PATH"
+root="$(git rev-parse --show-toplevel)"
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+    if [[ "$local_sha" =~ ^0+$ ]]; then
+        continue
+    fi
+    base="$(git merge-base "$local_sha" refs/remotes/upstream/main)"
+    "$root/notchcast/check-identity.sh" history "$base" "$local_sha"
+    gitleaks git --log-opts="$base..$local_sha" --redact --no-banner --exit-code 1 .
+done
