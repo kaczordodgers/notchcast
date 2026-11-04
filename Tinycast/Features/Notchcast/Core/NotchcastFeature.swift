@@ -100,13 +100,30 @@ extension NotchcastFeature {
     /// Takeover of the Mac's keys, windows or power starts off; no default, so each new case must choose.
     var startsOff: Bool {
         switch self {
-        case .volumeLevels, .displayBrightness, .quitProtection, .fanControl, .batteryChargeLimit,
-            .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
-            true
-        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen, .islandStatusMessages,
-            .islandLiveActivities, .launcherFromIsland, .systemMonitor, .monitorAlerts, .lowDiskWarning,
-            .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
-            false
+        case .volumeLevels: true
+        case .displayBrightness: true
+        case .quitProtection: true
+        case .fanControl: true
+        case .batteryChargeLimit: true
+        case .batterySailing: true
+        case .batteryHeatProtection: true
+        case .batteryCalibration: true
+        case .keepAwake: true
+        case .lidClosedAwake: true
+        case .island: false
+        case .islandExternalDisplays: false
+        case .islandFullScreen: false
+        case .islandHoverOpen: false
+        case .islandStatusMessages: false
+        case .islandLiveActivities: false
+        case .launcherFromIsland: false
+        case .systemMonitor: false
+        case .monitorAlerts: false
+        case .lowDiskWarning: false
+        case .systemNotices: false
+        case .liveTimers: false
+        case .dayWeather: false
+        case .dayMarkets: false
         }
     }
 }
