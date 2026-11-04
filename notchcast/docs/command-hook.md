@@ -4,8 +4,7 @@ Features append one case per line in `Core/NotchcastFeature.swift`, one line per
 each switch, and one group line in `settingsGroup`. Never extend an existing line or combine
 switch arms. `settingsGroup` stays exhaustive; `requiredGrants` lists only exceptions before
 `default: []`. If `startsOff` is present, its arms follow the same rule.
-`needsIsland` first excludes system features, then uses one exception arm per line and
-`default: true`; add exceptions as separate arms rather than extending a Boolean expression.
+`needsIslandArm` and `defaultEnabledArm` use one exception arm per line and `default: true`; `Core/NotchcastFeature+Logic.swift` applies the system feature exclusion. Add exceptions as separate arms rather than extending a Boolean expression.
 New groups append one case line in `Core/NotchcastFeature+SettingsGroup.swift`, inside the
 separator comments. Keep separators between cases and members and between switches.
 Both files use `merge=union`, so they hold only cases and one-line switch arms; logic over several lines goes in `Core/NotchcastFeature+Logic.swift`, which is not union, so git reports a real conflict there. `Tests/notchcast-feature-defaults-test.swift` pins each feature's default; changing one means editing its table in the same PR. Run `python3 notchcast/check-feature-shape.py` and

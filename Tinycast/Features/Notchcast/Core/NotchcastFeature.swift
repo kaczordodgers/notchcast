@@ -292,7 +292,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
-    /// Island-only unless a system feature (NotchcastFeature+Logic.swift); one arm per feature that works without it.
+    /// One arm per exception; NotchcastFeature+Logic.swift excludes system features.
     var needsIslandArm: Bool {
         switch self {
         case .colorPicker: false

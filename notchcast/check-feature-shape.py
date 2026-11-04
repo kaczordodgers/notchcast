@@ -101,7 +101,10 @@ def body_errors(code):
     while index < len(lines):
         stripped = lines[index].strip()
         opens = stripped.count("{") - stripped.count("}")
-        member = re.match(r"(?:(?:public|private|fileprivate|internal|static)\s+)*(var|func|init|subscript)\b\s*(\w*)", stripped)
+        if depth == 0:
+            names.clear()
+        member = re.match(r"(?:(?:public|private|fileprivate|internal|static|nonisolated|@\w+)\s+)*"
+                          r"(var|func|init|subscript)\b\s*(\w*)", stripped)
         if member and depth >= 1:
             name = member[2] or member[1]
             if name in names:

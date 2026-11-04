@@ -1,6 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift Tinycast/Features/Notchcast/Core/NotchcastFeature+Logic.swift
-// Pins every existing feature's fresh-install default, so a union merge (or any edit) that flips one fails here.
-// A new feature needs no entry; changing a pinned default means editing this table in the same PR, in plain sight.
+// Pins existing fresh-install defaults and needsIsland, so a flip must edit this table in plain sight.
 let pinned: [String: Bool] = [
     "island": true,
     "islandExternalDisplays": true,
@@ -62,6 +61,32 @@ let pinned: [String: Bool] = [
     "torrentsKeepSharing": false,
 ]
 
+let pinnedIsland: Set<String> = [
+    "island",
+    "islandExternalDisplays",
+    "islandFullScreen",
+    "islandHoverOpen",
+    "islandStatusMessages",
+    "islandLiveActivities",
+    "launcherFromIsland",
+    "musicNowPlaying",
+    "musicLastPlayer",
+    "musicBlockAppleMusic",
+    "spotifyConnect",
+    "microphoneMute",
+    "inUseMarks",
+    "lowDiskWarning",
+    "systemNotices",
+    "volumeLevels",
+    "liveTimers",
+    "dayCalendar",
+    "dayWeather",
+    "dayMarkets",
+    "dictationIslandHUD",
+    "agentConfirmation",
+    "eventReminder",
+]
+
 @main
 enum FeatureDefaultsTest {
     static func main() {
@@ -70,6 +95,8 @@ enum FeatureDefaultsTest {
             guard let expected = pinned[feature.rawValue] else { continue }
             precondition(feature.defaultEnabled == expected,
                          "\(feature.rawValue) default flipped to \(feature.defaultEnabled); pinned \(expected)")
+            precondition(feature.needsIsland == pinnedIsland.contains(feature.rawValue),
+                         "\(feature.rawValue) needsIsland flipped to \(feature.needsIsland)")
             checked += 1
         }
         let removed = Set(pinned.keys).subtracting(NotchcastFeature.allCases.map(\.rawValue))
