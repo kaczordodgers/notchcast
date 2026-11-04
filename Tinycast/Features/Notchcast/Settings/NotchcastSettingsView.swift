@@ -30,6 +30,8 @@ struct NotchcastSettingsView: View {
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
+            NotchcastSystemSettingsSection()
+
             Section {
                 Picker(selection: Binding(
                     get: { preferences.islandHoverDelay },
@@ -61,7 +63,7 @@ struct NotchcastSettingsView: View {
     private var options: [NotchcastFeature] {
         let own: Set<NotchcastFeature> = [.island, .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic,
                                           .spotifyConnect, .microphoneMute, .inUseMarks]
-        return NotchcastFeature.allCases.filter { !own.contains($0) }
+        return NotchcastFeature.allCases.filter { !own.contains($0) && !$0.isSystemFeature }
     }
 
     /// Grants needed by the switches that are on, in a stable order.
