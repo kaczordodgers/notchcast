@@ -6,13 +6,67 @@ final class AgentAnswerModule: NotchcastModule {
     private var pending: Set<[String]> = []
     private var accepted: Set<[String]> = []
     private var generation = 0
+    private(set) var items: [AgentAnswerItem] = []
+    private(set) var pollingFailure: String?
+    private var source: (any AgentAnswerPendingSource)?
+    private var pollingTask: Task<Void, Never>?
+    private let pollInterval: Duration
 
-    func start() { isRunning = true }
+    init(pollInterval: Duration = .seconds(5)) {
+        self.pollInterval = pollInterval
+    }
+
+    func configure(source: (any AgentAnswerPendingSource)?) {
+        generation += 1
+        pollingTask?.cancel()
+        pollingTask = nil
+        items = []
+        pollingFailure = nil
+        self.source = source
+        if isRunning { beginPolling() }
+    }
+
+    func start() {
+        guard !isRunning else { return }
+        isRunning = true
+        beginPolling()
+    }
 
     func stop() {
         isRunning = false
         generation += 1
+        pollingTask?.cancel()
+        pollingTask = nil
+        items = []
+        pollingFailure = nil
     }
+
+    private func beginPolling() {
+        guard let source else { return }
+        let operation = generation
+        let interval = pollInterval
+        pollingTask = Task { [weak self] in
+            var failures = 0
+            while !Task.isCancelled {
+                do {
+                    let fetched = try await source.pendingItems()
+                    guard let self, !Task.isCancelled, isRunning, generation == operation else { return }
+                    items = fetched
+                    pollingFailure = nil
+                    failures = 0
+                } catch {
+                    guard let self, !Task.isCancelled, isRunning, generation == operation else { return }
+                    pollingFailure = error.localizedDescription
+                    failures = min(failures + 1, 6)
+                }
+                do {
+                    try await Task.sleep(for: interval * (1 << failures))
+                } catch { return }
+            }
+        }
+    }
+
+    isolated deinit { pollingTask?.cancel() }
 
     func answer(_ answer: AgentAnswer, item: AgentAnswerItem,
                 transport: any AgentAnswerTransport) async -> AgentAnswerResult {
