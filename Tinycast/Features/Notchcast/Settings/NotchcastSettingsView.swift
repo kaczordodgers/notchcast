@@ -22,6 +22,7 @@ struct NotchcastSettingsView: View {
             NotchcastSystemSettingsSection()
 
             NotchcastExtrasSection()
+            BuildStatsSettingsSection()
 
             CaptureDictationSettingsSection()
 
