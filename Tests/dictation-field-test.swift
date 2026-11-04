@@ -7,6 +7,7 @@ struct DictationFieldTest {
     static func main() async throws {
         NSApplication.shared.setActivationPolicy(.prohibited)
         try await testDelivery()
+        try await testEnglishTrigger()
         try await testScopedCancellation()
         try await testChatSwitch()
         try await testWindowClose()
@@ -21,6 +22,20 @@ struct DictationFieldTest {
         try await testCancelDuringStartCue()
         try await testBluetoothStartCue()
         print("ALL PASSED")
+    }
+
+    private static func testEnglishTrigger() async throws {
+        let fixture = Fixture()
+        Paster.copies = []
+        DictationCoordinator.englishTranscriptStage = { _, _ in "Send the report." }
+        defer { DictationCoordinator.englishTranscriptStage = nil }
+        fixture.coordinator.triggerStarted(inEnglish: true)
+        try await wait { fixture.capture.isRecording }
+        fixture.coordinator.triggerFinished()
+        try await wait { fixture.models.pending != nil }
+        fixture.models.finish("Wyślij raport.")
+        try await wait { !Paster.copies.isEmpty }
+        expect(Paster.copies == ["Send the report."], "The trigger copies one English transcript")
     }
 
     private static func testDelivery() async throws {

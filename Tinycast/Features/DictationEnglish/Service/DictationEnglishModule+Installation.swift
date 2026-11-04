@@ -5,12 +5,14 @@ import Synchronization
 extension DictationEnglishModule {
     convenience init(hub: EventTapHub, coordinator: DictationCoordinator) {
         DictationCoordinator.englishTranscriptStage = { raw, language in
-            await DictationEnglish.process(raw, language: language) {
+            let translated = await DictationEnglish.process(raw, language: language) {
                 await MainActor.run {
                     AppCore.shared.showMessage(
                         String(localized: "English translation failed; using the original transcript"), tone: .danger)
                 }
             }
+            await DictationCleanup.observeTranscript(raw: raw, cleaned: translated)
+            return translated
         }
         var synchronous: UUID?
         self.init(register: { action in

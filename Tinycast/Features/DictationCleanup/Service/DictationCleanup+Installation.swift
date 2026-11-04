@@ -24,6 +24,14 @@ extension DictationCleanup {
     }
 
     @MainActor
+    static func observeTranscript(raw: String, cleaned: String) {
+        if !Task.isCancelled, historyEnabled,
+           !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            transcriptObserver?(raw, cleaned)
+        }
+    }
+
+    @MainActor
     private static func updateStage() {
         guard cleanupEnabled || historyEnabled else {
             DictationCoordinator.transcriptStage = nil
@@ -31,10 +39,7 @@ extension DictationCleanup {
         }
         DictationCoordinator.transcriptStage = { @MainActor raw, language in
             let cleaned = cleanupEnabled ? await process(raw, language: language) : raw
-            if !Task.isCancelled, historyEnabled,
-               !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                transcriptObserver?(raw, cleaned)
-            }
+            observeTranscript(raw: raw, cleaned: cleaned)
             return cleaned
         }
     }
