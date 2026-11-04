@@ -6,10 +6,23 @@
 // notchcast-sources: Tinycast/Features/MachMBPFans/Service/RemoteFan*.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/FanControl+Completion.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/RemoteFanPeer.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Store/FanControl.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Model/FanOwnershipJournal.swift
 import Foundation
 import Synchronization
 
-@MainActor final class MonitorModule { let fans = FanControl() }
+@MainActor final class MonitorModule {
+    let fans = FanControl(runner: { _ in await HelperEdge.apply() })
+}
+enum RootContract { enum Command: Sendable { case fansAuto, fansMedium, fansMax } }
+struct RootHelperClient {
+    enum Failure: Error { case executionFailed(Int) }
+    func run(_ command: RootContract.Command) async throws {}
+}
+@MainActor enum HelperEdge {
+    static var onApply: (() -> Void)?
+    static func apply() { onApply?() }
+}
 enum NotchcastFeature { case machLink, systemMonitor, fanControl }
 @MainActor final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
@@ -39,20 +52,6 @@ struct SMCClient {
 }
 
 @MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
-@MainActor final class FanControl {
-    enum Mode { case auto, medium, max }
-    var mode = Mode.auto
-    var unavailable = false
-    var failure: Error?
-    var pending: Mode?
-    var onWait: (() -> Void)?
-    func set(_ mode: Mode) { pending = mode }
-    func waitUntilIdle() async {
-        await Task.yield()
-        if failure == nil, let pending { mode = pending }
-        onWait?()
-    }
-}
 @MainActor final class MachLinkManager {
     var fanHandler: ((RemoteFanRequest) async throws -> RemoteFanReport)?
     var fanEnabled: () -> Bool = { true }
@@ -85,9 +84,6 @@ struct SMCClient {
         do { _ = try await module.run(.max); fatalError("Fan off accepted") } catch RemoteFanReport.Failure.unavailable {}
         precondition(calls == 1)
         peer.fanEnabled = { true }
-        fans.failure = RemoteFanReport.Failure.busy
-        do { _ = try await module.run(.max); fatalError("Fan failure accepted") } catch RemoteFanReport.Failure.busy {}
-        fans.failure = nil
         for (request, expected, target): (RemoteFanRequest, RemoteFanReport.Mode, Double) in [
             (.auto, .auto, 6000), (.cycle, .mid, 4000), (.cycle, .max, 6000), (.cycle, .auto, 6000)
         ] {
@@ -95,9 +91,9 @@ struct SMCClient {
             let result = try await module.run(request)
             precondition(result.mode == expected)
         }
-        fans.onWait = { NotchcastPreferences.shared.enabled = false }
+        HelperEdge.onApply = { NotchcastPreferences.shared.enabled = false }
         do { _ = try await module.run(.max); fatalError("Disabled during apply") } catch RemoteFanReport.Failure.unavailable {}
-        fans.onWait = nil
+        HelperEdge.onApply = nil
         NotchcastPreferences.shared.enabled = true
         SMCClient.target.withLock { $0 = 2000 }
         do {
@@ -113,7 +109,7 @@ struct SMCClient {
             let task = Task { try await monitor.remoteFanReport(.max) }
             while !SMCClient.entered.withLock({ $0 }) { await Task.yield() }
             if scenario == 0 { NotchcastPreferences.shared.enabled = false }
-            if scenario == 1 { fans.mode = .auto }
+            if scenario == 1 { _ = try await fans.applyAndWait(.auto) }
             if scenario == 2 { task.cancel() }
             release.signal()
             do {
@@ -125,6 +121,11 @@ struct SMCClient {
             NotchcastPreferences.shared.enabled = true
             SMCClient.gate.withLock { $0 = nil }
         }
-        print("PASS shipped RemoteFanPeer mapping, post-await switch check, report validation, helper failure")
+        let failed = FanControl(runner: { _ in throw RemoteFanReport.Failure.busy })
+        do {
+            _ = try await failed.applyAndWait(.max)
+            fatalError("Helper failure accepted")
+        } catch RemoteFanReport.Failure.busy {}
+        print("PASS shipped RemoteFanPeer and FanControl, mapping, post-await checks, validation, helper failure, budgets")
     }
 }
