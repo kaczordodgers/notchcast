@@ -14,6 +14,8 @@ final class MachineBackupCoordinator: NotchcastModule {
     @ObservationIgnored private var operation: Task<Data, Error>?
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var running = false
+    @ObservationIgnored var showMessage: (String) -> Void = { _ in }
+    @ObservationIgnored var commandTask: Task<Void, Never>?
 
     init(tooling: any MachineBackupTooling, preferences: NotchcastPreferences) {
         self.tooling = tooling
@@ -33,6 +35,7 @@ final class MachineBackupCoordinator: NotchcastModule {
     func waitUntilIdle() async { _ = await operation?.result }
 
     func stop() {
+        commandTask?.cancel()
         running = false
         generation = UUID()
         operation?.cancel()

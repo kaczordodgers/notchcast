@@ -36,5 +36,13 @@ Cancelling kickstart does not cancel a launchd job that already accepted the req
 `Tests/nc-MachineBackup-actions-test.swift` uses fake tooling and disposable directories only.
 No test starts a real backup, restores user data or connects to another machine.
 
-Left for the look: snapshot browser, path selection, explicit destination picker and progress/error
-presentation. No launcher commands, island pages, styling, helper verbs or new permissions are added.
+The launcher command “Run Backup Now” (`command:nc-mach-backup-run-now`) calls `runNow()` and
+reports through AppCore's plain message presenter. Its availability follows the run-now switch,
+independently of the island. Success means “Backup requested”, never backup completion.
+Missing configuration reports that machine backup is not configured and launches no tooling.
+Repository inspection found no machine-backup settings, launchd job configuration or backup-status
+service to reuse; the production configuration therefore remains nil. The settings export/import
+feature is unrelated. No local jobs are discovered and no private defaults are embedded.
+
+Left for the look: snapshot browser, path selection, explicit destination picker and progress UI.
+No island pages, styling, helper verbs or new permissions are added.
