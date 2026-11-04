@@ -230,10 +230,14 @@ struct DictationFieldTests {
             AudioEvents.log == ["start cue", "duck"],
             "The start cue plays on the first samples, with ducking")
         fixture.coordinator.toggle(into: editor)
+        try await Task.sleep(for: .milliseconds(100))
         expect(
-            AudioEvents.log == ["start cue", "duck", "restore", "stop cue"],
-            "The stop cue plays once the volume is restored, before the microphone closes")
-        expect(fixture.capture.isRecording, "The microphone is still open when the stop cue plays")
+            AudioEvents.log == ["start cue", "duck"] && fixture.capture.isRecording,
+            "The microphone captures the tail with audio still ducked and no stop cue")
+        try await wait { AudioEvents.log.contains("stop cue") }
+        expect(
+            AudioEvents.log == ["start cue", "duck", "restore", "stop cue"] && !fixture.capture.isRecording,
+            "Capture stops before restoring volume and playing the stop cue")
         try await wait { fixture.models.pending != nil }
         fixture.models.finish("Spoken words")
         try await wait { fixture.coordinator.field == nil }
