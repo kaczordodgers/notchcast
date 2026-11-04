@@ -141,7 +141,7 @@ struct QuitProtectionEngine: Sendable {
         case .tick:
             return tick(at: timestamp)
         case .keyDown(let key, let modifiers, let isRepeat):
-            if key.shortcut != .quit { swallowedKeys = [] }
+            if key.shortcut == nil { swallowedKeys = [] }
             if swallowedKeys.contains(key.code) { return .swallow(nil) }
             if key.code == 53, pending != nil {
                 pending = nil
