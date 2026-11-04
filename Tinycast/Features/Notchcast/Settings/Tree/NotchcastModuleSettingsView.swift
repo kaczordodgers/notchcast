@@ -57,6 +57,22 @@ private struct NotchcastModuleFeatureRows: View {
             } else {
                 Text(feature.subtitle)
             }
+            switch feature {
+            case .typingTweaks, .iPhoneBackupTweaks:
+                Text("Changes system preferences after confirmation; some changes require signing out.")
+            case .finderTweaks:
+                Text("Changes Finder preferences and restarts Finder after confirmation.")
+                Text("Changes system preferences after confirmation; some changes require signing out.")
+            case .dockTweaks:
+                Text("Changes Dock preferences and restarts Dock after confirmation.")
+                Text("Changes system preferences after confirmation; some changes require signing out.")
+                Text("Changes screenshot preferences and restarts SystemUIServer after confirmation.")
+            case .appleAppsTweaks:
+                Text("macOS requires your approval to install this restriction; remove it in System Settings.")
+            case .cleanAIData:
+                Text("Codex and OpenCode are report-only.")
+            default: EmptyView()
+            }
         }
         .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
         .settingsEnabled(feature.dependencies.allSatisfy(preferences.isEnabled))
@@ -69,7 +85,11 @@ private struct NotchcastModuleFeatureRows: View {
         }
         if preferences.isEnabled(feature) && feature.settingsAvailable {
             ForEach(commands, id: \.id) { command in
-                FeatureCommandRow(entry: command.entry)
+                if command.slug.hasPrefix("settings-") {
+                    NotchcastActionCommandRow(command: command)
+                } else {
+                    FeatureCommandRow(entry: command.entry)
+                }
             }
             ForEach(servicesReady ? settings : [], id: \.self) { setting in
                 NotchcastSettingRow(setting: setting)

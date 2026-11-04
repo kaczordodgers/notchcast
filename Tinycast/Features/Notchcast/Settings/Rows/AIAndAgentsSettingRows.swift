@@ -51,10 +51,7 @@ struct AgentCLIInstallSettingRow: View {
     let module: AgentCLIModule
 
     var body: some View {
-        LabeledContent("Command line tool") {
-            Text(status)
-            Button("Install") { module.installer.install() }
-        }
+        Text(status)
         .onAppear { module.installer.refresh() }
         Text(module.installer.link.path)
             .textSelection(.enabled)

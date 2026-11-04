@@ -104,6 +104,8 @@ struct AppearanceOpacitySettingRow: View {
                 ) {
                     Text("Theme backdrop")
                 }
+                .labelsHidden()
+                .accessibilityLabel("Theme backdrop")
                 Text(coordinator.store.backgroundOpacity, format: .percent.precision(.fractionLength(0)))
                     .monospacedDigit()
                     .frame(width: Theme.Size.volumeReadout, alignment: .trailing)
