@@ -60,6 +60,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastCaptureAndDictation, "Screenshots", keywords: ["screen capture", "image"]),
         .init(.notchcastCaptureAndDictation, "Screenshot destination", keywords: ["clipboard", "file", "save"]),
         .init(.notchcastCaptureAndDictation, "Screenshot folder", keywords: ["directory", "desktop"]),
+        .init(.notchcastCaptureAndDictation, "Screen Recording", keywords: ["record", "video", "pause"]),
+        .init(.notchcastCaptureAndDictation, "Recording folder", keywords: ["directory", "downloads", "fps"]),
         .init(.notchcastSystem, "Display Brightness", keywords: ["display", "dimming", "slider"]),
         .init(.notchcastSystem, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
