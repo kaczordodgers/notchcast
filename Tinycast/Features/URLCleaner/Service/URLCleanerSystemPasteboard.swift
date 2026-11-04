@@ -12,6 +12,12 @@ final class URLCleanerSystemPasteboard: URLCleanerPasteboard {
         return !types.isDisjoint(with: ClipboardManager.sensitiveTypes)
             || types.contains(ClipboardManager.internalType)
             || pasteboard.pasteboardItems?.count != 1
+            || !Self.isPlainLink(types)
+    }
+
+    // A rewrite replaces the whole item, so an image or rich text beside the link must block it.
+    static func isPlainLink(_ types: Set<NSPasteboard.PasteboardType>) -> Bool {
+        types.isSubset(of: [.string, .URL, NSPasteboard.PasteboardType("public.url-name")])
     }
 
     func write(_ text: String) -> Bool {

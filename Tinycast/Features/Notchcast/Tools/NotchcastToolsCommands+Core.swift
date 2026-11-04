@@ -68,26 +68,10 @@ extension NotchcastToolsCommands {
     }
 
     private static func post(_ text: String) {
-        IslandActivityCenter.shared.showMessage(text, tone: .neutral, dwell: 4)
+        AppCore.shared.showMessage(text, tone: .neutral)
     }
 
-    private static func finderSelection() throws -> [URL] {
-        let script = """
-            tell application "Finder"
-                set chosen to selection as alias list
-            end tell
-            set paths to {}
-            repeat with itemAlias in chosen
-                set end of paths to POSIX path of itemAlias
-            end repeat
-            return paths
-            """
-        guard let apple = NSAppleScript(source: script) else { return [] }
-        var error: NSDictionary?
-        let result = apple.executeAndReturnError(&error)
-        guard error == nil else { throw CocoaError(.fileReadNoPermission) }
-        return (0..<result.numberOfItems).compactMap {
-            result.atIndex($0 + 1)?.stringValue.map { URL(fileURLWithPath: $0) }
-        }
+    private static func finderSelection() async throws -> [URL] {
+        try await CopyPathSystemReader.read(.finderSelection).map { URL(fileURLWithPath: $0) }
     }
 }
