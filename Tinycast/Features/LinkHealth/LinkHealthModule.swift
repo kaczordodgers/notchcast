@@ -9,15 +9,15 @@ final class LinkHealthModule: NotchcastModule {
     private(set) var isRunning = false
     @ObservationIgnored private let probe: Probe
     @ObservationIgnored private let now: () -> Date
-    @ObservationIgnored private let notify: (LinkHealthEngine.Notice) -> Void
+    @ObservationIgnored private let post: @MainActor (String) -> Void
     @ObservationIgnored private var polling: Task<Void, Never>?
     @ObservationIgnored private var generation = UUID()
 
     init(probe: @escaping Probe, now: @escaping () -> Date = Date.init,
-         notify: @escaping (LinkHealthEngine.Notice) -> Void) {
+         post: @escaping @MainActor (String) -> Void) {
         self.probe = probe
         self.now = now
-        self.notify = notify
+        self.post = post
     }
 
     func start() {
@@ -43,7 +43,11 @@ final class LinkHealthModule: NotchcastModule {
     private func refresh(generation current: UUID) async {
         let latency = try? await probe()
         guard !Task.isCancelled, isRunning, generation == current else { return }
-        if let notice = health.consume(latency: latency, at: now()) { notify(notice) }
+        guard let notice = health.consume(latency: latency, at: now()) else { return }
+        switch notice {
+        case .lost: post(String(localized: "Mac link lost."))
+        case .recovered: post(String(localized: "Mac link restored."))
+        }
     }
 
     isolated deinit { polling?.cancel() }

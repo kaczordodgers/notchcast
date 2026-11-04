@@ -7,8 +7,8 @@ and at most two discovered endpoints per poll. It does not read AI usage.
 Two consecutive failures mark the peer down and emit one loss notice. Two consecutive
 successes mark it up; recovery emits one notice only after a down state. Alternating
 results preserve the previous reachability. Initial success is silent; initial failure
-is reported after the second failed probe. Notices use the existing island HUD router
-and respect its status-message preference.
+is reported after the second failed probe. Notices use a `post: @MainActor (String) -> Void`
+closure wired to the existing island activity center and respect its status-message preference.
 
 Consumers can observe `NotchcastCore.linkHealth.health`: `reachability` is unknown,
 up or down; `latency` is the latest successful heartbeat round trip (nil after a failure);

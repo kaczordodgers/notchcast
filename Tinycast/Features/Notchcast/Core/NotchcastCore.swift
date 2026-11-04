@@ -10,11 +10,9 @@ enum NotchcastCore {
     static let macLink = AIUsageLinkModule()
     static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let quitProtection = QuitProtectionStore()
-    static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }) { notice in
-        switch notice {
-        case .lost: _ = IslandHUDRouter.show(String(localized: "Mac link lost."), tone: .danger)
-        case .recovered: _ = IslandHUDRouter.show(String(localized: "Mac link restored."), tone: .success)
-        }
+    static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }) { text in
+        guard NotchcastPreferences.shared.isOn(.islandStatusMessages) else { return }
+        IslandActivityCenter.shared.showMessage(text, tone: .neutral, dwell: Theme.Duration.messageHUD)
     }
     private static var controller: NotchcastModuleController?
 
