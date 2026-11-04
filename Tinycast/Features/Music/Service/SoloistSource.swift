@@ -62,7 +62,6 @@ final class SoloistSource: NowPlayingSource {
                 do {
                     try await socket.send(.string(SoloistProtocol.getAuthState))
                     try await socket.send(.string(SoloistProtocol.getState))
-                    try await socket.send(.string(SoloistProtocol.getQueue))
                     while !Task.isCancelled {
                         let message = try await socket.receive()
                         guard let owner = self, owner.socket === socket, !Task.isCancelled else { return }

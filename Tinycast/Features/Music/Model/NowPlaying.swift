@@ -62,9 +62,14 @@ struct MusicQueueItem: Equatable, Sendable {
 /// wait.
 @MainActor
 protocol NowPlayingSource: AnyObject {
+    var queue: [MusicQueueItem]? { get }
     func watch(_ onChange: @escaping @MainActor () -> Void)
     func unwatch()
     /// The current track, nil while nothing plays.
     func read() async throws -> NowPlaying?
     func send(_ command: PlayerCommand)
+}
+
+extension NowPlayingSource {
+    var queue: [MusicQueueItem]? { nil }
 }

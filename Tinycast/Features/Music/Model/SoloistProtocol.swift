@@ -68,7 +68,8 @@ enum SoloistProtocol {
         if object["type"] as? String == "options_changed" {
             return .options(shuffle: shuffle, repeatMode: repeatMode)
         }
-        if ["get_queue", "queue_changed"].contains(object["type"] as? String ?? "") {
+        if object["type"] as? String == "get_queue"
+            || (object["type"] as? String == "queue_changed" && object["queue"] != nil) {
             let items = (object["queue"] as? [[String: Any]])?.map {
                 MusicQueueItem(title: $0["title"] as? String,
                                artist: $0["artist"] as? String, uri: $0["uri"] as? String)

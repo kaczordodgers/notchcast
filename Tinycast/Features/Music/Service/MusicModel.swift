@@ -43,7 +43,7 @@ final class MusicModel {
     var canResume: Bool { lastPlayer.isEnabled && lastPlayer.replacement(isInstalled: apps.isInstalled) != nil }
 
     var position: TimeInterval? { nowPlaying?.position(at: now()) }
-    var queue: [MusicQueueItem]? { isEnabled ? (soloist.source as? SoloistSource)?.queue : nil }
+    var queue: [MusicQueueItem]? { isEnabled ? soloist.source?.queue : nil }
 
     func setSystemSource(_ source: (any NowPlayingSource)?) { replace(system, with: source) }
 

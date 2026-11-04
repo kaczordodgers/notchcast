@@ -87,6 +87,11 @@ struct AppEntry: Sendable {
      precondition(object?["shuffle"] as? Bool == false)
      let queued = try SoloistProtocol.addToQueue(uri: "spotify:track:fixture")
      precondition(queued.contains("add_to_queue"))
+     let notification = try SoloistProtocol.parse(#"{"type":"queue_changed"}"#, now: .now)
+     precondition(notification == .changed)
+     let queueChange = try SoloistProtocol.parse(
+         #"{"type":"queue_changed","queue":[{"title":"Next"}]}"#, now: .now)
+     precondition(queueChange == .queue([.init(title: "Next", artist: nil, uri: nil)]))
      let source = SoloistSource()
      source.receive("""
          {"type":"playback_state","status":"playing",
@@ -150,6 +155,7 @@ struct AppEntry: Sendable {
  let observer = MusicCommandFeedback(music: music, preferences: preferences)
  defer { withExtendedLifetime(observer) {} }
  let source = CommandSource()
+ precondition(source.queue == nil)
  music.model.setSystemSource(source)
  music.model.setSoloistSource(nil)
  music.start()
