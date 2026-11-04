@@ -9,5 +9,8 @@ extension NotchcastCommandCatalog {
         MusicCommands.speakerOffCommand,
         MicrophoneMuteCommands.muteLauncherCommand,
         MicrophoneMuteCommands.unmuteLauncherCommand,
+        TorrentCommands.downloadClipboardCommand,
+        TorrentCommands.openFileCommand,
+        TorrentCommands.cancelAllCommand,
     ]
 }

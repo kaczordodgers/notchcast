@@ -45,9 +45,34 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case torrents
+    case torrentsUseIPhone
+    case torrentsKeepSharing
+
+    /// System tools start off; everything else starts on except the exceptions below.
+    var defaultOn: Bool {
+        if isSystemFeature { return false }
+        return switch self {
+        case .spotifyConnect: false
+        case .systemMonitor: false
+        case .fanControl: false
+        case .monitorAlerts: false
+        case .batteryChargeLimit: false
+        case .batterySailing: false
+        case .batteryHeatProtection: false
+        case .batteryCalibration: false
+        case .keepAwake: false
+        case .torrentsKeepSharing: false
+        case .lidClosedAwake: false
+        default: true
+        }
+    }
 
     var dependencies: [Self] {
         switch self {
+        case .torrents: []
+        case .torrentsUseIPhone: [.torrents]
+        case .torrentsKeepSharing: [.torrents]
         case .island: []
         case .musicLastPlayer: [.island, .musicNowPlaying]
         case .spotifyConnect: [.island, .musicNowPlaying]
@@ -101,6 +126,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .torrents: .torrents
+        case .torrentsUseIPhone: .torrents
+        case .torrentsKeepSharing: .torrents
         }
     }
 
@@ -138,6 +166,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .torrents: String(localized: "Torrents")
+        case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
+        case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -187,6 +218,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
+        case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
+        case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -239,6 +273,9 @@ extension NotchcastFeature {
         case .greenMaximize: false
         case .machineSetupProfile: false
         case .switcherQuitKey: false
+        case .torrents: false
+        case .torrentsUseIPhone: false
+        case .torrentsKeepSharing: false
         case .displayBrightness: false
         case .quitProtection: false
         default: true
