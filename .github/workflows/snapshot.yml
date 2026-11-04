@@ -61,6 +61,7 @@ jobs:
         if: steps.plan.outputs.tag != '' && steps.tests.outcome == 'success'
         working-directory: src
         run: |
+          command -v swiftlint >/dev/null || brew install --quiet swiftlint
           if ./Scripts/lint.sh; then
             echo "green=true" >> "$GITHUB_OUTPUT"
           else
@@ -151,6 +152,14 @@ jobs:
           printf 'Notchcast snapshot of main %s. Signed arm64 build.\n' "$MAIN" > "$RUNNER_TEMP/snapshot-notes.md"
           gh release create "$TAG" "../dist/$APP_NAME-$VERSION.zip" "../dist/$APP_NAME-$VERSION.dmg" \
             -R "$GITHUB_REPOSITORY" --verify-tag --prerelease --title "Notchcast $VERSION" --notes-file "$RUNNER_TEMP/snapshot-notes.md"
+      - name: Fail when a planned snapshot was skipped
+        if: steps.plan.outputs.tag != '' && steps.checks.outputs.green != 'true'
+        env:
+          TESTS: ${{ steps.tests.outcome }}
+          LINT: ${{ steps.checks.outcome }}
+        run: |
+          echo "::error::Snapshot not published: tests=$TESTS lint=$LINT"
+          exit 1
       - name: Remove signing material
         if: always()
         run: |
