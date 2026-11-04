@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "The previous charge limit of %lld%% cannot be restored; the current limit remains in place." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Die vorherige Ladegrenze von %lld%% kann nicht wiederhergestellt werden; die aktuelle Grenze bleibt bestehen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se puede restaurar el límite de carga anterior del %lld%%; se mantiene el límite actual." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La limite de charge précédente de %lld%% ne peut pas être rétablie ; la limite actuelle reste en place." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "以前の充電上限%lld%%は復元できません。現在の上限が維持されます。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이전 충전 한도 %lld%%를 복원할 수 없어 현재 한도가 유지됩니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não é possível restaurar o limite de carga anterior de %lld%%; o limite atual permanece." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удаётся восстановить прежний предел заряда %lld%%; текущий предел сохранён." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法恢复之前的%lld%%充电上限；当前上限保持不变。" } }
+      }
+    },
     "Monitor Alerts": {
       "localizations": {
         "de": {

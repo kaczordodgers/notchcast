@@ -103,7 +103,7 @@ struct BatteryStoreTests {
         }
         preferences.set(.batteryChargeLimit, false)
         await modern.evaluate(now: .now)
-        precondition(calls.last == .chargeLimitOff && modern.nativeLimit == nil)
+        precondition(calls.last == .chargeLimit70 && modern.nativeLimit == 70)
         preferences.set(.lidClosedAwake, true)
         preferences.set(.keepAwake, true)
         fail = true
@@ -131,7 +131,7 @@ struct BatteryStoreTests {
         for _ in 0..<100 { await Task.yield() }
         await unsupported.evaluate(now: .now)
         await unsupported.evaluate(now: .now)
-        precondition(!unsupported.chargingUnsupported && attempts >= 2 && unsupported.failure != nil)
+        precondition(!unsupported.chargingUnsupported && attempts == 1 && unsupported.failure != nil)
         unsupported.stop()
         await unsupported.waitUntilIdle()
         for feature in NotchcastFeature.allCases where feature.isSystemFeature {
@@ -166,6 +166,9 @@ struct BatteryStoreTests {
         for feature in NotchcastFeature.allCases where feature.isSystemFeature {
             preferences.set(feature, false)
         }
+        preferences.batteryJournalData = nil
+        preferences.batteryDirtyVerbs = []
+        preferences.batteryPriorLimit = 0
         preferences.batteryRootDirty = true
         preferences.batteryOwnsNativeLimit = true
         preferences.batteryOwnedLimit = 80
@@ -258,6 +261,7 @@ struct BatteryStoreTests {
         await module.evaluate(now: .now)
         precondition(module.failure != nil && created == 4)
         nativeFailure = false
+        await module.evaluate(now: Date.now.addingTimeInterval(120))
         preferences.set(.batterySailing, true)
         percent = 95
         for _ in 0..<100 { await Task.yield() }
@@ -287,7 +291,7 @@ struct BatteryStoreTests {
         precondition(calls.last == .chargingOn && !preferences.batteryRootDirty)
         module.stop()
         await module.waitUntilIdle()
-        precondition(calls.last == .chargeLimitOff)
+        precondition(calls.last == .chargingOn && module.failure != nil && module.nativeLimit == 80)
         precondition(!preferences.batteryRootDirty && released == created)
         preferences.set(.batteryChargeLimit, false)
         preferences.set(.keepAwake, false)
@@ -355,7 +359,7 @@ struct BatteryStoreTests {
         await repair.waitUntilIdle()
         for _ in 0..<3 { await repair.evaluate(now: .now) }
         precondition(calls == [.adapterOn, .chargingOn, .sleepOn])
-        precondition(prefs.batteryDirtyVerbs == ["battery-adapter"] && repair.failure == nil)
+        precondition(prefs.batteryDirtyVerbs == ["battery-adapter"] && repair.failure != nil)
         var version = "1"
         calls = []
         let reopening = BatteryModule(preferences: prefs, runner: .init(read: { nil },
@@ -367,7 +371,7 @@ struct BatteryStoreTests {
         version = "2"
         reopening.refreshHelper()
         for _ in 0..<100 { await Task.yield() }
-        await reopening.evaluate(now: .now)
+        await reopening.evaluate(now: Date.now.addingTimeInterval(3600))
         await reopening.evaluate(now: .now)
         precondition(calls == [.adapterOn] && !prefs.batteryRootDirty)
         reopening.stop()
@@ -428,6 +432,7 @@ struct BatteryStoreTests {
         precondition(calls.count == beforePlug + 1)
         native.stop()
         await native.waitUntilIdle()
+        prefs.batteryJournalData = nil
         prefs.batteryRootDirty = true
         prefs.batteryDirtyVerbs = ["battery-adapter", "battery-charging", "battery-sleep"]
         prefs.batteryOwnsNativeLimit = true
@@ -457,6 +462,7 @@ struct BatteryStoreTests {
         prefs.batteryRootDirty = false
         prefs.batteryDirtyVerbs = []
         prefs.batteryOwnsNativeLimit = false
+        prefs.batteryJournalData = nil
         prefs.set(.lidClosedAwake, false)
         var versions = 0
         calls = []

@@ -59,13 +59,9 @@ final class BatteryModule: NotchcastModule {
             && runner.supports("charge-limit-off")
             && NotchcastPreferences.chargeLimits.allSatisfy { runner.supports("charge-limit-\($0)") }
     }
-    @ObservationIgnored private var appliedLimit: String?
     @ObservationIgnored private var limitGeneration = 0
     @ObservationIgnored private var observationID: UUID?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
-    @ObservationIgnored private var applied: [String: BatteryRootVerbs] = [
-        "battery-adapter": .adapterOn, "battery-charging": .chargingOn, "battery-sleep": .sleepOn,
-    ]
 
     private let preferences: NotchcastPreferences
     private let runner: Runner
@@ -77,31 +73,48 @@ final class BatteryModule: NotchcastModule {
     @ObservationIgnored private var awakeMinutes: Int?
     @ObservationIgnored private var awakePaused = false
     @ObservationIgnored private var calibrationEnabled = false
-    @ObservationIgnored private var rootChanged = false
     @ObservationIgnored private var launchRepair = false
     @ObservationIgnored private var versionReadFailed = false
     @ObservationIgnored private var wasOnBattery: Bool?
     @ObservationIgnored private var helperGateClosed = false
-    @ObservationIgnored private var nativeCleanupAttempted = false
+    @ObservationIgnored private var journal: BatteryOwnershipJournal
+    @ObservationIgnored private var timer: Task<Void, Never>?
+    @ObservationIgnored private var reschedule = false
     private(set) var failure: Error?
 
     init(preferences: NotchcastPreferences, runner: Runner) {
         self.preferences = preferences
         self.runner = runner
+        journal = preferences.batteryJournalData.flatMap {
+            try? JSONDecoder().decode(BatteryOwnershipJournal.self, from: $0)
+        } ?? BatteryOwnershipJournal()
+        for key in preferences.batteryDirtyVerbs {
+            journal.adopt(key, applied: nil, undo: key + "-on")
+        }
+        if preferences.batteryOwnsNativeLimit && journal.effects["charge-limit"] == nil {
+            journal.captureLimit(preferences.batteryPriorLimit == 0 ? nil : preferences.batteryPriorLimit)
+            journal.adopt("charge-limit", applied: "charge-limit-\(preferences.batteryOwnedLimit)",
+                          undo: journal.limitUndo ?? "charge-limit-off")
+        }
         launchRepair = preferences.batteryRootDirty || preferences.batteryOwnsNativeLimit
         if preferences.batteryRootDirty && preferences.batteryDirtyVerbs.isEmpty {
             preferences.batteryDirtyVerbs = ["battery-adapter", "battery-charging", "battery-sleep"]
         }
+        for key in preferences.batteryDirtyVerbs {
+            journal.adopt(key, applied: nil, undo: key + "-on")
+        }
+        if journal.effects.values.contains(where: \.failed) { failure = OwnershipFailure.retryPending }
         if preferences.isOn(.batteryCalibration) { preferences.set(.batteryCalibration, false) }
     }
 
     func repairAtLaunch() { schedule() }
 
+    isolated deinit { timer?.cancel() }
+
     func start() {
         guard !running else { return }
         running = true
         chargingUnsupported = false
-        appliedLimit = nil
         let identity = UUID()
         observationID = identity
         refreshHelper()
@@ -175,35 +188,39 @@ final class BatteryModule: NotchcastModule {
     }
 
     private func schedule() {
-        let previous = task
-        previous?.cancel()
+        timer?.cancel()
+        reschedule = true
+        guard task == nil else { return }
         task = Task { [weak self] in
-            await previous?.value
-            guard let self, !Task.isCancelled else { return }
+            guard let self else { return }
             repeat {
+                self.reschedule = false
                 await self.evaluate(now: .now)
-                guard self.running, !Task.isCancelled else { return }
+            } while self.reschedule
+            self.task = nil
+            guard self.running || !self.journal.effects.isEmpty else { return }
+            self.timer = Task { [weak self] in
                 do { try await Task.sleep(for: .seconds(60)) } catch { return }
-            } while !Task.isCancelled
+                self?.schedule()
+            }
         }
     }
 
     func evaluate(now: Date) async {
-        failure = nil
+        if !journal.effects.values.contains(where: \.failed) { failure = nil }
         if versionReadFailed { refreshHelper() }
         if !running {
             do { try releaseAssertions() } catch { failure = error }
         }
         if launchRepair {
-            launchRepair = false
-            await repairMarkedChanges()
-            if !running { rootChanged = false }
+            await repairMarkedChanges(now: now)
+            launchRepair = !journal.effects.isEmpty
         }
         let on: (NotchcastFeature) -> Bool = { self.running && self.preferences.isOn($0) }
         let reading = runner.read()
         if let onBattery = reading?.onBattery {
             if wasOnBattery == true && !onBattery && preferences.batteryOwnsNativeLimit {
-                appliedLimit = nil
+                journal.reapplyLimit()
             }
             wasOnBattery = onBattery
         }
@@ -226,28 +243,20 @@ final class BatteryModule: NotchcastModule {
                 guard let verb = on(.batteryChargeLimit)
                     ? BatteryRootVerbs(rawValue: "charge-limit-\(preferences.batteryChargePercent)")
                     : .chargeLimitOff else { return }
-                if appliedLimit != verb.rawValue
-                    && (on(.batteryChargeLimit) || (preferences.batteryOwnsNativeLimit && !nativeCleanupAttempted)) {
+                if on(.batteryChargeLimit) || journal.effects["charge-limit"] != nil {
                     limitGeneration += 1
-                    appliedLimit = nil
                     if verb == .chargeLimitOff {
-                        nativeCleanupAttempted = true
-                        try await clearNativeLimit()
+                        try await clearNativeLimit(now: now)
                     } else {
-                        nativeCleanupAttempted = false
-                        if !preferences.batteryOwnsNativeLimit {
+                        if !journal.capturedLimit {
                             let prior = try await runner.readLimit()
                             try Task.checkCancellation()
-                            preferences.batteryPriorLimit = prior ?? 0
+                            journal.captureLimit(prior)
                         }
-                        preferences.batteryOwnedLimit = Int(verb.rawValue.components(separatedBy: "-").last ?? "") ?? 0
-                        preferences.batteryOwnsNativeLimit = true
-                        try await runner.root(verb)
+                        try await perform(verb, key: "charge-limit", undo: journal.limitUndo ?? "charge-limit-off", now: now)
                     }
                     try Task.checkCancellation()
-                    appliedLimit = verb.rawValue
-                    preferences.batteryOwnsNativeLimit = verb != .chargeLimitOff
-                    if verb != .chargeLimitOff {
+                    if verb != .chargeLimitOff && on(.batteryChargeLimit) {
                         nativeLimit = Int(verb.rawValue.components(separatedBy: "-").last ?? "")
                     }
                 }
@@ -287,7 +296,7 @@ final class BatteryModule: NotchcastModule {
                 calibrationEnabled = false
             }
             guard helperInstalled && !needsHelperUpdate else { return }
-            guard enabled || on(.lidClosedAwake) || rootChanged else { return }
+            guard enabled || on(.lidClosedAwake) || !journal.effects.isEmpty else { return }
             var verbs: [BatteryRootVerbs] = []
             // Adapter disconnection requires a helper watchdog before it can be enabled safely.
             try ChargePlanService().apply(decision, watchdogReady: false) { verbs.append($0) }
@@ -295,36 +304,21 @@ final class BatteryModule: NotchcastModule {
                                              helperReady: true, keepAwakeHolding: holding))
             for verb in verbs {
                 try Task.checkCancellation()
+                if reschedule { return }
                 if chargingUnsupported && (verb == .chargingOn || verb == .chargingOff) { continue }
                 guard runner.supports(verb.rawValue) else { continue }
                 let key = verb.rawValue.components(separatedBy: "-").dropLast().joined(separator: "-")
-                guard applied[key] != verb else { continue }
-                rootChanged = true
-                preferences.batteryRootDirty = true
-                if !preferences.batteryDirtyVerbs.contains(key) { preferences.batteryDirtyVerbs.append(key) }
-                applied[key] = nil
                 do {
-                    try await runner.root(verb)
+                    try await perform(verb, key: key, undo: key + "-on", now: now,
+                                      releasing: verb.rawValue.hasSuffix("-on"))
                 } catch {
                     if verb == .chargingOn || verb == .chargingOff,
                        case RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit) = error {
                         chargingUnsupported = true
-                        preferences.batteryDirtyVerbs.removeAll { $0 == key }
-                        preferences.batteryRootDirty = !preferences.batteryDirtyVerbs.isEmpty
                         preferences.set(.batteryCalibration, false)
                     }
-                    throw error
+                    failure = error
                 }
-                applied[key] = verb
-                if verb == .adapterOn || verb == .chargingOn || verb == .sleepOn {
-                    preferences.batteryDirtyVerbs.removeAll { $0 == key }
-                }
-            }
-            rootChanged = enabled || on(.lidClosedAwake)
-            if applied["battery-adapter"] == .adapterOn,
-               applied["battery-charging"] == .chargingOn,
-               applied["battery-sleep"] == .sleepOn {
-                preferences.batteryRootDirty = false
             }
         } catch {
             failure = error
@@ -341,56 +335,97 @@ final class BatteryModule: NotchcastModule {
         assertions = remaining
     }
 
-    private func clearNativeLimit() async throws {
-        let ours = preferences.batteryOwnedLimit
+    private func clearNativeLimit(now: Date) async throws {
         let current = try await runner.readLimit()
         try Task.checkCancellation()
-        if ours > 0 && current == ours {
-            do { try await runner.root(.chargeLimitOff) } catch {
-                guard case RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit) = error else {
-                    throw error
-                }
-            }
-            nativeLimit = nil
-        } else {
+        if journal.userChangedLimit(current) {
+            journal.release("charge-limit")
+            saveJournal()
             nativeLimit = current
+            return
         }
-        try Task.checkCancellation()
-        preferences.batteryOwnsNativeLimit = false
-        preferences.batteryOwnedLimit = 0
+        guard let raw = journal.limitUndo, let verb = BatteryRootVerbs(rawValue: raw) else {
+            throw OwnershipFailure.unrestorableLimit(journal.priorLimit ?? 0)
+        }
+        let prior = journal.priorLimit
+        try await perform(verb, key: "charge-limit", undo: raw, now: now, releasing: true)
+        nativeLimit = prior
     }
 
-    private func repairMarkedChanges() async {
+    private enum OwnershipFailure: LocalizedError {
+        case unrestorableLimit(Int), retryPending
+
+        var errorDescription: String? {
+            switch self {
+            case .unrestorableLimit(let limit):
+                String(localized: """
+                    The previous charge limit of \(limit)% cannot be restored; \
+                    the current limit remains in place.
+                    """)
+            case .retryPending:
+                RootHelperClient.Failure.executionFailed(70).localizedDescription
+            }
+        }
+    }
+
+    private func saveJournal() {
+        preferences.batteryJournalData = try? JSONEncoder().encode(journal)
+        preferences.batteryDirtyVerbs = journal.effects.keys.filter { $0 != "charge-limit" }.sorted()
+        preferences.batteryRootDirty = !preferences.batteryDirtyVerbs.isEmpty
+        preferences.batteryOwnsNativeLimit = journal.effects["charge-limit"] != nil
+        if let raw = journal.effects["charge-limit"]?.applied {
+            preferences.batteryOwnedLimit = Int(raw.split(separator: "-").last ?? "") ?? 0
+        }
+    }
+
+    private func perform(_ verb: BatteryRootVerbs, key: String, undo: String, now: Date,
+                         releasing: Bool = false) async throws {
+        guard journal.canRun(key, verb: verb.rawValue, now: now, releasing: releasing) else {
+            if journal.effects[key]?.failed == true { throw OwnershipFailure.retryPending }
+            return
+        }
+        journal.begin(key, verb: verb.rawValue, undo: undo)
+        saveJournal()
+        do {
+            try await runner.root(verb)
+            journal.succeed(key, verb: verb.rawValue, releasing: releasing)
+            saveJournal()
+        } catch {
+            if releasing, case RootHelperClient.Failure.executionFailed(69) = error {
+                journal.release(key)
+            } else {
+                journal.fail(key, now: now)
+            }
+            saveJournal()
+            throw error
+        }
+    }
+
+    private func repairMarkedChanges(now: Date) async {
         do {
             guard runner.installed(), (Int(try await runner.version()) ?? 0) >= 2 else { return }
             for verb in [BatteryRootVerbs.adapterOn, .chargingOn, .sleepOn] {
                 let key = verb.rawValue.components(separatedBy: "-").dropLast().joined(separator: "-")
-                guard preferences.batteryDirtyVerbs.contains(key) else { continue }
+                guard journal.effects[key] != nil else { continue }
                 try Task.checkCancellation()
                 if running && ((key == "battery-charging" &&
                     (preferences.isOn(.batterySailing) || preferences.isOn(.batteryHeatProtection)
                      || preferences.isOn(.batteryCalibration))) ||
                     (key == "battery-sleep" && preferences.isOn(.lidClosedAwake))) {
-                    applied[key] = nil
-                    rootChanged = true
                     continue
                 }
                 do {
-                    try await runner.root(verb)
-                    applied[key] = verb
+                    try await perform(verb, key: key, undo: verb.rawValue, now: now, releasing: true)
                 } catch {
                     guard case RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit) = error else {
+                        failure = error
                         continue
                     }
                 }
-                preferences.batteryDirtyVerbs.removeAll { $0 == key }
             }
-            preferences.batteryRootDirty = !preferences.batteryDirtyVerbs.isEmpty
-            if preferences.batteryOwnsNativeLimit && !(running && preferences.isOn(.batteryChargeLimit)) {
-                nativeCleanupAttempted = true
-                try await clearNativeLimit()
-                appliedLimit = nil
+            if journal.effects["charge-limit"] != nil && !(running && preferences.isOn(.batteryChargeLimit)) {
+                try await clearNativeLimit(now: now)
             }
-        } catch {}
+        } catch { failure = error }
     }
 }

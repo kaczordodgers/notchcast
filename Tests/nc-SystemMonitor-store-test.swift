@@ -133,7 +133,7 @@ struct MonitorStoreTests {
                                  runner: { _ in throw RootHelperClient.Failure.launchFailed })
         missing.restore(silently: true)
         await missing.waitUntilIdle()
-        precondition(saved == .auto && recoveryFailures == 0)
+        precondition(saved == .max && recoveryFailures == 0 && missing.failure != nil)
         print("PASS: demand counts, serialized latest request, restore after timeout/failure/cancellation and shutdown")
     }
 }

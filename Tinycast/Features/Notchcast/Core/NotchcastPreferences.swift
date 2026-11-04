@@ -20,6 +20,14 @@ final class NotchcastPreferences {
     var fanMode: String {
         didSet { defaults.set(fanMode, forKey: "fanMode") }
     }
+    var batteryJournalData: Data? {
+        get { defaults.data(forKey: "batteryOwnershipJournal") }
+        set { defaults.set(newValue, forKey: "batteryOwnershipJournal") }
+    }
+    var fanJournalData: Data? {
+        get { defaults.data(forKey: "fanOwnershipJournal") }
+        set { defaults.set(newValue, forKey: "fanOwnershipJournal") }
+    }
     var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
     var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
     var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
