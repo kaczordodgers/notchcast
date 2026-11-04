@@ -54,7 +54,7 @@ struct OwnershipTests {
                 if scenario != 4 && verb.rawValue.hasPrefix("charge-limit-") {
                     limit = Int(verb.rawValue.split(separator: "-").last ?? "")
                 }
-            }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in },
+            }, installed: { true }, version: { RootContract.version }, create: { _ in 1 }, release: { _ in },
                 readLimit: { limit }))
             if scenario <= 5 || scenario == 8 {
                 if [2, 3, 4].contains(scenario) { prefs.set(.batteryChargeLimit, true) }

@@ -131,7 +131,7 @@ struct BatteryStoreTests {
                 attempts += 1
                 throw RootHelperClient.Failure.executionFailed(70)
             }
-        }, installed: { true }, version: { "2" }, create: { _ in 0 }, release: { _ in },
+        }, installed: { true }, version: { RootContract.version }, create: { _ in 0 }, release: { _ in },
            supports: { _ in true }, readLimit: { nil }))
         unsupported.start()
         for _ in 0..<100 { await Task.yield() }
@@ -145,7 +145,7 @@ struct BatteryStoreTests {
         }
         var cleanupCalls: [BatteryRootVerbs] = []
         let leftover = BatteryModule(preferences: preferences, runner: .init(read: { nil },
-            root: { cleanupCalls.append($0) }, installed: { true }, version: { "2" },
+            root: { cleanupCalls.append($0) }, installed: { true }, version: { RootContract.version },
             create: { _ in preconditionFailure("No assertions expected") }, release: { _ in },
             supports: { _ in true }, readLimit: { 85 }))
         leftover.start()
@@ -160,7 +160,7 @@ struct BatteryStoreTests {
         var missingCalls = 0
         preferences.set(.batteryChargeLimit, true)
         let missing = BatteryModule(preferences: preferences, runner: .init(read: { nil },
-            root: { _ in missingCalls += 1 }, installed: { true }, version: { "2" },
+            root: { _ in missingCalls += 1 }, installed: { true }, version: { RootContract.version },
             create: { _ in 0 }, release: { _ in }, supports: { _ in false },
             readLimit: { preconditionFailure("Missing read verb must never run") }))
         missing.start()
@@ -180,7 +180,7 @@ struct BatteryStoreTests {
         preferences.batteryOwnedLimit = 80
         var repairCalls: [BatteryRootVerbs] = []
         let repair = BatteryModule(preferences: preferences, runner: .init(read: { nil },
-            root: { repairCalls.append($0) }, installed: { true }, version: { "2" },
+            root: { repairCalls.append($0) }, installed: { true }, version: { RootContract.version },
             create: { _ in 0 }, release: { _ in }, readLimit: { 80 }))
         repair.repairAtLaunch()
         await repair.waitUntilIdle()
@@ -190,7 +190,7 @@ struct BatteryStoreTests {
         let stop = BatteryModule(preferences: preferences, runner: .init(read: {
             BatteryReading.decode(properties: ["CurrentCapacity": 95, "MaxCapacity": 100,
                                                "ExternalConnected": true])
-        }, root: { repairCalls.append($0) }, installed: { true }, version: { "2" },
+        }, root: { repairCalls.append($0) }, installed: { true }, version: { RootContract.version },
            create: { _ in 0 }, release: { _ in }, readLimit: { nil }))
         stop.start()
         for _ in 0..<100 { await Task.yield() }
@@ -212,7 +212,7 @@ struct BatteryStoreTests {
             var reads = 0
             let module = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
                 preconditionFailure("Unrestorable limits must not be overwritten")
-            }, installed: { true }, version: { "2" }, create: { _ in 0 }, release: { _ in },
+            }, installed: { true }, version: { RootContract.version }, create: { _ in 0 }, release: { _ in },
                readLimit: { reads += 1; return prior }))
             module.start()
             for _ in 0..<100 { await Task.yield() }
@@ -232,7 +232,7 @@ struct BatteryStoreTests {
         var versions = 0
         let exhausted = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
             preconditionFailure("Exhausted repair must not run")
-        }, installed: { true }, version: { versions += 1; return "2" },
+        }, installed: { true }, version: { versions += 1; return RootContract.version },
            create: { _ in 0 }, release: { _ in }))
         exhausted.repairAtLaunch()
         await exhausted.waitUntilIdle()
@@ -274,7 +274,7 @@ struct BatteryStoreTests {
                 await withCheckedContinuation { pending = $0 }
                 try Task.checkCancellation()
             }
-        }, installed: { true }, version: { "2" }, create: { _ in
+        }, installed: { true }, version: { RootContract.version }, create: { _ in
             created += 1
             return UInt32(created)
         }, release: { _ in released += 1 }, readLimit: { currentLimit }))
@@ -365,7 +365,7 @@ struct BatteryStoreTests {
         var pending: CheckedContinuation<Int?, Error>?
         var missing = false
         let module = BatteryModule(preferences: preferences, runner: .init(read: { nil },
-            root: { _ in }, installed: { true }, version: { "2" }, create: { _ in 0 },
+            root: { _ in }, installed: { true }, version: { RootContract.version }, create: { _ in 0 },
             release: { _ in }, readLimit: {
                 if missing { throw RootHelperClient.Failure.executionFailed(RootContract.usageExit) }
                 if pending != nil { return 70 }
@@ -398,7 +398,7 @@ struct BatteryStoreTests {
             calls.append($0)
             if $0 == .adapterOn { throw RootHelperClient.Failure.timedOut }
             if $0 == .chargingOn { throw RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit) }
-        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }))
+        }, installed: { true }, version: { RootContract.version }, create: { _ in 1 }, release: { _ in }))
         repair.repairAtLaunch()
         await repair.waitUntilIdle()
         for _ in 0..<3 { await repair.evaluate(now: .now) }
@@ -412,7 +412,7 @@ struct BatteryStoreTests {
         reopening.start()
         for _ in 0..<100 { await Task.yield() }
         precondition(calls.isEmpty)
-        version = "2"
+        version = RootContract.version
         reopening.refreshHelper()
         for _ in 0..<100 { await Task.yield() }
         await reopening.evaluate(now: Date.now.addingTimeInterval(3600))
@@ -452,13 +452,13 @@ struct BatteryStoreTests {
             calls.append($0)
             if failWrite { throw RootHelperClient.Failure.timedOut }
             if connected { current = $0 == .chargeLimitOff ? nil : 80 }
-        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }, readLimit: { current }))
+        }, installed: { true }, version: { RootContract.version }, create: { _ in 1 }, release: { _ in }, readLimit: { current }))
         native.start()
         for _ in 0..<100 { await Task.yield() }
         await native.evaluate(now: .now)
         let relaunch = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
             preconditionFailure("Unconfirmed write must not clear the user's limit on relaunch")
-        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }, readLimit: { current }))
+        }, installed: { true }, version: { RootContract.version }, create: { _ in 1 }, release: { _ in }, readLimit: { current }))
         relaunch.repairAtLaunch()
         await relaunch.waitUntilIdle()
         precondition(current == 85 && !prefs.batteryOwnsNativeLimit)
@@ -492,7 +492,7 @@ struct BatteryStoreTests {
         }, root: {
             calls.append($0)
             if $0 == .adapterOn || $0 == .chargeLimitOff { throw RootHelperClient.Failure.timedOut }
-        }, installed: { true }, version: { "2" }, create: { _ in 1 }, release: { _ in }, readLimit: { 80 }))
+        }, installed: { true }, version: { RootContract.version }, create: { _ in 1 }, release: { _ in }, readLimit: { 80 }))
         active.start()
         for _ in 0..<100 { await Task.yield() }
         await active.evaluate(now: .now)
@@ -519,7 +519,7 @@ struct BatteryStoreTests {
         }, root: { calls.append($0) }, installed: { true }, version: {
             versions += 1
             if versionFails { throw RootHelperClient.Failure.timedOut }
-            return garbledVersion ? "garbled" : "2"
+            return garbledVersion ? "garbled" : RootContract.version
         }, create: { _ in 1 }, release: { _ in }, readLimit: { nil }))
         transient.start()
         for _ in 0..<100 { await Task.yield() }
