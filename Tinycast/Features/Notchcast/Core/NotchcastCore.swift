@@ -43,6 +43,21 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Could not update Spaces ordering."), tone: .danger)
         }
         spacesOrder.restoreIfDisabled()
+        macLink.listenerRoute = { request in
+            if request.method == "shelf-item" {
+                guard await NotchcastPreferences.shared.isOn(.machLink),
+                      await NotchcastPreferences.shared.isOn(.shelfBetweenMacs) else {
+                    throw MachLinkMessage.Failure.disconnected
+                }
+                return try await ShelfMachLinkTransport.response(to: request, module: shelf)
+            }
+            return nil
+        }
+        let shelfChannel = MachLinkShelfChannel(channel: macLink.channel) {
+            macLink.isRunning && macLink.isPaired && (!linkHealth.isRunning || linkHealth.health.reachability != .down)
+        }
+        shelf.linkStatus = shelfChannel
+        shelf.transport = shelfChannel
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
         for module in [tweaks, typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {

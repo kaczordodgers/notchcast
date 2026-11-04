@@ -16,6 +16,7 @@ struct NotchcastSettingsView: View {
 
             featureSection(.notchcastOptions, group: .islandOptions)
             featureSection(.notchcastLauncher, group: .launcher)
+            LauncherToolsSettingsSection()
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             Section("Tweaks") {
@@ -33,8 +34,13 @@ struct NotchcastSettingsView: View {
             }
             .settingsAnchor(.notchcastClean)
             Section("Tools") { NotchcastToolsWiringSettingsRows() }
+            URLCleanerSettingsSection(module: NotchcastCore.urlCleaner)
 
             NotchcastExtrasSection()
+            DownloadsSettingsSection()
+            AIUsageSettingsSection(link: NotchcastCore.macLink)
+            MachRemoteSettingsSection()
+            BackupStatusSettingsSection()
             AgentPricingSettingsSection()
             BuildStatsSettingsSection()
 
