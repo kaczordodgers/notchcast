@@ -31,5 +31,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastOptions, "Walking Pad", keywords: ["treadmill", "walk", "speed", "pause"]),
+        .init(.notchcastOptions, "Walk History", keywords: ["treadmill", "goal", "steps", "lubrication"]),
     ]
 }

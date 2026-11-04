@@ -11,6 +11,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case treadmillWalk
+    case treadmillHistory
 
     var title: String {
         switch self {
@@ -29,6 +31,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .treadmillWalk: String(localized: "Walking Pad")
+        case .treadmillHistory: String(localized: "Walk History")
         }
     }
 
@@ -49,6 +53,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .treadmillWalk: String(localized: "Prepare walking pad controls. Hardware transport is not available yet.")
+        case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
         }
     }
 
@@ -58,15 +64,16 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .treadmillWalk, .treadmillHistory:
             []
         }
     }
 }
 
 extension NotchcastFeature {
-    /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool {
+        ![.displayBrightness, .quitProtection, .treadmillWalk, .treadmillHistory].contains(self)
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
