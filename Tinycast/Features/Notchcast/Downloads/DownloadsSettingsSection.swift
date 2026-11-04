@@ -4,15 +4,15 @@ struct DownloadsSettingsSection: View {
     var body: some View {
         Section {
             LabeledContent("Downloads") {
-                Text(verbatim: "~/Downloads")
+                Text(verbatim: (NotchcastDownloadDestinations.downloads.path as NSString).abbreviatingWithTildeInPath)
                     .textSelection(.enabled)
             }
             LabeledContent("Distill") {
-                Text(verbatim: "~/Downloads/Distill/Raw")
+                Text(verbatim: (NotchcastDownloadDestinations.distill.path as NSString).abbreviatingWithTildeInPath)
                     .textSelection(.enabled)
             }
         } header: {
-            Text("Downloads")
+            SettingsSectionHeader(.notchcastDownloads)
         }
     }
 }
