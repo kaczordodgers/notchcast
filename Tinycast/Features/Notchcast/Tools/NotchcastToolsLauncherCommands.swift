@@ -13,7 +13,7 @@ enum NotchcastToolsLauncherCommands {
     static let listCommands = all[7]
 
     static let all = NotchcastToolsCommands.Action.allCases.map { action in
-        NotchcastCommand(slug: action.rawValue, name: action.name, sfSymbol: "wrench.and.screwdriver",
+        NotchcastCommand(slug: action.rawValue, name: action.name, sfSymbol: "wrench.and.screwdriver", feature: action.feature,
             isEnabled: { controller?.isEnabled(action) ?? false },
             run: { controller?.perform(action) })
     }
