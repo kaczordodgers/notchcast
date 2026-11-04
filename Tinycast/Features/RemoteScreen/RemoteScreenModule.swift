@@ -22,7 +22,7 @@ final class RemoteScreenModule: NotchcastModule {
             let address = try await MachLinkManager.request(true, method: message.method,
                 from: endpoint, pairing: pairing, as: RemoteScreenState.Availability.self)
             guard channel.pairing?.id == pairing.id, channel.endpoint == configured,
-                  address.host != nil else { throw RemoteScreenRequest.Failure.unavailable }
+                  address.host != nil || !address.screenSharingEnabled else { throw RemoteScreenRequest.Failure.unavailable }
             return try MachLinkMessage(id: message.id, method: message.method, value: address)
         }, open: { url, _ in
             guard NSWorkspace.shared.open(url) else { throw RemoteScreenRequest.Failure.unavailable }

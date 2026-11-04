@@ -40,7 +40,8 @@ final class RemoteScreenCoordinator {
                 throw RemoteScreenRequest.Failure.invalidResponse
             }
             let availability = try response.value(as: RemoteScreenState.Availability.self)
-            guard availability.screenSharingEnabled else { throw RemoteScreenRequest.Failure.unavailable }
+            guard availability.peerEnabled != false else { throw RemoteScreenRequest.Failure.peerDisabled }
+            guard availability.screenSharingEnabled else { throw RemoteScreenRequest.Failure.sharingDisabled }
             let url = try RemoteScreenRequest(host: availability.host ?? request.host).validatedURL()
             let client: RemoteScreenState.Client = preferredClientInstalled ? .preferred : .apple
             usedFallback = client == .apple

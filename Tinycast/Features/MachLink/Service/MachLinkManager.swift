@@ -17,6 +17,9 @@ final class MachLinkManager {
         [.machLink, .systemMonitor, .fanControl].allSatisfy { NotchcastPreferences.shared.isOn($0) }
     }
     var screenAddress: @MainActor () async throws -> RemoteScreenState.Availability = { try await RemoteScreenAddress.current() }
+    var screenEnabled: @MainActor () -> Bool = {
+        [.machLink, .remoteScreen].allSatisfy { NotchcastPreferences.shared.isOn($0) }
+    }
 
     isolated deinit {
         listener?.cancel()
@@ -31,7 +34,7 @@ final class MachLinkManager {
         serviceName = name
         listener.service = NWListener.Service(name: name, type: Self.serviceType,
             txtRecord: NWTXTRecord(["pairing": pairing.discoveryHash]))
-        listener.newConnectionHandler = { [weak self, weak listener] connection in
+        listener.newConnectionHandler = { @Sendable [weak self, weak listener] connection in
             Task { @MainActor [weak self, weak listener] in
                 guard let self, let listener, self.listener === listener, self.requests.count < 8 else {
                     connection.cancel()
@@ -42,7 +45,7 @@ final class MachLinkManager {
                     defer { self?.requests[id] = nil }
                     do {
                         guard let manager = self else { throw MachLinkMessage.Failure.disconnected }
-                        try await MachLinkTransport.bounded(connection: connection, timeout: .seconds(5)) {
+                        try await MachLinkTransport.bounded(connection: connection, timeout: MachLinkRequestBudget.responder) {
                             try await MachLinkTransport.bounded(
                                 connection: connection, timeout: .seconds(1), cancelOnSuccess: false
                             ) {
@@ -64,7 +67,7 @@ final class MachLinkManager {
         listener.start(queue: .main)
         let browser = NWBrowser(for: .bonjour(type: Self.serviceType, domain: nil), using: .tcp)
         self.browser = browser
-        browser.browseResultsChangedHandler = { [weak self, weak browser] results, _ in
+        browser.browseResultsChangedHandler = { @Sendable [weak self, weak browser] results, _ in
             Task { @MainActor [weak self, weak browser] in
                 guard let browser, self?.browser === browser else { return }
                 self?.peers = results
@@ -87,7 +90,7 @@ final class MachLinkManager {
 
     nonisolated static func request<Request: Encodable & Sendable, Response: Decodable & Sendable>(
         _ value: Request, method: String, from endpoint: NWEndpoint,
-        pairing: MachLinkPairing, timeout: Duration = .seconds(5), as type: Response.Type
+        pairing: MachLinkPairing, timeout: Duration = MachLinkRequestBudget.requester, as type: Response.Type
     ) async throws -> Response {
         let message = try MachLinkMessage(method: method, value: value)
         let connection = NWConnection(to: endpoint, using: MachLinkTransport.parameters(pairing: pairing))

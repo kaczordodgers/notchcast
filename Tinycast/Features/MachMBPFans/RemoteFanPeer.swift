@@ -6,14 +6,19 @@ extension MonitorModule {
             [.machLink, .systemMonitor, .fanControl].allSatisfy { NotchcastPreferences.shared.isOn($0) }
         }
         guard enabled() else { throw RemoteFanReport.Failure.unavailable }
-        let current = RemoteFanReport.Mode(rawValue: fans.mode == .medium ? "mid" : fans.mode.rawValue)!
+        let current = fans.mode.remoteMode
         let desired = request == .cycle ? current.next : RemoteFanReport.Mode(rawValue: request.rawValue)
         if let desired {
-            _ = try await fans.applyAndWait(desired == .mid ? .medium : FanControl.Mode(rawValue: desired.rawValue)!)
+            let requested: FanControl.Mode = switch desired {
+            case .auto: .auto
+            case .mid: .medium
+            case .max: .max
+            }
+            _ = try await fans.applyAndWait(requested)
         } else { await fans.waitUntilIdle() }
         try Task.checkCancellation()
         guard enabled() else { throw RemoteFanReport.Failure.unavailable }
-        let mode = RemoteFanReport.Mode(rawValue: fans.mode == .medium ? "mid" : fans.mode.rawValue)!
+        let mode = fans.mode.remoteMode
         let readings = try await Task.detached {
             guard let client = SMCClient(), let count = client.value("FNum"),
                   (1...9).contains(count), count.rounded() == count else {
@@ -31,11 +36,21 @@ extension MonitorModule {
         }.value
         try Task.checkCancellation()
         guard enabled() else { throw RemoteFanReport.Failure.unavailable }
-        guard (fans.mode == .medium ? "mid" : fans.mode.rawValue) == mode.rawValue else {
+        guard fans.mode.remoteMode == mode else {
             throw RemoteFanReport.Failure.busy
         }
         let report = RemoteFanReport(mode: mode, fans: readings)
         try report.validate(for: request)
         return report
+    }
+}
+
+extension FanControl.Mode {
+    var remoteMode: RemoteFanReport.Mode {
+        switch self {
+        case .auto: .auto
+        case .medium: .mid
+        case .max: .max
+        }
     }
 }

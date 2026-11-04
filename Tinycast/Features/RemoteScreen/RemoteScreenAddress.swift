@@ -9,12 +9,18 @@ enum RemoteScreenAddress {
             process.arguments = ["print", "system/com.apple.screensharing"]
             process.standardOutput = FileHandle.nullDevice
             process.standardError = FileHandle.nullDevice
-            try process.run()
-            process.waitUntilExit()
+            let exit = try process.runObservingExit()
+            let timeout = DispatchWorkItem { @Sendable in
+                if process.isRunning { process.terminate() }
+            }
+            DispatchQueue.global().asyncAfter(deadline: .now() + 2, execute: timeout)
+            exit.wait()
+            timeout.cancel()
             return process.terminationStatus == 0
         }.value
         try Task.checkCancellation()
-        guard enabled, let name = SCDynamicStoreCopyLocalHostName(nil) as String? else {
+        guard enabled else { return .init(screenSharingEnabled: false) }
+        guard let name = SCDynamicStoreCopyLocalHostName(nil) as String? else {
             throw RemoteScreenRequest.Failure.unavailable
         }
         return .init(screenSharingEnabled: true, host: name + ".local")

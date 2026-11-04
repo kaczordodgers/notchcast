@@ -11,8 +11,13 @@ extension MachLinkManager {
             return try MachLinkMessage(id: request.id, method: request.method, value: report)
         case "remote-screen-availability":
             _ = try request.value(as: Bool.self)
-            let address = try await screenAddress()
-            return try MachLinkMessage(id: request.id, method: request.method, value: address)
+            let address = screenEnabled()
+                ? try await screenAddress()
+                : RemoteScreenState.Availability(screenSharingEnabled: false, peerEnabled: false)
+            try Task.checkCancellation()
+            let result = screenEnabled() ? address
+                : RemoteScreenState.Availability(screenSharingEnabled: false, peerEnabled: false)
+            return try MachLinkMessage(id: request.id, method: request.method, value: result)
         default: return nil
         }
     }
