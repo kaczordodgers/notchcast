@@ -324,19 +324,35 @@ struct RecordingTests {
         expect(frames >= 30, "paced live capture retains every frame: \(frames)")
         print("PASS paced 1280x720 capture retains \(frames) frames and finishes")
         for attempt in 0..<3 {
+            let finishingTask = Mutex<Task<Void, any Error>?>(nil)
+            let beganFinalizing = Mutex(false)
             let cancelling = try RecordingWriter(url: root.appendingPathComponent("cancel-\(attempt).mp4"),
-                format: RecordingFormat(width: 1280, height: 720, frameRate: 30))
+                format: RecordingFormat(width: 1280, height: 720, frameRate: 30), onFinalizing: {
+                    beganFinalizing.withLock { $0 = true }
+                    let task = finishingTask.withLock { $0 }
+                    task?.cancel()
+                })
             cancelling.begin(at: .zero)
             for frame in 0..<30 {
                 try cancelling.append(video(at: Double(frame) / 30, width: 1280, height: 720), track: .video)
             }
             let clock = ContinuousClock()
             let start = clock.now
-            let finish = Task { try await cancelling.finish(at: CMTime(seconds: 3, preferredTimescale: 600)) }
-            try await Task.sleep(for: .milliseconds(1))
-            finish.cancel()
-            await cancelling.cancel()
-            _ = await finish.result
+            let finish = finishingTask.withLock { task in
+                let finish = Task { try await cancelling.finish(at: CMTime(seconds: 3, preferredTimescale: 600)) }
+                task = finish
+                return finish
+            }
+            let watchdog = Task.detached {
+                try await Task.sleep(for: .seconds(2))
+                preconditionFailure("native finalization cancellation timed out")
+            }
+            defer { watchdog.cancel() }
+            do {
+                try await finish.value
+                preconditionFailure("cancelled finalization succeeded")
+            } catch is CancellationError { }
+            expect(beganFinalizing.withLock { $0 }, "cancel occurs after native finalization begins")
             expect(start.duration(to: clock.now) < .seconds(2), "cancel releases in-flight native finish")
         }
         print("PASS cancellation releases native writer finish")
