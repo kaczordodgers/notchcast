@@ -227,9 +227,8 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature && self != .agentSessions
         !isSystemFeature && self != .buildStats && self != .spacesOrder
-            && self != .switcherQuitKey && !isLauncherKeysFeature
+            && self != .switcherQuitKey && !isLauncherKeysFeature && self != .agentSessions
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
