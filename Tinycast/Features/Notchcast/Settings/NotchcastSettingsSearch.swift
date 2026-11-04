@@ -9,6 +9,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastCaptureAndDictation = Self(tab: .notchcast, title: "Capture and dictation")
 }
 
 extension SettingsSearchCatalog {
@@ -31,5 +32,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastCaptureAndDictation, "Color Picker", keywords: ["colour", "eyedropper", "sample"]),
+        .init(.notchcastCaptureAndDictation, "Color format", keywords: ["colour", "hex", "rgb", "hsl"]),
     ]
 }
