@@ -48,7 +48,7 @@ struct NotchcastCoreTests {
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)
         precondition(l3.allSatisfy { preferences.isOn($0) })
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultOn })
+        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultEnabled })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))
