@@ -65,5 +65,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastActivities, "T3 Threads", keywords: ["agents", "pending", "requests"]),
+        .init(.notchcastActivities, "Bot Host", keywords: ["bots", "local", "automation"]),
     ]
 }

@@ -17,6 +17,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayWeather
     case dayMarkets
     case fleetPanel
+    case botHost
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -34,6 +35,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .islandStatusMessages, .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
         case .fleetPanel: .activities
+        case .botHost: .activities
         case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
@@ -66,6 +68,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .fleetPanel: String(localized: "Fleet panel")
+        case .botHost: String(localized: "Bot Host")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -99,6 +102,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .fleetPanel: String(localized: "Show T3 leads and workers across your Macs.")
+        case .botHost: String(localized: "Connect to local bots on demand.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -113,6 +117,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         switch self {
         case .t3Threads: []
         case .agentIsland: []
+        case .botHost: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .waitingAlerts: []
         case .fleetPanel: []
@@ -129,11 +134,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.t3Threads, .fleetPanel, .displayBrightness, .quitProtection].contains(self) && !isSystemFeature
+        ![.t3Threads, .fleetPanel, .agentIsland, .displayBrightness, .quitProtection].contains(self) && !isSystemFeature
     }
 
     var isSystemFeature: Bool {
-        [.waitingAlerts, .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
+        [.botHost, .waitingAlerts, .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
     }
 }

@@ -2,6 +2,7 @@
 enum NotchcastCore {
     static let t3Threads = T3ThreadsModule()
     static let agentIsland = AgentIslandModule()
+    static let botHost = BotHostModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -46,6 +47,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.t3Threads], module: t3Threads),
             .init(requires: [.fleetPanel], module: fleet),
+            .init(requires: [.botHost], module: botHost),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
