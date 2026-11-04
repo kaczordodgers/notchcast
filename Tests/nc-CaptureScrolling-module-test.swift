@@ -94,7 +94,7 @@ struct NotchcastCommand: Sendable {
              "preferences.set(.scrollingCapture, $0)"),
             ("Tinycast/Features/Notchcast/Settings/CaptureDictationSettingsSection.swift",
              "ScrollingCaptureSettingsSection()"),
-            ("Tinycast/Features/Notchcast/Core/NotchcastCore.swift",
+            ("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift",
              ".init(requires: [.scrollingCapture], module: scrollingCapture)"),
             ("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift", "ScrollingCaptureModule.launcherCommand")
         ] {
