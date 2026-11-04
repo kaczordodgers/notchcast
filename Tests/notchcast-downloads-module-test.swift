@@ -21,7 +21,7 @@ enum MediaArguments {
 
 struct MediaDownloadRunner: DownloadRunner {
     let format: MediaArguments.Format
-    var networkDecision: @MainActor @Sendable (Int64?) -> NetMergePolicy.Decision
+    var networkDecision: @MainActor @Sendable () -> NetMergePolicy.Decision
     var kind: String { format.rawValue }
     let tools: [DownloadTool] = []
 
