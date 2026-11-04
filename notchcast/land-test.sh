@@ -62,8 +62,8 @@ import sys
 from pathlib import Path
 p = Path(sys.argv[1])
 s = p.read_text()
-assert '!isSystemFeature && self != .buildStats' in s
-p.write_text(s.replace('!isSystemFeature && self != .buildStats', f'!isSystemFeature && self != .{sys.argv[2]} && self != .buildStats', 1))
+assert '!isSystemFeature && !isLauncherKeysFeature' in s
+p.write_text(s.replace('!isSystemFeature && !isLauncherKeysFeature', f'!isSystemFeature && self != .{sys.argv[2]} && !isLauncherKeysFeature', 1))
 PY
     git add "$logic"
     git commit --quiet -m "Fixture: default edit $1"

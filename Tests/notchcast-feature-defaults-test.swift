@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift Tinycast/Features/Notchcast/Core/NotchcastFeature+Logic.swift
-// Pins existing fresh-install defaults and needsIsland, so a flip must edit this table in plain sight.
+// Pins existing defaults and needsIsland; changing one means editing this table in plain sight.
 let pinned: [String: Bool] = [
     "island": true,
     "islandExternalDisplays": true,
