@@ -9,6 +9,7 @@ extension NotchcastCore {
     static let treadmill = TreadmillCoordinator.live()
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
+    static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
@@ -56,6 +57,7 @@ extension NotchcastCore {
             .init(requires: [.agentActions], module: agents),
             .init(requires: [.agentActions, .agentCLI], module: agentCLI),
             .init(requires: [.appearance], module: core.appearanceCoordinator),
+            .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: pastePlain),

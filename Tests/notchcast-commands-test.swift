@@ -89,6 +89,11 @@ enum QuicklinkDestination {
     func toggle() { runs += 1 }
 }
 
+enum AgentSessionsModule {
+    static let refreshCommand = NotchcastCommand(
+        slug: "refresh-agent-session-logs", name: "Refresh Agent Session Logs", sfSymbol: "arrow.clockwise", run: {})
+}
+
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         NotchcastCommand(
@@ -96,6 +101,7 @@ extension NotchcastCommandCatalog {
             legacyID: "command:toggle-island",
             isEnabled: { CommandFixture.shared.commandsAvailable },
             run: { CommandFixture.shared.toggle() }),
+        AgentSessionsModule.refreshCommand,
     ]
 }
 

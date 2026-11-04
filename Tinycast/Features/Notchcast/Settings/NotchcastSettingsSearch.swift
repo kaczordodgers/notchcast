@@ -4,6 +4,7 @@ import Foundation
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
     static let notchcastAppearance = Self(tab: .notchcast, title: "Appearance")
+    static let notchcastTasks = Self(tab: .notchcast, title: "Tasks")
     static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
     static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
@@ -40,6 +41,8 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
+        .init(group: .notchcastTasks, "Import Todoist JSON export…", keywords: ["json", "local file", "import"]),
         .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
@@ -112,6 +115,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Katana", keywords: ["guitar", "amp", "tone", "tuner", "recording", "usb"]),
         .init(.notchcastActivities, "Walking Pad", keywords: ["treadmill", "walk", "speed", "pause"]),
         .init(.notchcastActivities, "Walk History", keywords: ["treadmill", "goal", "steps", "lubrication"]),
+        .init(.notchcastActivities, "Agent Session Logs", keywords: ["claude", "codex", "tokens"]),
+        .init(.notchcastSystem, "Agent API Value", keywords: ["pricing", "cost", "tokens"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),

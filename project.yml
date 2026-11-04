@@ -49,6 +49,7 @@ targets:
           - Features/FileSearch/Helper
           - Features/Music/NowPlayingAdapter
           - Features/AgentBridge/Helper
+          - Features/Todo/README.md
           - Resources/EmojiKeywords
       # A folder reference keeps the packs in their own directory, which `EmojiIndex` lists.
       - path: Tinycast/Resources/EmojiKeywords
