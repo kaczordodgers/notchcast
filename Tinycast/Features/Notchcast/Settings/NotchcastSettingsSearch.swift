@@ -1,7 +1,8 @@
 import Foundation
 
+/// One line per anchor and per entry, so branches that add rows merge by union.
+/// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
-    static let notchcastTweaksApps = Self(tab: .notchcast, title: "System preferences")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -23,7 +24,6 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
-    static let notchcastTweaks = Self(tab: .notchcast, title: "Tweaks")
 }
 
 extension SettingsSearchCatalog {
@@ -38,50 +38,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastAlertDisk, "Disk free threshold"),
         .init(.notchcastAlertBattery, "Battery threshold"),
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
-        .init(.notchcastTweaksApps, "Disable autocorrect"),
-        .init(.notchcastTweaksApps, "Disable smart punctuation"),
-        .init(.notchcastTweaksApps, "Disable double-space period"),
-        .init(.notchcastTweaksApps, "Disable auto-capitalization"),
-        .init(.notchcastTweaksApps, "Enable key repeat"),
-        .init(.notchcastTweaksApps, "Show file extensions"),
-        .init(.notchcastTweaksApps, "Show hidden files"),
-        .init(.notchcastTweaksApps, "Show path bar"),
-        .init(.notchcastTweaksApps, "Show status bar"),
-        .init(.notchcastTweaksApps, "Keep folders first"),
-        .init(.notchcastTweaksApps, "Search current folder"),
-        .init(.notchcastTweaksApps, "Disable extension warning"),
-        .init(.notchcastTweaksApps, "Show path in title"),
-        .init(.notchcastTweaksApps, "Avoid network metadata"),
-        .init(.notchcastTweaksApps, "Remove trash after 30 days"),
-        .init(.notchcastTweaksApps, "Save locally"),
-        .init(.notchcastTweaksApps, "Expand save dialogs"),
-        .init(.notchcastTweaksApps, "Use list view"),
-        .init(.notchcastTweaksApps, "Avoid USB metadata"),
-        .init(.notchcastTweaksApps, "Hide desktop disks"),
-        .init(.notchcastTweaksApps, "Hide recent apps"),
-        .init(.notchcastTweaksApps, "Remove auto-hide delay"),
-        .init(.notchcastTweaksApps, "Disable launch animation"),
-        .init(.notchcastTweaksApps, "Minimize into app"),
-        .init(.notchcastTweaksApps, "Disable window animations"),
-        .init(.notchcastTweaksApps, "Remove tiled window margins"),
-        .init(.notchcastTweaksApps, "Remove screenshot shadow"),
-        .init(.notchcastTweaksApps, "Disable click to desktop"),
-        .init(.notchcastTweaksApps, "Hide desktop widgets"),
-        .init(.notchcastTweaksApps, "Typing"),
-        .init(.notchcastTweaksApps, "Show library"),
-        .init(.notchcastTweaksApps, "Restrict gaming"),
-        .init(.notchcastTweaksApps, "Restrict iPhone mirroring"),
-        .init(.notchcastTweaksApps, "Restrict music service"),
-        .init(.notchcastTweaksApps, "Restrict book store"),
-        .init(.notchcastTweaksApps, "Finder"),
-        .init(.notchcastTweaksApps, "Dock and windows"),
-        .init(.notchcastTweaksApps, "Apple apps"),
-        .init(.notchcastTweaksApps, "iPhone backup"),
-        .init(.notchcastTweaksApps, "Key repeat speed"),
-        .init(.notchcastTweaksApps, "Key repeat delay"),
-        .init(.notchcastTweaksApps, "New Finder windows"),
-        .init(.notchcastTweaksApps, "Disable automatic iPhone backups"),
-        .init(.notchcastTweaksApps, "iPhone backup folder"),
         .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
         .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display", "hover delay"]),
         .init(.notchcastOptions, "Full-Screen Apps", keywords: ["fullscreen", "full screen", "video"]),
@@ -117,15 +73,11 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
         .init(.notchcastSystem, "Hide with ⌘M", keywords: ["minimize", "command m"]),
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
-        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)",
-              keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
-    ] + NotchcastFeature.systemToolsSettingsFeatures.map {
-        switch $0 {
-        case .startupItems: SettingsSearchEntry(.notchcastTweaks, "Startup Items", keywords: ["launchagents"])
-        case .notificationCleanup: SettingsSearchEntry(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"])
-        case .sudoTouchID: SettingsSearchEntry(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"])
-        default: SettingsSearchEntry(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"])
-        }
-    }
+        .init(.notchcastTweaks, "Startup Items", keywords: ["launchagents"]),
+        .init(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"]),
+        .init(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"]),
+        .init(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"]),
+    ]
 }
