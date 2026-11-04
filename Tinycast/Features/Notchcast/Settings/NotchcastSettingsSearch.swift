@@ -62,5 +62,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastActivities, "Agent Session Logs", keywords: ["claude", "codex", "tokens"]),
+        .init(.notchcastSystem, "Agent API Value", keywords: ["pricing", "cost", "tokens"]),
     ]
 }

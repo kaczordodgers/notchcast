@@ -1,4 +1,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-sources: Tinycast/Features/AgentSessions/AgentSessionsModule+Command.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandController+Command.swift
@@ -6,6 +9,15 @@
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction+EntryID.swift
 import Foundation
+
+@MainActor final class AgentSessionsModule {
+    var runs = 0
+    func refresh() { runs += 1 }
+}
+
+@MainActor enum NotchcastCore {
+    static let agentSessions = AgentSessionsModule()
+}
 
 enum SettingsTab: CaseIterable, Sendable {
     case commands, quicklinks, ai, quickActions, fileSearch, notes, snippets, navigation
