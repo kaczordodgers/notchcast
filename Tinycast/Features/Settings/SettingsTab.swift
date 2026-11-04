@@ -3,6 +3,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         fallbacks, clipboard, snippets, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         dictation, ai, quickActions, extensions, permissions, backup, about
     case notchcast
+    case notchcastLauncher, notchcastMusicAndSound, notchcastDayAndTasks, notchcastMonitorAndFans, notchcastBattery, notchcastWindowsAndDisplay, notchcastDownloads, notchcastFilesAndClipboard, notchcastCapture, notchcastDictation, notchcastAIAndAgents, notchcastTwoMacs, notchcastBackups, notchcastCleanAndUpdates, notchcastTweaks, notchcastPrivacyAndStartup
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 
@@ -37,7 +38,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .permissions: "permissions"
         case .backup: "backup"
         case .about: "about"
-        case .notchcast: "notchcast"
+        default: NotchcastSettingsModule(tab: self)!.slug
         }
     }
 
@@ -66,7 +67,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .permissions: return String(localized: "Permissions")
         case .backup: return String(localized: "Backup")
         case .about: return String(localized: "About")
-        case .notchcast: return String(localized: "Notchcast")
+        default: return NotchcastSettingsModule(tab: self)!.title
         }
     }
 
@@ -95,14 +96,14 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .permissions: return "lock.shield"
         case .backup: return "arrow.up.arrow.down.circle"
         case .about: return "info.circle"
-        case .notchcast: return "macbook.gen2"
+        default: return NotchcastSettingsModule(tab: self)!.systemImage
         }
     }
 }
 
 /// Declaration order is display order; not `.Section`, which would shadow SwiftUI's `Section`.
 enum SettingsSection: CaseIterable, Identifiable {
-    case general, launcher, features, advanced
+    case general, launcher, features, notchcast, advanced
     /// See `SettingsTab.id`: distinct types keep the two namespaces from colliding.
     var id: Self { self }
 
@@ -111,6 +112,7 @@ enum SettingsSection: CaseIterable, Identifiable {
         case .general: return String(localized: "General")
         case .launcher: return String(localized: "Launcher")
         case .features: return String(localized: "Features")
+        case .notchcast: return String(localized: "Notchcast")
         case .advanced: return String(localized: "Advanced")
         }
     }
@@ -126,10 +128,10 @@ enum SettingsSection: CaseIterable, Identifiable {
         case .features:
             // Everyday tools first; AI and extensions are opt-in extras.
             return [
-                .notchcast,
                 .clipboard, .snippets, .fileSearch, .windowManagement, .navigation, .notes,
                 .calendar, .emoji, .dictation, .ai, .quickActions, .extensions
             ]
+        case .notchcast: return NotchcastSettingsModule.allCases.map(\.tab)
         case .advanced: return [.backup, .about]
         }
     }

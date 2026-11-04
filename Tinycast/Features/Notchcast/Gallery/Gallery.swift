@@ -16,7 +16,7 @@ enum NotchcastGallery {
             exit(2)
         }
         let application = NSApplication.shared
-        application.setActivationPolicy(.prohibited)
+        application.setActivationPolicy(environment["NOTCHCAST_SETTINGS_ONSCREEN"] == "1" ? .accessory : .prohibited)
         UserDefaults.standard.setVolatileDomain([
             "showInMenuBar": false, "calendarEnabled": false, "automaticallyCheckForUpdates": false,
             "AppleLanguages": ["en"], "NSQuitAlwaysKeepsWindows": false
@@ -28,6 +28,7 @@ enum NotchcastGallery {
     }
 
     static func runIfRequested(_ core: AppCore) -> Bool {
+        if GallerySettingsTiming.runIfRequested(core) { return true }
         guard let directory = ProcessInfo.processInfo.environment["NOTCHCAST_GALLERY"] else { return false }
         Task { @MainActor in
             do {

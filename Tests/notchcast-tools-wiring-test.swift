@@ -12,6 +12,7 @@ struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
+    let feature: NotchcastFeature?
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
 }
