@@ -44,6 +44,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case quickLookSpace
     case finderCutPaste
     case finderRename
+    case markdownFiles
+    case plainTextFiles
+    case editorSpellChecking
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -76,6 +79,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .quickLookSpace: .launcher
         case .finderCutPaste: .system
         case .finderRename: .system
+        case .markdownFiles: .system
+        case .plainTextFiles: .system
+        case .editorSpellChecking: .system
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -138,6 +144,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .quickLookSpace: String(localized: "Quick Look on Space")
         case .finderCutPaste: String(localized: "Finder Cut and Paste")
         case .finderRename: String(localized: "Finder Rename")
+        case .markdownFiles: String(localized: "Markdown Files")
+        case .plainTextFiles: String(localized: "Plain Text Files")
+        case .editorSpellChecking: String(localized: "Editor Spell Checking")
         }
     }
 
@@ -186,6 +195,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .quickLookSpace: String(localized: "Preview an arrow-selected file with Space.")
         case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
         case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
+        case .markdownFiles: String(localized: "Edit Markdown documents outside the notes folder.")
+        case .plainTextFiles: String(localized: "Edit plain text while preserving its file encoding.")
+        case .editorSpellChecking: String(localized: "Check spelling in the editor.")
         }
     }
 
@@ -229,6 +241,9 @@ extension NotchcastFeature {
         case .quickLookSpace: false
         case .finderCutPaste: false
         case .finderRename: false
+        case .markdownFiles: false
+        case .plainTextFiles: false
+        case .editorSpellChecking: false
         default: true
         }
     }
