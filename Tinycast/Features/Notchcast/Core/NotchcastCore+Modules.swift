@@ -47,6 +47,7 @@ extension NotchcastCore {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = pastePlain
         pasteImage.configureFeedback(core)
+        core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
             .init(requires: [.githubSearch], module: github),
             .init(requires: [.clearNotifications], module: clearNotifications),
