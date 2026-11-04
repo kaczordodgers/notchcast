@@ -43,6 +43,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case recording
     case screenText
     case scrollingCapture
+    case globeDictation
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -112,6 +113,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentAnswer: .captureAndDictation
         case .voiceAsk: .captureAndDictation
         case .recording: .captureAndDictation
+        case .globeDictation: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -210,6 +212,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentAnswer: String(localized: "Agent Answers")
         case .voiceAsk: String(localized: "Voice Ask")
         case .recording: String(localized: "Screen Recording")
+        case .globeDictation: String(localized: "Globe Dictation")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -281,6 +284,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentAnswer: String(localized: "Reply to waiting agents.")
         case .voiceAsk: String(localized: "Voice Ask destination")
         case .recording: String(localized: "Record an area, window or display with system audio.")
+        case .globeDictation: String(localized: "Tap Globe to start or finish dictation, or hold it to talk.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -315,6 +319,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .switcherQuitKey: [.accessibility]
         case .voiceAsk: [.accessibility]
         case .recording: [.screenRecording]
+        case .globeDictation: [.accessibility]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -359,6 +364,7 @@ extension NotchcastFeature {
         case .agentAnswer: false
         case .voiceAsk: false
         case .recording: false
+        case .globeDictation: false
         case .displayBrightness: false
         case .quitProtection: false
         case .pastePlain: false

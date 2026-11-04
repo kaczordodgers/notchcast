@@ -13,6 +13,7 @@ struct CaptureDictationSettingsSection: View {
             RecordingSettingsSection(module: NotchcastCore.recording)
             ScreenTextSettingsSection(module: NotchcastCore.screenText)
             ScrollingCaptureSettingsSection()
+            DictationTriggerSettingsSection()
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }

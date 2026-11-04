@@ -4,6 +4,7 @@ struct DictationTriggerEngine: Sendable {
     enum Input: Sendable {
         case down(isRecording: Bool)
         case up
+        case confirm
         case otherInput
         case finish
         case reset
@@ -19,28 +20,44 @@ struct DictationTriggerEngine: Sendable {
     }
 
     private var press: Press?
+    private var ownsRecording = false
 
     mutating func handle(_ input: Input, at now: TimeInterval) -> Action? {
         switch input {
         case .down(let isRecording):
             guard press == nil else { return nil }
+            if !isRecording { ownsRecording = false }
             press = Press(startedAt: now, wasRecording: isRecording)
-            return isRecording ? nil : .start
+            return nil
+        case .confirm:
+            guard let press, !press.wasRecording, !ownsRecording,
+                  now >= press.startedAt + Self.holdThreshold else { return nil }
+            ownsRecording = true
+            return .start
         case .up:
             guard let press else { return nil }
             self.press = nil
-            return press.wasRecording || now - press.startedAt >= Self.holdThreshold ? .finish : nil
+            if press.wasRecording || ownsRecording {
+                ownsRecording = false
+                return .finish
+            }
+            ownsRecording = true
+            return .start
         case .otherInput:
             guard let press else { return nil }
             self.press = nil
-            return press.wasRecording ? nil : .cancel
+            guard !press.wasRecording, ownsRecording else { return nil }
+            ownsRecording = false
+            return now >= press.startedAt + Self.holdThreshold ? .finish : .cancel
         case .finish:
             press = nil
+            ownsRecording = false
             return .finish
         case .reset:
-            guard let press else { return nil }
-            self.press = nil
-            return press.wasRecording ? nil : .finish
+            press = nil
+            guard ownsRecording else { return nil }
+            ownsRecording = false
+            return .finish
         }
     }
 }
