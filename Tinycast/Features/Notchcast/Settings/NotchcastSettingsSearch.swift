@@ -85,6 +85,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastSystem, "Katana", keywords: ["guitar", "amp", "tone", "tuner", "recording", "usb"]),
         .init(.notchcastActivities, "Walking Pad", keywords: ["treadmill", "walk", "speed", "pause"]),
         .init(.notchcastActivities, "Walk History", keywords: ["treadmill", "goal", "steps", "lubrication"]),
         .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),

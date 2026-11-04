@@ -26,6 +26,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case agentCLI
     case treadmillWalk
     case treadmillHistory
+    case katana
     case appearance
     case pastePlain
     case pasteImage
@@ -91,6 +92,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentCLI: .system
         case .treadmillWalk: .activities
         case .treadmillHistory: .activities
+        case .katana: .system
         case .appearance: .appearance
         case .pastePlain: .clipboard
         case .pasteImage: .clipboard
@@ -123,6 +125,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentCLI: String(localized: "Command line tool")
         case .treadmillWalk: String(localized: "Walking Pad")
         case .treadmillHistory: String(localized: "Walk History")
+        case .katana: String(localized: "Katana")
         case .appearance: String(localized: "Custom appearance")
         case .pastePlain: String(localized: "Paste Plain Text")
         case .pasteImage: String(localized: "Paste Image in Finder")
@@ -173,6 +176,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
         case .treadmillWalk: String(localized: "Walking pad controls are not available yet.")
         case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
+        case .katana: String(localized: "Katana channels, tones and USB audio.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .pastePlain: String(localized: "Hyper+V pastes text without formatting.")
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
@@ -250,6 +254,12 @@ extension NotchcastFeature {
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
+    var isSystemFeature: Bool {
+        switch self {
+        case .katana: true
+        default: settingsGroup == .systemTools
+        }
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
