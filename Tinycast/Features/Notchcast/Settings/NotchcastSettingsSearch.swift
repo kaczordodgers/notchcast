@@ -3,6 +3,7 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastTasks = Self(tab: .notchcast, title: "Tasks")
     static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
     static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
@@ -30,8 +31,12 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastDownloads = Self(tab: .notchcast, title: "Downloads")
+    static let notchcastLauncherTools = Self(tab: .notchcast, title: "Launcher tools")
+    static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
     static let notchcastTorrents = Self(tab: .notchcast, title: "Torrents")
     static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
+    static let notchcastRemoteMac = Self(tab: .notchcast, title: LocalizedStringResource("Remote Mac"))
     static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
     static let notchcastCaptureAndDictation = Self(tab: .notchcast, title: "Capture and dictation")
 }
@@ -39,8 +44,14 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
+        .init(group: .notchcastTasks, "Import Todoist JSON export…", keywords: ["json", "local file", "import"]),
+        .init(.notchcastSystem, "URL cleaner", keywords: ["tracking", "clipboard", "parameters"]),
         .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
+        .init(.notchcastCaptureAndDictation, "Agent MCP Server", keywords: ["agents", "protocol", "tools"]),
+        .init(.notchcastCaptureAndDictation, "AI Chat Tools", keywords: ["agents", "mcp", "server"]),
+        .init(.notchcastCaptureAndDictation, "Add Notchcast to AI chat", keywords: ["mcp", "tools"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastArchives, "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
         .init(.notchcastArchives, "Extract in place", keywords: ["shrink", "space", "destructive"]),
@@ -61,6 +72,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastLauncher, "Launcher from Island", keywords: ["palette", "search", "open"]),
         .init(.notchcastLauncher, "Launcher Number Keys", keywords: ["command", "results", "1", "9"]),
         .init(.notchcastLauncher, "Alias and Space", keywords: ["alias", "space", "arguments"]),
+        .init(.notchcastLauncher, "Quick Look on Space", keywords: ["file", "preview", "markdown"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
         .init(.notchcastFanMode, "Fan mode"),
@@ -76,17 +88,40 @@ extension SettingsSearchCatalog {
         .init(.notchcastCaptureAndDictation, "Color Picker", keywords: ["colour", "eyedropper", "sample"]),
         .init(.notchcastCaptureAndDictation, "Color format", keywords: ["colour", "hex", "rgb", "hsl"]),
         .init(.notchcastCaptureAndDictation, "Screenshots", keywords: ["screen capture", "image"]),
+        .init(.notchcastCaptureAndDictation, "Capture Text", keywords: ["ocr", "recognize", "barcode", "qr"]),
+        .init(.notchcastCaptureAndDictation, "Remove line breaks"),
+        .init(.notchcastCaptureAndDictation, "Scrolling Capture", keywords: ["stitch", "screenshot"]),
+        .init(.notchcastCaptureAndDictation, "Dictate in English", keywords: ["Globe", "translate"]),
+        .init(.notchcastCaptureAndDictation, "Globe Dictation", keywords: ["fn", "microphone", "hold to talk"]),
         .init(.notchcastCaptureAndDictation, "Screenshot destination", keywords: ["clipboard", "file", "save"]),
         .init(.notchcastCaptureAndDictation, "Screenshot folder", keywords: ["directory", "desktop"]),
+        .init(.notchcastCaptureAndDictation, "AI cleanup"),
+        .init(.notchcastCaptureAndDictation, "Keep dictation history"),
+        .init(.notchcastCaptureAndDictation, "Delete history"),
+        .init(.notchcastCaptureAndDictation, "Cleanup endpoint"),
+        .init(.notchcastCaptureAndDictation, "Cleanup effort"),
+        .init(.notchcastCaptureAndDictation, "Cleanup prompt addition"),
+        .init(.notchcastCaptureAndDictation, "Cleanup vocabulary"),
+        .init(.notchcastCaptureAndDictation, "Cleanup API key"),
+        .init(.notchcastCaptureAndDictation, "Screen Recording", keywords: ["record", "video", "pause"]),
+        .init(.notchcastCaptureAndDictation, "Recording folder", keywords: ["directory", "downloads", "fps"]),
         .init(.notchcastSystem, "Display Brightness", keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastSystem, "Markdown Files", keywords: ["editor", "markdown", "md", "document"]),
+        .init(.notchcastSystem, "Plain Text Files", keywords: ["editor", "text", "txt", "encoding"]),
+        .init(.notchcastSystem, "Editor Spell Checking", keywords: ["editor", "spelling", "notes"]),
         .init(.notchcastSystem, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastSystem, "Back Up Now", keywords: ["backup", "restic", "launchd"]),
+        .init(.notchcastSystem, "Browse and Restore Backups", keywords: ["snapshot", "restic", "restore"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastActivities, "Convert Files", keywords: ["convert", "pdf", "formats"]),
+        .init(.notchcastActivities, "Media Tools", keywords: ["compress", "gif", "resize", "text"]),
+        .init(.notchcastLauncher, "Command Runner", keywords: ["catalogue", "shell", "tasks"]),
         .init(.notchcastSystem, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
         .init(.notchcastSystem, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
         .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
@@ -94,6 +129,34 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastActivities, "Downloads", keywords: ["video", "audio", "transcript", "webpage", "clipboard"]),
+        .init(.notchcastActivities, "Fast Downloads with aria2c", keywords: ["download", "speed", "aria2"]),
+        .init(.notchcastActivities, "Distill", keywords: ["links", "transcribe", "media", "queue"]),
+        .init(.notchcastActivities, "Distill Timestamps", keywords: ["transcript", "time", "chunks"]),
+        .init(.notchcastActivities, "Convert Distill Folder", keywords: ["markdown", "pdf", "ocr", "files"]),
+        .init(.notchcastActivities, "AI Usage", keywords: ["plan", "limits", "cache"]),
+        .init(.notchcastActivities, "Other Mac AI Usage", keywords: ["peer", "remote"]),
+        .init(.notchcastSystem, "Mac Link", keywords: ["pair", "network"]),
+        .init(.notchcastLauncher, "GitHub Search", keywords: ["repositories", "stars", "token"]),
+        .init(.notchcastLauncher, "Clear Notifications", keywords: ["notification center", "accessibility"]),
+        .init(.notchcastLauncherTools, "GitHub Token", keywords: ["keychain", "account"]),
+        .init(.notchcastLauncher, "Currency Answers", keywords: ["nbp", "currency", "rates"]),
+        .init(.notchcastLauncher, "Copy Path", keywords: ["finder", "browser", "document", "link"]),
+        .init(.notchcastLauncher, "Small Commands", keywords: ["password", "shorten", "noise", "airdrop"]),
+        .init(.notchcastActivities, "Shelf between Macs", keywords: ["send", "files", "text"]),
+        .init(.notchcastSystem, "Link Health", keywords: ["connection", "latency", "peer"]),
+        .init(.notchcastSystem, "Backup Status", keywords: ["backup", "stale", "failure", "restore"]),
+        .init(.notchcastSystem, "Remote Mac", keywords: ["ssh", "terminal", "Remote Mac address"]),
+        .init(.notchcastSystem, "Send to Remote Mac", keywords: ["files", "Finder"]),
+        .init(.notchcastSystem, "Update Remote Mac", keywords: ["update", "ssh"]),
+        .init(.notchcastRemoteMac, "Remote Mac address", keywords: ["ssh", "host", "alias"]),
+        .init(.notchcastRemoteMac, "Remote terminal directory"),
+        .init(.notchcastRemoteMac, "Remote update script path"),
+        .init(.notchcastSystem, "Backup status file path"),
+        .init(.notchcastActivities, "AI usage cache directory"),
+        .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
+        .init(.notchcastActivities, "Agent Session Logs", keywords: ["claude", "codex", "tokens"]),
+        .init(.notchcastSystem, "Agent API Value", keywords: ["pricing", "cost", "tokens"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),

@@ -15,4 +15,13 @@ struct DictationCleanupSettings: Codable, Equatable, Sendable {
     var effort: Effort = .low
     var promptAddition = ""
     var vocabulary: [VocabularyTerm] = []
+
+    static func vocabulary(from text: String) -> [VocabularyTerm] {
+        text.components(separatedBy: "\n").map { line in
+            let parts = line.components(separatedBy: "|").map {
+                $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            return .init(spelling: parts[0], misheardForms: Array(parts.dropFirst()))
+        }
+    }
 }
