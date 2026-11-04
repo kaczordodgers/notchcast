@@ -18,6 +18,49 @@ def catalog(**strings):
 
 
 class CatalogTests(unittest.TestCase):
+    def test_interpolated_references(self):
+        for spec in ('%@', '%lld', '%ld', '%d', '%f', '%.2f', '%1$@'):
+            key = 'Updated ' + spec
+            swift = r'Text("Updated \(format(value))")'
+            self.assertFalse(check({}, {key: {}}, swift, ''))
+            self.assertTrue(check({key: {}}, {}, '', swift))
+        self.assertFalse(check({}, {'Transcribing %lld of %lld': {}},
+                               r'Text("Transcribing \(count) of \(total)")', ''))
+
+    def test_branch_edit(self):
+        base = catalog(Key={'value': 'old'})
+        branch = catalog(Key={'value': 'fixed'})
+        self.assertEqual(merge(base, base, branch), branch)
+
+    def test_multiline_and_percent(self):
+        self.assertFalse(check({}, {'Warns below %lld%%.': {}},
+                               r'Text("Warns below \(10)%.")', ''))
+        self.assertFalse(check({}, {'Only these folders are indexed.': {}},
+                               'Text("""\n    Only these folders are \\\n    indexed.\n    """)', ''))
+
+    def test_delete_edit_conflict(self):
+        base = catalog(Key={'value': 'old'})
+        edited = catalog(Key={'value': 'fixed'})
+        for main, branch in ((edited, catalog()), (catalog(), edited)):
+            with self.assertRaisesRegex(ValueError, 'value conflicts'):
+                merge(base, main, branch)
+
+    def test_character_order(self):
+        result = merge(catalog(), catalog(Alpha={}, zebra={}), catalog(Zebra={}, apple={}))
+        self.assertEqual(list(json.loads(result)['strings']), ['Alpha', 'Zebra', 'apple', 'zebra'])
+
+    def test_crlf_cli(self):
+        with tempfile.TemporaryDirectory() as directory:
+            paths = [Path(directory) / name for name in ('base', 'main', 'branch', 'out')]
+            for path, value in zip(paths, (catalog(A={}), catalog(A={}), catalog(A={}, B={}))):
+                path.write_bytes(value.replace('\n', '\r\n').encode())
+            result = subprocess.run(['python3', str(ROOT / 'xcstrings-union.py'),
+                                     *map(str, paths)], capture_output=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            raw = paths[-1].read_bytes()
+            self.assertIn(b'\r\n', raw)
+            self.assertNotIn(b'\n', raw.replace(b'\r\n', b''))
+
     def test_identity(self):
         text = (ROOT.parent / tool["CATALOG"]).read_text()
         self.assertEqual(merge(text, text, text), text)

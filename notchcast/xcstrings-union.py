@@ -33,10 +33,13 @@ def blocks(text):
 
 
 def merge(base, target, source):
+    newline = "\r\n" if "\r\n" in target else "\n"
     old, main, branch = [json.loads(t)["strings"] for t in (base, target, source)]
-    conflicts = [k for k in main.keys() & branch.keys()
-                 if main[k] != branch[k] and main.get(k) != old.get(k)
-                 and branch.get(k) != old.get(k)]
+    missing = object()
+    conflicts = [k for k in main.keys() | branch.keys() | old.keys()
+                 if main.get(k, missing) != branch.get(k, missing)
+                 and main.get(k, missing) != old.get(k, missing)
+                 and branch.get(k, missing) != old.get(k, missing)]
     if conflicts:
         raise ValueError("value conflicts: " + ", ".join(json.dumps(k) for k in sorted(conflicts)))
     for key in old.keys() - branch.keys():
@@ -51,22 +54,27 @@ def merge(base, target, source):
             else:
                 target = target[:start] + target[end:]
             break
-    for key in sorted(branch, key=str.casefold):
+    for key in branch.keys() & old.keys() & main.keys():
+        if branch[key] != old[key] and main[key] == old[key]:
+            _, start, end = next(entry for entry in blocks(target) if entry[0] == key)
+            block = "    " + json.dumps(key, ensure_ascii=False) + " : " + dump(branch[key], 2)
+            target = target[:start] + block.replace("\n", newline) + target[end:]
+    for key in sorted(branch):
         if key in old:
             continue
         if key in main:
             continue
         entries = blocks(target)
-        block = "    " + json.dumps(key, ensure_ascii=False) + " : " + dump(branch[key], 2)
-        after = next((start for name, start, _ in entries if name.casefold() > key.casefold()), None)
+        block = ("    " + json.dumps(key, ensure_ascii=False) + " : " + dump(branch[key], 2)).replace("\n", newline)
+        after = next((start for name, start, _ in entries if name > key), None)
         if after is not None:
-            target = target[:after] + block + ",\n" + target[after:]
+            target = target[:after] + block + "," + newline + target[after:]
         elif entries:
             end = entries[-1][2]
-            target = target[:end] + ",\n" + block + target[end:]
+            target = target[:end] + "," + newline + block + target[end:]
         else:
             match = re.search(r'"strings"\s*:\s*\{', target)
-            target = target[:match.end()] + "\n" + block + target[match.end():]
+            target = target[:match.end()] + newline + block + target[match.end():]
     json.loads(target)
     return target
 
@@ -95,7 +103,7 @@ def git_inputs(main_ref):
     except subprocess.CalledProcessError:
         ancestor = git("merge-base", *refs) if incoming == "MERGE_HEAD" else git("rev-parse", incoming + "^")
         base = git("show", ancestor + ":" + CATALOG)
-    target = subprocess.check_output(["git", "show", upstream + ":" + CATALOG], text=True)
+    target = subprocess.check_output(["git", "show", upstream + ":" + CATALOG]).decode()
     return base, target, git("show", branch + ":" + CATALOG)
 
 
@@ -113,7 +121,7 @@ def main():
             if len(args.files) != 4:
                 parser.error("expected BASE MAIN BRANCH OUT")
             *paths, output = args.files
-            inputs = [Path(p).read_text() for p in paths]
+            inputs = [Path(p).read_bytes().decode() for p in paths]
             out = Path(output)
         out.write_text(merge(*inputs))
         if args.git:
