@@ -24,6 +24,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastDownloads = Self(tab: .notchcast, title: "Downloads")
 }
 
 extension SettingsSearchCatalog {
@@ -75,5 +76,10 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastActivities, "Downloads", keywords: ["video", "audio", "transcript", "webpage", "clipboard"]),
+        .init(.notchcastActivities, "Fast Downloads with aria2c", keywords: ["download", "speed", "aria2"]),
+        .init(.notchcastActivities, "Distill", keywords: ["links", "transcribe", "media", "queue"]),
+        .init(.notchcastActivities, "Distill Timestamps", keywords: ["transcript", "time", "chunks"]),
+        .init(.notchcastActivities, "Convert Distill Folder", keywords: ["markdown", "pdf", "ocr", "files"]),
     ]
 }
