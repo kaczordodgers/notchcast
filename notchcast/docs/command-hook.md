@@ -1,5 +1,14 @@
 # Launcher commands
 
+Features append one case per line in `Core/NotchcastFeature.swift`, one line per feature in
+each switch, and one group line in `settingsGroup`. Never extend an existing line or combine
+switch arms. `settingsGroup` stays exhaustive; `requiredGrants` lists only exceptions before
+`default: []`. If `startsOff` is present, its arms follow the same rule.
+New groups append one case line in `Core/NotchcastFeature+SettingsGroup.swift`, inside the
+separator comments. Keep separators between cases and members and between switches.
+Both files use `merge=union`; run `python3 notchcast/check-feature-shape.py` and
+`python3 notchcast/check-feature-shape-test.py` after merging.
+
 Define a `NotchcastCommand` beside its feature, then add one array element in
 `Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift`:
 
