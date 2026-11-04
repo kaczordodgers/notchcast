@@ -80,6 +80,7 @@ final class VisibilityStore {
         case .app: isKindEnabled(.application)
         case .settingsPane: isKindEnabled(.systemSettings)
         case .systemAction: isKindEnabled(.systemAction)
+        case .notchcastCommand(let id): NotchcastCommandCatalog.command(for: id)?.owner != nil || isKindEnabled(.command)
         case .command(let id): id.owner == nil ? isKindEnabled(.command) : true
         case .togglePalette, .dictation, .quickAction, .customCommand, .windowCommand, .customWindowSize,
             .windowLayout, .windowRoom, .quicklink, .appleShortcut, .snippet, .extensionCommand:

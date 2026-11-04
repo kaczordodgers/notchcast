@@ -74,6 +74,7 @@ final class LauncherCoordinator {
         }
         // Commands dispatch before the palette hides: mode-switching commands keep it open.
         if app.kind == .command {
+            if NotchcastCommandCatalog.dispatch(app.id, dismiss: dismissPalette) { return }
             guard let id = CommandCatalog.command(for: app) else { return }
             // Query-driven: only this row knows the URL the typed text resolved to.
             if id == .openInBrowser {
@@ -272,7 +273,6 @@ final class LauncherCoordinator {
         case .quit:
             NSApp.terminate(nil)
         case .theme: core.appearanceCoordinator.showThemes()
-        case .toggleIsland: dismissPalette(); IslandController.shared.toggle()
         }
     }
 
