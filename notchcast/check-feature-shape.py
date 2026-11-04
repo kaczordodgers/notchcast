@@ -81,6 +81,50 @@ def case_errors(code):
     return errors
 
 
+PREFERENCES = Path("Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift")
+
+
+def preference_errors(source):
+    """Stored settings and init assignments: one line each, each name once."""
+    errors = []
+    lines = source.split("\n")
+    code = mask_literals(source).split("\n")
+    if sum(1 for line in code if re.match(r"\s*final class NotchcastPreferences\b", line)) != 1:
+        errors.append((1, "expected one NotchcastPreferences class"))
+    depth = 0
+    in_class = in_init = False
+    names = {}
+    assigned = {}
+    for number, (line, masked) in enumerate(zip(lines, code), 1):
+        stripped = masked.strip()
+        balance = sum(masked.count(c) for c in "{([") - sum(masked.count(c) for c in "})]")
+        if depth == 0 and re.match(r"(?:@\w+\s+)*final class NotchcastPreferences\b", stripped):
+            in_class = True
+        elif in_class and depth == 1 and stripped.startswith("init("):
+            in_init = True
+        elif in_class and depth == 1 and re.match(r"(?:@\w+\s+)*(?:private\s+|fileprivate\s+)?(?:let|var)\s", stripped):
+            if balance:
+                errors.append((number, "keep each setting on one line"))
+            name = re.search(r"\b(?:let|var)\s+(\w+)", stripped)[1]
+            if name in names:
+                errors.append((number, f"repeated setting {name} (first on line {names[name]})"))
+            names.setdefault(name, number)
+        elif in_init and depth == 2 and stripped and stripped != "}":
+            if balance:
+                errors.append((number, "keep each init statement on one line"))
+            target = re.match(r"(?:self\.)?(\w+)\s*=[^=]", stripped)
+            if target:
+                if target[1] in assigned:
+                    errors.append((number, f"repeated assignment {target[1]} (first on line {assigned[target[1]]})"))
+                assigned.setdefault(target[1], number)
+        depth += balance - (masked.count("(") + masked.count("[") - masked.count(")") - masked.count("]"))
+        if depth <= 1:
+            in_init = False
+        if depth == 0:
+            in_class = False
+    return errors
+
+
 def list_errors(source, identity):
     errors = []
     code = mask_literals(source).split("\n")
@@ -134,6 +178,12 @@ def check(root):
         if path.name == "ForkSettingsBackupSchema.swift":
             source = re.sub(r"(?s)^.*?(?=    static let allowed:)", lambda m: "\n" * m[0].count("\n"), source)
         errors.extend(f"{path}:{line}: {message}" for line, message in list_errors(source, identity))
+    try:
+        source = (root / PREFERENCES).read_text()
+    except OSError as error:
+        errors.append(f"{PREFERENCES}:1: {error}")
+    else:
+        errors.extend(f"{PREFERENCES}:{line}: {message}" for line, message in preference_errors(source))
     for name, locations in declarations.items():
         if len(locations) != 1:
             path, number = locations[-1] if locations else (FEATURE, 1)
@@ -149,7 +199,7 @@ def main():
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print("PASS: feature cases, switch arms, modules and search entries use one line each, with no repeats")
+    print("PASS: feature cases, switch arms, modules, search entries and settings use one line each, with no repeats")
     return 0
 
 
