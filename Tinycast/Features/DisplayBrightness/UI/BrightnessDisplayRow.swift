@@ -3,37 +3,40 @@ import SwiftUI
 struct BrightnessDisplayRow: View {
     private static let sliderWidth: CGFloat = 160
     let display: BrightnessDisplay
-    let controller: BrightnessController
-    @State private var value: Double?
-    @State private var write: Task<Void, Never>?
-    @State private var failed = false
+    @State private var state: BrightnessDisplayRowState
+
+    init(display: BrightnessDisplay, controller: BrightnessController) {
+        self.display = display
+        _state = State(initialValue: BrightnessDisplayRowState(display: display, controller: controller))
+    }
 
     var body: some View {
+        @Bindable var state = state
         LabeledContent {
             HStack(spacing: Theme.Spacing.sm) {
-                Slider(value: Binding(get: { value ?? display.level.value }, set: setLevel),
+                Slider(value: $state.value,
                        in: (display.level.softwareOnly ? 0 : -BrightnessLevel.extraDimmingRange)...1)
                     .frame(width: Self.sliderWidth)
                     .accessibilityLabel(Text("Brightness of \(display.name)"))
-                    .accessibilityValue(Text((value ?? display.level.value) < 0 ? String(localized: "Dim")
-                        : max(value ?? display.level.value, 0).formatted(.percent.precision(.fractionLength(0)))))
-                Text((value ?? display.level.value) < 0 ? String(localized: "Dim")
-                     : max(value ?? display.level.value, 0).formatted(.percent.precision(.fractionLength(0))))
+                    .accessibilityValue(Text(state.value < 0 ? String(localized: "Dim")
+                        : max(state.value, 0).formatted(.percent.precision(.fractionLength(0)))))
+                Text(state.value < 0 ? String(localized: "Dim")
+                     : max(state.value, 0).formatted(.percent.precision(.fractionLength(0))))
                     .monospacedDigit()
                     .frame(width: Theme.Size.volumeReadout, alignment: .trailing)
             }
         } label: {
             Label {
                 Text(display.name)
-                Text(failed ? String(localized: "Not responding") : controlTitle)
-                    .foregroundStyle(failed ? Theme.Colors.warning : Theme.Colors.textSecondary)
+                Text(state.failed ? String(localized: "Not responding") : controlTitle)
+                    .foregroundStyle(state.failed ? Theme.Colors.warning : Theme.Colors.textSecondary)
             } icon: {
                 SymbolImage(name: display.isBuiltIn ? "laptopcomputer" : "display", size: Theme.Size.menuIcon)
                     .accessibilityHidden(true)
             }
         }
-        .onDisappear { write?.cancel() }
-        .onChange(of: display.level) { _, _ in failed = false }
+        .onDisappear { state.cancel() }
+        .onChange(of: display) { _, display in state.update(display) }
     }
 
     private var controlTitle: String {
@@ -44,14 +47,4 @@ struct BrightnessDisplayRow: View {
         }
     }
 
-    private func setLevel(_ level: Double) {
-        value = level
-        write?.cancel()
-        write = Task {
-            let result = await controller.set(level, for: display.id)
-            guard !Task.isCancelled else { return }
-            failed = result == nil
-            value = nil
-        }
-    }
 }

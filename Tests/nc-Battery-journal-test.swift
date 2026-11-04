@@ -119,7 +119,8 @@ struct OwnershipTests {
                 fans.restore(preservingPreference: true)
                 await fans.waitUntilIdle()
                 let owned = data.flatMap { try? JSONDecoder().decode(FanOwnershipJournal.self, from: $0) }
-                check(scenario == 6 ? owned?.needsUndo == true && fanCalls.count == before : saved == .max,
+                check(scenario == 6 ? owned?.needsUndo == true && fanCalls.count == before
+                      : saved == .max && fanCalls == [.fansAuto] && owned?.needsUndo == true,
                       scenario == 6 ? "uncertain-fan-undo-survives" : "silent-restore-preserves-preference")
                 if scenario == 6 {
                     var relaunchedCalls = 0

@@ -507,6 +507,7 @@ struct BatteryStoreTests {
         prefs.set(.lidClosedAwake, false)
         var versions = 0
         var versionFails = true
+        var garbledVersion = true
         calls = []
         let transient = BatteryModule(preferences: prefs, runner: .init(read: {
             BatteryReading.decode(properties: ["CurrentCapacity": 95, "MaxCapacity": 100,
@@ -514,13 +515,17 @@ struct BatteryStoreTests {
         }, root: { calls.append($0) }, installed: { true }, version: {
             versions += 1
             if versionFails { throw RootHelperClient.Failure.timedOut }
-            return "2"
+            return garbledVersion ? "garbled" : "2"
         }, create: { _ in 1 }, release: { _ in }, readLimit: { nil }))
         transient.start()
         for _ in 0..<100 { await Task.yield() }
         precondition(!transient.needsHelperUpdate && !transient.nativeLimitAvailable)
         precondition(calls.isEmpty)
         versionFails = false
+        await transient.evaluate(now: .now)
+        for _ in 0..<100 { await Task.yield() }
+        precondition(!transient.needsHelperUpdate && !transient.nativeLimitAvailable && calls.isEmpty)
+        garbledVersion = false
         await transient.evaluate(now: .now)
         for _ in 0..<100 { await Task.yield() }
         precondition(versions >= 2 && calls.contains(.chargingOff))
