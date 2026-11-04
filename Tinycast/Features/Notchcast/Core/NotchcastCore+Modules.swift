@@ -5,6 +5,12 @@ import Foundation
 import Foundation
 
 extension NotchcastCore {
+    static let katana = KatanaModule()
+    static let treadmillWalk = TreadmillModule(treadmill, capability: .walk)
+    static let treadmillHistory = TreadmillModule(treadmill, capability: .history)
+    static let treadmill = TreadmillCoordinator.live()
+    static let agents = AgentBridgeModule()
+    static let agentCLI = AgentCLIModule()
     static let systemTools = SystemToolsModule()
     static let tweaks = TweaksModule()
     static let typingTweaks = TweaksModule(key: "typingTweaksPlans")
@@ -83,6 +89,8 @@ extension NotchcastCore {
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        agents.configure(core)
+        agentCLI.configure(index: agents.index)
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
         let chatTools = AgentChatToolsModule(store: core.mcpSettings, binaryPath: binaryPath, isBinaryInstalled: { FileManager.default.isExecutableFile(atPath: binaryPath) }, onChange: { [weak core] in core?.mcpCoordinator.applyEnabled() })
         agentChatTools = chatTools
@@ -100,6 +108,12 @@ extension NotchcastCore {
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
+            .init(requires: [.katana], module: katana),
+            .init(requires: [.treadmillWalk], module: treadmillWalk),
+            .init(requires: [.treadmillHistory], module: treadmillHistory),
+            .init(requires: [.agentActions], module: agents),
+            .init(requires: [.agentActions, .agentCLI], module: agentCLI),
+            .init(requires: [.appearance], module: core.appearanceCoordinator),
             .init(requires: [], requiresAny: [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess], module: systemTools),
             .init(requires: [], requiresAny: [.macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices], module: tweaks),
             .init(requires: [.typingTweaks], module: typingTweaks),
