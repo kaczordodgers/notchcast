@@ -9,6 +9,9 @@ import Foundation
 struct CleanupLifecycleTest {
     @MainActor
     static func main() async throws {
+        let terms = DictationCleanupSettings.vocabulary(from: " Tudu | tu | d \nName|")
+        precondition(terms[0] == .init(spelling: "Tudu", misheardForms: ["tu", "d"]))
+        precondition(terms[1] == .init(spelling: "Name", misheardForms: [""]))
         let suite = "cleanup-lifecycle-test-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
