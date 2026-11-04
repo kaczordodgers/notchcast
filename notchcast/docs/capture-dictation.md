@@ -28,6 +28,21 @@ Screen Recording appears in the existing Notchcast permissions section while Scr
 Its status is read without prompting; Open goes directly to macOS Privacy & Security because upstream's
 Permissions pane has no Screen Recording row. The engine asks for access only when capture is invoked.
 
+## Globe dictation
+
+The Globe Dictation switch owns `DictationTriggerManager` through `DictationTriggerModule` on
+the shared event-tap hub. It works with Island off, reserves Globe from upstream modifier bindings
+without deleting them, and pauses during shortcut recording. Disabling stops the manager and releases
+the reservation. Accessibility is listed in the existing permissions section.
+
+The trigger uses the upstream dictation coordinator's consent and model checks. Tap Globe to start,
+tap again to finish, or hold for at least 350 ms and release to finish. Return and Escape finish the
+recording, including its 200 ms audio tail; Escape during transcription keeps the result pending for
+insertion. Other input cancels a provisional hold. This switch adds no launcher command.
+
+`./Scripts/run-tests.sh nc-DictationTrigger-lifecycle-test` checks lifecycle, shortcut-recording pause,
+Globe reservation and Island independence with injected effects and isolated test preferences.
+
 ## Verification
 
 `./Scripts/run-tests.sh nc-ColorPicker-lifecycle-test` checks disabled sampling, switch teardown,
