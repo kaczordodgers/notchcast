@@ -4,3 +4,18 @@ case "$name" in
     hotkey-dispatch-test)
         set -- "$@" Tests/NotchcastHotKeyHarnessSupport.swift ;;
 esac
+
+if [[ " $* " == *" Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift "* ]]; then
+    for source in Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift \
+        Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift; do
+        [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
+    done
+fi
+
+if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
+    for source in Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
+        Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift \
+        Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift; do
+        [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
+    done
+fi
