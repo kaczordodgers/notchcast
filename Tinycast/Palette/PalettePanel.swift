@@ -177,6 +177,7 @@ final class PalettePanel: NSPanel, AnimatedPanel {
     }
 
     override func sendEvent(_ event: NSEvent) {
+        if AppCore.shared.notchcastQuitSelectedWindow(event, in: self) { return }
         if consumeMenuDismissal(event) { return }
         if event.type == .scrollWheel, paletteState?.mode.isNativeEditor == true {
             onDismissMenu?()
