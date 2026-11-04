@@ -77,7 +77,9 @@ final class TodoIslandFeed {
                                                  preferredLanguage: .english)?.recurrence else {
                 throw Failure.unsupportedRecurrence
             }
-            due.date = TodoRecurrence.nextDue(rule, currentDue: due.date, hasTime: !due.isAllDay,
+            let anchored = rule.anchored(to: due.date, calendar: calendar)
+            due.recurrenceRule = anchored.canonicalString
+            due.date = TodoRecurrence.nextDue(anchored, currentDue: due.date, hasTime: !due.isAllDay,
                                              completedAt: date, calendar: calendar)
             task.due = due
             task.completedAt = nil

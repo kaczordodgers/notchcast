@@ -17,7 +17,7 @@ struct TodoImportTests {
         let report = try map(TodoState())
         var state = TodoState()
         try state.apply(.batch(report.commands))
-        precondition(state.tasks.count == 14 && state.projects.count == 1)
+        precondition(state.tasks.count == 17 && state.projects.count == 1)
         precondition(state.sections.count == 1 && state.labels.count == 1)
         func task(_ ref: String) -> TodoTask {
             state.tasks.values.first { $0.externalRef == "todoist:sample-\(ref)" }!
@@ -48,11 +48,16 @@ struct TodoImportTests {
         precondition(report.unparsedRecurrences == ["todoist:sample-seven"])
         precondition(task("seven").due?.normalized == "every blue moon")
         precondition(calendar.component(.day, from: task("seven").due!.date) == 12)
+        for name in ["floating", "utc"] {
+            precondition(task(name).due?.date == ISO8601DateFormatter().date(from: "2026-11-09T08:00:00Z"))
+            precondition(task(name).due?.time?.hour == 9 && task(name).due?.isAllDay == false)
+        }
+        precondition(task("invalid").due == nil && report.unparsedDues == ["todoist:sample-invalid"])
         let repeated = try map(state)
         precondition(repeated.commands.isEmpty)
         let completed = try map(state, completed: true)
         try state.apply(.batch(completed.commands))
-        precondition(state.tasks.count == 15 && task("nine").completedAt == now)
+        precondition(state.tasks.count == 18 && task("nine").completedAt == now)
         let repeatedCompleted = try map(state, completed: true)
         precondition(repeatedCompleted.commands.isEmpty)
         let invalid = Data("{\"tasks\":[{\"id\":\"fake\",\"content\":\"Invalid\",\"priority\":5}]}".utf8)

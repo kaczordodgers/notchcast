@@ -80,6 +80,14 @@ enum TodoRecurrenceRule: Codable, Equatable, Sendable {
     case everyStrict(Schedule)
     case afterCompletion(days: Int)
 
+    func anchored(to due: Date, calendar: Calendar) -> Self {
+        guard case .every(let schedule) = self, schedule.unit == .month,
+              schedule.dayOfMonth == nil,
+              let anchored = Schedule(interval: schedule.interval, unit: .month,
+                  dayOfMonth: calendar.component(.day, from: due), time: schedule.time) else { return self }
+        return .every(anchored)
+    }
+
     var canonicalString: String {
         switch self {
         case .afterCompletion(let days): return "after \(days) days"

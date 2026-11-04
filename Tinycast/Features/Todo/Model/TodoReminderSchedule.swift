@@ -47,11 +47,14 @@ struct TodoReminderSchedule: Sendable {
         }
     }
 
-    func nextFireDate(excluding firedIDs: Set<UUID> = []) -> Date? {
-        entries.first { !firedIDs.contains($0.reminder.id) }.map { max(now, $0.fireDate) }
+    func nextFireDate(excluding firedIDs: Set<TodoReminderState.Occurrence> = []) -> Date? {
+        entries.first { $0.fireDate >= now.addingTimeInterval(-TodoReminderState.missedCutoff)
+            && !firedIDs.contains(.init(id: $0.reminder.id, fireDate: $0.fireDate)) }.map { max(now, $0.fireDate) }
     }
 
-    func remindersDue(at date: Date, excluding firedIDs: Set<UUID> = []) -> [Entry] {
-        entries.prefix { $0.fireDate <= date }.filter { !firedIDs.contains($0.reminder.id) }
+    func remindersDue(at date: Date, excluding firedIDs: Set<TodoReminderState.Occurrence> = []) -> [Entry] {
+        entries.prefix { $0.fireDate <= date }.filter {
+            !firedIDs.contains(.init(id: $0.reminder.id, fireDate: $0.fireDate))
+        }
     }
 }

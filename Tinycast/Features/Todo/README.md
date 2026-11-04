@@ -4,7 +4,7 @@
 existence, due dates, completion set and snooze dates. `taskExists` is separate from the optional due
 date so absolute reminders also work for tasks without a due date. Relative reminders without a due
 date, negative offsets, completed tasks and deleted tasks have no scheduled entry. Rebuild on every
-task or reminder edit. A relative reminder follows the latest due date until it has fired.
+task or reminder edit. A relative reminder follows the latest due date including after an earlier occurrence fired.
 
 All-day due dates represent a day in the supplied calendar. Their anchor is 09:00 local on that day;
 minutes-before-due subtracts elapsed minutes, including across DST. Timed due dates and absolute
@@ -13,18 +13,18 @@ than 24 elapsed hours later. The caller must preserve all-day civil dates when i
 
 `TodoReminderState.check` returns one batch with `due` and `missed` entries, each oldest first, with
 UUID as the tie-breaker. Entries exactly 24 hours late still fire; older entries are reported missed.
-Both outcomes consume the reminder ID. Persist the Codable state (`lastCheck` high-water mark and
-`firedIDs`) and restore it before starting the timer. All unconsumed past entries are checked,
-including on first launch or when a reminder is newly added or retimed behind `lastCheck`. Thus a
-backward clock jump cannot hide a new reminder or replay an old one. IDs must be unique and stable;
-reusing one means the same one-shot reminder. Duplicate inputs keep the first occurrence.
+Both outcomes consume the reminder ID and fire-date pair. Persist the Codable state (`lastCheck` high-water mark and
+`firedIDs`, containing ID/date pairs) and restore it before starting the timer. Past entries within
+the cutoff are checked even when newly added or retimed behind `lastCheck`. Expired entries are
+reported on first launch or when they cross the cutoff since the previous check. IDs stay stable;
+each distinct fire date is a separate occurrence. Duplicate inputs keep the first occurrence.
 
 Snoozes are per-reminder absolute dates that override the original time once. The caller owns and
 persists them alongside reminders. To snooze a fired reminder, calculate the date with
 `TodoReminder.Snooze.fireDate`, replace its snooze date, then call `TodoReminderTimer.rearm(id)`.
-When the snooze fires, the same ID is consumed again. Removing a consumed snooze does not restore
-the original fire. Only explicit rearming can reuse a consumed ID; changing a task due date cannot.
-Do not prune consumed IDs while their reminders may still be restored.
+Changed due dates and moved absolute reminders automatically schedule another occurrence. Consumed
+pairs older than the 24-hour cutoff are pruned; the check watermark prevents replaying expired entries.
+
 
 `TodoReminderTimer` owns at most one non-repeating timer. `start()` checks launch catch-up immediately;
 `check()` checks and rearms after an edit. Wake, system-clock and time-zone notifications rebuild the

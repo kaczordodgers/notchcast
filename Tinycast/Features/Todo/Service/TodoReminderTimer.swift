@@ -60,7 +60,6 @@ final class TodoReminderTimer {
     }
 
     func rearm(_ reminderID: UUID) {
-        state.rearm(reminderID)
         onStateChange(state)
         check()
     }

@@ -4,6 +4,7 @@ enum TodoistImportMapper {
     struct ImportReport: Sendable {
         let commands: [TodoCommand]
         let unparsedRecurrences: [String]
+        let unparsedDues: [String]
     }
 
     enum ImportError: Error { case invalidDate(String), invalidReference(String) }
@@ -15,6 +16,7 @@ enum TodoistImportMapper {
         var candidate = state
         var commands: [TodoCommand] = []
         var unparsed: [String] = []
+        var unparsedDues: [String] = []
         var projects: [String: String] = [:]
         var sections: [String: String] = [:]
         var labels: [String: String] = [:]
@@ -81,26 +83,20 @@ enum TodoistImportMapper {
                 var localCalendar = calendar
                 let zone = due.timezone.flatMap(TimeZone.init(identifier:)) ?? timeZone
                 localCalendar.timeZone = zone
-                let date: Date
-                if let datetime = due.datetime {
-                    guard let parsed = ISO8601DateFormatter().date(from: datetime)
-                        ?? fractionalDate(datetime) else { throw ImportError.invalidDate(datetime) }
-                    date = parsed
-                } else {
-                    guard let parsed = TodoDateParser.parse(due.date, now: now, calendar: localCalendar,
-                        timeZone: zone, preferredLanguage: .english) else {
-                        throw ImportError.invalidDate(due.date)
-                    }
-                    date = parsed.date
-                }
-                let parsed = TodoDateParser.parse(due.string ?? "", now: now, calendar: localCalendar,
-                    timeZone: zone, preferredLanguage: .english)
-                let rule = due.is_recurring == true ? parsed?.recurrence?.canonicalString : nil
-                if due.is_recurring == true && rule == nil { unparsed.append(ref) }
-                task.due = TodoTask.Due(date: date,
-                    time: due.datetime == nil ? nil : localCalendar.dateComponents([.hour, .minute], from: date),
-                    isAllDay: due.datetime == nil, recurrenceRule: rule,
-                    normalized: rule ?? due.string ?? due.date)
+                let text = due.datetime ?? due.date
+                let timed = text.contains("T")
+                let date = timed ? timedDate(text, zone: zone) : TodoDateParser.parse(text,
+                    now: now, calendar: localCalendar, timeZone: zone, preferredLanguage: .english)?.date
+                if let date {
+                    let parsed = TodoDateParser.parse(due.string ?? "", now: now, calendar: localCalendar,
+                        timeZone: zone, preferredLanguage: .english)
+                    let rule = due.is_recurring == true ? parsed?.recurrence?.canonicalString : nil
+                    if due.is_recurring == true && rule == nil { unparsed.append(ref) }
+                    task.due = TodoTask.Due(date: date,
+                        time: !timed ? nil : localCalendar.dateComponents([.hour, .minute], from: date),
+                        isAllDay: !timed, recurrenceRule: rule,
+                        normalized: rule ?? due.string ?? due.date)
+                } else { unparsedDues.append(ref) }
             }
             let comments = (source.comments ?? []) + (source.notes ?? [])
                 + (export.comments ?? []).filter { $0.task_id == source.id }
@@ -113,13 +109,23 @@ enum TodoistImportMapper {
         }
         var validation = state
         try validation.apply(.batch(commands))
-        return ImportReport(commands: commands, unparsedRecurrences: unparsed)
+        return ImportReport(commands: commands, unparsedRecurrences: unparsed, unparsedDues: unparsedDues)
     }
 
     private static func reference(_ id: String?, in values: [String: String]) throws -> String? {
         guard let id else { return nil }
         guard let value = values[id] else { throw ImportError.invalidReference(id) }
         return value
+    }
+
+    private static func timedDate(_ text: String, zone: TimeZone) -> Date? {
+        if let date = ISO8601DateFormatter().date(from: text) ?? fractionalDate(text) { return date }
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = zone
+        formatter.isLenient = false
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss"
+        return formatter.date(from: text)
     }
 
     private static func fractionalDate(_ text: String) -> Date? {
