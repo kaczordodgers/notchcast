@@ -1,3 +1,11 @@
+// notchcast-sources: Tinycast/Features/LiveTimer/LiveTimerCommands.swift
+// notchcast-sources: Tinycast/Features/LiveDay/DayCommands.swift
+// notchcast-sources: Tinycast/Features/LowDisk/LowDiskCommands.swift
+// notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesCommands.swift
+// notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionCommands.swift
+// notchcast-sources: Tinycast/Features/Appearance/AppearanceCommands.swift
+// notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsCommands.swift
+// notchcast-sources: Tinycast/Features/DisplayBrightness/DisplayBrightnessCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
@@ -8,7 +16,7 @@
 import Foundation
 
 enum SettingsTab: CaseIterable, Sendable {
-    case commands, quicklinks, ai, quickActions, fileSearch, notes, snippets, navigation
+    case general, commands, quicklinks, ai, quickActions, fileSearch, notes, snippets, navigation
     case windowManagement, clipboard, emoji, calendar, notchcast
 }
 
@@ -88,11 +96,14 @@ enum QuicklinkDestination {
     var commandsAvailable = true
     var runs = 0
     func toggle() { runs += 1 }
+    func open(page: IslandPage) { runs += 1 }
 }
 
 @MainActor final class AppCore {
     static let shared = AppCore()
     let paletteCoordinator = PaletteCoordinator()
+    let settings = Settings()
+    let settingsCoordinator = SettingsCoordinator()
 }
 
 @MainActor final class PaletteCoordinator {
@@ -105,6 +116,48 @@ enum QuicklinkDestination {
         isVisible = false
     }
 }
+
+enum IslandPage { case day }
+enum NotchcastFeature { case island, liveTimers, dayWeather, dayMarkets, lowDiskWarning, systemNotices, quitProtection, displayBrightness, volumeLevels }
+@MainActor final class NotchcastPreferences {
+    static let shared = NotchcastPreferences()
+    var enabled = true
+    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
+}
+@MainActor final class Settings { var calendarEnabled = true }
+@MainActor final class SettingsCoordinator { func showSettings(tab: SettingsTab) {} }
+@MainActor enum NotchcastCore {
+    static let timers = LiveTimerModule()
+    static let lowDisk = LowDiskModule()
+    static let systemNotices = SystemNoticesModule()
+    static let systemLevels = SystemLevelsModule()
+}
+@MainActor final class LiveTimerModule { let store = TimerFixture() }
+@MainActor final class TimerFixture {
+    struct Entry { let id: UUID }
+    var ringing: [Entry] = []
+    var nextTimer: Entry?
+    var starts = 0
+    var cancelled: UUID?
+    func start() { starts += 1 }
+    func cancel(_ id: UUID) { cancelled = id }
+}
+@MainActor final class LowDiskModule { let manager = RefreshFixture() }
+@MainActor final class SystemNoticesModule { let manager = RefreshFixture() }
+@MainActor final class RefreshFixture {
+    var calls = 0
+    func refresh() { calls += 1 }
+    func refreshTailscale() { calls += 1 }
+}
+@MainActor final class QuitProtectionModule {}
+@MainActor final class SystemLevelsModule { let service = AudioFixture() }
+@MainActor final class AudioFixture {
+    enum Command { case setVolume(Double) }
+    enum Result { case fallbackToNativeKeys }
+    var isRunning = false
+    func apply(_ command: Command) async -> Result { .fallbackToNativeKeys }
+}
+extension AppCore { func showMessage(_ message: String) {} }
 
 @main @MainActor struct NotchcastCommandsTest {
     static func main() {
@@ -141,6 +194,24 @@ enum QuicklinkDestination {
         palette.isVisible = true
         NotchcastCommandCatalog.perform(commands[0].entry.id)
         assert(palette.hideCalls == 2 && !palette.restoredFocus && island.runs == 4)
+        for command in commands.dropFirst() {
+            assert(HotKeyAction(entryID: command.id) == .notchcastCommand(entryID: command.id))
+            NotchcastPreferences.shared.enabled = false
+            if command.id != "command:nc-appearance" && command.id != "command:nc-day-calendar" {
+                assert(!command.isEnabled())
+            }
+            NotchcastPreferences.shared.enabled = true
+        }
+        NotchcastCommandCatalog.perform("command:nc-start-timer")
+        assert(NotchcastCore.timers.store.starts == 1)
+        let timerID = UUID()
+        NotchcastCore.timers.store.nextTimer = .init(id: timerID)
+        NotchcastCommandCatalog.perform("command:nc-stop-timer")
+        assert(NotchcastCore.timers.store.cancelled == timerID)
+        NotchcastCommandCatalog.perform("command:nc-check-disk-space")
+        assert(NotchcastCore.lowDisk.manager.calls == 1)
+        NotchcastCommandCatalog.perform("command:nc-check-tailscale")
+        assert(NotchcastCore.systemNotices.manager.calls == 1)
         print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility and dispatch")
     }
 }
