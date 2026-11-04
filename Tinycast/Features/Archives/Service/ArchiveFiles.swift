@@ -2,6 +2,10 @@ import Darwin
 import Foundation
 
 nonisolated enum ArchiveFiles {
+    static func samePath(_ lhs: URL, _ rhs: URL) -> Bool {
+        resolvedParent(lhs).standardizedFileURL.path == resolvedParent(rhs).standardizedFileURL.path
+    }
+
     static func resolvedParent(_ url: URL) -> URL {
         resolvedDirectory(url.deletingLastPathComponent()).appending(path: url.lastPathComponent)
     }

@@ -179,7 +179,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         let data = try Data(contentsOf: journal)
         guard let saved = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               saved["keep"] as? Bool == true, let output = saved["output"] as? String,
-              ArchiveFiles.resolvedParent(URL(fileURLWithPath: output)) == staging else {
+              ArchiveFiles.samePath(URL(fileURLWithPath: output), staging) else {
             throw ArchiveFailure.existingProgress
         }
         for suffix in [".hatchzip", ".hatchzip-tail", ".tmp"] {

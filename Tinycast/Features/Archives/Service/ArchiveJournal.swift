@@ -23,7 +23,7 @@ nonisolated struct ArchiveJournal {
               let parts = saved["parts"] as? [[Any]],
               parts.contains(where: {
                   guard let path = $0.first as? String else { return false }
-                  return ArchiveFiles.resolvedParent(URL(fileURLWithPath: path)) == archive
+                  return ArchiveFiles.samePath(URL(fileURLWithPath: path), archive)
               }) else {
             throw ArchiveFailure.existingProgress
         }
@@ -48,7 +48,7 @@ nonisolated struct ArchiveJournal {
         let staging = ArchiveFiles.resolvedParent(staging)
         let archive = ArchiveFiles.resolvedParent(archive)
         let prefix = ".notchcast-extract-"
-        guard staging.deletingLastPathComponent() == archive.deletingLastPathComponent(),
+        guard ArchiveFiles.samePath(staging.deletingLastPathComponent(), archive.deletingLastPathComponent()),
               staging.lastPathComponent.hasPrefix(prefix),
               UUID(uuidString: String(staging.lastPathComponent.dropFirst(prefix.count))) != nil else {
             throw ArchiveFailure.existingProgress
