@@ -23,7 +23,8 @@ def command_paths(root):
     found = set()
     for path in (root / "Tinycast").rglob("*.swift"):
         code = shape.mask_literals(path.read_text())
-        owners = list(re.finditer(r"\b(?:extension|struct|enum|class)\s+(\w+)[^{]*\{", code))
+        owners = [m for m in re.finditer(r"\b(?:extension|struct|enum|class)\s+(\w+)[^{]*\{", code)
+                  if code.count("{", 0, m.start()) == code.count("}", 0, m.start())]
         declarations = list(re.finditer(r"\b(?:static\s+)?(?:let|var)\s+(\w+)\b", code))
         for index, declaration in enumerate(declarations):
             owner = next((m[1] for m in reversed(owners) if m.start() < declaration.start()), None)

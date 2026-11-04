@@ -73,5 +73,6 @@
   "torrents": "launcher commands Download Torrent from Clipboard / Open Torrent File… / Cancel All Torrents: NotchcastCommandCatalog+All.swift:45-47 → Tinycast/Features/Torrents/Commands/TorrentCommands.swift:74 (torrents.open)",
   "torrentsUseIPhone": "sub-option of torrents, aria2 multi-interface args: Tinycast/Features/Torrents/Service/TorrentModule.swift:19 → :88",
   "torrentsKeepSharing": "sub-option of torrents, seeding after download: TorrentModule.swift:62",
-  "editorSpellChecking": "read when the upstream Notes editor renders: Tinycast/Features/Notes/UI/NotesView.swift:56 (NoteEditorView spellCheckingEnabled)"
+  "editorSpellChecking": "read when the upstream Notes editor renders: Tinycast/Features/Notes/UI/NotesView.swift:56 (NoteEditorView spellCheckingEnabled)",
+  "quickLookSpace": "key: Space on a selected File Search result opens Quick Look (Tinycast/Palette/PalettePanel.swift:180, Tinycast/Features/MarkdownQuickLook/QuickLookSpace+Palette.swift)"
 }

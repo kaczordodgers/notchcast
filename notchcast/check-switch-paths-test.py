@@ -21,10 +21,14 @@ def main():
         for path in (paths.ALLOWLIST, paths.PATHS):
             shutil.copy(paths.ROOT / path, root / path)
         assert not paths.check(root), paths.check(root)
-        print("PASS: origin/main source baseline with allowlist")
+        print("PASS: source baseline with allowlist")
         allowlist = json.loads((root / paths.ALLOWLIST).read_text())
-        del allowlist["clearNotifications"]
+        allowlist.pop("clearNotifications", None)
         (root / paths.ALLOWLIST).write_text(json.dumps(allowlist))
+        catalog = root / paths.CATALOG
+        catalog.write_text(catalog.read_text().replace("        ClearNotificationsModule.launcherCommand,\n", ""))
+        assert "smallCommands" in paths.command_paths(root), "command after a nested type was missed"
+        print("PASS: commands declared after a nested type count for their switch")
         errors = paths.check(root)
         assert any("clearNotifications: no user path" in error for error in errors), errors
         print("PASS: clearNotifications without exception fails: clearNotifications: no user path")
