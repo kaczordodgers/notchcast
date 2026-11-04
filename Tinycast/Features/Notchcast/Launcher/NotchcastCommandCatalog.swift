@@ -1,20 +1,6 @@
 import Foundation
 
 enum NotchcastCommandCatalog {
-    static let all: [NotchcastCommand] = [
-        IslandController.launcherCommand,
-        LiveTimerModule.startCommand,
-        LiveTimerModule.stopCommand,
-        DayCommands.weather,
-        DayCommands.markets,
-        DayCommands.calendar,
-        LowDiskModule.refreshCommand,
-        SystemNoticesModule.refreshCommand,
-        QuitProtectionModule.settingsCommand,
-        DisplayBrightnessCommands.settings,
-        AppearanceCommands.settings,
-    ] + SystemLevelsCommands.presets
-
     static var entries: [AppEntry] { all.map(\.entry) }
 
     static func command(for id: String) -> NotchcastCommand? {
