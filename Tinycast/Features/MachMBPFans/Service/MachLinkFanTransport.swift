@@ -13,14 +13,17 @@ struct MachLinkFanTransport: RemoteFanTransport {
                   case let .bonjour(record) = $0.metadata else { return false }
             return record["pairing"] == pairing.discoveryHash
         }
-        let endpoints = channel.endpoint.map { [$0] } ?? peers.map(\.endpoint)
+        let configuredEndpoint = channel.endpoint
+        let endpoints = configuredEndpoint.map { [$0] } ?? peers.map(\.endpoint)
         guard endpoints.count == 1, let endpoint = endpoints.first else {
             throw RemoteFanReport.Failure.unavailable
         }
         let verb = try request.value(as: RemoteFanRequest.self)
         let report = try await MachLinkManager.request(verb, method: request.method,
             from: endpoint, pairing: pairing, as: RemoteFanReport.self)
-        guard channel.pairing?.id == pairing.id else { throw CancellationError() }
+        guard channel.pairing?.id == pairing.id, channel.endpoint == configuredEndpoint else {
+            throw CancellationError()
+        }
         return try MachLinkMessage(id: request.id, method: request.method, value: report)
     }
 }
