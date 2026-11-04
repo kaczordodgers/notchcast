@@ -15,8 +15,22 @@ extension ScreenshotModule {
                 _ = try await self?.capture(.display(number.uint32Value))
             } catch is CancellationError {
             } catch {
-                AppCore.shared.showMessage(String(localized: "Capture Screen"), tone: .danger)
+                AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
             }
+        }
+    }
+
+    static func failureMessage(_ error: any Error) -> String {
+        let failure = error as NSError
+        if failure.domain == NSCocoaErrorDomain && (512..<1024).contains(failure.code) {
+            return String(localized: "Could not save the screenshot.")
+        }
+        return switch error as? ScreenshotRequest.Failure {
+        case .permissionDenied: String(localized: "Screen Recording access is required.")
+        case .clipboardFailed: String(localized: "Could not copy to clipboard.")
+        case .disabled: String(localized: "Capture is disabled.")
+        case .invalidRect, .targetUnavailable: String(localized: "Capture area is unavailable.")
+        case .encodingFailed, nil: String(localized: "Could not capture the screen.")
         }
     }
 }
