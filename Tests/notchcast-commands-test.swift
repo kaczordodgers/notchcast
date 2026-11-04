@@ -147,7 +147,7 @@ extension NotchcastCommandCatalog {
         assert(Set(commands.map(\.id)).count == commands.count)
         assert(commands.allSatisfy { $0.id.hasPrefix("command:nc-") })
         assert(commands.allSatisfy { command in CommandCatalog.all.contains { $0.id == command.entry.id } })
-        assert(CommandCatalog.entries(ownedBy: .notchcast).count == commands.count)
+        assert(CommandCatalog.entries(ownedBy: .notchcast).count == commands.count + SettingsTab.notchcast.ownedCommands.count)
         assert(CommandCatalog.entries(ownedBy: .notchcast).allSatisfy { $0.hotKeyAction != nil })
         assert(commands.allSatisfy { $0.entry.symbolName == $0.sfSymbol })
         let action = HotKeyAction.notchcastCommand(entryID: commands[0].entry.id)
