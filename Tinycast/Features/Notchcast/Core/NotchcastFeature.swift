@@ -20,6 +20,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     case showDesktop, spacesOrder, hideCommandM, middleClick, greenMaximize
     case machineSetupProfile
+    case agentConfirmation
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -27,6 +28,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .agentConfirmation: .islandOptions
         case .island: .island
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
@@ -76,6 +78,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
         case .settingsBackup: String(localized: "Settings Backup")
         case .machineSetupProfile: String(localized: "Machine Setup Profile")
+        case .agentConfirmation: String(localized: "Agent Confirmation")
         }
     }
 
@@ -113,6 +116,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
+        case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
         }
     }
 
@@ -125,6 +129,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
         case .settingsBackup: []
+        case .agentConfirmation: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
