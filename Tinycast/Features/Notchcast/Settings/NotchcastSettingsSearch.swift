@@ -51,7 +51,12 @@ extension SettingsAnchor {
 
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
-    static let notchcast: [SettingsSearchEntry] = [
+    static let notchcast: [SettingsSearchEntry] =
+        NotchcastSettingsModule.allCases.filter { $0 != .island }.flatMap { module in
+            module.groups.map {
+                .init(group: SettingsAnchor(tab: module.tab, title: $0.title), $0.title, keywords: [module.title])
+            }
+        } + [
         .init(.notchcastSystem, "Audio device priority", keywords: ["sound", "outputs", "microphones"]),
         .init(.notchcastClean, "Junk", keywords: ["trash", "cache"]),
         .init(.notchcastClean, "Clean history", keywords: ["restore", "runs"]),
