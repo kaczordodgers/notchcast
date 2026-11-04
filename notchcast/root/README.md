@@ -1,5 +1,28 @@
 # Root helper
 
+## Caller authorization
+
+Every verb except `version` and `ping` first authenticates its caller. Failure exits silently
+with `RootContract.unauthorizedCallerExit` (78), before opening hardware or reading/changing policy.
+The immediate parent must satisfy Apple's sudo code requirement. Its parent must satisfy
+identifier `app.notchcast` and the leaf certificate SHA-1 from committed `notchcast/config.env`.
+Installation verifies `/Applications/Notchcast.app` against that pin before baking it into the helper.
+Security.framework checks dynamic code using kernel audit tokens obtained through task name ports;
+parent relationships and process start times are rechecked to reject PID reuse during traversal.
+The running app must have valid hardened runtime status, without get-task-allow or debugged status,
+disabled library validation or DYLD environment entitlements. The source-tree helper has no pin
+and cannot authorize protected verbs.
+
+This blocks arbitrary user processes from using the NOPASSWD grant, including signed apps from
+other certificates. It does not establish per-action user consent: compromised authorized app code,
+an unsafe app command/deeplink, or another app signed with this identity can still invoke verbs.
+Root and the signing authority remain trusted. Existing installations must reinstall the helper;
+updating the app alone does not repair an old helper. Development/ad-hoc builds cannot use it.
+Contract 3 identifies the caller-checked helper; versions 1 and 2 need reinstalling. Caller rejection
+(exit 78) maps to `RootHelperClient.Failure.reinstallRequired` and the existing helper update hint.
+The non-root harness checks its parent shell against Apple and Notchcast requirements and rejects
+empty or missing pins, alongside injected identities and the live rejection path.
+
 `charge-limit-60`, `charge-limit-70`, `charge-limit-80`, and `charge-limit-90` set
 `mclLimitValue` and `MCLFeatureState = 1` in `com.apple.smartcharging.topoffprotection`
 for root/current host, after pinning `HOME=/var/root` and removing `CFFIXED_USER_HOME`. They synchronize and post the Darwin notification
@@ -26,7 +49,7 @@ require root (exit 77 otherwise) and return `ok` on success. Spotlight uses a 60
 Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never written.
 The harness verifies pure PAM transforms without changing the system.
 
-The fixed program and app client share twenty-five argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
+The fixed program and app client share twenty-five argument-free verbs. `version` prints the contract version (`3`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
 ` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and operation failures exit 70, without stdout. Charge-limit timeouts report unconfirmed state on stderr. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
 
 `standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings without invoking pmset.
@@ -44,13 +67,15 @@ with `swiftc -O`, installs `/Library/PrivilegedHelperTools/app.notchcast.root` a
 grants the signed-in console user one NOPASSWD rule in `/etc/sudoers.d/notchcast`. The rule names only
 the fixed helper path; the helper itself validates all arguments. The installer refuses unsafe
 parent directories and symlink destinations and validates the rule with `visudo -cf` before moving
-it into place. Re-running replaces the same helper and rule. `--uninstall` removes the rule first,
+it into place. Installation removes the old rule and helper before pin lookup or verification;
+any subsequent failure leaves the old grant revoked. Re-running replaces the helper and rule.
+`--uninstall` removes the rule first,
 then the helper; it also accepts `--dry-run`.
 The rule names the console user at install time; another user re-runs the installer.
 
 ## App contract
 
-`RootHelperClient().run(.version)` returns `.version("2")`; `.run(.ping)` returns `.pong`. Calls use
+`RootHelperClient().run(.version)` returns `.version("3")`; `.run(.ping)` returns `.pong`. Calls use
 `/usr/bin/sudo -n` with an empty environment, no stdin, and `/` as the working directory. Each call
 checks every path component with `lstat`: root ownership, no group/world write permission, directory
 parents, an executable regular file, and no symlinks. `isInstalled` reports that path check only;
