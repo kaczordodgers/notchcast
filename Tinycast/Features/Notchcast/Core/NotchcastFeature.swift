@@ -20,6 +20,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case cleaningMode
+    case appUpdates
+    case macUpdate
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -47,6 +50,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .cleaningMode: .tools
+        case .appUpdates: .tools
+        case .macUpdate: .tools
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -95,6 +101,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .cleaningMode: String(localized: "Cleaning mode")
+        case .appUpdates: String(localized: "App updates")
+        case .macUpdate: String(localized: "Update this Mac")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -143,6 +152,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .cleaningMode: String(localized: "Press Escape five times to exit; ends after 300 seconds.")
+        case .appUpdates: String(localized: "Check installed apps for updates on demand.")
+        case .macUpdate: String(localized: "Run maintenance only after confirmation.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -192,6 +204,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .cleaningMode: [.accessibility]
         case .showDesktop: [.accessibility]
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
@@ -224,7 +237,7 @@ extension NotchcastFeature {
         }
     }
 
-    var isSystemFeature: Bool { settingsGroup == .systemTools }
+    var isSystemFeature: Bool { settingsGroup == .systemTools || settingsGroup == .tools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
