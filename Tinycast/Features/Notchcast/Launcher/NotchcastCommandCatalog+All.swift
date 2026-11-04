@@ -74,5 +74,7 @@ extension NotchcastCommandCatalog {
         FinderToolsCoordinator.renameCommand,
         ScreenTextModule.launcherCommand,
         ScrollingCaptureModule.launcherCommand,
+        BlockedDialogModule.checkCommand,
+        ShelfModule.sendCommand,
     ]
 }
