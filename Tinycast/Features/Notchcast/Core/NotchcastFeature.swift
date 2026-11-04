@@ -39,7 +39,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherFromIsland: String(localized: "Launcher from Island")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
-        case .musicBlockAppleMusic: String(localized: "Block Apple Music from media keys")
+        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
         case .spotifyConnect: String(localized: "Spotify Connect speaker")
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
@@ -83,10 +83,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .musicLastPlayer, .musicBlockAppleMusic, .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .musicLastPlayer, .musicBlockAppleMusic, .microphoneMute,
+            .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .musicNowPlaying, .spotifyConnect, .microphoneMute, .inUseMarks,
+            .musicNowPlaying, .spotifyConnect, .inUseMarks,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
             []
         }

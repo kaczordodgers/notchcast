@@ -24,7 +24,8 @@
 import Foundation
 import AppKit
 
-func AXIsProcessTrusted() -> Bool { false }
+@MainActor private var trusted = false
+@MainActor func AXIsProcessTrusted() -> Bool { trusted }
 
 enum EventTapPolicy {
     static func mask(for type: CGEventType) -> CGEventMask { 1 << type.rawValue }
@@ -35,13 +36,14 @@ final class EventTapHub {
     enum Verdict { case pass, swallow }
     var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
     var removals = 0
+    var refreshes = 0
     func registerSynchronous(mask: CGEventMask,
                              handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
         precondition(mask & EventTapPolicy.mask(for: .keyDown) != 0)
         self.handler = handler
         return UUID()
     }
-    func refreshPermission() {}
+    func refreshPermission() { refreshes += 1 }
     func remove(_ id: UUID) { removals += 1; handler = nil }
 }
 
@@ -144,7 +146,7 @@ struct MusicModuleTests {
         ]
         for feature in features {
             precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
-            let grants: [NotchcastGrant] = [.musicLastPlayer, .musicBlockAppleMusic].contains(feature)
+            let grants: [NotchcastGrant] = [.musicLastPlayer, .musicBlockAppleMusic, .microphoneMute].contains(feature)
                 ? [.accessibility] : []
             precondition(feature.requiredGrants == grants)
         }
@@ -199,7 +201,7 @@ struct MusicModuleTests {
         let hub = EventTapHub()
         let monitor = NotchcastKeyMonitor(music: music, blocker: blocker, microphone: microphone,
                                          preferences: preferences, hub: hub)
-        monitor.update()
+        monitor.run()
         precondition(mute.hotKeyStatus == AXError.apiDisabled.rawValue)
         for down in [true, false] {
             let event = NSEvent.otherEvent(with: .systemDefined, location: .zero, modifierFlags: [],
@@ -207,12 +209,48 @@ struct MusicModuleTests {
                 data1: (16 << 16) | ((down ? 0x0a : 0x0b) << 8), data2: -1)!.cgEvent!
             precondition(hub.handler!(event.type, event) == .pass, "no replacement passes media keys through")
             installed = true
-            monitor.update()
+            NotificationCenter.default.post(name: NSApplication.didBecomeActiveNotification, object: nil)
+            await settle()
             precondition(hub.handler!(event.type, event) == .swallow, "installed replacement consumes media keys")
             installed = false
-            monitor.update()
+            NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didLaunchApplicationNotification, object: nil)
+            await settle()
         }
         await settle()
+        preferences.set(.spotifyConnect, true)
+        await settle()
+        let media = NSEvent.otherEvent(with: .systemDefined, location: .zero, modifierFlags: [],
+            timestamp: 0, windowNumber: 0, context: nil, subtype: 8,
+            data1: (16 << 16) | (0x0a << 8), data2: -1)!.cgEvent!
+        music.soloist.receive(#"{"type":"auth_state","loggedIn":true,"isActive":true,"deviceName":"Fixture"}"#)
+        await settle()
+        precondition(hub.handler!(media.type, media) == .swallow, "login automatically refreshes routing")
+        music.soloist.connect(port: 0)
+        await settle()
+        precondition(hub.handler!(media.type, media) == .pass, "disconnect automatically clears routing")
+        music.model.setSystemSource(nil)
+        music.model.setSoloistSource(nil)
+        music.model.setEnabled(true)
+        music.model.lastPlayer.setEnabled(true)
+        precondition(hub.handler!(media.type, media) == .pass)
+        installed = true
+        monitor.run()
+        await settle()
+        precondition(music.model.failure == nil, "a passed key cannot become a replacement during dispatch")
+        precondition(hub.handler!(media.type, media) == .swallow)
+        installed = false
+        monitor.run()
+        await settle()
+        precondition(music.model.failure == .noReplacement, "a swallowed key keeps its replacement decision")
+        let beforeRetry = hub.refreshes
+        try? await Task.sleep(for: .milliseconds(1100))
+        precondition(hub.refreshes > beforeRetry, "untrusted registration retries without activation")
+        trusted = true
+        try? await Task.sleep(for: .milliseconds(1100))
+        precondition(mute.hotKeyStatus == nil, "permission grant clears F5 warning automatically")
+        let afterGrant = hub.refreshes
+        try? await Task.sleep(for: .milliseconds(1100))
+        precondition(hub.refreshes == afterGrant, "permission polling stops after grant")
         launch?(.init(bundleID: LastPlayer.appleMusic, processID: 123))
         precondition(quits == 1, "hub media key arms Apple Music blocking")
         microphone.start()
@@ -231,8 +269,12 @@ struct MusicModuleTests {
         microphone.stop()
         precondition(!mute.isMuted && audio.input.mute[0].value == 0, "stop restores microphone")
         preferences.set(.island, false)
-        monitor.update()
+        await settle()
         precondition(hub.handler == nil && hub.removals == 1 && mute.hotKeyStatus == nil)
+        let afterRemoval = hub.refreshes
+        trusted = false
+        try? await Task.sleep(for: .milliseconds(1100))
+        precondition(hub.refreshes == afterRemoval, "unregistered monitor never retries")
         var reads = 0
         let key = SoloistKey(read: { reads += 1; throw SoloistFailure.keyUnavailable },
                             write: { _ in }, presence: { true })

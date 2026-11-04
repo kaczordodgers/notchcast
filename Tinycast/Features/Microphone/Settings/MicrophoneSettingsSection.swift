@@ -7,8 +7,8 @@ struct MicrophoneSettingsSection: View {
     var body: some View {
         Section {
             NotchcastFeatureToggle(feature: .microphoneMute, anchor: .notchcastMicrophone)
-            if let status = microphone.hotKeyStatus {
-                Text(verbatim: "F5 (OSStatus \(status))")
+            if microphone.hotKeyStatus != nil {
+                Text("Allow Accessibility access to mute microphones with F5.")
                     .foregroundStyle(Theme.Colors.destructive)
             }
             NotchcastFeatureToggle(feature: .inUseMarks, anchor: .notchcastMicrophone)
