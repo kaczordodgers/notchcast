@@ -57,6 +57,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastSystem, "Back Up Now", keywords: ["backup", "restic", "launchd"]),
+        .init(.notchcastSystem, "Browse and Restore Backups", keywords: ["snapshot", "restic", "restore"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),

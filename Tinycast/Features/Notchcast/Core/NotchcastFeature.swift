@@ -15,6 +15,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case backupRunNow
+    case backupBrowseRestore
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -29,7 +31,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
-             .keepAwake, .lidClosedAwake: .system
+             .keepAwake, .lidClosedAwake, .backupRunNow, .backupBrowseRestore: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
         }
     }
@@ -60,6 +62,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .backupRunNow: String(localized: "Back Up Now")
+        case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
         }
     }
 
@@ -89,6 +93,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .backupRunNow: String(localized: "Allow starting the configured backup job.")
+        case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
         }
     }
 
@@ -100,7 +106,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
+            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
+            .backupRunNow, .backupBrowseRestore:
             []
         }
     }
@@ -108,7 +115,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        self != .displayBrightness && self != .quitProtection && !isSystemFeature
+            && self != .backupRunNow && self != .backupBrowseRestore
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
