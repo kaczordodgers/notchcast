@@ -61,6 +61,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case mediaTools
 
     case commandRunner
+    case buildStats
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -76,6 +77,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .mediaTools: .activities
         case .convertFiles: .activities
         case .urlCleaner: .system
+        case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -137,6 +139,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .mediaTools: String(localized: "Media Tools")
         case .convertFiles: String(localized: "Convert Files")
         case .urlCleaner: String(localized: "URL cleaner")
+        case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -198,6 +201,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .mediaTools: String(localized: "Compress media, make GIFs and extract text locally.")
         case .convertFiles: String(localized: "Convert local files beside the originals.")
         case .urlCleaner: String(localized: "Remove tracking parameters from copied links.")
+        case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -277,6 +281,7 @@ extension NotchcastFeature {
         case .aiUsage: false
         case .aiUsageOtherMac: false
         case .machLink: false
+        case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .urlCleaner: false
@@ -320,6 +325,7 @@ extension NotchcastFeature {
         case .convertFiles: false
         case .mediaTools: false
         case .commandRunner: false
+        case .buildStats: false
         default: !isSystemFeature && !isLauncherKeysFeature
         }
     }
