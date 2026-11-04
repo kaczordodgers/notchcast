@@ -10,6 +10,7 @@ final class ShowDesktopModule: NotchcastModule {
     private var registration: UUID?
     private var generation = UUID()
     private var library: UnsafeMutableRawPointer?
+    private var send: DockNotification?
     private var activation: NotificationToken?
 
     init(hub: EventTapHub) { self.hub = hub }
@@ -25,7 +26,7 @@ final class ShowDesktopModule: NotchcastModule {
             return
         }
         library = handle
-        let send = unsafeBitCast(symbol, to: DockNotification.self)
+        send = unsafeBitCast(symbol, to: DockNotification.self)
         let engine = Mutex(ShowDesktopEngine())
         let generation = UUID()
         self.generation = generation
@@ -44,7 +45,7 @@ final class ShowDesktopModule: NotchcastModule {
             case .toggle:
                 DispatchQueue.main.async { [weak self] in
                     guard let self, self.generation == generation else { return }
-                    _ = send("com.apple.showdesktop.awake" as CFString, 0)
+                    _ = self.send?("com.apple.showdesktop.awake" as CFString, 0)
                 }
                 return .swallow
             }
@@ -62,6 +63,7 @@ final class ShowDesktopModule: NotchcastModule {
         if let registration { hub.remove(registration) }
         registration = nil
         activation = nil
+        send = nil
         if let library { dlclose(library) }
         library = nil
     }
