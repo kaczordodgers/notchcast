@@ -11,7 +11,10 @@ require root (exit 77 otherwise) and return `ok` on success. Spotlight uses a 60
 Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never written.
 The harness verifies their unprivileged refusal and pure PAM transforms without changing the system.
 
-The fixed program and app client share fifteen argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root. Fan and battery verbs require root and print exactly `ok\n` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and hardware failures exit 70, always without output. Spotlight and battery sleep verbs launch processes, with fixed arguments and an empty environment.
+The fixed program and app client share nineteen argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root. Change verbs require root and print exactly `ok
+` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and operation failures exit 70, always without output. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
+
+`standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings and unprivileged refusal without invoking pmset.
 
 `RootContract.swift` here is a symlink to the app's contract under
 `Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no
