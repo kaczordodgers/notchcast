@@ -9,8 +9,11 @@ IslandController.launcherCommand,
 
 Register each feature on one line with a trailing comma and no other content on that line.
 Registration requires no changes in Tests. Git uses `merge=union` for this file so
-concurrent registrations merge cleanly. Check for duplicate lines after every merge:
-union merging can preserve the same registration twice.
+concurrent registrations merge cleanly. After every merge, check the file by hand:
+union merging can keep the same registration twice, and it keeps both the old and the
+new line when one branch removes or edits a registration while another adds one, so a
+removed command can come back. Change the legacy ID of Toggle Island only with a
+migration: no harness guards it.
 
 The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
 `.notchcast`), an `isEnabled` main-actor closure and a main-actor `run` closure.
