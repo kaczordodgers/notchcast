@@ -67,7 +67,7 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
         timeout?.cancel()
         timeout = Task { [weak self, timeoutDuration] in
             do { try await Task.sleep(for: timeoutDuration) } catch { return }
-            guard let self, self.wanted, self.powered, !self.ready else { return }
+            guard !Task.isCancelled, let self, self.wanted, self.powered, !self.ready else { return }
             if reconnect {
                 self.central.connect()
             } else {
