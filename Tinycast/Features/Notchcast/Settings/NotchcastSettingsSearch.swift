@@ -1,6 +1,7 @@
 import Foundation
 
 extension SettingsAnchor {
+    static let notchcastAppearance = Self(tab: .notchcast, title: "Appearance")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -22,11 +23,18 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
 }
 
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastAppearance, "Custom appearance", keywords: ["enable", "colours", "colors", "theme"]),
+        .init(.notchcastAppearance, "Surface", keywords: ["glass", "black", "matte", "material"]),
+        .init(.notchcastAppearance, "Light theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Dark theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Theme backdrop", keywords: ["opacity", "background", "transparency"]),
+        .init(.notchcastAppearance, "Import from link", keywords: ["theme", "raycast", "ray.so", "url"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -58,10 +66,15 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastSystem, "Agent access"),
+        .init(.notchcastSystem, "Command line tool"),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastActivities, "Walking Pad", keywords: ["treadmill", "walk", "speed", "pause"]),
         .init(.notchcastActivities, "Walk History", keywords: ["treadmill", "goal", "steps", "lubrication"]),
+        .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
+        .init(.notchcastPaste, "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
     ]
 }

@@ -1,5 +1,6 @@
 @MainActor
 enum NotchcastCore {
+    static let eventTapHub = EventTapHub()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -9,8 +10,12 @@ enum NotchcastCore {
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let treadmill = TreadmillCoordinator.live()
+    static let calendar = DayCalendarModule()
     static let quitProtection = QuitProtectionStore()
-    static let eventTapHub = EventTapHub()
+    static let agents = AgentBridgeModule()
+    static let agentCLI = AgentCLIModule()
+    static let pasteImage = PasteImageModule(hub: eventTapHub)
+    static private(set) var pastePlain: PlainPasteModule?
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
@@ -27,9 +32,14 @@ enum NotchcastCore {
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
+        agents.configure(core)
+        agentCLI.configure(index: agents.index)
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.appearance], module: core.appearanceCoordinator),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
@@ -45,6 +55,11 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.treadmillWalk], module: TreadmillModule(treadmill, capability: .walk)),
             .init(requires: [.treadmillHistory], module: TreadmillModule(treadmill, capability: .history)),
+            .init(requires: [.island, .dayCalendar], module: calendar),
+            .init(requires: [.agentActions], module: agents),
+            .init(requires: [.agentActions, .agentCLI], module: agentCLI),
+            .init(requires: [.pastePlain], module: pastePlain),
+            .init(requires: [.pasteImage], module: pasteImage),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
