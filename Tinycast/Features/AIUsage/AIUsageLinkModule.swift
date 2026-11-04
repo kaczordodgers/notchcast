@@ -76,6 +76,10 @@ final class AIUsageLinkModule: NotchcastModule {
         let preferences = preferences
         let name = SCDynamicStoreCopyLocalHostName(nil) as String? ?? UUID().uuidString
         try channel.manager.start(pairing: pairing, name: name) { request in
+            if request.method == "link-health" {
+                _ = try request.value(as: Bool.self)
+                return try MachLinkMessage(id: request.id, method: request.method, value: true)
+            }
             guard await preferences.isOn(.aiUsage), await preferences.isOn(.aiUsageOtherMac) else {
                 throw MachLinkMessage.Failure.disconnected
             }
