@@ -188,6 +188,6 @@ Fork PRs never commit generated files or add runner registrations. Use the disco
 
 ## Snapshot shipping
 
-Main snapshots are published hourly by `.github/workflows/snapshot.yml` after the full harness suite and lint pass; Leaks is independent. Unchanged commits and attempts within an hour skip. Signed arm64 zip/dmg artifacts use the same build and signing steps as sync. Snapshot annotated tags use the repository identity and identify the exact tested main commit.
+Main snapshots are dispatched at least hourly by `notchcast/kick.sh`, with `.github/workflows/snapshot.yml` retaining its schedule as a fallback. Sync's test action (runner exclusions, retries and pristine upstream comparison) and lint must pass; Leaks is independent. Unchanged commits and published snapshots started within 50 minutes skip; failed attempts do not block retries. Signed arm64 zip/dmg artifacts use the same build and signing steps as sync. Snapshot annotated tags use the repository identity and identify the exact tested main commit.
 
 The tag format is `<upstream-mirror-tag>.snapshot.<UTC YYYYMMDDHHMMSS>`; `update.sh` sorts its numeric revision after the mirror and before the next upstream beta or patch. Run `python3 notchcast/snapshot-test.py` for ordering and skip checks. See [Snapshot releases](../README.md#snapshot-releases) for cadence, limitations and installation commands. `install-launchd.sh update --auto-install` enables `update.sh --install` every 30 minutes without changing the in-app preference; omit the option to restore default behavior.
