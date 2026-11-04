@@ -12,8 +12,12 @@ Unknown keys are ignored on read and preserved in the current destination by the
 The entire archive is validated before returning a merged restore result. Wrong versions,
 malformed values and archives larger than 1 MiB fail without changing preferences.
 
-This engine-only increment does not expose import, export or restore controls. The restore engine
-returns a validated merge to its caller; it does not apply it to running feature state.
+Restore Settings Backup validates the newest numeric `settings-<day>.plist` before asking for
+confirmation, then applies only archived keys through the running preferences setters. A bad newest
+file is refused without falling back. Unsupported in-range charge, awake-duration and hover-delay
+choices normalize to 80 percent, 60 minutes and 0.3 seconds. Missing backups show a notice.
+Open Settings Backup Folder creates and opens the folder. Both commands work with the switch off.
 No network or other application's data is involved. Automatic retention is not applied.
 
 Run `./Scripts/run-tests.sh nc-SettingsBackup-engine-test` for the data-loss protection harness.
+Run `./Scripts/run-tests.sh nc-SettingsBackup-restore-test` for real preference restore checks.
