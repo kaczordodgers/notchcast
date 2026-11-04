@@ -429,6 +429,13 @@ struct NotchcastDownloadsWiringTest {
 }
 
 @MainActor
+enum NotchcastDownloadLauncherCommands {
+    static weak var downloads: DownloadsModule?
+    static weak var distill: DistillModule?
+    static func trackAvailability(_ core: AppCore) {}
+}
+
+@MainActor
 final class AppCore {
     enum Tone { case danger }
     func showMessage(_ message: String, tone: Tone) { preconditionFailure(message) }
