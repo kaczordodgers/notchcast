@@ -1,5 +1,7 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
+import Foundation
+
 extension NotchcastCore {
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
@@ -28,6 +30,7 @@ extension NotchcastCore {
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
     static let dictationCleanup = DictationCleanupModule.live()
+    static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
@@ -60,6 +63,7 @@ extension NotchcastCore {
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
+            .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }

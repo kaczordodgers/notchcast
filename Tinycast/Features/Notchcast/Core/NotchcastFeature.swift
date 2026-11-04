@@ -30,6 +30,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case screenshot
     case dictationIslandHUD
     case dictationCleanup
+    case dictationHistory
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -65,6 +66,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherAliasSpace: .launcher
         case .dictationIslandHUD: .activities
         case .dictationCleanup: .captureAndDictation
+        case .dictationHistory: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -138,6 +140,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .showDesktop: String(localized: "Show Desktop with F3")
         case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .dictationCleanup: String(localized: "AI cleanup")
+        case .dictationHistory: String(localized: "Keep dictation history")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -190,6 +193,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
         case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
+        case .dictationHistory: String(localized: "Keep dictation history")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -245,6 +249,7 @@ extension NotchcastFeature {
         case .machineSetupProfile: false
         case .switcherQuitKey: false
         case .dictationCleanup: false
+        case .dictationHistory: false
         case .displayBrightness: false
         case .quitProtection: false
         case .pastePlain: false
@@ -259,6 +264,7 @@ extension NotchcastFeature {
 
     var defaultEnabled: Bool {
         switch self {
+        case .dictationHistory: false
         case .dictationCleanup: false
         case .pastePlain: false
         default: !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
