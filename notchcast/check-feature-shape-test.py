@@ -71,6 +71,26 @@ class FeatureShapeTests(unittest.TestCase):
             "case .island: .island", "case .island, .islandExternalDisplays: .island"),
             "multi-case arm")
 
+    def test_single_line_string_values(self):
+        for value in ('"Other"', 'String(localized: "Other")'):
+            with self.subTest(value=value):
+                source = (ROOT / SHAPE.FEATURE).read_text()
+                (self.root / SHAPE.FEATURE).write_text(source.replace(
+                    "case .island: .island", f"case .island: {value}"))
+                self.assertEqual(SHAPE.check(self.root), [])
+
+    def test_two_switch_cases_on_one_line(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        self.rejected(SHAPE.FEATURE, source.replace(
+            "case .island: .island", 'case .island: "Other"; case .extra: "Extra"'),
+            "own line")
+
+    def test_multiline_string_value(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        self.rejected(SHAPE.FEATURE, source.replace(
+            "case .island: .island", 'case .island:\n            "Other"'),
+            "keep each feature arm on one line")
+
     def test_shared_group_line(self):
         source = (self.root / SHAPE.GROUPS).read_text()
         self.rejected(SHAPE.GROUPS, source.replace(
