@@ -9,13 +9,19 @@ final class AppleAppsUndoModule: NotchcastModule {
 
     init(defaults: UserDefaults,
          readDock: @escaping () throws -> Data = AppleAppsService().readDock,
-         writeDock: @escaping (Data) throws -> Void = AppleAppsService().writeDock) {
+         writeDock: @escaping (Data) throws -> Void = AppleAppsService().writeDock,
+         restartDock: @escaping () throws -> Void = {
+             _ = try SystemToolsProcessRunner().run("/usr/bin/killall", arguments: ["Dock"])
+         }) {
         do {
             let receipt = try defaults.data(forKey: "appleAppsUndoReceipt").map {
                 try JSONDecoder().decode(AppleAppsUndoStore.Receipt.self, from: $0)
             } ?? .init()
             store = AppleAppsUndoStore(receipt: receipt, readDock: readDock,
-                writeDock: writeDock, readMusic: { throw CocoaError(.featureUnsupported) },
+                writeDock: {
+                    try writeDock($0)
+                    try restartDock()
+                }, readMusic: { throw CocoaError(.featureUnsupported) },
                 disableMusic: { throw CocoaError(.featureUnsupported) },
                 restoreMusic: { _ in throw CocoaError(.featureUnsupported) }, save: {
                     defaults.set(try JSONEncoder().encode($0), forKey: "appleAppsUndoReceipt")

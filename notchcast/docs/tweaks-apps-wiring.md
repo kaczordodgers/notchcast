@@ -18,6 +18,9 @@ The backup folder action reveals the folder without changing backup contents.
 Apple app Dock filtering captures the full persistent-apps array before writing.
 Its receipt lives in the bundle-specific Notchcast defaults suite and survives relaunch.
 Turning Apple Apps off restores removed tiles while preserving user additions.
+Re-added apps are recognized by bundle identifier even when their tile GUID changes.
+Apple app Dock writes synchronize preferences and restart the Dock on apply and restore;
+restart failures are reported and retain the recovery receipt for a later restore.
 An unreadable receipt blocks writes rather than replacing recovery data.
 Music launch-service disabling remains unavailable: no reliable exact prior-state
 capture and restoration exists for both the disabled override and booted-out job.

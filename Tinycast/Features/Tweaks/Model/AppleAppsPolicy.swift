@@ -64,6 +64,8 @@ nonisolated enum AppleAppsPolicy {
                   let identifier = data["bundle-identifier"] as? String,
                   removedDockIdentifiers.contains(identifier) else { continue }
             let alreadyPresent = result.contains { candidate in
+                if let candidateData = candidate["tile-data"] as? [String: Any],
+                   candidateData["bundle-identifier"] as? String == identifier { return true }
                 if let guid = tile["GUID"] as? NSNumber, let other = candidate["GUID"] as? NSNumber {
                     return guid == other
                 }

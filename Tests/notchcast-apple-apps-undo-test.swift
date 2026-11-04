@@ -62,11 +62,11 @@ struct AppleAppsUndoTests {
         expect(service == priorService)
         expect(receipt == .init())
         try relaunched.setDock(true)
-        dock = try encode([keep, music, added])
+        dock = try encode([keep, tile("com.apple.Music", 99), added])
         try relaunched.setDock(false)
         guard let edited = try PropertyListSerialization.propertyList(from: dock, format: nil)
             as? [[String: Any]] else { preconditionFailure() }
-        expect(edited.compactMap { $0["GUID"] as? Int } == [2, 3, 1, 4])
+        expect(edited.compactMap { $0["GUID"] as? Int } == [2, 3, 99, 4])
         refuseSave = true
         let before = dock
         do { try relaunched.setDock(true); preconditionFailure() } catch Failure.refused {}
