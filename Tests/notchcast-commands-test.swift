@@ -89,6 +89,11 @@ enum QuicklinkDestination {
     func toggle() { runs += 1 }
 }
 
+enum AgentSessionsModule {
+    static let refreshCommand = NotchcastCommand(
+        slug: "refresh-agent-session-logs", name: "Refresh Agent Session Logs", sfSymbol: "arrow.clockwise", run: {})
+}
+
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         NotchcastCommand(
@@ -116,6 +121,7 @@ extension NotchcastCommandCatalog {
         NotchcastCommand(slug: "open-remote-mac-terminal", name: "Terminal", sfSymbol: "terminal", run: {}),
         NotchcastCommand(slug: "send-to-remote-mac", name: "Send", sfSymbol: "paperplane", run: {}),
         NotchcastCommand(slug: "update-remote-mac", name: "Update", sfSymbol: "arrow.clockwise", run: {}),
+        AgentSessionsModule.refreshCommand,
     ]
 }
 
