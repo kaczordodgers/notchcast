@@ -14,6 +14,7 @@ final class TreadmillCoordinator {
     private(set) var connected = false
     private(set) var isReady = false
     private(set) var lastError: (any Error)?
+    @ObservationIgnored var agentIndex: AgentActionIndex?
     @ObservationIgnored var onGoalReached: (() -> Void)?
     @ObservationIgnored private let transport: any TreadmillTransport
     @ObservationIgnored private let clock: () -> Date
@@ -39,6 +40,18 @@ final class TreadmillCoordinator {
         self.preferences = preferences
         self.clock = clock
         self.calendar = calendar
+        transport.onReady = { [weak self] in
+            guard let self, self.walkEnabled else { return }
+            self.connected = true
+            if self.lastError is TreadmillBluetoothFailure { self.lastError = nil }
+            do { try self.transport.send(TreadmillProtocol.queryStatus) } catch { self.report(error) }
+        }
+        transport.onFailure = { [weak self] error in
+            guard let self, self.lastError == nil || self.lastError is TreadmillBluetoothFailure else { return }
+            let failure = error as? TreadmillBluetoothFailure
+            guard (self.lastError as? TreadmillBluetoothFailure) != failure else { return }
+            self.lastError = failure
+        }
     }
 
     isolated deinit {
@@ -57,7 +70,11 @@ final class TreadmillCoordinator {
                 do { try stopWalk() } catch { report(error) }
             }
             walkEnabled = enabled
+            updateAgentRegistration()
             if !enabled { disconnect() }
+            if enabled, transport.maintainsConnection {
+                do { try connect() } catch { report(error) }
+            }
         case .history: historyEnabled = enabled
         }
         guard walkEnabled || historyEnabled else {
@@ -195,12 +212,17 @@ final class TreadmillCoordinator {
         }
         transport.onDisconnect = { [weak self] in
             guard let self, self.generation == token else { return }
-            self.disconnect()
+            if self.transport.maintainsConnection {
+                self.connected = false
+                self.togglePending = false
+                self.stream = TreadmillStream()
+                self.engine = TreadmillSessionEngine(walk: self.engine.walk)
+            } else { self.disconnect() }
         }
         do {
             try transport.open()
             guard generation == token else { throw TreadmillFailure.unavailable }
-            connected = true
+            if !transport.maintainsConnection { connected = true }
         } catch {
             disconnect()
             report(error)
