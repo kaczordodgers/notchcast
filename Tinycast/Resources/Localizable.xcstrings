@@ -4096,6 +4096,46 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已清除通知：%lld" } }
       }
     },
+    "Generate Password" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Passwort generieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Generar contraseña" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Générer un mot de passe" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "パスワードを生成" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "암호 생성" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Gerar senha" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Создать пароль" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "生成密码" } }
+    } },
+    "Shorten Link" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Link kürzen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Acortar enlace" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Raccourcir le lien" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "リンクを短縮" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "링크 단축" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Encurtar link" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сократить ссылку" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "缩短链接" } }
+    } },
+    "Switch Noise Control" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Geräuschkontrolle wechseln" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Cambiar control de ruido" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Changer le contrôle du bruit" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ノイズコントロールを切り替え" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "소음 제어 전환" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Alternar controle de ruído" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Переключить управление шумом" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "切换噪声控制" } }
+    } },
+    "AirDrop Selected Files" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Ausgewählte Dateien mit AirDrop senden" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Enviar archivos seleccionados por AirDrop" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Envoyer les fichiers sélectionnés par AirDrop" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "選択したファイルをAirDropで送信" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "선택한 파일 AirDrop으로 보내기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Enviar arquivos selecionados por AirDrop" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отправить выбранные файлы через AirDrop" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通过隔空投送发送所选文件" } }
+    } },
     "Low battery: %lld%%" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Batterie schwach: %lld%%" } },
