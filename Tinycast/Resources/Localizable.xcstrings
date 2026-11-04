@@ -2,677 +2,1093 @@
   "sourceLanguage" : "en",
   "strings" : {
     "AI Chat Tools" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "KI-Chat-Werkzeuge"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI-Chat-Werkzeuge"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Herramientas de chat con IA"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herramientas de chat con IA"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Outils de chat IA"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outils de chat IA"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AIチャットツール"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIチャットツール"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 채팅 도구"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 채팅 도구"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ferramentas de chat com IA"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferramentas de chat com IA"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Инструменты ИИ-чата"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструменты ИИ-чата"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 聊天工具"
-          }
-        }
-      }
-    },
-    "Add Notchcast tools to AI chat." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast-Werkzeuge zum KI-Chat hinzufügen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Añade herramientas de Notchcast al chat con IA."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajoutez les outils Notchcast au chat IA."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NotchcastのツールをAIチャットに追加します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 채팅에 Notchcast 도구를 추가합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adicione ferramentas do Notchcast ao chat com IA."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Добавьте инструменты Notchcast в ИИ-чат."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "将 Notchcast 工具添加到 AI 聊天。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 聊天工具"
           }
         }
       }
     },
     "Add Notchcast to AI chat" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notchcast zum KI-Chat hinzufügen"
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notchcast zum KI-Chat hinzufügen"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Añadir Notchcast al chat con IA"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir Notchcast al chat con IA"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajouter Notchcast au chat IA"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouter Notchcast au chat IA"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AIチャットにNotchcastを追加"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AIチャットにNotchcastを追加"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 채팅에 Notchcast 추가"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 채팅에 Notchcast 추가"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adicionar Notchcast ao chat com IA"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionar Notchcast ao chat com IA"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Добавить Notchcast в ИИ-чат"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавить Notchcast в ИИ-чат"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "将 Notchcast 添加到 AI 聊天"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 Notchcast 添加到 AI 聊天"
           }
         }
       }
     },
-    "Install the Notchcast CLI first." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installiere zuerst die Notchcast-CLI."
+    "Add Notchcast tools to AI chat." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notchcast-Werkzeuge zum KI-Chat hinzufügen."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instala primero la CLI de Notchcast."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añade herramientas de Notchcast al chat con IA."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installez d’abord la CLI Notchcast."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajoutez les outils Notchcast au chat IA."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "まずNotchcast CLIをインストールしてください。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NotchcastのツールをAIチャットに追加します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "먼저 Notchcast CLI를 설치하세요."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 채팅에 Notchcast 도구를 추가합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instale primeiro a CLI do Notchcast."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicione ferramentas do Notchcast ao chat com IA."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сначала установите CLI Notchcast."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавьте инструменты Notchcast в ИИ-чат."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请先安装 Notchcast CLI。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将 Notchcast 工具添加到 AI 聊天。"
           }
         }
       }
     },
     "Added" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinzugefügt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajouté"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追加済み"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가됨"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adicionado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Добавлено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已添加"
+          }
+        }
+      }
+    },
+    "Calendar events on the Day page." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalenderereignisse auf der Seite Tag."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos del calendario en la página Día."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements du calendrier sur la page Jour."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「日」ページのカレンダーイベント。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일 페이지의 캘린더 일정."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos do calendário na página Dia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "События календаря на странице «День»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“日”页面上的日历事件。"
+          }
+        }
+      }
+    },
+    "Capture Screen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm aufnehmen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capturar pantalla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capturer l’écran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面をキャプチャ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면 캡처"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capturar ecrã"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Снимок экрана"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截取屏幕"
+          }
+        }
+      }
+    },
+    "Capture an area, window or display." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nimm einen Bereich, ein Fenster oder einen Bildschirm auf."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Captura un área, una ventana o una pantalla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capturez une zone, une fenêtre ou un écran."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "領域、ウインドウ、またはディスプレイをキャプチャします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영역, 윈도우 또는 디스플레이를 캡처합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capture uma área, janela ou ecrã."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создавайте снимки области, окна или экрана."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截取区域、窗口或显示器。"
+          }
+        }
+      }
+    },
+    "Capture and dictation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme und Diktat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Captura y dictado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capture et dictée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャプチャと音声入力"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "캡처 및 받아쓰기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Captura e ditado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Захват и диктовка"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截取与听写"
+          }
+        }
+      }
+    },
+    "Clipboard and file" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwischenablage und Datei"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portapapeles y archivo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Presse-papiers et fichier"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードとファイル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클립보드 및 파일"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Área de transferência e ficheiro"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Буфер обмена и файл"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪贴板和文件"
+          }
+        }
+      }
+    },
+    "Color Picker" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbpipette"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selector de color"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélecteur de couleur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カラーピッカー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "색상 선택기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seletor de cor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пипетка"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取色器"
+          }
+        }
+      }
+    },
+    "Color format" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbformat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formato de color"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format de couleur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "色の形式"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "색상 형식"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formato da cor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Формат цвета"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "颜色格式"
+          }
+        }
+      }
+    },
+    "Copy a color from anywhere on the screen." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopiere eine Farbe von einer beliebigen Stelle auf dem Bildschirm."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia un color de cualquier parte de la pantalla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiez une couleur n’importe où sur l’écran."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面上の任意の場所から色をコピーします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면의 어디에서나 색상을 복사합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copie uma cor de qualquer ponto do ecrã."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Копируйте цвет из любой точки экрана."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从屏幕任意位置复制颜色。"
+          }
+        }
+      }
+    },
+    "Desktop" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schreibtisch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escritorio"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bureau"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デスクトップ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "데스크탑"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secretária"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Рабочий стол"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "桌面"
+          }
+        }
+      }
+    },
+    "Install the Notchcast CLI first." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installiere zuerst die Notchcast-CLI."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instala primero la CLI de Notchcast."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installez d’abord la CLI Notchcast."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "まずNotchcast CLIをインストールしてください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "먼저 Notchcast CLI를 설치하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instale primeiro a CLI do Notchcast."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Сначала установите CLI Notchcast."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先安装 Notchcast CLI。"
+          }
+        }
+      }
+    },
+    "Monitor Alerts": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hinzugefügt"
+            "value": "Monitorwarnungen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Añadido"
+            "value": "Alertas del monitor"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajouté"
+            "value": "Alertes du moniteur"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "追加済み"
+            "value": "モニターのアラート"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "추가됨"
+            "value": "모니터 알림"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adicionado"
+            "value": "Alertas do monitor"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Добавлено"
+            "value": "Оповещения монитора"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已添加"
+            "value": "监视器提醒"
           }
         }
       }
     },
-    "Not added" : {
+    "Evaluate alerts while the Monitor page is open.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht hinzugefügt"
+            "value": "Warnungen auswerten, während die Monitorseite geöffnet ist."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sin añadir"
+            "value": "Evaluar alertas mientras la página Monitor esté abierta."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non ajouté"
+            "value": "Évaluer les alertes lorsque la page Moniteur est ouverte."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未追加"
+            "value": "モニターページを開いている間にアラートを評価します。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "추가되지 않음"
+            "value": "모니터 페이지가 열려 있는 동안 알림을 평가합니다."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não adicionado"
+            "value": "Avaliar alertas enquanto a página Monitor estiver aberta."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не добавлено"
+            "value": "Проверять оповещения, пока открыта страница монитора."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未添加"
+            "value": "在监视器页面打开时评估提醒。"
           }
         }
       }
     },
-    "Monitor Alerts" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Monitorwarnungen"
+    "CPU usage threshold": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU-Auslastungsgrenze"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alertas del monitor"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de uso de CPU"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alertes du moniteur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuil d’utilisation du processeur"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "モニターのアラート"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU使用率のしきい値"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모니터 알림"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU 사용량 임계값"
           }
         },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alertas do monitor"
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de utilização da CPU"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Оповещения монитора"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порог загрузки ЦП"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "监视器提醒"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU 使用率阈值"
           }
         }
       }
     },
-    "Evaluate alerts while the Monitor page is open." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Warnungen auswerten, während die Monitorseite geöffnet ist."
+    "CPU temperature threshold": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU-Temperaturgrenze"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Evaluar alertas mientras la página Monitor esté abierta."
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de temperatura de CPU"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Évaluer les alertes lorsque la page Moniteur est ouverte."
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuil de température du processeur"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "モニターページを開いている間にアラートを評価します。"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU温度のしきい値"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모니터 페이지가 열려 있는 동안 알림을 평가합니다."
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU 온도 임계값"
           }
         },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Avaliar alertas enquanto a página Monitor estiver aberta."
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de temperatura da CPU"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Проверять оповещения, пока открыта страница монитора."
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порог температуры ЦП"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在监视器页面打开时评估提醒。"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CPU 温度阈值"
           }
         }
       }
     },
-    "CPU usage threshold" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU-Auslastungsgrenze"
+    "Memory pressure threshold": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Speicherdruckgrenze"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Umbral de uso de CPU"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de presión de memoria"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seuil d’utilisation du processeur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuil de pression mémoire"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU使用率のしきい値"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メモリプレッシャーのしきい値"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU 사용량 임계값"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "메모리 압력 임계값"
           }
         },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de utilização da CPU"
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de pressão da memória"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Порог загрузки ЦП"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порог нагрузки на память"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU 使用率阈值"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内存压力阈值"
           }
         }
       }
     },
-    "CPU temperature threshold" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU-Temperaturgrenze"
+    "Disk free threshold": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grenze für freien Speicherplatz"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Umbral de temperatura de CPU"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de espacio libre"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seuil de température du processeur"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuil d’espace disque libre"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU温度のしきい値"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディスク空き容量のしきい値"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU 온도 임계값"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "디스크 여유 공간 임계값"
           }
         },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de temperatura da CPU"
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de espaço livre"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Порог температуры ЦП"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порог свободного места"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "CPU 温度阈值"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "磁盘可用空间阈值"
           }
         }
       }
     },
-    "Memory pressure threshold" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Speicherdruckgrenze"
+    "Battery threshold": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Batteriegrenze"
           }
         },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Umbral de presión de memoria"
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de batería"
           }
         },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seuil de pression mémoire"
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuil de batterie"
           }
         },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "メモリプレッシャーのしきい値"
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バッテリーのしきい値"
           }
         },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "메모리 압력 임계값"
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "배터리 임계값"
           }
         },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de pressão da memória"
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite da bateria"
           }
         },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Порог нагрузки на память"
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порог заряда батареи"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "内存压力阈值"
-          }
-        }
-      }
-    },
-    "Disk free threshold" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grenze für freien Speicherplatz"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Umbral de espacio libre"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seuil d’espace disque libre"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ディスク空き容量のしきい値"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "디스크 여유 공간 임계값"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite de espaço livre"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Порог свободного места"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "磁盘可用空间阈值"
-          }
-        }
-      }
-    },
-    "Battery threshold" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Batteriegrenze"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Umbral de batería"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seuil de batterie"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "バッテリーのしきい値"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "배터리 임계값"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limite da bateria"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Порог заряда батареи"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "电池阈值"
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电池阈值"
           }
         }
       }
@@ -1303,54 +1719,14 @@
     },
     "Day" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tag"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Día"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Journée"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "予定"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "일정"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dia"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "День"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "日程"
-          }
-        }
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tag" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Día" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Journée" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "予定" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일정" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Dia" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "День" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日程" } }
       }
     },
     "Default timer" : {
@@ -1977,6 +2353,58 @@
         }
       }
     },
+    "Not added" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht hinzugefügt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin añadir"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non ajouté"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未追加"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "추가되지 않음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não adicionado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не добавлено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未添加"
+          }
+        }
+      }
+    },
     "Not responding" : {
       "localizations" : {
         "de" : {
@@ -2077,6 +2505,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
+          }
+        }
+      }
+    },
+    "Pick Color" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbe auswählen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir color"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisir une couleur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "カラーを選択"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "색상 선택"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escolher cor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбрать цвет"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选取颜色"
           }
         }
       }
@@ -2493,6 +2973,214 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "关闭窗口前使用相同的确认方式。"
+          }
+        }
+      }
+    },
+    "Screen Recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmaufnahme"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grabación de pantalla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrement de l’écran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面収録"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면 기록"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gravação do ecrã"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись экрана"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屏幕录制"
+          }
+        }
+      }
+    },
+    "Screenshot destination" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ziel für Bildschirmfotos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destino de las capturas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destination des captures"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリーンショットの保存先"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크린샷 저장 위치"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destino das capturas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Назначение снимков экрана"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图保存位置"
+          }
+        }
+      }
+    },
+    "Screenshot folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner für Bildschirmfotos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carpeta de capturas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dossier des captures"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリーンショットのフォルダ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크린샷 폴더"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasta das capturas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Папка снимков экрана"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "截图文件夹"
+          }
+        }
+      }
+    },
+    "Screenshots" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfotos"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capturas de pantalla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Captures d’écran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スクリーンショット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스크린샷"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capturas de ecrã"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Снимки экрана"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屏幕截图"
           }
         }
       }
@@ -142792,318 +143480,6 @@
         }
       }
     },
-    "Capture an area, window or display." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nimm einen Bereich, ein Fenster oder einen Bildschirm auf."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Captura un área, una ventana o una pantalla."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capturez une zone, une fenêtre ou un écran."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "領域、ウインドウ、またはディスプレイをキャプチャします。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "영역, 윈도우 또는 디스플레이를 캡처합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture uma área, janela ou ecrã."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Создавайте снимки области, окна или экрана."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "截取区域、窗口或显示器。"
-          }
-        }
-      }
-    },
-    "Capture and dictation" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aufnahme und Diktat"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Captura y dictado"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capture et dictée"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "キャプチャと音声入力"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "캡처 및 받아쓰기"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Captura e ditado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Захват и диктовка"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "截取与听写"
-          }
-        }
-      }
-    },
-    "Capture Screen" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bildschirm aufnehmen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capturar pantalla"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capturer l’écran"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画面をキャプチャ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "화면 캡처"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capturar ecrã"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Снимок экрана"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "截取屏幕"
-          }
-        }
-      }
-    },
-    "Clipboard and file" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zwischenablage und Datei"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Portapapeles y archivo"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Presse-papiers et fichier"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリップボードとファイル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "클립보드 및 파일"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Área de transferência e ficheiro"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Буфер обмена и файл"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "剪贴板和文件"
-          }
-        }
-      }
-    },
-    "Color format" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Farbformat"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Formato de color"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Format de couleur"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "色の形式"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "색상 형식"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Formato da cor"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Формат цвета"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "颜色格式"
-          }
-        }
-      }
-    },
-    "Color Picker" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Farbpipette"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Selector de color"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sélecteur de couleur"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "カラーピッカー"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "색상 선택기"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seletor de cor"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Пипетка"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "取色器"
-          }
-        }
-      }
-    },
     "command “%@”" : {
       "comment" : "Lowercase, follows “settings.json: key:” in an error; %@ is an identifier",
       "localizations" : {
@@ -143264,58 +143640,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这里还没有内容。"
-          }
-        }
-      }
-    },
-    "Copy a color from anywhere on the screen." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kopiere eine Farbe von einer beliebigen Stelle auf dem Bildschirm."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copia un color de cualquier parte de la pantalla."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copiez une couleur n’importe où sur l’écran."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画面上の任意の場所から色をコピーします。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "화면의 어디에서나 색상을 복사합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copie uma cor de qualquer ponto do ecrã."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Копируйте цвет из любой точки экрана."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从屏幕任意位置复制颜色。"
           }
         }
       }
@@ -143628,58 +143952,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自定义尺寸“%@”需要“width”和“height”，格式为 \"60%%\" 或 \"900pt\""
-          }
-        }
-      }
-    },
-    "Desktop" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Schreibtisch"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escritorio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bureau"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "デスクトップ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "데스크탑"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Secretária"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Рабочий стол"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "桌面"
           }
         }
       }
@@ -145899,58 +146171,6 @@
         }
       }
     },
-    "Pick Color" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Farbe auswählen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Elegir color"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisir une couleur"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "カラーを選択"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "색상 선택"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Escolher cor"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Выбрать цвет"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "选取颜色"
-          }
-        }
-      }
-    },
     "Pin Island" : {
       "localizations" : {
         "de" : {
@@ -146332,214 +146552,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "房间“%@”"
-          }
-        }
-      }
-    },
-    "Screen Recording" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bildschirmaufnahme"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Grabación de pantalla"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrement de l’écran"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "画面収録"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "화면 기록"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gravação do ecrã"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Запись экрана"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "屏幕录制"
-          }
-        }
-      }
-    },
-    "Screenshot destination" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ziel für Bildschirmfotos"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Destino de las capturas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Destination des captures"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スクリーンショットの保存先"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "스크린샷 저장 위치"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Destino das capturas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Назначение снимков экрана"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "截图保存位置"
-          }
-        }
-      }
-    },
-    "Screenshot folder" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ordner für Bildschirmfotos"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Carpeta de capturas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossier des captures"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スクリーンショットのフォルダ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "스크린샷 폴더"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pasta das capturas"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Папка снимков экрана"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "截图文件夹"
-          }
-        }
-      }
-    },
-    "Screenshots" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bildschirmfotos"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capturas de pantalla"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Captures d’écran"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "スクリーンショット"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "스크린샷"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Capturas de ecrã"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Снимки экрана"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "屏幕截图"
           }
         }
       }
