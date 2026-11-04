@@ -1,10 +1,210 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Fan mode: %@" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Lüftermodus: %@"}},"es":{"stringUnit":{"state":"translated","value":"Modo de ventilador: %@"}},"fr":{"stringUnit":{"state":"translated","value":"Mode des ventilateurs : %@"}},"ja":{"stringUnit":{"state":"translated","value":"ファンモード：%@"}},"ko":{"stringUnit":{"state":"translated","value":"팬 모드: %@"}},"pt":{"stringUnit":{"state":"translated","value":"Modo das ventoinhas: %@"}},"ru":{"stringUnit":{"state":"translated","value":"Режим вентиляторов: %@"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"风扇模式：%@"}}}},
-    "Remote Screen is off on the other Mac." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Entfernter Bildschirm ist auf dem anderen Mac deaktiviert."}},"es":{"stringUnit":{"state":"translated","value":"Pantalla remota está desactivada en el otro Mac."}},"fr":{"stringUnit":{"state":"translated","value":"Écran distant est désactivé sur l’autre Mac."}},"ja":{"stringUnit":{"state":"translated","value":"もう一方のMacでリモート画面がオフです。"}},"ko":{"stringUnit":{"state":"translated","value":"다른 Mac에서 원격 화면이 꺼져 있습니다."}},"pt":{"stringUnit":{"state":"translated","value":"O Ecrã remoto está desativado no outro Mac."}},"ru":{"stringUnit":{"state":"translated","value":"Удалённый экран выключен на другом Mac."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"另一台 Mac 上的远程屏幕已关闭。"}}}},
-    "Screen Sharing is off on the other Mac." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Die Bildschirmfreigabe ist auf dem anderen Mac deaktiviert."}},"es":{"stringUnit":{"state":"translated","value":"Compartir pantalla está desactivado en el otro Mac."}},"fr":{"stringUnit":{"state":"translated","value":"Le partage d’écran est désactivé sur l’autre Mac."}},"ja":{"stringUnit":{"state":"translated","value":"もう一方のMacで画面共有がオフです。"}},"ko":{"stringUnit":{"state":"translated","value":"다른 Mac에서 화면 공유가 꺼져 있습니다."}},"pt":{"stringUnit":{"state":"translated","value":"A partilha de ecrã está desativada no outro Mac."}},"ru":{"stringUnit":{"state":"translated","value":"Общий экран выключен на другом Mac."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"另一台 Mac 上的屏幕共享已关闭。"}}}},
-    "Could not reach the other Mac." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Der andere Mac ist nicht erreichbar."}},"es":{"stringUnit":{"state":"translated","value":"No se pudo conectar con el otro Mac."}},"fr":{"stringUnit":{"state":"translated","value":"Impossible de joindre l’autre Mac."}},"ja":{"stringUnit":{"state":"translated","value":"もう一方のMacに接続できませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"다른 Mac에 연결할 수 없습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Não foi possível contactar o outro Mac."}},"ru":{"stringUnit":{"state":"translated","value":"Не удалось связаться с другим Mac."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"无法连接另一台 Mac。"}}}},
+    "Could not reach the other Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der andere Mac ist nicht erreichbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo conectar con el otro Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de joindre l’autre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一方のMacに接続できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 Mac에 연결할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível contactar o outro Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось связаться с другим Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接另一台 Mac。"
+          }
+        }
+      }
+    },
+    "Fan mode: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lüftermodus: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de ventilador: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode des ventilateurs : %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファンモード：%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "팬 모드: %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo das ventoinhas: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим вентиляторов: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "风扇模式：%@"
+          }
+        }
+      }
+    },
+    "Fix Mac Link" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Mac-Verbindung reparieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Reparar enlace con Mac" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réparer la connexion Mac" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクを修復" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결 복구" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Reparar ligação ao Mac" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Восстановить связь с Mac" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "修复 Mac 连接" } }
+    } },
+    "Copy DNS Reset Command" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "DNS-Reset-Befehl kopieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de restablecimiento de DNS" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier la commande de réinitialisation DNS" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "DNSリセットコマンドをコピー" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "DNS 재설정 명령 복사" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de reposição do DNS" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Копировать команду сброса DNS" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制 DNS 重置命令" } }
+    } },
+    "Copy Tailscale Command" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Tailscale-Befehl kopieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de Tailscale" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier la commande Tailscale" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Tailscaleコマンドをコピー" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Tailscale 명령 복사" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando do Tailscale" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Копировать команду Tailscale" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制 Tailscale 命令" } }
+    } },
+    "Copy Sync Command" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Synchronisierungsbefehl kopieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de sincronización" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier la commande de synchronisation" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "同期コマンドをコピー" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "동기화 명령 복사" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de sincronização" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Копировать команду синхронизации" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制同步命令" } }
+    } },
+    "Open Mac Link Settings" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Mac-Verbindungseinstellungen öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes del enlace con Mac" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir les réglages de connexion Mac" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンク設定を開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결 설정 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes da ligação ao Mac" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть настройки связи с Mac" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开 Mac 连接设置" } }
+    } },
+    "Mac Link could not be checked yet." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Mac-Verbindung konnte noch nicht geprüft werden." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no se ha podido comprobar el enlace con Mac." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "La connexion Mac n’a pas encore pu être vérifiée." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクはまだ確認できていません。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "아직 Mac 연결을 확인할 수 없습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ainda não foi possível verificar a ligação ao Mac." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Связь с Mac пока не удалось проверить." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂时无法检查 Mac 连接。" } }
+    } },
+    "Mac Link is connected." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Mac-Verbindung ist hergestellt." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "El enlace con Mac está conectado." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "La connexion Mac est établie." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクは接続済みです。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결이 설정되었습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "A ligação ao Mac está estabelecida." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Связь с Mac установлена." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Mac 连接已建立。" } }
+    } },
+    "Command copied." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Befehl kopiert." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Comando copiado." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Commande copiée." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "コマンドをコピーしました。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "명령을 복사했습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Comando copiado." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Команда скопирована." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "命令已复制。" } }
+    } },
+    "Open Network Settings" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Netzwerkeinstellungen öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes de red" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir les réglages réseau" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ネットワーク設定を開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "네트워크 설정 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes de rede" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть настройки сети" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开网络设置" } }
+    } },
+    "Open Log" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Protokoll öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir registro" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir le journal" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログを開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "로그 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir registro" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть журнал" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开日志" } }
+    } },
     "Clipboard is empty" : {
       "localizations" : {
         "de" : {
@@ -109,6 +309,58 @@
         }
       }
     },
+    "Remote Screen is off on the other Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernter Bildschirm ist auf dem anderen Mac deaktiviert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantalla remota está desactivada en el otro Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écran distant est désactivé sur l’autre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一方のMacでリモート画面がオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 Mac에서 원격 화면이 꺼져 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Ecrã remoto está desativado no outro Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалённый экран выключен на другом Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一台 Mac 上的远程屏幕已关闭。"
+          }
+        }
+      }
+    },
     "Review a profile disabling all Apple intelligence features." : {
       "localizations" : {
         "de" : {
@@ -209,6 +461,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "检查用于停用分析、个性化广告、网页结果和建议的描述文件。"
+          }
+        }
+      }
+    },
+    "Screen Sharing is off on the other Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bildschirmfreigabe ist auf dem anderen Mac deaktiviert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir pantalla está desactivado en el otro Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le partage d’écran est désactivé sur l’autre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一方のMacで画面共有がオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 Mac에서 화면 공유가 꺼져 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A partilha de ecrã está desativada no outro Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Общий экран выключен на другом Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一台 Mac 上的屏幕共享已关闭。"
           }
         }
       }
