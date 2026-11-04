@@ -13,10 +13,10 @@ import subprocess
 import sys
 
 if len(sys.argv) != 3:
-    sys.exit('usage: changed-harnesses.sh <base> <head> (or --all --all)')
-all_tests = sys.argv[1:] == ['--all', '--all']
-changed = set() if all_tests else set(subprocess.check_output(
-    ['git', 'diff', '--name-only', '-z', sys.argv[1], sys.argv[2]], text=True).split('\0'))
+    sys.exit('usage: changed-harnesses.sh <base> <head>')
+# --no-renames lists both ends of a move; a moved source leaves the harness that compiled it.
+changed = set(subprocess.check_output(
+    ['git', 'diff', '--name-only', '--no-renames', '-z', sys.argv[1], sys.argv[2]], text=True).split('\0'))
 selected = {'notchcast-core-test'}
 for path in sorted(Path('Tests').glob('*-test.swift')):
     headers = [line.removeprefix('// notchcast-sources: ') for line in
@@ -31,7 +31,7 @@ for path in sorted(Path('Tests').glob('*-test.swift')):
         patterns = [f'Tinycast/Features/{folder}/{part}/*.swift' for part in ('Model', 'Service')]
     # Against the changed paths, not the tree: a deleted source no longer exists to glob.
     touched = any(fnmatch.fnmatchcase(file, pattern) for pattern in patterns for file in changed)
-    if all_tests or str(path) in changed or touched:
+    if str(path) in changed or touched:
         selected.add(name)
 # CI_SKIP_TESTS names what the hosted VM cannot run; a Mac runs them, and core always runs.
 skipped = set(os.environ['CI_SKIP_TESTS'].split()) if os.environ.get('GITHUB_ACTIONS') else set()
