@@ -161,7 +161,10 @@ rgb, hsl, swiftUIColor, nsColorLiteral).
 `notchcast.screenshot.destination` and `notchcast.screenshot.folder` are excluded as
 screen-recording capability and capture-output policy. `backupRunNow` and `backupBrowseRestore` are
 excluded: they run the machine backup tool with its repository password command.
-The document editor's font, theme and pairing preferences are not carried yet.
+The document editor carries `notchcast.editor.font` (system/jetBrainsMono),
+`notchcast.editor.theme` (system/githubDark), and `notchcast.editor.pairsAutomatically` (Bool).
+Restore updates `NotchcastCore.editor.editorPreferences`; its setters retain the bare keys
+`font`, `theme`, and `pairsAutomatically` in the channel's `.editor` defaults suite.
 
 ## Adding switches
 
