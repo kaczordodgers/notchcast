@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 struct RootHelperClient: Sendable {
     enum Failure: Error, Equatable {
@@ -13,9 +14,20 @@ struct RootHelperClient: Sendable {
 
     var isInstalled: Bool { RootToolPath.verify() == nil }
 
+    /// Root children we stopped waiting for; root tools must not overlap, so no new one starts while one runs.
+    private static let abandoned = Mutex<[Process]>([])
+
+    static func refuseWhileAbandonedRuns() throws {
+        try abandoned.withLock { children in
+            children.removeAll { !$0.isRunning }
+            if !children.isEmpty { throw Failure.timedOut }
+        }
+    }
+
     @concurrent
     func run(_ command: RootContract.Command) async throws -> RootContract.Reply {
         try Task.checkCancellation()
+        try Self.refuseWhileAbandonedRuns()
         if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
         let process = Process()
         let output = Pipe()
@@ -39,7 +51,12 @@ struct RootHelperClient: Sendable {
 
     func run(_ command: RootContract.Command, process: Process, exit: ProcessExit,
              output: Pipe, timeout: Duration) async throws -> RootContract.Reply {
-        try await Self.wait(for: process, exit: exit, timeout: timeout)
+        do {
+            try await Self.wait(for: process, exit: exit, timeout: timeout)
+        } catch {
+            Self.abandoned.withLock { $0.append(process) }
+            throw error
+        }
         guard process.terminationReason == .exit else {
             throw Failure.executionFailed(process.terminationStatus)
         }

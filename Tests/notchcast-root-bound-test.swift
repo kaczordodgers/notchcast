@@ -23,6 +23,11 @@ struct RootBoundTest {
         } catch RootHelperClient.Failure.timedOut {}
         precondition(start.duration(to: clock.now) < .milliseconds(500))
         print("PASS: never-exiting child times out within 500ms")
+        do {
+            _ = try await RootHelperClient().run(.ping)
+            preconditionFailure("Started a root tool while an abandoned one still runs")
+        } catch RootHelperClient.Failure.timedOut {}
+        print("PASS: no new root tool starts while an abandoned one runs")
         let task = Task {
             _ = try await RootHelperClient().run(.ping, process: StuckProcess(), exit: ProcessExit(),
                                                 output: Pipe(), timeout: .seconds(60))
