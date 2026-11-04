@@ -7,6 +7,18 @@ enum IslandMotion: Equatable {
         return opening ? .open : .close
     }
 
+    /// A perceptual spring for the silhouette's morph (`CASpringAnimation(perceptualDuration:bounce:)`).
+    struct Spring: Equatable {
+        let duration: Double
+        let bounce: Double
+    }
+
+    /// Growing sides overshoot a little and settle; shrinking ones never swing (after Vorssaint's notch).
+    static let growWidth = Spring(duration: 0.44, bounce: 0.25)
+    static let growHeight = Spring(duration: 0.38, bounce: 0.22)
+    static let shrinkWidth = Spring(duration: 0.30, bounce: 0)
+    static let shrinkHeight = Spring(duration: 0.26, bounce: 0)
+
     var duration: Double {
         switch self {
         case .open: 0.28
