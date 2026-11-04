@@ -22,23 +22,28 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 import Foundation
+import Synchronization
 
 @MainActor enum NotchcastCore {}
 
 @main @MainActor struct WiringTest {
-    static func settle() async {
-        for _ in 0..<100 { await Task.yield() }
-        try? await Task.sleep(for: .milliseconds(100))
+    static func waitUntil(_ message: String, _ condition: () -> Bool) async {
+        let clock = ContinuousClock()
+        let deadline = clock.now.advanced(by: .seconds(5))
+        while !condition() {
+            precondition(clock.now < deadline, "Timed out: \(message)")
+            try? await Task.sleep(for: .milliseconds(10))
+        }
     }
 
     static func main() async {
         let suite = "fleet-test." + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
+        let initialRead = Mutex<CheckedContinuation<Data, Never>?>(nil)
         let threads = T3ThreadsModule(source: .init(runner: {
-            try await Task.sleep(for: .milliseconds(50))
-            return Data(#"[{"threadId":"fixture","title":"Fixture","status":"waiting_for_approval"}]"#.utf8)
-        }))
+            await withCheckedContinuation { continuation in initialRead.withLock { $0 = continuation } }
+        }), interval: .seconds(3600))
         let fleet = FleetModule()
         let island = AgentIslandModule()
         let bots = BotHostModule()
@@ -61,13 +66,21 @@ import Foundation
             preferences.set(feature, true)
         }
         controller.run()
+        await waitUntil("first poll started") { initialRead.withLock { $0 != nil } }
         precondition(!threads.hasSnapshot)
         do {
             _ = try await wiring.source.readWaitingThreads(in: URL(filePath: "/"))
             preconditionFailure("Initial poll must be unavailable")
         } catch {}
-        await settle()
-        await wiring.alerts.settle()
+        let fixture = Data(#"[{"threadId":"fixture","title":"Fixture","status":"waiting_for_approval"}]"#.utf8)
+        initialRead.withLock { continuation in
+            continuation?.resume(returning: fixture)
+            continuation = nil
+        }
+        await waitUntil("snapshot reaches alerts, fleet and island") {
+            wiring.alerts.count == 1 && fleet.model?.rows.count == 1
+                && island.state.presentations["t3"]?.mode == .approval
+        }
         precondition(notices.isEmpty)
         precondition(wiring.alerts.count == 1)
         precondition(fleet.model?.rows.count == 1)
@@ -75,22 +88,22 @@ import Foundation
         precondition(fleet.model?.machines.first?.failure == nil)
         precondition(island.state.presentations["t3"]?.mode == .approval)
         preferences.set(.island, false)
-        await settle()
+        await waitUntil("island stops") { !island.isRunning && island.state.presentations.isEmpty }
         precondition(!island.isRunning && island.state.presentations.isEmpty)
         precondition(preferences.isOn(.agentIsland) && preferences.isOn(.t3Threads))
         preferences.set(.island, true)
-        await settle()
+        await waitUntil("island resumes") { island.state.presentations["t3"]?.mode == .approval }
         preferences.set(.waitingAlerts, false)
-        await settle()
+        await waitUntil("alerts stop") { wiring.alerts.count == 0 }
         precondition(wiring.alerts.count == 0)
         preferences.set(.fleetPanel, false)
-        await settle()
+        await waitUntil("fleet stops") { !fleet.isEnabled && fleet.model?.rows.isEmpty == true }
         precondition(fleet.model?.rows.isEmpty == true)
         preferences.set(.agentIsland, false)
-        await settle()
+        await waitUntil("agent island stops") { !island.isRunning && island.state.presentations.isEmpty }
         precondition(island.state.presentations.isEmpty)
         preferences.set(.t3Threads, false)
-        await settle()
+        await waitUntil("T3 stops") { !threads.isRunning && threads.threads.isEmpty }
         precondition(!threads.isRunning && threads.threads.isEmpty)
         wiring.stop()
         print("PASS: fake snapshot fanout and independent switch teardown")
