@@ -1,0 +1,43 @@
+// notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift Tinycast/Features/Tweaks/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+import Foundation
+
+@main
+struct TweaksStoreTests {
+    @MainActor
+    static func main() async throws {
+        let suite = "test.tweaks." + UUID().uuidString
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        precondition(NotchcastFeature.allCases.filter(\.isTweak).allSatisfy { !preferences.isOn($0) })
+        var recorded: [TypingPreferencePlan.Command] = []
+        var journal: [String: TypingPreferencePlan] = [:]
+        let store = TweaksStore(read: { _ in .bool(true) }, run: { recorded += $0 }, save: { journal = $0 })
+        let writes = TypingCatalog.writes["smart-punctuation"]!
+        try await store.set("typing", writes: writes, on: true)
+        precondition(recorded.isEmpty, "Disabled verbs must do nothing")
+        store.start()
+        try await store.set("typing", writes: writes, on: true)
+        precondition(recorded.count == 2 && journal.count == 1)
+        try await store.stop()
+        precondition(recorded.count == 4 && journal.isEmpty)
+        precondition(recorded.suffix(2).allSatisfy { $0.arguments.suffix(2) == ["-bool", "true"] })
+        try await store.set("typing", writes: writes, on: false)
+        precondition(recorded.count == 4)
+        var current: TypingPreferencePlan.Value?
+        let absent = TweaksStore(read: { _ in current }, run: { recorded += $0 }, save: { _ in })
+        absent.start()
+        try await absent.set("rate", writes: [.init("KeyRepeat", .integer(2))], on: true)
+        current = .integer(2)
+        try await absent.set("rate", writes: [.init("KeyRepeat", .integer(6))], on: true)
+        try await absent.stop()
+        precondition(recorded.last?.arguments == ["delete", ".GlobalPreferences", "KeyRepeat"])
+        let library = TypingPreferencePlan(entries: [],
+            extraApply: [FinderCatalog.library(home: URL(filePath: "/fixture"), hidden: false)],
+            extraRevert: [FinderCatalog.library(home: URL(filePath: "/fixture"), hidden: true)])
+        let decoded = try JSONDecoder().decode(TypingPreferencePlan.self, from: JSONEncoder().encode(library))
+        precondition(decoded == library)
+        print("8 passed, 0 failed")
+    }
+}
