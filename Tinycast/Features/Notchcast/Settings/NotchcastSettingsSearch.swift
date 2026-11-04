@@ -25,6 +25,8 @@ extension SettingsAnchor {
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
     static let notchcastDownloads = Self(tab: .notchcast, title: "Downloads")
+    static let notchcastLauncherTools = Self(tab: .notchcast, title: "Launcher tools")
+    static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
 }
 
 extension SettingsSearchCatalog {
@@ -85,5 +87,15 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Distill", keywords: ["links", "transcribe", "media", "queue"]),
         .init(.notchcastActivities, "Distill Timestamps", keywords: ["transcript", "time", "chunks"]),
         .init(.notchcastActivities, "Convert Distill Folder", keywords: ["markdown", "pdf", "ocr", "files"]),
+        .init(.notchcastActivities, "AI Usage", keywords: ["plan", "limits", "cache"]),
+        .init(.notchcastActivities, "Other Mac AI Usage", keywords: ["peer", "remote"]),
+        .init(.notchcastSystem, "Mac Link", keywords: ["pair", "network"]),
+        .init(.notchcastLauncher, "GitHub Search", keywords: ["repositories", "stars", "token"]),
+        .init(.notchcastLauncher, "Clear Notifications", keywords: ["notification center", "accessibility"]),
+        .init(.notchcastLauncherTools, "GitHub Token", keywords: ["keychain", "account"]),
+        .init(.notchcastLauncher, "Currency Answers", keywords: ["nbp", "currency", "rates"]),
+        .init(.notchcastLauncher, "Copy Path", keywords: ["finder", "browser", "document", "link"]),
+        .init(.notchcastLauncher, "Small Commands", keywords: ["password", "shorten", "noise", "airdrop"]),
+        .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
     ]
 }
