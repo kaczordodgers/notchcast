@@ -1,5 +1,7 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
+import Foundation
+
 extension NotchcastCore {
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
@@ -29,6 +31,9 @@ extension NotchcastCore {
     static let screenshot = ScreenshotModule()
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
+    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".editor")!))
+    static let quickLook = QuickLookCoordinator(preferences: .shared)
+    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
@@ -62,6 +67,9 @@ extension NotchcastCore {
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),
+            .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
+            .init(requires: [.quickLookSpace], module: quickLook),
+            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }
