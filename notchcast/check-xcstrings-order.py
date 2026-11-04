@@ -2,6 +2,7 @@
 """Check catalog key order and require Swift references or explicit exceptions for key changes."""
 import argparse
 import json
+import re
 import subprocess
 import sys
 
@@ -18,12 +19,27 @@ def check(base, head, added_swift, remaining_swift, allowed=()):
     if [k for k in base if k in shared] != [k for k in head if k in shared]:
         errors.append("relative order of existing keys changed")
     for key in sorted(head.keys() - base.keys() - set(allowed)):
-        if json.dumps(key, ensure_ascii=False) not in added_swift:
+        if not referenced(key, added_swift):
             errors.append("added/restored key needs a changed Swift reference or allow-list entry: " + key)
     for key in sorted(base.keys() - head.keys() - set(allowed)):
-        if json.dumps(key, ensure_ascii=False) in remaining_swift:
+        if referenced(key, remaining_swift):
             errors.append("removed key still referenced in Swift: " + key)
     return errors
+
+
+def referenced(key, swift):
+    swift = re.sub(r'\\\n\s*', '', swift)
+    swift = re.sub(r'"""\n[ \t]*(.*?)\n[ \t]*"""',
+                   lambda match: '"' + match[1] + '"', swift, flags=re.S)
+    key = key.replace('%%', '%')
+    if json.dumps(key, ensure_ascii=False) in swift:
+        return True
+    parts = re.split(r'%(?:\d+\$)?(?:\.\d+)?(?:lld|ld|d|f|@)', key)
+    if len(parts) == 1:
+        return False
+    interpolation = r'\\\((?:[^()\n]|\([^()\n]*\))*\)'
+    pattern = interpolation.join(re.escape(json.dumps(p, ensure_ascii=False)[1:-1]) for p in parts)
+    return re.search('"' + pattern + '"', swift) is not None
 
 
 def main():
