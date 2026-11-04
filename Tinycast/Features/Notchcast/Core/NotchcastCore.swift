@@ -8,7 +8,6 @@ enum NotchcastCore {
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
-    static let calendar = DayCalendarModule()
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
@@ -43,7 +42,6 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
-            .init(requires: [.island, .dayCalendar], module: calendar),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
