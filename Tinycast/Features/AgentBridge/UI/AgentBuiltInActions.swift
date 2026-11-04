@@ -9,7 +9,7 @@ enum AgentBuiltInActions {
             switch action {
             case .togglePalette:
                 id = "notchcast.launcher"
-                title = String(localized: "Open Launcher")
+                title = String(localized: "App Launcher")
             case .dictation:
                 id = "notchcast.dictation"
                 title = String(localized: "Dictation")
