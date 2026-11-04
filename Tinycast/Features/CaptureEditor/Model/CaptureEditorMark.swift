@@ -71,7 +71,10 @@ struct CaptureEditorMark: Identifiable, Equatable, Sendable {
             return rect.insetBy(dx: -tolerance, dy: -tolerance).contains(point)
                 && !rect.insetBy(dx: tolerance, dy: tolerance).contains(point)
         case .ellipse(let rect):
-            guard rect.width > 0, rect.height > 0 else { return false }
+            let tolerance = slack + 2 * markScale
+            guard rect.width > 0, rect.height > 0 else {
+                return rect.insetBy(dx: -tolerance, dy: -tolerance).contains(point)
+            }
             let dx = (point.x - rect.midX) / (rect.width / 2), dy = (point.y - rect.midY) / (rect.height / 2)
             return abs(hypot(dx, dy) - 1) <= (slack + 2 * markScale) / max(1, min(rect.width, rect.height) / 2)
         case .blur(let rect): return rect.insetBy(dx: -slack, dy: -slack).contains(point)

@@ -59,6 +59,9 @@ struct CaptureEditorEngineTest {
     @MainActor
     static func toolsAndHistory() {
         let from = CGPoint(x: 10, y: 10), to = CGPoint(x: 60, y: 50)
+        let flat = CaptureEditorMark(shape: .ellipse(CGRect(x: 10, y: 20, width: 40, height: 0)), color: .red)
+        precondition(flat.hits(CGPoint(x: 30, y: 21), slack: 8, markScale: 1, textSize: { _ in .zero }))
+        precondition(!flat.hits(CGPoint(x: 30, y: 40), slack: 8, markScale: 1, textSize: { _ in .zero }))
         for tool in CaptureEditorTool.allCases {
             let doc = document()
             draw(doc, tool)
