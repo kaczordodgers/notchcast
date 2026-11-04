@@ -238,6 +238,7 @@ jobs:
           NAME="$APP_NAME"
           APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
           ./src/Scripts/verify-signature.sh "$APP"
+          ./tools/notchcast/check-identity.sh app "$APP"
           codesign --verify --deep --strict "$APP"
           plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$APP/Contents/Info.plist"; }
           test "$(plist CFBundleIdentifier)" = "$BUNDLE_ID"
