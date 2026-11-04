@@ -18,12 +18,12 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     # GitHub calls conflicting gets no pull_request run at all. The newest run wins over a cancelled one.
     build() {
         gh api "repos/kaczordodgers/notchcast/commits/$1/check-runs?check_name=build&filter=all" \
-            --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | .conclusion // "none"'
+            --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end'
     }
     green() { [ "$(build "$1")" = success ]; }
     verdict=$(build "$head")
     [ "$verdict" = success ] || [ "$verdict" = none ] || [ "$verdict" = cancelled ] \
-        || refuse "build is $verdict on ${head:0:8}: fix it, a green older head does not count"
+        || refuse "build is $verdict on ${head:0:8}: wait for it or fix it (cancel a pending one to use a green head that differs only in generated files)"
     if [ "$verdict" != success ]; then
         # A head that differs from a green head of this branch only in generated files needs no new build:
         # CI regenerates them before every build, so the green build already proved this code.
