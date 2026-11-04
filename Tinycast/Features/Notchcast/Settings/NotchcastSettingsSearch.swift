@@ -33,6 +33,8 @@ extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
         .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
+        .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
+        .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -47,6 +49,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
         .init(.notchcastLauncher, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(.notchcastLauncher, "Launcher Number Keys", keywords: ["command", "results", "1", "9"]),
+        .init(.notchcastLauncher, "Alias and Space", keywords: ["alias", "space", "arguments"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
         .init(.notchcastFanMode, "Fan mode"),
@@ -76,6 +80,14 @@ extension SettingsSearchCatalog {
         .init(.notchcastSpotify, "Device name", keywords: ["soloist", "speaker name"]),
         .init(group: .notchcastSpotify, "Download Soloist", keywords: ["soloist", "update", "build", "expiry"]),
         .init(.notchcastMicrophone, "Microphone mute", keywords: ["mute", "f5", "mic"]),
-        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"])
+        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"]),
+        .init(.notchcastSystem, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
+        .init(.notchcastSystem, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
+        .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
+        .init(.notchcastSystem, "Hide with ⌘M", keywords: ["minimize", "command m"]),
+        .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
+        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)",
+              keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
     ]
 }

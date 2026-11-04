@@ -25,8 +25,8 @@ Registration requires no changes in Tests. Git uses `merge=union` for this file 
 concurrent registrations merge cleanly. After every merge, check the file by hand:
 union merging can keep the same registration twice, and it keeps both the old and the
 new line when one branch removes or edits a registration while another adds one, so a
-removed command can come back. Change the legacy ID of Toggle Island only with a
-migration: no harness guards it.
+removed command can come back.
+`notchcast/check-legacy-command-ids.py` guards Toggle Island's persisted legacy ID in its real source before the CI Debug build; change it only with a migration.
 
 The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
 `.notchcast`), an `isEnabled` main-actor closure and a main-actor `run` closure.
@@ -46,6 +46,11 @@ Its command value also resolves `command:nc-toggle-island`.
 Ordinary command deep links use `notchcast://command/nc-<slug>` and ask for consent
 like system actions. Only the legacy `notchcast://command/toggle-island` link skips
 consent when it carries no input. Hotkeys and launcher execution do not ask.
+
+Page commands live beside `IslandPage`, with one catalog line per page. `island-home`
+and `island-day` open the requested page with key focus, including Home without live
+activities. Both require the island; Day also requires weather or markets. Preference
+changes refresh command availability in the index.
 The shorter `/command/<slug>` spelling is deferred: resolving it needs a catalog
 dependency in the pure deep-link parser. Toggle Island's legacy link still works.
 
