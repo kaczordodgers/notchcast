@@ -16,6 +16,7 @@ struct NotchcastSettingsView: View {
 
             featureSection(.notchcastOptions, group: .islandOptions)
             featureSection(.notchcastLauncher, group: .launcher)
+            LauncherToolsSettingsSection()
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
