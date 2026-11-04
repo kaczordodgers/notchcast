@@ -27,7 +27,7 @@ enum DictationCleanupGuard {
         let joined = zip(heard, heard.dropFirst()).map { $0 + $1 }
         let known = heard + joined
         for word in vocabulary.flatMap({ words($0.spelling) }) {
-            if written.contains(where: { related($0, word) }), !known.contains(where: { related($0, word) }) {
+            if written.contains(where: { related($0, word) && !known.contains($0) }) {
                 return false
             }
         }
@@ -50,9 +50,16 @@ enum DictationCleanupGuard {
         while index < result.count {
             if let replacement = replacements.first(where: {
                 result[index...].starts(with: $0.0)
-                    || ($0.0.count == 1 && $0.1.count == 1 && related(result[index], $0.0[0]))
+                    || ($0.0.count == 1 && $0.1.count == 1
+                        && result[index].hasPrefix($0.0[0])
+                        && result[index].count - $0.0[0].count <= 3
+                        && result[index].dropFirst($0.0[0].count).allSatisfy(\.isLetter))
             }) {
-                result.replaceSubrange(index..<(index + replacement.0.count), with: replacement.1)
+                var spelling = replacement.1
+                if replacement.0.count == 1 && spelling.count == 1 {
+                    spelling[0] += result[index].dropFirst(replacement.0[0].count)
+                }
+                result.replaceSubrange(index..<(index + replacement.0.count), with: spelling)
                 index += replacement.1.count
             } else {
                 index += 1
