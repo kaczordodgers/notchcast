@@ -2,10 +2,10 @@ import AppKit
 
 @MainActor
 enum MusicCommands {
-    nonisolated static let launcherCommands: [NotchcastCommand] = [
+    nonisolated static let launcherCommands: [NotchcastCommand] = [openCurrentPlayerCommand]
+    nonisolated static let openCurrentPlayerCommand =
         NotchcastCommand(slug: "open-current-player", name: String(localized: "Open Current Player"),
                          sfSymbol: "music.note", isEnabled: { enabled }, run: { openCurrentPlayer() })
-    ]
 
     static var enabled: Bool { NotchcastPreferences.shared.isEnabled(.musicNowPlaying) }
 
