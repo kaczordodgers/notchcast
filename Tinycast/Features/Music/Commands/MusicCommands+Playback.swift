@@ -20,7 +20,8 @@ extension MusicCommands {
                     ? String(localized: "Spotify Connect Speaker is already on.")
                     : String(localized: "Spotify Connect Speaker is already off."))
             } else if on {
-                AppCore.shared.settingsCoordinator.showSettings(tab: .notchcast, revealing: .section(.notchcastSpotify))
+                AppCore.shared.settingsCoordinator.showSettings(
+                    tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
             } else {
                 NotchcastPreferences.shared.set(.spotifyConnect, false)
                 AppCore.shared.showMessage(String(localized: "Spotify Connect Speaker is off."))
