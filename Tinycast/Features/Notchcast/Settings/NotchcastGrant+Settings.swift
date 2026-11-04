@@ -1,10 +1,12 @@
 import AppKit
+import CoreBluetooth
 
 extension NotchcastGrant {
     var title: String {
         switch self {
         case .accessibility: SettingsAnchor.permissionsAccessibility.title
         case .screenRecording: String(localized: "Screen Recording")
+        case .bluetooth: String(localized: "Bluetooth")
         }
     }
 
@@ -12,6 +14,7 @@ extension NotchcastGrant {
         switch self {
         case .accessibility: Permissions.isAccessibilityTrusted()
         case .screenRecording: ScreenshotService.hasScreenRecordingAccess()
+        case .bluetooth: CBManager.authorization == .allowedAlways
         }
     }
 
@@ -23,6 +26,10 @@ extension NotchcastGrant {
         case .screenRecording:
             guard let url = URL(string:
                 "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") else { return }
+            NSWorkspace.shared.open(url)
+        case .bluetooth:
+            guard let url = URL(string:
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth") else { return }
             NSWorkspace.shared.open(url)
         }
     }
