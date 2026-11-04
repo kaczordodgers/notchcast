@@ -18,8 +18,12 @@ struct NotchcastCommand: Sendable {
 }
 
 @MainActor final class ColorPickerModule {
-    var copied = false
-    func pick(completion: (Bool) -> Void) { completion(copied) }
+    var outcome = ColorPickerService.Outcome.copyFailed
+    func pick(completion: (ColorPickerService.Outcome) -> Void) { completion(outcome) }
+}
+
+enum ColorPickerService {
+    enum Outcome { case copied, copyFailed, cancelled }
 }
 
 @MainActor enum NotchcastCore {
@@ -51,8 +55,11 @@ struct NotchcastCommand: Sendable {
         precondition(ScreenshotModule.failureMessage(CocoaError(.fileWriteNoPermission))
                      == String(localized: "Could not save the screenshot."))
         ColorPickerModule.launcherCommand.run()
-        precondition(AppCore.shared.messages == [String(localized: "Could not copy to clipboard.")])
-        NotchcastCore.colorPicker.copied = true
+        precondition(AppCore.shared.messages == [String(localized: "Pick Color")])
+        NotchcastCore.colorPicker.outcome = .copied
+        ColorPickerModule.launcherCommand.run()
+        precondition(AppCore.shared.messages.count == 1)
+        NotchcastCore.colorPicker.outcome = .cancelled
         ColorPickerModule.launcherCommand.run()
         precondition(AppCore.shared.messages.count == 1)
         print("PASS: screenshot permission, clipboard, capture and save errors; color copy failure and success")
