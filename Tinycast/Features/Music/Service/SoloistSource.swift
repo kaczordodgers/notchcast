@@ -1,6 +1,8 @@
 import Foundation
+import Observation
 
 @MainActor
+@Observable
 final class SoloistSource: NowPlayingSource {
     enum Failure: Error { case invalidPort, malformedFrame, connection, command(String), artwork }
 
@@ -73,7 +75,8 @@ final class SoloistSource: NowPlayingSource {
                 } catch {
                     guard !Task.isCancelled, self?.socket === socket else { return }
                     self?.isConnected = false
-                    self?.state?.isPlaying = false
+                    self?.authState = nil
+                    self?.state = nil
                     self?.failure = .connection
                     self?.onChange?()
                 }
@@ -92,7 +95,8 @@ final class SoloistSource: NowPlayingSource {
         return socket
     }
 
-    private func receive(_ text: String) {
+    func receive(_ text: String) {
+        isConnected = true
         do {
             failure = nil
             switch try SoloistProtocol.parse(text, now: Date()) {

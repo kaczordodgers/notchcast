@@ -1,0 +1,86 @@
+// notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift Tinycast/Features/Archives/Commands/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift Tinycast/Platform/ProcessExit.swift
+import AppKit
+
+enum SettingsTab: Sendable { case notchcast }
+struct AppEntry: Sendable {
+    let id: String
+    let name: String
+    let url: URL
+    let bundleID: String?
+    enum Kind: Sendable { case command }
+    let kind: Kind
+    let settingsOwner: SettingsTab?
+    let symbolName: String?
+}
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    enum Tone { case danger }
+    let appIndex = AppIndex()
+    var messages: [String] = []
+    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
+}
+@MainActor final class AppIndex {
+    var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
+}
+@MainActor enum NotchcastCore {
+    static let archives = ArchiveModule(preferences: .shared)
+}
+@MainActor final class FakeDefaults: ArchiveDefaultApplicationSetting {
+    func setEnabled(_ enabled: Bool, application: URL) async throws {}
+}
+struct MissingTool: ArchiveToolLocating {
+    func locate() -> URL? { nil }
+}
+
+@main @MainActor struct ArchiveCommandTests {
+    static func main() async {
+        let preferences = NotchcastPreferences.shared
+        let original = preferences.isOn(.archives)
+        defer { preferences.set(.archives, original) }
+        let suite = "archive-commands.\(UUID())"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let local = NotchcastPreferences(suiteName: suite)
+        let module = ArchiveModule(preferences: local, locator: MissingTool(), defaultApplications: FakeDefaults())
+        let commands = [ArchiveCommands.extractCommand, ArchiveCommands.cancelCommand]
+        precondition(commands.map(\.id) == ["command:nc-extract-archive", "command:nc-cancel-extractions"])
+        preferences.set(.archives, true)
+        precondition(commands.allSatisfy { $0.isEnabled() })
+        precondition(ArchiveCommands.submit([], to: module) == "The archive engine is not running.")
+        module.start()
+        precondition(ArchiveCommands.submit([], to: module) == "No archive was selected.")
+        precondition(ArchiveCommands.submit([URL(filePath: "/fixture/no.txt")], to: module) != nil)
+        precondition(ArchiveCommands.submit([URL(string: "https://example.invalid/a.zip")!], to: module) != nil)
+        precondition(module.queue.jobs.isEmpty)
+        let archive = URL(filePath: "/fixture/a.zip")
+        precondition(ArchiveCommands.submit([archive], to: module) == nil)
+        precondition(module.queue.jobs.first?.archive == archive)
+        precondition(module.queue.jobs.first?.mode == .keepArchive)
+        local.set(.archivesInPlace, true)
+        precondition(ArchiveCommands.submit([URL(filePath: "/fixture/b.zip")], to: module) == nil)
+        precondition(module.queue.jobs.last?.mode == .inPlace)
+        ArchiveCommands.cancelAll(in: module)
+        precondition(module.queue.jobs.map(\.state) == [.cancelling, .cancelled])
+        await module.queue.waitUntilIdle()
+        precondition(module.isRunning && module.queue.jobs.last?.state == .cancelled)
+        precondition(module.queue.jobs.first?.state == .cancelled || module.queue.jobs.first?.state == .failed)
+        let refreshes = AppCore.shared.appIndex.refreshes
+        preferences.set(.archives, false)
+        for _ in 0..<100 { await Task.yield() }
+        precondition(commands.allSatisfy { !$0.isEnabled() })
+        precondition(AppCore.shared.appIndex.refreshes > refreshes)
+        precondition(ArchiveCommands.submit([archive], to: module) == nil)
+        precondition(module.queue.jobs.count == 2)
+        module.stop()
+        preferences.set(.archives, true)
+        ArchiveCommands.cancelAll(in: module)
+        precondition(AppCore.shared.messages.last == "The archive engine is not running.")
+        print("PASS: command IDs, switch gating, index refresh, module routing, unsupported/empty input and cancellation")
+    }
+}
