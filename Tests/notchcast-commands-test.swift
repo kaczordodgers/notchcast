@@ -2,6 +2,10 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandController+Command.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandPage.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandPage+Command.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction+EntryID.swift
@@ -87,6 +91,13 @@ enum QuicklinkDestination {
     static let shared = IslandController()
     var commandsAvailable = true
     var runs = 0
+    var page = IslandPage.day
+    var tookKey = false
+    func open(page: IslandPage, takeKey: Bool) {
+        self.page = page.landingPage(hasLiveActivities: false)
+        tookKey = takeKey
+    }
+    func selectPage(_ page: IslandPage) { self.page = page }
     func toggle() { runs += 1 }
 }
 
@@ -120,6 +131,32 @@ enum QuicklinkDestination {
         assert(HotKeyAction(entryID: commands[0].entry.id) == action)
         assert(action.entryID == commands[0].entry.id)
         let island = IslandController.shared
+        let preferences = NotchcastPreferences.shared
+        let prior = NotchcastFeature.allCases.map { ($0, preferences.isOn($0)) }
+        defer { for (feature, enabled) in prior { preferences.set(feature, enabled) } }
+        preferences.set(.island, true)
+        preferences.set(.dayWeather, false)
+        preferences.set(.dayMarkets, false)
+        for page in IslandPage.allCases {
+            let command = page.launcherCommand
+            assert(CommandCatalog.entries(ownedBy: .notchcast).contains { $0.id == command.id })
+            assert(command.sfSymbol == page.symbol)
+            assert(HotKeyAction(entryID: command.id)?.entryID == command.id)
+        }
+        assert(!IslandPage.day.launcherCommand.isEnabled())
+        for feature in [NotchcastFeature.dayWeather, .dayMarkets] {
+            preferences.set(feature, true)
+            assert(IslandPage.day.launcherCommand.isEnabled())
+            preferences.set(feature, false)
+        }
+        assert(NotchcastCommandCatalog.dispatch("command:nc-island-home", dismiss: {}))
+        assert(island.page == .home && island.tookKey)
+        preferences.set(.dayWeather, true)
+        assert(NotchcastCommandCatalog.dispatch("command:nc-island-day", dismiss: {}))
+        assert(island.page == .day && island.tookKey)
+        preferences.set(.island, false)
+        assert(IslandPage.allCases.allSatisfy { !$0.launcherCommand.isEnabled() })
+        preferences.set(.island, true)
         var dismissed = 0
         assert(NotchcastCommandCatalog.dispatch("command:toggle-island", dismiss: { dismissed += 1 }))
         assert(island.runs == 1 && dismissed == 1)
