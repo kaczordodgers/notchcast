@@ -22,6 +22,15 @@ struct TodoRecurrenceTests {
             }
             return rule
         }
+        var monthly = rule("every month")
+        var monthlyDue = date(2026, 1, 31)
+        for expected in [date(2026, 2, 28), date(2026, 3, 31), date(2026, 4, 30)] {
+            let outcome = TodoRecurrence(calendar: calendar).complete(TodoRecurringSnapshot(
+                id: UUID(), due: monthlyDue, hasTime: false, rule: monthly, subtaskIDs: []), at: monthlyDue)
+            precondition(outcome.due == expected)
+            monthlyDue = outcome.due
+            monthly = outcome.rule
+        }
         var checks = 0
         func check(_ phrase: String, _ due: Date, _ completed: Date, _ expected: Date, timed: Bool = false) {
             let value = rule(phrase)
