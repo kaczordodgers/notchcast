@@ -358,7 +358,14 @@ struct RootClientTest {
         for arguments in invalid {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
-        precondition(RootContract.version == "2")
+        precondition(RootContract.version == "3")
+        precondition(RootContract.Reply(command: .version, output: "3\n") == .version("3"))
+        do {
+            try RootHelperClient.validateExitStatus(78)
+            preconditionFailure("Caller rejection must require reinstall")
+        } catch {
+            precondition(error as? RootHelperClient.Failure == .reinstallRequired)
+        }
         precondition(RootContract.Reply(command: .version, output: "2\n") == .version("2"))
         for invalid in [" 2 \n\n", "2", "02\n", "2\n\n", "+2\n"] {
             precondition(RootContract.Reply(command: .version, output: invalid) == nil)
