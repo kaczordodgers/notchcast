@@ -25,13 +25,17 @@ final class IslandPanel: NSPanel {
         surface.containsIsland(surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil))
     }
 
-    init(screen: NSScreen) {
-        screenFrame = screen.frame
-        hardwareNotch = IslandGeometry.notchRect(
+    convenience init(screen: NSScreen) {
+        self.init(screenFrame: screen.frame, hardwareNotch: IslandGeometry.notchRect(
             screen: screen.frame, safeAreaTop: screen.safeAreaInsets.top,
-            leftArea: screen.auxiliaryTopLeftArea, rightArea: screen.auxiliaryTopRightArea)
+            leftArea: screen.auxiliaryTopLeftArea, rightArea: screen.auxiliaryTopRightArea))
+    }
+
+    init(screenFrame: CGRect, hardwareNotch: CGRect?) {
+        self.screenFrame = screenFrame
+        self.hardwareNotch = hardwareNotch
         let canvas = IslandGeometry.openFrame(
-            screen: screen.frame, centerX: hardwareNotch?.midX ?? screen.frame.midX,
+            screen: screenFrame, centerX: hardwareNotch?.midX ?? screenFrame.midX,
             minimumWidth: NotchcastTheme.openMinimumWidth,
             contentHeight: NotchcastTheme.maximumHeight, headerHeight: 0,
             maximumHeight: NotchcastTheme.maximumHeight)
