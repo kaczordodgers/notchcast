@@ -315,15 +315,16 @@ struct KatanaTests {
                "Katana documentation cannot collide with bundled README")
         expect(FileManager.default.fileExists(atPath: "notchcast/docs/katana.md"), "Katana docs live in fork docs")
         let module = KatanaModule()
-        module.runCommand(.a1, enabled: { true }, confirm: { _ in false }, message: { _ in fatalError("Cancelled") })
-        expect(module.commandTask == nil, "Cancelled channel selection schedules nothing")
+        module.runCommand(.a1, enabled: { true }, confirm: { _ in false }, message: { _, _ in fatalError("Cancelled") })
+        await module.commandTask?.value
+        expect(module.commandTask == nil, "Cancelled channel selection sends nothing")
         module.runCommand(.a1, enabled: { false }, confirm: { _ in fatalError("Disabled") })
         expect(module.commandTask == nil, "Disabled channel selection schedules nothing")
         let commandFake = FakeKatanaTransport()
         let commandModule = KatanaModule(client: KatanaClient(transport: commandFake))
         commandModule.start()
         var messages = 0
-        commandModule.runCommand(.a2, enabled: { true }, confirm: { _ in true }, message: { _ in messages += 1 })
+        commandModule.runCommand(.a2, enabled: { true }, confirm: { _ in true }, message: { _, _ in messages += 1 })
         await commandModule.commandTask?.value
         expect(commandModule.client.channel == .a2 && messages == 1, "Confirmed command selects and reports")
         commandModule.stop()

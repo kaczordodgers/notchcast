@@ -13,33 +13,34 @@ extension KatanaModule {
                          run: { NotchcastCore.katana.runCommand(channel) })
     }
 
-    func runCommand(_ channel: KatanaChannel, enabled: () -> Bool = { NotchcastPreferences.shared.isOn(.katana) },
-                    confirm: @MainActor (KatanaChannel) -> Bool = confirmChannel,
-                    message: @escaping @MainActor (String) -> Void = { AppCore.shared.showMessage($0) }) {
+    func runCommand(_ channel: KatanaChannel,
+                    enabled: @escaping () -> Bool = { NotchcastPreferences.shared.isOn(.katana) },
+                    confirm: @escaping @MainActor (KatanaChannel) async -> Bool = confirmChannel,
+                    message: @escaping @MainActor (String, DialogTone) -> Void = {
+                        AppCore.shared.showMessage($0, tone: $1)
+                    }) {
         guard commandTask == nil, enabled() else { return }
-        guard confirm(channel), enabled() else { return }
         commandTask = Task { [weak self] in
             guard let self else { return }
             defer { self.commandTask = nil }
+            guard await confirm(channel), !Task.isCancelled, enabled() else { return }
             do {
                 try await self.client.selectChannel(channel)
                 try Task.checkCancellation()
-                message(String(localized: "Katana channel selected."))
+                message(String(localized: "Katana channel selected."), .success)
             } catch is CancellationError {
                 return
             } catch {
                 guard !Task.isCancelled else { return }
-                message(error.localizedDescription)
+                message(error.localizedDescription, .danger)
             }
         }
     }
 
-    private static func confirmChannel(_ channel: KatanaChannel) -> Bool {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "Change the Katana channel?")
-        alert.informativeText = channel.title
-        alert.addButton(withTitle: String(localized: "Cancel"))
-        alert.addButton(withTitle: String(localized: "Change Channel"))
-        return alert.runModal() == .alertSecondButtonReturn
+    private static func confirmChannel(_ channel: KatanaChannel) async -> Bool {
+        await AppCore.shared.confirm(
+            title: String(localized: "Change the Katana channel?"), message: channel.title,
+            symbol: "guitars", confirmTitle: String(localized: "Change Channel"),
+            tone: .neutral, confirmRole: .default)
     }
 }

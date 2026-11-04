@@ -323,11 +323,11 @@ private struct TreadmillTests {
         coordinator.setEnabled(.walk, true)
         coordinator.setEnabled(.history, true)
         var reports = 0
-        coordinator.runCommand(start: true, enabled: { true }, confirm: { false }, message: { _ in reports += 1 })
+        await coordinator.runCommand(start: true, enabled: { true }, confirm: { false }, message: { _, _ in reports += 1 })?.value
         expect(transport.sent.isEmpty && reports == 0, "Cancelled start sends nothing")
-        coordinator.runCommand(start: true, enabled: { false }, confirm: { fatalError("Disabled") }, message: { _ in })
-        coordinator.runCommand(start: false, enabled: { true }, confirm: { fatalError("Stop is safe") },
-                               message: { _ in reports += 1 })
+        coordinator.runCommand(start: true, enabled: { false }, confirm: { fatalError("Disabled") }, message: { _, _ in })
+        await coordinator.runCommand(start: false, enabled: { true }, confirm: { fatalError("Stop is safe") },
+                                     message: { _, _ in reports += 1 })?.value
         expect(reports == 1 && !transport.sent.isEmpty, "Stop bypasses confirmation and reports")
         transport.sent = []
         try coordinator.stopWalk()

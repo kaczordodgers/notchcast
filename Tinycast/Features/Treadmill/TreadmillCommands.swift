@@ -11,25 +11,30 @@ extension TreadmillCoordinator {
         isEnabled: { NotchcastPreferences.shared.isOn(.treadmillWalk) },
         run: { NotchcastCore.treadmill.runCommand(start: true) })
 
-    func runCommand(start: Bool, enabled: () -> Bool = { NotchcastPreferences.shared.isOn(.treadmillWalk) },
-                    confirm: @MainActor () -> Bool = confirmStart,
-                    message: (String) -> Void = { AppCore.shared.showMessage($0) }) {
-        guard enabled() else { return }
-        guard !start || confirm() else { return }
-        guard enabled() else { return }
-        do {
-            if start { try startWalk() } else { try stopWalk() }
-            message(String(localized: "Treadmill command sent."))
-        } catch {
-            message(error.localizedDescription)
+    @discardableResult
+    func runCommand(start: Bool,
+                    enabled: @escaping () -> Bool = { NotchcastPreferences.shared.isOn(.treadmillWalk) },
+                    confirm: @escaping @MainActor () async -> Bool = confirmStart,
+                    message: @escaping (String, DialogTone) -> Void = {
+                        AppCore.shared.showMessage($0, tone: $1)
+                    }) -> Task<Void, Never>? {
+        guard enabled() else { return nil }
+        return Task {
+            if start, !(await confirm()) { return }
+            guard !Task.isCancelled, enabled() else { return }
+            do {
+                if start { try startWalk() } else { try stopWalk() }
+                message(String(localized: "Treadmill command sent."), .success)
+            } catch {
+                message(error.localizedDescription, .danger)
+            }
         }
     }
 
-    private static func confirmStart() -> Bool {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "Start walking at 4 km/h?")
-        alert.addButton(withTitle: String(localized: "Cancel"))
-        alert.addButton(withTitle: String(localized: "Start Walk"))
-        return alert.runModal() == .alertSecondButtonReturn
+    private static func confirmStart() async -> Bool {
+        await AppCore.shared.confirm(
+            title: String(localized: "Start walking at 4 km/h?"), message: nil,
+            symbol: "figure.walk", confirmTitle: String(localized: "Start Walk"),
+            tone: .neutral, confirmRole: .default)
     }
 }
