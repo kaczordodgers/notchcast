@@ -1,7 +1,7 @@
 import Foundation
 
 nonisolated struct TweakPlanRunner {
-    struct Receipt {
+    struct Receipt: Sendable {
         let completed: [MacSetupPlan.Change]
         let failure: (any Error)?
     }
