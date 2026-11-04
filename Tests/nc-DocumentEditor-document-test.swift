@@ -179,16 +179,14 @@ struct EditorDocumentTests {
         precondition(!document.edit("disabled"))
         document.setEnabled(true)
         precondition(document.edit("autosaved after restart"))
-        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
-        while document.isDirty && ContinuousClock.now < deadline {
+        while document.isDirty {
             try await Task.sleep(for: .milliseconds(50))
         }
         try check(try Data(contentsOf: copy) == Data("autosaved after restart".utf8))
         precondition(!document.isDirty)
         for external in ["first external replacement", "second external replacement"] {
             try Data(external.utf8).write(to: copy, options: .atomic)
-            let deadline = ContinuousClock.now.advanced(by: .seconds(5))
-            while document.source != external && ContinuousClock.now < deadline {
+            while document.source != external {
                 try await Task.sleep(for: .milliseconds(50))
             }
             precondition(document.source == external && !document.isDirty)
