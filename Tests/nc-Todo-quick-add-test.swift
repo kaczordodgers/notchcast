@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Todo/Model/*.swift
 import Foundation
 
 @main
