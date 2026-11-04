@@ -1,15 +1,21 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
-    case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
-    case islandStatusMessages, islandLiveActivities, launcherFromIsland
+    case island
+    case islandExternalDisplays
+    case islandFullScreen
+    case islandHoverOpen
+    case islandStatusMessages
+    case islandLiveActivities
+    case launcherFromIsland
     case musicNowPlaying
     case musicLastPlayer
     case musicBlockAppleMusic
     case spotifyConnect
     case microphoneMute
     case inUseMarks
-    case systemMonitor, fanControl
+    case systemMonitor
+    case fanControl
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -19,41 +25,100 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
-    case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
-    case keepAwake, lidClosedAwake
+    case batteryChargeLimit
+    case batterySailing
+    case batteryHeatProtection
+    case batteryCalibration
+    case keepAwake
+    case lidClosedAwake
 
-    var defaultOn: Bool { self != .spotifyConnect && !isSystemFeature }
+    var defaultOn: Bool {
+        switch self {
+        case .island: true
+        case .islandExternalDisplays: true
+        case .islandFullScreen: true
+        case .islandHoverOpen: true
+        case .islandStatusMessages: true
+        case .islandLiveActivities: true
+        case .launcherFromIsland: true
+        case .musicNowPlaying: true
+        case .musicLastPlayer: true
+        case .musicBlockAppleMusic: true
+        case .spotifyConnect: false
+        case .microphoneMute: true
+        case .inUseMarks: true
+        case .systemMonitor: false
+        case .fanControl: false
+        case .monitorAlerts: false
+        case .lowDiskWarning: true
+        case .systemNotices: true
+        case .volumeLevels: true
+        case .displayBrightness: true
+        case .quitProtection: true
+        case .liveTimers: true
+        case .dayWeather: true
+        case .dayMarkets: true
+        case .batteryChargeLimit: false
+        case .batterySailing: false
+        case .batteryHeatProtection: false
+        case .batteryCalibration: false
+        case .keepAwake: false
+        case .lidClosedAwake: false
+        }
+    }
 
     var dependencies: [Self] {
         switch self {
         case .island: []
-        case .musicLastPlayer, .spotifyConnect: [.island, .musicNowPlaying]
+        case .musicLastPlayer: [.island, .musicNowPlaying]
+        case .spotifyConnect: [.island, .musicNowPlaying]
         default: needsIsland ? [.island] : []
         }
     }
 
-    enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities, music
-    }
-
     var settingsGroup: SettingsGroup {
         switch self {
+        case .musicNowPlaying: .music
+        case .musicLastPlayer: .music
+        case .musicBlockAppleMusic: .music
+        case .spotifyConnect: .music
+        case .microphoneMute: .music
+        case .inUseMarks: .music
         case .island: .island
-        case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-             .islandStatusMessages, .islandLiveActivities: .islandOptions
+        case .islandExternalDisplays: .islandOptions
+        case .islandFullScreen: .islandOptions
+        case .islandHoverOpen: .islandOptions
+        case .islandStatusMessages: .islandOptions
+        case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
-        case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
-             .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
-             .batterySailing, .batteryHeatProtection, .batteryCalibration,
-             .keepAwake, .lidClosedAwake: .system
-        case .liveTimers, .dayWeather, .dayMarkets: .activities
-        case .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect,
-             .microphoneMute, .inUseMarks: .music
+        case .systemMonitor: .systemTools
+        case .fanControl: .systemTools
+        case .monitorAlerts: .systemTools
+        case .lowDiskWarning: .system
+        case .systemNotices: .system
+        case .volumeLevels: .system
+        case .displayBrightness: .system
+        case .quitProtection: .system
+        case .batteryChargeLimit: .systemTools
+        case .batterySailing: .systemTools
+        case .batteryHeatProtection: .systemTools
+        case .batteryCalibration: .systemTools
+        case .keepAwake: .systemTools
+        case .lidClosedAwake: .systemTools
+        case .liveTimers: .activities
+        case .dayWeather: .activities
+        case .dayMarkets: .activities
         }
     }
 
     var title: String {
         switch self {
+        case .musicNowPlaying: String(localized: "Show what is playing")
+        case .musicLastPlayer: String(localized: "Resume last player")
+        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
+        case .spotifyConnect: String(localized: "Spotify Connect speaker")
+        case .microphoneMute: String(localized: "Microphone mute")
+        case .inUseMarks: String(localized: "In-use marks")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -61,12 +126,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Status Messages")
         case .islandLiveActivities: String(localized: "Live Activities")
         case .launcherFromIsland: String(localized: "Launcher from Island")
-        case .musicNowPlaying: String(localized: "Show what is playing")
-        case .musicLastPlayer: String(localized: "Resume last player")
-        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
-        case .spotifyConnect: String(localized: "Spotify Connect speaker")
-        case .microphoneMute: String(localized: "Microphone mute")
-        case .inUseMarks: String(localized: "In-use marks")
         case .systemMonitor: String(localized: "System Monitor")
         case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
@@ -89,6 +148,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .musicNowPlaying: String(localized: "Show what is playing")
+        case .musicLastPlayer: String(localized: "Resume last player")
+        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
+        case .spotifyConnect: String(localized: "Spotify Connect speaker")
+        case .microphoneMute: String(localized: "Microphone mute")
+        case .inUseMarks: String(localized: "In-use marks")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -96,12 +161,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Show status messages in the island.")
         case .islandLiveActivities: String(localized: "Show live activities in the island.")
         case .launcherFromIsland: String(localized: "Open the launcher from the island.")
-        case .musicNowPlaying: String(localized: "Show the track and its controls in the island.")
-        case .musicLastPlayer: String(localized: "The play key resumes your last app instead of opening Apple Music.")
-        case .musicBlockAppleMusic: String(localized: "Quits Apple Music when a media key opens it.")
-        case .spotifyConnect: String(localized: "Play Spotify on this Mac from your phone, without the Spotify app.")
-        case .microphoneMute: String(localized: "F5 mutes every microphone. Press it again to unmute.")
-        case .inUseMarks: String(localized: "Show a mark in the island while the camera or a microphone is on.")
         case .systemMonitor: String(localized: "Monitor system performance.")
         case .monitorAlerts: String(localized: "Evaluate alerts while the Monitor page is open.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
@@ -125,27 +184,58 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .musicLastPlayer, .musicBlockAppleMusic, .microphoneMute,
-            .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
-        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .musicNowPlaying, .spotifyConnect, .inUseMarks,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
-            .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
-            []
+        case .musicNowPlaying: []
+        case .musicLastPlayer: [.accessibility]
+        case .musicBlockAppleMusic: [.accessibility]
+        case .spotifyConnect: []
+        case .microphoneMute: [.accessibility]
+        case .inUseMarks: []
+        case .volumeLevels: [.accessibility]
+        case .displayBrightness: [.accessibility]
+        case .quitProtection: [.accessibility]
+        default: []
         }
     }
 }
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
-
-    var isSystemFeature: Bool {
-        [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
+    var needsIsland: Bool {
+        switch self {
+        case .island: true
+        case .islandExternalDisplays: true
+        case .islandFullScreen: true
+        case .islandHoverOpen: true
+        case .islandStatusMessages: true
+        case .islandLiveActivities: true
+        case .launcherFromIsland: true
+        case .musicNowPlaying: true
+        case .musicLastPlayer: true
+        case .musicBlockAppleMusic: true
+        case .spotifyConnect: true
+        case .microphoneMute: true
+        case .inUseMarks: true
+        case .systemMonitor: false
+        case .fanControl: false
+        case .monitorAlerts: false
+        case .lowDiskWarning: true
+        case .systemNotices: true
+        case .volumeLevels: true
+        case .displayBrightness: false
+        case .quitProtection: false
+        case .liveTimers: true
+        case .dayWeather: true
+        case .dayMarkets: true
+        case .batteryChargeLimit: false
+        case .batterySailing: false
+        case .batteryHeatProtection: false
+        case .batteryCalibration: false
+        case .keepAwake: false
+        case .lidClosedAwake: false
+        }
     }
+
+    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
