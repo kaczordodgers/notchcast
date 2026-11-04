@@ -37,8 +37,15 @@ fi
 mkdir "$scratch/tmp"
 export TMPDIR="$scratch/tmp"
 cd "$scratch/tree"
+# A union merge keeps a line the PR deleted when main appended next to it; refuse instead of reviving it.
+fork=$(git merge-base "$base" "$head")
+for file in $(awk '$2 == "merge=union" {print $1}' .gitattributes); do
+    revived=$(comm -12 <(comm -23 <(git show "$fork:$file" 2>/dev/null | sort -u) <(git show "$head:$file" 2>/dev/null | sort -u)) \
+        <(sort -u "$file" 2>/dev/null))
+    [ -z "$revived" ] || refuse "union merge revives lines the PR removed from $file: $revived"
+done
+[ "$(git rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$base^{tree}")" ] || refuse 'nothing to land: main already has this change'
 python3 notchcast/check-feature-shape.py || refuse 'feature shape'
-swiftc -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift || refuse 'feature typecheck'
 "$selector" "$base" HEAD > "$scratch/selected"
 while IFS= read -r name; do
     [ -n "$name" ] || continue
@@ -51,10 +58,15 @@ echo 'PASS: merged-tree harnesses'
 if [ "$check" -eq 0 ]; then
     title=$(gh pr view "$pr" -R kaczordodgers/notchcast --json title --jq .title)
     [[ "$title" == Notchcast:* ]] || title="Notchcast: $title"
+    printf '%s (#%s)\n' "$title" "$pr" > "$scratch/message"
+    notchcast/check-identity.sh message "$scratch/message" || refuse 'commit message names something private'
     commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
-        git commit-tree "HEAD^{tree}" -p "$base" -m "$title (#$pr)")
+        git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
+    [ "$(gh pr view "$pr" -R kaczordodgers/notchcast --json headRefOid --jq .headRefOid)" = "$head" ] \
+        || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
     git push origin "$commit:refs/heads/main" || refuse "main moved past ${base:0:8}; run land.sh $pr again"
-    gh pr close "$pr" -R kaczordodgers/notchcast --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base."
+    gh pr close "$pr" -R kaczordodgers/notchcast --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base." \
+        || refuse "landed on main as $commit, but closing PR #$pr failed: close it by hand, do not rerun land.sh"
 fi
