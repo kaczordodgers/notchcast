@@ -8,6 +8,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case islandStatusMessages
     case islandLiveActivities
     case launcherFromIsland
+    case launcherNumberKeys
+    case launcherAliasSpace
     case systemMonitor
     case fanControl
     case monitorAlerts
@@ -47,6 +49,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: .islandOptions
         case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .launcherNumberKeys: .launcher
+        case .launcherAliasSpace: .launcher
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -88,6 +92,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Status Messages")
         case .islandLiveActivities: String(localized: "Live Activities")
         case .launcherFromIsland: String(localized: "Launcher from Island")
+        case .launcherNumberKeys: String(localized: "Launcher Number Keys")
+        case .launcherAliasSpace: String(localized: "Alias and Space")
         case .systemMonitor: String(localized: "System Monitor")
         case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
@@ -129,6 +135,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Show status messages in the island.")
         case .islandLiveActivities: String(localized: "Show live activities in the island.")
         case .launcherFromIsland: String(localized: "Open the launcher from the island.")
+        case .launcherNumberKeys: String(localized: "Open the first nine search results with Command-1 through Command-9.")
+        case .launcherAliasSpace: String(localized: "Press Space after an exact alias to open its command.")
         case .systemMonitor: String(localized: "Monitor system performance.")
         case .monitorAlerts: String(localized: "Evaluate alerts while the Monitor page is open.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
@@ -182,6 +190,8 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .launcherNumberKeys: false
+        case .launcherAliasSpace: false
         case .settingsBackup: false
         case .showDesktop: false
         case .spacesOrder: false
@@ -194,6 +204,12 @@ extension NotchcastFeature {
         case .quitProtection: false
         default: true
         }
+    }
+
+    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
+
+    var defaultEnabled: Bool {
+        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
