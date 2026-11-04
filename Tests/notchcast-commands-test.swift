@@ -100,6 +100,7 @@ extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         NotchcastCommand(
             slug: "toggle-island", name: "Test command", sfSymbol: "test",
+            feature: .island,
             legacyID: "command:toggle-island",
             isEnabled: { CommandFixture.shared.commandsAvailable },
             run: { CommandFixture.shared.toggle() }),
