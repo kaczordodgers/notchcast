@@ -1,5 +1,6 @@
 import AppKit
 import ImageIO
+import OSLog
 import ScreenCaptureKit
 import UniformTypeIdentifiers
 
@@ -19,6 +20,10 @@ enum ScreenshotService {
         _ request: ScreenshotRequest,
         destination: ScreenshotRequest.Destination,
         pasteboard: NSPasteboard = .general,
+        clipboardFailure: (URL) -> Void = { url in
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Screenshot")
+                .error("Clipboard write failed; screenshot saved at \(url.path, privacy: .private)")
+        },
         isEnabled: @MainActor () -> Bool
     ) async throws -> URL? {
         guard isEnabled() else { throw ScreenshotRequest.Failure.disabled }
@@ -27,25 +32,37 @@ enum ScreenshotService {
         }
         let data = try await png(request)
         try Task.checkCancellation()
+        return try await output(data, destination: destination, writeClipboard: { data in
+            let item = NSPasteboardItem()
+            guard item.setData(data, forType: .png) else { return false }
+            pasteboard.clearContents()
+            return pasteboard.writeObjects([item])
+        }, clipboardFailure: clipboardFailure)
+    }
+
+    @MainActor
+    static func output(
+        _ data: Data, destination: ScreenshotRequest.Destination,
+        writeClipboard: (Data) -> Bool, clipboardFailure: (URL) -> Void
+    ) async throws -> URL? {
+        let url: URL?
+        switch destination {
+        case .clipboard: url = nil
+        case .file(let folder), .both(let folder): url = try await save(data, folder: folder)
+        }
         switch destination {
         case .clipboard, .both:
-            let item = NSPasteboardItem()
-            guard item.setData(data, forType: .png) else {
-                throw ScreenshotRequest.Failure.clipboardFailed
-            }
-            pasteboard.clearContents()
-            guard pasteboard.writeObjects([item]) else {
+            guard writeClipboard(data) else {
+                if let url {
+                    clipboardFailure(url)
+                    return url
+                }
                 throw ScreenshotRequest.Failure.clipboardFailed
             }
         case .file:
             break
         }
-        switch destination {
-        case .clipboard:
-            return nil
-        case .file(let folder), .both(let folder):
-            return try await save(data, folder: folder)
-        }
+        return url
     }
 
     @concurrent
