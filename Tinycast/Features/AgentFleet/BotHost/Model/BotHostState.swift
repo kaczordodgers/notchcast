@@ -1,7 +1,7 @@
 import Foundation
 
 enum BotHostState: Sendable, Equatable {
-    case done, failed, waitingForPerson, timedOut, unreachable
+    case done, failed, waitingForPerson, timedOut, unreachable, working
 
     init(exitCode: Int) {
         switch exitCode {
