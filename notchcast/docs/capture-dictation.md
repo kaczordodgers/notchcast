@@ -31,14 +31,17 @@ Permissions pane has no Screen Recording row. The engine asks for access only wh
 ## Globe dictation
 
 The Globe Dictation switch owns `DictationTriggerManager` through `DictationTriggerModule` on
-the shared event-tap hub. It works with Island off, reserves Globe from upstream modifier bindings
+the shared event-tap hub. It works with Island off and, while upstream Dictation is enabled,
+reserves Globe from upstream modifier bindings
 without deleting them, and pauses during shortcut recording. Disabling stops the manager and releases
 the reservation. Accessibility is listed in the existing permissions section.
 
 The trigger uses the upstream dictation coordinator's consent and model checks. Tap Globe to start,
 tap again to finish, or hold for at least 350 ms and release to finish. Return and Escape finish the
 recording, including its 200 ms audio tail; Escape during transcription keeps the result pending for
-insertion. Other input cancels a provisional hold. This switch adds no launcher command.
+insertion. Capture begins on a solo tap's release or after the hold threshold, so Fn chords have no
+capture effects. Other input cancels a provisional press and finishes a confirmed hold. Disabling
+the switch finishes any recording it started, preserving the text. This switch adds no launcher command.
 
 `./Scripts/run-tests.sh nc-DictationTrigger-lifecycle-test` checks lifecycle, shortcut-recording pause,
 Globe reservation and Island independence with injected effects and isolated test preferences.
