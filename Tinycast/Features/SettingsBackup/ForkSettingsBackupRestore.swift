@@ -10,7 +10,8 @@ enum ForkSettingsBackupRestore {
          "monitorBattery": preferences.monitorBattery,
          "islandHoverDelay": preferences.islandHoverDelay.rawValue,
          "greenMaximizeExcludedApps": preferences.greenMaximizeExcludedApps,
-         "buildStatsPath": preferences.buildStatsPath]
+         "buildStatsPath": preferences.buildStatsPath,
+         "backupStatusPath": preferences.backupStatusPath]
         for feature in NotchcastFeature.allCases where ForkSettingsBackupSchema.allowed[feature.rawValue] != nil {
             values[feature.rawValue] = preferences.isOn(feature)
         }
@@ -24,6 +25,7 @@ enum ForkSettingsBackupRestore {
         }
         if let value = values["greenMaximizeExcludedApps"] as? String { preferences.greenMaximizeExcludedApps = value }
         if let value = values["buildStatsPath"] as? String { preferences.buildStatsPath = value }
+        if let value = values["backupStatusPath"] as? String { preferences.backupStatusPath = value }
         if let number = values["monitorCPU"] as? NSNumber { preferences.monitorCPU = number.intValue }
         if let number = values["monitorTemperature"] as? NSNumber { preferences.monitorTemperature = number.intValue }
         if let number = values["monitorMemory"] as? NSNumber { preferences.monitorMemory = number.intValue }
