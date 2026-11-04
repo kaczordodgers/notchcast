@@ -22,7 +22,8 @@ row from a new one: after a merge, check that an edited line did not come back b
 
 Settings in `Core/NotchcastPreferences.swift`: one stored property per line (with its `didSet`)
 and one init assignment per line; nested types and helpers go in the extension below the class.
-The file holds logic, so it never uses `merge=union`: resolve its conflicts by hand.
+The file uses `merge=union`; the checker rejects a split setting or statement, a repeated
+setting and a repeated assignment.
 
 Define a `NotchcastCommand` beside its feature, then add one array element in
 `Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift`:
