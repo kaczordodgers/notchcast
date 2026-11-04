@@ -26,11 +26,15 @@ struct AppEntry {
     static let midi = CommandMIDI()
     static let katana = KatanaModule(midi: midi)
 }
+enum DialogTone: Sendable {
+    case neutral
+    case success
+    case danger
+}
 @MainActor final class AppCore {
-    enum Tone { case danger, neutral }
     static let shared = AppCore()
-    var messages: [(String, Tone)] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append((text, tone)) }
+    var messages: [(String, DialogTone)] = []
+    func showMessage(_ message: String, tone: DialogTone = .success) { messages.append((message, tone)) }
 }
 @MainActor final class CommandMIDI: KatanaMIDILayer {
     var endpoints = ["KATANA Test"]
@@ -68,8 +72,10 @@ struct AppEntry {
             while AppCore.shared.messages.isEmpty { await Task.yield() }
             precondition(midi.packets.contains { $0.address == KatanaSysEx.selectChannel && $0.data == [0, channel.rawValue] })
             precondition(module.client.channel == channel)
-            precondition(AppCore.shared.messages[0].1 == .neutral)
-            precondition(AppCore.shared.messages[0].0.contains(channel.title))
+            precondition(AppCore.shared.messages[0].1 == .success)
+            precondition(command.name == "Select Katana \(channel.title)")
+            precondition(command.slug == "katana-\(channel.title.lowercased())")
+            precondition(AppCore.shared.messages[0].0 == "Katana \(channel.title) Selected")
             print("PASS: \(command.name) selects \(channel.rawValue) and reports success")
         }
         midi.endpoints = []

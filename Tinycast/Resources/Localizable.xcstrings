@@ -11438,522 +11438,522 @@
         }
       }
     },
-    "Katana: Panel" : {
+    "Select Katana Panel" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Bedienfeld"
+            "value": "Katana Panel auswählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Panel"
+            "value": "Seleccionar Katana Panel"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Panneau"
+            "value": "Sélectionner Katana Panel"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: パネル"
+            "value": "Katana Panelを選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: 패널"
+            "value": "Katana Panel 선택"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Painel"
+            "value": "Selecionar Katana Panel"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Панель"
+            "value": "Выбрать Katana Panel"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: 面板"
+            "value": "选择 Katana Panel"
           }
         }
       }
     },
-    "Katana: Panel selected." : {
+    "Katana Panel Selected" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Bedienfeld ausgewählt."
+            "value": "Katana Panel ausgewählt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Panel seleccionado."
+            "value": "Katana Panel Seleccionado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana : Panneau sélectionné."
+            "value": "Katana Panel Sélectionné"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：パネルを選択しました。"
+            "value": "Katana Panelを選択しました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: 패널 선택됨."
+            "value": "Katana Panel 선택됨"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: Painel selecionado."
+            "value": "Katana Panel Selecionado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: выбрано «Панель»."
+            "value": "Katana Panel выбран"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：已选择面板。"
+            "value": "已选择 Katana Panel"
           }
         }
       }
     },
-    "Katana: A1" : {
+    "Select Katana A1" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "Katana A1 auswählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "Seleccionar Katana A1"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "Sélectionner Katana A1"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "Katana A1を選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "Katana A1 선택"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "Selecionar Katana A1"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "Выбрать Katana A1"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1"
+            "value": "选择 Katana A1"
           }
         }
       }
     },
-    "Katana: A1 selected." : {
+    "Katana A1 Selected" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1 ausgewählt."
+            "value": "Katana A1 ausgewählt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1 seleccionado."
+            "value": "Katana A1 Seleccionado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana : A1 sélectionné."
+            "value": "Katana A1 Sélectionné"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：A1を選択しました。"
+            "value": "Katana A1を選択しました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1 선택됨."
+            "value": "Katana A1 선택됨"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A1 selecionado."
+            "value": "Katana A1 Selecionado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: выбрано «A1»."
+            "value": "Katana A1 выбран"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：已选择A1。"
+            "value": "已选择 Katana A1"
           }
         }
       }
     },
-    "Katana: A2" : {
+    "Select Katana A2" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "Katana A2 auswählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "Seleccionar Katana A2"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "Sélectionner Katana A2"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "Katana A2を選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "Katana A2 선택"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "Selecionar Katana A2"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "Выбрать Katana A2"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2"
+            "value": "选择 Katana A2"
           }
         }
       }
     },
-    "Katana: A2 selected." : {
+    "Katana A2 Selected" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2 ausgewählt."
+            "value": "Katana A2 ausgewählt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2 seleccionado."
+            "value": "Katana A2 Seleccionado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana : A2 sélectionné."
+            "value": "Katana A2 Sélectionné"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：A2を選択しました。"
+            "value": "Katana A2を選択しました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2 선택됨."
+            "value": "Katana A2 선택됨"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: A2 selecionado."
+            "value": "Katana A2 Selecionado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: выбрано «A2»."
+            "value": "Katana A2 выбран"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：已选择A2。"
+            "value": "已选择 Katana A2"
           }
         }
       }
     },
-    "Katana: B1" : {
+    "Select Katana B1" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "Katana B1 auswählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "Seleccionar Katana B1"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "Sélectionner Katana B1"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "Katana B1を選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "Katana B1 선택"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "Selecionar Katana B1"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "Выбрать Katana B1"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1"
+            "value": "选择 Katana B1"
           }
         }
       }
     },
-    "Katana: B1 selected." : {
+    "Katana B1 Selected" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1 ausgewählt."
+            "value": "Katana B1 ausgewählt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1 seleccionado."
+            "value": "Katana B1 Seleccionado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana : B1 sélectionné."
+            "value": "Katana B1 Sélectionné"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：B1を選択しました。"
+            "value": "Katana B1を選択しました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1 선택됨."
+            "value": "Katana B1 선택됨"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B1 selecionado."
+            "value": "Katana B1 Selecionado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: выбрано «B1»."
+            "value": "Katana B1 выбран"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：已选择B1。"
+            "value": "已选择 Katana B1"
           }
         }
       }
     },
-    "Katana: B2" : {
+    "Select Katana B2" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "Katana B2 auswählen"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "Seleccionar Katana B2"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "Sélectionner Katana B2"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "Katana B2を選択"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "Katana B2 선택"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "Selecionar Katana B2"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "Выбрать Katana B2"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2"
+            "value": "选择 Katana B2"
           }
         }
       }
     },
-    "Katana: B2 selected." : {
+    "Katana B2 Selected" : {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2 ausgewählt."
+            "value": "Katana B2 ausgewählt"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2 seleccionado."
+            "value": "Katana B2 Seleccionado"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana : B2 sélectionné."
+            "value": "Katana B2 Sélectionné"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：B2を選択しました。"
+            "value": "Katana B2を選択しました"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2 선택됨."
+            "value": "Katana B2 선택됨"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: B2 selecionado."
+            "value": "Katana B2 Selecionado"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana: выбрано «B2»."
+            "value": "Katana B2 выбран"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katana：已选择B2。"
+            "value": "已选择 Katana B2"
           }
         }
       }
