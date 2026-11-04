@@ -42,8 +42,8 @@ extension NotchcastCore {
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
-        let recording = VoiceAskRecording(core: core)
-        let voiceAsk = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: recording.begin, finish: recording.finish, cancel: recording.cancel)
+        let voiceRecording = VoiceAskRecording(core: core)
+        let voiceAsk = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel)
         self.voiceAsk = voiceAsk
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAsk)
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
