@@ -59,7 +59,7 @@ struct CleanAIDataTest {
         precondition(!items.contains { $0.path.lastPathComponent == "recent" })
         let empty = try await service.clean([])
         precondition(empty.isEmpty)
-        let failed = try await service.clean(items.filter { $0.path.path == chat.path })
+        let failed = try await service.clean(items.filter { $0.kind == .claude })
         precondition(failed.first?.status == .recoveryFailed, String(describing: failed))
         let unchanged = try Data(contentsOf: chat)
         precondition(unchanged == bytes)
