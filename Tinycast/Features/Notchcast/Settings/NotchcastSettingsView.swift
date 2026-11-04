@@ -25,6 +25,7 @@ struct NotchcastSettingsView: View {
                 NotchcastCleanSettingsRows().environment(NotchcastCore.clean.coordinator)
             }
             .settingsAnchor(.notchcastClean)
+            Section("Tools") { NotchcastToolsWiringSettingsRows() }
 
             NotchcastExtrasSection()
 

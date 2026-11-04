@@ -4,6 +4,9 @@ import Foundation
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
     static let notchcastClean = Self(tab: .notchcast, title: "Clean")
+    static let notchcastCleaning = Self(tab: .notchcast, title: "Cleaning mode")
+    static let notchcastAppUpdates = Self(tab: .notchcast, title: "App updates")
+    static let notchcastMacUpdate = Self(tab: .notchcast, title: "Update this Mac")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -39,6 +42,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastClean, "Project purge", keywords: ["projects", "build", "artifacts"]),
         .init(.notchcastClean, "Optimize", keywords: ["quick look", "download history", "open with"]),
         .init(.notchcastClean, "System root", keywords: ["helper", "system cache"]),
+        .init(.notchcastCleaning, "Cleaning mode"),
+        .init(.notchcastAppUpdates, "App updates"),
+        .init(.notchcastMacUpdate, "Update this Mac"),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),

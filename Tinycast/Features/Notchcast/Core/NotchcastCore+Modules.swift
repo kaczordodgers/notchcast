@@ -1,6 +1,11 @@
+import Foundation
+
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension NotchcastCore {
+    static let cleaning = CleaningModeModule(engine: CleaningModeEngine(hub: eventTapHub), granted: { Permissions.isAccessibilityTrusted() })
+    static let appUpdates = AppUpdatesModule.live()
+    static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
     static let clean = CleanModule()
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
@@ -24,6 +29,9 @@ extension NotchcastCore {
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         [
+            .init(requires: [.cleaningMode], module: cleaning),
+            .init(requires: [.appUpdates], module: appUpdates),
+            .init(requires: [.macUpdate], module: macUpdate),
             .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
             .init(requires: [.audioPriority], module: AudioPriorityModule()),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),

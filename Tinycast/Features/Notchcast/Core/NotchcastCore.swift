@@ -1,3 +1,5 @@
+import Foundation
+
 /// Modules and their entries live in `NotchcastCore+Modules.swift`.
 @MainActor
 enum NotchcastCore {
@@ -5,8 +7,12 @@ enum NotchcastCore {
     private static var monitor: MonitorModule?
 
     static func setFanMode(_ mode: FanControl.Mode) { monitor?.fans.set(mode) }
+    static var confirmMacUpdate: () async -> Bool = { false }
 
     static func stopForTermination() async {
+        cleaning.stop()
+        appUpdates.stop()
+        await macUpdate.stopForTermination()
         settingsBackup.stop()
         battery.stop()
         await battery.waitUntilIdle()
@@ -19,6 +25,15 @@ enum NotchcastCore {
         battery.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
+        }
+        confirmMacUpdate = { [weak core] in
+            guard let core else { return false }
+            return await core.confirm(title: String(localized: "Update this Mac"),
+                message: String(localized: """
+                    Update Homebrew, upgrade packages, update Claude and Codex, then upgrade App Store apps. \
+                    Updated Homebrew apps have quarantine removed.
+                    """),
+                symbol: "arrow.triangle.2.circlepath", confirmTitle: String(localized: "Run"))
         }
         spacesOrder.onFailure = { [weak core] in
             core?.showMessage(String(localized: "Could not update Spaces ordering."), tone: .danger)
