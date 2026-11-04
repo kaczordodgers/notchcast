@@ -40,10 +40,14 @@ private enum MediaRemote {
         var pid: Int32 = 0
         var bundleID: String?
         var playing: Bool?
+        var shuffleMode: Double?
+        var repeatMode: Double?
 
         func reply(at now: Date) -> [String: Any] {
             var result: [String: Any] = ["pid": pid, "isPlaying": playing ?? ((rate ?? 0) > 0)]
             result["displayID"] = bundleID
+            result["kMRMediaRemoteNowPlayingInfoShuffleMode"] = shuffleMode
+            result["kMRMediaRemoteNowPlayingInfoRepeatMode"] = repeatMode
             result["kMRMediaRemoteNowPlayingInfoTitle"] = title
             result["kMRMediaRemoteNowPlayingInfoArtist"] = artist
             result["kMRMediaRemoteNowPlayingInfoAlbum"] = album
@@ -105,6 +109,8 @@ private enum MediaRemote {
                 snapshot.elapsed = finite("ElapsedTime")
                 snapshot.timestamp = value("Timestamp") as? Date
                 snapshot.rate = finite("PlaybackRate")
+                snapshot.shuffleMode = finite("ShuffleMode")
+                snapshot.repeatMode = finite("RepeatMode")
                 if let data = value("ArtworkData") as? Data, data.count <= 12 * 1_024 * 1_024 {
                     snapshot.artwork = data
                 }
