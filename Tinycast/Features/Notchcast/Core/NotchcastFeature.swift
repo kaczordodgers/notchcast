@@ -44,6 +44,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case screenText
     case scrollingCapture
     case globeDictation
+    case agentMCPServer
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -93,6 +94,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: .music
         case .inUseMarks: .music
         case .buildStats: .buildStats
+        case .agentMCPServer: .captureAndDictation
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -165,6 +167,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Build statistics")
+        case .colorPicker: String(localized: "Color Picker")
+        case .screenshot: String(localized: "Screenshots")
+        case .agentMCPServer: String(localized: "Agent MCP Server")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -237,6 +242,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Read a local build snapshot.")
+        case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
+        case .screenshot: String(localized: "Capture an area, window or display.")
+        case .agentMCPServer: String(localized: "Nothing is exposed until the CLI is available.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -365,6 +373,7 @@ extension NotchcastFeature {
         case .voiceAsk: false
         case .recording: false
         case .globeDictation: false
+        case .agentMCPServer: false
         case .displayBrightness: false
         case .quitProtection: false
         case .pastePlain: false

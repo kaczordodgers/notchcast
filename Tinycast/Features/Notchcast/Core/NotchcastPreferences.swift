@@ -82,6 +82,26 @@ extension NotchcastPreferences {
     private static func featuresOff(_ defaults: UserDefaults) -> Set<NotchcastFeature> {
         Set(NotchcastFeature.allCases.filter {
             !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
+    init(suiteName: String) {
+        let defaults = UserDefaults(suiteName: suiteName)!
+        self.defaults = defaults
+        func threshold(_ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
+            let value = defaults.object(forKey: key) as? Int ?? fallback
+            return min(range.upperBound, max(range.lowerBound, value))
+        }
+        monitorCPU = threshold("monitorCPU", 90, 10...100)
+        monitorTemperature = threshold("monitorTemperature", 90, 40...110)
+        monitorMemory = threshold("monitorMemory", 1, 0...1)
+        monitorDisk = threshold("monitorDisk", 10, 1...50)
+        monitorBattery = threshold("monitorBattery", 15, 1...50)
+        fanMode = defaults.string(forKey: "fanMode") ?? "auto"
+        let percent = defaults.integer(forKey: "batteryChargePercent")
+        chargePercent = Self.chargeLimits.contains(percent) ? percent : 80
+        let minutes = defaults.integer(forKey: "keepAwakeMinutes")
+        awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
+        islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
+        off = Set(NotchcastFeature.allCases.filter {
+            !(defaults.object(forKey: $0.rawValue) as? Bool ?? (!$0.isSystemFeature && $0 != .agentMCPServer))
         })
     }
 

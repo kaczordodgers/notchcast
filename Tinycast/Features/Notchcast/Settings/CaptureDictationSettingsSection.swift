@@ -14,6 +14,7 @@ struct CaptureDictationSettingsSection: View {
             ScreenTextSettingsSection(module: NotchcastCore.screenText)
             ScrollingCaptureSettingsSection()
             DictationTriggerSettingsSection()
+            AgentMCPSettingsSection()
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }

@@ -30,6 +30,7 @@ extension NotchcastCore {
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
     static let screenText = ScreenTextModule()
+    static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
     static let scrollingCapture = ScrollingCaptureModule()
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
@@ -79,6 +80,7 @@ extension NotchcastCore {
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.screenText], module: screenText),
+            .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.scrollingCapture], module: scrollingCapture),
             .init(requires: [.torrents], module: torrents),
