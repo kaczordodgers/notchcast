@@ -27,61 +27,9 @@ jobs:
           path: src
           fetch-depth: 0
           persist-credentials: false
-      - uses: ./tools/notchcast/actions/xcode
-      - name: Catalog key order and references
-        if: github.event_name == 'pull_request'
+      - name: Shared PR build lane
         working-directory: src
-        run: |
-          python3 notchcast/test-xcstrings.py
-          python3 notchcast/check-xcstrings-order.py --base-ref "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
-      - uses: ./tools/notchcast/actions/xcodegen
-      - name: Regenerate project from project.yml
-        working-directory: src
-        run: |
-          "$XCODEGEN" generate --quiet
-      - name: Upstream base
-        id: base
-        working-directory: src
-        run: |
-          git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
-          echo "sha=$(git merge-base HEAD refs/remotes/upstream/main)" >> "$GITHUB_OUTPUT"
-      - name: At most one README.md in the app bundle
-        working-directory: src
-        run: |
-          notchcast/check-bundle-readme.sh
-      - name: New modules have a harness (warning only)
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-        working-directory: src
-        run: |
-          python3 notchcast/check-module-harness.py "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
-      - name: Feature append shape and union merge proof
-        working-directory: src
-        run: |
-          python3 notchcast/check-feature-shape.py
-          python3 notchcast/check-feature-shape-test.py
-      - name: Legacy command identities
-        working-directory: src
-        run: |
-          python3 notchcast/check-legacy-command-ids.py
-          python3 notchcast/check-legacy-command-ids-test.py
-      - name: Snapshot publish retries
-        working-directory: src
-        run: notchcast/publish-snapshot-test.sh
-      - name: Build (Debug, unsigned)
-        working-directory: src
-        run: |
-          xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO build -quiet
-      - name: Check built app identity
-        run: |
-          source ./tools/notchcast/config.env
-          ./tools/notchcast/check-identity.sh app "$RUNNER_TEMP/DerivedData/Build/Products/Debug/$APP_NAME Dev.app"
-      - name: Lint
-        working-directory: src
-        run: |
-          command -v swiftlint >/dev/null || brew install --quiet swiftlint
-          ./Scripts/lint.sh
-      - uses: ./tools/notchcast/actions/tests
-        with:
-          upstream: ${{ steps.base.outputs.sha }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: bash ../tools/notchcast/ci-build.sh
