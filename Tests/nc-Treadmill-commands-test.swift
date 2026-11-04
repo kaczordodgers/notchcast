@@ -65,14 +65,21 @@ struct NotchcastCommand: Sendable {
         for command in all {
             command.run()
             precondition(AppCore.shared.messages.last?.1 == .danger && transport.sent.isEmpty)
+            precondition(AppCore.shared.messages.last?.0 == "The walking pad is not connected.")
         }
         print("Treadmill commands: all five disconnected actions report danger without writes")
         transport.onReady?()
         transport.sent = []
+        TreadmillCommands.pause.run()
+        precondition(AppCore.shared.messages.last?.0 == "There is no walk in progress.")
         TreadmillCommands.start.run()
         let startFrame = try TreadmillProtocol.start(minutes: 0)
         precondition(transport.sent == [startFrame])
         precondition(coordinator.engine.requestedSpeed == 4)
+        precondition(AppCore.shared.messages.last?.0 == "Walk start requested at \(coordinator.engine.requestedSpeed!.formatted()) km/h.")
+        TreadmillCommands.start.run()
+        precondition(AppCore.shared.messages.last?.0 == "A walk is already in progress.")
+        AppCore.shared.messages.removeLast()
         transport.status(3)
         TreadmillCommands.faster.run()
         let fasterFrame = try TreadmillProtocol.speed(4.5)
@@ -101,6 +108,12 @@ struct NotchcastCommand: Sendable {
         preferences.set(.treadmillWalk, true)
         precondition(all.allSatisfy { $0.isEnabled() })
         print("Treadmill commands: switch off excludes all five commands; switch on enables all five")
+        transport.onFailure?(TreadmillBluetoothFailure.unauthorized)
+        TreadmillCommands.start.run()
+        precondition(AppCore.shared.messages.last?.0 == "The walking pad is not connected.")
+        precondition(TreadmillBluetoothFailure.unauthorized.localizedDescription
+            == "Allow Bluetooth access in System Settings.")
+        print("Treadmill commands: exact error messages and stale connection error regression passed")
         transport.fail = false
         await coordinator.stopForTermination()
     }

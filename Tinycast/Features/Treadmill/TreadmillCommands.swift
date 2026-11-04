@@ -27,13 +27,14 @@ enum TreadmillCommands {
     ) {
         do {
             guard coordinator.connected else {
-                throw coordinator.lastError ?? TreadmillFailure.unavailable
+                throw TreadmillFailure.unavailable
             }
             let message: String
             switch action {
             case .start:
                 try coordinator.startWalk()
-                message = String(localized: "Walk start requested at \(4.formatted()) km/h.")
+                let speed = coordinator.engine.requestedSpeed ?? 0
+                message = String(localized: "Walk start requested at \(speed.formatted()) km/h.")
             case .stop:
                 try coordinator.stopWalk()
                 message = String(localized: "Walk stop requested.")
