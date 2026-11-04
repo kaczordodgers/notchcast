@@ -70,6 +70,7 @@ final class NotchcastPreferences {
         off = Set(NotchcastFeature.allCases.filter {
             !(defaults.object(forKey: $0.rawValue) as? Bool
                 ?? !($0.isSystemFeature || [.aiUsage, .aiUsageOtherMac, .machLink].contains($0)))
+                || ($0 == .machMBPFans && defaults.object(forKey: $0.rawValue) == nil)
         })
     }
 

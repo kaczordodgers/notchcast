@@ -9,6 +9,7 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let macLink = AIUsageLinkModule()
     static let aiUsage = AIUsageModule(channel: macLink.channel)
+    static let remoteFans = RemoteFanModule(transport: MachLinkFanTransport(channel: macLink.channel))
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
@@ -43,6 +44,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
+            .init(requires: [.machLink, .machMBPFans], module: remoteFans),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
