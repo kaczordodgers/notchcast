@@ -22,6 +22,11 @@ func settle() async {
 @MainActor
 struct NotchcastCoreTests {
     static func main() async {
+        for feature: NotchcastFeature in [.showDesktop, .spacesOrder, .hideCommandM,
+                                         .middleClick, .greenMaximize] {
+            precondition(feature.settingsGroup == .system)
+            precondition(!feature.needsIsland && !feature.isSystemFeature)
+        }
         let suite = "notchcast-core-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -33,7 +38,9 @@ struct NotchcastCoreTests {
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
         // A fresh install: switches that take over system input or behaviour start off, everything else on.
         let startsOff: Set<NotchcastFeature> = [.volumeLevels, .displayBrightness, .quitProtection, .fanControl,
-            .batteryChargeLimit, .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake]
+            .batteryChargeLimit, .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
+            .linkQuickFixes, .systemMonitor, .monitorAlerts, .launcherNumberKeys, .launcherAliasSpace, .showDesktop,
+            .spacesOrder, .hideCommandM, .middleClick, .greenMaximize, .switcherQuitKey]
         for feature in NotchcastFeature.allCases {
             precondition(preferences.isOn(feature) == !startsOff.contains(feature), "fresh default of \(feature)")
         }
