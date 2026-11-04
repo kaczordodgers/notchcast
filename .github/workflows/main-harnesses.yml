@@ -42,6 +42,9 @@ jobs:
           cat "$RUNNER_TEMP/selected"
       - name: Run harnesses, retry failures alone
         working-directory: src
+        env:
+          LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
+          NOTCHCAST_TEST_HELPER_EXECUTABLE: '1'
         run: |
           export TMPDIR="$RUNNER_TEMP/main-harnesses"
           mkdir -p "$TMPDIR"
