@@ -16,7 +16,7 @@ struct NotchcastSettingsView: View {
 
             Section {
                 ForEach(NotchcastFeature.allCases.filter {
-                    $0 != .island && !NotchcastExtrasSection.features.contains($0)
+                    $0 != .island && !$0.isSystemFeature && !NotchcastExtrasSection.features.contains($0)
                 }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
@@ -29,6 +29,8 @@ struct NotchcastSettingsView: View {
             }
 
             NotchcastExtrasSection()
+
+            NotchcastSystemSettingsSection()
 
             Section {
                 Picker(selection: Binding(

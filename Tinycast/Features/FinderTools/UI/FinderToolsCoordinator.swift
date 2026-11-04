@@ -105,6 +105,9 @@ final class FinderToolsCoordinator {
             guard focus == .files else {
                 self.cutSession.clear()
                 self.input.finishCut(request)
+                if request.action == .paste {
+                    FinderCommandService.post(keyCode: 9, flags: .maskCommand, pid: request.pid)
+                }
                 return
             }
             switch request.action {
