@@ -52,6 +52,11 @@ import Synchronization
         return state.withLock { $0.revision }
     }
 
+    var hasPalette: Bool {
+        _ = revision
+        return state.withLock { $0.light != nil || $0.dark != nil || $0.preview != nil }
+    }
+
     @MainActor
     func update(
         light: RaycastTheme?, dark: RaycastTheme?, preview: RaycastThemeLink.Target?, opacity: Double
