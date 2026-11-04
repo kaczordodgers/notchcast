@@ -30,6 +30,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case appearance
     case pastePlain
     case pasteImage
+    case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -47,9 +48,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case buildStats
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -59,6 +62,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherFromIsland: .launcher
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -101,6 +105,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -135,6 +140,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -152,6 +158,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -186,6 +193,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -224,6 +232,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -250,7 +259,8 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        !isSystemFeature && self != .buildStats && self != .spacesOrder
+            && self != .switcherQuitKey && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool {

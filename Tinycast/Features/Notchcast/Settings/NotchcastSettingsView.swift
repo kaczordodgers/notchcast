@@ -25,6 +25,7 @@ struct NotchcastSettingsView: View {
             NotchcastSystemSettingsSection()
 
             NotchcastExtrasSection()
+            BuildStatsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))

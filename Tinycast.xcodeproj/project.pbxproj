@@ -82,6 +82,7 @@
 		106AF34CEAEB08CBCC924118 /* VolumeLevel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 273827EB5CC04F1951C40387 /* VolumeLevel.swift */; };
 		1074CC85FB5B8576B4BD6B9B /* WebpageWebViewConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14C1D4CAB174A22EDEBD0189 /* WebpageWebViewConfiguration.swift */; };
 		109E27ACDAADDA42FE33E119 /* SettingsNavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364BEC0805A8F5C39444EAF5 /* SettingsNavigationState.swift */; };
+		112B74EC497071EB5AD2C222 /* DictationIslandHUDPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B93AFEE4701AB7F1B2227E4 /* DictationIslandHUDPolicy.swift */; };
 		11A0F91815E5DFE1AB08CC20 /* FormFieldChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06BD8A507191F2621FCFFC7 /* FormFieldChrome.swift */; };
 		11AB546144F4F6711FB86A4C /* IslandMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAF815793A69D67A5467C45 /* IslandMotion.swift */; };
 		11C3F9D5C786EF1D11787E0C /* CustomCommandCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE41DC04958D7C2FF8C47F62 /* CustomCommandCoordinator.swift */; };
@@ -681,6 +682,7 @@
 		935F7433BB0C0ECDE6FA3BF3 /* ClipboardScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548C83C4086CD9FB8E85B222 /* ClipboardScreen.swift */; };
 		939F3944AE8D36A8C337D46F /* Signposts.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9044F107ADD5896746DBC35 /* Signposts.swift */; };
 		93A147B2107D407978EC686A /* DownloadTool.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD0D24FF0A2B992B44FCDC96 /* DownloadTool.swift */; };
+		9411FC4A82EE316AF160EE67 /* GreenMaximizeRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = BEC9837B097E6EAB42962B9C /* GreenMaximizeRefresh.swift */; };
 		941EC050CEF02AD47EC1593E /* GreenMaximizeEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 380482CEBDBE362F3FEF861B /* GreenMaximizeEngine.swift */; };
 		943B767858B07EE75B1C8915 /* ExtensionGitHubSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B583DC6E33E1BF3AC1E22B5 /* ExtensionGitHubSource.swift */; };
 		944E1D95690A062853F12CCE /* RelaunchRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 084EB69F451BA7386AC6499F /* RelaunchRunner.swift */; };
@@ -828,6 +830,7 @@
 		AF3389BDF97948B4F7CC3F73 /* SMCSensorReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C712F40091ABE13C1F12A7 /* SMCSensorReading.swift */; };
 		AF5FB32136A3DC18EC4E5E4C /* CalcOperator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA97F3257C2FA99BF185ED8A /* CalcOperator.swift */; };
 		AFAC33BF93E5B61AEB1A2B6A /* AIProviderFailure.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EEF9AED57F98541C007B888 /* AIProviderFailure.swift */; };
+		B0630331334815FC9D5AE312 /* DictationIslandHUDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAD7AE123D68232B0661126B /* DictationIslandHUDService.swift */; };
 		B073D5A79D50982E89C30F20 /* Snippet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7B3FC48B58E1005453E7E18 /* Snippet.swift */; };
 		B076DE322213FBD43C04B886 /* RowClick.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14A81E0E724686ACB0955DE4 /* RowClick.swift */; };
 		B0A5AB846EE4E6E37161898C /* MathLayoutEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E9F62FD5537ABE16C1DC132 /* MathLayoutEngine.swift */; };
@@ -1882,6 +1885,7 @@
 		8B58093F753AA45E1C720244 /* EventTapPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapPolicy.swift; sourceTree = "<group>"; };
 		8B583DC6E33E1BF3AC1E22B5 /* ExtensionGitHubSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionGitHubSource.swift; sourceTree = "<group>"; };
 		8B80F19625511A222707B975 /* EventTapThread.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapThread.swift; sourceTree = "<group>"; };
+		8B93AFEE4701AB7F1B2227E4 /* DictationIslandHUDPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationIslandHUDPolicy.swift; sourceTree = "<group>"; };
 		8BA109C429A1E4E7E2B55BDC /* CalcTimeZone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcTimeZone.swift; sourceTree = "<group>"; };
 		8BE58163F028AC3AD537AAC3 /* WindowLayoutCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutCoordinator.swift; sourceTree = "<group>"; };
 		8C39345D0335ACA895133ABD /* IconStyleMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconStyleMonitor.swift; sourceTree = "<group>"; };
@@ -2137,6 +2141,7 @@
 		BE7D64F656A9DD6EE1CCC93A /* DictationPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationPanel.swift; sourceTree = "<group>"; };
 		BE7E268AED5B4426260BC23C /* SoloistLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloistLauncher.swift; sourceTree = "<group>"; };
 		BEBE95E04A3E8B4BCF973A04 /* MathBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathBox.swift; sourceTree = "<group>"; };
+		BEC9837B097E6EAB42962B9C /* GreenMaximizeRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreenMaximizeRefresh.swift; sourceTree = "<group>"; };
 		BEDDA8820165672AF8464E25 /* SettingsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsComponents.swift; sourceTree = "<group>"; };
 		BEE3B8817450F0A717D2F948 /* DaySettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaySettingsSection.swift; sourceTree = "<group>"; };
 		BF36BDC9ACE867DCC2CCF746 /* SystemPromptEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemPromptEditor.swift; sourceTree = "<group>"; };
@@ -2266,6 +2271,7 @@
 		DA50E860682AA328FB7D785F /* MediaArguments.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaArguments.swift; sourceTree = "<group>"; };
 		DA8CBA97041AAA96C0B7FF2E /* BackupActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupActions.swift; sourceTree = "<group>"; };
 		DACBBA4F593D396201257883 /* CalendarMenuBarItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarMenuBarItem.swift; sourceTree = "<group>"; };
+		DAD7AE123D68232B0661126B /* DictationIslandHUDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationIslandHUDService.swift; sourceTree = "<group>"; };
 		DAEDE3088B82D57D63F199C1 /* NetworkReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkReading.swift; sourceTree = "<group>"; };
 		DB02E0EF46285235AD81C181 /* AIBrand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIBrand.swift; sourceTree = "<group>"; };
 		DB1752929BA1ACC0BC54865C /* HUDPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HUDPanel.swift; sourceTree = "<group>"; };
@@ -3201,6 +3207,15 @@
 				ACC8371BCD366F2549E0B01B /* SectionHeader.swift */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		3F2DCCB50B0319B8E42B1732 /* DictationIslandHUD */ = {
+			isa = PBXGroup;
+			children = (
+				F975277AAFE5135F9056F150 /* Model */,
+				AF10A767AEDB00DA2DB575CC /* Service */,
+			);
+			path = DictationIslandHUD;
 			sourceTree = "<group>";
 		};
 		3F84BD641CF97634DA221586 /* Model */ = {
@@ -4543,6 +4558,7 @@
 				2593A061D4579D609492171A /* DeepLinks */,
 				8CE2C21B4FD7CE64254DC392 /* Dictation */,
 				C16FB9568412F81201DB20C2 /* DictationCleanup */,
+				3F2DCCB50B0319B8E42B1732 /* DictationIslandHUD */,
 				B048F37DDAB4A4DB721D8F70 /* DictationTrigger */,
 				DDAC14B5D5139B06818C614B /* Dictionary */,
 				4E24C1A2C1B2615CC4E110E1 /* DisplayBrightness */,
@@ -4924,6 +4940,14 @@
 				2E2B30AEB6165DF3DEBCEBC2 /* RaycastThemeLink.swift */,
 			);
 			path = Model;
+			sourceTree = "<group>";
+		};
+		AF10A767AEDB00DA2DB575CC /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				DAD7AE123D68232B0661126B /* DictationIslandHUDService.swift */,
+			);
+			path = Service;
 			sourceTree = "<group>";
 		};
 		B048F37DDAB4A4DB721D8F70 /* DictationTrigger */ = {
@@ -5678,6 +5702,7 @@
 			isa = PBXGroup;
 			children = (
 				8E76C33C3D98E5FDD9209072 /* GreenMaximizeModule.swift */,
+				BEC9837B097E6EAB42962B9C /* GreenMaximizeRefresh.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -5764,6 +5789,14 @@
 				6CC43DBAD833CC17356BE406 /* MiddleClickTouchSource.swift */,
 			);
 			path = Service;
+			sourceTree = "<group>";
+		};
+		F975277AAFE5135F9056F150 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				8B93AFEE4701AB7F1B2227E4 /* DictationIslandHUDPolicy.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		FAE0C36CEFE2E8E3ADC6FC80 /* UI */ = {
@@ -6343,6 +6376,8 @@
 				6C83F2A2096107C488DE3D59 /* DictationDestination.swift in Sources */,
 				FED9738484D355CC9C0EEB63 /* DictationIdleRelease.swift in Sources */,
 				C785431D09E6A27D49C310C3 /* DictationInsertionContext.swift in Sources */,
+				112B74EC497071EB5AD2C222 /* DictationIslandHUDPolicy.swift in Sources */,
+				B0630331334815FC9D5AE312 /* DictationIslandHUDService.swift in Sources */,
 				613864D744598C15C9210405 /* DictationKeyManager.swift in Sources */,
 				B76144EEADE5F07E39D288F8 /* DictationLanguage.swift in Sources */,
 				25035D216193773BE01D6430 /* DictationMode.swift in Sources */,
@@ -6548,6 +6583,7 @@
 				173E0A50460EA9B7FC3220A8 /* GreenMaximizeClick.swift in Sources */,
 				941EC050CEF02AD47EC1593E /* GreenMaximizeEngine.swift in Sources */,
 				6B7BDDAF026478ACFA256648 /* GreenMaximizeModule.swift in Sources */,
+				9411FC4A82EE316AF160EE67 /* GreenMaximizeRefresh.swift in Sources */,
 				35D8AA4E6FE6FD020A56BD8A /* HIDEventSystem.swift in Sources */,
 				8F001DE9D2EF3429B351EFF5 /* HIDKeyMapping.swift in Sources */,
 				6042634AC93D12E242465227 /* HTMLDocument.swift in Sources */,

@@ -22,8 +22,15 @@ struct AgentSocketTests {
 
     static func check(_ value: Bool, _ message: String = "check failed") { precondition(value, message) }
 
+    // Blocking calls stay off the cooperative pool; a small runner would starve the handler.
+    static func offPool<Value: Sendable>(_ work: @escaping @Sendable () -> Value) async -> Value {
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global().async { continuation.resume(returning: work()) }
+        }
+    }
+
     static func send(_ request: AgentRequest, _ url: URL) async -> AgentReply {
-        await Task.detached { AgentSocketClient.send(request, to: url) }.value
+        await offPool { AgentSocketClient.send(request, to: url) }
     }
 
     static func main() async throws {
@@ -50,14 +57,14 @@ struct AgentSocketTests {
 
         let replies = await withTaskGroup(of: AgentReply.self, returning: [AgentReply].self) { group in
             for _ in 0..<4 {
-                group.addTask { AgentSocketClient.send(.init(verb: .status), to: url) }
+                group.addTask { await send(.init(verb: .status), url) }
             }
             var values: [AgentReply] = []
             for await reply in group { values.append(reply) }
             return values
         }
         check(replies.count == 4 && replies.allSatisfy { $0.code == .ok })
-        let malformed = await Task.detached { () -> AgentReply in
+        let malformed = await offPool { () -> AgentReply in
             let descriptor = socket(AF_UNIX, SOCK_STREAM, 0)
             defer { Darwin.close(descriptor) }
             do {
@@ -73,7 +80,7 @@ struct AgentSocketTests {
                 return try JSONDecoder().decode(AgentReply.self,
                                                from: AgentSocketIO.readLine(descriptor, timeout: .seconds(1)))
             } catch { return .init(code: .failed) }
-        }.value
+        }
         check(malformed.code == .badRequest)
         server.stop()
         check(!FileManager.default.fileExists(atPath: url.path))
@@ -102,7 +109,7 @@ struct AgentSocketTests {
         check(cancellation.cancelled == 1, "stop left the handler running")
 
         try cancellable.start()
-        let disconnected = await Task.detached { () -> Int32 in
+        let disconnected = await offPool { () -> Int32 in
             let descriptor = socket(AF_UNIX, SOCK_STREAM, 0)
             do {
                 var address = try AgentSocketIO.address(url.path)
@@ -120,7 +127,7 @@ struct AgentSocketTests {
                 Darwin.close(descriptor)
                 preconditionFailure("fixture client failed: \(error)")
             }
-        }.value
+        }
         let acceptedDeadline = ContinuousClock.now + .seconds(2)
         while cancellation.started < 2 && ContinuousClock.now < acceptedDeadline { await Task.yield() }
         check(cancellation.started == 2)
