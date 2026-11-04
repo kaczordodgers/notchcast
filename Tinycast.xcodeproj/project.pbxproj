@@ -156,7 +156,6 @@
 		23F808ECC9100FFCBE5DA0F7 /* SettingsWindowChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3CE1A1626264322E8A1192E /* SettingsWindowChrome.swift */; };
 		24774D18B408004B9016A007 /* WindowLayoutStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112FAE46D58E17331C1CEEAF /* WindowLayoutStore.swift */; };
 		24BDA1C2A8F9A6026D4EFA65 /* CalcNumberBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50A8322A12267B2A82422281 /* CalcNumberBase.swift */; };
-		24EEF6312EA0CCE17C148BB9 /* IslandPage+Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = 097A70922CDC9691C0B36A23 /* IslandPage+Command.swift */; };
 		24EFA87B2617537B6CAAD52B /* FileSearchSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AC2CD86BAA6567B66B2B4DB /* FileSearchSettingsView.swift */; };
 		24F4BF3EA74E8E65B2B92D6D /* VolumeHUDController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09633E6F9C37F89267341D1D /* VolumeHUDController.swift */; };
 		25035D216193773BE01D6430 /* DictationMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40D8482A9E265FB492B5B0DA /* DictationMode.swift */; };
@@ -673,12 +672,14 @@
 		94C6CBBB873436C849905FBF /* IslandClosedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230EE9E586B320B641CA6E84 /* IslandClosedView.swift */; };
 		94E62234828A0945CFCFE764 /* RevealableSecureField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36DEEF228EF1398B421C89B2 /* RevealableSecureField.swift */; };
 		9511690A4C16CA042542A4AC /* DictationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A54D1E880E274A3B56C6951 /* DictationModel.swift */; };
+		955146853C54214403C7945F /* LinkQuickFixModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC04D81E8B41F273E2CED4FF /* LinkQuickFixModule.swift */; };
 		9553DDEBD6FCC205069ED996 /* MenuPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF96A1566757811AD434C0F9 /* MenuPanel.swift */; };
 		95B17245093CB57F6D248844 /* AppearanceThemeColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0AF1DE2298F9E03C9EC6E5B /* AppearanceThemeColors.swift */; };
 		95E44691AA78483B3AD550DA /* LiveTimerStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCB4021A3F267431175EB37F /* LiveTimerStore.swift */; };
 		9608AFDEDC3B330E64F53437 /* ExtensionStoreClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 410684C9DEB3754962C20C9C /* ExtensionStoreClient.swift */; };
 		9640B5D294EA4D3ACA1D0A85 /* DictationTextFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5BD1FBE1BBBAC5DDB1FE8A8 /* DictationTextFormatter.swift */; };
 		9690D6E5275F3DC92C3B11D2 /* SettingsFileKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFAD3CBED74EA031B58266EC /* SettingsFileKey.swift */; };
+		96A998AE974AA2596E49D730 /* LinkQuickFixEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E2E8AFA9330CADF81EAD32C /* LinkQuickFixEngine.swift */; };
 		96BC636877D935C5EB20BF7F /* SnippetsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E06AA30E7BA44BC211B667F /* SnippetsScreen.swift */; };
 		978FE09E53A632B1473DC5D3 /* MCPOAuthListener.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98310BAA8713A12DF56F19D7 /* MCPOAuthListener.swift */; };
 		97C0DBACBA7910C10D3A9D13 /* IslandHUDRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F61FD40FC7081764488ECBC /* IslandHUDRouter.swift */; };
@@ -1246,7 +1247,6 @@
 		09633E6F9C37F89267341D1D /* VolumeHUDController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VolumeHUDController.swift; sourceTree = "<group>"; };
 		0966995230FE7B7072C0018B /* EmojiGridGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiGridGeometry.swift; sourceTree = "<group>"; };
 		096F955B26BAEE5AED65B559 /* HTTPAIProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HTTPAIProvider.swift; sourceTree = "<group>"; };
-		097A70922CDC9691C0B36A23 /* IslandPage+Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "IslandPage+Command.swift"; sourceTree = "<group>"; };
 		0AB691265C48648210F1F6D7 /* WindowLayoutPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutPreview.swift; sourceTree = "<group>"; };
 		0ADFFB5180991764FB13FE0B /* ExtensionPackageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionPackageManager.swift; sourceTree = "<group>"; };
 		0B2FAC737503B853DE6B5ED4 /* MeetingCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingCardView.swift; sourceTree = "<group>"; };
@@ -1764,6 +1764,7 @@
 		7DCE032DD72DFA1EA930B7EE /* DictationLanguage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationLanguage.swift; sourceTree = "<group>"; };
 		7E0169384D8B376D4811D9D0 /* CalcMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcMath.swift; sourceTree = "<group>"; };
 		7E257F5B53E6F058CD63C6E7 /* SystemNoticesModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemNoticesModule.swift; sourceTree = "<group>"; };
+		7E2E8AFA9330CADF81EAD32C /* LinkQuickFixEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkQuickFixEngine.swift; sourceTree = "<group>"; };
 		7E457AFA277A9E4281317F23 /* LiveTimerInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTimerInput.swift; sourceTree = "<group>"; };
 		7E55256AEA221347A40EAD88 /* DayHTTPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayHTTPService.swift; sourceTree = "<group>"; };
 		7E6EA47F0085375A3A621F5E /* GlassEffectView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassEffectView.swift; sourceTree = "<group>"; };
@@ -2340,6 +2341,7 @@
 		FBF6EF3A2C35F45B82D40968 /* ClipboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardView.swift; sourceTree = "<group>"; };
 		FBF7E22722987FD8ADE17080 /* QuitProtectionExceptionRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitProtectionExceptionRow.swift; sourceTree = "<group>"; };
 		FBFE3C41897391C14DB5A55C /* ShellCommandRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellCommandRunner.swift; sourceTree = "<group>"; };
+		FC04D81E8B41F273E2CED4FF /* LinkQuickFixModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkQuickFixModule.swift; sourceTree = "<group>"; };
 		FC2B77DA46386E7E459406E4 /* NotesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesStore.swift; sourceTree = "<group>"; };
 		FC5458F77141FFCA909AFA4C /* RoomPickerScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPickerScreen.swift; sourceTree = "<group>"; };
 		FC779AA9F9FE4DB6B858CB18 /* NowPlayingAdapterReply.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NowPlayingAdapterReply.swift; sourceTree = "<group>"; };
@@ -2757,6 +2759,14 @@
 				ADD4CE330F75BC5FE5EAD99E /* Tooltip.swift */,
 			);
 			path = DesignSystem;
+			sourceTree = "<group>";
+		};
+		221150133EE8212A58B77BA3 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				7E2E8AFA9330CADF81EAD32C /* LinkQuickFixEngine.swift */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 		22E217FBFDB0E4A356260EB1 /* Model */ = {
@@ -4287,6 +4297,7 @@
 				3B3C887C1093082A211134ED /* HotKeys */,
 				CE92B7841730BC24DC3F4DB3 /* IslandHome */,
 				7DE06EE636C14E50EE172D9E /* Launcher */,
+				E5BC94B19A095DEACBEEB06C /* LinkQuickFixes */,
 				623E25C26C5E7C77B6C92BBF /* LiveDay */,
 				8223B83FC294F448C59A7E51 /* LiveTimer */,
 				038B01836D5B80492A4C5483 /* LowDisk */,
@@ -4696,7 +4707,6 @@
 				27B49F2C9CE957C98E6672A5 /* IslandHomeView.swift */,
 				59AF96A0D0A25CCD958A48BA /* IslandInputState.swift */,
 				252F3E73729BA841F22027B9 /* IslandPage.swift */,
-				097A70922CDC9691C0B36A23 /* IslandPage+Command.swift */,
 				D020AFD3D6442F12139DF3DB /* IslandPage+Content.swift */,
 				C3D28C86180A68C43879F607 /* IslandPagesCoordinator.swift */,
 				4B230945E3E15B5532565707 /* IslandPagesView.swift */,
@@ -4848,6 +4858,14 @@
 				61C82CFE8F650EAD34CA1CB9 /* DictationSettingsView.swift */,
 			);
 			path = Settings;
+			sourceTree = "<group>";
+		};
+		C26A1F438FBCE3BAF17A805D /* Service */ = {
+			isa = PBXGroup;
+			children = (
+				FC04D81E8B41F273E2CED4FF /* LinkQuickFixModule.swift */,
+			);
+			path = Service;
 			sourceTree = "<group>";
 		};
 		C3194696FFE806C870A2D779 /* Root */ = {
@@ -5179,6 +5197,15 @@
 				A9C69A76ABBC19B1C629223B /* Webpage */,
 			);
 			path = Downloads;
+			sourceTree = "<group>";
+		};
+		E5BC94B19A095DEACBEEB06C /* LinkQuickFixes */ = {
+			isa = PBXGroup;
+			children = (
+				221150133EE8212A58B77BA3 /* Model */,
+				C26A1F438FBCE3BAF17A805D /* Service */,
+			);
+			path = LinkQuickFixes;
 			sourceTree = "<group>";
 		};
 		E97AA71EC427088D2EB6CDE6 /* Settings */ = {
@@ -6230,7 +6257,6 @@
 				D2B1BBC988B1A7D503108721 /* IslandInputState.swift in Sources */,
 				67EB4BB5B8E015443C2F7E21 /* IslandMessage.swift in Sources */,
 				11AB546144F4F6711FB86A4C /* IslandMotion.swift in Sources */,
-				24EEF6312EA0CCE17C148BB9 /* IslandPage+Command.swift in Sources */,
 				89E90A9C665022E15AED89D8 /* IslandPage+Content.swift in Sources */,
 				197B39CF180AD511F1013826 /* IslandPage.swift in Sources */,
 				20422F4FC91836F5FADCA39B /* IslandPagesCoordinator.swift in Sources */,
@@ -6266,6 +6292,8 @@
 				C1F9A97A12B7DA0A0DF6C55C /* LevelNotice.swift in Sources */,
 				D86DD2F7FABF11ADB28F25E0 /* LidClosedPolicy.swift in Sources */,
 				B5B366890C3FF45515888E7E /* LinkCleaner.swift in Sources */,
+				96A998AE974AA2596E49D730 /* LinkQuickFixEngine.swift in Sources */,
+				955146853C54214403C7945F /* LinkQuickFixModule.swift in Sources */,
 				EAF341CC4689EDA5893E4FC6 /* LiveTimerEntry.swift in Sources */,
 				925CE78BD47DFAF88BC8A88F /* LiveTimerInput.swift in Sources */,
 				9B15AF45A4FCA0CF12D9C761 /* LiveTimerModule.swift in Sources */,
