@@ -42,10 +42,7 @@ struct NetMergePolicyTest {
             assert(!NetMergeInterfaceMonitor.isUsableIPv4(address))
         }
         let monitor = NetMergeInterfaceMonitor()
-        try monitor.start { assertionFailure("No run loop is driven in this harness") }
-        monitor.stop()
-        monitor.stop()
         _ = try monitor.readInterfaces()
-        print("NetMerge: policy boundaries, interface eligibility, snapshot stability and monitor lifecycle passed")
+        print("NetMerge: policy boundaries, interface eligibility, snapshot stability and on-demand read passed")
     }
 }

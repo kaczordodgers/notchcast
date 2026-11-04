@@ -5,6 +5,7 @@ import Observation
 final class TorrentModule: NotchcastModule {
     private(set) var isRunning = false
     private(set) var toolURL: URL?
+    private(set) var toolChecked = false
     let preferences: NotchcastPreferences
     @ObservationIgnored private let monitor: NetMergeInterfaceMonitor
     @ObservationIgnored private let readInterfaces: () throws -> [NetMergePolicy.Interface]
@@ -15,7 +16,8 @@ final class TorrentModule: NotchcastModule {
     @ObservationIgnored private var pending: [URL] = []
     @ObservationIgnored private(set) lazy var manager = TorrentManager(
         session: session, destination: destination,
-        extraArguments: { [weak self] in self?.networkArguments() ?? [] })
+        extraArguments: { [weak self] in self?.networkArguments() ?? [] },
+        interfacesPresent: { [weak self] arguments in self?.interfacesPresent(arguments) ?? false })
 
     init(
         session: any TorrentSession,
@@ -39,7 +41,6 @@ final class TorrentModule: NotchcastModule {
         guard isRunning else { return }
         isRunning = false
         pending.removeAll()
-        monitor.stop()
         guard shutdown == nil else { return }
         let manager = manager
         for job in manager.jobs where job.state.isRunning { manager.cancel(job.id) }
@@ -72,6 +73,7 @@ final class TorrentModule: NotchcastModule {
         let url = await Self.findTool(locator)
         guard !Task.isCancelled else { return }
         toolURL = url
+        toolChecked = true
     }
 
     static func accepts(_ url: URL) -> Bool {
@@ -83,6 +85,13 @@ final class TorrentModule: NotchcastModule {
         let interfaces = (try? readInterfaces()) ?? []
         return NetMergePolicy.evaluate(
             interfaces: interfaces, kind: .torrent, sizeBytes: nil, enabled: true).aria2Arguments
+    }
+
+    private func interfacesPresent(_ arguments: [String]) -> Bool {
+        guard let argument = arguments.first(where: { $0.hasPrefix("--multiple-interface=") }),
+              let interfaces = try? readInterfaces() else { return false }
+        let names = argument.dropFirst("--multiple-interface=".count).split(separator: ",").map(String.init)
+        return names.allSatisfy { name in interfaces.contains { $0.bsdName == name && $0.hasIPv4 } }
     }
 
     @concurrent private static func findTool(_ locator: any TorrentToolLocating) async -> URL? {

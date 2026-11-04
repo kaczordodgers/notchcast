@@ -22,6 +22,8 @@ struct NotchcastTorrentSettings: View {
             LabeledContent {
                 if let url = module.toolURL {
                     Text(verbatim: url.path).textSelection(.enabled)
+                } else if !module.toolChecked {
+                    Text("Checking…")
                 } else {
                     Text("aria2c not found")
                 }

@@ -1,8 +1,8 @@
 import Foundation
 
 @MainActor final class TorrentRPCClient: NSObject, URLSessionTaskDelegate {
-    private struct Response<Value: Decodable>: Decodable {
-        struct Failure: Decodable { let code: Int; let message: String }
+    private struct Response<Value: Decodable & Sendable>: Decodable, Sendable {
+        struct Failure: Decodable, Sendable { let code: Int; let message: String }
         let jsonrpc: String
         let id: String
         let result: Value?
@@ -53,18 +53,24 @@ import Foundation
             throw TorrentFailure.rpcUnavailable
         }
         try Task.checkCancellation()
-        guard let http = response as? HTTPURLResponse, http.statusCode == 200,
+        guard let http = response as? HTTPURLResponse,
               http.url == rpcURL, data.count <= 16 * 1024 * 1024 else { throw TorrentFailure.invalidResponse }
         let envelope: Response<Value>
         do {
-            envelope = try JSONDecoder().decode(Response<Value>.self, from: data)
+            envelope = try await Self.decode(data, as: Value.self)
         } catch {
             throw TorrentFailure.invalidResponse
         }
         guard envelope.id == id, envelope.jsonrpc == "2.0" else { throw TorrentFailure.invalidResponse }
         if let error = envelope.error { throw TorrentFailure.rpc(code: error.code, message: error.message) }
-        guard let result = envelope.result else { throw TorrentFailure.invalidResponse }
+        guard http.statusCode == 200, let result = envelope.result else { throw TorrentFailure.invalidResponse }
         return result
+    }
+
+    @concurrent private static func decode<Value: Decodable & Sendable>(
+        _ data: Data, as: Value.Type
+    ) async throws -> Response<Value> {
+        try JSONDecoder().decode(Response<Value>.self, from: data)
     }
 
     func invalidate() {

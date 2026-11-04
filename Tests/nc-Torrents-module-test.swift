@@ -12,6 +12,7 @@ import Foundation
 @main @MainActor
 struct TorrentModuleTests {
     final class Session: TorrentSession {
+        var isAlive: Bool { true }
         var arguments: [[String]] = []
         var sharing: [Bool] = []
         var finished = false
@@ -56,7 +57,9 @@ struct TorrentModuleTests {
         precondition(!preferences.isOn(.torrentsKeepSharing))
         precondition(NotchcastFeature.allCases.filter(\.isTorrentFeature).allSatisfy { !$0.needsIsland })
         let session = Session()
-        let root = FileManager.default.temporaryDirectory.appending(path: "torrent-module-test")
+        let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
+            ?? FileManager.default.temporaryDirectory.path)
+            .appendingPathComponent("module")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let file = root.appending(path: "test.TORRENT")
@@ -87,20 +90,20 @@ struct TorrentModuleTests {
         precondition(module.open(magnet))
         try await until("policy reaches aria2") { session.sharing.count == 1 }
         precondition(session.arguments == [["--multiple-interface=en0,en7"]])
-        precondition(session.sharing == [false] && module.manager.jobs[0].usesIPhone && reads == 1)
+        precondition(session.sharing == [false] && module.manager.jobs[0].usesIPhone && reads == 2)
         phoneConnected = false
         preferences.set(.torrentsKeepSharing, true)
         precondition(module.open(file))
         try await until("file routes to addTorrent") { session.sharing.count == 2 }
-        precondition(session.sharing == [false, true] && session.arguments.count == 1 && reads == 1)
-        precondition(module.manager.jobs[1].usesIPhone)
+        precondition(session.sharing == [false, true] && session.arguments.count == 1 && reads == 3)
+        precondition(!module.manager.jobs[1].usesIPhone)
         session.finished = true
         try await until("session idles") { module.manager.jobs.allSatisfy { $0.state == .finished } && session.stops > 0 }
         precondition(module.manager.jobs[0].usesIPhone)
         session.finished = false
         precondition(module.open(magnet))
         try await until("next session rereads interfaces") { session.sharing.count == 3 }
-        precondition(reads == 2 && session.arguments.last == [] && !module.manager.jobs[2].usesIPhone)
+        precondition(reads == 4 && session.arguments.last == [] && !module.manager.jobs[2].usesIPhone)
 
         session.holdStop = true
         preferences.set(.torrents, false)
@@ -117,7 +120,7 @@ struct TorrentModuleTests {
         session.stopped?.resume()
         session.stopped = nil
         try await until("buffered open survives shutdown") { session.sharing.count == 4 }
-        precondition(reads == 2 && !module.manager.jobs[3].usesIPhone)
+        precondition(reads == 4 && !module.manager.jobs[3].usesIPhone)
         preferences.set(.torrents, false)
         try await until("second stop") { !module.isRunning && module.manager.jobs[3].state == .cancelled }
         precondition(!module.open(magnet))
@@ -129,8 +132,16 @@ struct TorrentModuleTests {
         precondition(module.open(magnet))
         try await until("read failure permits ordinary download") { session.sharing.count == 5 }
         precondition(session.arguments.last == [] && !module.manager.jobs[4].usesIPhone)
+        precondition(!module.toolChecked)
         await module.refreshTool()
-        precondition(module.toolURL == nil)
+        precondition(module.toolURL == nil && module.toolChecked)
+        var failed = TorrentJob(id: UUID(), source: magnet, destination: root, keepSharing: false)
+        failed.state = .failed
+        precondition(failed.displayName == String(localized: "Magnet link"))
+        let named = URL(string: magnet.absoluteString + "&dn=Example")!
+        failed = TorrentJob(id: UUID(), source: named, destination: root, keepSharing: false)
+        failed.state = .failed
+        precondition(failed.displayName == "Example")
         preferences.set(.torrents, false)
         try await until("final stop") { !module.isRunning }
         await module.manager.stop()
