@@ -1,9 +1,15 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
-    case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
-    case islandStatusMessages, islandLiveActivities, launcherFromIsland
-    case systemMonitor, fanControl
+    case island
+    case islandExternalDisplays
+    case islandFullScreen
+    case islandHoverOpen
+    case islandStatusMessages
+    case islandLiveActivities
+    case launcherFromIsland
+    case systemMonitor
+    case fanControl
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -14,35 +20,58 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
-    case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
-    case keepAwake, lidClosedAwake
+    case batteryChargeLimit
+    case batterySailing
+    case batteryHeatProtection
+    case batteryCalibration
+    case keepAwake
+    case lidClosedAwake
     case settingsBackup
-
-    case showDesktop, spacesOrder, hideCommandM, middleClick, greenMaximize
+    case showDesktop
+    case spacesOrder
+    case hideCommandM
+    case middleClick
+    case greenMaximize
     case machineSetupProfile
     case agentConfirmation
     case eventReminder
     case switcherQuitKey
 
-    enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities
-    }
-
     var settingsGroup: SettingsGroup {
         switch self {
-        case .agentConfirmation: .islandOptions
         case .island: .island
-        case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-             .islandStatusMessages, .islandLiveActivities: .islandOptions
+        case .islandExternalDisplays: .islandOptions
+        case .islandFullScreen: .islandOptions
+        case .islandHoverOpen: .islandOptions
+        case .islandStatusMessages: .islandOptions
+        case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
-        case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
-             .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
-             .batterySailing, .batteryHeatProtection, .batteryCalibration,
-             .keepAwake, .lidClosedAwake, .showDesktop, .spacesOrder,
-             .hideCommandM, .middleClick, .greenMaximize: .system
-        case .liveTimers, .dayCalendar, .dayWeather, .dayMarkets: .activities
+        case .systemMonitor: .systemTools
+        case .fanControl: .systemTools
+        case .monitorAlerts: .systemTools
+        case .lowDiskWarning: .system
+        case .systemNotices: .system
+        case .volumeLevels: .system
+        case .displayBrightness: .system
+        case .quitProtection: .system
+        case .batteryChargeLimit: .systemTools
+        case .batterySailing: .systemTools
+        case .batteryHeatProtection: .systemTools
+        case .batteryCalibration: .systemTools
+        case .keepAwake: .systemTools
+        case .lidClosedAwake: .systemTools
+        case .liveTimers: .activities
+        case .dayCalendar: .activities
+        case .dayWeather: .activities
+        case .dayMarkets: .activities
         case .settingsBackup: .system
+        case .showDesktop: .system
+        case .spacesOrder: .system
+        case .hideCommandM: .system
+        case .middleClick: .system
+        case .greenMaximize: .system
         case .machineSetupProfile: .system
+        case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
         }
@@ -132,22 +161,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .showDesktop: [.accessibility]
-        case .spacesOrder: []
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
-        case .settingsBackup: []
-        case .agentConfirmation: []
         case .switcherQuitKey: [.accessibility]
-        case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
-        case .eventReminder: []
-        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets,
-            .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
-            []
-        case .machineSetupProfile: []
+        case .volumeLevels: [.accessibility]
+        case .displayBrightness: [.accessibility]
+        case .quitProtection: [.accessibility]
+        default: []
         }
     }
 }
@@ -155,15 +176,23 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.switcherQuitKey, .machineSetupProfile, .settingsBackup, .displayBrightness,
-          .quitProtection, .showDesktop, .spacesOrder,
-          .hideCommandM, .middleClick, .greenMaximize].contains(self) && !isSystemFeature
+        if isSystemFeature { return false }
+        return switch self {
+        case .settingsBackup: false
+        case .showDesktop: false
+        case .spacesOrder: false
+        case .hideCommandM: false
+        case .middleClick: false
+        case .greenMaximize: false
+        case .machineSetupProfile: false
+        case .switcherQuitKey: false
+        case .displayBrightness: false
+        case .quitProtection: false
+        default: true
+        }
     }
 
-    var isSystemFeature: Bool {
-        [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
-    }
+    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
