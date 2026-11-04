@@ -197,7 +197,7 @@ extension AppCore { func showMessage(_ message: String) {} }
         for command in commands.dropFirst() {
             assert(HotKeyAction(entryID: command.id) == .notchcastCommand(entryID: command.id))
             NotchcastPreferences.shared.enabled = false
-            if command.id != "command:nc-appearance" && command.id != "command:nc-day-calendar" {
+            if command.id != "command:nc-appearance" && command.id != "command:nc-open-day" {
                 assert(!command.isEnabled())
             }
             NotchcastPreferences.shared.enabled = true

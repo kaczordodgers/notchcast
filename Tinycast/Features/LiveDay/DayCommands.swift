@@ -12,7 +12,7 @@ enum DayCommands {
         run: { IslandController.shared.open(page: .day) })
 
     static let calendar = NotchcastCommand(
-        slug: "day-calendar", name: String(localized: "My Schedule"), sfSymbol: "calendar",
+        slug: "open-day", name: String(localized: "Open Day"), sfSymbol: "calendar",
         isEnabled: { IslandController.shared.commandsAvailable && AppCore.shared.settings.calendarEnabled },
         run: { IslandController.shared.open(page: .day) })
 }
