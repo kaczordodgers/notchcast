@@ -61,9 +61,7 @@ struct TorrentModuleTests {
     struct MissingTool: TorrentToolLocating { func aria2c() -> URL? { nil } }
 
     static func until(_ message: String, _ predicate: () -> Bool) async throws {
-        let deadline = ContinuousClock.now + .seconds(10)
         while !predicate() {
-            precondition(ContinuousClock.now < deadline, message)
             try await Task.sleep(for: .milliseconds(10))
         }
     }

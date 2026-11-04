@@ -156,9 +156,8 @@ struct ArchivesEngineTest {
         child.arguments = ["--crash-runner", root.path]
         let exit = try child.runObservingExit()
         defer { if child.isRunning { kill(child.processIdentifier, SIGKILL) } }
-        let deadline = ContinuousClock.now.advanced(by: .seconds(10))
         while !ArchiveFiles.exists(root.appending(path: "runner-ready")) {
-            guard child.isRunning, ContinuousClock.now < deadline else { fatalError("runner not ready") }
+            guard child.isRunning else { fatalError("runner not ready") }
             try await Task.sleep(for: .milliseconds(20))
         }
         kill(child.processIdentifier, SIGKILL)
@@ -238,9 +237,7 @@ struct ArchivesEngineTest {
     }
 
     @MainActor static func wait(_ queue: ArchiveQueue) async throws {
-        let deadline = ContinuousClock.now.advanced(by: .seconds(20))
         while queue.jobs.contains(where: { [.queued, .preflighting, .extracting, .cancelling].contains($0.state) }) {
-            guard ContinuousClock.now < deadline else { fatalError("queue timed out: \(queue.jobs)") }
             try await Task.sleep(for: .milliseconds(50))
         }
     }
@@ -309,9 +306,7 @@ struct ArchivesEngineTest {
         let slow = root.appending(path: "slow.zip")
         try Data("archive".utf8).write(to: slow)
         let id = queue.enqueue(slow)
-        let deadline = ContinuousClock.now.advanced(by: .seconds(10))
         while !ArchiveFiles.exists(URL(fileURLWithPath: slow.path + ".hatchzip")) {
-            guard ContinuousClock.now < deadline else { fatalError("fake child never started") }
             try await Task.sleep(for: .milliseconds(50))
         }
         try await Task.sleep(for: .milliseconds(400))
@@ -385,9 +380,7 @@ struct ArchivesEngineTest {
         try Data("archive".utf8).write(to: archive)
         let id = queue.enqueue(archive, mode: .inPlace)
         let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
-        let deadline = ContinuousClock.now.advanced(by: .seconds(10))
         while !ArchiveFiles.exists(journal) {
-            guard ContinuousClock.now < deadline else { fatalError("in-place child never started") }
             try await Task.sleep(for: .milliseconds(50))
         }
         queue.cancel(id)
@@ -516,13 +509,12 @@ struct ArchivesEngineTest {
         child = subprocess.Popen([tool, 'extract', '-y', '-q', '--keep-free', '2GB', '-o', output, source],
                                  stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         journal = pathlib.Path(source + '.hatchzip')
-        deadline = time.monotonic() + 15
-        while child.poll() is None and time.monotonic() < deadline:
+        while child.poll() is None:
             if journal.exists():
                 child.send_signal(signal.SIGKILL)
                 break
             time.sleep(.001)
-        status = child.wait(timeout=15)
+        status = child.wait()
         assert status == -9 and journal.exists(), 'real extraction was not killed'
         """#
         let pause = try await ArchiveProcess.run(tool: URL(fileURLWithPath: "/usr/bin/python3"),

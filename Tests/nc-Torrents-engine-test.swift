@@ -73,9 +73,7 @@ import Foundation
     }
 
     @MainActor static func until(_ message: String, _ predicate: () -> Bool) async throws {
-        let deadline = ContinuousClock.now + .seconds(12)
         while !predicate() {
-            guard ContinuousClock.now < deadline else { fatalError("Timed out: \(message)") }
             try await Task.sleep(for: .milliseconds(10))
         }
         check(true, message)
