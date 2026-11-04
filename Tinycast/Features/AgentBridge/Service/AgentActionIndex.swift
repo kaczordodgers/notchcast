@@ -28,6 +28,7 @@ final class AgentActionIndex {
     }
     @ObservationIgnored var didComplete: @MainActor (AgentRequest, AgentReply) async -> Void = { _, _ in }
     @ObservationIgnored var readAudit: (@MainActor () async throws -> AgentJSON)?
+    @ObservationIgnored var receiveMCP: (@MainActor (AgentRequest) async throws -> AgentJSON)?
 
     func register(_ entry: Entry) throws {
         guard !entry.action.id.isEmpty, actions[entry.action.id] == nil else { throw AgentReply.Code.badRequest }
@@ -101,6 +102,7 @@ final class AgentActionIndex {
             return try await readAudit()
         case .run:
             return try await run(request, operation: operation)
+        case .mcp: return try await receiveMCP?(request) ?? { throw AgentReply.Code.notRunning }()
         }
     }
 
