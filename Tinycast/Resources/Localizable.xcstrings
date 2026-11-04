@@ -1,6 +1,162 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+"Other Mac Dialog Alerts" : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Dialogwarnungen vom anderen Mac"
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Alertas de diálogos del otro Mac"
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Alertes de dialogue de l’autre Mac"
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "もう一台のMacのダイアログ通知"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "다른 Mac 대화상자 알림"
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Alertas de diálogos do outro Mac"
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Оповещения о диалогах другого Mac"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "另一台 Mac 的对话框提醒"
+      }
+    }
+  }
+},
+"Check for system dialogs on the paired Mac on demand." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Systemdialoge auf dem gekoppelten Mac bei Bedarf prüfen."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Buscar diálogos del sistema en el Mac enlazado bajo demanda."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Rechercher les dialogues système sur le Mac jumelé à la demande."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "ペアリングしたMacのシステムダイアログを必要に応じて確認します。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "필요할 때 페어링된 Mac의 시스템 대화상자를 확인합니다."
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Verificar diálogos do sistema no Mac emparelhado sob demanda."
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Проверять системные диалоги на сопряжённом Mac по запросу."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "按需检查已配对 Mac 上的系统对话框。"
+      }
+    }
+  }
+},
+"Other Mac: %@ is waiting." : {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Anderer Mac: %@ wartet."
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Otro Mac: %@ está esperando."
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Autre Mac : %@ attend."
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "もう一台のMac：%@が待機中です。"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "다른 Mac: %@ 대기 중."
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Outro Mac: %@ está aguardando."
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Другой Mac: %@ ожидает."
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "另一台 Mac：%@ 正在等待。"
+      }
+    }
+  }
+},
     "Monitor Alerts": {
       "localizations": {
         "de": {
