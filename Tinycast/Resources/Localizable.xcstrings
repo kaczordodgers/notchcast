@@ -150525,6 +150525,215 @@
     "aria2c" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"aria2c"}},"es":{"stringUnit":{"state":"translated","value":"aria2c"}},"fr":{"stringUnit":{"state":"translated","value":"aria2c"}},"ja":{"stringUnit":{"state":"translated","value":"aria2c"}},"ko":{"stringUnit":{"state":"translated","value":"aria2c"}},"pt":{"stringUnit":{"state":"translated","value":"aria2c"}},"ru":{"stringUnit":{"state":"translated","value":"aria2c"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"aria2c"}}}},
     "aria2c could not start." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"aria2c konnte nicht gestartet werden."}},"es":{"stringUnit":{"state":"translated","value":"No se pudo iniciar aria2c."}},"fr":{"stringUnit":{"state":"translated","value":"Impossible de démarrer aria2c."}},"ja":{"stringUnit":{"state":"translated","value":"aria2cを起動できませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"aria2c를 시작할 수 없습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Não foi possível iniciar o aria2c."}},"ru":{"stringUnit":{"state":"translated","value":"Не удалось запустить aria2c."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"无法启动 aria2c。"}}}},
     "aria2c not found" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"aria2c nicht gefunden"}},"es":{"stringUnit":{"state":"translated","value":"No se encontró aria2c"}},"fr":{"stringUnit":{"state":"translated","value":"aria2c introuvable"}},"ja":{"stringUnit":{"state":"translated","value":"aria2cが見つかりません"}},"ko":{"stringUnit":{"state":"translated","value":"aria2c를 찾을 수 없음"}},"pt":{"stringUnit":{"state":"translated","value":"aria2c não encontrado"}},"ru":{"stringUnit":{"state":"translated","value":"aria2c не найден"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未找到 aria2c"}}}}
+  ,
+    "Download Torrent from Clipboard" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torrent aus Zwischenablage herunterladen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar torrent del portapapeles"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger un torrent depuis le presse-papiers"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "クリップボードからTorrentをダウンロード"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "클립보드에서 토렌트 다운로드"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixar torrent da área de transferência"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скачать торрент из буфера обмена"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从剪贴板下载种子"
+          }
+        }
+      }
+    },
+    "Open Torrent File…" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torrent-Datei öffnen…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir archivo torrent…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir un fichier torrent…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Torrentファイルを開く…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "토렌트 파일 열기…"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir arquivo torrent…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть торрент-файл…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开种子文件…"
+          }
+        }
+      }
+    },
+    "Cancel All Torrents" : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alle Torrents abbrechen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar todos los torrents"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler tous les torrents"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのTorrentをキャンセル"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모든 토렌트 취소"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar todos os torrents"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменить все торренты"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消所有种子"
+          }
+        }
+      }
+    },
+    "No usable torrent link or file was found." : {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kein verwendbarer Torrent-Link oder keine verwendbare Datei gefunden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se encontró ningún enlace o archivo torrent válido."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun lien ou fichier torrent utilisable n’a été trouvé."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用可能なTorrentリンクまたはファイルが見つかりませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사용 가능한 토렌트 링크나 파일을 찾을 수 없습니다."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum link ou arquivo torrent utilizável foi encontrado."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подходящая торрент-ссылка или файл не найдены."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到可用的种子链接或文件。"
+          }
+        }
+      }
+    }
   },
   "version" : "1.0"
 }
