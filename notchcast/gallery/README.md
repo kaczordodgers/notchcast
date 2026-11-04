@@ -49,9 +49,11 @@ and reads/writes under the real home except scratch and
 the supplied app. It never launches the installed copy, orders a window or
 activates an app. The independent WindowServer/process monitor checks the run
 and descendants for visible windows and focus changes. Ownership follows PID ancestry,
-owned sessions and the responsible PID for LaunchServices launches. The standalone
+owned sessions and the responsible PID. A LaunchServices launch (relaunch, URL open) is its
+own responsible process, so any copy of the gallery bundle or of the installed
+`app.notchcast` started during the run also counts as the run's. The standalone
 DEBUG monitor uses macOS's exported responsibility query; it is not linked into the app.
-Foreign apps taking focus are logged as notes, even when launched during capture.
+Other apps taking focus are logged as notes, even when launched during capture.
 It cannot observe a
 window shorter than its 100 ms sample interval; absence of WindowServer is an
 error, never a pass. No sleep-prevention or user-activity assertion is made.

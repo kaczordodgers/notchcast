@@ -10,6 +10,17 @@ struct PixelLayout: Decodable {
     let canvas: Rect
 }
 
+/// Any opaque pixel brighter than the black island fill, on a 2 px grid so thin glyph strokes are seen.
+func hasContent(_ image: NSBitmapImageRep) -> Bool {
+    for y in stride(from: 0, to: image.pixelsHigh, by: 2) {
+        for x in stride(from: 0, to: image.pixelsWide, by: 2) {
+            if let color = image.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB), color.alphaComponent > 0.5,
+               max(color.redComponent, color.greenComponent, color.blueComponent) > 0.25 { return true }
+        }
+    }
+    return false
+}
+
 let directory = URL(filePath: CommandLine.arguments[1])
 let pages = try String(contentsOf: directory.appending(path: "manifest.txt"), encoding: .utf8)
     .split(separator: "\n").map(String.init)
@@ -47,6 +58,10 @@ for page in pages {
     let minimumCoverage = page.hasPrefix("settings-") ? 0.95 : expected * 0.7
     if coverage < minimumCoverage || diversity < 0.001 {
         print("FAIL \(page): blank pixels (coverage \(coverage), diversity \(diversity))")
+        failures += 1
+    } else if page.hasPrefix("island-"), !page.hasPrefix("island-closed-idle-"), !hasContent(image) {
+        // The capture fills the island outline black before drawing, so a failed draw is a black shape: require lit pixels.
+        print("FAIL \(page): island surface without content (no lit pixel)")
         failures += 1
     }
 }

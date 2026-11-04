@@ -19,6 +19,7 @@ if CommandLine.arguments.contains("--self-test") {
     precondition(owned(100, 50, 50, 100))
     precondition(owned(102, 101, 50, 200))
     precondition(owned(103, 1, 101, 1))
+    precondition(!owned(106, 1, 106, 1))  // a LaunchServices launch is its own responsible pid: caught by bundle id instead
     precondition(!owned(104, 1, 50, 1))
     precondition(!owned(105, 50, 50, 50))
     print("offscreen ownership fixtures: PASS (leader, descendant, responsible app, foreign apps)")
@@ -145,10 +146,21 @@ var notes: [String] = []
 var lastFront = startFront?.processIdentifier
 var sawAnyWindow = false
 
-func owns(_ pid: pid_t) -> Bool { liveTracked.contains(pid) }
+/// LaunchServices makes a relaunched or URL-opened app its own responsible process (parent launchd), so ancestry misses it:
+/// any copy of the gallery bundle or the installed app started during the run counts as the run's.
+let watchedBundles: Set<String> = ["app.notchcast", ProcessInfo.processInfo.environment["NOTCHCAST_GALLERY_BUNDLE_ID"] ?? "app.notchcast.dev"]
+var relaunched = Set<pid_t>()
+
+func owns(_ pid: pid_t) -> Bool { liveTracked.contains(pid) || relaunched.contains(pid) }
 
 func sample() {
     track()
+    for app in NSWorkspace.shared.runningApplications
+    where watchedBundles.contains(app.bundleIdentifier ?? "") && !owns(app.processIdentifier) {
+        guard let launched = app.launchDate, launched > started else { continue }
+        relaunched.insert(app.processIdentifier)
+        focus.append("\(elapsed()) a copy of \(describe(app)) started outside the run's process tree (a LaunchServices relaunch or URL open)")
+    }
     guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] else {
         fail("no WindowServer session: the window list is unavailable, so a shown window could not be seen (run it in the logged-in user's session)")
     }
@@ -206,7 +218,7 @@ if windows.isEmpty, focus.isEmpty {
         CGGetActiveDisplayList(0, nil, &displayCount)
         fail("no window of any app was ever listed (active displays: \(displayCount)): with no display or a display asleep a shown window cannot be seen, so this is not a PASS")
     }
-    print("offscreen-check: PASS (no window of the run on screen, no focus taken by the run or by an app it started; frontmost app at start: \(describe(startFront)))")
+    print("offscreen-check: PASS (no window of the run on screen, no focus taken by the run, an app it started or a relaunched gallery/Notchcast app; frontmost app at start: \(describe(startFront)))")
     for line in notes { print("  note: \(line)") }
     exit(commandStatus)
 }
