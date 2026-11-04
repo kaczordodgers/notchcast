@@ -103,7 +103,7 @@ struct AgentSessionIndex: Sendable {
     }
 
     static func allows(_ url: URL) -> Bool {
-        !url.pathComponents.contains { $0.lowercased() == "agent-2784f2ac" }
+        !url.pathComponents.contains { $0.lowercased().hasPrefix("agent-2784f2ac") }
     }
 
     private func inspect(_ url: URL) throws -> stat? {
