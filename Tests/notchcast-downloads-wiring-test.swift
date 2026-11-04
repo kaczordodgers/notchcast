@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsQueueController.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands+Action.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadRunner.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadServices*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
@@ -190,14 +191,14 @@ struct NotchcastDownloadsWiringTest {
         commands.status = { messages.append($0) }
         commands.openFolder = { opened.append($0) }
         commands.clipboard = { "Nothing" }
-        precondition(commands.entries.count == 9)
+        precondition(NotchcastDownloadCommands.Action.allCases.filter { commands.isEnabled($0) }.count == 9)
         await commands.perform(.video)
         precondition(messages.count == 1 && downloads.state.queue?.jobs.isEmpty == true)
         await commands.perform(.openDownloads)
         await commands.perform(.openDistill)
         precondition(opened == [downloads.state.destination, distill.state.destination])
         preferences.set(.downloads, false)
-        precondition(commands.entries.count == 4)
+        precondition(NotchcastDownloadCommands.Action.allCases.filter { commands.isEnabled($0) }.count == 4)
         await commands.perform(.video)
         await drain()
         await downloads.state.settle()
@@ -206,7 +207,7 @@ struct NotchcastDownloadsWiringTest {
         await drain()
         await downloads.state.settle()
         preferences.set(.distill, false)
-        precondition(commands.entries.count == 5)
+        precondition(NotchcastDownloadCommands.Action.allCases.filter { commands.isEnabled($0) }.count == 5)
         await commands.perform(.addDistill)
         await drain()
         await distill.state.settle()
@@ -215,7 +216,7 @@ struct NotchcastDownloadsWiringTest {
         await drain()
         await distill.state.settle()
         preferences.set(.distillConvert, false)
-        precondition(commands.entries.count == 8)
+        precondition(NotchcastDownloadCommands.Action.allCases.filter { commands.isEnabled($0) }.count == 8)
         await commands.perform(.convert)
         preferences.set(.distillConvert, true)
         preferences.set(.island, false)

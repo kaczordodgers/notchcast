@@ -7,5 +7,6 @@ extension DistillModule {
                   linksFile: AppPaths.applicationSupport().appending(path: "Notchcast/distill-links.json"),
                   destination: NotchcastDownloadDestinations.distill,
                   report: { [weak core] in core?.showMessage($0, tone: .danger) })
+        NotchcastDownloadLauncherCommands.distill = self
     }
 }

@@ -2,32 +2,6 @@ import AppKit
 
 @MainActor
 struct NotchcastDownloadCommands {
-    struct Entry {
-        let title: String
-        let keywords: [String]
-        let symbol: String
-        let action: Action
-    }
-
-    enum Action: CaseIterable {
-        case video, audio, transcript, webpage, addDistill, runDistill, convert, openDownloads, openDistill
-
-        var requiredFeature: NotchcastFeature {
-            switch self {
-            case .video, .audio, .transcript, .webpage, .openDownloads: .downloads
-            case .addDistill, .runDistill, .openDistill: .distill
-            case .convert: .distillConvert
-            }
-        }
-
-        var usesDistill: Bool {
-            switch self {
-            case .addDistill, .runDistill, .convert, .openDistill: true
-            default: false
-            }
-        }
-    }
-
     let downloads: DownloadsModule
     let distill: DistillModule
     let preferences: NotchcastPreferences
@@ -37,8 +11,6 @@ struct NotchcastDownloadCommands {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         if !NSWorkspace.shared.open(folder) { throw CocoaError(.fileReadUnknown) }
     }
-
-    var entries: [Entry] { Self.catalog.filter { isEnabled($0.action) } }
 
     func perform(_ action: Action) async {
         guard isEnabled(action) else { return }
@@ -87,34 +59,8 @@ struct NotchcastDownloadCommands {
         }
     }
 
-    private func isEnabled(_ action: Action) -> Bool {
+    func isEnabled(_ action: Action) -> Bool {
         preferences.isOn(action.requiredFeature) && (!action.usesDistill || preferences.isOn(.distill))
     }
 
-    private static var catalog: [Entry] {
-        [
-            .init(title: String(localized: "Download Video"), keywords: ["download video", "youtube", "media", "clipboard"],
-                  symbol: "video", action: .video),
-            .init(title: String(localized: "Download Audio"), keywords: ["download audio", "mp3", "music", "clipboard"],
-                  symbol: "waveform", action: .audio),
-            .init(title: String(localized: "Download YouTube Transcript"),
-                  keywords: ["download youtube transcript", "captions", "subtitles", "text"],
-                  symbol: "text.bubble", action: .transcript),
-            .init(title: String(localized: "Save Webpage as Markdown"),
-                  keywords: ["save webpage as markdown", "article", "html", "clipboard"],
-                  symbol: "doc.text", action: .webpage),
-            .init(title: String(localized: "Add Links to Distill"), keywords: ["add links to distill", "clipboard", "queue"],
-                  symbol: "text.badge.plus", action: .addDistill),
-            .init(title: String(localized: "Run Distill"), keywords: ["run distill", "transcribe", "queue", "start"],
-                  symbol: "play", action: .runDistill),
-            .init(title: String(localized: "Convert Distill Folder"),
-                  keywords: ["convert distill folder", "markdown", "pdf", "ocr"],
-                  symbol: "doc.on.doc", action: .convert),
-            .init(title: String(localized: "Open Downloads Folder"), keywords: ["open downloads folder", "finder", "files"],
-                  symbol: "folder", action: .openDownloads),
-            .init(title: String(localized: "Open Distill Folder"),
-                  keywords: ["open distill folder", "finder", "transcripts", "raw"],
-                  symbol: "folder", action: .openDistill)
-        ]
-    }
 }
