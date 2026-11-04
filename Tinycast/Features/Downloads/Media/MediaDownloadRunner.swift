@@ -2,6 +2,9 @@ import Foundation
 
 struct MediaDownloadRunner: DownloadRunner {
     let format: MediaArguments.Format
+    var networkDecision: @MainActor @Sendable (Int64?) -> NetMergePolicy.Decision = { _ in
+        NetMergePolicy.Decision(aria2Arguments: [], usesIPhone: false)
+    }
     var kind: String { format == .video ? "video" : "audio" }
     var tools: [DownloadTool] { [.ytDlp, .ffmpeg] }
 
@@ -15,13 +18,32 @@ struct MediaDownloadRunner: DownloadRunner {
         }
         try FileManager.default.createDirectory(at: context.destination, withIntermediateDirectories: true)
         let aria2 = job.options["aria2Enabled"] != "false" ? context.tools.find(.aria2c)?.path : nil
+        var size: Int64?
+        if aria2 != nil {
+            var arguments = MediaArguments.download(
+                source: job.source, destination: context.destination, format: format,
+                cookies: job.options["cookiesFromBrowser"])
+            if let printIndex = arguments.firstIndex(of: "--print") {
+                arguments.removeSubrange(printIndex...printIndex + 1)
+            }
+            arguments.insert(contentsOf: ["--simulate", "--dump-single-json", "--no-progress"],
+                             at: arguments.count - 2)
+            if let metadata = try? await context.spawn(executable: executable, arguments: arguments) {
+                size = MediaNetwork.expectedSize(metadata.output)
+            }
+        }
+        try Task.checkCancellation()
+        let decision = aria2 != nil ? await networkDecision(size)
+            : NetMergePolicy.Decision(aria2Arguments: [], usesIPhone: false)
         func attempt(aria2Path: String?, restart: Bool = false) async throws -> ChildProcess.Result {
+            await context.reportNetwork(aria2Path != nil && decision.usesIPhone)
             let (stream, continuation) = AsyncStream<MediaOutput.Progress>.makeStream()
             async let reporting: Void = Self.report(stream, context: context)
             defer { continuation.finish() }
             let result = try await context.spawn(executable: executable, arguments: MediaArguments.download(
                 source: job.source, destination: context.destination, format: format,
-                aria2Path: aria2Path, cookies: job.options["cookiesFromBrowser"], restart: restart), onLine: { line in
+                aria2Path: aria2Path, cookies: job.options["cookiesFromBrowser"], restart: restart,
+                networkArguments: decision.aria2Arguments), onLine: { line in
                     guard let value = MediaOutput.progress(line) else { return }
                     continuation.yield(value)
                 })

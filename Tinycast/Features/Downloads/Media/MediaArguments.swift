@@ -5,7 +5,7 @@ nonisolated enum MediaArguments {
 
     static func download(source: String, destination: URL, format: Format,
                          aria2Path: String? = nil, cookies: String? = nil,
-                         restart: Bool = false) -> [String] {
+                         restart: Bool = false, networkArguments: [String] = []) -> [String] {
         var arguments = common(destination: destination, cookies: cookies)
         if restart { arguments += ["--no-continue"] }
         arguments += ["--no-quiet", "--progress", "--progress-template",
@@ -21,7 +21,7 @@ nonisolated enum MediaArguments {
         }
         if let aria2Path {
             arguments += ["--downloader", aria2Path, "--downloader-args",
-                          "aria2c:-x 16 -s 16 -k 1M --file-allocation=none"]
+                          (["aria2c:-x 16 -s 16 -k 1M --file-allocation=none"] + networkArguments).joined(separator: " ")]
         }
         return arguments + ["--", source]
     }

@@ -20,6 +20,12 @@ The Downloads module registers video, audio, transcript and webpage runners. Cap
 
 ## Commands and activity
 
+Aria2 media jobs probe yt-dlp selected-format metadata before launch. Known `filesize` or
+`filesize_approx` totals over 200 MB use the shared NetMerge policy and the existing
+`torrentsUseIPhone` switch. Missing sizes or a failed probe keep the normal download path.
+Interfaces are read only for eligible jobs at launch; unplugging never cancels a running job.
+`DownloadJob.usesIPhone` records the launch decision and clears on a native retry.
+
 `NotchcastDownloadCommands` supplies nine typed entries with localized titles, English search keywords, SF Symbols, feature requirements and actions. Entries are filtered by the live switches and actions check the switches again after queue startup. Empty clipboard input produces a status callback, which defaults to the system beep. Clipboard, status and folder-opening effects are injectable. Entries remain unregistered until the launcher command hook lands.
 
 Both modules expose `DownloadsActivity`, computed from observable queue jobs: running count, oldest running title, fraction and stage. A future island consumer can also build one activity value from both queues' jobs. No island presentation is registered yet.

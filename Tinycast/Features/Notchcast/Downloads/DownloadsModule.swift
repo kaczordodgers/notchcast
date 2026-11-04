@@ -6,21 +6,31 @@ final class DownloadsModule: NotchcastModule {
     let state: DownloadsQueueController
     private let preferences: NotchcastPreferences
     private let services: NotchcastDownloadServices
+    private let readInterfaces: () throws -> [NetMergePolicy.Interface]
 
     var activity: DownloadsActivity { DownloadsActivity(jobs: state.queue?.jobs ?? []) }
 
     init(preferences: NotchcastPreferences, services: NotchcastDownloadServices,
-         file: URL, destination: URL, report: @escaping (String) -> Void) {
+         file: URL, destination: URL, report: @escaping (String) -> Void,
+         readInterfaces: (() throws -> [NetMergePolicy.Interface])? = nil) {
         self.preferences = preferences
         self.services = services
+        self.readInterfaces = readInterfaces ?? NetMergeInterfaceMonitor().readInterfaces
         state = DownloadsQueueController(file: file, destination: destination, tools: services.tools,
                                          releaseSpeech: services.releaseSpeech, report: report)
     }
 
     func start() {
-        state.start { [services, preferences] queue in
+        state.start { [services, preferences, readInterfaces] queue in
             for format in [MediaArguments.Format.video, .audio] {
-                queue.register(NotchcastDownloadRunner(MediaDownloadRunner(format: format)) {
+                queue.register(NotchcastDownloadRunner(MediaDownloadRunner(format: format, networkDecision: { size in
+                    guard preferences.isOn(.torrentsUseIPhone),
+                          let size, size > NetMergePolicy.bigDownloadBytes else {
+                        return NetMergePolicy.Decision(aria2Arguments: [], usesIPhone: false)
+                    }
+                    return NetMergePolicy.evaluate(interfaces: (try? readInterfaces()) ?? [],
+                                                   kind: .download, sizeBytes: size, enabled: true)
+                })) {
                     ["aria2Enabled": preferences.isOn(.downloadsAria2) ? "true" : "false"]
                 })
             }

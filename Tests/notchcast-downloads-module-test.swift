@@ -1,4 +1,6 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsModule.swift
+// notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
+// notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsQueueController.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadRunner.swift
@@ -19,6 +21,7 @@ enum MediaArguments {
 
 struct MediaDownloadRunner: DownloadRunner {
     let format: MediaArguments.Format
+    var networkDecision: @MainActor @Sendable (Int64?) -> NetMergePolicy.Decision
     var kind: String { format.rawValue }
     let tools: [DownloadTool] = []
 
