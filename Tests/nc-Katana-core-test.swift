@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 import Foundation
 
 @MainActor

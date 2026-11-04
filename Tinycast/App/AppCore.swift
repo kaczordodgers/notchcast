@@ -215,6 +215,7 @@ final class AppCore {
         settings: settings, appIndex: appIndex, session: windowSwitch, palette: palette,
         paletteCoordinator: paletteCoordinator, core: self)
     @ObservationIgnored private(set) lazy var cameraCoordinator = CameraCoordinator(core: self)
+    @ObservationIgnored private(set) lazy var appearanceCoordinator = AppearanceCoordinator(core: self)
     @ObservationIgnored private(set) lazy var dictionaryCoordinator = DictionaryCoordinator(
         paletteCoordinator: paletteCoordinator)
     @ObservationIgnored private(set) lazy var updateCoordinator = UpdateCoordinator(
@@ -495,6 +496,7 @@ final class AppCore {
             pendingURLs?.append(url)
             return
         }
+        if appearanceCoordinator.handle(url) { return }
         if deepLinkCoordinator.handles(url) {
             deepLinkCoordinator.open(url)
             return
