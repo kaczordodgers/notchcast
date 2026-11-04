@@ -9,7 +9,7 @@ struct LinkQuickFixExecutor {
 
     func run(_ action: LinkQuickFixEngine.Action) {
         switch action {
-        case let .copyCommand(command):
+        case let .copyCommand(command, _):
             copy(command)
             message(String(localized: "Command copied."))
         case .openNetworkSettings:

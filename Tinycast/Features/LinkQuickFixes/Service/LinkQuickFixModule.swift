@@ -4,8 +4,9 @@ import Foundation
 final class LinkQuickFixModule: NotchcastModule {
     private var enabled = false
     private var generation = UUID()
-    var state: () -> (paired: Bool, down: Bool) = { (true, false) }
-    var choose: ([LinkQuickFixEngine.Action]) async -> Int? = { _ in nil }
+    enum Reachability { case unknown, up, down }
+    var state: () -> (paired: Bool, reachability: Reachability) = { (false, .unknown) }
+    var choose: ([LinkQuickFixEngine.Action], String?) async -> Int? = { _, _ in nil }
     var execute: (LinkQuickFixEngine.Action) -> Void = { _ in }
     var message: (String) -> Void = { _ in }
 
@@ -20,7 +21,7 @@ final class LinkQuickFixModule: NotchcastModule {
         let operation = generation
         let current = state()
         let causes: [LinkQuickFixEngine.Cause] = !current.paired ? [.linkExpiring]
-            : current.down ? [.cableDown, .tailscaleStopped, .dnsFailure] : []
+            : current.reachability != .up ? [.cableDown, .tailscaleStopped, .dnsFailure] : []
         guard !causes.isEmpty else {
             message(String(localized: "Mac Link is connected."))
             return
@@ -31,8 +32,15 @@ final class LinkQuickFixModule: NotchcastModule {
                 offered.append(action)
             }
         }
-        guard let index = await choose(offered), !Task.isCancelled, enabled, generation == operation,
-              state() == current, offered.indices.contains(index) else { return }
+        let note = current.paired && current.reachability == .unknown
+            ? String(localized: "Mac Link could not be checked yet.") : nil
+        guard let index = await choose(offered, note), !Task.isCancelled, enabled,
+              generation == operation, offered.indices.contains(index) else { return }
+        let latest = state()
+        if latest.paired && latest.reachability == .up {
+            message(String(localized: "Mac Link is connected."))
+            return
+        }
         execute(offered[index])
     }
 
