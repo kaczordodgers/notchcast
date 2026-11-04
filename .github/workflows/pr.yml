@@ -45,6 +45,12 @@ jobs:
         run: |
           git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
           echo "sha=$(git merge-base HEAD refs/remotes/upstream/main)" >> "$GITHUB_OUTPUT"
+      - name: At most one README.md in the app bundle
+        working-directory: src
+        run: |
+          # Xcode copies every README.md under Tinycast/ into Resources; a second fails with "Multiple commands produce".
+          readmes=$(git ls-files 'Tinycast/*' | grep -E '(^|/)README\.md$' || true)
+          [ "$(printf '%s' "$readmes" | grep -c .)" -le 1 ] || { echo "::error::More than one README.md under Tinycast/: $readmes"; exit 1; }
       - name: Feature append shape and union merge proof
         working-directory: src
         run: |
