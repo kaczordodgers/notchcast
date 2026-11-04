@@ -350,6 +350,7 @@ struct AgentSessionTests {
         expect(preferences.isOn(.island), "Existing defaults preserved")
         expect(!NotchcastFeature.agentSessions.needsIsland, "Feature switch independent of island")
         preferences.set(.agentSessions, true)
-        expect(NotchcastPreferences(suiteName: suite).isOn(.agentSessions), "Explicit opt-in persisted")
+        expect(preferences.isOn(.agentSessions), "Explicit opt-in applies")
+        expect(!NotchcastPreferences(suiteName: suite).isOn(.agentSessions), "Hidden switch reloads off")
     }
 }

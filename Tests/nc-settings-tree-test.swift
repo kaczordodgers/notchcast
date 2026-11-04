@@ -53,7 +53,10 @@ struct NotchcastSettingsTreeTests {
         precondition(NotchcastSettingsModule.island.tab == .notchcast, "Legacy Island tab")
         precondition(NotchcastSettingsModule.island.slug == "notchcast", "Legacy Island slug")
         precondition(NotchcastSettingsModule(tab: .general) == nil, "Upstream tab rejected")
-        precondition(SettingsSection.notchcast.tabs == modules.map(\.tab), "Sidebar order")
+        precondition(
+            SettingsSection.notchcast.tabs == modules.filter { !$0.visibleGroups.isEmpty }.map(\.tab),
+            "Sidebar lists every module with a visible row, in order")
+        precondition(!SettingsSection.notchcast.tabs.contains(.notchcastWalkingPadAndAmp), "Empty module hidden")
         precondition(!SettingsSection.features.tabs.contains(.notchcast), "Island moved out of Features")
         let data = try Data(contentsOf: URL(filePath: "Tinycast/Resources/Localizable.xcstrings"))
         let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]

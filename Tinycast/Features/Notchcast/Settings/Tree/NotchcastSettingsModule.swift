@@ -96,6 +96,11 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
 
     var slug: String { self == .island ? "notchcast" : "notchcast-" + rawValue }
 
+    /// A group whose switches are all hidden (not wired yet) shows no header either.
+    var visibleGroups: [NotchcastSettingsGroup] {
+        groups.filter { $0.items.contains { $0.feature?.isWired ?? true } }
+    }
+
     static func module(of feature: NotchcastFeature) -> Self {
         Self.allCases.first { $0.groups.contains { $0.items.contains { $0.feature == feature } } }!
     }

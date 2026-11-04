@@ -11,6 +11,8 @@ runs:
       working-directory: src
       env:
         UPSTREAM: ${{ inputs.upstream }}
+        LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
+        NOTCHCAST_TEST_HELPER_EXECUTABLE: '1'
       run: |
         set -a; source ../tools/notchcast/config.env; set +a
         # Edit only the working copy for this run: run() returns early for a skipped name. Commits are untouched.

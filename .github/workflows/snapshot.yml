@@ -15,7 +15,12 @@ jobs:
     timeout-minutes: 120
     environment: sync
     permissions:
-      contents: write
+      contents: read
+    outputs:
+      tag: ${{ steps.plan.outputs.tag }}
+      main: ${{ steps.plan.outputs.main }}
+      version: ${{ steps.plan.outputs.version }}
+      green: ${{ steps.checks.outputs.green }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -148,26 +153,14 @@ jobs:
           ln -s /Applications "$STAGE/Applications"
           hdiutil create -quiet -srcfolder "$STAGE" -volname "$APP_NAME" -format UDZO "dist/$APP_NAME-$VERSION.dmg"
           ls -l dist
-      - uses: ./tools/notchcast/actions/deploy-key
+      - name: Keep the build for the publish job
         if: steps.checks.outputs.green == 'true'
+        uses: actions/upload-artifact@v7
         with:
-          key: ${{ secrets.DEPLOY_KEY }}
-      - name: Tag and publish snapshot
-        if: steps.checks.outputs.green == 'true'
-        working-directory: src
-        env:
-          GH_TOKEN: ${{ github.token }}
-          TAG: ${{ steps.plan.outputs.tag }}
-          MAIN: ${{ steps.plan.outputs.main }}
-          VERSION: ${{ steps.plan.outputs.version }}
-        run: |
-          source notchcast/config.env
-          git -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com tag -a "$TAG" "$MAIN" -m "Notchcast snapshot $MAIN"
-          git push "git@github.com:$GITHUB_REPOSITORY.git" "refs/tags/$TAG"
-          rm -f "$RUNNER_TEMP/deploy-key"
-          printf 'Notchcast snapshot of main %s. Signed arm64 build.\n' "$MAIN" > "$RUNNER_TEMP/snapshot-notes.md"
-          gh release create "$TAG" "../dist/$APP_NAME-$VERSION.zip" "../dist/$APP_NAME-$VERSION.dmg" \
-            -R "$GITHUB_REPOSITORY" --verify-tag --prerelease --title "Notchcast $VERSION" --notes-file "$RUNNER_TEMP/snapshot-notes.md"
+          name: snapshot-dist
+          path: dist
+          if-no-files-found: error
+          retention-days: 7
       - name: Fail when a planned snapshot was skipped
         if: steps.plan.outputs.tag != '' && steps.checks.outputs.green != 'true'
         env:
@@ -183,3 +176,37 @@ jobs:
           if [ -f "$RUNNER_TEMP/signing.keychain-db" ]; then
             security delete-keychain "$RUNNER_TEMP/signing.keychain-db"
           fi
+  # Its own job, so "Re-run failed jobs" after a GitHub 5xx or SSH failure reuses the build above instead of rebuilding.
+  publish:
+    needs: snapshot
+    if: needs.snapshot.outputs.green == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: sync
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.snapshot.outputs.main }}
+          path: src
+          persist-credentials: false
+      - uses: actions/download-artifact@v8
+        with:
+          name: snapshot-dist
+          path: dist
+      - uses: ./src/notchcast/actions/deploy-key
+        with:
+          key: ${{ secrets.DEPLOY_KEY }}
+      - name: Tag and publish snapshot
+        working-directory: src
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.snapshot.outputs.tag }}
+          MAIN: ${{ needs.snapshot.outputs.main }}
+          VERSION: ${{ needs.snapshot.outputs.version }}
+          DIST: ${{ github.workspace }}/dist
+        run: notchcast/publish-snapshot.sh
+      - name: Remove the deploy key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/deploy-key"

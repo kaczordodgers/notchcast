@@ -131,7 +131,7 @@ enum SettingsSection: CaseIterable, Identifiable {
                 .clipboard, .snippets, .fileSearch, .windowManagement, .navigation, .notes,
                 .calendar, .emoji, .dictation, .ai, .quickActions, .extensions
             ]
-        case .notchcast: return NotchcastSettingsModule.allCases.map(\.tab)
+        case .notchcast: return NotchcastSettingsModule.allCases.filter { !$0.visibleGroups.isEmpty }.map(\.tab)
         case .advanced: return [.backup, .about]
         }
     }

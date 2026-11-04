@@ -7,8 +7,7 @@ struct NotchcastModuleSettingsView: View {
 
     var body: some View {
         Form {
-            // A group whose switches are all hidden (not wired yet) shows no header either.
-            ForEach(module.groups.filter { $0.items.contains { $0.feature?.isWired ?? true } }) { group in
+            ForEach(module.visibleGroups) { group in
                 let anchor = SettingsAnchor(tab: module.tab, title: group.title)
                 Section {
                     ForEach(group.items, id: \.self) { item in

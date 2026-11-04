@@ -3,7 +3,7 @@ import SwiftUI
 
 extension GalleryPages {
     static func notchcastSettings(_ core: AppCore) -> [GalleryPage] {
-        let modules = NotchcastSettingsModule.allCases.flatMap { module in
+        let modules = NotchcastSettingsModule.allCases.filter { !$0.visibleGroups.isEmpty }.flatMap { module in
             [true, false].map { dark in
                 settingsPage(core, tab: module.tab,
                              name: "settings-notchcast-\(module.rawValue)-\(dark ? "dark" : "light")", dark: dark)
