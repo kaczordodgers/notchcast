@@ -105,7 +105,7 @@ struct AppEntry: Sendable {
      precondition(track?.shuffle == false && track?.repeatMode == .one)
      source.receive(#"{"type":"options_changed","shuffle":"unknown","repeat":42}"#)
      track = try await source.read()
-     precondition(track?.shuffle == nil && track?.repeatMode == nil && source.failure == nil)
+     precondition(track?.shuffle == false && track?.repeatMode == .one && source.failure == nil)
      source.receive("""
          {"type":"get_queue","queue":[{"title":"Next","artist":"Artist","uri":"fixture"},{}]}
          """)
