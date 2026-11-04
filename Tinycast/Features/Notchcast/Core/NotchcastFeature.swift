@@ -22,6 +22,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case agentSessions
+    case agentPricing
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -69,6 +71,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
+        case .agentSessions: .activities
+        case .agentPricing: .systemTools
         case .dayMarkets: .activities
         case .settingsBackup: .system
         case .showDesktop: .system
@@ -105,6 +109,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .agentSessions: String(localized: "Agent Session Logs")
+        case .agentPricing: String(localized: "Agent API Value")
         case .dayMarkets: String(localized: "Markets")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
@@ -148,6 +154,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
+        case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
@@ -200,6 +208,7 @@ extension NotchcastFeature {
         case .greenMaximize: false
         case .machineSetupProfile: false
         case .switcherQuitKey: false
+        case .agentSessions: false
         case .displayBrightness: false
         case .quitProtection: false
         default: true
