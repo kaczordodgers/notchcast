@@ -42,25 +42,43 @@ push_tag() {
     git push "$REMOTE" "refs/tags/$TAG" && pushed=1
 }
 
+# Prints "<isDraft> <uploaded assets>", or "none"; fails on any other error, such as a 5xx.
+release_state() {
+    local out
+    if out=$(gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json isDraft,assets \
+        --jq '"\(.isDraft) \([.assets[] | select(.state == "uploaded")] | length)"' 2>&1); then
+        echo "$out"
+    elif grep -q 'release not found' <<< "$out"; then
+        echo none
+    else
+        echo "$out" >&2
+        return 1
+    fi
+}
+
 publish() {
     local state
-    if state=$(gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json isDraft,assets \
-        --jq '"\(.isDraft) \([.assets[] | select(.state == "uploaded")] | length)"' 2>/dev/null); then
+    state=$(release_state) || return 1
+    [ "$state" = none ] || {
         if [ "$state" = "false ${#ASSETS[@]}" ]; then
             echo "Release $TAG is already published"
             return 0
         fi
         echo "Replacing the half-made release $TAG ($state)"
         gh release delete "$TAG" -R "$GITHUB_REPOSITORY" --yes || return 1
-    fi
+    }
     gh release create "$TAG" "${ASSETS[@]}" -R "$GITHUB_REPOSITORY" --verify-tag --prerelease \
         --title "$APP_NAME $VERSION" --notes-file "$NOTES"
 }
 
+# Only this run's tag on MAIN, and only while no release uses it.
 remove_tag() {
     local listed
-    listed=$(git ls-remote "$REMOTE" "refs/tags/$TAG") || return 1
-    [ -z "$listed" ] || git push "$REMOTE" ":refs/tags/$TAG"
+    [ "$(release_state)" = none ] || return 1
+    listed=$(git ls-remote "$REMOTE" "refs/tags/$TAG^{}") || return 1
+    [ -z "$listed" ] && return 0
+    [ "${listed%%[[:space:]]*}" = "$MAIN" ] || return 1
+    git push "$REMOTE" ":refs/tags/$TAG"
 }
 
 git -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \

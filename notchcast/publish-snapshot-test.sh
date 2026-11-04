@@ -9,7 +9,8 @@ failures=0
 
 # FAIL_PUSH=n: the first n pushes fail like a rejected deploy key (exit 128).
 # LOST_PUSH=1: the first push lands on the remote but still reports exit 128.
-# FAIL_CREATE=n: the first n release creates return 502; HALF_CREATE=1 leaves a draft with one asset behind.
+# FAIL_CREATE=n: the first n release creates return 502; HALF_CREATE=1 leaves a draft with one asset behind,
+# SILENT_CREATE=1 a published release. FAIL_VIEW_FROM=n: every release view after the first n returns 502.
 mkdir "$work/bin"
 cat > "$work/bin/git" <<EOF
 #!/bin/bash
@@ -26,6 +27,8 @@ cat > "$work/bin/gh" <<'EOF'
 state=$STUB_STATE
 case "$1 $2" in
     "release view")
+        n=$(cat "$state/views" 2>/dev/null || echo 0); echo $((n + 1)) > "$state/views"
+        [ "$n" -ge "${FAIL_VIEW_FROM:-99}" ] && { echo "HTTP 502: Server Error" >&2; exit 1; }
         [ -f "$state/release" ] || { echo "release not found" >&2; exit 1; }
         cat "$state/release" ;;
     "release delete") rm -f "$state/release"; echo delete >> "$state/log" ;;
@@ -33,6 +36,7 @@ case "$1 $2" in
         n=$(cat "$state/creates" 2>/dev/null || echo 0); echo $((n + 1)) > "$state/creates"
         if [ "$n" -lt "${FAIL_CREATE:-0}" ]; then
             [ "${HALF_CREATE:-0}" = 1 ] && echo "true 1" > "$state/release"
+            [ "${SILENT_CREATE:-0}" = 1 ] && echo "false 2" > "$state/release"
             echo "HTTP 502: Server Error (https://api.github.com/repos/x/releases/1)" >&2; exit 1
         fi
         echo "false 2" > "$state/release"; echo "create $3" >> "$state/log" ;;
@@ -83,6 +87,7 @@ check release-502-leaves-draft 0 main "false 2" env FAIL_CREATE=2 HALF_CREATE=1
 PRESET=main check rerun-reuses-tag 0 main "false 2" env
 check push-always-128 1 none none env FAIL_PUSH=9
 check release-always-502-removes-tag 1 none none env FAIL_CREATE=9
+check published-despite-502-then-api-down 1 main "false 2" env FAIL_CREATE=1 SILENT_CREATE=1 FAIL_VIEW_FROM=1
 PRESET=other check tag-on-other-commit-untouched 1 other none env
 grep -q '^delete$' "$work/release-502-leaves-draft/state/log" || { echo "FAIL  half-made release was not deleted first"; failures=$((failures + 1)); }
 [ "$(cat "$work/release-502-twice/state/creates")" = 3 ] || { echo "FAIL  release-502-twice did not create 3 times"; failures=$((failures + 1)); }
