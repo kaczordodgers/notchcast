@@ -16,6 +16,7 @@ struct TodoTask: Codable, Equatable, Identifiable, Sendable {
     var comments: [TodoComment] = []
     var externalRef: String?
     var claim: TodoAgentClaim?
+    var addedAt: Date?
 
     struct Due: Codable, Equatable, Sendable {
         var date: Date

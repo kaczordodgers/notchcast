@@ -108,7 +108,26 @@ lets an owner run that sweep without another action. No timer is owned by the en
 offline claims resolve by the claim field's last write wins rule, rather than promising a distributed
 lock. An agent must sync and inspect its marker before relying on exclusive ownership.
 
-## Proof
+## Todoist export import
+
+`TodoistImportMapper.map(_:into:includeCompleted:now:calendar:timeZone:makeID:)` decodes a
+fixture-shaped API v1 export into an `ImportReport` with `commands` and
+`unparsedRecurrences` (task external references). Apply the commands as one `.batch`.
+The mapper validates the complete batch before returning it. IDs, clock and calendar are injected.
+Tasks and projects keep `todoist:<id>` in `externalRef`; repeat imports skip existing records.
+Sections match by project and name, labels by name. Completed tasks are excluded by default;
+when included, their completion date uses the supplied import time.
+
+Exported dates remain authoritative. Recurrence strings pass through `TodoDateParser`; unsupported
+rules retain the original due string and date and appear in the report. Comments and notes become
+task comments. Attachments and activity history are excluded.
+
+`TodoistExportSource.export() async throws -> Data` is the transport boundary;
+`FixtureExportSource(url:)` reads a fixture off-main through
+`TodoistImportClient.export(from:)`. No network client, token storage or settings button is wired.
+`Tests/nc-Todo-import-test.swift` uses only the hand-written fake export in `Tests/Fixtures/`.
+
+## Store harness
 
 `Tests/nc-Todo-store-test.swift` exercises all command variants and their inverses, a persisted undo chain, atomic rejection, schema rejection, torn-tail recovery followed by append/reload, module switch lifecycle independent of the island, and a 1,000-command reload below one second. Harness files stay in a UUID directory and never touch a production store.
 

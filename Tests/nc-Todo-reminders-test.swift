@@ -118,7 +118,6 @@ struct TodoReminderTests {
             let snooze = option.fireDate(now: clock.now, calendar: clock.calendar)!
             precondition(snooze == clock.now.addingTimeInterval(Double(minutes * 60)))
             clock.snoozes[item.id] = snooze
-            state.rearm(item.id)
             precondition(state.check(clock.schedule()).isEmpty)
             precondition(clock.schedule().nextFireDate(excluding: state.firedIDs) == snooze)
             clock.now = snooze
@@ -130,14 +129,12 @@ struct TodoReminderTests {
         let tomorrow = TodoReminder.Snooze.tomorrowMorning.fireDate(now: clock.now, calendar: clock.calendar)
         precondition(tomorrow == date("2030-01-02T08:00:00Z"))
         clock.snoozes[item.id] = tomorrow
-        state.rearm(item.id)
         precondition(state.check(clock.schedule()).isEmpty)
         clock.now = tomorrow!
         precondition(state.check(clock.schedule()).due.count == 1)
         clock.snoozes = [:]
         precondition(state.check(clock.schedule()).isEmpty)
         clock.completed = ["task"]
-        state.rearm(item.id)
         clock.snoozes[item.id] = clock.now
         precondition(state.check(clock.schedule()).isEmpty, "Snoozing cannot bypass completion")
         clock.completed = []
@@ -167,6 +164,7 @@ struct TodoReminderTests {
         let expired = reminder(.absolute(clock.now.addingTimeInterval(-86401)))
         let boundary = reminder(.absolute(clock.now.addingTimeInterval(-86400)))
         clock.reminders = [boundary, expired]
+        state = TodoReminderState()
         let batch = state.check(clock.schedule())
         precondition(batch.due.map(\.reminder.id) == [boundary.id])
         precondition(batch.missed.map(\.reminder.id) == [expired.id])
@@ -179,8 +177,29 @@ struct TodoReminderTests {
         precondition(state.check(clock.schedule()).due.map(\.reminder.id) == [relative.id])
         clock.due["task"] = (clock.now.addingTimeInterval(60), true)
         clock.now = clock.now.addingTimeInterval(120)
+        precondition(state.check(clock.schedule()).due.count == 1)
         precondition(state.check(clock.schedule()).isEmpty)
         precondition(clock.schedule().nextFireDate(excluding: state.firedIDs) == nil)
+        let recurring = reminder(.relative(minutesBeforeDue: 30))
+        clock.reminders = [recurring]
+        clock.now = date("2026-11-03T11:31:00Z")
+        clock.due["task"] = (date("2026-11-03T12:00:00Z"), true)
+        var recurringState = TodoReminderState()
+        precondition(recurringState.check(clock.schedule()).due.count == 1)
+        let schedule = TodoRecurrenceRule.Schedule(unit: .day)!
+        clock.due["task"] = (TodoRecurrence.nextDue(.every(schedule), currentDue: clock.due["task"]!.due,
+            hasTime: true, completedAt: clock.now, calendar: clock.calendar), true)
+        precondition(clock.schedule().nextFireDate(excluding: recurringState.firedIDs) != nil)
+        clock.now = date("2026-11-04T11:31:00Z")
+        precondition(recurringState.check(clock.schedule()).due.count == 1)
+        precondition(recurringState.check(clock.schedule()).isEmpty)
+        let absoluteID = UUID()
+        clock.reminders = [TodoReminder(id: absoluteID, taskID: "task", kind: .absolute(clock.now))]
+        precondition(recurringState.check(clock.schedule()).due.count == 1)
+        clock.now = clock.now.addingTimeInterval(600)
+        clock.reminders = [TodoReminder(id: absoluteID, taskID: "task", kind: .absolute(clock.now))]
+        precondition(recurringState.check(clock.schedule()).due.count == 1)
+        precondition(recurringState.check(clock.schedule()).isEmpty)
         print("PASS: sleep batches oldest first, backward clock, late edits, one-shot retime and cutoff")
     }
 
