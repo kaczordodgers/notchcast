@@ -55,6 +55,7 @@ struct BatteryStoreTests {
         preferences.set(.keepAwake, true)
         preferences.set(.batteryChargeLimit, true)
         module.start()
+        for _ in 0..<100 { await Task.yield() }
         await module.evaluate(now: .now)
         precondition(created == 2)
         precondition(module.needsHelperUpdate && rootCalls == 0)
