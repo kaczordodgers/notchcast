@@ -33,7 +33,13 @@ struct RootHelperClient: Sendable {
         } catch {
             throw Failure.launchFailed
         }
-        try await Self.wait(for: process, exit: exit, timeout: command.operation.timeout)
+        return try await run(command, process: process, exit: exit, output: output,
+                             timeout: command.operation.timeout)
+    }
+
+    func run(_ command: RootContract.Command, process: Process, exit: ProcessExit,
+             output: Pipe, timeout: Duration) async throws -> RootContract.Reply {
+        try await Self.wait(for: process, exit: exit, timeout: timeout)
         guard process.terminationReason == .exit else {
             throw Failure.executionFailed(process.terminationStatus)
         }
@@ -62,24 +68,8 @@ struct RootHelperClient: Sendable {
     }
 
     static func wait(for process: Process, exit: ProcessExit, timeout: Duration) async throws {
-        try await withTaskCancellationHandler {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                group.addTask { await reap(exit) }
-                group.addTask {
-                    try await Task.sleep(for: timeout)
-                    throw Failure.timedOut
-                }
-                defer { group.cancelAll() }
-                do {
-                    try await group.next()
-                    try Task.checkCancellation()
-                } catch {
-                    if process.isRunning { process.terminate() }
-                    throw error
-                }
-            }
-        } onCancel: {
-            if process.isRunning { process.terminate() }
+        try await RootWait.perform(timeout: timeout) {
+            await reap(exit)
         }
     }
 
