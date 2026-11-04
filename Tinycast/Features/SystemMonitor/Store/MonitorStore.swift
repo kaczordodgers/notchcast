@@ -2,6 +2,7 @@ import Foundation
 import Observation
 
 nonisolated struct MonitorSnapshot: Sendable {
+    let id = UUID()
     var cpu: CPUReading?
     var memory: MemoryReading?
     var volumes: [DiskVolume] = []
