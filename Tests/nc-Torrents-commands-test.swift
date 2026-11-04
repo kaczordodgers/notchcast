@@ -71,19 +71,14 @@ struct AppEntry: Sendable {
         let urls = TorrentCommands.clipboardURLs(board)
         precondition(urls.count == 2)
         let manager = FakeManager()
-        let accepted = await TorrentCommands.submit(urls, to: manager, isEnabled: { true }, keepSharing: { false })
+        let accepted = await TorrentCommands.submit(urls, isEnabled: { true }, open: { manager.inputs.append($0); return true })
         precondition(accepted && manager.inputs == [URL(string: magnet)!])
         let rejected = await TorrentCommands.submit([URL(string: "magnet:?xt=bad")!],
-                                                    to: manager, isEnabled: { true }, keepSharing: { false })
+                                                    isEnabled: { true }, open: { manager.inputs.append($0); return true })
         precondition(!rejected && manager.inputs.count == 1)
         let disabled = await TorrentCommands.submit([URL(string: magnet)!],
-                                                    to: manager, isEnabled: { false }, keepSharing: { false })
+                                                    isEnabled: { false }, open: { manager.inputs.append($0); return true })
         precondition(!disabled && manager.inputs.count == 1)
-        let job = TorrentJob(id: UUID(), source: URL(string: magnet)!,
-                             destination: URL(filePath: "/unused"), keepSharing: false)
-        manager.jobs = [job]
-        TorrentCommands.cancelAll(in: manager)
-        precondition(manager.cancelled == [job.id])
         print("PASS: IDs, gating, refresh, clipboard filtering, submission validation and fake manager routing")
     }
 }

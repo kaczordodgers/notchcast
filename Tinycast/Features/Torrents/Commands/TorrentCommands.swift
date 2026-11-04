@@ -36,15 +36,17 @@ enum TorrentCommands {
         return Array(Set(urls.filter { TorrentModule.accepts($0) }))
     }
 
-    static func submit(_ urls: [URL], to manager: any TorrentQueueHost,
-                       isEnabled: () -> Bool, keepSharing: () -> Bool) async -> Bool {
+    static func submit(_ urls: [URL], isEnabled: () -> Bool,
+                       open: (URL) -> Bool) async -> Bool {
         var valid: [URL] = []
         for url in urls {
             if (try? await TorrentSubmission.read(url)) != nil { valid.append(url) }
             guard !Task.isCancelled else { return false }
         }
         guard isEnabled(), !valid.isEmpty else { return false }
-        return !manager.enqueue(valid, keepSharing: keepSharing()).isEmpty
+        var accepted = false
+        for url in valid { if open(url) { accepted = true } }
+        return accepted
     }
 
     private static func downloadClipboard() {
@@ -58,6 +60,7 @@ enum TorrentCommands {
         panel.allowedContentTypes = [UTType(importedAs: "org.bittorrent.torrent")]
         panel.canChooseDirectories = false
         panel.allowsMultipleSelection = true
+        NSApp.activate(ignoringOtherApps: true)
         panel.begin { response in
             guard response == .OK, enabled else { return }
             download(panel.urls)
@@ -66,20 +69,19 @@ enum TorrentCommands {
 
     private static func download(_ urls: [URL]) {
         Task {
-            let accepted = await submit(urls, to: NotchcastCore.torrents.manager,
+            let accepted = await submit(urls,
                                         isEnabled: { enabled && NotchcastCore.torrents.isRunning },
-                                        keepSharing: { NotchcastPreferences.shared.isOn(.torrentsKeepSharing) })
+                                        open: { NotchcastCore.torrents.open($0) })
             guard enabled, !Task.isCancelled, !accepted else { return }
-            AppCore.shared.showMessage(String(localized: "No usable torrent link or file was found."), tone: .danger)
+            let message = NotchcastCore.torrents.isRunning
+                ? String(localized: "No usable torrent link or file was found.")
+                : String(localized: "The torrent engine is not running.")
+            AppCore.shared.showMessage(message, tone: .danger)
         }
-    }
-
-    static func cancelAll(in manager: any TorrentQueueHost) {
-        for job in manager.jobs where job.state.isRunning { manager.cancel(job.id) }
     }
 
     private static func cancelAll() {
         guard enabled else { return }
-        cancelAll(in: NotchcastCore.torrents.manager)
+        NotchcastCore.torrents.cancelAll()
     }
 }
