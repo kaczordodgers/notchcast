@@ -10,11 +10,11 @@ final class MachineBackupCoordinator: NotchcastModule {
     private(set) var lastRestoreTarget: URL?
     @ObservationIgnored private let tooling: any MachineBackupTooling
     @ObservationIgnored private let preferences: NotchcastPreferences
-    @ObservationIgnored private var configuration: MachineBackupConfiguration?
+    @ObservationIgnored private(set) var configuration: MachineBackupConfiguration?
     @ObservationIgnored private var operation: Task<Data, Error>?
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var running = false
-    @ObservationIgnored var showMessage: (String) -> Void = { _ in }
+    @ObservationIgnored var showMessage: (String, DialogTone) -> Void = { _, _ in }
     @ObservationIgnored var commandTask: Task<Void, Never>?
 
     init(tooling: any MachineBackupTooling, preferences: NotchcastPreferences) {

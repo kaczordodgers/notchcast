@@ -3,6 +3,8 @@
 import Foundation
 import Synchronization
 
+enum DialogTone { case success, danger }
+
 private final class FakeBackupTooling: MachineBackupTooling {
     struct State {
         var requests: [MachineBackupRequest] = []

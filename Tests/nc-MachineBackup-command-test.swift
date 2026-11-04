@@ -3,6 +3,8 @@
 import Foundation
 import Synchronization
 
+enum DialogTone { case success, danger }
+
 struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
@@ -40,9 +42,10 @@ struct MachineBackupCommandTest {
         let coordinator = NotchcastCore.machineBackup
         coordinator.start()
         var messages: [String] = []
-        coordinator.showMessage = { messages.append($0) }
+        var tones: [DialogTone] = []
+        coordinator.showMessage = { messages.append($0); tones.append($1) }
         let command = MachineBackupCoordinator.launcherCommand
-        precondition(command.slug == "mach-backup-run-now" && command.isEnabled())
+        precondition(command.slug == "mach-backup-run-now" && !command.isEnabled())
         command.run()
         await coordinator.commandTask?.value
         precondition(messages.last == String(localized: "Machine backup is not configured."))
@@ -54,6 +57,7 @@ struct MachineBackupCommandTest {
             homeDirectory: URL(fileURLWithPath: "/Users/fixture")))
         command.run()
         await coordinator.commandTask?.value
+        precondition(command.isEnabled() && tones.last == .success)
         precondition(messages.last == String(localized: "Backup requested."))
         precondition(NotchcastCore.runner.requests.withLock {
             $0.count == 1 && $0[0].arguments == ["kickstart", "gui/501/test.backup"]
@@ -62,6 +66,7 @@ struct MachineBackupCommandTest {
         command.run()
         await coordinator.commandTask?.value
         precondition(messages.last == String(localized: "Could not request a backup."))
+        precondition(tones.last == .danger)
         preferences.set(feature, false)
         precondition(!command.isEnabled())
         command.run()

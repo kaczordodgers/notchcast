@@ -28,7 +28,7 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
-        machineBackup.showMessage = { [weak core] in core?.showMessage($0) }
+        machineBackup.showMessage = { [weak core] in core?.showMessage($0, tone: $1) }
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor

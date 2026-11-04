@@ -39,7 +39,7 @@
             "value" : "백업 작업이 이미 진행 중입니다."
           }
         },
-        "pt-BR" : {
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uma operação de backup já está em andamento."
@@ -213,7 +213,7 @@
             "value" : "백업을 요청했습니다."
           }
         },
-        "pt-BR" : {
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Backup solicitado."
@@ -439,7 +439,7 @@
             "value" : "백업을 요청할 수 없습니다."
           }
         },
-        "pt-BR" : {
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Não foi possível solicitar um backup."
@@ -549,7 +549,7 @@
             "value" : "컴퓨터 백업이 비활성화되어 있습니다."
           }
         },
-        "pt-BR" : {
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "O backup do computador está desativado."
@@ -607,7 +607,7 @@
             "value" : "컴퓨터 백업이 구성되지 않았습니다."
           }
         },
-        "pt-BR" : {
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "O backup do computador não está configurado."
@@ -2809,7 +2809,7 @@
             "value" : "지금 백업 실행"
           }
         },
-        "pt-BR" : {
+        "pt" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Executar backup agora"
