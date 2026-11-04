@@ -18,6 +18,7 @@ import Observation
     @ObservationIgnored private var requests: [UUID: Request] = [:]
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private var sessionStarted = false
+    @ObservationIgnored private var sessionUsesIPhone = false
     @ObservationIgnored private var stopping = false
 
     init(
@@ -155,11 +156,14 @@ import Observation
         jobs[index].infoHash = submission.infoHash
         jobs[index].name = submission.name
         if !sessionStarted {
-            try await session.start(extraArguments: extraArguments())
+            let arguments = extraArguments()
+            try await session.start(extraArguments: arguments)
             try Task.checkCancellation()
+            sessionUsesIPhone = arguments.contains { $0.hasPrefix("--multiple-interface=") }
             sessionStarted = true
         }
         guard jobs[index].state.isRunning else { return }
+        jobs[index].usesIPhone = sessionUsesIPhone
         let gid: String
         do {
             gid = try await session.add(submission, destination: destination, keepSharing: jobs[index].keepSharing)

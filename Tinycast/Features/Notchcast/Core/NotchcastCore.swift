@@ -22,6 +22,7 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
+            .init(requires: [.torrents], module: torrents),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

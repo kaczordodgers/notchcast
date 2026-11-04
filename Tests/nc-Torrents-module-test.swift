@@ -1,0 +1,141 @@
+// notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
+// notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
+// notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift
+import Foundation
+
+@main @MainActor
+struct TorrentModuleTests {
+    final class Session: TorrentSession {
+        var arguments: [[String]] = []
+        var sharing: [Bool] = []
+        var finished = false
+        var stops = 0
+        var holdStop = false
+        var stopped: CheckedContinuation<Void, Never>?
+
+        func start(extraArguments: [String]) async throws { arguments.append(extraArguments) }
+        func add(_ submission: TorrentSubmission, destination: URL, keepSharing: Bool) async throws -> String {
+            sharing.append(keepSharing)
+            return String(sharing.count)
+        }
+        func status(_ gid: String) async throws -> TorrentStatus {
+            TorrentStatus(status: finished ? "complete" : "active", connections: "1")
+        }
+        func remove(_ gid: String) async throws {}
+        func stop() async {
+            stops += 1
+            if holdStop {
+                holdStop = false
+                await withCheckedContinuation { stopped = $0 }
+            }
+        }
+        func terminate() {}
+    }
+
+    struct MissingTool: TorrentToolLocating { func aria2c() -> URL? { nil } }
+
+    static func until(_ message: String, _ predicate: () -> Bool) async throws {
+        let deadline = ContinuousClock.now + .seconds(10)
+        while !predicate() {
+            precondition(ContinuousClock.now < deadline, message)
+            try await Task.sleep(for: .milliseconds(10))
+        }
+    }
+
+    static func main() async throws {
+        let suite = "torrent-module-test.\(UUID())"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
+        precondition(!preferences.isOn(.torrentsKeepSharing))
+        precondition(NotchcastFeature.allCases.filter(\.isTorrentFeature).allSatisfy { !$0.needsIsland })
+        let session = Session()
+        let root = FileManager.default.temporaryDirectory.appending(path: "torrent-module-test")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let file = root.appending(path: "test.TORRENT")
+        try Data("d4:infod6:lengthi1e4:name1:xee".utf8).write(to: file)
+        var reads = 0
+        var phoneConnected = true
+        var readFails = false
+        let module = TorrentModule(
+            session: session, preferences: preferences, destination: root, locator: MissingTool(),
+            readInterfaces: {
+                reads += 1
+                if readFails { throw NetMergeInterfaceMonitor.Failure.dynamicStoreUnavailable }
+                return [.init(bsdName: "en0", kind: .wifi, hasIPv4: true),
+                        .init(bsdName: "en7", kind: .iPhoneUSB, hasIPv4: phoneConnected)]
+            })
+        let magnet = URL(string: "magnet:?xt=urn:btih:" + String(repeating: "a", count: 40))!
+        precondition(!module.open(magnet))
+        let controller = NotchcastModuleController(
+            [.init(requires: [.torrents], module: module)], preferences: preferences)
+        controller.run()
+        precondition(module.isRunning && reads == 0 && session.arguments.isEmpty)
+        preferences.set(.island, false)
+        try await Task.sleep(for: .milliseconds(20))
+        precondition(module.isRunning)
+        for url in [URL(string: "https://example.invalid/a.torrent")!, root.appending(path: "a.zip")] {
+            precondition(!module.open(url))
+        }
+        precondition(module.open(magnet))
+        try await until("policy reaches aria2") { session.sharing.count == 1 }
+        precondition(session.arguments == [["--multiple-interface=en0,en7"]])
+        precondition(session.sharing == [false] && module.manager.jobs[0].usesIPhone && reads == 1)
+        phoneConnected = false
+        preferences.set(.torrentsKeepSharing, true)
+        precondition(module.open(file))
+        try await until("file routes to addTorrent") { session.sharing.count == 2 }
+        precondition(session.sharing == [false, true] && session.arguments.count == 1 && reads == 1)
+        precondition(module.manager.jobs[1].usesIPhone)
+        session.finished = true
+        try await until("session idles") { module.manager.jobs.allSatisfy { $0.state == .finished } && session.stops > 0 }
+        precondition(module.manager.jobs[0].usesIPhone)
+        session.finished = false
+        precondition(module.open(magnet))
+        try await until("next session rereads interfaces") { session.sharing.count == 3 }
+        precondition(reads == 2 && session.arguments.last == [] && !module.manager.jobs[2].usesIPhone)
+
+        session.holdStop = true
+        preferences.set(.torrents, false)
+        precondition(!module.open(file))
+        try await until("disabled module tears down") { session.stopped != nil }
+        precondition(!module.isRunning && module.manager.jobs[2].state == .cancelled)
+        module.tryAgain(module.manager.jobs[2].id)
+        precondition(module.manager.jobs.count == 3)
+        preferences.set(.torrents, true)
+        try await until("re-enabled while stopping") { module.isRunning }
+        preferences.set(.torrentsUseIPhone, false)
+        precondition(module.open(file))
+        precondition(module.manager.jobs.count == 3)
+        session.stopped?.resume()
+        session.stopped = nil
+        try await until("buffered open survives shutdown") { session.sharing.count == 4 }
+        precondition(reads == 2 && !module.manager.jobs[3].usesIPhone)
+        preferences.set(.torrents, false)
+        try await until("second stop") { !module.isRunning && module.manager.jobs[3].state == .cancelled }
+        precondition(!module.open(magnet))
+        await module.manager.stop()
+        preferences.set(.torrentsUseIPhone, true)
+        preferences.set(.torrents, true)
+        try await until("third start") { module.isRunning }
+        readFails = true
+        precondition(module.open(magnet))
+        try await until("read failure permits ordinary download") { session.sharing.count == 5 }
+        precondition(session.arguments.last == [] && !module.manager.jobs[4].usesIPhone)
+        await module.refreshTool()
+        precondition(module.toolURL == nil)
+        preferences.set(.torrents, false)
+        try await until("final stop") { !module.isRunning }
+        await module.manager.stop()
+        precondition(!NotchcastPreferences(suiteName: suite).isOn(.torrents))
+        precondition(NotchcastPreferences(suiteName: suite).isOn(.torrentsKeepSharing))
+        print("PASS: torrent module lifecycle, defaults, gating, magnet/file routing and policy injection")
+    }
+}
