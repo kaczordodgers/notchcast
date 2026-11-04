@@ -61,6 +61,7 @@ jobs:
         if: steps.plan.outputs.tag != '' && steps.tests.outcome == 'success'
         working-directory: src
         run: |
+          command -v swiftlint >/dev/null || brew install --quiet swiftlint
           if ./Scripts/lint.sh; then
             echo "green=true" >> "$GITHUB_OUTPUT"
           else
