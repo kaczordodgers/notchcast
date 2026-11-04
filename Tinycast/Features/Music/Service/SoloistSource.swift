@@ -9,6 +9,7 @@ final class SoloistSource: NowPlayingSource {
     private(set) var authState: SoloistProtocol.AuthState?
     private(set) var failure: Failure?
     private(set) var isConnected = false
+    private(set) var queue: [MusicQueueItem]?
     private var state: NowPlaying?
     private var onChange: (@MainActor () -> Void)?
     private var port: Int?
@@ -48,6 +49,7 @@ final class SoloistSource: NowPlayingSource {
         isConnected = false
         authState = nil
         state = nil
+        queue = nil
         coverURL = nil
         failure = nil
         onChange?()
@@ -60,6 +62,7 @@ final class SoloistSource: NowPlayingSource {
                 do {
                     try await socket.send(.string(SoloistProtocol.getAuthState))
                     try await socket.send(.string(SoloistProtocol.getState))
+                    try await socket.send(.string(SoloistProtocol.getQueue))
                     while !Task.isCancelled {
                         let message = try await socket.receive()
                         guard let owner = self, owner.socket === socket, !Task.isCancelled else { return }
@@ -77,6 +80,7 @@ final class SoloistSource: NowPlayingSource {
                     self?.isConnected = false
                     self?.authState = nil
                     self?.state = nil
+                    self?.queue = nil
                     self?.failure = .connection
                     self?.onChange?()
                 }
@@ -102,9 +106,16 @@ final class SoloistSource: NowPlayingSource {
             switch try SoloistProtocol.parse(text, now: Date()) {
             case .auth(let auth):
                 authState = auth
+                if !auth.loggedIn { queue = nil }
                 if auth.loggedIn { enqueue(SoloistProtocol.getState) }
             case .failure(let message): failure = .command(message)
             case .changed: enqueue(SoloistProtocol.getState)
+            case .options(let shuffle, let repeatMode):
+                state?.shuffle = shuffle
+                state?.repeatMode = repeatMode
+            case .queue(let items):
+                queue = items
+                if items == nil { enqueue(SoloistProtocol.getQueue) }
             case .state(let track, let cover):
                 state = track
                 state?.artwork = cover.flatMap { covers[$0] }
@@ -177,6 +188,15 @@ final class SoloistSource: NowPlayingSource {
     func watch(_ onChange: @escaping @MainActor () -> Void) { self.onChange = onChange }
     func unwatch() { onChange = nil }
     func read() async throws -> NowPlaying? { state }
+
+    func refreshQueue() { enqueue(SoloistProtocol.getQueue) }
+
+    func addToQueue(uri: String) {
+        do { enqueue(try SoloistProtocol.addToQueue(uri: uri)) } catch {
+            failure = .command(String(describing: error))
+            onChange?()
+        }
+    }
 
     func send(_ command: PlayerCommand) {
         do {

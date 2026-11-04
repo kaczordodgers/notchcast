@@ -21,6 +21,8 @@ struct NowPlaying: Equatable, Sendable {
     var isPlaying: Bool
     var artwork: Data?
     var origin: Origin
+    var shuffle: Bool?
+    var repeatMode: RepeatMode?
 
     /// The position at `now`, run on from `stamp` while playing and clamped to the track.
     func position(at now: Date) -> TimeInterval {
@@ -39,6 +41,20 @@ enum PlayerCommand: Equatable, Sendable {
     case seek(TimeInterval)
     /// 0...1.
     case volume(Double)
+    case shuffle(Bool)
+    case `repeat`(RepeatMode)
+}
+
+enum RepeatMode: String, Equatable, Sendable {
+    case off
+    case all
+    case one
+}
+
+struct MusicQueueItem: Equatable, Sendable {
+    var title: String?
+    var artist: String?
+    var uri: String?
 }
 
 /// Where what is playing comes from. `watch` is event-driven: the source calls back after a change,

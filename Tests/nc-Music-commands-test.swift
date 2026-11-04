@@ -76,6 +76,51 @@ struct AppEntry: Sendable {
 
 @main @MainActor struct MusicCommandTests {
  static func main() async {
+ do {
+     for mode in [RepeatMode.off, .all, .one] {
+         let encoded = try SoloistProtocol.encode(.repeat(mode), isPlaying: false)
+         let object = try JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any]
+         precondition(object?["command"] as? String == "set_repeat_" + mode.rawValue)
+     }
+     let encoded = try SoloistProtocol.encode(.shuffle(false), isPlaying: true)
+     let object = try JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any]
+     precondition(object?["shuffle"] as? Bool == false)
+     let queued = try SoloistProtocol.addToQueue(uri: "spotify:track:fixture")
+     precondition(queued.contains("add_to_queue"))
+     let source = SoloistSource()
+     source.receive("""
+         {"type":"playback_state","status":"playing",
+          "item":{"decorations":{"identity":{"name":"Fixture"}}},
+          "options":{"shuffle":true,"repeat":"all"}}
+         """)
+     var track = try await source.read()
+     precondition(track?.shuffle == true && track?.repeatMode == .all)
+     source.receive(#"{"type":"options_changed","shuffle":false,"repeat":"one"}"#)
+     track = try await source.read()
+     precondition(track?.shuffle == false && track?.repeatMode == .one)
+     source.receive(#"{"type":"options_changed","shuffle":"unknown","repeat":42}"#)
+     track = try await source.read()
+     precondition(track?.shuffle == nil && track?.repeatMode == nil && source.failure == nil)
+     source.receive("""
+         {"type":"get_queue","queue":[{"title":"Next","artist":"Artist","uri":"fixture"},{}]}
+         """)
+     precondition(source.queue == [.init(title: "Next", artist: "Artist", uri: "fixture"),
+                                   .init(title: nil, artist: nil, uri: nil)])
+     let model = MusicModel(defaults: .standard)
+     model.setSoloistSource(source)
+     precondition(model.queue == nil)
+     model.setEnabled(true)
+     precondition(model.queue == source.queue)
+     model.setEnabled(false)
+     precondition(model.queue == nil)
+     source.receive(#"{"type":"queue_changed","queue":"unknown"}"#)
+     precondition(source.queue == nil && source.failure == nil)
+     let adapter = SystemNowPlayingSource()
+     adapter.send(.shuffle(true))
+     precondition(adapter.commandFailure == .unsupportedCommand)
+     adapter.send(.repeat(.one))
+     precondition(adapter.commandFailure == .unsupportedCommand)
+ } catch { preconditionFailure(String(describing: error)) }
  let preferences = NotchcastPreferences.shared
  let suite = "music-command-test.\(UUID())"
  let defaults = UserDefaults(suiteName: suite)!
