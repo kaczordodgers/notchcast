@@ -1,26 +1,474 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Check": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Prüfen"}},"es":{"stringUnit":{"state":"translated","value":"Comprobar"}},"fr":{"stringUnit":{"state":"translated","value":"Vérifier"}},"ja":{"stringUnit":{"state":"translated","value":"確認"}},"ko":{"stringUnit":{"state":"translated","value":"확인"}},"pt":{"stringUnit":{"state":"translated","value":"Verificar"}},"ru":{"stringUnit":{"state":"translated","value":"Проверить"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"检查"}}}},
-    "Unknown": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Unbekannt"}},"es":{"stringUnit":{"state":"translated","value":"Desconocido"}},"fr":{"stringUnit":{"state":"translated","value":"Inconnu"}},"ja":{"stringUnit":{"state":"translated","value":"不明"}},"ko":{"stringUnit":{"state":"translated","value":"알 수 없음"}},"pt":{"stringUnit":{"state":"translated","value":"Desconhecido"}},"ru":{"stringUnit":{"state":"translated","value":"Неизвестно"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未知"}}}},
-    "Up to date": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Aktuell"}},"es":{"stringUnit":{"state":"translated","value":"Actualizado"}},"fr":{"stringUnit":{"state":"translated","value":"À jour"}},"ja":{"stringUnit":{"state":"translated","value":"最新"}},"ko":{"stringUnit":{"state":"translated","value":"최신 상태"}},"pt":{"stringUnit":{"state":"translated","value":"Atualizado"}},"ru":{"stringUnit":{"state":"translated","value":"Обновлено"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"已是最新"}}}},
-    "Update available": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Update verfügbar"}},"es":{"stringUnit":{"state":"translated","value":"Actualización disponible"}},"fr":{"stringUnit":{"state":"translated","value":"Mise à jour disponible"}},"ja":{"stringUnit":{"state":"translated","value":"更新あり"}},"ko":{"stringUnit":{"state":"translated","value":"업데이트 가능"}},"pt":{"stringUnit":{"state":"translated","value":"Atualização disponível"}},"ru":{"stringUnit":{"state":"translated","value":"Доступно обновление"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"有可用更新"}}}},
-    "Media keys still work.": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Medientasten funktionieren weiterhin."}},"es":{"stringUnit":{"state":"translated","value":"Las teclas multimedia siguen funcionando."}},"fr":{"stringUnit":{"state":"translated","value":"Les touches multimédias fonctionnent toujours."}},"ja":{"stringUnit":{"state":"translated","value":"メディアキーは引き続き動作します。"}},"ko":{"stringUnit":{"state":"translated","value":"미디어 키는 계속 작동합니다."}},"pt":{"stringUnit":{"state":"translated","value":"As teclas multimédia continuam a funcionar."}},"ru":{"stringUnit":{"state":"translated","value":"Мультимедийные клавиши продолжают работать."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"媒体键仍然有效。"}}}},
-    "Tools": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Werkzeuge"}},"es":{"stringUnit":{"state":"translated","value":"Herramientas"}},"fr":{"stringUnit":{"state":"translated","value":"Outils"}},"ja":{"stringUnit":{"state":"translated","value":"ツール"}},"ko":{"stringUnit":{"state":"translated","value":"도구"}},"pt":{"stringUnit":{"state":"translated","value":"Ferramentas"}},"ru":{"stringUnit":{"state":"translated","value":"Инструменты"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"工具"}}}},
-    "Cleaning mode": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Reinigungsmodus"}},"es":{"stringUnit":{"state":"translated","value":"Modo de limpieza"}},"fr":{"stringUnit":{"state":"translated","value":"Mode nettoyage"}},"ja":{"stringUnit":{"state":"translated","value":"クリーニングモード"}},"ko":{"stringUnit":{"state":"translated","value":"청소 모드"}},"pt":{"stringUnit":{"state":"translated","value":"Modo de limpeza"}},"ru":{"stringUnit":{"state":"translated","value":"Режим очистки"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"清洁模式"}}}},
-    "App updates": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"App-Updates"}},"es":{"stringUnit":{"state":"translated","value":"Actualizaciones de apps"}},"fr":{"stringUnit":{"state":"translated","value":"Mises à jour des apps"}},"ja":{"stringUnit":{"state":"translated","value":"アプリの更新"}},"ko":{"stringUnit":{"state":"translated","value":"앱 업데이트"}},"pt":{"stringUnit":{"state":"translated","value":"Atualizações de apps"}},"ru":{"stringUnit":{"state":"translated","value":"Обновления приложений"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"应用更新"}}}},
-    "Update this Mac": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Diesen Mac aktualisieren"}},"es":{"stringUnit":{"state":"translated","value":"Actualizar este Mac"}},"fr":{"stringUnit":{"state":"translated","value":"Mettre à jour ce Mac"}},"ja":{"stringUnit":{"state":"translated","value":"このMacを更新"}},"ko":{"stringUnit":{"state":"translated","value":"이 Mac 업데이트"}},"pt":{"stringUnit":{"state":"translated","value":"Atualizar este Mac"}},"ru":{"stringUnit":{"state":"translated","value":"Обновить этот Mac"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"更新此 Mac"}}}},
-    "Press Escape five times to exit; ends after 300 seconds.": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Zum Beenden fünfmal Escape drücken; endet nach 300 Sekunden."}},"es":{"stringUnit":{"state":"translated","value":"Pulsa Escape cinco veces para salir; termina tras 300 segundos."}},"fr":{"stringUnit":{"state":"translated","value":"Appuyez cinq fois sur Échap pour quitter ; se termine après 300 secondes."}},"ja":{"stringUnit":{"state":"translated","value":"Escapeを5回押すと終了します。300秒後に自動終了します。"}},"ko":{"stringUnit":{"state":"translated","value":"Escape를 다섯 번 누르면 종료되며 300초 후 자동 종료됩니다."}},"pt":{"stringUnit":{"state":"translated","value":"Prima Escape cinco vezes para sair; termina após 300 segundos."}},"ru":{"stringUnit":{"state":"translated","value":"Нажмите Escape пять раз для выхода; завершится через 300 секунд."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"按五次 Escape 退出；300 秒后自动结束。"}}}},
-    "Check installed apps for updates on demand.": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Installierte Apps auf Wunsch auf Updates prüfen."}},"es":{"stringUnit":{"state":"translated","value":"Busca actualizaciones de las apps instaladas bajo demanda."}},"fr":{"stringUnit":{"state":"translated","value":"Recherchez les mises à jour des apps installées à la demande."}},"ja":{"stringUnit":{"state":"translated","value":"必要なときにインストール済みアプリの更新を確認します。"}},"ko":{"stringUnit":{"state":"translated","value":"요청 시 설치된 앱의 업데이트를 확인합니다."}},"pt":{"stringUnit":{"state":"translated","value":"Verificar atualizações das apps instaladas a pedido."}},"ru":{"stringUnit":{"state":"translated","value":"Проверять обновления установленных приложений по запросу."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"按需检查已安装应用的更新。"}}}},
-    "Run maintenance only after confirmation.": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Wartung erst nach Bestätigung ausführen."}},"es":{"stringUnit":{"state":"translated","value":"Ejecuta mantenimiento solo tras confirmar."}},"fr":{"stringUnit":{"state":"translated","value":"Exécute la maintenance après confirmation uniquement."}},"ja":{"stringUnit":{"state":"translated","value":"確認後にのみメンテナンスを実行します。"}},"ko":{"stringUnit":{"state":"translated","value":"확인 후에만 유지 관리를 실행합니다."}},"pt":{"stringUnit":{"state":"translated","value":"Executar manutenção apenas após confirmação."}},"ru":{"stringUnit":{"state":"translated","value":"Выполнять обслуживание только после подтверждения."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"仅在确认后运行维护。"}}}},
-    "Accessibility permission is required to start cleaning mode.": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Zum Starten ist die Bedienungshilfen-Berechtigung erforderlich."}},"es":{"stringUnit":{"state":"translated","value":"Se requiere permiso de accesibilidad para iniciar el modo de limpieza."}},"fr":{"stringUnit":{"state":"translated","value":"L’autorisation Accessibilité est requise pour lancer le nettoyage."}},"ja":{"stringUnit":{"state":"translated","value":"開始するにはアクセシビリティの許可が必要です。"}},"ko":{"stringUnit":{"state":"translated","value":"청소 모드를 시작하려면 손쉬운 사용 권한이 필요합니다."}},"pt":{"stringUnit":{"state":"translated","value":"É necessária permissão de acessibilidade para iniciar a limpeza."}},"ru":{"stringUnit":{"state":"translated","value":"Для запуска режима очистки нужен доступ к Универсальному доступу."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启动清洁模式需要辅助功能权限。"}}}},
-    "Update Homebrew": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Homebrew aktualisieren"}},"es":{"stringUnit":{"state":"translated","value":"Actualizar Homebrew"}},"fr":{"stringUnit":{"state":"translated","value":"Mettre à jour Homebrew"}},"ja":{"stringUnit":{"state":"translated","value":"Homebrewを更新"}},"ko":{"stringUnit":{"state":"translated","value":"Homebrew 업데이트"}},"pt":{"stringUnit":{"state":"translated","value":"Atualizar Homebrew"}},"ru":{"stringUnit":{"state":"translated","value":"Обновить Homebrew"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"更新 Homebrew"}}}},
-    "Upgrade packages": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Pakete aktualisieren"}},"es":{"stringUnit":{"state":"translated","value":"Actualizar paquetes"}},"fr":{"stringUnit":{"state":"translated","value":"Mettre à niveau les paquets"}},"ja":{"stringUnit":{"state":"translated","value":"パッケージを更新"}},"ko":{"stringUnit":{"state":"translated","value":"패키지 업그레이드"}},"pt":{"stringUnit":{"state":"translated","value":"Atualizar pacotes"}},"ru":{"stringUnit":{"state":"translated","value":"Обновить пакеты"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"升级软件包"}}}},
-    "Update command-line tools": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Befehlszeilenwerkzeuge aktualisieren"}},"es":{"stringUnit":{"state":"translated","value":"Actualizar herramientas de línea de comandos"}},"fr":{"stringUnit":{"state":"translated","value":"Mettre à jour les outils en ligne de commande"}},"ja":{"stringUnit":{"state":"translated","value":"コマンドラインツールを更新"}},"ko":{"stringUnit":{"state":"translated","value":"명령줄 도구 업데이트"}},"pt":{"stringUnit":{"state":"translated","value":"Atualizar ferramentas de linha de comandos"}},"ru":{"stringUnit":{"state":"translated","value":"Обновить инструменты командной строки"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"更新命令行工具"}}}},
-    "Upgrade App Store apps": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"App Store-Apps aktualisieren"}},"es":{"stringUnit":{"state":"translated","value":"Actualizar apps del App Store"}},"fr":{"stringUnit":{"state":"translated","value":"Mettre à jour les apps de l’App Store"}},"ja":{"stringUnit":{"state":"translated","value":"App Storeのアプリを更新"}},"ko":{"stringUnit":{"state":"translated","value":"App Store 앱 업그레이드"}},"pt":{"stringUnit":{"state":"translated","value":"Atualizar apps da App Store"}},"ru":{"stringUnit":{"state":"translated","value":"Обновить приложения App Store"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"升级 App Store 应用"}}}},
-    "Skipped": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Übersprungen"}},"es":{"stringUnit":{"state":"translated","value":"Omitido"}},"fr":{"stringUnit":{"state":"translated","value":"Ignoré"}},"ja":{"stringUnit":{"state":"translated","value":"スキップ"}},"ko":{"stringUnit":{"state":"translated","value":"건너뜀"}},"pt":{"stringUnit":{"state":"translated","value":"Ignorado"}},"ru":{"stringUnit":{"state":"translated","value":"Пропущено"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"已跳过"}}}},
-    "Failed": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Fehlgeschlagen"}},"es":{"stringUnit":{"state":"translated","value":"Error"}},"fr":{"stringUnit":{"state":"translated","value":"Échec"}},"ja":{"stringUnit":{"state":"translated","value":"失敗"}},"ko":{"stringUnit":{"state":"translated","value":"실패"}},"pt":{"stringUnit":{"state":"translated","value":"Falhou"}},"ru":{"stringUnit":{"state":"translated","value":"Ошибка"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"失败"}}}},
-    "Update Homebrew, upgrade packages, update Claude and Codex, then upgrade App Store apps. Updated Homebrew apps have quarantine removed.": {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Homebrew, Pakete, Claude und Codex sowie App Store-Apps aktualisieren. Die Quarantäne aktualisierter Homebrew-Apps wird entfernt."}},"es":{"stringUnit":{"state":"translated","value":"Actualiza Homebrew, paquetes, Claude y Codex y apps del App Store. Se elimina la cuarentena de apps actualizadas por Homebrew."}},"fr":{"stringUnit":{"state":"translated","value":"Met à jour Homebrew, les paquets, Claude et Codex, puis les apps de l’App Store. La quarantaine des apps Homebrew mises à jour est supprimée."}},"ja":{"stringUnit":{"state":"translated","value":"Homebrew、パッケージ、ClaudeとCodex、App Storeのアプリを更新します。更新されたHomebrewアプリの隔離属性を削除します。"}},"ko":{"stringUnit":{"state":"translated","value":"Homebrew, 패키지, Claude와 Codex, App Store 앱을 업데이트합니다. 업데이트된 Homebrew 앱의 격리 속성을 제거합니다."}},"pt":{"stringUnit":{"state":"translated","value":"Atualiza Homebrew, pacotes, Claude e Codex e apps da App Store. Remove a quarentena das apps Homebrew atualizadas."}},"ru":{"stringUnit":{"state":"translated","value":"Обновляет Homebrew, пакеты, Claude и Codex, затем приложения App Store. С обновлённых приложений Homebrew снимается карантин."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"更新 Homebrew、软件包、Claude 和 Codex，然后升级 App Store 应用。移除已更新 Homebrew 应用的隔离属性。"}}}},
+    "Accessibility permission is required to start cleaning mode." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zum Starten ist die Bedienungshilfen-Berechtigung erforderlich."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se requiere permiso de accesibilidad para iniciar el modo de limpieza."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’autorisation Accessibilité est requise pour lancer le nettoyage."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始するにはアクセシビリティの許可が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "청소 모드를 시작하려면 손쉬운 사용 권한이 필요합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "É necessária permissão de acessibilidade para iniciar a limpeza."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Для запуска режима очистки нужен доступ к Универсальному доступу."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动清洁模式需要辅助功能权限。"
+          }
+        }
+      }
+    },
+    "App updates" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App-Updates"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizaciones de apps"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mises à jour des apps"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アプリの更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "앱 업데이트"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizações de apps"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновления приложений"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用更新"
+          }
+        }
+      }
+    },
+    "Calendar events on the Day page." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalenderereignisse auf der Seite Tag."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos del calendario en la página Día."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements du calendrier sur la page Jour."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「日」ページのカレンダーイベント。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일 페이지의 캘린더 일정."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos do calendário na página Dia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "События календаря на странице «День»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“日”页面上的日历事件。"
+          }
+        }
+      }
+    },
+    "Check" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prüfen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifier"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確認"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "확인"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查"
+          }
+        }
+      }
+    },
+    "Check installed apps for updates on demand." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installierte Apps auf Wunsch auf Updates prüfen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca actualizaciones de las apps instaladas bajo demanda."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recherchez les mises à jour des apps installées à la demande."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "必要なときにインストール済みアプリの更新を確認します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "요청 시 설치된 앱의 업데이트를 확인합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificar atualizações das apps instaladas a pedido."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверять обновления установленных приложений по запросу."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按需检查已安装应用的更新。"
+          }
+        }
+      }
+    },
+    "Cleaning mode" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinigungsmodus"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de limpieza"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode nettoyage"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリーニングモード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "청소 모드"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de limpeza"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим очистки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清洁模式"
+          }
+        }
+      }
+    },
+    "Failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fehlgeschlagen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失敗"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "실패"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falhou"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ошибка"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "失败"
+          }
+        }
+      }
+    },
+    "Link Quick Fixes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schnellkorrekturen für Verbindungen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soluciones rápidas de conexión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corrections rapides de connexion"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続のクイック修復"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 빠른 수정"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correções rápidas de ligação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрое исправление подключения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接快速修复"
+          }
+        }
+      }
+    },
+    "Media keys still work." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medientasten funktionieren weiterhin."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las teclas multimedia siguen funcionando."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les touches multimédias fonctionnent toujours."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メディアキーは引き続き動作します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "미디어 키는 계속 작동합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "As teclas multimédia continuam a funcionar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мультимедийные клавиши продолжают работать."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "媒体键仍然有效。"
+          }
+        }
+      }
+    },
     "Monitor Alerts": {
       "localizations": {
         "de": {
@@ -1749,6 +2197,58 @@
         }
       }
     },
+    "Offer manual fixes for connection problems." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manuelle Lösungen für Verbindungsprobleme anbieten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ofrecer soluciones manuales para problemas de conexión."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proposer des corrections manuelles des problèmes de connexion."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続の問題に対する手動の修復方法を表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 문제에 대한 수동 수정 방법을 제공합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oferecer correções manuais para problemas de ligação."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предлагать ручное исправление проблем подключения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供连接问题的手动修复方法。"
+          }
+        }
+      }
+    },
     "Play sound when time is up" : {
       "localizations" : {
         "de" : {
@@ -1797,6 +2297,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "计时结束时播放声音"
+          }
+        }
+      }
+    },
+    "Press Escape five times to exit; ends after 300 seconds." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zum Beenden fünfmal Escape drücken; endet nach 300 Sekunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pulsa Escape cinco veces para salir; termina tras 300 segundos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez cinq fois sur Échap pour quitter ; se termine après 300 secondes."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escapeを5回押すと終了します。300秒後に自動終了します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escape를 다섯 번 누르면 종료되며 300초 후 자동 종료됩니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prima Escape cinco vezes para sair; termina após 300 segundos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите Escape пять раз для выхода; завершится через 300 секунд."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按五次 Escape 退出；300 秒后自动结束。"
           }
         }
       }
@@ -2113,6 +2665,58 @@
         }
       }
     },
+    "Run maintenance only after confirmation." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wartung erst nach Bestätigung ausführen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecuta mantenimiento solo tras confirmar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exécute la maintenance après confirmation uniquement."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "確認後にのみメンテナンスを実行します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "확인 후에만 유지 관리를 실행합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Executar manutenção apenas após confirmação."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выполнять обслуживание только после подтверждения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅在确认后运行维护。"
+          }
+        }
+      }
+    },
     "Same confirmation before closing a window." : {
       "localizations" : {
         "de" : {
@@ -2213,6 +2817,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜索城市"
+          }
+        }
+      }
+    },
+    "Skipped" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übersprungen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omitido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignoré"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スキップ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "건너뜀"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignorado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Пропущено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已跳过"
           }
         }
       }
@@ -3621,6 +4277,58 @@
         }
       }
     },
+    "Tools" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Werkzeuge"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herramientas"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outils"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ツール"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "도구"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferramentas"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструменты"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "工具"
+          }
+        }
+      }
+    },
     "Transcribing %lld of %lld" : {
       "localizations" : {
         "de" : {
@@ -3669,6 +4377,474 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在转录第 %1$lld 段，共 %2$lld 段"
+          }
+        }
+      }
+    },
+    "Unknown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unbekannt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconocido"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inconnu"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不明"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "알 수 없음"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desconhecido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Неизвестно"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未知"
+          }
+        }
+      }
+    },
+    "Up to date" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktuell"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizado"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "À jour"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최신 상태"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновлено"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已是最新"
+          }
+        }
+      }
+    },
+    "Update Homebrew" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew aktualisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar Homebrew"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour Homebrew"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrewを更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew 업데이트"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar Homebrew"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить Homebrew"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 Homebrew"
+          }
+        }
+      }
+    },
+    "Update Homebrew, upgrade packages, update Claude and Codex, then upgrade App Store apps. Updated Homebrew apps have quarantine removed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew, Pakete, Claude und Codex sowie App Store-Apps aktualisieren. Die Quarantäne aktualisierter Homebrew-Apps wird entfernt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualiza Homebrew, paquetes, Claude y Codex y apps del App Store. Se elimina la cuarentena de apps actualizadas por Homebrew."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Met à jour Homebrew, les paquets, Claude et Codex, puis les apps de l’App Store. La quarantaine des apps Homebrew mises à jour est supprimée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew、パッケージ、ClaudeとCodex、App Storeのアプリを更新します。更新されたHomebrewアプリの隔離属性を削除します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Homebrew, 패키지, Claude와 Codex, App Store 앱을 업데이트합니다. 업데이트된 Homebrew 앱의 격리 속성을 제거합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualiza Homebrew, pacotes, Claude e Codex e apps da App Store. Remove a quarentena das apps Homebrew atualizadas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновляет Homebrew, пакеты, Claude и Codex, затем приложения App Store. С обновлённых приложений Homebrew снимается карантин."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新 Homebrew、软件包、Claude 和 Codex，然后升级 App Store 应用。移除已更新 Homebrew 应用的隔离属性。"
+          }
+        }
+      }
+    },
+    "Update available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update verfügbar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualización disponible"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mise à jour disponible"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新あり"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "업데이트 가능"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualização disponível"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступно обновление"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有可用更新"
+          }
+        }
+      }
+    },
+    "Update command-line tools" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Befehlszeilenwerkzeuge aktualisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar herramientas de línea de comandos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour les outils en ligne de commande"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コマンドラインツールを更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "명령줄 도구 업데이트"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar ferramentas de linha de comandos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить инструменты командной строки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新命令行工具"
+          }
+        }
+      }
+    },
+    "Update this Mac" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diesen Mac aktualisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar este Mac"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour ce Mac"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このMacを更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 Mac 업데이트"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar este Mac"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить этот Mac"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新此 Mac"
+          }
+        }
+      }
+    },
+    "Upgrade App Store apps" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store-Apps aktualisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar apps del App Store"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à jour les apps de l’App Store"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Storeのアプリを更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App Store 앱 업그레이드"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar apps da App Store"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить приложения App Store"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升级 App Store 应用"
+          }
+        }
+      }
+    },
+    "Upgrade packages" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pakete aktualisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar paquetes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mettre à niveau les paquets"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "パッケージを更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "패키지 업그레이드"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar pacotes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить пакеты"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升级软件包"
           }
         }
       }

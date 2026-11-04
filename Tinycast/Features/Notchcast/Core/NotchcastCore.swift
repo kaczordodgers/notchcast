@@ -2,6 +2,7 @@ import Foundation
 
 @MainActor
 enum NotchcastCore {
+    static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -56,6 +57,7 @@ enum NotchcastCore {
             .init(requires: [.cleaningMode], module: cleaning),
             .init(requires: [.appUpdates], module: appUpdates),
             .init(requires: [.macUpdate], module: macUpdate),
+            .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
