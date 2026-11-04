@@ -84,18 +84,18 @@ def merge(base, target, source):
 
 
 def git(*args):
-    return subprocess.check_output(["git", *args], text=True).strip("\n")
+    return subprocess.check_output(["git", "-C", str(Path.cwd()), *args], text=True).strip("\n")
 
 
 def git_inputs(main_ref, catalog=CATALOG):
     incoming = next((r for r in ("MERGE_HEAD", "REBASE_HEAD", "CHERRY_PICK_HEAD")
-                     if subprocess.run(["git", "rev-parse", "--verify", "-q", r],
+                     if subprocess.run(["git", "-C", str(Path.cwd()), "rev-parse", "--verify", "-q", r],
                                        capture_output=True).returncode == 0), None)
     if incoming is None:
         raise ValueError("no merge, rebase or cherry-pick in progress")
     refs = ["HEAD", incoming]
     matches = [r for r in refs if subprocess.run(
-        ["git", "merge-base", "--is-ancestor", main_ref, r], capture_output=True).returncode == 0]
+        ["git", "-C", str(Path.cwd()), "merge-base", "--is-ancestor", main_ref, r], capture_output=True).returncode == 0]
     if len(matches) != 1:
         matches = [r for r in refs if git("rev-parse", r) == git("rev-parse", main_ref)]
     if len(matches) != 1:
