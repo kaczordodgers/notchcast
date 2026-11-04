@@ -9,6 +9,19 @@ nonisolated enum AIUsageParser {
     private struct Limits: Decodable {
         let checkedAt: String
         let windows: [Window]
+        let resetCredits: AIUsageSnapshot.ResetCredits?
+
+        private enum CodingKeys: String, CodingKey {
+            case checkedAt, windows, resetCredits
+        }
+
+        init(from decoder: any Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            checkedAt = try values.decode(String.self, forKey: .checkedAt)
+            windows = try values.decode([Window].self, forKey: .windows)
+            let credits = try? values.decode(AIUsageSnapshot.ResetCredits.self, forKey: .resetCredits)
+            resetCredits = credits.flatMap { $0.availableCount >= 0 ? $0 : nil }
+        }
     }
 
     private struct Window: Decodable {
@@ -43,7 +56,7 @@ nonisolated enum AIUsageParser {
         return AIUsageSnapshot(providerID: providerID, plan: cache.displayName,
                                checkedAt: checkedAt,
                                status: windows.isEmpty ? .noData : (stale ? .stale : .available),
-                               windows: windows)
+                               windows: windows, resetCredits: limits.resetCredits)
     }
 
     private static func date(_ text: String) throws -> Date {
