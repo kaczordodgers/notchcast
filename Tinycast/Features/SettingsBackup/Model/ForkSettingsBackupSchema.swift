@@ -84,6 +84,7 @@ enum ForkSettingsBackupSchema {
         "launcherNumberKeys": .bool,
         "launcherAliasSpace": .bool,
         "pastePlain": .bool,
+        "colorPicker": .bool,
         "finderCutPaste": .bool,
         "finderRename": .bool,
         "pasteImage": .bool,
@@ -137,6 +138,9 @@ enum ForkSettingsBackupSchema {
 
     static let excluded: Set<String> = [
         "systemMonitor",
+        "screenshot",
+        "notchcast.screenshot.destination",
+        "notchcast.screenshot.folder",
         "keepAwake",
         "keepAwakeMinutes",
         "fanControl",

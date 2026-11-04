@@ -27,6 +27,8 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
     static let settingsBackupRestore = ForkSettingsBackupCoordinator()
     static let eventReminder = EventReminderModule(store: AppCore.shared.calendarStore)
+    static let colorPicker = ColorPickerModule()
+    static let screenshot = ScreenshotModule()
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
@@ -57,6 +59,9 @@ extension NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: eventReminder),
+            .init(requires: [.colorPicker], module: colorPicker),
+            .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }
 }
