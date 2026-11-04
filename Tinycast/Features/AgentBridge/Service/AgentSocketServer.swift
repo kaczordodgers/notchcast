@@ -181,42 +181,53 @@ final class AgentSocketServer: Sendable {
     }
 
     private func serve(_ connection: Connection, id: UUID, descriptor: Int32) {
+        var session: String?
         defer {
             connection.close()
             connections.withLock { $0.clients[id] = nil }
+            if let session {
+                Task { [handler] in _ = await handler(.init(verb: .mcp, id: session, parameters: .null)) }
+            }
         }
-        let reply: AgentReply
-        do {
-            let line = try AgentSocketIO.readLine(descriptor, timeout: readTimeout)
-            let request: AgentRequest
+        var keepAlive = false
+        repeat {
+            let reply: AgentReply
             do {
-                request = try JSONDecoder().decode(AgentRequest.self, from: line)
-            } catch {
-                throw AgentReply.Code.badRequest
-            }
-            let answer = Mutex<AgentReply?>(nil)
-            let done = connection.done
-            let handler = handler
-            connection.state.withLock { state in
-                guard !state.cancelled else { return }
-                state.task = Task {
-                    let reply = await handler(request)
-                    answer.withLock { $0 = reply }
-                    done.signal()
+                let line = try AgentSocketIO.readLine(descriptor, timeout: keepAlive ? .seconds(86400) : readTimeout)
+                let request: AgentRequest
+                do {
+                    request = try JSONDecoder().decode(AgentRequest.self, from: line)
+                } catch {
+                    throw AgentReply.Code.badRequest
                 }
+                keepAlive = request.verb == .mcp && request.keepAlive
+                if keepAlive { session = request.id }
+                let answer = Mutex<AgentReply?>(nil)
+                let done = connection.done
+                let handler = handler
+                connection.state.withLock { state in
+                    guard !state.cancelled else { return }
+                    state.task = Task {
+                        let reply = await handler(request)
+                        answer.withLock { $0 = reply }
+                        done.signal()
+                    }
+                }
+                guard !connection.state.withLock({ $0.cancelled }) else { return }
+                try waitForReply(connection, descriptor: descriptor)
+                reply = answer.withLock { $0 } ?? .init(code: .failed)
+            } catch let code as AgentReply.Code {
+                if keepAlive { return }
+                reply = .init(code: code)
+            } catch {
+                if keepAlive { return }
+                reply = .init(code: .failed)
             }
-            guard !connection.state.withLock({ $0.cancelled }) else { return }
-            try waitForReply(connection, descriptor: descriptor)
-            reply = answer.withLock { $0 } ?? .init(code: .failed)
-        } catch let code as AgentReply.Code {
-            reply = .init(code: code)
-        } catch {
-            reply = .init(code: .failed)
-        }
-        connection.state.withLock { $0.task?.cancel() }
-        do {
-            try AgentSocketIO.write(AgentSocketIO.frame(reply), to: descriptor, timeout: .seconds(5))
-        } catch { return }
+            connection.state.withLock { $0.task?.cancel() }
+            do {
+                try AgentSocketIO.write(AgentSocketIO.frame(reply), to: descriptor, timeout: .seconds(5))
+            } catch { return }
+        } while keepAlive
     }
 
     private func waitForReply(_ connection: Connection, descriptor: Int32) throws {

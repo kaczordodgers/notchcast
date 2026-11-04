@@ -62,6 +62,17 @@ struct EngineTest {
         let initializeParams = #"{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1"}}"#
         let initialized = await send("initialize", initializeParams)
         precondition(initialized.contains("2025-06-18"))
+        let initialization = Data(("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":"
+            + initializeParams + "}").utf8)
+        for number in 0..<65 {
+            let response = await module.engine.receive(line: initialization, session: "client-\(number)")!
+            precondition(String(bytes: response, encoding: .utf8)!.contains("serverInfo"))
+        }
+        let listing = Data(#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#.utf8)
+        let evicted = await module.engine.receive(line: listing, session: "client-0")!
+        precondition(String(bytes: evicted, encoding: .utf8)!.contains("Initialize first"))
+        _ = await module.engine.receive(line: initialization)
+        print("PASS 65 initializes succeed and least recently used session is evicted")
         let tools = await send("tools/list", id: #""request""#)
         precondition(tools.contains("inputSchema") && tools.contains("annotations"))
         precondition(tools.contains("approve") && tools.contains("delete"))

@@ -7,6 +7,7 @@ enum AgentMCPStdio {
         let session = UUID().uuidString
         defer { _ = send(.init(verb: .mcp, id: session, parameters: .null)) }
         var pending = Data()
+        var discarding = false
         while true {
             let chunk = input.availableData
             guard !chunk.isEmpty else { break }
@@ -14,9 +15,16 @@ enum AgentMCPStdio {
             while let end = pending.firstIndex(of: 10) {
                 let line = Data(pending[..<end])
                 pending.removeSubrange(...end)
-                try exchange(line, session: session, output: output, send: send)
+                if discarding { discarding = false } else {
+                    try exchange(line, session: session, output: output, send: send)
+                }
             }
-            guard pending.count <= lineLimit else { throw AgentReply.Code.badRequest }
+            if discarding { pending.removeAll() }
+            if pending.count > lineLimit {
+                try output.write(contentsOf: failure(line: Data(), code: .badRequest))
+                pending.removeAll()
+                discarding = true
+            }
         }
         if !pending.isEmpty { try exchange(pending, session: session, output: output, send: send) }
     }

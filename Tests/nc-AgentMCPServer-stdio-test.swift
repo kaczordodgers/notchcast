@@ -5,6 +5,9 @@
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/AgentActionIndex.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/AgentSocket*.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/UI/AgentRequest+Audit.swift
+// notchcast-sources: Tinycast/Features/AgentConsent/Model/AgentAuditEntry.swift
+// notchcast-sources: Tinycast/Features/AgentConsent/Service/AgentAuditStore.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import Foundation
 import Observation
@@ -74,6 +77,7 @@ struct StdioTest {
         var executions = 0
         var approvals = 0
         var audit: [(AgentRequest, AgentReply)] = []
+        let auditStore = AgentAuditStore(directory: folder.appending(path: "audit"))
         try index.register(.init(action: .init(id: "fixture.echo", title: "Echo",
             parameters: .init(properties: ["text": .init(kind: .string)], required: ["text"]), danger: .consent),
             isAvailable: { available }, run: { value in executions += 1; return value }))
@@ -83,6 +87,9 @@ struct StdioTest {
         index.authorize = { _, _ in approvals += 1; return authorized }
         index.didComplete = { request, reply in
             if request.verb == .run { audit.append((request, reply)) }
+            if let entry = request.auditEntry(reply: reply, time: Date()) {
+                do { try await auditStore.append(entry) } catch { precondition(Task.isCancelled) }
+            }
         }
         index.start()
         let module = AgentMCPModule()
@@ -120,6 +127,14 @@ struct StdioTest {
         }
         precondition(tool["name"] == .string("fixture.echo") && schema["required"] == .array([.string("text")]))
         precondition(executions == 1 && approvals == 1 && audit.count == 1 && audit[0].1.code == .ok)
+        precondition(audit[0].0.isMCP)
+        _ = await index.handle(.init(verb: .run, id: "fixture.safe"))
+        precondition(audit.last?.0.isMCP == false)
+        let entries = try await auditStore.entries()
+        precondition(entries.map(\.surface) == [.mcp, .cli])
+        audit.removeLast()
+        approvals -= 1
+        print("PASS nested MCP run carries MCP audit provenance; CLI run retains CLI provenance")
         let encoded = String(bytes: try JSONEncoder().encode(roundTrip[2]), encoding: .utf8)!
         precondition(encoded.contains("hello") && encoded.contains("content"))
         print("PASS initialize -> tools/list -> tools/call -> stdout; registered schema, resources, consent and audit")
@@ -137,12 +152,49 @@ struct StdioTest {
             try AgentSocketIO.readLine(outputPipe.fileHandleForReading.fileDescriptor, timeout: .seconds(2))
         }
         precondition(String(bytes: liveReply, encoding: .utf8)!.contains("serverInfo"))
+        try await offPool {
+            for _ in 0..<17 {
+                try inputPipe.fileHandleForWriting.write(contentsOf: Data(repeating: 120, count: 8192))
+            }
+        }
+        let longReply = try await offPool {
+            try AgentSocketIO.readLine(outputPipe.fileHandleForReading.fileDescriptor, timeout: .seconds(2))
+        }
+        precondition(String(bytes: longReply, encoding: .utf8)!.contains("badRequest"))
+        try inputPipe.fileHandleForWriting.write(contentsOf: Data(("\n" + list + "\n").utf8))
+        let recovered = try await offPool {
+            try AgentSocketIO.readLine(outputPipe.fileHandleForReading.fileDescriptor, timeout: .seconds(2))
+        }
+        precondition(String(bytes: recovered, encoding: .utf8)!.contains("tools"))
         try inputPipe.fileHandleForWriting.close()
         try await streaming.value
         try inputPipe.fileHandleForReading.close()
         try outputPipe.fileHandleForWriting.close()
         try outputPipe.fileHandleForReading.close()
         print("PASS interactive initialize replies before stdin closes")
+        print("PASS chunk-spanning oversized pipe line is discarded and initialized session survives")
+
+        let oversized = try await transcript([String(repeating: "x", count: AgentMCPStdio.lineLimit + 1),
+                                               initialize, list], folder: folder, socket: socket)
+        precondition(oversized.count == 3 && error(oversized[0], code: -32000))
+        precondition(oversized[1]["error"] == nil && oversized[2]["error"] == nil)
+        print("PASS oversized line emits one JSON-RPC error and following lines remain usable")
+
+        let persistentID = UUID().uuidString
+        let initializationLine = initialize
+        try await offPool {
+            let client = AgentSocketClient.Session()
+            precondition(client.send(.init(verb: .mcp, id: persistentID, parameters: .string(initializationLine)),
+                                     to: socket).code == .ok)
+        }
+        var removed = false
+        for _ in 0..<200 {
+            let response = await module.engine.receive(line: Data(list.utf8), session: persistentID)!
+            if String(bytes: response, encoding: .utf8)!.contains("Initialize first") { removed = true; break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        precondition(removed)
+        print("PASS real persistent socket close removes MCP session on app side")
 
         authorized = false
         let refused = try await transcript([initialize, call], folder: folder, socket: socket)

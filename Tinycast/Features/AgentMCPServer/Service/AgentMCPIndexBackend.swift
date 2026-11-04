@@ -45,6 +45,8 @@ struct AgentMCPIndexBackend: AgentMCPBackend {
     }
 
     private func result(for request: AgentRequest) async throws -> AgentJSON {
+        var request = request
+        request.isMCP = true
         let reply = await index.handle(request)
         switch reply.code {
         case .ok: return reply.result

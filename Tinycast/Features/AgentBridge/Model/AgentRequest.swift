@@ -14,8 +14,10 @@ struct AgentRequest: Codable, Equatable, Sendable {
     var id: String?
     var parameters: AgentJSON = .object([:])
     var dryRun = false
+    var isMCP = false
+    var keepAlive = false
 
-    private enum CodingKeys: String, CodingKey { case verb, id, parameters, dryRun }
+    private enum CodingKeys: String, CodingKey { case verb, id, parameters, dryRun, keepAlive }
 
     init(verb: Verb, id: String? = nil, parameters: AgentJSON = .object([:]), dryRun: Bool = false) {
         self.verb = verb
@@ -30,6 +32,7 @@ struct AgentRequest: Codable, Equatable, Sendable {
         id = try container.decodeIfPresent(String.self, forKey: .id)
         parameters = try container.contains(.parameters) ? container.decode(AgentJSON.self, forKey: .parameters) : .object([:])
         dryRun = try container.contains(.dryRun) ? container.decode(Bool.self, forKey: .dryRun) : false
+        keepAlive = try container.decodeIfPresent(Bool.self, forKey: .keepAlive) ?? false
     }
 
     static func parse(_ arguments: [String]) throws -> (request: Self, json: Bool) {

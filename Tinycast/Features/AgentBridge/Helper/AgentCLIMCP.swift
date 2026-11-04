@@ -5,8 +5,9 @@ enum AgentCLIMCP {
         do {
             let socket = AgentSocketClient.socketURL(
                 home: FileManager.default.homeDirectoryForCurrentUser, bundleID: bundleID)
+            let session = AgentSocketClient.Session()
             try AgentMCPStdio.run(input: .standardInput, output: .standardOutput) {
-                AgentSocketClient.send($0, to: socket)
+                session.send($0, to: socket)
             }
         } catch {
             FileHandle.standardError.write(Data("MCP stdio failed\n".utf8))

@@ -4,7 +4,7 @@ import Foundation
 final class AgentMCPEngine {
     private var backend: (any AgentMCPBackend)?
     private(set) var isRunning = false
-    private var initialized: Set<String> = []
+    private var initialized: [String] = []
     private var generation = UUID()
     private var pending: [UUID: (session: String, task: Task<Data, any Error>)] = [:]
 
@@ -25,7 +25,7 @@ final class AgentMCPEngine {
     }
 
     func endSession(_ session: String) {
-        initialized.remove(session)
+        initialized.removeAll { $0 == session }
         for operation in pending.values where operation.session == session { operation.task.cancel() }
     }
 
@@ -48,6 +48,10 @@ final class AgentMCPEngine {
         }
         guard request["id"] != nil else { return nil }
         guard isRunning else { return response(id: id, error: -32000, message: "Server stopped") }
+        if initialized.contains(session) {
+            initialized.removeAll { $0 == session }
+            initialized.append(session)
+        }
         let operation = generation
         let params = request["params"] as? [String: Any] ?? [:]
         do {
@@ -61,10 +65,10 @@ final class AgentMCPEngine {
                       params["clientInfo"] is [String: Any] else {
                     return response(id: id, error: -32602, message: "Invalid params")
                 }
-                guard initialized.contains(session) || initialized.count < 64 else {
-                    return response(id: id, error: -32000, message: "Too many MCP sessions")
+                if !initialized.contains(session) {
+                    if initialized.count == 64 { endSession(initialized[0]) }
+                    initialized.append(session)
                 }
-                initialized.insert(session)
                 result = ["protocolVersion": "2025-06-18", "capabilities": ["tools": [:], "resources": [:]],
                           "serverInfo": ["name": "notchcast", "version": "1"]]
             case "ping": result = [:]
