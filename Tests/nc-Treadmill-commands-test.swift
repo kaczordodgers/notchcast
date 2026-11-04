@@ -68,6 +68,13 @@ struct NotchcastCommand: Sendable {
             precondition(AppCore.shared.messages.last?.0 == "The walking pad is not connected.")
         }
         print("Treadmill commands: all five disconnected actions report danger without writes")
+        transport.onFailure?(TreadmillBluetoothFailure.unauthorized)
+        precondition(coordinator.lastError as? TreadmillBluetoothFailure == .unauthorized)
+        TreadmillCommands.start.run()
+        precondition(AppCore.shared.messages.last?.0 == "The walking pad is not connected.")
+        precondition(TreadmillBluetoothFailure.unauthorized.localizedDescription
+            == "Allow Bluetooth access in System Settings.")
+        print("Treadmill commands: exact error messages and stale connection error regression passed")
         transport.onReady?()
         transport.sent = []
         TreadmillCommands.pause.run()
@@ -108,12 +115,6 @@ struct NotchcastCommand: Sendable {
         preferences.set(.treadmillWalk, true)
         precondition(all.allSatisfy { $0.isEnabled() })
         print("Treadmill commands: switch off excludes all five commands; switch on enables all five")
-        transport.onFailure?(TreadmillBluetoothFailure.unauthorized)
-        TreadmillCommands.start.run()
-        precondition(AppCore.shared.messages.last?.0 == "The walking pad is not connected.")
-        precondition(TreadmillBluetoothFailure.unauthorized.localizedDescription
-            == "Allow Bluetooth access in System Settings.")
-        print("Treadmill commands: exact error messages and stale connection error regression passed")
         transport.fail = false
         await coordinator.stopForTermination()
     }
