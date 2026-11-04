@@ -6,8 +6,8 @@ final class DayWeatherModule: NotchcastModule {
 
     init(store: DayWeatherStore = DayWeatherStore()) { self.store = store }
 
-    func start() { enabled = true; updateVisibility() }
-    func stop() { enabled = false; store.stop() }
+    func start() { AppCore.shared.appIndex.refreshNotchcastCommands(); enabled = true; updateVisibility() }
+    func stop() { AppCore.shared.appIndex.refreshNotchcastCommands(); enabled = false; store.stop() }
 
     func setVisible(_ visible: Bool) {
         self.visible = visible
