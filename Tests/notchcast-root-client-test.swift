@@ -213,6 +213,12 @@ struct FanSMCTest {
             rejects { try BatterySMC.apply(.batteryChargingOff, smc: fixture) }
             precondition(fixture.writes.isEmpty)
         }
+        do {
+            try BatterySMC.apply(.batteryChargingOff, smc: BatteryFixture())
+            preconditionFailure("Absent keys must report unsupported")
+        } catch BatterySMC.Failure.unsupported {
+            precondition(RootContract.unsupportedExit != 70)
+        }
         let failed = BatteryFixture()
         failed.keys = ["CHTE": 4]
         failed.failedProbe = "CH0B"
