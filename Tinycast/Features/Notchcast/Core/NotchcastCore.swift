@@ -19,11 +19,13 @@ enum NotchcastCore {
     static let dictationHistory = DictationHistoryModule(repository: .init(
         directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
     static let dictationCleanup = DictationCleanupModule.live()
+    private static var dictationTrigger: DictationTriggerModule?
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
 
     static func stopForTermination() async {
+        dictationTrigger?.stop()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -50,6 +52,8 @@ enum NotchcastCore {
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
+        let trigger = makeDictationTrigger(core)
+        dictationTrigger = trigger
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
@@ -71,6 +75,7 @@ enum NotchcastCore {
                 hub: eventTapHub, coordinator: core.dictationCoordinator)),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
+            .init(requires: [.globeDictation], module: trigger),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

@@ -23,6 +23,22 @@ struct HotKeyDispatchTest {
         let defaults = UserDefaults(suiteName: domain)!
         defer { defaults.removePersistentDomain(forName: domain) }
         let manager = HotKeyManager(defaults: defaults)
+        manager.start(customCommandIDs: [], quicklinkIDs: [], windowLayoutIDs: [],
+                      windowRoomIDs: [], customWindowSizeIDs: [], quickActionIDs: [])
+        let globe = HotKeyBinding.globe
+        manager.setBinding(globe, for: .togglePalette)
+        var globePresses = 0
+        manager.onTogglePalette = { globePresses += 1 }
+        manager.modifierTapMonitor.onTrigger?(globe)
+        check("Globe binding dispatches before reservation", globePresses == 1)
+        manager.globeReserved = true
+        check("Reserved Globe reports its owner", manager.conflictOwner(of: globe, excluding: .togglePalette) != nil)
+        manager.modifierTapMonitor.onTrigger?(globe)
+        check("Reserved Globe binding does not dispatch", globePresses == 1)
+        manager.globeReserved = false
+        manager.modifierTapMonitor.onTrigger?(globe)
+        check("Released Globe binding dispatches again", globePresses == 2)
+        manager.setBinding(nil, for: .togglePalette)
         let center = HotKeyCenter.current!
         var presses = 0
         var releases = 0
