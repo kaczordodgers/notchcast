@@ -20,7 +20,8 @@ Stopping cancels the lookup and invalidates its identity before a later request 
 Battery temperature alerts breach above 40 °C and recover at 35 °C by default, retaining the
 existing three-sample sustain and fifteen-minute cooldown. The fork-local preference and Settings
 row adjust the threshold with five degrees of recovery hysteresis. Its eight translations live
-in the feature-owned `Monitor.xcstrings` table, avoiding a change to upstream's string catalog.
+in `Monitor.xcstrings` for alerts and `Localizable.xcstrings` for Settings, whose standalone
+harnesses do not depend on the monitor engine.
 
 `quitProcess(_:force:service:)` takes the sampled process identity, including its start time.
 `MonitorProcessService` reuses SystemTools' `KillProcessService` ownership, protection and identity
