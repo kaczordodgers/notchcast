@@ -8,6 +8,8 @@ enum NotchcastCore {
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
+    static let eventTapHub = EventTapHub()
+    static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     private static var controller: NotchcastModuleController?
     static private(set) var services: NotchcastServices?
 
@@ -22,6 +24,7 @@ enum NotchcastCore {
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
+            .init(requires: [.quitProtection], module: quitProtectionModule),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets)

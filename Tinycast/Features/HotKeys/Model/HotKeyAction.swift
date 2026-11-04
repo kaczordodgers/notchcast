@@ -6,6 +6,7 @@ enum HotKeyAction: Hashable, Sendable {
     case dictation
     /// Parameterised over the catalog, so a new built-in command is bindable with no case here.
     case command(CommandID)
+    case notchcastCommand(entryID: String)
     case app(bundleID: String)
     case settingsPane(bundleID: String)
     case customCommand(id: UUID)
@@ -27,6 +28,7 @@ enum HotKeyAction: Hashable, Sendable {
         case .togglePalette: "hotkey.togglePalette"
         case .dictation: "hotkey.dictation"
         case .command(let id): "hotkey." + id.rawValue
+        case .notchcastCommand(let id): "hotkey." + id
         case .app(let bundleID): "hotkey.app." + bundleID
         case .settingsPane(let bundleID): "hotkey.pane." + bundleID
         case .customCommand(let id): "hotkey.customCommand." + id.uuidString.lowercased()
