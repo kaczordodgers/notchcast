@@ -652,9 +652,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
-    /// One arm per exception; NotchcastFeature+Logic.swift excludes system features.
-    var needsIslandArm: Bool {
-        switch self {
     var isWired: Bool {
         ![Self.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices].contains(self)
     }
@@ -748,9 +745,6 @@ extension NotchcastFeature {
         }
     }
 
-    /// Default unless a system or launcher keys feature (NotchcastFeature+Logic.swift).
-    var defaultEnabledArm: Bool {
-        switch self {
     var isSystemTweak: Bool {
         switch self {
         case .startupItems: true
