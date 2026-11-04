@@ -74,6 +74,22 @@ struct MonitorStoreTests {
         await settle()
         precondition(probe.count == count)
         store.stop()
+        let history = store.histories
+        store.setAlertDemand(true)
+        store.start()
+        for _ in 0..<1000 where probe.count == count { await Task.yield() }
+        precondition(probe.count > count && store.demand == 0)
+        precondition(store.histories == history, "alerts-only samples do not populate page histories")
+        store.acquire()
+        for _ in 0..<1000 where store.histories == history { await Task.yield() }
+        precondition(store.histories != history, "page demand upgrades sampling")
+        store.release()
+        let pageHistory = store.histories
+        let pageCount = probe.count
+        for _ in 0..<1000 where probe.count == pageCount { await Task.yield() }
+        precondition(store.histories == pageHistory, "closing the page returns to alerts-only sampling")
+        store.setAlertDemand(false)
+        store.stop()
 
         let suite = "monitor-module-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
@@ -89,7 +105,7 @@ struct MonitorStoreTests {
             preferences.set(.monitorAlerts, true)
             await settle()
             module.start()
-            precondition(store.demand == 1)
+            precondition(store.demand == 0 && store.alertDemand)
             preferences.set(.monitorAlerts, false)
             await settle()
             precondition(store.demand == 0)
@@ -101,7 +117,7 @@ struct MonitorStoreTests {
         precondition(store.demand == 0)
         module.start()
         await settle()
-        precondition(store.demand == 1)
+        precondition(store.demand == 0 && store.alertDemand)
         preferences.set(.systemMonitor, false)
         await settle()
         precondition(store.demand == 0)

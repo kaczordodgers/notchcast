@@ -39,6 +39,8 @@ final class MonitorStore {
     private(set) var latest = MonitorSnapshot()
     private(set) var histories: [String: MonitorHistory] = [:]
     private(set) var demand = 0
+    private(set) var alertDemand = false
+    @ObservationIgnored private var samplingFull: Bool?
     @ObservationIgnored private var enabled = false
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var worker: Task<Void, Never>?
@@ -50,15 +52,21 @@ final class MonitorStore {
     func stop() { enabled = false; update() }
     func acquire() { demand += 1; update() }
     func release() { demand = max(0, demand - 1); update() }
+    func setAlertDemand(_ value: Bool) { alertDemand = value; update() }
 
     private func update() {
-        guard enabled, let cadence = MonitorCadence.next(isVisible: demand > 0) else {
+        let full = demand > 0
+        guard enabled, let cadence = MonitorCadence.next(isVisible: full || alertDemand) else {
             generation += 1
             worker?.cancel()
             worker = nil
+            samplingFull = nil
             return
         }
-        guard worker == nil else { return }
+        guard worker == nil || samplingFull != full else { return }
+        generation += 1
+        worker?.cancel()
+        samplingFull = full
         let identity = generation
         let sample = sample
         worker = Task { [weak self] in
@@ -75,10 +83,12 @@ final class MonitorStore {
                             reading = await sample()
                         } else {
                             reading = MonitorSnapshot(
-                                cpu: cpu.sample(), memory: MemorySampler().read(),
-                                volumes: disk.read(), disk: disk.sample(now: ProcessInfo.processInfo.systemUptime),
-                                network: network.sample(), gpu: GPUService().read(),
-                                battery: BatteryService().read(), sensors: sensors.read(), processes: processes.sample())
+                                cpu: cpu.sample(alertsOnly: !full), memory: MemorySampler().read(),
+                                volumes: disk.read(),
+                                disk: full ? disk.sample(now: ProcessInfo.processInfo.systemUptime) : [],
+                                network: full ? network.sample() : nil, gpu: full ? GPUService().read() : [],
+                                battery: BatteryService().read(), sensors: sensors.read(alertsOnly: !full),
+                                processes: full ? processes.sample() : nil)
                         }
                         guard !Task.isCancelled else { break }
                         continuation.yield(reading)
@@ -90,8 +100,9 @@ final class MonitorStore {
             }
             for await reading in stream {
                 guard !Task.isCancelled, let self, self.generation == identity,
-                      self.enabled, self.demand > 0 else { break }
+                      self.enabled, self.demand > 0 || self.alertDemand else { break }
                 self.latest = reading
+                guard full else { continue }
                 for (key, value) in reading.series {
                     self.histories[key, default: MonitorHistory()].append(value)
                 }

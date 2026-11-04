@@ -34,7 +34,7 @@ final class MonitorModule: NotchcastModule {
         alerts.resetBreaches()
         if holdsAlertDemand {
             holdsAlertDemand = false
-            store.release()
+            store.setAlertDemand(false)
         }
         store.stop()
         fans.restore()
@@ -55,11 +55,11 @@ final class MonitorModule: NotchcastModule {
             let enabled = preferences.isOn(.systemMonitor) && preferences.isOn(.monitorAlerts)
             if enabled != holdsAlertDemand {
                 holdsAlertDemand = enabled
-                if enabled { store.acquire() } else { store.release() }
+                store.setAlertDemand(enabled)
             }
             alerts.evaluate(store.latest, rules: preferences.monitorAlertRules,
                             enabled: enabled,
-                            demand: store.demand, at: Date())
+                            demand: store.demand + (store.alertDemand ? 1 : 0), at: Date())
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observeAlerts(identity) }
         }

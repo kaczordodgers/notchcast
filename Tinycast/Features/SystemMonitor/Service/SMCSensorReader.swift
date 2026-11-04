@@ -14,25 +14,25 @@ nonisolated struct SMCSensorReader: Sendable {
         cpuKeys = TemperatureSensorPolicy.cpuKeys(brand: brand ?? Self.cpuBrand())
     }
 
-    mutating func read() -> SMCSensorReading {
+    mutating func read(alertsOnly: Bool = false) -> SMCSensorReading {
         guard let client else {
             return SMCSensorReading(cpuTemperature: nil, gpuTemperature: nil,
                                     systemPowerWatts: nil, fans: [])
         }
         let deadline = ProcessInfo.processInfo.systemUptime + 0.045
-        let watts = SMCSensorReading.powerWatts(client.value("PSTR"))
-        let fans = fans(client, deadline: deadline)
+        let watts = alertsOnly ? nil : SMCSensorReading.powerWatts(client.value("PSTR"))
+        let fans = alertsOnly ? [] : fans(client, deadline: deadline)
         let fixedCPU = temperatures(cpuKeys, client: client, deadline: deadline)
         let fallbackCPU = fixedCPU.isEmpty
             ? temperatures(TemperatureSensorPolicy.fallbackCPUKeys, client: client, deadline: deadline) : []
-        let fixedGPU = temperatures(TemperatureSensorPolicy.gpuKeys, client: client, deadline: deadline)
+        let fixedGPU = alertsOnly ? [] : temperatures(TemperatureSensorPolicy.gpuKeys, client: client, deadline: deadline)
         let needsCPU = fixedCPU.isEmpty && fallbackCPU.isEmpty
-        if needsCPU || fixedGPU.isEmpty {
-            discover(client, needsCPU: needsCPU, needsGPU: fixedGPU.isEmpty, deadline: deadline)
+        if needsCPU || (!alertsOnly && fixedGPU.isEmpty) {
+            discover(client, needsCPU: needsCPU, needsGPU: !alertsOnly && fixedGPU.isEmpty, deadline: deadline)
         }
         let cpu = !fixedCPU.isEmpty ? fixedCPU : !fallbackCPU.isEmpty ? fallbackCPU
             : temperatures(discoveredCPUKeys, client: client, deadline: deadline)
-        let gpu = fixedGPU.isEmpty
+        let gpu = alertsOnly ? [] : fixedGPU.isEmpty
             ? temperatures(discoveredGPUKeys, client: client, deadline: deadline) : fixedGPU
         return SMCSensorReading(cpuTemperature: TemperatureSensorPolicy.average(cpu),
                                 gpuTemperature: TemperatureSensorPolicy.hottest(gpu),

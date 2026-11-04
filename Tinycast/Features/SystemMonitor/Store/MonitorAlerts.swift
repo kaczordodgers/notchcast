@@ -23,7 +23,9 @@ final class MonitorAlerts {
         let pressure = snapshot.memory?.pressure.map { pressure in
             switch pressure { case .normal: 0.0; case .warning: 1.0; case .critical: 2.0 }
         }
-        let diskFree = snapshot.volumes.filter { $0.total > 0 && !$0.isReadOnly }
+        let diskFree = snapshot.volumes.filter {
+            $0.total > 0 && !$0.isReadOnly && ($0.isInternal || $0.mountPath == "/")
+        }
             .map { Double($0.available) / Double($0.total) * 100 }.min()
         let values: [MonitorAlertRule.Metric: Double?] = [
             .cpu: snapshot.cpu?.usage?.totalPercent,
@@ -32,7 +34,12 @@ final class MonitorAlerts {
         ]
         for metric in MonitorAlertRule.Metric.allCases {
             guard let rule = configured[metric], let value = values[metric] else { continue }
-            if configuration[metric] != rule { rules[metric] = rule; configuration[metric] = rule }
+            if configuration[metric] != rule {
+                var replacement = rule
+                replacement.preserveCooldown(from: rules[metric])
+                rules[metric] = replacement
+                configuration[metric] = rule
+            }
             if rules[metric]?.evaluate(value ?? .nan, at: now) == .fire {
                 sink(Self.title(metric))
             }

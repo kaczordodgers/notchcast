@@ -4,10 +4,11 @@ import Foundation
 nonisolated struct CPUSampler: Sendable {
     private var previous: [CPUTicks] = []
 
-    mutating func sample() -> CPUReading {
+    mutating func sample(alertsOnly: Bool = false) -> CPUReading {
         let current = Self.ticks()
         defer { previous = current }
         let usage = CPUTicks.usage(current: current, previous: previous)
+        if alertsOnly { return CPUReading(usage: usage.total, cores: [], loadAverage: nil) }
         var averages = [Double](repeating: 0, count: 3)
         let load: CPUReading.LoadAverage?
         if getloadavg(&averages, 3) == 3, averages.allSatisfy({ $0.isFinite && $0 >= 0 }) {

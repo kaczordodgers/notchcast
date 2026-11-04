@@ -108,9 +108,25 @@ struct MonitorAlertsTests {
                             enabled: true, demand: 1, at: Date())
         precondition(diskCalls == 0)
         let full = DiskVolume(name: "Data", mountPath: "/", total: 100, available: 1)
+        let external = DiskVolume(name: "USB", mountPath: "/Volumes/USB", total: 100, available: 0)
+        diskAlerts.evaluate(MonitorSnapshot(volumes: [writable, external]), rules: diskRules,
+                            enabled: true, demand: 1, at: Date())
+        precondition(diskCalls == 0, "external writable volumes cannot trigger disk alerts")
         diskAlerts.evaluate(MonitorSnapshot(volumes: [full, image]), rules: diskRules,
                             enabled: true, demand: 1, at: Date())
         precondition(diskCalls == 1)
+        var editedCalls = 0
+        let edited = MonitorAlerts { _ in editedCalls += 1 }
+        func editCheck(_ threshold: Double, _ time: Double) {
+            edited.evaluate(highSample(), rules: [.cpu: .init(direction: .above,
+                threshold: threshold, recoverValue: 70, sustainCount: 1)],
+                enabled: true, demand: 1, at: Date(timeIntervalSince1970: time))
+        }
+        editCheck(90, 0)
+        editCheck(85, 1)
+        precondition(editedCalls == 1, "threshold edits preserve the metric cooldown")
+        editCheck(85, 900)
+        precondition(editedCalls == 2)
         print("PASS: threshold crossing, hysteresis, cooldown, disabled and no-demand gating")
     }
 }
