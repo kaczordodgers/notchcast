@@ -12,9 +12,12 @@ The Katana switch starts and stops the channel client and audio service. Both de
 
 ## Commands
 
-The callable surfaces are `KatanaClient.refresh`, `selectChannel`, `loadTone`, `refreshAudioSettings`, `setAudioSettings`; `KatanaToneStore.refresh` and `importFiles`; and `KatanaAudioService.tune`, `stopTuning`, `startRecording`, `finishRecording`. They propagate errors to their caller. Launcher/hotkey registration awaits the shared command hook.
+The callable surfaces are `KatanaClient.refresh`, `selectChannel`, `loadTone`, `refreshAudioSettings`, `setAudioSettings`; `KatanaToneStore.refresh` and `importFiles`; and `KatanaAudioService.tune`, `stopTuning`, `startRecording`, `finishRecording`. They propagate errors to their caller.
 
 ## Verification
+
+Launcher and hotkey commands expose Panel, A1, A2, B1 and B2 with explicit confirmation and
+the Katana switch gate. Results use the core's plain message. Stop cancels pending command work.
 
 `./Scripts/run-tests.sh nc-Katana-core-test` compiles the shipped Model and Service sources. The harness has fake MIDI/audio transports, synthetic pitch buffers, malformed formats, readback/save failures, private temporary library files, and stopped-operation checks. Its binary optionally accepts read-only preset paths to exercise source fixtures offline.
 

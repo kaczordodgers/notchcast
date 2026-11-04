@@ -7,6 +7,12 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
 
+// notchcast-sources: Tinycast/Features/Treadmill/TreadmillCommands.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift Tests/Fixtures/DeviceCommandStubs.swift
+@MainActor enum NotchcastCore {
+    static var treadmill: TreadmillCoordinator { fatalError("Inject fake coordinator") }
+}
+
 @MainActor
 private final class FakeTreadmillTransport: TreadmillTransport {
     var onBytes: ((Data) -> Void)?
@@ -316,6 +322,14 @@ private struct TreadmillTests {
                "Idle termination needs no nearby pad")
         coordinator.setEnabled(.walk, true)
         coordinator.setEnabled(.history, true)
+        var reports = 0
+        coordinator.runCommand(start: true, enabled: { true }, confirm: { false }, message: { _ in reports += 1 })
+        expect(transport.sent.isEmpty && reports == 0, "Cancelled start sends nothing")
+        coordinator.runCommand(start: true, enabled: { false }, confirm: { fatalError("Disabled") }, message: { _ in })
+        coordinator.runCommand(start: false, enabled: { true }, confirm: { fatalError("Stop is safe") },
+                               message: { _ in reports += 1 })
+        expect(reports == 1 && !transport.sent.isEmpty, "Stop bypasses confirmation and reports")
+        transport.sent = []
         try coordinator.stopWalk()
         expect(transport.opens == 1 && transport.sent == [TreadmillProtocol.stop],
                "Stop connects even with no known walk")

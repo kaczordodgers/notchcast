@@ -10,6 +10,12 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 import Foundation
 
+// notchcast-sources: Tinycast/Features/Katana/KatanaCommands.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift Tests/Fixtures/DeviceCommandStubs.swift
+@MainActor enum NotchcastCore {
+    static var katana: KatanaModule { fatalError("Inject fake module") }
+}
+
 @MainActor
 final class FakeKatanaTransport: KatanaTransport {
     var connectionID: UUID? = UUID()
@@ -309,6 +315,18 @@ struct KatanaTests {
                "Katana documentation cannot collide with bundled README")
         expect(FileManager.default.fileExists(atPath: "notchcast/docs/katana.md"), "Katana docs live in fork docs")
         let module = KatanaModule()
+        module.runCommand(.a1, enabled: { true }, confirm: { _ in false }, message: { _ in fatalError("Cancelled") })
+        expect(module.commandTask == nil, "Cancelled channel selection schedules nothing")
+        module.runCommand(.a1, enabled: { false }, confirm: { _ in fatalError("Disabled") })
+        expect(module.commandTask == nil, "Disabled channel selection schedules nothing")
+        let commandFake = FakeKatanaTransport()
+        let commandModule = KatanaModule(client: KatanaClient(transport: commandFake))
+        commandModule.start()
+        var messages = 0
+        commandModule.runCommand(.a2, enabled: { true }, confirm: { _ in true }, message: { _ in messages += 1 })
+        await commandModule.commandTask?.value
+        expect(commandModule.client.channel == .a2 && messages == 1, "Confirmed command selects and reports")
+        commandModule.stop()
         expect(NotchcastFeature.katana.settingsGroup == .system, "Katana uses the System settings group")
         module.start()
         expect(!module.client.isConnected && module.audio.isEnabled, "Module starts without opening hardware")
