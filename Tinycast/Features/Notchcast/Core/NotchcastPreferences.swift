@@ -84,4 +84,13 @@ extension NotchcastPreferences {
             !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
         })
     }
+
+    func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
+
+    func set(_ feature: NotchcastFeature, _ enabled: Bool) {
+        guard isOn(feature) != enabled else { return }
+        defaults.set(enabled, forKey: feature.rawValue)
+        if enabled { off.remove(feature) } else { off.insert(feature) }
+        onCommandsChanged?()
+    }
 }

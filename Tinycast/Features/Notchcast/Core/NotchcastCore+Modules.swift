@@ -29,6 +29,8 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let screenText = ScreenTextModule()
+    static let scrollingCapture = ScrollingCaptureModule()
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.live()
@@ -73,6 +75,8 @@ extension NotchcastCore {
             .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.screenText], module: screenText),
+            .init(requires: [.scrollingCapture], module: scrollingCapture),
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
