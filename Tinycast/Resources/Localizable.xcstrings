@@ -1,6 +1,66 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Agent Threads" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Agent-Threads" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hilos de agentes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Fils des agents" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エージェントのスレッド" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "에이전트 스레드" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Conversas de agentes" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ветки агентов" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "代理线程" } }
+      }
+    },
+    "Refresh Agent Threads" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Agent-Threads aktualisieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualizar hilos de agentes" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Actualiser les fils des agents" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エージェントのスレッドを更新" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "에이전트 스레드 새로 고침" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Atualizar conversas de agentes" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обновить ветки агентов" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刷新代理线程" } }
+      }
+    },
+    "Open Waiting Agent Thread" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wartenden Agent-Thread öffnen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir hilo de agente en espera" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir le fil d’agent en attente" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "待機中のエージェントのスレッドを開く" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "대기 중인 에이전트 스레드 열기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir conversa de agente em espera" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть ожидающую ветку агента" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开等待中的代理线程" } }
+      }
+    },
+    "No waiting agent threads." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Keine wartenden Agent-Threads." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay hilos de agentes en espera." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Aucun fil d’agent en attente." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "待機中のエージェントのスレッドはありません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "대기 중인 에이전트 스레드가 없습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Nenhuma conversa de agente em espera." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Нет ожидающих веток агентов." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "没有等待中的代理线程。" } }
+      }
+    },
+    "Read active and recently finished agent threads on this Mac." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aktive und kürzlich beendete Agent-Threads auf diesem Mac lesen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Leer hilos de agentes activos y finalizados recientemente en este Mac." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Lire les fils des agents actifs et récemment terminés sur ce Mac." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "このMacで実行中および最近終了したエージェントのスレッドを読み取ります。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이 Mac에서 활성 상태이거나 최근 완료된 에이전트 스레드를 읽습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ler conversas de agentes ativas e concluídas recentemente neste Mac." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Читать активные и недавно завершённые ветки агентов на этом Mac." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "读取此 Mac 上活跃和最近完成的代理线程。" } }
+      }
+    },
     "Another Katana command is still running" : {
       "localizations" : {
         "de" : {
