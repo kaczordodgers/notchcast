@@ -6,6 +6,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
+import CoreMIDI
 
 @MainActor
 final class FakeMIDILayer: KatanaMIDILayer {
@@ -33,6 +34,7 @@ final class FakeMIDILayer: KatanaMIDILayer {
 @MainActor
 struct KatanaTransportTests {
     static func main() async throws {
+        try await virtualMIDI()
         let midi = FakeMIDILayer()
         let transport = KatanaMIDITransport(midi: midi)
         transport.start()
@@ -70,6 +72,32 @@ struct KatanaTransportTests {
         module.start()
         precondition(index.actionIDs.count == 2)
         module.stop()
-        print("Katana transport: absent/found, exact bytes, reply, reconnect, registration on/off passed; fake MIDI only")
+        print("Katana transport: absent/found, exact bytes, reply, reconnect, registration on/off passed")
+    }
+
+    static func virtualMIDI() async throws {
+        var client: MIDIClientRef = 0
+        precondition(MIDIClientCreateWithBlock("Katana Probe" as CFString, &client, nil) == noErr)
+        defer { MIDIClientDispose(client) }
+        var source: MIDIEndpointRef = 0
+        precondition(MIDISourceCreateWithProtocol(client, "KATANA Probe" as CFString, ._1_0, &source) == noErr)
+        let replySource = source
+        var destination: MIDIEndpointRef = 0
+        precondition(MIDIDestinationCreateWithProtocol(client, "KATANA Probe" as CFString, ._1_0,
+            &destination, { @Sendable list, _ in
+                precondition(list.pointee.packet.wordCount > 2)
+                precondition(MIDIReceivedEventList(replySource, list) == noErr)
+            }) == noErr)
+        let midi = KatanaCoreMIDI()
+        let transport = KatanaMIDITransport(midi: midi)
+        transport.start()
+        defer { transport.stop() }
+        precondition(transport.connectionID != nil)
+        let packet = try KatanaSysEx.write(KatanaSysEx.selectChannel, [0, 5])
+        let reply = try await transport.exchange(packet)
+        precondition(reply == packet)
+        let decoded = try KatanaSysEx.decode(reply)
+        precondition(decoded.data == [0, 5])
+        print("Katana CoreMIDI: virtual source/destination multi-UMP SysEx reply reassembled")
     }
 }

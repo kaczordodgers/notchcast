@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 @MainActor
 final class KatanaModule: NotchcastModule {
@@ -23,11 +24,16 @@ final class KatanaModule: NotchcastModule {
     private func register() {
         guard let index else { return }
         unregister()
-        do { try AgentDeviceActions.register(.katana, backend: self, in: index) } catch { unregister() }
+        do { try AgentDeviceActions.register(.katana, backend: self, in: index) } catch {
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Katana")
+                .error("Action registration failed: \(error.localizedDescription, privacy: .public)")
+            unregister()
+        }
     }
 
     private func unregister() {
-        for id in ["device.katana", "device.katana.channel", "device.katana.tone"] { index?.unregister(id) }
+        let ids = ["device.katana"] + AgentDeviceActions.Device.katana.operations.map { "device.katana.\($0)" }
+        for id in ids { index?.unregister(id) }
     }
 
     func start() {

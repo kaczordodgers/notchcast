@@ -25,12 +25,12 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
 
     func start() throws {
         guard client == 0 else { return }
-        guard MIDIClientCreateWithBlock("Notchcast Katana" as CFString, &client, { [weak self] _ in
+        guard MIDIClientCreateWithBlock("Notchcast Katana" as CFString, &client, { @Sendable [weak self] _ in
             Task { @MainActor in self?.changed?() }
         }) == noErr else { throw KatanaError.unavailable }
         guard MIDIOutputPortCreate(client, "Katana Output" as CFString, &output) == noErr,
               MIDIInputPortCreateWithProtocol(client, "Katana Input" as CFString, ._1_0, &input,
-                { [weak self] list, _ in
+                { @Sendable [weak self] list, _ in
                     var bytes: [UInt8] = []
                     withUnsafePointer(to: list.pointee.packet) { first in
                         var packet = first
