@@ -288,7 +288,15 @@ final class BatteryModule: NotchcastModule {
                 rootChanged = true
                 preferences.batteryRootDirty = true
                 applied[key] = nil
-                try await runner.root(verb)
+                do {
+                    try await runner.root(verb)
+                } catch {
+                    if (verb == .chargingOn || verb == .chargingOff),
+                       case RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit) = error {
+                        chargingUnsupported = true
+                    }
+                    throw error
+                }
                 applied[key] = verb
             }
             rootChanged = enabled || on(.lidClosedAwake)

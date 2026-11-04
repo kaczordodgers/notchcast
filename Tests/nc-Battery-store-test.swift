@@ -12,6 +12,7 @@ import Foundation
 @MainActor
 struct BatteryStoreTests {
     static func main() async {
+        await safetyCases()
         let suite = "battery-store-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -185,5 +186,143 @@ struct BatteryStoreTests {
         await stop.waitUntilIdle()
         precondition(!preferences.batteryRootDirty && repairCalls.suffix(3) == [.adapterOn, .chargingOn, .sleepOn])
         print("PASS: stored limit rounding, startup cleanup once, missing verbs, switch-off and quit release")
+    }
+
+    static func safetyCases() async {
+        let suite = "battery-safety-test.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        preferences.set(.batteryCalibration, true)
+        var percent = 50
+        var connected = true
+        var absent = false
+        var calls: [BatteryRootVerbs] = []
+        var created = 0
+        var released = 0
+        var nativeFailure = false
+        var unsupported = false
+        var pending: CheckedContinuation<Void, Never>?
+        var suspendToggle = false
+        let module = BatteryModule(preferences: preferences, runner: .init(read: {
+            absent ? nil : BatteryReading.decode(properties: [
+                "CurrentCapacity": percent, "MaxCapacity": 100, "ExternalConnected": connected])
+        }, root: { verb in
+            calls.append(verb)
+            if verb == .chargeLimit80 && nativeFailure { throw RootHelperClient.Failure.timedOut }
+            if verb == .chargingOff && unsupported {
+                throw RootHelperClient.Failure.executionFailed(RootContract.unsupportedExit)
+            }
+            if verb == .chargingOff && suspendToggle {
+                suspendToggle = false
+                await withCheckedContinuation { pending = $0 }
+                try Task.checkCancellation()
+            }
+        }, installed: { true }, version: { "2" }, create: { _ in
+            created += 1
+            return UInt32(created)
+        }, release: { _ in released += 1 }, readLimit: { 85 }))
+        precondition(!preferences.isOn(.batteryCalibration))
+        module.start()
+        for _ in 0..<100 { await Task.yield() }
+        preferences.set(.keepAwake, true)
+        for _ in 0..<100 { await Task.yield() }
+        await module.evaluate(now: .now)
+        precondition(created == 2 && module.nativeLimit == 85 && calls.isEmpty)
+        preferences.set(.keepAwake, false)
+        for _ in 0..<100 { await Task.yield() }
+        await module.evaluate(now: .now)
+        precondition(released == 2 && module.nativeLimit == 85 && calls.isEmpty)
+        preferences.set(.batteryCalibration, true)
+        for _ in 0..<100 { await Task.yield() }
+        for value in [100, 10, 100, 100] {
+            percent = value
+            await module.evaluate(now: .now)
+        }
+        precondition(!preferences.isOn(.batteryCalibration))
+        precondition(preferences.batteryCalibrationCompletedAt != nil)
+        preferences.set(.batteryChargeLimit, true)
+        preferences.batteryChargePercent = 80
+        preferences.set(.keepAwake, true)
+        nativeFailure = true
+        for _ in 0..<100 { await Task.yield() }
+        await module.evaluate(now: .now)
+        precondition(module.failure != nil && created == 4)
+        nativeFailure = false
+        preferences.set(.batterySailing, true)
+        percent = 95
+        for _ in 0..<100 { await Task.yield() }
+        await module.evaluate(now: .now)
+        precondition(calls.last == .chargingOff)
+        let heldCalls = calls
+        absent = true
+        await module.evaluate(now: .now)
+        absent = false
+        connected = false
+        percent = 20
+        await module.evaluate(now: .now)
+        precondition(calls == heldCalls)
+        connected = true
+        await module.evaluate(now: .now)
+        precondition(calls.last == .chargingOn)
+        suspendToggle = true
+        percent = 95
+        let toggle = Task { await module.evaluate(now: .now) }
+        while pending == nil { await Task.yield() }
+        toggle.cancel()
+        pending?.resume()
+        await toggle.value
+        preferences.set(.batterySailing, false)
+        for _ in 0..<100 { await Task.yield() }
+        await module.evaluate(now: .now)
+        precondition(calls.last == .chargingOn && !preferences.batteryRootDirty)
+        module.stop()
+        await module.waitUntilIdle()
+        precondition(calls.last == .chargeLimitOff)
+        precondition(!preferences.batteryRootDirty && released == created)
+        preferences.set(.batteryChargeLimit, false)
+        preferences.set(.keepAwake, false)
+        preferences.set(.batteryCalibration, true)
+        unsupported = true
+        module.start()
+        for _ in 0..<100 { await Task.yield() }
+        percent = 100
+        await module.evaluate(now: .now)
+        await module.evaluate(now: .now)
+        precondition(module.chargingUnsupported)
+        let count = calls.count
+        await module.evaluate(now: .now)
+        precondition(calls.count == count)
+        module.stop()
+        await module.waitUntilIdle()
+        await staleReadCase()
+    }
+
+    static func staleReadCase() async {
+        let suite = "battery-read-test.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        var pending: CheckedContinuation<Int?, Error>?
+        var missing = false
+        let module = BatteryModule(preferences: preferences, runner: .init(read: { nil },
+            root: { _ in }, installed: { true }, version: { "2" }, create: { _ in 0 },
+            release: { _ in }, readLimit: {
+                if missing { throw RootHelperClient.Failure.executionFailed(RootContract.usageExit) }
+                return try await withCheckedThrowingContinuation { pending = $0 }
+            }))
+        module.start()
+        while pending == nil { await Task.yield() }
+        preferences.batteryChargePercent = 80
+        preferences.set(.batteryChargeLimit, true)
+        await module.evaluate(now: .now)
+        precondition(module.nativeLimit == 80)
+        pending?.resume(returning: 85)
+        for _ in 0..<100 { await Task.yield() }
+        precondition(module.nativeLimit == 80)
+        missing = true
+        module.refreshHelper()
+        for _ in 0..<100 { await Task.yield() }
+        precondition(!module.nativeLimitAvailable && module.failure == nil)
+        module.stop()
+        await module.waitUntilIdle()
     }
 }

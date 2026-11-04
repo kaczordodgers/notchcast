@@ -21,6 +21,8 @@ if command.operation != .read {
         default:
             try BatterySMC.run(command)
         }
+    } catch BatterySMC.Failure.unsupported {
+        exit(RootContract.unsupportedExit)
     } catch {
         exit(70)
     }
