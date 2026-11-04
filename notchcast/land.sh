@@ -12,7 +12,8 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
     metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,statusCheckRollup)
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
-    python3 -c 'import json,sys; p=json.load(sys.stdin); b=[c.get("conclusion") for c in p["statusCheckRollup"] if c.get("name") == "build"]; assert b and all(x == "SUCCESS" for x in b)' <<< "$metadata" 2>/dev/null \
+    # The newest run wins: a dispatched rerun sits beside the cancelled run on the same head.
+    python3 -c 'import json,sys; p=json.load(sys.stdin); b=[c for c in p["statusCheckRollup"] if c.get("name") == "build"]; assert max(b, key=lambda c: c["startedAt"])["conclusion"] == "SUCCESS"' <<< "$metadata" 2>/dev/null \
         || refuse "build is not green on $head; run: gh workflow run PR --ref <branch> -R kaczordodgers/notchcast"
     git fetch origin main "refs/pull/$pr/head"
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
