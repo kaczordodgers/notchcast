@@ -4,6 +4,7 @@ enum NotchcastCore {
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
     static let brightness = DisplayBrightnessModule()
+    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: systemLevels, brightness: brightness)
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
@@ -35,6 +36,7 @@ enum NotchcastCore {
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
+            .init(requires: [], module: levelKeys),
             .init(requires: [.quitProtection], module: quitProtectionModule),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
