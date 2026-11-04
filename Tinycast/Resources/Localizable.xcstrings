@@ -2,485 +2,261 @@
   "sourceLanguage" : "en",
   "strings" : {
     "A recording is already in progress." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Eine Aufnahme läuft bereits."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Aufnahme läuft bereits."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya hay una grabación en curso."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un enregistrement est déjà en cours."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録画はすでに進行中です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미 녹화가 진행 중입니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma gravação já está em andamento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись уже выполняется."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制已在进行中。"
+          }
+        }
       }
     },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Ya hay una grabación en curso."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Un enregistrement est déjà en cours."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "録画はすでに進行中です。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "이미 녹화가 진행 중입니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Uma gravação já está em andamento."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Запись уже выполняется."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "录制已在进行中。"
-      }
-    }
-  }
-},
-    "No recording is in progress." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Es läuft keine Aufnahme."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "No hay ninguna grabación en curso."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Aucun enregistrement en cours."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "録画は進行していません。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "진행 중인 녹화가 없습니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Nenhuma gravação em andamento."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Запись не выполняется."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "当前没有正在进行的录制。"
-      }
-    }
-  }
-},
-    "The recording contains no frames." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Die Aufnahme enthält keine Bilder."
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "La grabación no contiene fotogramas."
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "L’enregistrement ne contient aucune image."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "録画にフレームが含まれていません。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "녹화에 프레임이 없습니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "A gravação não contém quadros."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Запись не содержит кадров."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "录制不包含任何帧。"
-      }
-    }
-  }
-},
     "Could not save the recording." : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Die Aufnahme konnte nicht gesichert werden."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahme konnte nicht gesichert werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo guardar la grabación."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’enregistrer la vidéo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録画を保存できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화를 저장할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível salvar a gravação."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось сохранить запись."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存录制。"
+          }
+        }
       }
     },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "No se pudo guardar la grabación."
+    "Fix Mac Link" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Mac-Verbindung reparieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Reparar enlace con Mac" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réparer la connexion Mac" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクを修復" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결 복구" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Reparar ligação ao Mac" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Восстановить связь с Mac" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "修复 Mac 连接" } }
+    } },
+    "Copy DNS Reset Command" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "DNS-Reset-Befehl kopieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de restablecimiento de DNS" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier la commande de réinitialisation DNS" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "DNSリセットコマンドをコピー" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "DNS 재설정 명령 복사" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de reposição do DNS" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Копировать команду сброса DNS" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制 DNS 重置命令" } }
+    } },
+    "Copy Tailscale Command" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Tailscale-Befehl kopieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de Tailscale" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier la commande Tailscale" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Tailscaleコマンドをコピー" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Tailscale 명령 복사" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando do Tailscale" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Копировать команду Tailscale" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制 Tailscale 命令" } }
+    } },
+    "Copy Sync Command" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Synchronisierungsbefehl kopieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de sincronización" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Copier la commande de synchronisation" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "同期コマンドをコピー" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "동기화 명령 복사" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Copiar comando de sincronização" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Копировать команду синхронизации" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复制同步命令" } }
+    } },
+    "No recording is in progress." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es läuft keine Aufnahme."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay ninguna grabación en curso."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucun enregistrement en cours."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録画は進行していません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "진행 중인 녹화가 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nenhuma gravação em andamento."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись не выполняется."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前没有正在进行的录制。"
+          }
+        }
       }
     },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Impossible d’enregistrer la vidéo."
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "録画を保存できませんでした。"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "녹화를 저장할 수 없습니다."
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Não foi possível salvar a gravação."
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Не удалось сохранить запись."
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "无法保存录制。"
-      }
-    }
-  }
-},
-"Record Screen" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Bildschirm aufnehmen"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Grabar pantalla"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Enregistrer l’écran"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "画面を収録"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "화면 녹화"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Gravar ecrã"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Записать экран"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "录制屏幕"
-      }
-    }
-  }
-},
-"Record Area" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Bereich aufnehmen"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Grabar área"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Enregistrer une zone"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "範囲を収録"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "영역 녹화"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Gravar área"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Записать область"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "录制区域"
-      }
-    }
-  }
-},
-"Pause or Resume Recording" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Aufnahme pausieren oder fortsetzen"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Pausar o reanudar grabación"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Suspendre ou reprendre l’enregistrement"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "収録を一時停止または再開"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "녹화 일시 정지 또는 재개"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Pausar ou retomar gravação"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Приостановить или продолжить запись"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "暂停或继续录制"
-      }
-    }
-  }
-},
-"Stop Recording" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Aufnahme stoppen"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Detener grabación"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Arrêter l’enregistrement"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "収録を停止"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "녹화 중지"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Parar gravação"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Остановить запись"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "停止录制"
-      }
-    }
-  }
-},
-"Recording failed." : {
-  "localizations": {
-    "de": { "stringUnit": { "state": "translated", "value": "Aufnahme fehlgeschlagen." } },
-    "es": { "stringUnit": { "state": "translated", "value": "La grabación ha fallado." } },
-    "fr": { "stringUnit": { "state": "translated", "value": "L’enregistrement a échoué." } },
-    "ja": { "stringUnit": { "state": "translated", "value": "収録に失敗しました。" } },
-    "ko": { "stringUnit": { "state": "translated", "value": "녹화에 실패했습니다." } },
-    "pt": { "stringUnit": { "state": "translated", "value": "A gravação falhou." } },
-    "ru": { "stringUnit": { "state": "translated", "value": "Не удалось выполнить запись." } },
-    "zh-Hans": { "stringUnit": { "state": "translated", "value": "录制失败。" } }
-  }
-},
-"Recording saved" : {
-  "localizations": {
-    "de": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Aufnahme gespeichert"
-      }
-    },
-    "es": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Grabación guardada"
-      }
-    },
-    "fr": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Enregistrement sauvegardé"
-      }
-    },
-    "ja": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "収録を保存しました"
-      }
-    },
-    "ko": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "녹화 저장됨"
-      }
-    },
-    "pt": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Gravação guardada"
-      }
-    },
-    "ru": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "Запись сохранена"
-      }
-    },
-    "zh-Hans": {
-      "stringUnit": {
-        "state": "translated",
-        "value": "录制已保存"
-      }
-    }
-  }
-},
+    "Open Mac Link Settings" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Mac-Verbindungseinstellungen öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes del enlace con Mac" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir les réglages de connexion Mac" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンク設定を開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결 설정 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes da ligação ao Mac" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть настройки связи с Mac" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开 Mac 连接设置" } }
+    } },
+    "Mac Link could not be checked yet." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Mac-Verbindung konnte noch nicht geprüft werden." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no se ha podido comprobar el enlace con Mac." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "La connexion Mac n’a pas encore pu être vérifiée." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクはまだ確認できていません。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "아직 Mac 연결을 확인할 수 없습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ainda não foi possível verificar a ligação ao Mac." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Связь с Mac пока не удалось проверить." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂时无法检查 Mac 连接。" } }
+    } },
+    "Mac Link is connected." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Mac-Verbindung ist hergestellt." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "El enlace con Mac está conectado." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "La connexion Mac est établie." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクは接続済みです。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결이 설정되었습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "A ligação ao Mac está estabelecida." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Связь с Mac установлена." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Mac 连接已建立。" } }
+    } },
+    "Command copied." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Befehl kopiert." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Comando copiado." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Commande copiée." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "コマンドをコピーしました。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "명령을 복사했습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Comando copiado." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Команда скопирована." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "命令已复制。" } }
+    } },
+    "Open Network Settings" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Netzwerkeinstellungen öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes de red" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir les réglages réseau" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ネットワーク設定を開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "네트워크 설정 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes de rede" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть настройки сети" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开网络设置" } }
+    } },
+    "Open Log" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Protokoll öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir registro" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir le journal" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログを開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "로그 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir registro" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть журнал" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开日志" } }
+    } },
     "Clipboard is empty" : {
       "localizations" : {
         "de" : {
@@ -581,6 +357,266 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "磁盘空间不足：%@"
+          }
+        }
+      }
+    },
+    "Pause or Resume Recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme pausieren oder fortsetzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar o reanudar grabación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suspendre ou reprendre l’enregistrement"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収録を一時停止または再開"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화 일시 정지 또는 재개"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pausar ou retomar gravação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Приостановить или продолжить запись"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂停或继续录制"
+          }
+        }
+      }
+    },
+    "Record Area" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereich aufnehmen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grabar área"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer une zone"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "範囲を収録"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "영역 녹화"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gravar área"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записать область"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制区域"
+          }
+        }
+      }
+    },
+    "Record Screen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm aufnehmen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grabar pantalla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrer l’écran"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画面を収録"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "화면 녹화"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gravar ecrã"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Записать экран"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制屏幕"
+          }
+        }
+      }
+    },
+    "Recording failed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme fehlgeschlagen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La grabación ha fallado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’enregistrement a échoué."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収録に失敗しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화에 실패했습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A gravação falhou."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось выполнить запись."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制失败。"
+          }
+        }
+      }
+    },
+    "Recording saved" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme gespeichert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grabación guardada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enregistrement sauvegardé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収録を保存しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화 저장됨"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gravação guardada"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись сохранена"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制已保存"
           }
         }
       }
@@ -4876,6 +4912,58 @@
       "ru" : { "stringUnit" : { "state" : "translated", "value" : "Сократить ссылку" } },
       "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "缩短链接" } }
     } },
+    "Stop Recording" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahme stoppen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detener grabación"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter l’enregistrement"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "収録を停止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화 중지"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parar gravação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Остановить запись"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止录制"
+          }
+        }
+      }
+    },
     "Switch Noise Control" : { "localizations" : {
       "de" : { "stringUnit" : { "state" : "translated", "value" : "Geräuschkontrolle wechseln" } },
       "es" : { "stringUnit" : { "state" : "translated", "value" : "Cambiar control de ruido" } },
@@ -29233,6 +29321,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法恢复之前的%lld%%充电上限；当前上限保持不变。"
+          }
+        }
+      }
+    },
+    "The recording contains no frames." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufnahme enthält keine Bilder."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La grabación no contiene fotogramas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’enregistrement ne contient aucune image."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録画にフレームが含まれていません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화에 프레임이 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A gravação não contém quadros."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запись не содержит кадров."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制不包含任何帧。"
           }
         }
       }

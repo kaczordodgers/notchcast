@@ -681,7 +681,6 @@ extension NotchcastFeature {
         .agentAnswer,
         .voiceAsk,
         .cleanSystem,
-        .linkQuickFixes,
         .remoteScreen,
         .machMBPFans,
         .macSetup,
