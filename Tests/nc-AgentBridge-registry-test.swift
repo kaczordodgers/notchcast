@@ -40,7 +40,7 @@ struct AgentRegistryTests {
         dryRun.dryRun = true
         check(await index.handle(dryRun) == .init(code: .ok, result: action.json(available: true)))
         check(runs == 0)
-        index.authorize = { _, _ in true }
+        index.authorize = { _, _ in {} }
         check(await index.handle(request) == .init(code: .ok, result: request.parameters))
         check(runs == 1)
         for parameters: AgentJSON in [.object([:]), .object(["level": .number(-0.1)]),
@@ -67,13 +67,13 @@ struct AgentRegistryTests {
         check(await index.handle(.init(verb: .status, id: "unexpected")) == .init(code: .badRequest))
         check(await index.handle(.init(verb: .get, id: provider.id, dryRun: true)) == .init(code: .badRequest))
 
-        var approval: CheckedContinuation<Bool, Never>?
+        var approval: CheckedContinuation<(@MainActor () -> Void)?, Never>?
         index.authorize = { _, _ in await withCheckedContinuation { approval = $0 } }
         let stale = Task { await index.handle(request) }
         while approval == nil { await Task.yield() }
         index.stop()
         index.start()
-        approval?.resume(returning: true)
+        approval?.resume(returning: {})
         check(await stale.value == .init(code: .notRunning))
         check(runs == 1, "stale approval executed an action")
 
@@ -81,7 +81,7 @@ struct AgentRegistryTests {
         let disabled = Task { await index.handle(request) }
         while approval == nil { await Task.yield() }
         available = false
-        approval?.resume(returning: true)
+        approval?.resume(returning: {})
         check(await disabled.value == .init(code: .failed))
         check(runs == 1)
 
@@ -90,7 +90,7 @@ struct AgentRegistryTests {
         let cancelled = Task { await index.handle(request) }
         while approval == nil { await Task.yield() }
         cancelled.cancel()
-        approval?.resume(returning: true)
+        approval?.resume(returning: {})
         check(await cancelled.value == .init(code: .failed))
         check(runs == 1)
 
