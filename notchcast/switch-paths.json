@@ -1,6 +1,7 @@
 {
   "tasks": "launcher commands Add Task from Clipboard / Complete Next / Undo (Tinycast/Features/Todo/Commands/TodoCommands.swift:16, :19, :22; catalog NotchcastCommandCatalog+All.swift:4-6)",
   "machLink": "settings Pair/Unpair (Tinycast/Features/AIUsage/UI/AIUsageSettingsSection.swift:15) + automatic listener (Tinycast/Features/AIUsage/AIUsageLinkModule.swift:80) serving link-health, dialogs and shelf requests",
+  "linkQuickFixes": "launcher command Fix Mac Link (Tinycast/Features/LinkQuickFixes/Commands/LinkQuickFixCommands.swift:4; catalog NotchcastCommandCatalog+All.swift:4): when Mac Link is down or unpaired, offers fixes in upstream's dialog (copy Tailscale command, Network Settings, Mac Link settings) and runs the chosen one",
   "islandExternalDisplays": "automatic: panels shown on displays without a notch (Tinycast/Features/Notchcast/Island/IslandController.swift:185)",
   "islandFullScreen": "automatic: panel full-screen behaviour (Tinycast/Features/Notchcast/Island/IslandController.swift:184)",
   "islandHoverOpen": "automatic: hover-open input + delay picker (Tinycast/Features/Notchcast/Island/IslandController.swift:263, :275)",
@@ -41,6 +42,7 @@
   "cleanDisk": "Settings \"Scan…\" (folder picker) / \"Move to trash\": NotchcastCleanSettingsRows.swift:31 → :92 → CleanModule.swift:105 (CleanDiskScanner)",
   "cleanPurge": "Settings \"Scan…\" (project folders) / \"Move to trash\": NotchcastCleanSettingsRows.swift:31 → :92 → CleanModule.swift:123 (CleanPurgeService)",
   "cleanOptimize": "Settings one button per optimize task: NotchcastCleanSettingsRows.swift:27 → Tinycast/Features/Clean/CleanCoordinator.swift:134 → CleanModule.swift:164 (CleanOptimizeService)",
+  "cleanSystem": "Settings \"Scan…\" / \"Move to trash\" (enabled once the root helper speaks contract 4): NotchcastCleanSettingsRows.swift:31 and :57 → CleanModule.swift:191 (CleanSystemRootClient → helper clean-system-list / clean-system-trash)",
   "settingsBackup": "automatic hourly fork-settings backup: Tinycast/Features/SettingsBackup/ForkSettingsBackupModule.swift:18; launcher commands \"Restore Settings Backup\" / \"Open Settings Backup Folder\": NotchcastCommandCatalog+All.swift:7-8",
   "showDesktop": "hotkey (key engine in ShowDesktopEngine) shows desktop via Dock notification: Tinycast/Features/ShowDesktop/Service/ShowDesktopModule.swift:48",
   "spacesOrder": "automatic: keeps Dock mru-spaces off every 30 s, restores on off: Tinycast/Features/SpacesOrder/Service/SpacesOrderModule.swift:17",
