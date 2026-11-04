@@ -6,18 +6,18 @@ import SystemConfiguration
 @Observable
 final class AIUsageLinkModule: NotchcastModule {
     let channel = MachLinkUsagePeerChannel()
+    @ObservationIgnored var listenerRoute: (@Sendable (MachLinkMessage) async throws -> MachLinkMessage?)?
     private(set) var isRunning = false
     private(set) var isPaired = false
     private(set) var failed = false
     @ObservationIgnored private let preferences: NotchcastPreferences
-    @ObservationIgnored private let provider: AIUsageProvider
+    @ObservationIgnored private let provider: AIUsageProvider?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let secrets = KeychainSecretStore(scope: "mach-link")
 
     init(
         preferences: NotchcastPreferences = .shared,
-        provider: AIUsageProvider = AIUsageProvider(
-            cacheDirectory: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".t3/caches")),
+        provider: AIUsageProvider? = nil,
         defaults: UserDefaults = UserDefaults(suiteName:
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".mach-link")!
     ) {
@@ -39,6 +39,7 @@ final class AIUsageLinkModule: NotchcastModule {
     func stop() {
         isRunning = false
         channel.manager.stop()
+        channel.pairing = nil
     }
 
     func pair(code: String) throws -> String {
@@ -55,14 +56,17 @@ final class AIUsageLinkModule: NotchcastModule {
         }
         try pairing.save(to: secrets)
         channel.manager.stop()
-        channel.pairing = pairing
+        channel.pairing = isRunning ? pairing : nil
         defaults.set(pairing.id.uuidString, forKey: "pairingID")
+        isPaired = true
         try listen()
         return pairing.id.uuidString + ":" + pairing.secret.base64EncodedString()
     }
 
     func unpair() throws {
-        if let pairing = channel.pairing { try secrets.removeSecret(for: pairing.id) }
+        if let raw = defaults.string(forKey: "pairingID"), let id = UUID(uuidString: raw) {
+            try secrets.removeSecret(for: id)
+        }
         channel.manager.stop()
         channel.pairing = nil
         defaults.removeObject(forKey: "pairingID")
@@ -70,22 +74,41 @@ final class AIUsageLinkModule: NotchcastModule {
     }
 
     private func listen() throws {
-        isPaired = channel.pairing != nil
+        isPaired = isPaired || channel.pairing != nil
         guard isRunning, let pairing = channel.pairing else { return }
-        let provider = provider
-        let preferences = preferences
         let name = SCDynamicStoreCopyLocalHostName(nil) as String? ?? UUID().uuidString
-        try channel.manager.start(pairing: pairing, name: name) { request in
-            guard await preferences.isOn(.aiUsage), await preferences.isOn(.aiUsageOtherMac) else {
-                throw MachLinkMessage.Failure.disconnected
-            }
-            let response = try await MachLinkUsagePeerChannel.response(to: request, provider: provider)
-            try Task.checkCancellation()
-            guard await preferences.isOn(.aiUsage), await preferences.isOn(.aiUsageOtherMac) else {
-                throw MachLinkMessage.Failure.disconnected
-            }
-            return response
+        try channel.manager.start(pairing: pairing, name: name) { [weak self] request in
+            guard let self else { throw MachLinkMessage.Failure.disconnected }
+            return try await self.respond(to: request)
         }
         failed = false
     }
+
+    func respond(to request: MachLinkMessage) async throws -> MachLinkMessage {
+        if request.method == "dialogs" {
+            guard preferences.isOn(.machBlockedDialogAlert) else {
+                throw MachLinkMessage.Failure.disconnected
+            }
+            return try MachLinkMessage(id: request.id, method: request.method,
+                value: BlockedDialogWindows.current())
+        }
+        if let response = try await listenerRoute?(request) { return response }
+        if request.method == "link-health" {
+            _ = try request.value(as: Bool.self)
+            return try MachLinkMessage(id: request.id, method: request.method, value: true)
+        }
+        guard preferences.isOn(.aiUsage), preferences.isOn(.aiUsageOtherMac) else {
+            throw MachLinkMessage.Failure.disconnected
+        }
+        let path = preferences.aiUsageCachePath
+        guard provider != nil || !path.isEmpty else { throw MachLinkMessage.Failure.disconnected }
+        let provider = provider ?? AIUsageProvider(cacheDirectory: URL(fileURLWithPath: path))
+        let response = try await MachLinkUsagePeerChannel.response(to: request, provider: provider)
+        try Task.checkCancellation()
+        guard preferences.isOn(.aiUsage), preferences.isOn(.aiUsageOtherMac) else {
+            throw MachLinkMessage.Failure.disconnected
+        }
+        return response
+    }
+
 }

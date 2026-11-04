@@ -6,7 +6,8 @@ final class AIUsageModule: NotchcastModule {
     private(set) var isRunning = false
     private(set) var snapshots: [AIUsageSnapshot] = []
     let otherMac: OtherMacUsageService
-    private let provider: AIUsageProvider
+    private let provider: AIUsageProvider?
+    private let post: @MainActor (String) -> Void
     private let source: AIUsageSnapshotAdapter
     private let preferences: NotchcastPreferences
     private var generation = 0
@@ -17,12 +18,13 @@ final class AIUsageModule: NotchcastModule {
     }
 
     init(
-        provider: AIUsageProvider = AIUsageProvider(
-            cacheDirectory: FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".t3/caches")),
+        provider: AIUsageProvider? = nil,
         preferences: NotchcastPreferences = .shared,
-        channel: MachLinkUsagePeerChannel = MachLinkUsagePeerChannel()
+        channel: MachLinkUsagePeerChannel = MachLinkUsagePeerChannel(),
+        post: @escaping @MainActor (String) -> Void = { _ in }
     ) {
         self.provider = provider
+        self.post = post
         self.preferences = preferences
         let source = AIUsageSnapshotAdapter()
         self.source = source
@@ -46,6 +48,11 @@ final class AIUsageModule: NotchcastModule {
 
     func refresh() async throws {
         guard isRunning, !refreshing else { return }
+        guard provider != nil || !preferences.aiUsageCachePath.isEmpty else {
+            post(String(localized: "AI usage cache directory is not configured."))
+            return
+        }
+        let provider = provider ?? AIUsageProvider(cacheDirectory: URL(fileURLWithPath: preferences.aiUsageCachePath))
         refreshing = true
         defer { refreshing = false }
         let operation = generation

@@ -35,6 +35,7 @@ extension SettingsAnchor {
     static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
     static let notchcastTorrents = Self(tab: .notchcast, title: "Torrents")
     static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
+    static let notchcastRemoteMac = Self(tab: .notchcast, title: LocalizedStringResource("Remote Mac"))
     static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
     static let notchcastCaptureAndDictation = Self(tab: .notchcast, title: "Capture and dictation")
 }
@@ -121,6 +122,17 @@ extension SettingsSearchCatalog {
         .init(.notchcastLauncher, "Currency Answers", keywords: ["nbp", "currency", "rates"]),
         .init(.notchcastLauncher, "Copy Path", keywords: ["finder", "browser", "document", "link"]),
         .init(.notchcastLauncher, "Small Commands", keywords: ["password", "shorten", "noise", "airdrop"]),
+        .init(.notchcastActivities, "Shelf between Macs", keywords: ["send", "files", "text"]),
+        .init(.notchcastSystem, "Link Health", keywords: ["connection", "latency", "peer"]),
+        .init(.notchcastSystem, "Backup Status", keywords: ["backup", "stale", "failure", "restore"]),
+        .init(.notchcastSystem, "Remote Mac", keywords: ["ssh", "terminal", "Remote Mac address"]),
+        .init(.notchcastSystem, "Send to Remote Mac", keywords: ["files", "Finder"]),
+        .init(.notchcastSystem, "Update Remote Mac", keywords: ["update", "ssh"]),
+        .init(.notchcastRemoteMac, "Remote Mac address", keywords: ["ssh", "host", "alias"]),
+        .init(.notchcastRemoteMac, "Remote terminal directory"),
+        .init(.notchcastRemoteMac, "Remote update script path"),
+        .init(.notchcastSystem, "Backup status file path"),
+        .init(.notchcastActivities, "AI usage cache directory"),
         .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
