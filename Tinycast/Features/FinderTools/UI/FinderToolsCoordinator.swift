@@ -3,8 +3,7 @@ import Observation
 
 @MainActor @Observable
 final class FinderToolsCoordinator {
-    private(set) var cutSession = FinderCutSession()
-    private(set) var lastMoveFileCount = 0
+    private var cutSession = FinderCutSession()
     @ObservationIgnored private let hub: EventTapHub
     @ObservationIgnored private let input = FinderShortcutState()
     @ObservationIgnored private var registration: UUID?
@@ -27,7 +26,6 @@ final class FinderToolsCoordinator {
         operation?.cancel()
         operation = nil
         cutSession.clear()
-        lastMoveFileCount = 0
         input.configure(cut: cutEnabled, rename: renameEnabled, pid: finderPID)
         if cutEnabled || renameEnabled { start() } else { stop() }
     }
@@ -74,7 +72,7 @@ final class FinderToolsCoordinator {
         activation = NotificationToken(center.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated {
+            Task { @MainActor in
                 guard let self else { return }
                 self.refreshContext()
             }
@@ -105,9 +103,7 @@ final class FinderToolsCoordinator {
             guard focus == .files else {
                 self.cutSession.clear()
                 self.input.finishCut(request)
-                if request.action == .paste {
-                    FinderCommandService.post(keyCode: 9, flags: .maskCommand, pid: request.pid)
-                }
+                self.forwardUnavailable(request)
                 return
             }
             switch request.action {
@@ -151,6 +147,11 @@ final class FinderToolsCoordinator {
         }
     }
 
+    private func forwardUnavailable(_ request: FinderShortcutState.Request) {
+        guard let (key, flags) = FinderCommandService.originalKey(for: request.action) else { return }
+        FinderCommandService.post(keyCode: key, flags: flags, pid: request.pid)
+    }
+
     private func copySelection(_ request: FinderShortcutState.Request) async {
         cutSession.clear()
         let before = NSPasteboard.general.changeCount
@@ -174,10 +175,8 @@ final class FinderToolsCoordinator {
     }
 
     private func moveSelection(_ request: FinderShortcutState.Request) {
-        let count = cutSession.fileCount
         let move = cutSession.take(changeCount: NSPasteboard.general.changeCount)
         input.finishCut(request)
-        lastMoveFileCount = move ? count : 0
         FinderCommandService.post(keyCode: 9, flags: move ? [.maskCommand, .maskAlternate] : .maskCommand,
                                   pid: request.pid)
     }

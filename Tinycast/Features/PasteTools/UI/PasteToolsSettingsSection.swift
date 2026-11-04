@@ -5,7 +5,7 @@ struct PasteToolsSettingsSection: View {
 
     var body: some View {
         Section {
-            ForEach([NotchcastFeature.pastePlain, .pasteImage, .finderCutPaste, .finderRename], id: \.self) { feature in
+            ForEach([NotchcastFeature.pastePlain, .pasteImage], id: \.self) { feature in
                 Toggle(isOn: Binding(
                     get: { preferences.isOn(feature) },
                     set: { preferences.set(feature, $0) })) {

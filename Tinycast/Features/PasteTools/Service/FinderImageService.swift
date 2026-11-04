@@ -27,12 +27,9 @@ struct FinderImageService {
 
     func place(_ file: URL) -> PlaceResult {
         let finder = NSAppleEventDescriptor(bundleIdentifier: "com.apple.finder")
-        let count: Int
-        switch Self.countWindows(to: finder) {
-        case .failure(let failure): return Self.result(for: failure)
-        case .success(let windows): count = windows
-        }
-        switch Self.send(Self.moveEvent(file, toFrontWindow: count > 0, to: finder)) {
+        let move = Self.moveEvent(file, toFrontWindow: false, to: finder)
+        move.setParam(Self.insertionLocation, forKeyword: Event.insertHere)
+        switch Self.send(move) {
         case .failure(let failure):
             return Self.result(for: failure)
         case .success(let reply):
@@ -99,6 +96,11 @@ struct FinderImageService {
             data: NSAppleEventDescriptor(typeCode: Event.desktop))
     }
 
+    static var insertionLocation: NSAppleEventDescriptor {
+        specifier(Event.propertyClass, in: .null(), form: Event.propertyForm,
+                  data: NSAppleEventDescriptor(typeCode: Event.insertionLocation))
+    }
+
     private static func specifier(_ wanted: OSType, in container: NSAppleEventDescriptor, form: OSType,
                                   data: NSAppleEventDescriptor) -> NSAppleEventDescriptor {
         let record = NSAppleEventDescriptor.record()
@@ -121,6 +123,7 @@ struct FinderImageService {
         static let directObject = code("----"), insertHere = code("insh"), each = code("kocl"), errorNumber = code("errn")
         static let windowClass = code("brow"), propertyClass = code("prop")
         static let target = code("fvtg"), desktop = code("desk")
+        static let insertionLocation = code("pins")
         static let want = code("want"), container = code("from"), form = code("form"), data = code("seld")
         static let indexForm = code("indx"), propertyForm = code("prop"), objectSpecifier = code("obj ")
 

@@ -9,12 +9,15 @@ final class PasteImageModule: NotchcastModule {
     private(set) var saveFailed = false
     private let hub: EventTapHub
     private let state = OSAllocatedUnfairLock(initialState: State())
-    private var refresh: Task<Void, Never>?
+    private var activation: NotificationToken?
+    var onFailure: (() -> Void)?
     private var work: Task<Void, Never>?
     private var token: UUID?
 
     private struct State: Sendable {
         var eligible = false
+        var changeCount: Int?
+        var acceptsImage = false
         var filter = PasteImagePolicy()
     }
 
@@ -32,8 +35,13 @@ final class PasteImageModule: NotchcastModule {
             let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskControl, .maskAlternate]
             let commandOnly = event.flags.intersection(modifiers) == .maskCommand
             let take = state.withLock { state in
-                state.filter.take(down: type == .keyDown, repeatKey: repeatKey,
-                    eligible: state.eligible && commandOnly)
+                let board = NSPasteboard.general
+                if state.changeCount != board.changeCount {
+                    state.changeCount = board.changeCount
+                    state.acceptsImage = PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
+                }
+                return state.filter.take(down: type == .keyDown, repeatKey: repeatKey,
+                    eligible: state.eligible && state.acceptsImage && commandOnly)
             }
             guard take else { return .pass }
             if type == .keyDown && !repeatKey {
@@ -41,17 +49,17 @@ final class PasteImageModule: NotchcastModule {
             }
             return .swallow
         }
-        refresh = Task { [weak self] in
-            while !Task.isCancelled {
-                self?.updateEligibility()
-                do { try await Task.sleep(for: .milliseconds(100)) } catch { return }
-            }
-        }
+        updateEligibility()
+        let center = NSWorkspace.shared.notificationCenter
+        activation = NotificationToken(center.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in self?.updateEligibility() }
+        }, center: center)
     }
 
     func stop() {
-        refresh?.cancel()
-        refresh = nil
+        activation = nil
         work?.cancel()
         work = nil
         if let token { hub.remove(token) }
@@ -61,13 +69,13 @@ final class PasteImageModule: NotchcastModule {
 
     private func updateEligibility() {
         let eligible = NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder"
-            && PasteImagePolicy.accepts(types: NSPasteboard.general.types?.map(\.rawValue) ?? [])
         state.withLock { $0.eligible = eligible }
         hub.refreshPermission()
     }
 
     func paste() {
-        guard token != nil, work == nil else { return }
+        guard token != nil else { return }
+        guard work == nil else { Paster.postCommandV(); return }
         saveFailed = false
         guard let app = NSWorkspace.shared.frontmostApplication,
             app.bundleIdentifier == "com.apple.finder",
@@ -101,6 +109,7 @@ final class PasteImageModule: NotchcastModule {
             guard !Task.isCancelled, let self else { return }
             self.work = nil
             self.saveFailed = !saved
+            if !saved { self.onFailure?() }
         }
     }
 }

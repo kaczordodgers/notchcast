@@ -8,6 +8,7 @@ extension NotchcastFeature {
         case activities
         case systemTools
         case clipboard
+        case finder
         // Keep group appends away from the closing braces during union merges.
     }
 }

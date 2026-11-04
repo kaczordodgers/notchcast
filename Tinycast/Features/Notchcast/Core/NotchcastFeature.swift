@@ -85,8 +85,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
         case .pastePlain: .clipboard
-        case .finderCutPaste: .clipboard
-        case .finderRename: .clipboard
+        case .finderCutPaste: .finder
+        case .finderRename: .finder
         case .pasteImage: .clipboard
         }
     }
@@ -160,7 +160,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
-        case .pastePlain: String(localized: "Hyper+V pastes text without formatting.")
+        case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
         case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
         case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")

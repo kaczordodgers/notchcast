@@ -19,6 +19,7 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             PasteToolsSettingsSection()
+            featureSection(.notchcastFinder, group: .finder)
             FinderSettingsSection()
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
@@ -26,7 +27,6 @@ struct NotchcastSettingsView: View {
             NotchcastExtrasSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
-                .settingsEnabled(preferences.isOn(.island))
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)

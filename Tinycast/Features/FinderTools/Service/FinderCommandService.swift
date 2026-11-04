@@ -4,6 +4,15 @@ import ApplicationServices
 enum FinderCommandService {
     enum Focus: Sendable { case files, text, unavailable }
 
+    static func originalKey(for action: FinderShortcutPolicy.Action) -> (CGKeyCode, CGEventFlags)? {
+        switch action {
+        case .cut: (7, .maskCommand)
+        case .paste: (9, .maskCommand)
+        case .rename: (15, [.maskCommand, .maskAlternate, .maskControl, .maskShift])
+        case .forget: nil
+        }
+    }
+
     @concurrent
     static func focus(pid: Int32) async -> Focus {
         guard AXIsProcessTrusted() else { return .unavailable }

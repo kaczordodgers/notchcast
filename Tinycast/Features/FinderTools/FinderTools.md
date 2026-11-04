@@ -11,15 +11,15 @@ and its native progress UI. A different clipboard version, Command-C, Escape, di
 or losing Accessibility cancels the pending cut. Text editing receives the original cut/paste keys.
 
 Hyper-R sends Finder's Return key when no text or dialog is being edited, following the native
-Return variant of the feature. Other applications keep their shortcuts. Command registration can
-call `FinderToolsCoordinator.cut()`, `paste()`, and `rename()` when the shared command hook lands.
+Return variant of the feature. Other applications keep their shortcuts. Cut, paste and rename
+register through `NotchcastCommandCatalog+All.swift` and support launcher aliases and hotkeys.
 
 The shared tap does no Accessibility queries or waiting. Requests carry lifecycle and cut identities;
 Accessibility reads leave the main actor, and results must still address the frontmost Finder.
 Injected events target Finder's PID and carry the existing synthetic-event tag.
 App-activation notifications refresh context and permissions; there are no idle polling timers.
 
-`cutSession` and `lastMoveFileCount` expose pending-cut and move-request state for a future look pass.
+The private cut session validates the clipboard version before requesting a move.
 A custom progress HUD and clipboard-image paste are not provided here. No Finder progress percentage
 is inferred from a submitted keyboard command.
 
