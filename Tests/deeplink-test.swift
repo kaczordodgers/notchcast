@@ -361,6 +361,32 @@ struct DeepLinkTests {
     }
 
     static func consentChecks() {
+        for slug in ["nc-toggle-island", "nc-fixture"] {
+            guard case .entry(let action, let input)? = parse(
+                "notchcast://command/" + slug, scheme: "notchcast") else {
+                expect(false, "Notchcast command link parses")
+                continue
+            }
+            expect(
+                DeepLinkConsentPolicy.requiresConsent(action, input: input),
+                "Notchcast command deep links ask first: \(slug)")
+        }
+        if case .entry(let action, let input)? = parse(
+            "notchcast://command/toggle-island", scheme: "notchcast") {
+            expect(
+                !DeepLinkConsentPolicy.requiresConsent(action, input: input),
+                "legacy Toggle Island deep link runs without asking")
+        } else {
+            expect(false, "legacy Toggle Island deep link parses")
+        }
+        if case .entry(let action, let input)? = parse(
+            "notchcast://command/toggle-island?fallbackText=test", scheme: "notchcast") {
+            expect(
+                DeepLinkConsentPolicy.requiresConsent(action, input: input),
+                "legacy Toggle Island deep link with input asks first")
+        } else {
+            expect(false, "legacy Toggle Island deep link with input parses")
+        }
         expect(
             !DeepLinkConsentPolicy.requiresConsent(.command(.clipboardHistory)),
             "opening a Tinycast screen runs without asking")
