@@ -36,6 +36,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case agentConfirmation
     case eventReminder
     case switcherQuitKey
+    case linkQuickFixes
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -60,6 +61,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: .systemTools
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
+        case .linkQuickFixes: .systemTools
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -114,6 +116,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: String(localized: "Agent Confirmation")
         case .eventReminder: String(localized: "Event Reminders")
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
+        case .linkQuickFixes: String(localized: "Link Quick Fixes")
         }
     }
 
@@ -154,6 +157,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
+        case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         }
     }
 
