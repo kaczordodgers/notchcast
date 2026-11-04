@@ -19,6 +19,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case settingsBackup
 
     case showDesktop, spacesOrder, hideCommandM, middleClick, greenMaximize
+    case machineSetupProfile
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -37,6 +38,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .hideCommandM, .middleClick, .greenMaximize: .system
         case .liveTimers, .dayCalendar, .dayWeather, .dayMarkets: .activities
         case .settingsBackup: .system
+        case .machineSetupProfile: .system
         }
     }
 
@@ -73,6 +75,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
         case .settingsBackup: String(localized: "Settings Backup")
+        case .machineSetupProfile: String(localized: "Machine Setup Profile")
         }
     }
 
@@ -109,6 +112,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
+        case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
         }
     }
 
@@ -128,6 +132,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
             []
+        case .machineSetupProfile: []
         }
     }
 }
@@ -135,7 +140,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.settingsBackup, .displayBrightness, .quitProtection, .showDesktop, .spacesOrder,
+        ![.machineSetupProfile, .settingsBackup, .displayBrightness, .quitProtection, .showDesktop, .spacesOrder,
           .hideCommandM, .middleClick, .greenMaximize].contains(self) && !isSystemFeature
     }
 
