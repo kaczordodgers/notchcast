@@ -4,7 +4,8 @@ import Foundation
 
 enum NotchcastFeature { case linkQuickFixes }
 enum SettingsTab { case notchcast }
-enum SettingsTarget { case notchcastAIUsage }
+enum SettingsAnchor { case notchcastAIUsage }
+enum SettingsTarget: Equatable { case section(SettingsAnchor) }
 struct NotchcastCommand: Sendable {
     var slug: String
     var name: String
@@ -174,7 +175,7 @@ struct LinkQuickFixTests {
         assert(AppCore.shared.options.first?.title == "Open Mac Link Settings")
         let relink = LinkQuickFixModule().configure()
         relink.execute(.relinkInConnections)
-        assert(AppCore.shared.settingsCoordinator.target == .notchcastAIUsage)
+        assert(AppCore.shared.settingsCoordinator.target == .section(.notchcastAIUsage))
         _ = await live.choose([.copyCommand("sync")], nil)
         assert(AppCore.shared.options.first?.title == "Copy Sync Command")
         print("Review cases: cause labels, unknown/stopped/unpaired/up, settings target, dialog state changes passed")

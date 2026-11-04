@@ -22,7 +22,7 @@ extension LinkQuickFixModule {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString($0, forType: .string)
         }, open: { NSWorkspace.shared.open($0) }, settings: {
-            AppCore.shared.settingsCoordinator.showSettings(tab: .notchcast, revealing: .notchcastAIUsage)
+            AppCore.shared.settingsCoordinator.showSettings(tab: .notchcast, revealing: .section(.notchcastAIUsage))
         }, message: { AppCore.shared.showMessage($0) })
         execute = executor.run
         choose = { actions, note in
