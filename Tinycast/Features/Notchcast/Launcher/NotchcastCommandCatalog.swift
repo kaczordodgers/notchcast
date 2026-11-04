@@ -25,6 +25,10 @@ enum NotchcastCommandCatalog {
     }
 
     @MainActor static func perform(_ id: String) {
-        _ = dispatch(id) { AppCore.shared.paletteCoordinator.hidePalette() }
+        _ = dispatch(id) {
+            let paletteCoordinator = AppCore.shared.paletteCoordinator
+            guard paletteCoordinator.isVisible else { return }
+            paletteCoordinator.hidePalette(restoreFocus: false)
+        }
     }
 }

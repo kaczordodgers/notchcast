@@ -197,7 +197,6 @@ struct AppEntry: Identifiable, Hashable, Sendable {
     }
 
     private var kindSymbol: String {
-        if kind == .command, let symbol = NotchcastCommandCatalog.command(for: id)?.sfSymbol { return symbol }
         switch kind {
         case .quicklink: return Quicklink.sfSymbol
         case .snippet: return "text.quote"

@@ -19,9 +19,11 @@ struct AppEntry: Sendable {
     let url: URL
     let bundleID: String?
     let kind: Kind
+    var symbolName: String?
     let settingsOwner: SettingsTab?
     var subtitle: String?
     var alternateTitles: [String] = []
+    var hotKeyAction: HotKeyAction? { HotKeyAction(entryID: id) }
 }
 
 enum CommandID: String, CaseIterable {
@@ -94,7 +96,14 @@ enum QuicklinkDestination {
 }
 
 @MainActor final class PaletteCoordinator {
-    func hidePalette() {}
+    var isVisible = false
+    var hideCalls = 0
+    var restoredFocus = false
+    func hidePalette(restoreFocus: Bool) {
+        hideCalls += 1
+        restoredFocus = restoreFocus
+        isVisible = false
+    }
 }
 
 @main @MainActor struct NotchcastCommandsTest {
@@ -104,6 +113,8 @@ enum QuicklinkDestination {
         assert(commands.allSatisfy { $0.id.hasPrefix("command:nc-") })
         assert(commands.allSatisfy { command in CommandCatalog.all.contains { $0.id == command.entry.id } })
         assert(CommandCatalog.entries(ownedBy: .notchcast).count == commands.count)
+        assert(CommandCatalog.entries(ownedBy: .notchcast).allSatisfy { $0.hotKeyAction != nil })
+        assert(commands.allSatisfy { $0.entry.symbolName == $0.sfSymbol })
         let action = HotKeyAction.notchcastCommand(entryID: commands[0].entry.id)
         assert(action.defaultsKey == "hotkey.command:toggle-island")
         assert(HotKeyAction(entryID: commands[0].entry.id) == action)
@@ -118,6 +129,13 @@ enum QuicklinkDestination {
         assert(NotchcastCommandCatalog.dispatch("command:nc-toggle-island", dismiss: { dismissed += 1 }))
         assert(island.runs == 1 && dismissed == 1)
         assert(!NotchcastCommandCatalog.dispatch("command:unknown", dismiss: {}))
+        island.commandsAvailable = true
+        let palette = AppCore.shared.paletteCoordinator
+        NotchcastCommandCatalog.perform("command:toggle-island")
+        assert(palette.hideCalls == 0 && island.runs == 2)
+        palette.isVisible = true
+        NotchcastCommandCatalog.perform("command:toggle-island")
+        assert(palette.hideCalls == 1 && !palette.restoredFocus && island.runs == 3)
         print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility and dispatch")
     }
 }
