@@ -4,13 +4,10 @@ struct QuitProtectionExceptionRow: View {
     let identifier: String
     let remove: () -> Void
 
-    private var url: URL? { NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier) }
-    private var name: String {
-        url.map { FileManager.default.displayName(atPath: $0.path).replacingOccurrences(of: ".app", with: "") }
-            ?? identifier
-    }
-
     var body: some View {
+        let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier)
+        let name = url.map { QuitProtectionAppName.displayName(FileManager.default.displayName(atPath: $0.path)) }
+            ?? identifier
         LabeledContent {
             BarButton(isCompact: true, action: remove) {
                 SymbolImage(name: "xmark", size: Theme.Size.menuIcon).accessibilityHidden(true)
