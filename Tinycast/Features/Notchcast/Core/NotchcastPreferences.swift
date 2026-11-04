@@ -51,7 +51,7 @@ final class NotchcastPreferences {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
         if enabled { off.remove(feature) } else { off.insert(feature) }
-        if feature == .colorPicker || feature == .screenshot { onCommandsChanged?() }
+        onCommandsChanged?()
     }
 }
 
