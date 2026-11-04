@@ -4,7 +4,6 @@ import AppKit
 @MainActor
 final class TweaksModule: NotchcastModule {
     private(set) var running = false
-    private let runner = SystemToolsProcessRunner()
     private let setupProfileRunner: TweakProfileRunner
     let store: TweaksStore
     private weak var core: AppCore?
@@ -12,6 +11,10 @@ final class TweaksModule: NotchcastModule {
     private var wantsEnabled = false
     private let profileRunner: (Data, String) async throws -> Void
     private let journalFailure: String?
+    private var setupBusy = false
+    private let setupService = MacSetupService(store: .init(url: URL.applicationSupportDirectory
+        .appendingPathComponent(Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
+        .appendingPathComponent("mac-setup-rollback.json")))
 
     init(key: String = "macSetupPlans", setupProfileRunner: TweakProfileRunner = .system,
          profileRunner: @escaping (Data, String) async throws -> Void = TweaksModule.openProfile) {
@@ -95,8 +98,17 @@ final class TweaksModule: NotchcastModule {
     }
 
     func apply(_ plan: MacSetupPlan) async -> TweakPlanRunner.Receipt? {
-        guard running else { return nil }
-        return await runner.apply(plan)
+        guard running, !setupBusy else { return nil }
+        setupBusy = true
+        defer { setupBusy = false }
+        return await setupService.apply(plan)
+    }
+
+    func rollback() async throws {
+        guard !setupBusy else { throw MacSetupPlan.Failure.drift }
+        setupBusy = true
+        defer { setupBusy = false }
+        try await setupService.rollback()
     }
 
     func showLibrary() async {
