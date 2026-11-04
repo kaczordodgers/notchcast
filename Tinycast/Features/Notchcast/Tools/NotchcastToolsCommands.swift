@@ -33,7 +33,7 @@ final class NotchcastToolsCommands: NotchcastModule {
     }
 
     private let preferences: NotchcastPreferences
-    private let selection: () throws -> [URL]
+    private let selection: () async throws -> [URL]
     private let post: (String) -> Void
     private let execute: @MainActor (Action, [URL], @escaping @MainActor () -> Bool) async throws -> Void
     private let refresh: () -> Void
@@ -42,7 +42,7 @@ final class NotchcastToolsCommands: NotchcastModule {
     private var generations: [Action: Int] = [:]
     private var identities: [Action: UUID] = [:]
 
-    init(preferences: NotchcastPreferences, selection: @escaping () throws -> [URL],
+    init(preferences: NotchcastPreferences, selection: @escaping () async throws -> [URL],
          post: @escaping (String) -> Void, refresh: @escaping () -> Void,
          execute: @escaping @MainActor (Action, [URL], @escaping @MainActor () -> Bool) async throws -> Void) {
         self.preferences = preferences
@@ -105,7 +105,8 @@ final class NotchcastToolsCommands: NotchcastModule {
             }
             guard valid() else { return }
             do {
-                let files = action.takesFiles ? try selection() : []
+                let files = action.takesFiles ? try await selection() : []
+                guard valid() else { return }
                 guard !action.takesFiles || !files.isEmpty else {
                     post(String(localized: "No files selected in Finder.")); return
                 }

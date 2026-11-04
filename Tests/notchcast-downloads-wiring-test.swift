@@ -77,6 +77,9 @@ struct NotchcastDownloadsWiringTest {
             preferences: preferences, services: services, file: root.appending(path: "distill.json"),
             linksFile: root.appending(path: "links.json"), destination: root.appending(path: "Distill/Raw"),
             report: { preconditionFailure($0) })
+        let features = [NotchcastFeature.downloads, .downloadsAria2, .distill, .distillTimestamps, .distillConvert]
+        precondition(features.allSatisfy { !preferences.isOn($0) }, "Downloads and Distill start off")
+        features.forEach { preferences.set($0, true) }
         let controller = NotchcastModuleController([
             .init(requires: [.downloads], module: downloads), .init(requires: [.distill], module: distill)
         ], preferences: preferences)
@@ -85,8 +88,7 @@ struct NotchcastDownloadsWiringTest {
         await distill.state.settle()
         precondition(downloads.state.queue != nil && distill.state.queue?.maxConcurrent == 1)
         precondition(preferences.isOn(.distillTimestamps))
-        precondition([NotchcastFeature.downloads, .downloadsAria2, .distill, .distillTimestamps, .distillConvert]
-            .allSatisfy { preferences.isOn($0) && $0.requiredGrants.isEmpty && !$0.needsIsland })
+        precondition(features.allSatisfy { preferences.isOn($0) && $0.requiredGrants.isEmpty && !$0.needsIsland })
         try await testSpeechOwnership()
         testClipboard()
         try await testCommands(downloads: downloads, distill: distill, preferences: preferences)

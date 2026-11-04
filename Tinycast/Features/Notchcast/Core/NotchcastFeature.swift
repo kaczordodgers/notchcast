@@ -351,6 +351,11 @@ extension NotchcastFeature {
         case .commandRunner: false
         case .buildStats: false
         case .pastePlain: false
+        case .downloads: false
+        case .downloadsAria2: false
+        case .distill: false
+        case .distillTimestamps: false
+        case .distillConvert: false
         default: !isSystemFeature && !isLauncherKeysFeature
         }
     }
