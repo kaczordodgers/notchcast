@@ -25,6 +25,11 @@ func settle() async {
 @MainActor
 struct NotchcastCoreTests {
     static func main() async {
+        for feature: NotchcastFeature in [.showDesktop, .spacesOrder, .hideCommandM,
+                                         .middleClick, .greenMaximize] {
+            precondition(feature.settingsGroup == .system)
+            precondition(!feature.needsIsland && !feature.isSystemFeature)
+        }
         let suite = "notchcast-core-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
