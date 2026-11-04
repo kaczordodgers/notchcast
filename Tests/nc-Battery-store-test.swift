@@ -61,7 +61,7 @@ struct BatteryStoreTests {
         }, root: {
             calls.append($0)
             if fail { throw RootHelperClient.Failure.timedOut }
-        }, installed: { true }, version: { "2" }, create: { _ in 99 }, release: { _ in }))
+        }, installed: { true }, version: { RootContract.version }, create: { _ in 99 }, release: { _ in }))
         preferences.set(.keepAwake, false)
         preferences.set(.batterySailing, true)
         preferences.batteryChargePercent = 80
