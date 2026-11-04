@@ -5,6 +5,10 @@ extension ForkSettingsBackupState {
     static var live: Self {
         Self(snapshot: {
             var values = ForkSettingsBackupRestore.snapshot(.shared)
+            let editor = NotchcastCore.editor.editorPreferences
+            values["notchcast.editor.font"] = editor.font.rawValue
+            values["notchcast.editor.theme"] = editor.theme.rawValue
+            values["notchcast.editor.pairsAutomatically"] = editor.pairsAutomatically
             values.merge(quitValues(NotchcastCore.quitProtection)) { _, value in value }
             values["notchcast.liveTimer.defaultDuration"] = NotchcastCore.timers.store.defaultDuration
             values["notchcast.liveTimer.playSound"] = NotchcastCore.timers.store.playSoundWhenTimeIsUp
@@ -38,6 +42,12 @@ extension ForkSettingsBackupState {
             return values
         }, validate: validateLive, apply: { values in
             try validateLive(values)
+            let editor = NotchcastCore.editor.editorPreferences
+            if let value = values["notchcast.editor.font"] as? String,
+               let font = EditorPreferences.FontPreset(rawValue: value) { editor.font = font }
+            if let value = values["notchcast.editor.theme"] as? String,
+               let theme = EditorPreferences.ThemePreset(rawValue: value) { editor.theme = theme }
+            if let value = values["notchcast.editor.pairsAutomatically"] as? Bool { editor.pairsAutomatically = value }
             if let value = values["notchcast.liveTimer.defaultDuration"] as? Double {
                 NotchcastCore.timers.store.defaultDuration = value
             }
