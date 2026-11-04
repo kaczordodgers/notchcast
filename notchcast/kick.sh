@@ -1,6 +1,6 @@
 #!/bin/bash
 # Sync trigger: GitHub's own schedule never fired for this fork, so launchd (notchcast.kick, every 10 min) starts
-# sync.yml whenever upstream main or upstream's newest release changed since the last start, and at least hourly.
+# sync.yml and snapshot.yml when upstream changes, and at least hourly.
 # The sync decides everything else (ci.py plan); a start that finds nothing to do costs one Linux minute.
 # Where chad-opus exists (the MBA) Chad is told once when this trigger fails, and once per upstream commit that is
 # not in our main after LAG_ALERT_MIN while no sync issue explains it.
@@ -47,11 +47,12 @@ if [ "$want" != "${last_main:-} ${last_release:-}" ]; then reason="upstream chan
 elif [ $((now - ${last_at:-0})) -ge "$HEARTBEAT_SEC" ]; then reason="hourly heartbeat"
 fi
 if [ -n "$reason" ]; then
-    if [ "$DRY" = 1 ]; then log "would start sync ($reason)"
+    if [ "$DRY" = 1 ]; then log "would start sync and snapshot ($reason)"
     else
         out="$(gh workflow run sync.yml -R "$FORK_REPO" --ref main 2>&1)" || fail "gh workflow run: $out"
+        out="$(gh workflow run snapshot.yml -R "$FORK_REPO" --ref main 2>&1)" || fail "snapshot dispatch: $out"
         echo "$want $now" > "$STATE"
-        log "started sync ($reason)"
+        log "started sync and snapshot ($reason)"
     fi
 fi
 # The trigger works again: a later failure is told again.
