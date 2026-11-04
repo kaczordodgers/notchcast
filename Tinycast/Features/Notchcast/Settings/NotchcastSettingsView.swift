@@ -20,6 +20,10 @@ struct NotchcastSettingsView: View {
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
+            Section("Clean") {
+                NotchcastCleanSettingsRows().environment(NotchcastCore.clean.coordinator)
+            }
+            .settingsAnchor(.notchcastClean)
 
             featureSection(.notchcastActivities, group: .activities)
             TimerSettingsSection(store: NotchcastCore.timers.store)

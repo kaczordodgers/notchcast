@@ -1,6 +1,7 @@
 import Foundation
 
 extension SettingsAnchor {
+    static let notchcastClean = Self(tab: .notchcast, title: "Clean")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -27,6 +28,13 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastClean, "Junk", keywords: ["trash", "cache"]),
+        .init(.notchcastClean, "Clean history", keywords: ["restore", "runs"]),
+        .init(.notchcastClean, "AI data", keywords: ["claude", "codex", "opencode"]),
+        .init(.notchcastClean, "Disk analyzer", keywords: ["folder", "size"]),
+        .init(.notchcastClean, "Project purge", keywords: ["projects", "build", "artifacts"]),
+        .init(.notchcastClean, "Optimize", keywords: ["quick look", "download history", "open with"]),
+        .init(.notchcastClean, "System root", keywords: ["helper", "system cache"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),

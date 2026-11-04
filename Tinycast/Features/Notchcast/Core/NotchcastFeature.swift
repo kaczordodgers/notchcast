@@ -15,9 +15,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case cleanJunk, cleanHistory, cleanAIData, cleanDisk, cleanPurge, cleanOptimize, cleanSystem
 
     enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities
+        case island, islandOptions, launcher, system, activities, clean
     }
 
     var settingsGroup: SettingsGroup {
@@ -31,6 +32,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .cleanJunk, .cleanHistory, .cleanAIData, .cleanDisk, .cleanPurge,
+             .cleanOptimize, .cleanSystem: .clean
         }
     }
 
@@ -60,6 +63,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .cleanJunk: String(localized: "Junk")
+        case .cleanHistory: String(localized: "Clean history")
+        case .cleanAIData: String(localized: "AI data")
+        case .cleanDisk: String(localized: "Disk analyzer")
+        case .cleanPurge: String(localized: "Project purge")
+        case .cleanOptimize: String(localized: "Optimize")
+        case .cleanSystem: String(localized: "System root")
         }
     }
 
@@ -89,6 +99,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .cleanJunk, .cleanHistory, .cleanAIData, .cleanDisk, .cleanPurge,
+             .cleanOptimize, .cleanSystem: String(localized: "Runs only when you click an action.")
         }
     }
 
@@ -96,6 +108,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .cleanJunk, .cleanHistory, .cleanAIData, .cleanDisk, .cleanPurge,
+             .cleanOptimize, .cleanSystem: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
@@ -108,7 +122,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        self != .displayBrightness && self != .quitProtection && !isSystemFeature && settingsGroup != .clean
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
