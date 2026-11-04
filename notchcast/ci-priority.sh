@@ -23,24 +23,43 @@ resolve() {
     fi
     local sha
     sha="$(gh pr view "$1" -R "$repo" --json headRefOid --jq .headRefOid)"
-    gh run list -R "$repo" --workflow PR --commit "$sha" --limit 1 \
-        --json databaseId --jq '.[].databaseId'
+    local id
+    id="$(gh run list -R "$repo" --workflow PR --commit "$sha" --limit 1 \
+        --json databaseId --jq '.[].databaseId')"
+    [ -n "$id" ] || { echo "No PR run for #$1 at ${sha:0:8}; nothing would be exempt." >&2; exit 65; }
+    echo "$id"
 }
 
 restore() {
-    local remaining id info status branch sha newest
+    local id info status conclusion branch sha newest
+    # Take the list aside so ids a concurrent cancel appends to $state survive.
+    work="$(mktemp)"
     remaining="$(mktemp)"
+    mv "$state" "$work"
+    touch "$state"
+    # If this pass dies, put every id back; already rerun ones are dropped next time as done.
+    trap 'cat "$work" "$remaining" >>"$state"; sort -u "$state" -o "$state"' EXIT
     while read -r id; do
         [ -n "$id" ] || continue
-        info="$(gh run view "$id" -R "$repo" --json status,headBranch,headSha \
-            --jq '[.status, .headBranch, .headSha] | @tsv')"
+        if ! info="$(gh run view "$id" -R "$repo" --json status,conclusion,headBranch,headSha \
+            --jq '[.status, (.conclusion // "-"), .headBranch, .headSha] | @tsv')"; then
+            echo "$id" >>"$remaining"
+            echo "unreadable $id"
+            continue
+        fi
         status="$(cut -f1 <<<"$info")"
-        branch="$(cut -f2 <<<"$info")"
-        sha="$(cut -f3 <<<"$info")"
+        conclusion="$(cut -f2 <<<"$info")"
+        branch="$(cut -f3 <<<"$info")"
+        sha="$(cut -f4 <<<"$info")"
         # A cancel still in flight cannot be rerun yet; keep it for the next pass.
         if [ "$status" != completed ]; then
             echo "$id" >>"$remaining"
             echo "waiting $id $status $branch"
+            continue
+        fi
+        # Already rerun by an earlier, interrupted pass: it ran to a real result.
+        if [ "$conclusion" != cancelled ]; then
+            echo "done $id $conclusion $branch"
             continue
         fi
         newest="$(gh run list -R "$repo" --workflow PR --branch "$branch" --limit 1 \
@@ -53,8 +72,11 @@ restore() {
             echo "$id" >>"$remaining"
             echo "failed $id $branch"
         fi
-    done <"$state"
-    mv "$remaining" "$state"
+    done <"$work"
+    cat "$remaining" >>"$state"
+    sort -u "$state" -o "$state"
+    trap - EXIT
+    rm -f "$work" "$remaining"
 }
 
 if [ "${1:-}" = "--restore" ]; then
