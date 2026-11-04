@@ -3,5 +3,7 @@ extension NotchcastCommandCatalog {
         IslandController.launcherCommand,
         ColorPickerModule.launcherCommand,
         ScreenshotModule.launcherCommand,
+        ScreenTextModule.launcherCommand,
+        ScrollingCaptureModule.launcherCommand,
     ]
 }
