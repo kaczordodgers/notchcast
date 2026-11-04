@@ -18,6 +18,26 @@ def catalog(**strings):
 
 
 class CatalogTests(unittest.TestCase):
+    def test_migration_rewrites_and_is_idempotent(self):
+        rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
+        source = ('Text("Fork")\nString(localized: "Fork")\n'
+                  'LocalizedStringResource("Fork")\nSettingsRowTitle(.group, "Fork")\n'
+                  'TextField("Fork", text: $query)\nText("Shared")\n')
+        result, count = rewrite(source, {'Fork'})
+        self.assertEqual(count, 5)
+        self.assertEqual(result.count('"Notchcast"'), 5)
+        self.assertIn('Text("Shared")', result)
+        self.assertEqual(rewrite(result, {'Fork'}), (result, 0))
+
+    def test_migration_interpolation_comments_and_unknown_context(self):
+        rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
+        source = '// Text("Fork")\nString(localized: "Updated \\(format(value))")'
+        result, count = rewrite(source, {'Fork', 'Updated %@'})
+        self.assertEqual(count, 1)
+        self.assertIn('format(value))", table: "Notchcast"', result)
+        with self.assertRaisesRegex(ValueError, 'unrecognized'):
+            rewrite('unknown("Fork")', {'Fork'})
+
     def test_interpolated_references(self):
         for spec in ('%@', '%lld', '%ld', '%d', '%f', '%.2f', '%1$@',
                      '%lf', '%llu', '%lu', '%u'):
