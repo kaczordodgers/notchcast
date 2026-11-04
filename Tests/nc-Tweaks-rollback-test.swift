@@ -46,6 +46,29 @@ struct MacSetupRollbackTests {
         } catch MacSetupPlan.Failure.drift {}
         let retained = try store.read()
         precondition(retained.count == 2)
+        for rollback in [false, true] {
+            try Data("broken".utf8).write(to: url)
+            if rollback {
+                do {
+                    try store.rollback(read: { values[$0]! }) { _, _ in fatalError() }
+                    fatalError()
+                } catch MacSetupRollbackStore.Failure.corruptJournal {}
+            } else {
+                let failed = store.apply(plan, read: { values[$0]! }) { _, _ in fatalError() }
+                precondition(failed.failure is MacSetupRollbackStore.Failure)
+            }
+            let empty = try store.read()
+            precondition(empty.isEmpty)
+            values = original
+            let retry = store.apply(plan, read: { values[$0]! }) { values[$0] = $1 }
+            precondition(retry.failure == nil)
+            try store.rollback(read: { values[$0]! }) { values[$0] = $1 }
+            precondition(values == original)
+        }
+        let quarantined = try FileManager().contentsOfDirectory(atPath: folder.path)
+            .filter { $0.hasSuffix(".corrupt") }
+        precondition(quarantined.count == 2)
+        print("PASS: corrupt apply/rollback journal quarantined once; retry and rollback succeed")
         print("PASS: journal precedes writes; relaunch restores all; partial failure restores applied only; drift refused")
     }
 }

@@ -129,7 +129,27 @@ import Darwin
                                   owner: getuid(), sourceOwner: getuid())
             fatalError()
         } catch CleanSystem.Failure.refused {}
-        let writable = try CleanSystem.inspect(candidate.path)
+        var writable = try CleanSystem.inspect(candidate.path)
+        for path in [source.path + "/../source/cache", tree.appendingPathComponent("outside").path] {
+            if !path.contains("..") { try Data("outside".utf8).write(to: URL(fileURLWithPath: path)) }
+            do {
+                let item = try CleanSystem.inspect(path)
+                try CleanSystem.trash(item, policy: trashPolicy, destination: trash.path,
+                                      owner: getuid(), sourceOwner: getuid())
+                fatalError()
+            } catch CleanSystem.Failure.refused {}
+        }
+        let hardLink = source.appendingPathComponent("linked")
+        try FileManager().linkItem(at: candidate, to: hardLink)
+        do {
+            let linked = try CleanSystem.inspect(candidate.path)
+            try CleanSystem.trash(linked, policy: trashPolicy, destination: trash.path,
+                                  owner: getuid(), sourceOwner: getuid())
+            fatalError()
+        } catch CleanSystem.Failure.refused {}
+        try FileManager().removeItem(at: hardLink)
+        writable = try CleanSystem.inspect(candidate.path)
+        print("PASS: real trash refuses dot-dot, outside fixture and hard links")
         try FileManager().setAttributes([.posixPermissions: 0o770], ofItemAtPath: source.path)
         do {
             try CleanSystem.trash(writable, policy: trashPolicy, destination: trash.path,

@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 import Synchronization
 
 struct RootHelperClient: Sendable {
@@ -28,31 +29,33 @@ struct RootHelperClient: Sendable {
         if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
         guard input.count <= 4096
         else { throw Failure.invalidResponse }
-        let directory = FileManager().temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager().createDirectory(at: directory, withIntermediateDirectories: false,
-                                         attributes: [.posixPermissions: 0o700])
-        defer { try? FileManager().removeItem(at: directory) }
-        let destination = directory.appendingPathComponent("reply")
-        FileManager().createFile(atPath: destination.path, contents: nil)
-        let output = try FileHandle(forWritingTo: destination)
-        defer { try? output.close() }
-        let source = directory.appendingPathComponent("request")
-        try input.write(to: source)
-        let request = try FileHandle(forReadingFrom: source)
-        defer { try? request.close() }
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
         process.arguments = ["-n", RootContract.helperPath] + command.arguments
         process.environment = [:]
         process.currentDirectoryURL = URL(fileURLWithPath: "/")
+        process.standardError = FileHandle.nullDevice
+        return try await exchange(process: process, input: input, timeout: command.operation.timeout)
+    }
+
+    @concurrent
+    func exchange(process: Process, input: Data, timeout: Duration) async throws -> Data {
+        let request = Pipe()
+        let output = Pipe()
         process.standardInput = request
         process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
+        guard fcntl(request.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1) == 0
+        else { throw Failure.launchFailed }
+        defer { try? request.fileHandleForWriting.close() }
+        defer { try? output.fileHandleForReading.close() }
         let exit: ProcessExit
         do { exit = try process.runObservingExit() }
         catch { throw Failure.launchFailed }
+        let reader = Task.detached { try output.fileHandleForReading.readToEnd() ?? Data() }
         do {
-            try await Self.wait(for: process, exit: exit, timeout: command.operation.timeout)
+            try request.fileHandleForWriting.write(contentsOf: input)
+            try request.fileHandleForWriting.close()
+            try await Self.wait(for: process, exit: exit, timeout: timeout)
         } catch {
             Self.abandoned.withLock { $0.append(process) }
             throw error
@@ -62,7 +65,7 @@ struct RootHelperClient: Sendable {
         }
         try Self.validateExitStatus(process.terminationStatus)
         try Task.checkCancellation()
-        return try Data(contentsOf: destination)
+        return try await reader.value
     }
 
     /// Root children we stopped waiting for; root tools must not overlap, so no new one starts while one runs.

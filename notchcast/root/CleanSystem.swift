@@ -20,6 +20,7 @@ enum CleanSystem {
             guard lstat(current, &info) == 0, info.st_mode & S_IFMT != S_IFLNK
             else { throw Failure.refused }
         }
+        guard info.st_mode & S_IFMT != S_IFREG || info.st_nlink == 1 else { throw Failure.refused }
         return .init(path: path, size: info.st_size,
                      modified: Date(timeIntervalSince1970: Double(info.st_mtimespec.tv_sec)
                         + Double(info.st_mtimespec.tv_nsec) / 1_000_000_000),
@@ -49,7 +50,12 @@ enum CleanSystem {
             }
             return try JSONEncoder().encode(entries)
         }
-        let data = try FileHandle.standardInput.read(upToCount: 4097) ?? Data()
+        var data = Data()
+        while data.count <= 4096 {
+            let chunk = try FileHandle.standardInput.read(upToCount: 4097 - data.count) ?? Data()
+            if chunk.isEmpty { break }
+            data.append(chunk)
+        }
         guard data.count <= 4096, String(bytes: data, encoding: .utf8) != nil
         else { throw Failure.refused }
         let entry = try JSONDecoder().decode(CleanSystemEntry.self, from: data)

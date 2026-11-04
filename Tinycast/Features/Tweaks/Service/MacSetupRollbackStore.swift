@@ -1,11 +1,24 @@
 import Foundation
 
 nonisolated struct MacSetupRollbackStore: Sendable {
+    enum Failure: Error, LocalizedError {
+        case corruptJournal
+        var errorDescription: String? {
+            "The setup rollback journal was corrupt and has been set aside. Retry to start a new journal."
+        }
+    }
     let url: URL
 
     func read() throws -> [MacSetupPlan.Change] {
         guard FileManager().fileExists(atPath: url.path) else { return [] }
-        return try JSONDecoder().decode([MacSetupPlan.Change].self, from: Data(contentsOf: url))
+        let data = try Data(contentsOf: url)
+        do {
+            return try JSONDecoder().decode([MacSetupPlan.Change].self, from: data)
+        } catch is DecodingError {
+            let destination = url.appendingPathExtension(UUID().uuidString + ".corrupt")
+            try FileManager().moveItem(at: url, to: destination)
+            throw Failure.corruptJournal
+        }
     }
 
     func save(_ changes: [MacSetupPlan.Change]) throws {

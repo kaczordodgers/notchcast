@@ -339,6 +339,12 @@ struct RootClientTest {
         }
         try validatePaths()
         try await validateProcessLifetime()
+        let echo = Process()
+        echo.executableURL = URL(fileURLWithPath: "/bin/cat")
+        let payload = Data(repeating: 42, count: 4096)
+        let reply = try await RootHelperClient().exchange(process: echo, input: payload, timeout: .seconds(3))
+        precondition(reply == payload)
+        print("PASS: request/reply round-trip over pipes without transport files")
         print("PASS: root commands, replies, path ownership and permissions, timeouts and cancellation")
     }
 
