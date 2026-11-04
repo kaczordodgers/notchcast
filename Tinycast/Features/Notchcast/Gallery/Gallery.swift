@@ -22,7 +22,7 @@ enum NotchcastGallery {
             "AppleLanguages": ["en"], "NSQuitAlwaysKeepsWindows": false
         ], forName: UserDefaults.argumentDomain)
         Motion.isEnabled = false
-        NotchcastCore.start(AppCore.shared)
+        _ = runIfRequested(AppCore.shared)
         application.run()
         return true
     }

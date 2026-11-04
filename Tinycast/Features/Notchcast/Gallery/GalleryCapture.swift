@@ -38,19 +38,21 @@ enum GalleryCapture {
         guard !window.isVisible, !window.isKeyWindow, let view = window.contentView else {
             throw GalleryFailure.capture("visible or missing window: " + page.name)
         }
-        view.layoutSubtreeIfNeeded()
+        let captureView = view.superview ?? view
+        captureView.layoutSubtreeIfNeeded()
+        captureView.displayIfNeeded()
         let bounds = view.bounds
         guard let bitmap = NSBitmapImageRep(
             bitmapDataPlanes: nil, pixelsWide: Int(bounds.width * 2), pixelsHigh: Int(bounds.height * 2),
             bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
             colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0),
               let context = NSGraphicsContext(bitmapImageRep: bitmap),
-              let cached = view.bitmapImageRepForCachingDisplay(in: bounds) else {
+              let cached = captureView.bitmapImageRepForCachingDisplay(in: bounds) else {
             throw GalleryFailure.capture(page.name)
         }
         bitmap.size = bounds.size
         window.appearance?.performAsCurrentDrawingAppearance {
-            view.cacheDisplay(in: bounds, to: cached)
+            captureView.cacheDisplay(in: bounds, to: cached)
         }
         NSGraphicsContext.saveGraphicsState()
         NSGraphicsContext.current = context
@@ -69,7 +71,13 @@ enum GalleryCapture {
                 bounds.fill()
             }
         }
-        cached.draw(in: bounds)
+        if path != nil, let layer = view.layer {
+            layer.displayIfNeeded()
+            layer.render(in: graphics)
+        } else {
+            cached.draw(in: bounds, from: .zero, operation: .sourceOver, fraction: 1,
+                        respectFlipped: false, hints: nil)
+        }
         NSGraphicsContext.restoreGraphicsState()
         guard let png = bitmap.representation(using: .png, properties: [:]) else {
             throw GalleryFailure.capture(page.name)
