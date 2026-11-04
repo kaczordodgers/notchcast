@@ -7,8 +7,8 @@ from pathlib import Path
 
 PATTERNS = {
     "forbidden-name": re.compile(r"gains ?geek|gains?[ ._-]?geek|gainsgeek|gg-app|gg-kb|privatehq", re.I),
-    "todoist-id": re.compile(r"id:[a-z0-9]{16}(?![a-z0-9])|(?<![a-z0-9])6[a-z0-9]{15}(?![a-z0-9])", re.I),
-    "t3-id": re.compile(r"mcp:launch:[a-f0-9]+|t3-thread://|run:thread:", re.I),
+    "todoist-id": re.compile(r"(?<![a-z0-9])id:[a-z0-9]{16}(?![a-z0-9])|(?<![a-z0-9])6[a-z0-9]{15}(?![a-z0-9])", re.I),
+    "t3-id": re.compile(r"mcp:launch:[a-f0-9]+|t3-thread://|run:thread:|(?<![a-z0-9-])t3-[a-f0-9]{8}(?![a-z0-9])", re.I),
 }
 ALLOW_FILES = {"notchcast/check-identity.py": "guard pattern definitions"}
 HEAD = "HEAD"
@@ -46,8 +46,9 @@ def diff(base, staged=False):
         if path in ALLOW_FILES:
             print(f"check-identity: allowed {path}: {ALLOW_FILES[path]}")
             continue
+        failed |= inspect(path, "file name")
         line = None
-        for text in git(*args, "--", path).splitlines():
+        for text in git(*args, "--", path).split("\n"):
             if text.startswith("@@"):
                 line = int(re.search(r"\+(\d+)", text)[1])
             elif line is not None and text.startswith("+"):
@@ -71,6 +72,7 @@ def app(bundle):
         raise ValueError("missing bundle")
     failed = False
     for path in sorted(root.rglob("*")):
+        failed |= inspect(str(path.relative_to(root)), "file name")
         if path.is_file():
             content = subprocess.check_output(["strings", "-a", str(path)]).decode("utf-8", errors="replace")
             failed |= inspect(content, str(path.relative_to(root)))
