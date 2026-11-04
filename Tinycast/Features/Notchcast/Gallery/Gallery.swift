@@ -28,6 +28,7 @@ enum NotchcastGallery {
     }
 
     static func runIfRequested(_ core: AppCore) -> Bool {
+        if GallerySettingsTiming.runIfRequested(core) { return true }
         guard let directory = ProcessInfo.processInfo.environment["NOTCHCAST_GALLERY"] else { return false }
         Task { @MainActor in
             do {
