@@ -24,6 +24,27 @@
 import Foundation
 import AppKit
 
+func AXIsProcessTrusted() -> Bool { false }
+
+enum EventTapPolicy {
+    static func mask(for type: CGEventType) -> CGEventMask { 1 << type.rawValue }
+}
+
+@MainActor
+final class EventTapHub {
+    enum Verdict { case pass, swallow }
+    var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
+    var removals = 0
+    func registerSynchronous(mask: CGEventMask,
+                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
+        precondition(mask & EventTapPolicy.mask(for: .keyDown) != 0)
+        self.handler = handler
+        return UUID()
+    }
+    func refreshPermission() {}
+    func remove(_ id: UUID) { removals += 1; handler = nil }
+}
+
 @MainActor
 final class CountingModule: NotchcastModule {
     var starts = 0
@@ -105,7 +126,7 @@ struct MusicModuleTests {
         module.setDeviceName(" \n ")
         precondition(module.deviceName == "Notchcast")
         await registration()
-        routing()
+        await routing()
         await installedBuild()
         print("PASS: defaults, lifecycle, fork-local persistence, device name and all six production registrations")
     }
@@ -157,35 +178,61 @@ struct MusicModuleTests {
         precondition(modules.allSatisfy { $0.starts == $0.stops })
     }
 
-    static func routing() {
+    static func routing() async {
         let suite = "routing.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         var installed = false
+        var launch: (@MainActor (PlayerApps.Launch) -> Void)?
+        var quits = 0
         let apps = PlayerApps(isInstalled: { _ in installed }, isRunning: { _ in false },
-                              open: { _ in }, play: { _ in }, watchLaunches: { _ in [] }, quit: { _ in true })
+                              open: { _ in }, play: { _ in }, watchLaunches: { launch = $0; return [] },
+                              quit: { _ in quits += 1; return true })
         let music = MusicNowPlayingModule(defaults: defaults, apps: apps)
         let audio = RoutingAudio()
         let mute = MicrophoneMute(audio: audio, defaults: defaults)
         let microphone = MicrophoneMuteModule(model: mute, showMessage: { _ in }, showFailure: { _ in })
-        let blocker = MusicLaunchBlocker(apps: apps, openReplacement: { _ in Task {} })
+        let blocker = MusicLaunchBlocker(apps: apps, uptime: { 10 }, gestureAge: { 5 },
+                                         openReplacement: { _ in Task {} })
+        blocker.setEnabled(true)
+        let hub = EventTapHub()
         let monitor = NotchcastKeyMonitor(music: music, blocker: blocker, microphone: microphone,
-                                         preferences: preferences)
+                                         preferences: preferences, hub: hub)
+        monitor.update()
+        precondition(mute.hotKeyStatus == AXError.apiDisabled.rawValue)
         for down in [true, false] {
             let event = NSEvent.otherEvent(with: .systemDefined, location: .zero, modifierFlags: [],
                 timestamp: 0, windowNumber: 0, context: nil, subtype: 8,
                 data1: (16 << 16) | ((down ? 0x0a : 0x0b) << 8), data2: -1)!.cgEvent!
-            precondition(!monitor.handle(event), "no replacement passes media keys through")
+            precondition(hub.handler!(event.type, event) == .pass, "no replacement passes media keys through")
             installed = true
-            precondition(monitor.handle(event), "installed replacement consumes media keys")
+            monitor.update()
+            precondition(hub.handler!(event.type, event) == .swallow, "installed replacement consumes media keys")
             installed = false
+            monitor.update()
         }
+        await settle()
+        launch?(.init(bundleID: LastPlayer.appleMusic, processID: 123))
+        precondition(quits == 1, "hub media key arms Apple Music blocking")
         microphone.start()
+        let f5 = CGEvent(keyboardEventSource: nil, virtualKey: 96, keyDown: true)!
+        precondition(hub.handler!(.keyDown, f5) == .swallow)
+        await settle()
+        precondition(mute.isMuted, "F5 toggles mute through hub")
+        microphone.setMuted(false)
+        f5.setIntegerValueField(.keyboardEventAutorepeat, value: 1)
+        precondition(hub.handler!(.keyDown, f5) == .swallow)
+        precondition(hub.handler!(.keyUp, f5) == .swallow)
+        await settle()
+        precondition(!mute.isMuted, "F5 repeat and release do not toggle")
         microphone.setMuted(true)
         precondition(mute.isMuted)
         microphone.stop()
         precondition(!mute.isMuted && audio.input.mute[0].value == 0, "stop restores microphone")
+        preferences.set(.island, false)
+        monitor.update()
+        precondition(hub.handler == nil && hub.removals == 1 && mute.hotKeyStatus == nil)
         var reads = 0
         let key = SoloistKey(read: { reads += 1; throw SoloistFailure.keyUnavailable },
                             write: { _ in }, presence: { true })
