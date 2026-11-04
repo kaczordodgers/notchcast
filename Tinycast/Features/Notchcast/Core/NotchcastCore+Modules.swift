@@ -14,6 +14,11 @@ extension NotchcastCore {
     static let appUpdates = AppUpdatesModule.live()
     static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
     static let clean = CleanModule()
+    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
+    static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
+    static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
+    static let pasteImage = PasteImageModule(hub: eventTapHub)
+    static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
@@ -48,6 +53,14 @@ extension NotchcastCore {
             .init(requires: [.macUpdate], module: macUpdate),
             .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
             .init(requires: [.audioPriority], module: AudioPriorityModule()),
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
+        pasteImage.configureFeedback(core)
+        return [
+            .init(requires: [.finderCutPaste], module: finderCut),
+            .init(requires: [.finderRename], module: finderRename),
+            .init(requires: [.pastePlain], module: pastePlain),
+            .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),

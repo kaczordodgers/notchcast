@@ -22,6 +22,9 @@ struct NotchcastSettingsView: View {
                 NotchcastTweaksSettingsRows()
                 NotchcastTweaksAppsSettingsRows()
             }
+            PasteToolsSettingsSection()
+            featureSection(.notchcastFinder, group: .finder)
+            FinderSettingsSection()
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
             Section { NotchcastAudioPrioritySettingsRows() }
@@ -35,7 +38,6 @@ struct NotchcastSettingsView: View {
             BuildStatsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
-                .settingsEnabled(preferences.isOn(.island))
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
