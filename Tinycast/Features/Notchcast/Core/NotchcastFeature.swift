@@ -12,6 +12,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case agentActions
+    case agentCLI
 
     var title: String {
         switch self {
@@ -31,6 +33,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .agentActions: String(localized: "Agent access")
+        case .agentCLI: String(localized: "Command line tool")
         }
     }
 
@@ -52,6 +56,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .agentActions: String(localized: "Expose actions and read-only state to local agents.")
+        case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
         }
     }
 
@@ -61,7 +67,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets:
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets,
+            .agentActions, .agentCLI:
             []
         }
     }
@@ -69,7 +76,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool {
+        ![.displayBrightness, .quitProtection, .agentActions, .agentCLI].contains(self)
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

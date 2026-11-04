@@ -16,6 +16,8 @@ extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
+        .init(.notchcastExtras, "Agent access", keywords: ["agent", "actions", "state", "registry"]),
+        .init(.notchcastExtras, "Command line tool", keywords: ["cli", "socket", "install", "agent"]),
         .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island", "hover delay"]),
         .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display"]),
         .init(.notchcastOptions, "Full-Screen Apps", keywords: ["fullscreen", "full screen", "video"]),
