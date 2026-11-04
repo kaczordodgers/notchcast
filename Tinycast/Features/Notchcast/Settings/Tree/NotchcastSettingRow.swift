@@ -7,7 +7,7 @@ struct NotchcastSettingRow: View {
         switch NotchcastSettingsModule.module(of: setting) {
         case .island, .launcher, .musicAndSound, .dayAndTasks, .windowsAndDisplay:
             NotchcastSettingRowsA(setting: setting)
-        case .monitorAndFans, .battery, .cleanAndUpdates, .tweaks, .privacyAndStartup, .walkingPadAndAmp:
+        case .monitorAndFans, .battery, .cleanAndUpdates, .tweaks, .privacyAndStartup:
             NotchcastSettingRowsB(setting: setting)
         case .downloads, .filesAndClipboard, .capture, .dictation:
             NotchcastSettingRowsC(setting: setting)

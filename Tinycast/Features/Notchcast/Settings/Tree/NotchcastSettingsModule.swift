@@ -18,7 +18,6 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
     case cleanAndUpdates = "clean-and-updates"
     case tweaks
     case privacyAndStartup = "privacy-and-startup"
-    case walkingPadAndAmp = "walking-pad-and-amp"
 
     var title: String {
         switch self {
@@ -39,7 +38,6 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
         case .cleanAndUpdates: String(localized: "Clean and Updates")
         case .tweaks: String(localized: "Tweaks")
         case .privacyAndStartup: String(localized: "Privacy and Startup")
-        case .walkingPadAndAmp: String(localized: "Walking Pad and Amp")
         }
     }
 
@@ -62,7 +60,6 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
         case .cleanAndUpdates: "sparkles.rectangle.stack"
         case .tweaks: "slider.horizontal.3"
         case .privacyAndStartup: "lock.shield"
-        case .walkingPadAndAmp: "figure.walk"
         }
     }
 
@@ -85,7 +82,6 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
         case .cleanAndUpdates: .notchcastCleanAndUpdates
         case .tweaks: .notchcastTweaks
         case .privacyAndStartup: .notchcastPrivacyAndStartup
-        case .walkingPadAndAmp: .notchcastWalkingPadAndAmp
         }
     }
 

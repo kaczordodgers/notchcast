@@ -17,12 +17,18 @@ struct NotchcastSettingsLinksTests {
             precondition(NotchcastSettingsModule(tab: module.tab) == module)
         }
         precondition(SettingsTab(slug: "notchcast") == NotchcastSettingsModule.island.tab)
+        precondition(SettingsSearchCatalog.results(for: "caps lock").first?.tab == .general)
+        for entry in SettingsSearchCatalog.notchcast where entry.target == nil {
+            precondition(!SettingsTab.allCases.contains {
+                NotchcastSettingsModule(tab: $0) == nil && $0.title == entry.title
+            }, "Fork pane duplicates an upstream search identity")
+        }
         for feature in NotchcastFeature.allCases {
             let anchor = SettingsAnchor.notchcast(feature: feature)
             precondition(anchor.tab == NotchcastSettingsModule.module(of: feature).tab)
             let entries = SettingsSearchCatalog.notchcast.filter {
                 guard case .row = $0.target else { return false }
-                return $0.title == (feature == .colorPicker ? String(localized: "Pick Color") : feature.title)
+                return $0.title == feature.title
             }
             if feature.isWired {
                 precondition(!entries.isEmpty, "Missing search entry: \(feature)")
@@ -88,7 +94,7 @@ struct NotchcastSettingsLinksTests {
         precondition(NotchcastFeature.globeDictation.requiredGrants.contains(.microphone))
         precondition(NotchcastFeature.voiceAsk.requiredGrants.contains(.microphone))
         precondition(NotchcastFeature.dayCalendar.requiredGrants.contains(.calendars))
-        print("PASS: 18 module slugs, all feature search destinations and named anchors")
+        print("PASS: 17 module slugs, all feature search destinations and named anchors")
     }
 }
 

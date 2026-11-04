@@ -8,7 +8,7 @@ import Foundation
 struct NotchcastSettingsTreeTests {
     static func main() throws {
         let modules = NotchcastSettingsModule.allCases
-        precondition(modules.count == 18, "Expected 18 modules")
+        precondition(modules.count == 17, "Expected 17 modules")
         var featureCounts: [NotchcastFeature: Int] = [:]
         var settingCounts: [NotchcastSetting: Int] = [:]
         for module in modules {
@@ -56,8 +56,14 @@ struct NotchcastSettingsTreeTests {
         precondition(
             SettingsSection.notchcast.tabs == modules.map(\.tab),
             "Section owns every module in order")
-        precondition(SettingsSection.notchcast.tabs.contains(.notchcastWalkingPadAndAmp),
-                     "Empty module retains section membership")
+        precondition(modules.allSatisfy { !$0.visibleGroups.isEmpty }, "Every sidebar page has visible rows")
+        precondition(NotchcastSettingsModule.module(of: .katana) == .musicAndSound)
+        precondition(NotchcastSettingsModule.module(of: .treadmillWalk) == .monitorAndFans)
+        precondition(NotchcastSettingsModule.module(of: .treadmillHistory) == .monitorAndFans)
+        for feature: NotchcastFeature in [.katana, .treadmillWalk, .treadmillHistory] {
+            let module = NotchcastSettingsModule.module(of: feature)
+            precondition(!module.visibleGroups.contains { $0.items.contains { $0.feature == feature } })
+        }
         precondition(!SettingsSection.features.tabs.contains(.notchcast), "Island moved out of Features")
         let data = try Data(contentsOf: URL(filePath: "Tinycast/Resources/Localizable.xcstrings"))
         let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]

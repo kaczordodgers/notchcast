@@ -58,7 +58,9 @@ extension SettingsSearchCatalog {
     static let notchcast: [SettingsSearchEntry] = {
         let candidates: [SettingsSearchEntry] =
         NotchcastSettingsModule.allCases.flatMap { module in
-            (module == .dictation ? [] : [.init(pane: module.tab)]) + module.visibleGroups.flatMap { group -> [SettingsSearchEntry] in
+            (SettingsTab.allCases.contains {
+                NotchcastSettingsModule(tab: $0) == nil && $0.title == module.title
+            } ? [] : [.init(pane: module.tab)]) + module.visibleGroups.flatMap { group -> [SettingsSearchEntry] in
                 let anchor = SettingsAnchor(tab: module.tab, title: group.title)
                 let header: [SettingsSearchEntry] = group.items.compactMap(\.feature).contains {
                     $0.title == group.title.resolved()
@@ -262,7 +264,7 @@ extension SettingsSearchEntry {
     init(feature: NotchcastFeature, anchor: SettingsAnchor, keywords: [String]) {
         tab = anchor.tab
         target = .row(anchor, feature.title)
-        title = feature == .colorPicker ? String(localized: "Pick Color") : feature.title
+        title = feature.title
         self.keywords = keywords + [feature.title]
     }
 
