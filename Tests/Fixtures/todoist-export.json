@@ -1,0 +1,26 @@
+{
+  "projects": [{"id":"sample-project", "name":"Sample project"}],
+  "sections": [{"id":"sample-section", "name":"Next", "project_id":"sample-project"}],
+  "labels": [{"id":"sample-label", "name":"sample"}],
+  "comments": [{"task_id":"sample-one", "content":"A fictional comment.", "posted_at":"2026-11-01T12:00:00Z"}],
+  "tasks": [
+    {"id":"sample-one", "content":"Parent", "description":"Sample markdown", "project_id":"sample-project", "section_id":"sample-section", "priority":4, "labels":["sample"], "child_order":3},
+    {"id":"sample-two", "content":"Child", "parent_id":"sample-one", "project_id":"sample-project", "section_id":"sample-section", "priority":1},
+    {"id":"sample-three", "content":"Grandchild", "parent_id":"sample-two", "project_id":"sample-project", "section_id":"sample-section", "priority":2},
+    {"id":"sample-four", "content":"Weekly", "priority":3, "due":{"date":"2026-11-09", "datetime":"2026-11-09T08:00:00Z", "timezone":"Europe/Warsaw", "string":"every monday at 9", "is_recurring":true}},
+    {"id":"sample-five", "content":"Strict", "due":{"date":"2026-11-07", "string":"every! 3 days", "is_recurring":true}},
+    {"id":"sample-six", "content":"Zrobić przegląd", "due":{"date":"2026-11-11", "string":"co tydzień", "is_recurring":true}},
+    {"id":"sample-seven", "content":"Unsupported recurrence", "due":{"date":"2026-11-12", "string":"every blue moon", "is_recurring":true}},
+    {"id":"sample-eight", "content":"All day", "due":{"date":"2026-11-05", "string":"tomorrow", "is_recurring":false}},
+    {"id":"sample-nine", "content":"Done", "is_completed":true},
+    {"id":"sample-ten", "content":"Ten"},
+    {"id":"sample-eleven", "content":"Eleven"},
+    {"id":"sample-twelve", "content":"Twelve"},
+    {"id":"sample-thirteen", "content":"Thirteen"},
+    {"id":"sample-fourteen", "content":"Fourteen"},
+    {"id":"sample-fifteen", "content":"Fifteen", "notes":[{"content":"A fictional note."}]},
+    {"id": "sample-floating", "content": "Sample timed task", "due": {"date": "2026-11-09T09:00:00"}},
+    {"id": "sample-utc", "content": "Sample timed task", "due": {"date": "2026-11-09T08:00:00.000000Z"}},
+    {"id": "sample-invalid", "content": "Sample timed task", "due": {"date": "unparseable"}}
+  ]
+}

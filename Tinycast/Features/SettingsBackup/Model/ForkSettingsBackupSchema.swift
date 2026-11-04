@@ -155,6 +155,7 @@ enum ForkSettingsBackupSchema {
         "agentSessions",
         "torrentsUseIPhone",
         "torrentsKeepSharing",
+        "tasks",
         "backupRunNow",
         "backupBrowseRestore",
         "music.lastPlayer",
