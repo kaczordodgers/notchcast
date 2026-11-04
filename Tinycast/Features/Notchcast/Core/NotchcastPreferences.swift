@@ -74,7 +74,6 @@ final class NotchcastPreferences {
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
-        if feature == .accessoryNotices && enabled { defaults.set(true, forKey: "accessoryNoticesOptedIn"); NotchcastCore.accessoryNotices.requestAccess() }
         versions[feature, default: 0] += 1
         if enabled { off.remove(feature) } else { off.insert(feature) }
         if [.keepAwake, .fanControl, .systemMonitor].contains(feature) { commandAvailabilityChanged?() }

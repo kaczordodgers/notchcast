@@ -4,18 +4,16 @@ import Foundation
 @MainActor
 final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerDelegate {
     private let source: any AccessoryBluetoothSource
-    private let optedIn: () -> Bool
     private var engine = AccessoryNoticeEngine()
     private var running = false
     private var timer: Task<Void, Never>?
     private var permission: CBCentralManager?
 
-    init(source: any AccessoryBluetoothSource = AccessoryBluetoothMonitor(), optedIn: @escaping () -> Bool) {
+    init(source: any AccessoryBluetoothSource = AccessoryBluetoothMonitor()) {
         self.source = source
-        self.optedIn = optedIn
     }
 
-    func requestAccess() {
+    private func requestAccess() {
         guard CBManager.authorization == .notDetermined else { return }
         permission = CBCentralManager(delegate: self, queue: .main,
                                       options: [CBCentralManagerOptionShowPowerAlertKey: false])
@@ -32,7 +30,8 @@ final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerD
     func start() {
         guard !running else { return }
         running = true
-        guard optedIn(), CBManager.authorization == .allowedAlways else { return }
+        requestAccess()
+        guard CBManager.authorization == .allowedAlways else { return }
         engine.seed(source.start { [weak self] address, name, connected in
             guard let self, self.running, self.engine.connection(address, connected: connected) else { return }
             let status = String(localized: "Connected")

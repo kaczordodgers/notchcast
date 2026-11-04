@@ -50,7 +50,7 @@ extension NotchcastCore {
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
-    static let accessoryNotices = AccessoryNoticesModule(optedIn: { NotchcastPreferences.shared.engineDefaults.bool(forKey: "accessoryNoticesOptedIn") })
+    static let accessoryNotices = AccessoryNoticesModule()
     static let systemLevels = SystemLevelsModule()
     static let brightness = DisplayBrightnessModule()
     static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)

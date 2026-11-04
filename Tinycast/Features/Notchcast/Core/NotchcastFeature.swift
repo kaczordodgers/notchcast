@@ -809,6 +809,7 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
         return switch self {
         case .tasks: false
+        case .accessoryNotices: false
         case .spotifyConnect: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false

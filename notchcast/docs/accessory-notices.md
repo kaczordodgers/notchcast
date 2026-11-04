@@ -1,9 +1,9 @@
 # Accessory notices
 
 Reuses the island message surface for four-second connection and low-battery notices.
-The default-on switch is independent of accessory battery Settings rows. Listening also
-requires an explicit off/on switch action, persisted locally, and Bluetooth permission.
-An undetermined permission is requested only by that action, never at launch.
+The default-off switch is independent of accessory battery Settings rows. Turning it on
+is the opt-in: the module starts, requests undetermined Bluetooth permission and listens
+once authorized. Turning it off stops listening. First launch never requests Bluetooth access.
 
 Connection registration seeds already-connected devices; disconnect events re-arm them.
 Battery readings reuse BatteryPeripheralService off-main every 30 seconds while listening.
