@@ -31,6 +31,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case finderCutPaste
     case finderRename
     case pasteImage
+    case colorPicker
+    case screenshot
     case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
@@ -85,6 +87,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: .islandOptions
         case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .colorPicker: .captureAndDictation
+        case .screenshot: .captureAndDictation
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
         case .dictationIslandHUD: .activities
@@ -178,6 +182,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .finderRename: String(localized: "Finder Rename")
         case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
+        case .colorPicker: String(localized: "Color Picker")
+        case .screenshot: String(localized: "Screenshots")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
         case .hideCommandM: String(localized: "Hide with ⌘M")
@@ -252,6 +258,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
+        case .screenshot: String(localized: "Capture an area, window or display.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
@@ -297,6 +305,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .cleaningMode: [.accessibility]
+        case .screenshot: [.screenRecording]
         case .showDesktop: [.accessibility]
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
@@ -362,6 +371,8 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
+        case .colorPicker: false
+        case .screenshot: false
         case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
@@ -412,4 +423,5 @@ extension NotchcastFeature {
 
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
+    case screenRecording
 }

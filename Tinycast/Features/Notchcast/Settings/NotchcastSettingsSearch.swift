@@ -34,6 +34,7 @@ extension SettingsAnchor {
     static let notchcastTweaks = Self(tab: .notchcast, title: "Tweaks")
     static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
     static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
+    static let notchcastCaptureAndDictation = Self(tab: .notchcast, title: "Capture and dictation")
 }
 
 extension SettingsSearchCatalog {
@@ -126,6 +127,11 @@ extension SettingsSearchCatalog {
         .init(.notchcastChargePercent, "Charge limit percent"),
         .init(.notchcastAwakeDuration, "Keep-awake duration"),
         .init(group: .notchcastShortcuts, "Toggle Island"),
+        .init(.notchcastCaptureAndDictation, "Color Picker", keywords: ["colour", "eyedropper", "sample"]),
+        .init(.notchcastCaptureAndDictation, "Color format", keywords: ["colour", "hex", "rgb", "hsl"]),
+        .init(.notchcastCaptureAndDictation, "Screenshots", keywords: ["screen capture", "image"]),
+        .init(.notchcastCaptureAndDictation, "Screenshot destination", keywords: ["clipboard", "file", "save"]),
+        .init(.notchcastCaptureAndDictation, "Screenshot folder", keywords: ["directory", "desktop"]),
         .init(.notchcastSystem, "Display Brightness", keywords: ["display", "dimming", "slider"]),
         .init(.notchcastSystem, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
