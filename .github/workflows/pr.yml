@@ -55,6 +55,11 @@ jobs:
         run: |
           command -v swiftlint >/dev/null || brew install --quiet swiftlint
           ./Scripts/lint.sh
+      - name: Feature append shape and union merge proof
+        working-directory: src
+        run: |
+          python3 notchcast/check-feature-shape.py
+          python3 notchcast/check-feature-shape-test.py
       - uses: ./tools/notchcast/actions/tests
         with:
           upstream: ${{ steps.base.outputs.sha }}
