@@ -34,6 +34,13 @@ struct DictationHistoryTests {
         controller.run()
         precondition(module.isRunning)
         let stage = DictationCoordinator.transcriptStage!
+        for blank in ["", " \n\t "] {
+            let unchanged = await stage(blank, nil)
+            precondition(unchanged == blank)
+        }
+        await module.waitUntilIdle()
+        let emptyHistory = try await module.recent()
+        precondition(emptyHistory.isEmpty)
         let raw = await stage("fixture raw", nil)
         precondition(raw == "fixture raw")
         await module.waitUntilIdle()
