@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Screenshot Editor" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Screenshot-Editor" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Editor de capturas" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Éditeur de captures" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スクリーンショットエディタ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "스크린샷 편집기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Editor de capturas" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Редактор снимков экрана" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "截图编辑器" } }
+      }
+    },
     "Monitor Alerts" : {
       "localizations" : {
         "de" : {

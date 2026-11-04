@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case colorPicker
     case screenshot
+    case captureEditor
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -33,12 +34,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
-        case .colorPicker, .screenshot: .captureAndDictation
+        case .colorPicker, .screenshot, .captureEditor: .captureAndDictation
         }
     }
 
     var title: String {
         switch self {
+        case .captureEditor: String(localized: "Screenshot Editor")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -70,6 +72,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .captureEditor: String(localized: "Screenshot Editor")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -102,6 +105,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .captureEditor: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .screenshot: [.screenRecording]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
@@ -120,7 +124,7 @@ extension NotchcastFeature {
         self != .displayBrightness && self != .quitProtection && !belongsToCaptureAndDictation && !isSystemFeature
     }
 
-    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot }
+    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot || self == .captureEditor }
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
