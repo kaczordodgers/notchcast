@@ -1,6 +1,9 @@
 import Foundation
 
 extension SettingsAnchor {
+    static let notchcastCleaning = Self(tab: .notchcast, title: "Cleaning mode")
+    static let notchcastAppUpdates = Self(tab: .notchcast, title: "App updates")
+    static let notchcastMacUpdate = Self(tab: .notchcast, title: "Update this Mac")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -27,6 +30,9 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastCleaning, "Cleaning mode"),
+        .init(.notchcastAppUpdates, "App updates"),
+        .init(.notchcastMacUpdate, "Update this Mac"),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),

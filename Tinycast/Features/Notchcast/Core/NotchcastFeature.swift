@@ -15,13 +15,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case cleaningMode, appUpdates, macUpdate
 
     enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities
+        case island, islandOptions, launcher, system, activities, tools
     }
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .cleaningMode, .appUpdates, .macUpdate: .tools
         case .island: .island
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
@@ -36,6 +38,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .cleaningMode: String(localized: "Cleaning mode")
+        case .appUpdates: String(localized: "App updates")
+        case .macUpdate: String(localized: "Update this Mac")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -65,6 +70,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .cleaningMode: String(localized: "Press Escape five times to exit; ends after 300 seconds.")
+        case .appUpdates: String(localized: "Check installed apps for updates on demand.")
+        case .macUpdate: String(localized: "Run maintenance only after confirmation.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -95,7 +103,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .volumeLevels, .displayBrightness, .quitProtection, .cleaningMode: [.accessibility]
+        case .appUpdates, .macUpdate: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
@@ -112,7 +121,8 @@ extension NotchcastFeature {
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
+         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
+         .cleaningMode, .appUpdates, .macUpdate].contains(self)
     }
 }
 
