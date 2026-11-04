@@ -3,6 +3,9 @@ import Foundation
 extension HotKeyAction {
     /// A row's action from its ID alone; apps and panes are keyed by bundle ID instead.
     init?(entryID: String) {
+        if entryID.hasPrefix("command:nc-") || entryID == "command:toggle-island" {
+            self = .notchcastCommand(entryID: entryID); return
+        }
         if let command = CommandID(rawValue: entryID) {
             guard let action = command.hotKeyAction else { return nil }
             self = action
@@ -35,6 +38,7 @@ extension HotKeyAction {
     var entryID: String? {
         switch self {
         case .command(let id): id.hotKeyAction == nil ? nil : id.rawValue
+        case .notchcastCommand(let id): id
         case .systemAction(let id): SystemActionCatalog.action(id: id).entryID
         case .windowCommand(let id): WindowCommandCatalog.command(id: id)?.entryID
         case .customWindowSize(let id): CustomWindowSize.entryIDPrefix + id.uuidString.lowercased()
