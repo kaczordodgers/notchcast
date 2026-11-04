@@ -19,3 +19,5 @@ Copyright (C) 2026 Vorssaint, GPL-3.0-or-later, and the local media conversion r
 This engine uses native APIs directly and carries no external executable or runtime dependency.
 
 Excluded: general format conversion, watermarking, rename patterns, profiles, shelf and drop UI.
+
+GIF export accepts at most 30 seconds, samples at 12 fps and caps frames at 480 pixels.

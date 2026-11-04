@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import Synchronization
 
 @MainActor
 final class NotchcastToolsCommands: NotchcastModule {
@@ -38,9 +37,9 @@ final class NotchcastToolsCommands: NotchcastModule {
     private let post: (String) -> Void
     private let execute: @MainActor (Action, [URL], @escaping @MainActor () -> Bool) async throws -> Void
     private let refresh: () -> Void
-    nonisolated private let revision = Mutex(0)
     private var running = false
     private var tasks: [Action: Task<Void, Never>] = [:]
+    private var generations: [Action: Int] = [:]
     private var identities: [Action: UUID] = [:]
 
     init(preferences: NotchcastPreferences, selection: @escaping () throws -> [URL],
@@ -55,7 +54,10 @@ final class NotchcastToolsCommands: NotchcastModule {
 
     func isEnabled(_ action: Action) -> Bool { running && preferences.isOn(action.feature) }
 
-    func start() { running = true; track() }
+    func start() {
+        running = true
+        for feature in [NotchcastFeature.convertFiles, .mediaTools, .commandRunner] { track(feature) }
+    }
 
     func stop() {
         running = false
@@ -65,22 +67,20 @@ final class NotchcastToolsCommands: NotchcastModule {
         refresh()
     }
 
-    private func track() {
+    private func track(_ feature: NotchcastFeature) {
         guard running else { return }
         withObservationTracking {
-            for feature in [NotchcastFeature.convertFiles, .mediaTools, .commandRunner, .downloads] {
-                _ = preferences.isOn(feature)
-            }
+            _ = preferences.isOn(feature)
         } onChange: { [weak self] in
-            self?.revision.withLock { $0 += 1 }
             Task { @MainActor [weak self] in
                 guard let self, running else { return }
-                for action in Action.allCases where !isEnabled(action) {
+                for action in Action.allCases where action.feature == feature
+                    && generations[action] != preferences.revision(feature) {
                     tasks.removeValue(forKey: action)?.cancel()
                     identities.removeValue(forKey: action)
                 }
                 refresh()
-                track()
+                track(feature)
             }
         }
         refresh()
@@ -90,14 +90,15 @@ final class NotchcastToolsCommands: NotchcastModule {
         guard isEnabled(action) else { return }
         tasks[action]?.cancel()
         let id = UUID()
-        let generation = revision.withLock { $0 }
+        let generation = preferences.revision(action.feature)
+        generations[action] = generation
         identities[action] = id
         tasks[action] = Task { [weak self] in
             guard let self else { return }
             let valid: @MainActor @Sendable () -> Bool = { [weak self] in
                 guard let self else { return false }
                 return !Task.isCancelled && isEnabled(action) && identities[action] == id
-                    && revision.withLock { $0 == generation }
+                    && preferences.revision(action.feature) == generation
             }
             defer {
                 if identities[action] == id { tasks[action] = nil; identities[action] = nil }

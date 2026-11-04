@@ -22,10 +22,10 @@ final class ConvertFilesModule: NotchcastModule {
     @discardableResult
     func convert(_ sources: [URL], target: String, pages: String = "") throws -> [DownloadJob] {
         guard enabled, let queue, let first = sources.first else {
-            throw ConvertFilesPlan.Failure(message: "Convert Files is unavailable.")
+            throw ConvertFilesPlan.Failure(message: String(localized: "Convert Files is unavailable."))
         }
         guard let encoded = String(bytes: try JSONEncoder().encode(sources.map(\.path)), encoding: .utf8) else {
-            throw ConvertFilesPlan.Failure(message: "Invalid file paths.")
+            throw ConvertFilesPlan.Failure(message: String(localized: "Invalid file paths."))
         }
         return queue.enqueue(kind: "convert-files", sources: [first.path],
                              options: ["sources": encoded, "target": target, "pages": pages])

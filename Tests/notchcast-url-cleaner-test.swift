@@ -38,6 +38,14 @@ import Foundation
         assert(URLCleanerPolicy.clean("https://other.com/?site=2", rules: rules).removed.isEmpty)
         assert(LinkCleaner.clean("https://EXAMPLE.com/a/?utm_source=x&x=1#frag") == "https://example.com/a?x=1")
         assert(LinkCleaner.clean("https://youtu.be/abc?si=test") == "https://www.youtube.com/watch?v=abc")
+        var draft = URLCleanerRulesDraft()
+        draft.custom = "first,"
+        draft.sites = "example.com="
+        assert(draft.custom == "first," && draft.sites == "example.com=")
+        draft.custom += "second"
+        draft.sites += "one,two"
+        assert(draft.rules.custom == ["first", "second"])
+        assert(draft.rules.perSite == ["example.com": ["one", "two"]])
         let module = URLCleanerModule()
         let board = FakePasteboard()
         module.start()

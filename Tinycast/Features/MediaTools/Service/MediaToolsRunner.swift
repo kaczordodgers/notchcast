@@ -12,7 +12,19 @@ struct MediaToolsRunner: Sendable {
         case text
     }
 
-    enum Failure: Error { case unsupported, invalidOptions, encoding, targetTooSmall }
+    enum Failure: LocalizedError {
+        case unsupported, invalidOptions, encoding, targetTooSmall, gifLimit
+
+        var errorDescription: String? {
+            switch self {
+            case .unsupported: String(localized: "This media format is not supported.")
+            case .invalidOptions: String(localized: "The media options are invalid.")
+            case .encoding: String(localized: "Media encoding failed.")
+            case .targetTooSmall: String(localized: "The requested media size is too small.")
+            case .gifLimit: String(localized: "GIFs support videos up to 30 seconds at 12 fps and 480 pixels.")
+            }
+        }
+    }
 
     @concurrent
     func run(_ input: URL, tool: Tool) async throws -> URL {
@@ -109,11 +121,11 @@ struct MediaToolsRunner: Sendable {
         let asset = AVURLAsset(url: input)
         guard try await !asset.loadTracks(withMediaType: .video).isEmpty else { throw Failure.unsupported }
         let seconds = try await asset.load(.duration).seconds
-        guard seconds.isFinite, seconds > 0, seconds <= 120 else { throw Failure.invalidOptions }
+        guard seconds.isFinite, seconds > 0, seconds <= 30 else { throw Failure.gifLimit }
         let count = Int(ceil(seconds * 12))
         let generator = AVAssetImageGenerator(asset: asset)
         generator.appliesPreferredTrackTransform = true
-        generator.maximumSize = CGSize(width: 720, height: 720)
+        generator.maximumSize = CGSize(width: 480, height: 480)
         generator.requestedTimeToleranceBefore = .zero
         generator.requestedTimeToleranceAfter = .zero
         defer { generator.cancelAllCGImageGeneration() }

@@ -24,8 +24,7 @@ extension NotchcastToolsCommands {
                 try NotchcastCore.convertFiles.convert(files, target: formats[index])
             case .runHostCommand, .listCommands:
                 let entries = await HostCommandProfile.load(
-                    file: AppPaths.applicationSupport().appending(path: "Notchcast/host-commands.json"),
-                    host: ProcessInfo.processInfo.hostName)
+                    file: AppPaths.applicationSupport().appending(path: "Notchcast/host-commands.json"))
                 guard valid() else { return }
                 guard !entries.isEmpty else {
                     Self.post(String(localized: "No host commands configured.")); return
