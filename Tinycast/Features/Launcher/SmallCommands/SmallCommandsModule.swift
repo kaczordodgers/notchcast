@@ -4,6 +4,7 @@ final class SmallCommandsModule: NotchcastModule {
     private(set) var isRunning = false
     private(set) var shortener: ShortenLinkService?
     private(set) var airDrop: AirDropService?
+    var commandTask: Task<Void, Never>?
 
     func start() {
         isRunning = true
@@ -13,6 +14,8 @@ final class SmallCommandsModule: NotchcastModule {
 
     func stop() {
         isRunning = false
+        commandTask?.cancel()
+        commandTask = nil
         shortener = nil
         airDrop?.stop()
         airDrop = nil
