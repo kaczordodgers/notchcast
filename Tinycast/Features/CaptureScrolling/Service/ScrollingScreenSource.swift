@@ -10,8 +10,10 @@ enum ScrollingScreenSource {
         return rect.offsetBy(dx: -displayFrame.minX, dy: -displayFrame.minY)
     }
 
-    @concurrent
-    static func image(rect: CGRect, displayID: CGDirectDisplayID, excludingWindows: Set<CGWindowID>) async throws -> CGImage {
+    @MainActor
+    static func prepare(
+        rect: CGRect, displayID: CGDirectDisplayID, excludingWindows: Set<CGWindowID>
+    ) async throws -> ScrollingCaptureSession.CaptureFrame {
         let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         try Task.checkCancellation()
         guard let display = content.displays.first(where: { $0.displayID == displayID }) else {
@@ -28,9 +30,11 @@ enum ScrollingScreenSource {
         configuration.height = max(1, Int((local.height * CGFloat(filter.pointPixelScale)).rounded()))
         configuration.showsCursor = false
         configuration.dynamicRange = .sdr
-        let output = try await SCScreenshotManager.captureScreenshot(contentFilter: filter, configuration: configuration)
-        try Task.checkCancellation()
-        guard let image = output.sdrImage else { throw ScrollingCaptureSession.Failure.invalidFrame }
-        return image
+        return {
+            let output = try await SCScreenshotManager.captureScreenshot(contentFilter: filter, configuration: configuration)
+            try Task.checkCancellation()
+            guard let image = output.sdrImage else { throw ScrollingCaptureSession.Failure.invalidFrame }
+            return image
+        }
     }
 }
