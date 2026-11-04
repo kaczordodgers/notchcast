@@ -9,6 +9,7 @@ final class DictationTriggerManager {
     private var registration: UUID?
     private var engine = DictationTriggerEngine()
     private var globeDown = false
+    private var confirmation: Task<Void, Never>?
 
     init(
         hub: EventTapHub, isRecording: @escaping () -> Bool,
@@ -34,6 +35,8 @@ final class DictationTriggerManager {
     }
 
     func stop() {
+        confirmation?.cancel()
+        confirmation = nil
         if let registration { hub.remove(registration) }
         registration = nil
         globeDown = false
@@ -70,6 +73,20 @@ final class DictationTriggerManager {
         } else {
             input = .otherInput
         }
+        confirmation?.cancel()
+        confirmation = nil
         if let action = engine.handle(input, at: now) { perform(action) }
+        if case .down = input {
+            confirmation = Task { [weak self] in
+                do {
+                    try await Task.sleep(for: .seconds(DictationTriggerEngine.holdThreshold))
+                } catch { return }
+                guard let self else { return }
+                if let action = self.engine.handle(.confirm, at: now + DictationTriggerEngine.holdThreshold) {
+                    self.perform(action)
+                }
+                self.confirmation = nil
+            }
+        }
     }
 }
