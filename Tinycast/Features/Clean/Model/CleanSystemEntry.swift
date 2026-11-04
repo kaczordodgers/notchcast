@@ -1,6 +1,6 @@
 import Foundation
 
-struct CleanSystemEntry: Sendable, Equatable {
+struct CleanSystemEntry: Sendable, Equatable, Codable {
     let path: String
     let size: Int64
     let modified: Date
