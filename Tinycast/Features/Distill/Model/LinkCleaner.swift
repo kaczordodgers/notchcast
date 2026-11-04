@@ -1,6 +1,7 @@
 import Foundation
 
 nonisolated enum LinkCleaner {
+    static func isTrackingParameter(_ name: String) -> Bool { tracking.contains(name) || name.hasPrefix("utm_") }
     private static let tracking: Set<String> = [
         "fbclid", "gclid", "dclid", "msclkid", "yclid", "twclid", "wbraid", "gbraid", "mc_cid",
         "mc_eid", "_hsenc", "_hsmi", "igshid", "igsh", "ref_src", "ref_url", "spm"

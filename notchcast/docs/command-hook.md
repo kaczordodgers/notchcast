@@ -77,3 +77,19 @@ one compiler-source hook; no harness registration is added to the upstream runne
 harnesses compiling hooked files need the fork types those hooks reference. Any new
 upstream harness compiling CommandCatalog, AppIndex or HotKey files must use
 `command-harness-sources.sh` to include the appropriate fork fixture sources.
+
+The tools commands register Convert Files, Compress Video, Make GIF, Compress Image,
+Resize Image, Extract Text, Run Host Command and List Commands. Each follows its own
+Convert Files, Media Tools or Command Runner switch. Convert Files additionally requires
+Downloads to be on; it reports that requirement and attaches to the Downloads queue owner.
+Conversion targets and resize dimensions use the existing choice dialog. File input is
+Finder's selection, never clipboard file URLs. Completion and input errors use island status
+messages. Quick Add Task retains its engine but has no launcher registration or live client.
+
+Host commands are read at use from `Notchcast/host-commands.json` under Application Support.
+The JSON is an array of entries with `id`, `title`, absolute `executable`, `arguments` (array),
+`hosts` (array; empty allows every host) and `workingDirectory` (optional string).
+Host filtering resolves `gethostname` off the main actor. Missing or invalid profiles are empty;
+no executable or credentials are compiled in. Run Host Command asks which configured entry
+to run, and List Commands reports the filtered titles. Arguments are passed directly to the
+process without a shell. Command deep links retain the ordinary consent gate.
