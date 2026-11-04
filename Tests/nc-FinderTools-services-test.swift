@@ -10,6 +10,7 @@
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
 import Foundation
+import CoreGraphics
 
 enum Paster {
     static let tinycastEventTag: Int64 = 0x54494E59
