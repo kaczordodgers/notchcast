@@ -20,9 +20,9 @@ The Downloads module registers video, audio, transcript and webpage runners. Cap
 
 ## Commands and activity
 
-Aria2 media jobs probe yt-dlp selected-format metadata before launch only when the switch is on
-and Wi-Fi and iPhone USB both have IPv4 addresses. Known `filesize` or
-`filesize_approx` totals over 200 MB use the shared NetMerge policy and the existing
+Aria2 media jobs probe yt-dlp with `--print "%(filesize,filesize_approx)s"` before launch only when
+the switch is on and Wi-Fi and iPhone USB both have IPv4 addresses. The last non-empty stdout line
+is parsed as a positive byte count; `NA` means unknown. Totals over 200 MB use the shared NetMerge policy and the existing
 `torrentsUseIPhone` switch. Missing sizes or a failed probe keep the normal download path.
 Interfaces are read only for eligible jobs at launch; unplugging never cancels a running job.
 `DownloadJob.usesIPhone` records the launch decision and clears on a native retry.

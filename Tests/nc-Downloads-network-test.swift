@@ -8,30 +8,33 @@ struct MediaNetworkTest {
     static func main() async throws {
         let wifi = NetMergePolicy.Interface(bsdName: "en0", kind: .wifi, hasIPv4: true)
         let phone = NetMergePolicy.Interface(bsdName: "en7", kind: .iPhoneUSB, hasIPv4: true)
-        for (json, interfaces, enabled, expected) in [
-            (#"{"filesize":200000000}"#, [wifi, phone], true, false),
-            (#"{"filesize":200000001}"#, [wifi, phone], true, true),
-            (#"{"filesize_approx":300000000}"#, [wifi], true, false),
-            (#"{"filesize":300000000}"#, [wifi, phone], false, false),
-            (#"{}"#, [wifi, phone], true, false)
+        for (output, interfaces, enabled, expected) in [
+            ("200000000", [wifi, phone], true, false),
+            ("200000001", [wifi, phone], true, true),
+            ("300000000", [wifi], true, false),
+            ("300000000", [wifi, phone], false, false),
+            ("NA", [wifi, phone], true, false)
         ] {
             let decision = NetMergePolicy.evaluate(interfaces: interfaces, kind: .download,
-                sizeBytes: MediaNetwork.expectedSize(json), enabled: enabled)
+                sizeBytes: MediaNetwork.expectedSize(output), enabled: enabled)
             assert(decision.usesIPhone == expected)
             let args = MediaArguments.download(source: "https://example.com", destination: URL(filePath: "/tmp"),
                 format: .video, aria2Path: "/fake/aria2c", networkArguments: decision.aria2Arguments)
             assert(args.contains(where: { $0.contains("--multiple-interface=en0,en7") }) == expected)
         }
-        let combined = #"{"requested_formats":[{"filesize":150000000},{"filesize_approx":60000000}]}"#
-        assert(MediaNetwork.expectedSize(combined) == 210000000)
-        assert(MediaNetwork.expectedSize("[info] selected formats\n" + combined) == 210000000)
+        assert(MediaNetwork.expectedSize("123456789") == 123456789)
+        assert(MediaNetwork.expectedSize("[info] x\n300000000\n\n") == 300000000)
+        for output in ["NA", "", "-5", "0", "9223372036854775808"] {
+            assert(MediaNetwork.expectedSize(output) == nil)
+        }
         for format in [MediaArguments.Format.video, .audio] {
             let probe = MediaArguments.probe(source: "file:///tmp/media.mp4", cookies: "firefox", format: format)
-            assert(probe.contains("--dump-single-json") && probe.contains("--simulate"))
+            let printIndex = probe.firstIndex(of: "--print")!
+            assert(probe[printIndex + 1] == "%(filesize,filesize_approx)s")
+            assert(!probe.contains("--dump-single-json") && !probe.contains("--simulate"))
             assert(!probe.contains("--no-quiet") && !probe.contains("--progress"))
             assert(probe.contains("firefox") && probe.suffix(2) == ["--", "file:///tmp/media.mp4"])
         }
-        assert(MediaNetwork.expectedSize(#"{"requested_formats":[{"filesize":300000000},{}]}"#) == nil)
         for (enabled, interfaces, size, probes, merged) in [
             (false, [wifi, phone], 300000000, 0, false),
             (true, [wifi], 300000000, 0, false),
@@ -57,14 +60,14 @@ struct MediaNetworkTest {
         while [ "$#" -gt 0 ]; do
           case "$1" in
             --paths) shift; dest="$1";;
-            --simulate) probe=true;;
+            --print) shift; [ "$1" != '%(filesize,filesize_approx)s' ] || probe=true;;
           esac
           shift
         done
         if [ "$probe" = true ]; then
           echo probe >> "\(root.path)/probes"
           echo '[info] selected formats'
-          echo '{"filesize":\(size)}'
+          echo '\(size)'
         else
           echo "$args" > "$dest/arguments"
           touch "$dest/movie.mp4"

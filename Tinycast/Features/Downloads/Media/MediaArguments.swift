@@ -21,7 +21,7 @@ nonisolated enum MediaArguments {
     }
 
     static func probe(source: String, cookies: String?, format: Format) -> [String] {
-        var arguments = ["--ignore-config", "--no-playlist", "--simulate", "--dump-single-json"]
+        var arguments = ["--ignore-config", "--no-playlist", "--print", "%(filesize,filesize_approx)s"]
         arguments += selection(format)
         if let cookies, !cookies.isEmpty { arguments += ["--cookies-from-browser", cookies] }
         return arguments + ["--", source]
