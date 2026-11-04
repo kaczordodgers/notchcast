@@ -44,7 +44,11 @@ struct NotchcastSystemSettingsSection: View {
             }
             .settingsEnabled(preferences.isOn(.keepAwake))
             if let failure = NotchcastCore.battery.failure {
-                Text(failure.localizedDescription).foregroundStyle(.secondary)
+                if failure as? RootHelperClient.Failure == .reinstallRequired {
+                    Text("Needs the Notchcast helper update").foregroundStyle(.secondary)
+                } else {
+                    Text(failure.localizedDescription).foregroundStyle(.secondary)
+                }
             }
             if !NotchcastCore.battery.helperInstalled {
                 Text("The privileged helper is not installed.").foregroundStyle(.secondary)
