@@ -264,6 +264,7 @@ struct KatanaTests {
         do { try await load.value; fatalError("Cancelled load succeeded") } catch is CancellationError {}
         expect(fake.memory[KatanaSysEx.previewMute] == [0], "Cancellation unmutes on the same connection")
         let module = KatanaModule()
+        expect(NotchcastFeature.katana.settingsGroup == .system, "Katana uses the System settings group")
         module.start()
         expect(!module.client.isConnected && module.audio.isEnabled, "Module starts without opening hardware")
         module.stop()

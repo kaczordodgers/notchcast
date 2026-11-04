@@ -1,6 +1,6 @@
 # Katana engines
 
-The Katana switch starts and stops the channel client and audio service. Both default to disconnected: this port has no CoreMIDI, CoreAudio, Bluetooth, USB or subprocess backend, discovers no devices and sends nothing to hardware. Tests inject fake transports. The visible switch uses the existing Notchcast options list until the settings consolidation lands.
+The Katana switch starts and stops the channel client and audio service. Both default to disconnected: this port has no CoreMIDI, CoreAudio, Bluetooth, USB or subprocess backend, discovers no devices and sends nothing to hardware. Tests inject fake transports. The visible switch uses the System group of the existing Notchcast settings section.
 
 ## Invariants
 
