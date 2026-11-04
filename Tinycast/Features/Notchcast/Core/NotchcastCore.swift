@@ -1,6 +1,5 @@
 @MainActor
 enum NotchcastCore {
-    static let eventTapHub = EventTapHub()
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
@@ -11,19 +10,36 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let calendar = DayCalendarModule()
     static let quitProtection = QuitProtectionStore()
+    static let eventTapHub = EventTapHub()
+    static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     private static var controller: NotchcastModuleController?
+    private static var monitor: MonitorModule?
+    static let battery = BatteryModule(preferences: .shared, runner: .live)
+
+    static func stopForTermination() async {
+        battery.stop()
+        await battery.waitUntilIdle()
+        monitor?.stop()
+        await monitor?.fans.waitUntilIdle()
+    }
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
+        let monitor = MonitorModule(preferences: .shared)
+        self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.finderCutPaste], module: FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)),
             .init(requires: [.finderRename], module: FinderToolsModule(coordinator: finderTools, feature: .finderRename)),
             .init(requires: [.island], module: IslandController.shared),
+            .init(requires: [.systemMonitor], module: monitor),
+            .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
+                .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
+            .init(requires: [.quitProtection], module: quitProtectionModule),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
