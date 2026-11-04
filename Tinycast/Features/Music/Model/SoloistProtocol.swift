@@ -65,7 +65,7 @@ enum SoloistProtocol {
             CFGetTypeID($0) == CFBooleanGetTypeID() ? $0.boolValue : nil
         }
         let repeatMode = (options["repeat"] as? String).flatMap(RepeatMode.init(rawValue:))
-        if object["type"] as? String == "options_changed" {
+        if object["type"] as? String == "options_changed", shuffle != nil || repeatMode != nil {
             return .options(shuffle: shuffle, repeatMode: repeatMode)
         }
         if object["type"] as? String == "get_queue"

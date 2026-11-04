@@ -105,16 +105,19 @@ final class SoloistSource: NowPlayingSource {
             switch try SoloistProtocol.parse(text, now: Date()) {
             case .auth(let auth):
                 authState = auth
-                if !auth.loggedIn { queue = nil }
-                if auth.loggedIn { enqueue(SoloistProtocol.getState) }
+                if auth.loggedIn { enqueue(SoloistProtocol.getState) } else { queue = nil }
             case .failure(let message): failure = .command(message)
-            case .changed: enqueue(SoloistProtocol.getState)
+            case .changed:
+                enqueue(SoloistProtocol.getState)
+                let object = try JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any]
+                if queue != nil, object?["type"] as? String == "queue_changed" {
+                    enqueue(SoloistProtocol.getQueue)
+                }
             case .options(let shuffle, let repeatMode):
                 state?.shuffle = shuffle
                 state?.repeatMode = repeatMode
             case .queue(let items):
                 queue = items
-                if items == nil { enqueue(SoloistProtocol.getQueue) }
             case .state(let track, let cover):
                 state = track
                 state?.artwork = cover.flatMap { covers[$0] }
@@ -187,8 +190,6 @@ final class SoloistSource: NowPlayingSource {
     func watch(_ onChange: @escaping @MainActor () -> Void) { self.onChange = onChange }
     func unwatch() { onChange = nil }
     func read() async throws -> NowPlaying? { state }
-
-    func refreshQueue() { enqueue(SoloistProtocol.getQueue) }
 
     func addToQueue(uri: String) {
         do { enqueue(try SoloistProtocol.addToQueue(uri: uri)) } catch {

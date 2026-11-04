@@ -97,9 +97,7 @@ final class SystemNowPlayingSource: NowPlayingSource {
             guard position.isFinite, position >= 0 else { return }
             message["command"] = "seek"
             message["position"] = position
-        case .volume: return
-        case .shuffle: return
-        case .repeat: return
+        case .volume, .shuffle, .repeat: return
         }
         do {
             var data = try JSONSerialization.data(withJSONObject: message)
