@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Clean/*/*.swift
 // notchcast-sources: Tinycast/Features/Clean/CleanCoordinator.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 import Foundation
