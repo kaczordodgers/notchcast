@@ -13,6 +13,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case githubSearch
     case clearNotifications
+    case launcherAnswers, copyPath, smallCommands
 
     var title: String {
         switch self {
@@ -33,6 +34,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Markets")
         case .githubSearch: String(localized: "GitHub Search")
         case .clearNotifications: String(localized: "Clear Notifications")
+        case .launcherAnswers: String(localized: "Currency Answers")
+        case .copyPath: String(localized: "Copy Path")
+        case .smallCommands: String(localized: "Small Commands")
         }
     }
 
@@ -55,6 +59,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .githubSearch: String(localized: "Search GitHub repositories and starred projects.")
         case .clearNotifications: String(localized: "Clear notifications from Notification Center.")
+        case .launcherAnswers: String(localized: "Currency answers using rates from NBP.")
+        case .copyPath: String(localized: "Copy the frontmost document path or browser link.")
+        case .smallCommands: String(localized: "Passwords, short links, noise control and AirDrop.")
         }
     }
 
@@ -62,7 +69,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection, .clearNotifications: [.accessibility]
-        case .githubSearch: []
+        case .githubSearch, .launcherAnswers: []
+        case .copyPath, .smallCommands: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
@@ -74,10 +82,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.displayBrightness, .quitProtection, .githubSearch, .clearNotifications].contains(self)
+        ![.displayBrightness, .quitProtection, .githubSearch, .clearNotifications,
+          .launcherAnswers, .copyPath, .smallCommands].contains(self)
     }
 
-    var defaultEnabled: Bool { ![.githubSearch, .clearNotifications].contains(self) }
+    var defaultEnabled: Bool {
+        ![.githubSearch, .clearNotifications, .launcherAnswers, .copyPath, .smallCommands].contains(self)
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

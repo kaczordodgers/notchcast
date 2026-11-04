@@ -10,6 +10,9 @@ enum NotchcastCore {
     static let quitProtection = QuitProtectionStore()
     static let github = GitHubModule()
     static let clearNotifications = ClearNotificationsModule()
+    static let answers = LauncherAnswersModule()
+    static let copyPath = CopyPathModule()
+    static let smallCommands = SmallCommandsModule()
     private static var controller: NotchcastModuleController?
 
     static func start(_ core: AppCore) {
@@ -26,6 +29,9 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.githubSearch], module: github),
             .init(requires: [.clearNotifications], module: clearNotifications),
+            .init(requires: [.launcherAnswers], module: answers),
+            .init(requires: [.copyPath], module: copyPath),
+            .init(requires: [.smallCommands], module: smallCommands),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

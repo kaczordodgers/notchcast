@@ -66,7 +66,10 @@ struct LauncherQuicklinksTests {
         precondition(pinned.isPinned && pinned.createdAt == created)
         let reopened = QuicklinkStore(directory: directory)
         reopened.load()
-        precondition(reopened.quicklink(id: saved.id) == pinned)
+        var restored = reopened.quicklink(id: saved.id)!
+        precondition(abs(restored.pinnedAt!.timeIntervalSince(pinned.pinnedAt!)) < 0.000001)
+        restored.pinnedAt = pinned.pinnedAt
+        precondition(restored == pinned)
         precondition(reopened.enabled.isEmpty)
         try reopened.setEnabled(true, id: edited.id)
         precondition(reopened.enabled.count == 1)

@@ -8,6 +8,16 @@
 // notchcast-sources: Tinycast/Features/Launcher/ClearNotifications/Service/*.swift
 // notchcast-sources: Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
+// notchcast-sources: Tinycast/Features/Launcher/Answers/Model/*.swift
+// notchcast-sources: Tinycast/Features/Launcher/Answers/Service/*.swift
+// notchcast-sources: Tinycast/Features/Launcher/Answers/LauncherAnswersModule.swift
+// notchcast-sources: Tinycast/Features/Calculator/Model/*.swift
+// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/*.swift
+// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/Launcher/CopyPath/CopyPathModule.swift
+// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/Model/*.swift
+// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/Service/*.swift
+// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule.swift
 import Foundation
 
 @main
@@ -21,18 +31,30 @@ struct LauncherWiringTests {
             preconditionFailure("Wiring must never fetch")
         }))
         let notifications = ClearNotificationsModule(runner: ClearNotificationsRunner(execute: { _ in "3" }))
+        let answers = LauncherAnswersModule()
+        let copyPath = CopyPathModule()
+        let small = SmallCommandsModule()
         let controller = NotchcastModuleController([
             .init(requires: [.githubSearch], module: github),
             .init(requires: [.clearNotifications], module: notifications),
+            .init(requires: [.launcherAnswers], module: answers),
+            .init(requires: [.copyPath], module: copyPath),
+            .init(requires: [.smallCommands], module: small),
         ], preferences: preferences)
         controller.run()
         precondition(!github.isRunning && !notifications.isRunning)
-        for feature in [NotchcastFeature.githubSearch, .clearNotifications] {
+        let features: [NotchcastFeature] = [.githubSearch, .clearNotifications,
+            .launcherAnswers, .copyPath, .smallCommands]
+        precondition(!answers.isRunning && !copyPath.isRunning && !small.isRunning)
+        precondition(answers.provider == nil && copyPath.service == nil && small.airDrop == nil)
+        for feature in features {
             precondition(!feature.needsIsland && !feature.defaultEnabled)
             preferences.set(feature, true)
         }
         for _ in 0..<20 { await Task.yield() }
         precondition(github.isRunning && notifications.isRunning)
+        precondition(answers.isRunning && copyPath.isRunning && small.isRunning)
+        precondition(answers.provider != nil && copyPath.service != nil && small.shortener != nil)
         let count = try await notifications.run(accessibilityGranted: true)
         precondition(count == 3)
         preferences.set(.island, false)
@@ -40,14 +62,17 @@ struct LauncherWiringTests {
         precondition(github.isRunning && notifications.isRunning)
         preferences.set(.githubSearch, false)
         preferences.set(.clearNotifications, false)
+        for feature in features { preferences.set(feature, false) }
         for _ in 0..<20 { await Task.yield() }
         precondition(!github.isRunning && !notifications.isRunning)
+        precondition(!answers.isRunning && !copyPath.isRunning && !small.isRunning)
+        precondition(answers.provider == nil && copyPath.service == nil && small.airDrop == nil)
         precondition(github.session.state == .idle)
         do {
             _ = try await notifications.run(accessibilityGranted: true)
             preconditionFailure("Disabled module ran")
         } catch ClearNotificationsModule.Failure.disabled { }
         precondition(NotchcastFeature.clearNotifications.requiredGrants == [.accessibility])
-        print("PASS: GitHub and notifications switches gate modules independently of island")
+        print("PASS: all five launcher tool switches start and stop their modules")
     }
 }
