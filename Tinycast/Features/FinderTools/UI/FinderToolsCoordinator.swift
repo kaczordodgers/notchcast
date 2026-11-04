@@ -9,7 +9,6 @@ final class FinderToolsCoordinator {
     @ObservationIgnored private let input = FinderShortcutState()
     @ObservationIgnored private var registration: UUID?
     @ObservationIgnored private var activation: NotificationToken?
-    @ObservationIgnored private var permissionTimer: Timer?
     @ObservationIgnored private var operation: Task<Void, Never>?
     private var cutEnabled = false
     private var renameEnabled = false
@@ -19,7 +18,6 @@ final class FinderToolsCoordinator {
 
     isolated deinit {
         operation?.cancel()
-        permissionTimer?.invalidate()
         if let registration { hub.remove(registration) }
     }
 
@@ -45,7 +43,7 @@ final class FinderToolsCoordinator {
 
     private func perform(keyCode: Int64, modifiers: FinderShortcutPolicy.Modifiers) {
         guard AXIsProcessTrusted() else { return }
-        input.setFrontmostFinder(finderPID)
+        refreshContext()
         let (_, request) = input.receive(.init(keyCode: keyCode, modifiers: modifiers))
         _ = input.receive(.init(keyCode: keyCode, modifiers: modifiers, isKeyDown: false))
         if let request { enqueue(request) }
@@ -78,20 +76,15 @@ final class FinderToolsCoordinator {
         ) { [weak self] _ in
             MainActor.assumeIsolated {
                 guard let self else { return }
-                self.input.setFrontmostFinder(self.finderPID)
+                self.refreshContext()
             }
         }, center: center)
-        permissionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refreshState() }
-        }
     }
 
     private func stop() {
         if let registration { hub.remove(registration) }
         registration = nil
         activation = nil
-        permissionTimer?.invalidate()
-        permissionTimer = nil
     }
 
     private func enqueue(_ request: FinderShortcutState.Request) {
@@ -123,7 +116,8 @@ final class FinderToolsCoordinator {
         }
     }
 
-    private func refreshState() {
+    private func refreshContext() {
+        input.setFrontmostFinder(finderPID)
         if let count = cutSession.clipboardChangeCount, count != NSPasteboard.general.changeCount {
             cutSession.clear()
             input.forgetCut()
@@ -162,9 +156,14 @@ final class FinderToolsCoordinator {
             do { try await Task.sleep(for: .milliseconds(20)) } catch { return }
             guard isCurrent(request) else { return }
             let clipboard = NSPasteboard.general
-            guard clipboard.changeCount != before else { continue }
+            let copiedChangeCount = clipboard.changeCount
+            guard copiedChangeCount != before else { continue }
             let files = clipboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) ?? []
-            cutSession.mark(changeCount: clipboard.changeCount, fileCount: files.count)
+            guard clipboard.changeCount == copiedChangeCount else {
+                input.finishCut(request)
+                return
+            }
+            cutSession.mark(changeCount: copiedChangeCount, fileCount: files.count)
             if files.isEmpty { input.finishCut(request) }
             return
         }

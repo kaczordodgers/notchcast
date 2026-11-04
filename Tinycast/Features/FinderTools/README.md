@@ -17,6 +17,7 @@ call `FinderToolsCoordinator.cut()`, `paste()`, and `rename()` when the shared c
 The shared tap does no Accessibility queries or waiting. Requests carry lifecycle and cut identities;
 Accessibility reads leave the main actor, and results must still address the frontmost Finder.
 Injected events target Finder's PID and carry the existing synthetic-event tag.
+App-activation notifications refresh context and permissions; there are no idle polling timers.
 
 `cutSession` and `lastMoveFileCount` expose pending-cut and move-request state for a future look pass.
 A custom progress HUD and clipboard-image paste are not provided here. No Finder progress percentage
