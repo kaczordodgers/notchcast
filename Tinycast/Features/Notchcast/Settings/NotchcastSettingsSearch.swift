@@ -35,5 +35,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "GitHub Search", keywords: ["repositories", "stars", "token"]),
         .init(.notchcastOptions, "Clear Notifications", keywords: ["notification center", "accessibility"]),
         .init(.notchcastLauncherTools, "GitHub Token", keywords: ["keychain", "account"]),
+        .init(.notchcastOptions, "Currency Answers", keywords: ["nbp", "currency", "rates"]),
+        .init(.notchcastOptions, "Copy Path", keywords: ["finder", "browser", "document", "link"]),
+        .init(.notchcastOptions, "Small Commands", keywords: ["password", "shorten", "noise", "airdrop"]),
     ]
 }
