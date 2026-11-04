@@ -47,6 +47,8 @@ The new bundle id and signature need Accessibility to be granted once.
 
 ## Conflict-free PRs
 
+Merge only with `notchcast/land.sh <pr>`. It checks an isolated merge of the PR head into current main, runs core and affected fork harnesses, and squash-merges only that PR head after they pass. It refuses unless `build` is green on that head. Main harnesses checks every source push (core only on a sync rewrite, which Sync tested). This is not an app build: switches in files no selected harness compiles, UI integration, and main moving between the check and the merge remain outside its protection; the PR build is still required.
+
 PRs carry no generated files: edit their inputs, regenerate locally before using Xcode (`xcodegen generate`), and leave the generated diff uncommitted. PR CI regenerates before building. After each source push to main, the Generated files workflow runs `ci.py regenerate` and commits only `GENERATED` as `Notchcast: generated files` with the repository identity; each attempt starts from a fresh `origin/main`, its generated-only push is excluded by path filters, and the Actions token starts no further workflow runs. Sync regenerates before every build too.
 
 Fork harnesses are discovered by `notchcast/test-harnesses.sh`, so a PR never edits `Scripts/run-tests.sh`. `Tests/nc-<Folder>-<name>-test.swift` compiles all Model and Service sources of `Tinycast/Features/<Folder>/`. Any other fork harness (`Tests/notchcast-*-test.swift` or an upstream-style name) declares its sources in one or more `// notchcast-sources: <compiler arguments and source globs>` header lines (no spaces in paths). A `notchcast-*` harness without the header fails alone with an error; the rest of the suite still runs.
