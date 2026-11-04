@@ -19,7 +19,7 @@ extension SettingsAnchor {
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
-    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
     static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
@@ -60,6 +60,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastActivities, "AI Usage", keywords: ["plan", "limits", "cache"]),
