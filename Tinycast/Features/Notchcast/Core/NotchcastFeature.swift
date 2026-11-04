@@ -30,6 +30,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case pastePlain
+    case finderCutPaste
+    case finderRename
+    case pasteImage
     case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
@@ -122,6 +126,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .distill: .activities
         case .distillTimestamps: .activities
         case .distillConvert: .activities
+        case .pastePlain: .clipboard
+        case .finderCutPaste: .finder
+        case .finderRename: .finder
+        case .pasteImage: .clipboard
         }
     }
 
@@ -160,6 +168,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .pastePlain: String(localized: "Paste Plain Text")
+        case .finderCutPaste: String(localized: "Finder Cut and Paste")
+        case .finderRename: String(localized: "Finder Rename")
+        case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
@@ -222,6 +234,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
+        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
+        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
+        case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
@@ -263,6 +279,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .pastePlain: [.accessibility]
+        case .finderCutPaste: [.accessibility]
+        case .finderRename: [.accessibility]
+        case .pasteImage: [.accessibility]
         default: []
         }
     }
@@ -303,6 +323,10 @@ extension NotchcastFeature {
         case .distill: false
         case .distillTimestamps: false
         case .distillConvert: false
+        case .pastePlain: false
+        case .finderCutPaste: false
+        case .finderRename: false
+        case .pasteImage: false
         default: true
         }
     }
@@ -326,6 +350,7 @@ extension NotchcastFeature {
         case .mediaTools: false
         case .commandRunner: false
         case .buildStats: false
+        case .pastePlain: false
         default: !isSystemFeature && !isLauncherKeysFeature
         }
     }

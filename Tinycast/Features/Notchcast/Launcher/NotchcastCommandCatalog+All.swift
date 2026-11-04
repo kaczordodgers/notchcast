@@ -21,5 +21,9 @@ extension NotchcastCommandCatalog {
         NotchcastToolsLauncherCommands.extractText,
         NotchcastToolsLauncherCommands.runHostCommand,
         NotchcastToolsLauncherCommands.listCommands,
+        PlainPasteModule.launcherCommand,
+        FinderToolsCoordinator.cutCommand,
+        FinderToolsCoordinator.pasteCommand,
+        FinderToolsCoordinator.renameCommand,
     ]
 }
