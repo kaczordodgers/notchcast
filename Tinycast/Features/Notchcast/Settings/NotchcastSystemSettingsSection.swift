@@ -5,7 +5,9 @@ struct NotchcastSystemSettingsSection: View {
 
     var body: some View {
         Section {
-            ForEach(NotchcastFeature.allCases.filter(\.isSystemFeature), id: \.self) { feature in
+            ForEach(NotchcastFeature.allCases.filter {
+                $0.isSystemFeature && $0 != .accessoryBatteries
+            }, id: \.self) { feature in
                 Toggle(isOn: Binding(
                     get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
                     SettingsRowTitle(.notchcastMonitor, verbatim: feature.title)
@@ -46,6 +48,7 @@ struct NotchcastSystemSettingsSection: View {
             if !RootHelperClient().isInstalled {
                 Text("The privileged helper is not installed.").foregroundStyle(.secondary)
             }
+            NotchcastAccessoriesSettingsRows()
         } header: {
             SettingsSectionHeader(.notchcastMonitor)
         }
