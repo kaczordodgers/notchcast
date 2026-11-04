@@ -71,6 +71,11 @@ struct FanSMCTest {
     }
 
     private static func validateTools() throws {
+        precondition(Power.arguments(.standbyOff) == ["-a", "standby", "0"])
+        precondition(Power.arguments(.standbyOn) == ["-a", "standby", "1"])
+        precondition(Power.arguments(.autopoweroffOff) == ["-a", "autopoweroff", "0"])
+        precondition(Power.arguments(.autopoweroffOn) == ["-a", "autopoweroff", "1"])
+        precondition(Power.arguments(.ping) == nil)
         precondition(Spotlight.arguments(.spotlightOff) == ["-a", "-i", "off"])
         precondition(Spotlight.arguments(.spotlightOn) == ["-a", "-i", "on"])
         precondition(Spotlight.arguments(.ping) == nil)
@@ -96,7 +101,7 @@ struct FanSMCTest {
         rejects {
             _ = try TouchIDPolicy.replacement(sudo: sudo, local: "auth required pam_tid.so\n", enabled: true)
         }
-        print("PASS: Spotlight arguments and pure PAM transforms")
+        print("PASS: power and Spotlight arguments and pure PAM transforms")
     }
 
     private static func validateBattery() throws {
@@ -321,6 +326,10 @@ struct RootClientTest {
             (["battery-adapter-on"], 77, ""), (["battery-adapter-off"], 77, ""),
             (["battery-sleep-on"], 77, ""), (["battery-sleep-off"], 77, ""),
             (["battery-charging-off", "1"], 64, ""), (["battery-sleep-off", "1"], 64, ""),
+            (["standby-off"], 77, ""), (["standby-on"], 77, ""),
+            (["autopoweroff-off"], 77, ""), (["autopoweroff-on"], 77, ""),
+            (["standby-off", "1"], 64, ""), (["standby-on", "0"], 64, ""),
+            (["autopoweroff-off", "1"], 64, ""), (["autopoweroff-on", "0"], 64, ""),
         ]
         for (arguments, status, expected) in cases {
             let process = Process()
@@ -346,6 +355,7 @@ struct RootClientTest {
                                  "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
                                  "notchcast/root/RootContract.swift", "notchcast/root/FanSMC.swift",
                                  "notchcast/root/BatterySMC.swift",
+                                 "notchcast/root/Power.swift",
                                  "notchcast/root/Spotlight.swift", "notchcast/root/TouchIDPolicy.swift",
                                  "Tests/notchcast-root-client-test.swift", "-o", fanTests.path]
         try fanCompiler.run()
