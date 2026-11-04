@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 struct RootHelperClient: Sendable {
     enum Failure: Error, Equatable {
@@ -13,9 +14,20 @@ struct RootHelperClient: Sendable {
 
     var isInstalled: Bool { RootToolPath.verify() == nil }
 
+    /// Root children we stopped waiting for; root tools must not overlap, so no new one starts while one runs.
+    private static let abandoned = Mutex<[Process]>([])
+
+    static func refuseWhileAbandonedRuns() throws {
+        try abandoned.withLock { children in
+            children.removeAll { !$0.isRunning }
+            if !children.isEmpty { throw Failure.timedOut }
+        }
+    }
+
     @concurrent
     func run(_ command: RootContract.Command) async throws -> RootContract.Reply {
         try Task.checkCancellation()
+        try Self.refuseWhileAbandonedRuns()
         if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
         let process = Process()
         let output = Pipe()
@@ -33,7 +45,18 @@ struct RootHelperClient: Sendable {
         } catch {
             throw Failure.launchFailed
         }
-        try await Self.wait(for: process, exit: exit, timeout: command.operation.timeout)
+        return try await run(command, process: process, exit: exit, output: output,
+                             timeout: command.operation.timeout)
+    }
+
+    func run(_ command: RootContract.Command, process: Process, exit: ProcessExit,
+             output: Pipe, timeout: Duration) async throws -> RootContract.Reply {
+        do {
+            try await Self.wait(for: process, exit: exit, timeout: timeout)
+        } catch {
+            Self.abandoned.withLock { $0.append(process) }
+            throw error
+        }
         guard process.terminationReason == .exit else {
             throw Failure.executionFailed(process.terminationStatus)
         }
@@ -62,24 +85,8 @@ struct RootHelperClient: Sendable {
     }
 
     static func wait(for process: Process, exit: ProcessExit, timeout: Duration) async throws {
-        try await withTaskCancellationHandler {
-            try await withThrowingTaskGroup(of: Void.self) { group in
-                group.addTask { await reap(exit) }
-                group.addTask {
-                    try await Task.sleep(for: timeout)
-                    throw Failure.timedOut
-                }
-                defer { group.cancelAll() }
-                do {
-                    try await group.next()
-                    try Task.checkCancellation()
-                } catch {
-                    if process.isRunning { process.terminate() }
-                    throw error
-                }
-            }
-        } onCancel: {
-            if process.isRunning { process.terminate() }
+        try await RootWait.perform(timeout: timeout) {
+            await reap(exit)
         }
     }
 
