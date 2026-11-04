@@ -16,6 +16,16 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
+    case showDesktop
+
+    case spacesOrder
+
+    case hideCommandM
+
+    case middleClick
+
+    case greenMaximize
+
     var title: String {
         switch self {
         case .island: String(localized: "Island")
@@ -36,6 +46,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .greenMaximize: String(localized: "Green Button Maximizes")
+        case .middleClick: String(localized: "Trackpad Middle Click")
+        case .hideCommandM: String(localized: "Hide with ⌘M")
+        case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
+        case .showDesktop: String(localized: "Show Desktop with F3")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -65,6 +80,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
+        case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
+        case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
+        case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
+        case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -77,6 +97,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .showDesktop: [.accessibility]
+        case .spacesOrder: []
+        case .hideCommandM: [.accessibility]
+        case .middleClick: [.accessibility]
+        case .greenMaximize: [.accessibility]
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
@@ -90,7 +115,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        ![.displayBrightness, .quitProtection, .showDesktop, .spacesOrder,
+          .hideCommandM, .middleClick, .greenMaximize].contains(self) && !isSystemFeature
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,

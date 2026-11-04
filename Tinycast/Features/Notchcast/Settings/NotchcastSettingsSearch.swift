@@ -58,5 +58,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastOptions, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
+        .init(.notchcastOptions, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
     ]
 }
