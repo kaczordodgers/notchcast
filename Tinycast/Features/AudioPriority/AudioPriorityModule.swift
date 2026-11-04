@@ -6,7 +6,7 @@ final class AudioPriorityModule: NotchcastModule {
 
     init() {
         let store = NotchcastPreferences.shared.audioPriority
-        manager = AudioPriorityManager(transport: CoreAudioPriorityTransport(), store: store) { error in
+        manager = AudioPriorityManager(transport: CoreAudioPriorityTransport(), store: store) { _ in
             store.failure = String(localized: "Could not change the audio device.")
         }
         manager.inventoryChanged = { store.update($0) }
