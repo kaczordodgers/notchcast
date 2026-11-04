@@ -18,6 +18,7 @@
   "dayCalendar": "island Day page lists today's events (Tinycast/Features/Notchcast/Pages/IslandDayPage.swift:26, IslandDayView) + launcher Open Day (Tinycast/Features/LiveDay/DayCommands.swift:17)",
   "agentActions": "action index served to local agents through the CLI socket (Tinycast/Features/AgentBridge/UI/AgentCLIModule.swift:22)",
   "agentCLI": "Unix socket server (Tinycast/Features/AgentBridge/UI/AgentCLIModule.swift:29) + Install button for the command line tool (Tinycast/Features/AgentBridge/UI/AgentSettingsSection.swift:10)",
+  "treadmillWalk": "launcher commands Start Walk / Stop Walk / Pause or Resume Walk / Walk Faster / Walk Slower (Tinycast/Features/Treadmill/TreadmillCommands.swift:4-8; catalog NotchcastCommandCatalog+All.swift:24-28) over the Bluetooth walking pad; agent device actions at Tinycast/Features/Treadmill/Service/TreadmillAgentActions.swift:13",
   "appearance": "launcher Theme (Tinycast/Features/Appearance/UI/AppearanceCoordinator+Command.swift:8) + surface style (Tinycast/DesignSystem/GlassEffectView.swift:6) + Appearance settings section",
   "cleaningMode": "settings Start button (Tinycast/Features/Notchcast/Settings/NotchcastToolsWiringSettingsRows.swift:13 → cleaning.begin)",
   "appUpdates": "settings Check button + results list (Tinycast/Features/Notchcast/Settings/NotchcastToolsWiringSettingsRows.swift:19)",

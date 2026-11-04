@@ -677,7 +677,6 @@ extension NotchcastFeature {
         .buildStats,
         .killProcess,
         .launcherAnswers,
-        .treadmillWalk,
         .katana,
         .agentAnswer,
         .voiceAsk,
