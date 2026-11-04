@@ -2,6 +2,7 @@ import AppKit
 
 @MainActor
 final class ScrollingCaptureModule: NotchcastModule {
+    enum ReportTone { case neutral, danger }
     private let area: CaptureAreaService
     private let session: ScrollingCaptureSession
     private let write: (Data) -> Bool
@@ -30,7 +31,7 @@ final class ScrollingCaptureModule: NotchcastModule {
         session.cancel()
     }
 
-    func capture(report: @escaping (String) -> Void) {
+    func capture(report: @escaping (String, ReportTone) -> Void) {
         guard enabled else { return }
         if session.state == .capturing {
             task?.cancel()
@@ -43,7 +44,7 @@ final class ScrollingCaptureModule: NotchcastModule {
                 guard let self, self.enabled, let selection else { return }
                 do {
                     try self.session.start(rect: selection.rect, displayID: selection.displayID)
-                    report(String(localized: "Scroll the area, then run Scrolling Capture again to copy."))
+                    report(String(localized: "Scroll the area, then run Scrolling Capture again to copy."), .neutral)
                     self.task = Task { [weak self] in
                         do {
                             while let self, self.session.state == .capturing {
@@ -53,12 +54,12 @@ final class ScrollingCaptureModule: NotchcastModule {
                             await self?.finish(report: report)
                         } catch {}
                     }
-                } catch { report(Self.failureMessage(error)) }
+                } catch { report(Self.failureMessage(error), .danger) }
             }
-        } catch { report(Self.failureMessage(error)) }
+        } catch { report(Self.failureMessage(error), .danger) }
     }
 
-    private func finish(report: (String) -> Void) async {
+    private func finish(report: (String, ReportTone) -> Void) async {
         defer { if !Task.isCancelled { task = nil } }
         do {
             let image = try await session.stop()
@@ -68,12 +69,12 @@ final class ScrollingCaptureModule: NotchcastModule {
             let data = try await ScrollingCaptureSession.pngData(for: image)
             try Task.checkCancellation()
             guard enabled else { return }
-            guard write(data) else { report(String(localized: "Could not copy to clipboard.")); return }
-            if limited { report(String(localized: "Scrolling capture reached the 20,000 pixel limit.")) }
+            guard write(data) else { report(String(localized: "Could not copy to clipboard."), .danger); return }
+            if limited { report(String(localized: "Scrolling capture reached the 20,000 pixel limit."), .neutral) }
         } catch is CancellationError {
         } catch {
             guard !Task.isCancelled else { return }
-            report(Self.failureMessage(error))
+            report(Self.failureMessage(error), .danger)
         }
     }
 

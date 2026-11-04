@@ -39,7 +39,10 @@ struct CaptureWiringTest {
         ], preferences: preferences)
         controller.run()
         text.capture { messages.append($0) }
-        scrolling.capture { messages.append($0) }
+        scrolling.capture { message, tone in
+            precondition(tone == .danger)
+            messages.append(message)
+        }
         precondition(requests == 0)
         var refreshed = 0
         preferences.onCommandsChanged = { refreshed += 1 }
@@ -49,13 +52,16 @@ struct CaptureWiringTest {
         await settle()
         precondition(requests == 0)
         text.capture { messages.append($0) }
-        scrolling.capture { messages.append($0) }
+        scrolling.capture { message, tone in
+            precondition(tone == .danger)
+            messages.append(message)
+        }
         precondition(requests == 2 && messages.count == 2 && refreshed == 3)
         preferences.set(.screenText, false)
         preferences.set(.scrollingCapture, false)
         await settle()
         text.capture { messages.append($0) }
-        scrolling.capture { messages.append($0) }
+        scrolling.capture { message, _ in messages.append(message) }
         precondition(requests == 2)
         text.removeLineBreaks = true
         precondition(ScreenTextModule(defaults: defaults).removeLineBreaks)
@@ -64,7 +70,71 @@ struct CaptureWiringTest {
         }
         precondition(ScreenTextModule.failureMessage(ScreenTextService.Failure.noContent)
                      != ScreenTextModule.failureMessage(ScreenTextService.Failure.clipboardWriteFailed))
+        await testInFlightStop(defaults: defaults)
         print("PASS: OCR/scroll switches start and stop, no startup prompts, independent of Island, persisted OCR option")
+    }
+
+    private static func testInFlightStop(defaults: UserDefaults) async {
+        let selection = CaptureAreaSelection(
+            rect: CGRect(x: 0, y: 0, width: 10, height: 10), displayID: 1,
+            displayFrame: CGRect(x: 0, y: 0, width: 100, height: 100))
+        func area() -> CaptureAreaService {
+            CaptureAreaService(hasScreenRecordingAccess: { true }, select: { $0(selection) })
+        }
+        let recognition = Suspension()
+        var writes = 0
+        var reports = 0
+        let text = ScreenTextModule(defaults: defaults, area: area(), recognize: { _, _ in
+            await recognition.wait()
+            return ScreenTextResult(content: "Late text", kind: .text)
+        }, write: { _ in writes += 1; return true })
+        text.start()
+        text.capture { _ in reports += 1 }
+        while !recognition.started { await Task.yield() }
+        text.stop()
+        recognition.resume()
+        await settle()
+        precondition(writes == 0 && reports == 0)
+
+        let frame = Suspension()
+        let session = ScrollingCaptureSession(prepareCapture: { _, _, _ in
+            return {
+                await frame.wait()
+                throw ScrollingCaptureSession.Failure.invalidFrame
+            }
+        }, requestAccess: { true })
+        let scrolling = ScrollingCaptureModule(area: area(), session: session,
+                                               write: { _ in writes += 1; return true })
+        scrolling.start()
+        scrolling.capture { _, tone in
+            precondition(tone == .neutral)
+            reports += 1
+        }
+        while !frame.started { await Task.yield() }
+        precondition(reports == 1 && session.state == .capturing)
+        scrolling.stop()
+        frame.resume()
+        await settle()
+        precondition(session.state == .idle && writes == 0 && reports == 1)
+        print("PASS: neutral scrolling prompt; switch-off cancels in-flight OCR and scrolling without late output")
+    }
+
+    @MainActor
+    private final class Suspension {
+        var started = false
+        private var continuation: CheckedContinuation<Void, Never>?
+
+        func wait() async {
+            await withCheckedContinuation {
+                continuation = $0
+                started = true
+            }
+        }
+
+        func resume() {
+            continuation?.resume()
+            continuation = nil
+        }
     }
 
     private static func settle() async {
