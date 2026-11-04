@@ -1,7 +1,5 @@
 import Observation
 
-/// Started once all of its entry's required switches are on and stopped when one turns off. Other
-/// switch flips never restart it: a module reads its own sub-switches live through Observation.
 @MainActor
 protocol NotchcastModule: AnyObject {
     func start()
@@ -11,8 +9,8 @@ protocol NotchcastModule: AnyObject {
 @MainActor
 final class NotchcastModuleController {
     struct Entry {
-        var requires: [NotchcastFeature] = []
-        var anyOf: [NotchcastFeature] = []
+        let requires: [NotchcastFeature]
+        var requiresAny: [NotchcastFeature] = []
         let module: any NotchcastModule
     }
 
@@ -35,9 +33,8 @@ final class NotchcastModuleController {
 
     private func update() {
         for (index, entry) in entries.enumerated() {
-            let required = entry.requires.allSatisfy(preferences.isOn)
-            let selected = entry.anyOf.isEmpty || entry.anyOf.contains(where: preferences.isOn)
-            let enabled = required && selected
+            let enabled = entry.requires.allSatisfy(preferences.isOn)
+                && (entry.requiresAny.isEmpty || entry.requiresAny.contains(where: preferences.isOn))
             if enabled && running.insert(index).inserted {
                 entry.module.start()
             } else if !enabled && running.remove(index) != nil {

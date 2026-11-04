@@ -15,7 +15,9 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island && !$0.isSystemTweak }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter {
+                    $0 != .island && !$0.isSystemFeature && !$0.isSystemTweak && $0.isWired
+                }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
@@ -34,6 +36,8 @@ struct NotchcastSettingsView: View {
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+
+            NotchcastSystemSettingsSection()
 
             Section {
                 Picker(selection: Binding(

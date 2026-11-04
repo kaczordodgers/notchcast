@@ -32,7 +32,7 @@ struct SystemModuleTests {
         precondition(effects == [true, false])
         let module = TweaksModule()
         let controller = NotchcastModuleController([
-            .init(anyOf: [.macSetup, .privacyChoices], module: module)
+            .init(requires: [], requiresAny: [.macSetup, .privacyChoices], module: module)
         ], preferences: preferences)
         controller.run()
         precondition(!module.running)
