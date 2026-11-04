@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case agentConfirmation
 
     var title: String {
         switch self {
@@ -42,6 +43,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .agentConfirmation: String(localized: "Agent Confirmation")
         }
     }
 
@@ -71,12 +73,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .agentConfirmation: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
