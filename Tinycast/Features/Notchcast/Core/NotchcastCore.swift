@@ -14,8 +14,11 @@ enum NotchcastCore {
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
+    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func stopForTermination() async {
+        machineBackup.stop()
+        await machineBackup.waitUntilIdle()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -30,6 +33,7 @@ enum NotchcastCore {
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
+            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
                 .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
