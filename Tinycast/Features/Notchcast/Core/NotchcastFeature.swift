@@ -33,6 +33,17 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case cleanPurge
     case cleanOptimize
     case cleanSystem
+    case settingsBackup
+    case showDesktop
+    case spacesOrder
+    case hideCommandM
+    case middleClick
+    case greenMaximize
+    case machineSetupProfile
+    case agentConfirmation
+    case eventReminder
+    case switcherQuitKey
+    case linkQuickFixes
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -57,6 +68,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: .systemTools
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
+        case .linkQuickFixes: .systemTools
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -68,6 +80,16 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleanPurge: .clean
         case .cleanOptimize: .clean
         case .cleanSystem: .clean
+        case .settingsBackup: .system
+        case .showDesktop: .system
+        case .spacesOrder: .system
+        case .hideCommandM: .system
+        case .middleClick: .system
+        case .greenMaximize: .system
+        case .machineSetupProfile: .system
+        case .agentConfirmation: .islandOptions
+        case .eventReminder: .activities
+        case .switcherQuitKey: .launcher
         }
     }
 
@@ -92,6 +114,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .greenMaximize: String(localized: "Green Button Maximizes")
+        case .middleClick: String(localized: "Trackpad Middle Click")
+        case .hideCommandM: String(localized: "Hide with ⌘M")
+        case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
+        case .showDesktop: String(localized: "Show Desktop with F3")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -105,6 +132,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleanPurge: String(localized: "Project purge")
         case .cleanOptimize: String(localized: "Optimize")
         case .cleanSystem: String(localized: "System root")
+        case .settingsBackup: String(localized: "Settings Backup")
+        case .machineSetupProfile: String(localized: "Machine Setup Profile")
+        case .agentConfirmation: String(localized: "Agent Confirmation")
+        case .eventReminder: String(localized: "Event Reminders")
+        case .switcherQuitKey: String(localized: "Switcher Quit Key")
+        case .linkQuickFixes: String(localized: "Link Quick Fixes")
         }
     }
 
@@ -129,6 +162,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
+        case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
+        case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
+        case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
+        case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -142,12 +180,23 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleanPurge: String(localized: "Runs only when you click an action.")
         case .cleanOptimize: String(localized: "Runs only when you click an action.")
         case .cleanSystem: String(localized: "Runs only when you click an action.")
+        case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
+        case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
+        case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
+        case .eventReminder: String(localized: "Show calendar alerts in the island.")
+        case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
+        case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .showDesktop: [.accessibility]
+        case .hideCommandM: [.accessibility]
+        case .middleClick: [.accessibility]
+        case .greenMaximize: [.accessibility]
+        case .switcherQuitKey: [.accessibility]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -161,6 +210,14 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature || settingsGroup == .clean { return false }
         return switch self {
+        case .settingsBackup: false
+        case .showDesktop: false
+        case .spacesOrder: false
+        case .hideCommandM: false
+        case .middleClick: false
+        case .greenMaximize: false
+        case .machineSetupProfile: false
+        case .switcherQuitKey: false
         case .displayBrightness: false
         case .quitProtection: false
         default: true

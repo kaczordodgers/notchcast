@@ -14,6 +14,9 @@ struct QuitProtectionTests {
     }
 
     @MainActor static func main() {
+        check(QuitProtectionAppName.displayName("My.app.editor.app") == "My.app.editor", "Only trailing suffix removed")
+        check(QuitProtectionAppName.displayName("My.app.editor") == "My.app.editor", "Internal suffix preserved")
+        check(QuitProtectionAppName.displayName("Editor") == "Editor", "Plain name preserved")
         var engine = QuitProtectionEngine(configuration: .init(mode: .doublePress))
         let first = engine.consume(.keyDown(q, .command, isRepeat: false), at: 10, target: target)
         guard case .swallow(let notice) = first else { fatalError("First quit must be swallowed") }
