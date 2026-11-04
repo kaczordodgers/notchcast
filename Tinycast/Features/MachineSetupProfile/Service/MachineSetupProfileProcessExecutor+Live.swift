@@ -16,10 +16,25 @@ extension MachineSetupProfileProcessExecutor {
             task.standardInput = FileHandle.nullDevice
             task.standardOutput = output
             task.standardError = FileHandle.nullDevice
-            try task.run()
+            try runToExit(task, timeout: 5)
             let data = output.fileHandleForReading.readDataToEndOfFile()
             task.waitUntilExit()
             return Result(status: task.terminationStatus, output: String(bytes: data, encoding: .utf8) ?? "")
         }, isRoot: { geteuid() == 0 })
+    }
+
+    static func runToExit(_ task: Process, timeout: TimeInterval) throws {
+        let finished = DispatchSemaphore(value: 0)
+        task.terminationHandler = { _ in finished.signal() }
+        try task.run()
+        if finished.wait(timeout: .now() + timeout) == .timedOut {
+            task.terminate()
+            if finished.wait(timeout: .now() + 0.25) == .timedOut, task.isRunning {
+                kill(task.processIdentifier, SIGKILL)
+            }
+            task.waitUntilExit()
+            throw Failure.stepFailed
+        }
+        task.waitUntilExit()
     }
 }
