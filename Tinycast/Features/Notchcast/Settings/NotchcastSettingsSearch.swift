@@ -134,6 +134,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Backup status file path"),
         .init(.notchcastActivities, "AI usage cache directory"),
         .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
+        .init(.notchcastActivities, "Agent Session Logs", keywords: ["claude", "codex", "tokens"]),
+        .init(.notchcastSystem, "Agent API Value", keywords: ["pricing", "cost", "tokens"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),
