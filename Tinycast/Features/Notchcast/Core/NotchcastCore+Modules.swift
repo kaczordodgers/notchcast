@@ -3,6 +3,13 @@
 import Foundation
 
 extension NotchcastCore {
+    static let macLink = AIUsageLinkModule()
+    static let aiUsage = AIUsageModule(channel: macLink.channel)
+    static let github = GitHubModule()
+    static let clearNotifications = ClearNotificationsModule()
+    static let answers = LauncherAnswersModule()
+    static let copyPath = CopyPathModule()
+    static let smallCommands = SmallCommandsModule()
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast") + ".urlCleaner"))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
@@ -29,6 +36,13 @@ extension NotchcastCore {
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let downloadServices = NotchcastDownloadServices(core: core)
         return [
+            .init(requires: [.githubSearch], module: github),
+            .init(requires: [.clearNotifications], module: clearNotifications),
+            .init(requires: [.launcherAnswers], module: answers),
+            .init(requires: [.copyPath], module: copyPath),
+            .init(requires: [.smallCommands], module: smallCommands),
+            .init(requires: [.aiUsage], module: aiUsage),
+            .init(requires: [.machLink], module: macLink),
             .init(requires: [.urlCleaner], module: urlCleaner),
             .init(requires: [.convertFiles], module: convertFiles),
             .init(requires: [.mediaTools], module: mediaTools),

@@ -1,6 +1,14 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
+    case githubSearch
+    case clearNotifications
+    case launcherAnswers
+    case copyPath
+    case smallCommands
+    case aiUsage
+    case aiUsageOtherMac
+    case machLink
     case island
     case islandExternalDisplays
     case islandFullScreen
@@ -55,6 +63,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .githubSearch: .launcher
+        case .clearNotifications: .launcher
+        case .launcherAnswers: .launcher
+        case .copyPath: .launcher
+        case .smallCommands: .launcher
+        case .aiUsage: .activities
+        case .aiUsageOtherMac: .activities
+        case .machLink: .system
         case .commandRunner: .launcher
         case .mediaTools: .activities
         case .convertFiles: .activities
@@ -107,6 +123,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .githubSearch: String(localized: "GitHub Search")
+        case .clearNotifications: String(localized: "Clear Notifications")
+        case .launcherAnswers: String(localized: "Currency Answers")
+        case .copyPath: String(localized: "Copy Path")
+        case .smallCommands: String(localized: "Small Commands")
+        case .aiUsage: String(localized: "AI Usage")
+        case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
+        case .machLink: String(localized: "Mac Link")
         case .commandRunner: String(localized: "Command Runner")
         case .mediaTools: String(localized: "Media Tools")
         case .convertFiles: String(localized: "Convert Files")
@@ -159,6 +183,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .githubSearch: String(localized: "Search GitHub repositories and starred projects.")
+        case .clearNotifications: String(localized: "Clear notifications from Notification Center. Requires English system language.")
+        case .launcherAnswers: String(localized: "Currency answers using rates from NBP.")
+        case .copyPath: String(localized: "Copy the frontmost document path or browser link.")
+        case .smallCommands: String(localized: "Passwords, short links, noise control and AirDrop. Noise control requires English system language.")
+        case .aiUsage: String(localized: "Read local AI usage on demand.")
+        case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
+        case .machLink: String(localized: "Connect to a paired Mac on the local network.")
         case .commandRunner: String(localized: "Run commands from a host profile.")
         case .mediaTools: String(localized: "Compress media, make GIFs and extract text locally.")
         case .convertFiles: String(localized: "Convert local files beside the originals.")
@@ -212,6 +244,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .clearNotifications: [.accessibility]
+        case .copyPath: [.accessibility]
+        case .smallCommands: [.accessibility]
         case .showDesktop: [.accessibility]
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
@@ -230,6 +265,14 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .githubSearch: false
+        case .clearNotifications: false
+        case .launcherAnswers: false
+        case .copyPath: false
+        case .smallCommands: false
+        case .aiUsage: false
+        case .aiUsageOtherMac: false
+        case .machLink: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .urlCleaner: false
@@ -259,6 +302,14 @@ extension NotchcastFeature {
 
     var defaultEnabled: Bool {
         switch self {
+        case .githubSearch: false
+        case .clearNotifications: false
+        case .launcherAnswers: false
+        case .copyPath: false
+        case .smallCommands: false
+        case .aiUsage: false
+        case .aiUsageOtherMac: false
+        case .machLink: false
         case .spacesOrder: false
         case .switcherQuitKey: false
         case .urlCleaner: false
