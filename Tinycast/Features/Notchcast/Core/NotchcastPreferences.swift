@@ -47,9 +47,15 @@ final class NotchcastPreferences {
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
     @ObservationIgnored private let defaults: UserDefaults
+    let audioPriority: AudioPriorityPreferences
+    var audioPriorityEnabled: Bool {
+        get { isOn(.audioPriority) }
+        set { set(.audioPriority, newValue) }
+    }
     private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
+        audioPriority = AudioPriorityPreferences(suiteName: suiteName)
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
         func threshold(_ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {

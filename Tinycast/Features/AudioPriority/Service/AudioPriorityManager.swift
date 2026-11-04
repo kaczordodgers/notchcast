@@ -9,6 +9,7 @@ final class AudioPriorityManager {
     private var lifetime: UUID?
     private var pending: Task<Void, Never>?
     private var connected: [AudioPriorityDevice.Direction: Set<String>] = [:]
+    var inventoryChanged: ([AudioPriorityDevice]) -> Void = { _ in }
 
     init(transport: any AudioPriorityTransport, store: any AudioPriorityStore,
          report: @escaping (any Error) -> Void) {
@@ -57,6 +58,7 @@ final class AudioPriorityManager {
     private func refresh(apply: Bool) {
         do {
             let devices = try transport.devices()
+            inventoryChanged(devices)
             for direction in AudioPriorityDevice.Direction.allCases {
                 let uids = devices.filter { $0.direction == direction }.map(\.uid)
                 let available = Set(uids)

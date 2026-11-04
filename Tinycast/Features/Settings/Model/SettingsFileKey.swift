@@ -2,6 +2,11 @@ import Foundation
 
 /// Every key settings.json holds, in the order the file lists them; the raw value is its path.
 enum SettingsFileKey: String, CaseIterable, Sendable {
+    case audioPriorityEnabled = "notchcast.audioPriorityEnabled"
+    case audioOutputsEnabled = "notchcast.audioOutputsEnabled"
+    case audioMicrophonesEnabled = "notchcast.audioMicrophonesEnabled"
+    case audioOutputs = "notchcast.audioOutputs"
+    case audioMicrophones = "notchcast.audioMicrophones"
     // Spelled out, so renaming a case can never rename a key in someone's file.
     case launcherShortcut = "general.launcherShortcut"
     case showInMenuBar = "general.showInMenuBar"

@@ -28,6 +28,12 @@ enum SettingsFileSchema {
         }
 
         switch key {
+        case .audioPriorityEnabled: return bind(NotchcastPreferences.shared, \.audioPriorityEnabled)
+        case .audioOutputsEnabled: return bind(NotchcastPreferences.shared.audioPriority, \.outputsEnabled)
+        case .audioMicrophonesEnabled:
+            return bind(NotchcastPreferences.shared.audioPriority, \.microphonesEnabled)
+        case .audioOutputs: return bind(NotchcastPreferences.shared.audioPriority, \.outputs)
+        case .audioMicrophones: return bind(NotchcastPreferences.shared.audioPriority, \.microphones)
         case .launcherShortcut:
             return shortcuts.binding(
                 for: key, action: .togglePalette, name: String(localized: "App Launcher"))
