@@ -10,11 +10,13 @@ if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     head=$(git rev-parse --verify "$3^{commit}")
 elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
-    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,statusCheckRollup)
+    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName)
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
-    # The newest run wins: a dispatched rerun sits beside the cancelled run on the same head.
-    python3 -c 'import json,sys; p=json.load(sys.stdin); b=[c for c in p["statusCheckRollup"] if c.get("name") == "build"]; assert max(b, key=lambda c: c["startedAt"])["conclusion"] == "SUCCESS"' <<< "$metadata" 2>/dev/null \
-        || refuse "build is not green on $head; run: gh workflow run PR --ref <branch> -R kaczordodgers/notchcast"
+    # Check runs on the head commit, not the PR's statusCheckRollup: the rollup omits dispatched runs, and a PR
+    # GitHub calls conflicting gets no pull_request run at all. The newest run wins over a cancelled one.
+    gh api "repos/kaczordodgers/notchcast/commits/$head/check-runs?check_name=build&filter=all" \
+        --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | .conclusion' | grep -qx success \
+        || refuse "build is not green on ${head:0:8}; if it has none, run: gh workflow run PR --ref $(jq -r .headRefName <<< "$metadata") -R kaczordodgers/notchcast"
     git fetch origin main "refs/pull/$pr/head"
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
     base=$(git rev-parse origin/main)
