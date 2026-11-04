@@ -7,7 +7,8 @@ struct NotchcastModuleSettingsView: View {
 
     var body: some View {
         Form {
-            ForEach(module.groups) { group in
+            // A group whose switches are all hidden (not wired yet) shows no header either.
+            ForEach(module.groups.filter { $0.items.contains { $0.feature?.isWired ?? true } }) { group in
                 let anchor = SettingsAnchor(tab: module.tab, title: group.title)
                 Section {
                     ForEach(group.items, id: \.self) { item in
@@ -64,18 +65,23 @@ private struct NotchcastModuleFeatureRows: View {
         if NotchcastSettingsModule.module(of: feature) == .battery && feature != .accessoryBatteries {
             NotchcastBatteryStatusSettingRow(feature: feature)
         }
-        if feature == .microphoneMute {
+        if feature == .microphoneMute, servicesReady {
             MicrophoneHotKeyFailureSettingRow()
         }
         if preferences.isEnabled(feature) && feature.settingsAvailable {
             ForEach(commands, id: \.id) { command in
                 FeatureCommandRow(entry: command.entry)
             }
-            ForEach(settings, id: \.self) { setting in
+            ForEach(servicesReady ? settings : [], id: \.self) { setting in
                 NotchcastSettingRow(setting: setting)
                     .settingsEnabled(preferences.isEnabled(feature))
             }
         }
+    }
+
+    /// Spotify and microphone rows read services that `NotchcastCore.start` creates; the offscreen gallery never starts them.
+    private var servicesReady: Bool {
+        NotchcastCore.services != nil || ![.spotifyConnect, .microphoneMute, .inUseMarks].contains(feature)
     }
 
     private var commands: [NotchcastCommand] {
