@@ -3059,54 +3059,14 @@
     },
     "Failed" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fehlgeschlagen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Error"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Échec"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "失敗"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "실패함"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Falhou"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ошибка"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "失败"
-          }
-        }
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Fehlgeschlagen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Fallido" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Échec" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "失敗" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "실패" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Falhou" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Ошибка" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "失败" } }
       }
     },
     "Not run" : {
