@@ -32,5 +32,5 @@ Settings uses the shared Options loop, with all five switches independent of Isl
 
 ## Speech worker ownership
 
-Downloads and Distill each create their own DictationModelStore through their wiring, using the same installed model files and currently selected model as Dictation. They never download or install a model; a missing model produces the upstream not-installed failure. User dictation runs in its separate store and worker, so background chunks cannot make it busy.
+Downloads and Distill share one services instance and DictationModelStore created by NotchcastCore, using the same installed model files and currently selected model as Dictation. They never download or install a model; a missing model produces the upstream not-installed failure. User dictation runs in its separate store and worker, so background chunks cannot make it busy.
 The worker stays loaded across chunks and consecutive queued transcription jobs, then releases when no transcription job is running or queued, or after module shutdown. Each chunk waits while the user's Dictation model store is transcribing.
