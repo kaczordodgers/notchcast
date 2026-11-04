@@ -24,5 +24,6 @@ struct NotchcastExtrasSection: View {
 
         TimerSettingsSection(store: NotchcastCore.timers.store)
         DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
+        AgentSettingsSection(module: NotchcastCore.agentCLI)
     }
 }

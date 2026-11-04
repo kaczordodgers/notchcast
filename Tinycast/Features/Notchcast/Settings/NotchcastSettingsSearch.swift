@@ -72,6 +72,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastSystem, "Agent access"),
+        .init(.notchcastSystem, "Command line tool"),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),

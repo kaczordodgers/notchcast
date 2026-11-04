@@ -22,6 +22,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case agentActions
+    case agentCLI
     case appearance
     case pastePlain
     case pasteImage
@@ -83,6 +85,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .agentActions: .system
+        case .agentCLI: .system
         case .appearance: .appearance
         case .pastePlain: .clipboard
         case .pasteImage: .clipboard
@@ -111,6 +115,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .agentActions: String(localized: "Agent access")
+        case .agentCLI: String(localized: "Command line tool")
         case .appearance: String(localized: "Custom appearance")
         case .pastePlain: String(localized: "Paste Plain Text")
         case .pasteImage: String(localized: "Paste Image in Finder")
@@ -157,6 +163,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .agentActions: String(localized: "Expose actions and read-only state to local agents.")
+        case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .pastePlain: String(localized: "Hyper+V pastes text without formatting.")
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
@@ -216,6 +224,8 @@ extension NotchcastFeature {
         case .switcherQuitKey: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .agentActions: false
+        case .agentCLI: false
         case .appearance: false
         case .pastePlain: false
         case .pasteImage: false

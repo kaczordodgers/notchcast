@@ -1,0 +1,52 @@
+# Agent bridge
+
+`NotchcastCore.agents.index` owns action registration and read-only state providers. Modules register
+an `AgentActionIndex.Entry` or `StateProvider` once, with a live availability closure. Registration
+rejects duplicate IDs. Parameters use a closed object schema with string, boolean, number and integer
+properties, required fields and numeric bounds. Discovery exposes the same JSON Schema used to
+validate execution. Upstream built-ins come directly from their existing catalogues and dispatch
+through the existing hotkey or system-action coordinator; success means `dispatched`.
+
+The Agent access and Command line tool switches are independent of the island. Both follow the
+fork's default-on switch policy. Turning Agent access off invalidates pending approvals and stops
+the socket. Turning Command line tool off stops the socket alone. Preferences stay in the fork-local,
+bundle-specific store. No agent authorization is persisted or imported.
+
+## Protocol
+
+Settings can link the bundled `Contents/Helpers/notchcast` tool into `~/.local/bin`. Installation never
+replaces an unrelated file or symlink. The helper resolves its enclosing app's bundle ID, so Debug and
+Release use separate endpoints under `~/Library/Application Support/<bundle-id>/agent/socket`.
+The containing directory is `0700`, the socket is `0600`, and both peers verify the effective UID.
+A file lock protects the endpoint against another listener; only an owned stale socket is removed.
+An overlong Unix socket path fails explicitly rather than choosing a shared fallback location.
+
+One JSON request line produces one JSON reply line, then the connection closes. Frames are capped at
+1 MiB. There are at most eight active clients, bounded read/write/handler deadlines, no idle polling,
+and cancellation on disconnect, timeout or stop. Socket IO runs outside the main actor.
+
+```
+notchcast list --json
+notchcast get notchcast.features --json
+notchcast run system-action:set-volume '{"level":0.5}' --dry-run --json
+notchcast status --json
+notchcast audit --json
+```
+
+Wire requests contain `verb`, optional `id`, `parameters` (default `{}`) and `dryRun` (default false).
+Replies contain `code` and `result`. The CLI prints compact JSON with `--json`, pretty JSON otherwise.
+Exit codes are 0 success, 1 failed/unavailable, 2 invalid request, 3 not running and 5 declined.
+Dry runs validate schema and availability without asking for consent or running effects.
+
+## Consent and audit
+
+The bridge uses AgentConsentPolicy and the bundle-isolated AgentGrantStore. The socket identifies
+clients only as local-cli; without authenticated per-agent identity, requests needing a new approval
+fail closed. Dangerous actions remain refused while island confirmation is unavailable.
+AgentAuditStore records completed execution requests with redacted parameters. The audit verb returns
+persisted entries; malformed JSONL records are skipped and counted without hiding valid records.
+
+## Left for the look
+
+Island action/state browsing, confirmation cards and the audit list remain on hold. All state and
+action APIs are exposed without new island views. Command/hotkey registration waits for its hook.

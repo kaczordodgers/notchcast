@@ -1,6 +1,58 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Accept local commands over a private Unix socket." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokale Befehle über einen privaten Unix-Socket annehmen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acepta comandos locales a través de un socket Unix privado."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepte les commandes locales via un socket Unix privé."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プライベートなUnixソケットでローカルコマンドを受け付けます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "비공개 Unix 소켓을 통해 로컬 명령을 받습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aceita comandos locais através de um socket Unix privado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Принимает локальные команды через закрытый сокет Unix."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过私有 Unix 套接字接收本地命令。"
+          }
+        }
+      }
+    },
     "Agent Confirmation" : {
       "localizations" : {
         "pt" : {
@@ -49,6 +101,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理确认"
+          }
+        }
+      }
+    },
+    "Agent access" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agentenzugriff"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acceso de agentes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accès des agents"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エージェントアクセス"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에이전트 접근"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acesso de agentes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ агентов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体访问"
           }
         }
       }
@@ -521,6 +625,58 @@
         }
       }
     },
+    "Command line tool" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Befehlszeilenwerkzeug"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herramienta de línea de comandos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outil en ligne de commande"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コマンドラインツール"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "명령줄 도구"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferramenta de linha de comandos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Инструмент командной строки"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "命令行工具"
+          }
+        }
+      }
+    },
     "Command+V saves clipboard images as PNG files in Finder." : {
       "localizations" : {
         "de" : {
@@ -881,6 +1037,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "排除的应用包 ID（用逗号分隔）"
+          }
+        }
+      }
+    },
+    "Expose actions and read-only state to local agents." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktionen und schreibgeschützten Status für lokale Agenten bereitstellen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expone acciones y estado de solo lectura a los agentes locales."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expose les actions et l’état en lecture seule aux agents locaux."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ローカルエージェントにアクションと読み取り専用の状態を公開します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로컬 에이전트에 동작과 읽기 전용 상태를 제공합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disponibiliza ações e estado só de leitura a agentes locais."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предоставляет локальным агентам действия и состояние только для чтения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向本地智能体提供操作和只读状态。"
           }
         }
       }
@@ -6665,6 +6873,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在转录第 %1$lld 段，共 %2$lld 段"
+          }
+        }
+      }
+    },
+    "Unable to install the command line tool." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Befehlszeilenwerkzeug konnte nicht installiert werden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo instalar la herramienta de línea de comandos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible d’installer l’outil en ligne de commande."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "コマンドラインツールをインストールできません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "명령줄 도구를 설치할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível instalar a ferramenta de linha de comandos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось установить инструмент командной строки."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法安装命令行工具。"
           }
         }
       }

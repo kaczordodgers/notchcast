@@ -1,6 +1,8 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension NotchcastCore {
+    static let agents = AgentBridgeModule()
+    static let agentCLI = AgentCLIModule()
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule()
@@ -24,9 +26,13 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        agents.configure(core)
+        agentCLI.configure(index: agents.index)
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = pastePlain
         return [
+            .init(requires: [.agentActions], module: agents),
+            .init(requires: [.agentActions, .agentCLI], module: agentCLI),
             .init(requires: [.appearance], module: core.appearanceCoordinator),
             .init(requires: [.pastePlain], module: pastePlain),
             .init(requires: [.pasteImage], module: pasteImage),
