@@ -7,5 +7,9 @@ extension NotchcastCommandCatalog {
         MachRemoteModule.launcherCommand,
         MachRemoteModule.sendFilesCommand,
         MachRemoteModule.updateCommand,
+        PlainPasteModule.launcherCommand,
+        FinderToolsCoordinator.cutCommand,
+        FinderToolsCoordinator.pasteCommand,
+        FinderToolsCoordinator.renameCommand,
     ]
 }
