@@ -22,6 +22,8 @@ extension NotchcastCommandCatalog {
         BatteryModule.launcherCommand,
         FanControl.maxCommand,
         FanControl.autoCommand,
+        RemoteFanModule.launcherCommand,
+        RemoteScreenModule.launcherCommand,
         NotchcastDownloadLauncherCommands.video,
         NotchcastDownloadLauncherCommands.audio,
         NotchcastDownloadLauncherCommands.transcript,
