@@ -8,6 +8,7 @@ struct AgentParameterSchema: Sendable {
         var maximum: Double?
         var allowedValues: [AgentJSON]?
         var minimumLength: Int?
+        var secret = false
 
         func accepts(_ value: AgentJSON) -> Bool {
             guard allowedValues.map({ $0.contains(value) }) ?? true else { return false }
@@ -28,6 +29,7 @@ struct AgentParameterSchema: Sendable {
             if let maximum { fields["maximum"] = .number(maximum) }
             if let allowedValues { fields["enum"] = .array(allowedValues) }
             if let minimumLength { fields["minLength"] = .number(Double(minimumLength)) }
+            if secret { fields["secret"] = .bool(true) }
             return .object(fields)
         }
     }
