@@ -37,8 +37,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case tasks
 
     /// System tools start off; everything else starts on except the exceptions below.
-    var defaultOn: Bool {
-        if isSystemFeature { return false }
+    var defaultEnabled: Bool {
+        if isSystemFeature || self == .spacesOrder || self == .switcherQuitKey || isLauncherKeysFeature { return false }
         return switch self {
         case .spotifyConnect: false
         case .systemMonitor: false
@@ -270,10 +270,6 @@ extension NotchcastFeature {
     }
 
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
-
-    var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
-    }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
 }

@@ -1,4 +1,7 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentConsent/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentConsent/Service/AgentGrantStore.swift
+// notchcast-sources: Tinycast/Features/AgentConfirm/Model/*.swift
 // notchcast-sources: Tinycast/Features/Todo/Service/*.swift Tinycast/Features/Todo/TodoModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift

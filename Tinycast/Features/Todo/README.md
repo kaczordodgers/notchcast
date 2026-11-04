@@ -36,3 +36,19 @@ The state callback runs before delivery so the owner can checkpoint consumed IDs
 does no file IO or presentation. Durable delivery across a crash requires the integrating owner to
 coordinate that checkpoint with its delivery policy; this engine promises once per restored state.
 No task store, island, notification permission or UserNotifications dependency is required.
+
+`TodoAgentGateway.request(_:agent:calendar:staleAfterMinutes:makeID:)` is the consent boundary for
+agent callers. The transport owner must supply the authenticated agent identity separately from
+the request. Reads require `todo.read`; writes require `todo.write.<operation>` grants, including
+`todo.write.releaseExpired`. Missing or revoked grants fail closed, even when confirmation allows.
+The trusted owner supplies the write-confirmation policy and a synchronous local choice callback;
+choices pass through `AgentConfirmationEngine`, with a 60-second deadline and allow-once semantics.
+No transport or UI is started here. A future asynchronous presentation adapter must preserve grant
+revalidation before mutation rather than retaining a precomputed command across suspension.
+
+The required audit sink receives exactly one `TodoAgentGateway.Audit` per call, including failures.
+It contains agent identity, action, task IDs and a typed result, with no task text or request payload.
+The integrating owner owns durable audit storage; `AgentAuditEntry` currently redacts all parameters,
+so passing task IDs through its parameters would lose them. The gateway does not change that engine.
+List calls return the planner's view but never commit its expired-claim sweep; only write calls
+commit cleanup. Main-actor serialization keeps planning and commit together without suspension.
