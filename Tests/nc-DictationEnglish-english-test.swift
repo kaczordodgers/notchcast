@@ -6,6 +6,7 @@
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupClient.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift
 import Foundation
+import Synchronization
 
 @MainActor
 protocol NotchcastModule: AnyObject {
@@ -17,8 +18,10 @@ private struct FakeClient: DictationCleanupClient {
     var output = "Send Claude the report."
     var fails = false
     var delay: Duration = .zero
+    var minimumTimeout: Double = 0
 
     func clean(_ request: URLRequest) async throws -> String {
+        precondition(request.timeoutInterval >= minimumTimeout)
         let body = try JSONSerialization.jsonObject(with: request.httpBody!) as? [String: Any]
         precondition((body?["model"] as? String)?.contains("sonnet") == true)
         precondition((body?["system"] as? String)?.contains("output English only") == true)
@@ -33,18 +36,25 @@ struct EnglishTests {
     @MainActor
     static func main() async {
         let settings = DictationCleanupSettings()
-        let prompt = DictationEnglishPrompt.system(settings: settings, language: "Polish")
-        precondition(!prompt.contains("never translate"))
-        precondition(prompt.contains("technical terms unchanged"))
+        for language in [nil, "", "Polish", "English"] as [String?] {
+            let prompt = DictationEnglishPrompt.system(settings: settings, language: language)
+            for conflict in ["never translate", "never a translation request", "or rewrite\nsentences"] {
+                precondition(!prompt.contains(conflict))
+            }
+            precondition(prompt.contains("technical terms unchanged"))
+        }
         let raw = "Wyślij Claude raport."
         let result = await DictationEnglish.process(raw, language: "Polish", settings: settings,
-                                                    key: "fixture", client: FakeClient())
+                                                    key: "fixture", client: FakeClient(minimumTimeout: 30))
         precondition(result == "Send Claude the report.")
         for client in [FakeClient(output: ""), FakeClient(fails: true),
                        FakeClient(delay: .seconds(1))] {
+            let notices = Mutex(0)
             let fallback = await DictationEnglish.process(raw, language: nil, settings: settings,
-                key: "fixture", client: client, timeout: .milliseconds(10))
+                key: "fixture", client: client, timeout: .milliseconds(10),
+                onFallback: { notices.withLock { $0 += 1 } })
             precondition(fallback == raw)
+            precondition(notices.withLock { $0 } == 1)
         }
         var callback: (@MainActor () -> Void)?
         var registrations = 0

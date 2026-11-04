@@ -5,6 +5,7 @@ import AVFoundation
 @Observable
 final class DictationCoordinator {
     static var transcriptStage: (@Sendable (String, String?) async -> String)?
+    static var englishTranscriptStage: (@Sendable (String, String?) async -> String)?
     @ObservationIgnored private var inEnglish = false
     private enum Phase { case idle, starting, listening, transcribing, stopping }
 
@@ -252,9 +253,7 @@ final class DictationCoordinator {
                 var transcript = try await models.transcribe(
                     tail, model: model,
                     language: language)
-                if inEnglish {
-                    transcript = await DictationEnglish.process(transcript, language: language)
-                } else if let stage = Self.transcriptStage {
+                if let stage = inEnglish ? Self.englishTranscriptStage : Self.transcriptStage {
                     transcript = await stage(transcript, language)
                 }
                 guard token == current else { return }

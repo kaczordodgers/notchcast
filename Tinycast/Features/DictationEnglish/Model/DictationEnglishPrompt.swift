@@ -3,6 +3,10 @@ import Foundation
 enum DictationEnglishPrompt {
     static func system(settings: DictationCleanupSettings, language: String?) -> String {
         DictationCleanupPrompt.system(settings: settings, language: language)
+            .replacingOccurrences(of: "Do not introduce facts or rewrite\nsentences.",
+                                  with: "Do not introduce facts.")
+            .replacingOccurrences(of: "This is a hint, never a translation request.",
+                                  with: "Translate this language into English.")
             .replacingOccurrences(of: "keep each phrase in its original language; never translate.",
                                   with: "translate each phrase into natural English.")
             + """

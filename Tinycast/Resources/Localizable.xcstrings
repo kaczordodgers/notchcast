@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "English translation failed; using the original transcript" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Englische Übersetzung fehlgeschlagen; das ursprüngliche Transkript wird verwendet" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Falló la traducción al inglés; se usará la transcripción original" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La traduction en anglais a échoué ; utilisation de la transcription originale" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "英語への翻訳に失敗したため、元の文字起こしを使用します" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영어 번역에 실패하여 원본 텍스트를 사용합니다" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A tradução para inglês falhou; será usada a transcrição original" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось перевести на английский; используется исходная расшифровка" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "英语翻译失败，将使用原始转录文本" } }
+      }
+    },
     "Dictate in English" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Auf Englisch diktieren" } },
