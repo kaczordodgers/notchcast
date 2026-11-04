@@ -38,6 +38,9 @@ if [ "$uninstall" -eq 1 ]; then
     exit 0
 fi
 
+step /bin/rm -f "$rule"
+step /bin/rm -f "$helper"
+
 console_user=$(/usr/bin/stat -f '%Su' /dev/console)
 if [[ ! "$console_user" =~ ^[a-z_][a-z0-9_.-]{0,30}$ ]] || [ "$console_user" = root ]; then
     printf 'A signed-in console user with a plain account name is required.\n' >&2
@@ -51,6 +54,13 @@ if [ -n "$(/usr/bin/git -C "$source_directory" status --porcelain -- .)" ]; then
     exit 65
 fi
 printf 'Installing the helper from commit %s.\n' "$(/usr/bin/git -C "$source_directory" rev-parse HEAD)"
+app=/Applications/Notchcast.app
+leaf_sha1=$(/usr/bin/git -C "$source_directory" show HEAD:notchcast/config.env | /usr/bin/sed -n 's/^SIGN_SHA1=//p')
+if [[ ! "$leaf_sha1" =~ ^[A-Fa-f0-9]{40}$ ]]; then
+    printf 'A committed signing certificate pin is required.\n' >&2
+    exit 65
+fi
+step /usr/bin/codesign --verify --strict -R "identifier app.notchcast and certificate leaf = H\"$leaf_sha1\"" "$app"
 if [ "$dry_run" -eq 1 ]; then
     stage='<private temporary directory>'
     step /usr/bin/mktemp -d /private/tmp/notchcast-root.XXXXXX
@@ -61,7 +71,13 @@ fi
 
 step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$source_directory/BatterySMC.swift" "$source_directory/Spotlight.swift" "$source_directory/SudoTouchID.swift" "$source_directory/TouchIDPolicy.swift" "$source_directory/Power.swift" "$stage/"
 step /usr/bin/shasum -a 256 "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift"
-step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" \
+step /bin/cp "$source_directory/RootCaller.swift" "$stage/RootCaller.swift"
+if [ "$dry_run" -eq 1 ]; then
+    printf 'Would generate CallerRequirement.swift with committed leaf SHA-1 %s.\n' "$leaf_sha1"
+else
+    printf 'enum CallerRequirement { static let leafSHA1 = "%s" }\n' "$leaf_sha1" > "$stage/CallerRequirement.swift"
+fi
+step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/CallerRequirement.swift" "$stage/RootCaller.swift" "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" \
     "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift" -o "$stage/helper"
 if [ "$dry_run" -eq 1 ]; then
     printf 'Would write %s with exactly one rule:\n' "$stage/notchcast"
