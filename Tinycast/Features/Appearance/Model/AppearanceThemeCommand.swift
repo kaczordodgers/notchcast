@@ -6,7 +6,7 @@ enum AppearanceThemeCommand {
         let isSelected: Bool
 
         var id: String { target.theme?.id ?? "\(target.appearance.rawValue):tinycast" }
-        var title: String { target.theme?.name ?? "Tinycast" }
+        var title: String { target.theme?.name ?? String(localized: "Default") }
         var subtitle: String { target.theme?.author ?? String(localized: "No theme") }
     }
 
@@ -18,6 +18,9 @@ enum AppearanceThemeCommand {
     ) -> [Row] {
         let slots: [RaycastTheme.Appearance] = currentAppearance == .dark ? [.dark, .light] : [.light, .dark]
         var themes = imported
+        for theme in RaycastThemeCatalog.all where !themes.contains(where: { $0.id == theme.id }) {
+            themes.append(theme)
+        }
         for theme in [light, dark].compactMap({ $0 }) where !themes.contains(where: { $0.id == theme.id }) {
             themes.append(theme)
         }
