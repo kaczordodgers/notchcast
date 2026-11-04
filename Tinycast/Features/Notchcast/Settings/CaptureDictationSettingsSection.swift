@@ -5,6 +5,7 @@ struct CaptureDictationSettingsSection: View {
         Section {
             ColorPickerSettingsSection(module: NotchcastCore.colorPicker)
             ScreenshotSettingsSection(module: NotchcastCore.screenshot)
+            AgentAnswerSettingsSection()
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }

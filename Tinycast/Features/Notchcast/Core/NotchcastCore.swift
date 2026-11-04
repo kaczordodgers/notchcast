@@ -13,6 +13,7 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let agentAnswer = AgentAnswerModule()
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
@@ -48,6 +49,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.agentAnswer], module: agentAnswer),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
