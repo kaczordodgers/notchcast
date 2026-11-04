@@ -112,7 +112,7 @@ struct NotchcastCommand: Sendable {
         changed["notchcast.day.marketSymbols"] = ["MSFT"]
         changed["notchcast.day.excludedCalendars"] = ["test-calendar"]
         changed["notchcast.day.weatherPlace"] = "{\"name\":\"Test\",\"country\":\"XX\",\"latitude\":20,\"longitude\":30}"
-        changed["dictationCleanup"] = "{\"effort\":\"high\",\"promptAddition\":\"Use commas\",\"vocabulary\":[]}"
+        changed["notchcast.dictationCleanup.settings"] = "{\"effort\":\"high\",\"promptAddition\":\"Use commas\",\"vocabulary\":[]}"
         changed["notchcast.colorPicker.format"] = "hsl"
         changed["notchcast.appearance.surface"] = "matte"
         changed["notchcast.appearance.theme.backgroundOpacity"] = 0.4
@@ -158,14 +158,14 @@ struct NotchcastCommand: Sendable {
         let preserved = try cleanupStore.read()
         precondition(preserved.isEnabled && preserved.baseURL == cleanup.baseURL)
         for field in ["isEnabled", "baseURL"] {
-            let bad = (changed["dictationCleanup"] as? String ?? "").dropLast() + ",\"\(field)\":true}"
-            do { try ForkSettingsBackupState.live.apply(["dictationCleanup": String(bad)]); preconditionFailure() } catch { }
+            let bad = (changed["notchcast.dictationCleanup.settings"] as? String ?? "").dropLast() + ",\"\(field)\":true}"
+            do { try ForkSettingsBackupState.live.apply(["notchcast.dictationCleanup.settings": String(bad)]); preconditionFailure() } catch { }
         }
         for bad in [Data("broken".utf8), try JSONEncoder().encode(DictationCleanupSettings(
             promptAddition: String(repeating: "x", count: 16_385)))] {
             liveDefaults.set(bad, forKey: "dictationCleanup")
             let snapshot = try ForkSettingsBackupState.live.snapshot()
-            precondition(snapshot["dictationCleanup"] == nil && snapshot.count == complete.count - 1)
+            precondition(snapshot["notchcast.dictationCleanup.settings"] == nil && snapshot.count == complete.count - 1)
             let badFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
             defer { try? FileManager.default.removeItem(at: badFolder) }
             let encoded = try ForkSettingsBackupEngine.encode(snapshot, created: .now)
