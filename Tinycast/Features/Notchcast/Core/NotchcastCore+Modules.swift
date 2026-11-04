@@ -1,6 +1,7 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension NotchcastCore {
+    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule()
@@ -27,6 +28,8 @@ extension NotchcastCore {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = pastePlain
         return [
+            .init(requires: [.finderCutPaste], module: FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)),
+            .init(requires: [.finderRename], module: FinderToolsModule(coordinator: finderTools, feature: .finderRename)),
             .init(requires: [.pastePlain], module: pastePlain),
             .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),

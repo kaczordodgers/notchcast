@@ -19,6 +19,7 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             PasteToolsSettingsSection()
+            FinderSettingsSection()
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
 
