@@ -6,7 +6,7 @@ nonisolated struct SystemToolsProcessRunner: Sendable {
 
     func run(_ executable: String, arguments: [String], timeout: TimeInterval = 5) throws -> String {
         try Task.checkCancellation()
-        guard ["/bin/launchctl", "/usr/bin/defaults", "/bin/kill"].contains(executable) else {
+        guard ["/bin/launchctl", "/usr/bin/defaults", "/bin/kill", "/usr/bin/open"].contains(executable) else {
             throw Failure.invalidExecutable
         }
         let outputURL = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
