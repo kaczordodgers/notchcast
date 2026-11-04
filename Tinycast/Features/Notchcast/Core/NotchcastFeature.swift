@@ -653,7 +653,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     var isWired: Bool {
-        ![Self.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices].contains(self)
+        !Self.unwired.contains(self)
     }
 
     static var systemToolsSettingsFeatures: [Self] {
