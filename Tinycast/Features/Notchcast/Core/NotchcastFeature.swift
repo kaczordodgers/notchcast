@@ -17,6 +17,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case aiUsageOtherMac
     case machLink
     case machRemote
+    case backupStatus
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -33,7 +34,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
-             .keepAwake, .lidClosedAwake, .machLink, .machRemote: .system
+             .keepAwake, .lidClosedAwake, .machLink, .machRemote, .backupStatus: .system
         case .liveTimers, .dayWeather, .dayMarkets, .aiUsage, .aiUsageOtherMac: .activities
         }
     }
@@ -62,6 +63,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
         case .machLink: String(localized: "Mac Link")
         case .machRemote: String(localized: "Remote Mac")
+        case .backupStatus: String(localized: "Backup Status")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -95,6 +97,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
         case .machLink: String(localized: "Connect to a paired Mac on the local network.")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
+        case .backupStatus: String(localized: "Warns when backups fail or become stale.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -113,7 +116,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
-            .aiUsage, .aiUsageOtherMac, .machLink, .machRemote:
+            .aiUsage, .aiUsageOtherMac, .machLink, .machRemote, .backupStatus:
             []
         }
     }
@@ -128,7 +131,7 @@ extension NotchcastFeature {
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
+         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake, .backupStatus].contains(self)
     }
 }
 

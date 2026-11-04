@@ -45,6 +45,7 @@ enum NotchcastCore {
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
             .init(requires: [.machRemote], module: machRemote),
+            .init(requires: [.backupStatus], module: BackupStatusModule()),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
