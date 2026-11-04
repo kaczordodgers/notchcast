@@ -27,6 +27,13 @@ preserving Toggle Island's prior consent behavior.
 The shorter `/command/<slug>` spelling is deferred: resolving it needs a catalog
 dependency in the pure deep-link parser. Toggle Island's legacy link still works.
 
+The music list supplies Resume Last Player, Spotify Connect Speaker On/Off, and
+explicit Mute/Unmute Microphone commands from their feature folders. Speaker
+commands set the existing preference; fixed titles require two entries. Resume
+uses the model's last-player path and requires its switch. Availability changes
+refresh the index through the music command observer. Upstream's Settings command
+already reaches the Notchcast pane, so no music settings command is added.
+
 `NotchcastLauncher.open()` intentionally remains without a caller. Global shortcuts
 already use upstream `togglePalette`; any new island action needs a design decision.
 

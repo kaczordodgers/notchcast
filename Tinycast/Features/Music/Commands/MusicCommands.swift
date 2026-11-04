@@ -8,7 +8,7 @@ enum MusicCommands {
         command("previous-track", name: String(localized: "Previous Track"), symbol: "backward.end", action: .previous),
         NotchcastCommand(slug: "open-current-player", name: String(localized: "Open Current Player"),
                          sfSymbol: "music.note", isEnabled: { enabled }, run: { openCurrentPlayer() })
-    ] + MicrophoneCommands.launcherCommands
+    ] + additionalLauncherCommands + MicrophoneCommands.launcherCommands + MicrophoneMuteCommands.explicitLauncherCommands
 
     static var enabled: Bool { NotchcastPreferences.shared.isEnabled(.musicNowPlaying) }
 

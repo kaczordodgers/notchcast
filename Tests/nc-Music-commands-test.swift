@@ -75,16 +75,23 @@ struct AppEntry: Sendable {
  let originalMusic = preferences.isOn(.musicNowPlaying)
  let originalMic = preferences.isOn(.microphoneMute)
  let originalIsland = preferences.isOn(.island)
+ let originalLast = preferences.isOn(.musicLastPlayer)
+ let originalSpeaker = preferences.isOn(.spotifyConnect)
  defer {
  preferences.set(.musicNowPlaying, originalMusic)
  preferences.set(.microphoneMute, originalMic)
  preferences.set(.island, originalIsland)
+ preferences.set(.musicLastPlayer, originalLast)
+ preferences.set(.spotifyConnect, originalSpeaker)
  }
  preferences.set(.island, true)
  preferences.set(.musicNowPlaying, true)
  preferences.set(.microphoneMute, true)
- let apps = PlayerApps(isInstalled: { _ in false }, isRunning: { _ in false },
- open: { _ in }, play: { _ in }, watchLaunches: { _ in [] }, quit: { _ in true })
+ preferences.set(.musicLastPlayer, true)
+ var opened: [String] = []
+ var played: [String] = []
+ let apps = PlayerApps(isInstalled: { $0 == LastPlayer.spotify }, isRunning: { _ in false },
+ open: { opened.append($0) }, play: { played.append($0) }, watchLaunches: { _ in [] }, quit: { _ in true })
  let music = MusicNowPlayingModule(defaults: defaults, apps: apps)
  let observer = MusicCommandFeedback(music: music, preferences: preferences)
  defer { withExtendedLifetime(observer) {} }
@@ -99,28 +106,52 @@ struct AppEntry: Sendable {
  NotchcastCore.services = .init(music: music, microphone: microphone)
  defer { music.stop(); microphone.stop(); NotchcastCore.services = nil }
  let commands = MusicCommands.launcherCommands
- precondition(commands.map(\.id) == ["command:nc-play-pause", "command:nc-next-track",
- "command:nc-previous-track", "command:nc-open-current-player", "command:nc-toggle-microphone-mute"])
+ func command(_ slug: String) -> NotchcastCommand {
+ commands.first { $0.id == "command:nc-" + slug }!
+ }
+ let additions = ["resume-last-player", "spotify-connect-speaker-on", "spotify-connect-speaker-off",
+                  "mute-microphone", "unmute-microphone"]
+ precondition(Set(commands.map(\.id)).count == commands.count)
+ precondition(additions.allSatisfy { command($0).isEnabled() })
  precondition(commands.allSatisfy { $0.isEnabled() })
- for command in commands.prefix(3) { command.run() }
- precondition(source.commands == [.togglePlayPause, .next, .previous])
- commands[4].run()
+ command("mute-microphone").run()
+ command("mute-microphone").run()
  precondition(mute.isMuted)
+ command("unmute-microphone").run()
+ command("unmute-microphone").run()
+ precondition(!mute.isMuted)
+ let speakerRefresh = AppCore.shared.appIndex.refreshes
+ preferences.set(.spotifyConnect, false)
+ for _ in 0..<100 { await Task.yield() }
+ command("spotify-connect-speaker-on").run()
+ for _ in 0..<100 { await Task.yield() }
+ precondition(preferences.isOn(.spotifyConnect))
+ precondition(AppCore.shared.appIndex.refreshes > speakerRefresh)
+ command("spotify-connect-speaker-off").run()
+ precondition(!preferences.isOn(.spotifyConnect))
  let before = AppCore.shared.appIndex.refreshes
  preferences.set(.musicNowPlaying, false)
  for _ in 0..<100 { await Task.yield() }
  precondition(AppCore.shared.appIndex.refreshes > before)
- precondition(commands.prefix(4).allSatisfy { !$0.isEnabled() })
- precondition(commands[4].isEnabled())
+ precondition(additions.prefix(3).allSatisfy { !command($0).isEnabled() })
+ precondition(command("mute-microphone").isEnabled())
  let musicRefresh = AppCore.shared.appIndex.refreshes
  preferences.set(.microphoneMute, false)
  for _ in 0..<100 { await Task.yield() }
  precondition(AppCore.shared.appIndex.refreshes > musicRefresh)
- precondition(!commands[4].isEnabled())
+ precondition(!command("mute-microphone").isEnabled())
+ precondition(!command("unmute-microphone").isEnabled())
  preferences.set(.musicNowPlaying, true)
  music.model.setSystemSource(nil)
+ music.model.lastPlayer.setEnabled(true)
+ command("resume-last-player").run()
+ try? await Task.sleep(for: .seconds(1.2))
+ precondition(opened == [LastPlayer.spotify] && played == [LastPlayer.spotify])
+ preferences.set(.musicLastPlayer, false)
+ for _ in 0..<100 { await Task.yield() }
+ precondition(!command("resume-last-player").isEnabled())
  MusicCommands.openCurrentPlayer()
  precondition(!AppCore.shared.messages.isEmpty)
- print("PASS: five IDs, switch gating, index refresh, production service routing and unavailable player HUD")
+ print("PASS: command IDs, switch gating, index refresh, resume routing, idempotent mute and unavailable player HUD")
  }
 }
