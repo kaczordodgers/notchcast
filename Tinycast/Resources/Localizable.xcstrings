@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Restore" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Wiederherstellen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Restaurar" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Restaurer" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "復元" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "복원" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Restaurar" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Восстановить" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复" } }
+      }
+    },
     "Restore Settings Backup" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Einstellungssicherung wiederherstellen" } },

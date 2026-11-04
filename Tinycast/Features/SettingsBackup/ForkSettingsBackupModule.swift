@@ -12,7 +12,7 @@ final class ForkSettingsBackupModule: NotchcastModule {
             while !Task.isCancelled {
                 guard let self else { return }
                 do {
-                    let values = ForkSettingsBackupRestore.snapshot(.shared)
+                    let values = try ForkSettingsBackupState.live.snapshot()
                     let now = Date.now
                     let data = try ForkSettingsBackupEngine.encode(values, created: now)
                     try await ForkSettingsBackupService.save(
@@ -30,6 +30,7 @@ final class ForkSettingsBackupModule: NotchcastModule {
     }
 
     func stop() {
+        NotchcastCore.settingsBackupRestore.stop()
         task?.cancel()
         task = nil
     }

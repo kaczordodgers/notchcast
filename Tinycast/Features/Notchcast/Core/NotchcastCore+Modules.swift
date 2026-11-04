@@ -20,6 +20,8 @@ extension NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackup = ForkSettingsBackupModule()
+    static let settingsBackupRestore = ForkSettingsBackupCoordinator()
+    static let eventReminder = EventReminderModule(store: AppCore.shared.calendarStore)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         [
@@ -42,7 +44,7 @@ extension NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
-            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
+            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: eventReminder),
         ]
     }
 }
