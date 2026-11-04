@@ -8,7 +8,10 @@ enum CaptureEditorRender {
     static func flatten(_ document: CaptureEditorDocument) throws -> CGImage {
         let image = document.image
         let bounds = CGRect(x: 0, y: 0, width: image.width, height: image.height)
-        guard let context = bitmap(width: image.width, height: image.height) else { throw Failure.bitmap }
+        let space = image.colorSpace ?? CGColorSpaceCreateDeviceRGB()
+        guard let context = bitmap(width: image.width, height: image.height, space: space) else {
+            throw Failure.bitmap
+        }
         context.draw(image, in: bounds)
         context.translateBy(x: 0, y: bounds.height)
         context.scaleBy(x: 1, y: -1)
@@ -23,9 +26,10 @@ enum CaptureEditorRender {
             case .rectangle: context.stroke(box)
             case .ellipse: context.strokeEllipse(in: box)
             case .arrow:
-                let end = CGPoint(x: box.maxX, y: box.maxY)
-                let angle = atan2(box.height, box.width)
-                context.move(to: box.origin)
+                guard let arrow = mark.arrow else { continue }
+                let end = arrow.to
+                let angle = atan2(end.y - arrow.from.y, end.x - arrow.from.x)
+                context.move(to: arrow.from)
                 context.addLine(to: end)
                 context.strokePath()
                 context.move(to: end)
@@ -52,7 +56,9 @@ enum CaptureEditorRender {
                 guard !area.isNull, !area.isEmpty else { continue }
                 guard let crop = image.cropping(to: area),
                       let small = bitmap(width: max(1, Int(area.width / 12)),
-                                         height: max(1, Int(area.height / 12))) else { throw Failure.bitmap }
+                                         height: max(1, Int(area.height / 12)), space: space) else {
+                    throw Failure.bitmap
+                }
                 small.interpolationQuality = .high
                 small.draw(crop, in: CGRect(x: 0, y: 0, width: small.width, height: small.height))
                 guard let mosaic = small.makeImage() else { throw Failure.bitmap }
@@ -67,9 +73,9 @@ enum CaptureEditorRender {
         return result
     }
 
-    private static func bitmap(width: Int, height: Int) -> CGContext? {
+    private static func bitmap(width: Int, height: Int, space: CGColorSpace) -> CGContext? {
         CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
-                  space: CGColorSpaceCreateDeviceRGB(),
+                  space: space,
                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
     }
 }
