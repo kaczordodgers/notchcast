@@ -31,6 +31,15 @@ final class GreenMaximizeModule: NotchcastModule {
     private var generation = UUID()
     private var timer: Timer?
     private var exclusions: Set<String> = []
+    private let refreshQueue = DispatchQueue(label: "app.notchcast.green-maximize.refresh")
+    private var refreshID: UUID?
+    private var refreshAgain = false
+
+    nonisolated private static let observerCallback: AXObserverCallback = { _, _, _, context in
+        guard let context else { return }
+        let owner = Unmanaged<GreenMaximizeModule>.fromOpaque(context).takeUnretainedValue()
+        MainActor.assumeIsolated { owner.refresh() }
+    }
 
     init(hub: EventTapHub) { self.hub = hub }
 
@@ -87,6 +96,8 @@ final class GreenMaximizeModule: NotchcastModule {
         window = nil
         memory = nil
         generation = UUID()
+        refreshID = nil
+        refreshAgain = false
     }
 
     private func clearObserver() {
@@ -98,23 +109,38 @@ final class GreenMaximizeModule: NotchcastModule {
     }
 
     private func refresh() {
-        var snapshot: Snapshot?
-        defer { shared.value.withLock { $0.snapshot = snapshot } }
+        guard refreshID == nil else { refreshAgain = true; return }
         exclusions = Set(NotchcastPreferences.shared.greenMaximizeExcludedApps
             .split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
         guard AXIsProcessTrusted(), let app = NSWorkspace.shared.frontmostApplication,
             let bundleID = app.bundleIdentifier, !exclusions.contains(bundleID)
-        else { return }
-        let application = AXWindowAccess.application(for: app.processIdentifier, timeout: 0.1)
-        guard let focused = AXWindowAccess.element(application, kAXFocusedWindowAttribute),
-            AXWindowAccess.isEligible(focused), !AXWindowAccess.isFullScreen(focused),
-            AXWindowAccess.isSettable(kAXSizeAttribute, on: focused),
-            let button = AXWindowAccess.element(focused, kAXZoomButtonAttribute)
-                ?? AXWindowAccess.element(focused, "AXFullScreenButton"),
-            AXWindowAccess.bool(button, kAXEnabledAttribute) != false,
-            let rect = AXWindowAccess.frame(of: button)
-        else { return }
-        let changed = window == nil || !CFEqual(window, focused) || observedPID != app.processIdentifier
+        else { shared.value.withLock { $0.snapshot = nil }; return }
+        let id = UUID()
+        refreshID = id
+        let pid = app.processIdentifier
+        let context = UInt(bitPattern: Unmanaged.passUnretained(self).toOpaque())
+        refreshQueue.async { [weak self] in
+            let result = GreenMaximizeRefresh.read(pid: pid, callback: Self.observerCallback, context: context)
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.refreshID == id else { return }
+                self.refreshID = nil
+                if NSWorkspace.shared.frontmostApplication?.processIdentifier == pid {
+                    self.publish(result, pid: pid, bundleID: bundleID)
+                } else {
+                    self.shared.value.withLock { $0.snapshot = nil }
+                }
+                if self.refreshAgain {
+                    self.refreshAgain = false
+                    self.refresh()
+                }
+            }
+        }
+    }
+
+    private func publish(_ result: GreenMaximizeRefresh.Result?, pid: pid_t, bundleID: String) {
+        guard let result else { shared.value.withLock { $0.snapshot = nil }; return }
+        let focused = result.window
+        let changed = window == nil || !CFEqual(window, focused) || observedPID != pid
         if changed {
             clearObserver()
             memory = nil
@@ -122,25 +148,15 @@ final class GreenMaximizeModule: NotchcastModule {
         }
         window = focused
         if observer == nil {
-            var newObserver: AXObserver?
-            if AXObserverCreate(app.processIdentifier, { _, _, _, context in
-                guard let context else { return }
-                let owner = Unmanaged<GreenMaximizeModule>.fromOpaque(context).takeUnretainedValue()
-                MainActor.assumeIsolated { owner.refresh() }
-            }, &newObserver) == .success, let newObserver {
+            if let newObserver = result.observer {
                 observer = newObserver
-                observedPID = app.processIdentifier
-                let context = Unmanaged.passUnretained(self).toOpaque()
-                AXObserverAddNotification(newObserver, application,
-                    kAXFocusedWindowChangedNotification as CFString, context)
-                for name in [kAXMovedNotification, kAXResizedNotification, kAXUIElementDestroyedNotification] {
-                    AXObserverAddNotification(newObserver, focused, name as CFString, context)
-                }
+                observedPID = pid
                 CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(newObserver), .commonModes)
             }
         }
-        snapshot = Snapshot(rect: rect, pid: app.processIdentifier, bundleID: bundleID,
-            date: ProcessInfo.processInfo.systemUptime, generation: generation)
+        let snapshot = Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
+            date: result.date, generation: generation)
+        shared.value.withLock { $0.snapshot = snapshot }
     }
 
     private func maximize(_ snapshot: Snapshot) {
