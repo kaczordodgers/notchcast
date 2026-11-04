@@ -57,6 +57,7 @@ final class DisplayBrightnessModule {
     final class Controller {
         enum StepResult { case applied(BrightnessLevel), unavailable, cancelled }
         var cancelStep = false
+        var failStep = false
         var entries = [BrightnessDisplay(id: .init(rawValue: 2, uuid: "external"), name: "Display",
                                          isBuiltIn: false, control: .ddc, level: .init(0.5))]
         var steps: [(Bool, Bool, BrightnessDisplay.ID)] = []
@@ -64,6 +65,7 @@ final class DisplayBrightnessModule {
         func step(up: Bool, fine: Bool, for display: BrightnessDisplay.ID) async -> StepResult {
             steps.append((up, fine, display))
             if cancelStep { return .cancelled }
+            if failStep { return .unavailable }
             guard let index = entries.firstIndex(where: { $0.id == display }) else { return .unavailable }
             entries[index].level = entries[index].level.stepped(up: up, fine: fine)
             return .applied(entries[index].level)
@@ -120,10 +122,13 @@ struct SystemLevelRoutingTests {
         let keys = SystemLevelKeysModule(hub: hub, levels: levels, brightness: brightness, preferences: preferences)
         let controller = NotchcastModuleController([
             .init(requires: [.island, .volumeLevels], module: levels),
-            .init(requires: [.island], module: keys),
+            .init(requires: [], module: keys),
         ], preferences: preferences)
         controller.run()
         await levels.service.settled()
+        check(hub.handlers.isEmpty, "No HUD presenter leaves all keys to macOS")
+        check(hardware.state.withLock { $0.writes } == 0, "No presenter performs no custom steps")
+        keys.hudPresenterAvailable = true
         check(hub.handlers.count == 1, "One hub consumer handles both features")
         hub.send(.volumeUp)
         await eventually { keys.latest?.percent == 56 }
@@ -166,9 +171,15 @@ struct SystemLevelRoutingTests {
         let writes = hardware.state.withLock { $0.writes }
         hub.send(.volumeDown)
         preferences.set(.island, false)
-        await eventually { hub.handlers.isEmpty && !levels.service.isRunning }
+        await eventually { hub.handlers.count == 1 && !levels.service.isRunning }
         check(hardware.state.withLock { $0.writes } == writes, "Disabling the island rejects already-dispatched keys")
         check(keys.latest == nil, "Off clears published key state")
+        brightness.controller.cancelStep = false
+        hub.send(.brightnessUp)
+        await eventually { keys.latest?.kind == .brightness }
+        check(keys.latest != nil, "Brightness works with the island off")
+        keys.hudPresenterAvailable = false
+        check(hub.handlers.isEmpty, "Removing the presenter restores native passthrough")
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")
     }
 }
