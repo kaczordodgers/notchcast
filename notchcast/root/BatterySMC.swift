@@ -1,6 +1,7 @@
 import Foundation
 
 enum BatterySMC {
+    enum Failure: Error { case unsupported }
     static func sleepArguments(_ command: RootContract.Command) -> [String]? {
         switch command {
         case .batterySleepOn: ["-a", "disablesleep", "0"]
@@ -51,7 +52,7 @@ enum BatterySMC {
             }
             return (key, bytes)
         }
-        guard !writes.isEmpty else { throw FanSMC.Failure.unavailable }
+        guard !writes.isEmpty else { throw Failure.unsupported }
         for (key, bytes) in writes { try smc.write(key, bytes: bytes) }
     }
 }
