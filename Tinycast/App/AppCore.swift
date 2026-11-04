@@ -526,6 +526,7 @@ final class AppCore {
     func allowsHotKeyAction(_ action: HotKeyAction) -> Bool {
         guard visibility.allowsHotKey(action) else { return false }
         if action == .dictation { return settings.dictationEnabled }
+        if case .notchcastCommand(let id) = action { return NotchcastCommandCatalog.isEnabled(id) }
         // A disabled feature drops its commands from the launcher; their shortcuts go too.
         guard case .command(let id) = action else { return true }
         return appIndex.isCommandEnabled(id)
@@ -534,6 +535,7 @@ final class AppCore {
     /// The store-backed half of the conflict message; `HotKeyManager` names the catalogs itself.
     private func hotKeyDisplayName(for action: HotKeyAction) -> String? {
         switch action {
+        case .notchcastCommand(let id): return NotchcastCommandCatalog.command(for: id)?.name
         case .app(let bundleID):
             return appIndex.apps.first { $0.kind == .application && $0.bundleID == bundleID }?.name
         case .settingsPane(let bundleID):
