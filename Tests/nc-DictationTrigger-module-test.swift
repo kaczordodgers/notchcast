@@ -10,7 +10,7 @@ import Observation
     var starts = 0
     var finishes = 0
     var cancels = 0
-    func triggerStarted() { starts += 1 }
+    func triggerStarted(inEnglish: Bool) { precondition(inEnglish); starts += 1 }
     func triggerFinished() { finishes += 1 }
     func cancel() { cancels += 1 }
 }
@@ -21,6 +21,11 @@ import Observation
 @MainActor final class AppCore {
     let dictationCoordinator = Coordinator()
     let hotKeys = HotKeys()
+}
+@MainActor final class NotchcastPreferences {
+    enum Feature { case dictationEnglish }
+    static let shared = NotchcastPreferences()
+    func isOn(_ feature: Feature) -> Bool { true }
 }
 @MainActor final class DictationTriggerManager {
     enum Action { case start, finish, cancel }
