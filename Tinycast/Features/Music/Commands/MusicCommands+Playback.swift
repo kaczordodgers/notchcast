@@ -14,14 +14,24 @@ extension MusicCommands {
     nonisolated private static func speakerCommand(_ slug: String, name: String, on: Bool) -> NotchcastCommand {
         NotchcastCommand(slug: slug, name: name, sfSymbol: "hifispeaker", isEnabled: { enabled }, run: {
             guard enabled else { return }
-            NotchcastPreferences.shared.set(.spotifyConnect, on)
+            let current = NotchcastPreferences.shared.isOn(.spotifyConnect)
+            if current == on {
+                AppCore.shared.showMessage(on
+                    ? String(localized: "Spotify Connect Speaker is already on.")
+                    : String(localized: "Spotify Connect Speaker is already off."))
+            } else if on {
+                AppCore.shared.settingsCoordinator.showSettings(tab: .notchcast, revealing: .section(.notchcastSpotify))
+            } else {
+                NotchcastPreferences.shared.set(.spotifyConnect, false)
+                AppCore.shared.showMessage(String(localized: "Spotify Connect Speaker is off."))
+            }
         })
     }
 
     static func resumeLastPlayer() {
         guard NotchcastPreferences.shared.isEnabled(.musicLastPlayer),
               let model = NotchcastCore.services?.music.model else { return }
-        guard model.canResume else { report(); return }
+        guard model.nowPlaying != nil || model.canResume else { report(); return }
         model.send(.play)
     }
 }
