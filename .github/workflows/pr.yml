@@ -28,6 +28,12 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - uses: ./tools/notchcast/actions/xcode
+      - name: Catalog key order and references
+        if: github.event_name == 'pull_request'
+        working-directory: src
+        run: |
+          python3 notchcast/test-xcstrings.py
+          python3 notchcast/check-xcstrings-order.py --base-ref "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
       - uses: ./tools/notchcast/actions/xcodegen
       - name: Regenerate project from project.yml
         working-directory: src
