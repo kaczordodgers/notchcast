@@ -66,3 +66,12 @@ enum ASCIIKeyboardLayout {
         print("PASS: module lifecycle, synchronous interception, synthetic bypass; no system effects")
     }
 }
+
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    let appIndex = CommandIndexFixture()
+}
+@MainActor final class CommandIndexFixture {
+    private(set) var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
+}

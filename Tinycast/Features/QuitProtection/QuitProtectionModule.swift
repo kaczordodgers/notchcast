@@ -50,6 +50,7 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     func start() {
+        AppCore.shared.appIndex.refreshNotchcastCommands()
         guard registration == nil else { return }
         refreshLayout()
         refresh()
@@ -95,6 +96,7 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     func stop() {
+        AppCore.shared.appIndex.refreshNotchcastCommands()
         if let registration { hub.remove(registration) }
         registration = nil
         timer?.invalidate()
