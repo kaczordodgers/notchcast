@@ -111,8 +111,7 @@ final class BrightnessDisplayService: @unchecked Sendable {
 
     private func change(_ id: BrightnessDisplay.ID,
                         transform: (BrightnessLevel) -> BrightnessLevel) -> [BrightnessDisplay]? {
-        guard !Task.isCancelled, Self.identity(id.rawValue) == id,
-              CGDisplayIsActive(id.rawValue) != 0, CGDisplayIsAsleep(id.rawValue) == 0,
+        guard !Task.isCancelled, Self.isAvailable(id),
               let index = entries.firstIndex(where: { $0.id == id }) else { return nil }
         var previous = entries[index].level
         if entries[index].control == .system {
@@ -163,6 +162,10 @@ final class BrightnessDisplayService: @unchecked Sendable {
         guard baseline.apply(factor, to: id.rawValue) else { return false }
         baselines[id] = baseline
         return true
+    }
+
+    static func isAvailable(_ id: BrightnessDisplay.ID) -> Bool {
+        identity(id.rawValue) == id && CGDisplayIsActive(id.rawValue) != 0 && CGDisplayIsAsleep(id.rawValue) == 0
     }
 
     private static func identity(_ id: UInt32) -> BrightnessDisplay.ID? {
