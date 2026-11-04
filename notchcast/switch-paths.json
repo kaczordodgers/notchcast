@@ -19,6 +19,7 @@
   "dayCalendar": "island Day page lists today's events (Tinycast/Features/Notchcast/Pages/IslandDayPage.swift:26, IslandDayView) + launcher Open Day (Tinycast/Features/LiveDay/DayCommands.swift:17)",
   "agentActions": "action index served to local agents through the CLI socket (Tinycast/Features/AgentBridge/UI/AgentCLIModule.swift:22)",
   "agentCLI": "Unix socket server (Tinycast/Features/AgentBridge/UI/AgentCLIModule.swift:29) + Install button for the command line tool (Tinycast/Features/AgentBridge/UI/AgentSettingsSection.swift:10)",
+  "voiceAsk": "hotkey: hold the Voice Ask key (default F13, key code 105; Tinycast/Features/VoiceAsk/Service/VoiceAskInput.swift:25) to dictate, release to send to the T3 thread set in Settings \"Voice Ask destination\" (VoiceAskSettingsSection.swift:12) via `t3 thread send --wait --json` (VoiceAskCLITransport.swift); the reply shows as a message (NotchcastCore+Modules.swift:101)",
   "appearance": "launcher Theme (Tinycast/Features/Appearance/UI/AppearanceCoordinator+Command.swift:8) + surface style (Tinycast/DesignSystem/GlassEffectView.swift:6) + Appearance settings section",
   "cleaningMode": "settings Start button (Tinycast/Features/Notchcast/Settings/NotchcastToolsWiringSettingsRows.swift:13 → cleaning.begin)",
   "appUpdates": "settings Check button + results list (Tinycast/Features/Notchcast/Settings/NotchcastToolsWiringSettingsRows.swift:19)",
