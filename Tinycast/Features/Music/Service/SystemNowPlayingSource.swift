@@ -77,6 +77,14 @@ final class SystemNowPlayingSource: NowPlayingSource {
     }
 
     func send(_ command: PlayerCommand) {
+        switch command {
+        case .shuffle, .repeat:
+            commandFailure = .unsupportedCommand
+            onCommandFailure?()
+            onChange?()
+            return
+        default: break
+        }
         guard state == .watching, pid > 0, let connection else { return }
         var message: [String: Any] = ["pid": pid]
         switch command {
@@ -89,7 +97,7 @@ final class SystemNowPlayingSource: NowPlayingSource {
             guard position.isFinite, position >= 0 else { return }
             message["command"] = "seek"
             message["position"] = position
-        case .volume: return
+        case .volume, .shuffle, .repeat: return
         }
         do {
             var data = try JSONSerialization.data(withJSONObject: message)
