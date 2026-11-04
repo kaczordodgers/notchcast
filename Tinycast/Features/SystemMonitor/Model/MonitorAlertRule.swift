@@ -7,8 +7,6 @@ nonisolated struct MonitorAlertRule: Sendable, Equatable {
         case cpu, cpuTemperature, memoryPressure, diskFree, battery, batteryTemperature
     }
 
-    static let batteryTemperatureTitle = LocalizedStringResource("Battery temperature threshold", table: "Monitor")
-
     let direction: Direction
     let threshold: Double
     let recoverValue: Double

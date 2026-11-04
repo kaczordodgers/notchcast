@@ -51,7 +51,7 @@ final class MonitorAlerts {
         case .memoryPressure: String(localized: "Memory pressure threshold")
         case .diskFree: String(localized: "Disk free threshold")
         case .battery: String(localized: "Battery threshold")
-        case .batteryTemperature: String(localized: "Battery temperature threshold", table: "Monitor")
+        case .batteryTemperature: String(localized: "Battery temperature threshold")
         }
     }
 }
