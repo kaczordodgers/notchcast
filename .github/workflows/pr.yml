@@ -47,7 +47,7 @@ jobs:
       - name: Check built app identity
         run: |
           source ./tools/notchcast/config.env
-          ./tools/notchcast/check-identity.sh app "$RUNNER_TEMP/DerivedData/Build/Products/Debug/$APP_NAME.app"
+          ./tools/notchcast/check-identity.sh app "$RUNNER_TEMP/DerivedData/Build/Products/Debug/$APP_NAME Dev.app"
       - name: Lint
         working-directory: src
         run: |
