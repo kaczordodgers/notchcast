@@ -1,11 +1,16 @@
 # Launcher commands
 
 Define a `NotchcastCommand` beside its feature, then add one array element in
-`NotchcastCommandCatalog.all`:
+`Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift`:
 
 ```swift
 IslandController.launcherCommand,
 ```
+
+Register each feature on one line with a trailing comma and no other content on that line.
+Registration requires no changes in Tests. Git uses `merge=union` for this file so
+concurrent registrations merge cleanly. Check for duplicate lines after every merge:
+union merging can preserve the same registration twice.
 
 The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
 `.notchcast`), an `isEnabled` main-actor closure and a main-actor `run` closure.
@@ -31,7 +36,9 @@ dependency in the pure deep-link parser. Toggle Island's legacy link still works
 `NotchcastLauncher.open()` intentionally remains without a caller. Global shortcuts
 already use upstream `togglePalette`; any new island action needs a design decision.
 
-`notchcast-commands-test` compiles the shipped catalog, registration and hotkey mapping.
+`notchcast-commands-test` compiles the shipped catalog logic and hotkey mapping with
+its own test commands in an extension. It excludes `NotchcastCommandCatalog+All.swift`
+and feature command sources, so new registrations require no test changes.
 The three upstream index/settings/hotkey harnesses use empty fork-catalog fixtures through
 one compiler-source hook; no harness registration is added to the upstream runner.
 `Scripts/run-tests.sh` sources `notchcast/command-harness-sources.sh` because upstream
