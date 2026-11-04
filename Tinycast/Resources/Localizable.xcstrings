@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Recording Trimmer" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufnahmen kürzen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Recortador de grabaciones" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Découpage des enregistrements" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "録画のトリミング" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "녹화 자르기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Recortar gravações" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обрезка записей" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "录制剪辑" } }
+      }
+    },
+    "Trim recordings and export MP4 or GIF files." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufnahmen kürzen und als MP4 oder GIF exportieren." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Recorta grabaciones y exporta archivos MP4 o GIF." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Découpez les enregistrements et exportez des fichiers MP4 ou GIF." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "録画をトリミングしてMP4またはGIFファイルに書き出します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "녹화를 자르고 MP4 또는 GIF 파일로 내보냅니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Recorte gravações e exporte arquivos MP4 ou GIF." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обрезайте записи и экспортируйте файлы MP4 или GIF." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "剪辑录制内容并导出MP4或GIF文件。" } }
+      }
+    },
     "Monitor Alerts" : {
       "localizations" : {
         "de" : {
