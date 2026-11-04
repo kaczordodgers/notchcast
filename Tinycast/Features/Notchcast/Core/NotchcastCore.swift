@@ -10,7 +10,7 @@ enum NotchcastCore {
     static let quitProtection = QuitProtectionStore()
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
-    private static let battery = BatteryModule(preferences: .shared, runner: .live)
+    static let battery = BatteryModule(preferences: .shared, runner: .live)
 
     static func stopForTermination() async {
         battery.stop()

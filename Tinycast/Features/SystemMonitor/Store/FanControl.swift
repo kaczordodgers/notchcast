@@ -20,6 +20,7 @@ final class FanControl {
     private(set) var unavailable = false
     @ObservationIgnored private let runner: @Sendable (RootContract.Command) async throws -> Void
     @ObservationIgnored private var pending: Mode?
+    @ObservationIgnored private var applying: Mode?
     @ObservationIgnored private var worker: Task<Void, Never>?
 
     init(runner: @escaping @Sendable (RootContract.Command) async throws -> Void = {
@@ -29,11 +30,13 @@ final class FanControl {
     }
 
     func set(_ requested: Mode) {
+        guard requested != (pending ?? applying ?? mode) else { return }
         pending = requested
         guard worker == nil else { return }
         worker = Task { [self] in
             while let next = pending {
                 pending = nil
+                applying = next
                 do {
                     try await runner(next.command)
                     mode = next
@@ -47,10 +50,14 @@ final class FanControl {
                 }
             }
             worker = nil
+            applying = nil
         }
     }
 
-    func restore() { set(.auto) }
+    func restore() {
+        guard mode != .auto || pending != nil || worker != nil else { return }
+        set(.auto)
+    }
 
     func waitUntilIdle() async { await worker?.value }
 }

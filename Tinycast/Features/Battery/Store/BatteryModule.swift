@@ -3,15 +3,26 @@ import IOKit.pwr_mgt
 import Observation
 
 @MainActor
+@Observable
 final class BatteryModule: NotchcastModule {
     struct Runner {
         var read: () -> BatteryReading?
-        var root: (RootContract.Command) async throws -> Void
+        var root: (BatteryRootVerbs) async throws -> Void
+        var installed: () -> Bool = { RootHelperClient().isInstalled }
+        var version: () async throws -> String = {
+            guard case .version(let version) = try await RootHelperClient().run(.version) else {
+                throw RootHelperClient.Failure.invalidResponse
+            }
+            return version
+        }
         var create: (String) throws -> UInt32
         var release: (UInt32) throws -> Void
 
         static var live: Self {
             Self(read: { BatteryService().read() }, root: { command in
+                guard let command = RootContract.Command(rawValue: command.rawValue) else {
+                    throw RootHelperClient.Failure.invalidResponse
+                }
                 _ = try await RootHelperClient().run(command)
             }, create: { type in
                 var identifier: IOPMAssertionID = 0
@@ -28,20 +39,24 @@ final class BatteryModule: NotchcastModule {
     }
 
     enum Failure: Error { case assertion(IOReturn) }
-    static var needsHelperUpdate: Bool {
-        BatteryRootVerbs.allCases.contains { RootContract.Command(rawValue: $0.rawValue) == nil }
-    }
+    private(set) var needsHelperUpdate = true
+    private(set) var helperInstalled = false
+    @ObservationIgnored private var observationID: UUID?
+    @ObservationIgnored private var refreshTask: Task<Void, Never>?
+    @ObservationIgnored private var applied: [String: BatteryRootVerbs] = [
+        "battery-adapter": .adapterOn, "battery-charging": .chargingOn, "battery-sleep": .sleepOn,
+    ]
 
     private let preferences: NotchcastPreferences
     private let runner: Runner
-    private var task: Task<Void, Never>?
-    private var running = false
-    private var engine = ChargeEngine()
-    private var assertions: [UInt32] = []
-    private var awakeUntil: Date?
-    private var awakeMinutes: Int?
-    private var calibrationEnabled = false
-    private var rootChanged = false
+    @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var running = false
+    @ObservationIgnored private var engine = ChargeEngine()
+    @ObservationIgnored private var assertions: [UInt32] = []
+    @ObservationIgnored private var awakeUntil: Date?
+    @ObservationIgnored private var awakeMinutes: Int?
+    @ObservationIgnored private var calibrationEnabled = false
+    @ObservationIgnored private var rootChanged = false
     private(set) var failure: Error?
 
     init(preferences: NotchcastPreferences, runner: Runner) {
@@ -52,18 +67,40 @@ final class BatteryModule: NotchcastModule {
     func start() {
         guard !running else { return }
         running = true
-        observe()
+        let identity = UUID()
+        observationID = identity
+        refreshHelper()
+        observe(identity)
     }
 
     func stop() {
         running = false
+        observationID = nil
+        refreshTask?.cancel()
         schedule()
     }
 
     func waitUntilIdle() async { await task?.value }
 
-    private func observe() {
-        guard running else { return }
+    func refreshHelper() {
+        refreshTask?.cancel()
+        helperInstalled = runner.installed()
+        needsHelperUpdate = true
+        refreshTask = Task { [weak self] in
+            guard let self, self.helperInstalled else { return }
+            do {
+                let version = try await self.runner.version()
+                try Task.checkCancellation()
+                self.needsHelperUpdate = (Int(version) ?? 0) < 2
+                if self.running { self.schedule() }
+            } catch {
+                if !Task.isCancelled { self.failure = error }
+            }
+        }
+    }
+
+    private func observe(_ identity: UUID) {
+        guard running, observationID == identity else { return }
         withObservationTracking {
             for feature in NotchcastFeature.allCases where feature.isSystemFeature {
                 _ = preferences.isOn(feature)
@@ -72,7 +109,7 @@ final class BatteryModule: NotchcastModule {
             _ = preferences.keepAwakeMinutes
             schedule()
         } onChange: { [weak self] in
-            Task { @MainActor [weak self] in self?.observe() }
+            Task { @MainActor [weak self] in self?.observe(identity) }
         }
     }
 
@@ -127,7 +164,7 @@ final class BatteryModule: NotchcastModule {
                 connected: reading.map { !$0.onBattery } ?? false,
                 celsius: reading?.temperatureCelsius, now: now,
                 heatEnabled: on(.batteryHeatProtection))
-            guard !Self.needsHelperUpdate else { return }
+            guard !needsHelperUpdate else { return }
             guard enabled || on(.lidClosedAwake) || rootChanged else { return }
             var verbs: [BatteryRootVerbs] = []
             // Adapter disconnection requires a helper watchdog before it can be enabled safely.
@@ -136,22 +173,16 @@ final class BatteryModule: NotchcastModule {
                                              helperReady: true, keepAwakeHolding: holding))
             for verb in verbs {
                 try Task.checkCancellation()
-                guard let command = RootContract.Command(rawValue: verb.rawValue) else { continue }
+                let key = verb.rawValue.components(separatedBy: "-").dropLast().joined(separator: "-")
+                guard applied[key] != verb else { continue }
                 rootChanged = true
-                try await runner.root(command)
+                try await runner.root(verb)
+                applied[key] = verb
             }
             rootChanged = enabled || on(.lidClosedAwake)
             failure = nil
         } catch {
             failure = error
-            if rootChanged {
-                var restored = true
-                for verb in [BatteryRootVerbs.adapterOn, .chargingOn, .sleepOn] {
-                    guard let command = RootContract.Command(rawValue: verb.rawValue) else { continue }
-                    do { try await runner.root(command) } catch { restored = false }
-                }
-                rootChanged = !restored
-            }
         }
     }
 

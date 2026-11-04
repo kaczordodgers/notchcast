@@ -11,7 +11,7 @@ struct NotchcastSystemSettingsSection: View {
                     SettingsRowTitle(.notchcastMonitor, verbatim: feature.title)
                     Text(feature.subtitle)
                     if feature != .systemMonitor && feature != .fanControl && feature != .keepAwake,
-                       BatteryModule.needsHelperUpdate {
+                       NotchcastCore.battery.needsHelperUpdate {
                         Text("Needs the Notchcast helper update")
                             .foregroundStyle(.secondary)
                     }
@@ -43,11 +43,15 @@ struct NotchcastSystemSettingsSection: View {
                 SettingsRowTitle(.notchcastAwakeDuration, "Keep-awake duration")
             }
             .settingsEnabled(preferences.isOn(.keepAwake))
-            if !RootHelperClient().isInstalled {
+            if let failure = NotchcastCore.battery.failure {
+                Text(failure.localizedDescription).foregroundStyle(.secondary)
+            }
+            if !NotchcastCore.battery.helperInstalled {
                 Text("The privileged helper is not installed.").foregroundStyle(.secondary)
             }
         } header: {
             SettingsSectionHeader(.notchcastMonitor)
         }
+        .onAppear { NotchcastCore.battery.refreshHelper() }
     }
 }
