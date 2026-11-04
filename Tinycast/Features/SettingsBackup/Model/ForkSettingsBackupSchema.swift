@@ -135,7 +135,10 @@ enum ForkSettingsBackupSchema {
         "notchcast.day.marketSymbols": .strings(100, 64),
         "notchcast.day.excludedCalendars": .strings(500, 256),
         "notchcast.day.weatherPlace": .json(.optional(place)),
-        "dictationCleanup": .json(cleanup),
+        "dictationHistory": .bool,
+        "captureTrimmer": .bool,
+        "screenText.removeLineBreaks": .bool,
+        "notchcast.dictationCleanup.settings": .json(cleanup),
         "notchcast.appearance.surface": .string(5, ["glass", "black", "matte"]),
         "notchcast.appearance.theme.backgroundOpacity": .number(0.2...1),
         "notchcast.appearance.theme.light": .json(.optional(theme)),
@@ -144,6 +147,16 @@ enum ForkSettingsBackupSchema {
     ]
 
     static let excluded: Set<String> = [
+        "screenText",
+        "scrollingCapture",
+        "dictationEnglish",
+        "globeDictation",
+        "agentMCPServer",
+        "agentChatTools",
+        "dictationCleanup",
+        "agentAnswer",
+        "voiceAsk",
+        "recording",
         "spacesOrder",
         "musicBlockAppleMusic",
         "spotifyConnect",

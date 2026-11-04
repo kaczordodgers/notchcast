@@ -5,6 +5,7 @@ extension ForkSettingsBackupState {
     static var live: Self {
         Self(snapshot: {
             var values = ForkSettingsBackupRestore.snapshot(.shared)
+            values["screenText.removeLineBreaks"] = NotchcastCore.screenText.removeLineBreaks
             values.merge(quitValues(NotchcastCore.quitProtection)) { _, value in value }
             values["notchcast.liveTimer.defaultDuration"] = NotchcastCore.timers.store.defaultDuration
             values["notchcast.liveTimer.playSound"] = NotchcastCore.timers.store.playSoundWhenTimeIsUp
@@ -26,7 +27,7 @@ extension ForkSettingsBackupState {
                     return string
                 }
             }
-            capture("dictationCleanup", into: &values) {
+            capture("notchcast.dictationCleanup.settings", into: &values) {
                 let cleanup = try cleanupStore.read()
                 return try json(Cleanup(effort: cleanup.effort,
                     promptAddition: cleanup.promptAddition, vocabulary: cleanup.vocabulary))
@@ -38,6 +39,9 @@ extension ForkSettingsBackupState {
             return values
         }, validate: validateLive, apply: { values in
             try validateLive(values)
+            if let value = values["screenText.removeLineBreaks"] as? Bool {
+                NotchcastCore.screenText.removeLineBreaks = value
+            }
             if let value = values["notchcast.liveTimer.defaultDuration"] as? Double {
                 NotchcastCore.timers.store.defaultDuration = value
             }
@@ -71,7 +75,7 @@ extension ForkSettingsBackupState {
             if let value = values["notchcast.appearance.theme.dark"] as? String {
                 try appearance.select(decode(RaycastTheme?.self, value), for: .dark)
             }
-            if let value = values["dictationCleanup"] as? String {
+            if let value = values["notchcast.dictationCleanup.settings"] as? String {
                 let restored = try decode(Cleanup.self, value)
                 var current = try cleanupStore.read()
                 current.effort = restored.effort
@@ -126,6 +130,6 @@ extension ForkSettingsBackupState {
         }
         if let value = values["notchcast.appearance.themes.imported"] as? String { _ = try decode([RaycastTheme].self, value) }
         if let value = values["notchcast.day.weatherPlace"] as? String { _ = try decode(DayWeatherPlace?.self, value) }
-        if let value = values["dictationCleanup"] as? String { _ = try decode(Cleanup.self, value) }
+        if let value = values["notchcast.dictationCleanup.settings"] as? String { _ = try decode(Cleanup.self, value) }
     }
 }
