@@ -22,6 +22,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -51,6 +52,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherFromIsland: .launcher
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -111,6 +113,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -154,6 +157,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
