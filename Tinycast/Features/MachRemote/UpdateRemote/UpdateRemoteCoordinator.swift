@@ -23,7 +23,7 @@ final class UpdateRemoteCoordinator {
         guard MachSSH.isValid(alias), !scriptPath.isEmpty
         else { return nil }
         return ["-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "--", alias,
-                "exec " + MachSSH.quote(scriptPath)]
+                "exec " + MachSSH.remotePath(scriptPath)]
     }
 
     func start() {

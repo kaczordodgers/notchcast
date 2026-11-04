@@ -34,6 +34,31 @@ enum BackupStatusTest {
         noticePreferences.set(.islandStatusMessages, true)
         unconfigured.start()
         check(configurationNotices == [String(localized: "Backup status path is not configured.")])
+        var typedPath = ""
+        var watchedCount = 0
+        var restarts: [@MainActor () -> Void] = []
+        let lateConfigured = BackupStatusModule(read: { Data() }, watch: { _ in
+            watchedCount += 1
+            return {}
+        }, schedule: { _, action in
+            restarts.append(action)
+            return {}
+        }, configurationNotice: { typedPath.isEmpty ? "unset" : nil }, post: { _ in })
+        lateConfigured.pathChanged()
+        check(restarts.isEmpty)
+        lateConfigured.start()
+        check(watchedCount == 0)
+        typedPath = "/tmp/status.json"
+        lateConfigured.pathChanged()
+        restarts.removeLast()()
+        check(watchedCount == 1)
+        lateConfigured.pathChanged()
+        restarts.removeLast()()
+        check(watchedCount == 2)
+        lateConfigured.stop()
+        restarts.removeAll()
+        lateConfigured.pathChanged()
+        check(restarts.isEmpty)
         let now = Date(timeIntervalSince1970: 1_793_750_400)
         let stamp = ISO8601DateFormatter().string(from: now)
         func fixture(_ result: String = "ok", changes: [String: Any] = [:]) throws -> Data {

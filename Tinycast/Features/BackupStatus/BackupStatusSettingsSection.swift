@@ -6,6 +6,7 @@ struct BackupStatusSettingsSection: View {
     var body: some View {
         Section {
             TextField("Backup status file path", text: $preferences.backupStatusPath)
+                .onChange(of: preferences.backupStatusPath) { NotchcastCore.backupStatus.pathChanged() }
         } header: {
             SettingsSectionHeader(.notchcastBackupStatus)
         }

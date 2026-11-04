@@ -2,6 +2,21 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Service/*.swift Tinycast/Platform/ProcessExit.swift
 import Foundation
 
+// Runs only what follows the ssh call, under macOS's default shell, where `status` is read-only.
+func runFailureTail(of script: String) throws -> (status: Int32, output: String) {
+    let start = script.range(of: "; rc=$?")!
+    let tail = "(exit 255)" + script[start.lowerBound...].replacingOccurrences(of: "exec /bin/zsh -l", with: "exit 7")
+    let process = Process()
+    let pipe = Pipe()
+    process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+    process.arguments = ["-c", tail]
+    process.standardOutput = pipe
+    try process.run()
+    process.waitUntilExit()
+    let output = String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+    return (process.terminationStatus, output)
+}
+
 @main struct MachSSHTest {
     static func main() async throws {
         let ssh = MachSSH(address: "remote") { executable, arguments in
@@ -37,6 +52,12 @@ import Foundation
         assert(script.contains("exec /bin/zsh -l"))
         assert(script.contains("Unable to reach the remote Mac over SSH"))
         assert(script.contains("/workspace"))
+        let tail = try runFailureTail(of: script)
+        precondition(tail.status == 7 && tail.output.contains("Unable to reach"))
+        let homeScript = try ssh.terminalScript(directory: "~/code")
+        precondition(homeScript.contains("$HOME/"))
+        precondition(MachSSH.remotePath("/opt/up date") == "'/opt/up date'")
+        precondition(MachSSH.remotePath("~/bin/up'd") == #""$HOME/"'bin/up'\''d'"#)
         print("Mach SSH passed")
     }
 }

@@ -39,6 +39,7 @@ final class AIUsageLinkModule: NotchcastModule {
     func stop() {
         isRunning = false
         channel.manager.stop()
+        channel.pairing = nil
     }
 
     func pair(code: String) throws -> String {
@@ -55,14 +56,17 @@ final class AIUsageLinkModule: NotchcastModule {
         }
         try pairing.save(to: secrets)
         channel.manager.stop()
-        channel.pairing = pairing
+        channel.pairing = isRunning ? pairing : nil
         defaults.set(pairing.id.uuidString, forKey: "pairingID")
+        isPaired = true
         try listen()
         return pairing.id.uuidString + ":" + pairing.secret.base64EncodedString()
     }
 
     func unpair() throws {
-        if let pairing = channel.pairing { try secrets.removeSecret(for: pairing.id) }
+        if let raw = defaults.string(forKey: "pairingID"), let id = UUID(uuidString: raw) {
+            try secrets.removeSecret(for: id)
+        }
         channel.manager.stop()
         channel.pairing = nil
         defaults.removeObject(forKey: "pairingID")
@@ -70,7 +74,7 @@ final class AIUsageLinkModule: NotchcastModule {
     }
 
     private func listen() throws {
-        isPaired = channel.pairing != nil
+        isPaired = isPaired || channel.pairing != nil
         guard isRunning, let pairing = channel.pairing else { return }
         let name = SCDynamicStoreCopyLocalHostName(nil) as String? ?? UUID().uuidString
         try channel.manager.start(pairing: pairing, name: name) { [weak self] request in

@@ -23,9 +23,9 @@ enum SendFilesPlan {
           if mkdir -- "$lock" 2>/dev/null; then
             if [ ! -e "$d" ] && [ ! -L "$d" ]; then
               mv -n -- "$s" "$d"
-              status=$?
+              rc=$?
               rmdir -- "$lock"
-              if [ "$status" -eq 0 ] && [ ! -e "$s" ] && [ ! -L "$s" ]; then exit 0; fi
+              if [ "$rc" -eq 0 ] && [ ! -e "$s" ] && [ ! -L "$s" ]; then exit 0; fi
               exit 1
             fi
             rmdir -- "$lock"

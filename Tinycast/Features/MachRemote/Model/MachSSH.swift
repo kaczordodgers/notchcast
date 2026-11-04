@@ -49,14 +49,19 @@ struct MachSSH: Sendable {
         guard Self.isValid(address) else { throw ConfigurationError.address }
         guard !directory.isEmpty else { throw ConfigurationError.path }
         let command = (["/usr/bin/ssh", "-t"] + Self.options +
-            [address, "cd " + Self.quote(directory) + " && exec /bin/zsh -l"]).map(Self.quote).joined(separator: " ")
-        return command + "; status=$?; if [ \"$status\" -eq 255 ]; then printf '%s\\n' " +
+            [address, "cd " + Self.remotePath(directory) + " && exec /bin/zsh -l"]).map(Self.quote).joined(separator: " ")
+        return command + "; rc=$?; if [ \"$rc\" -eq 255 ]; then printf '%s\\n' " +
             Self.quote(String(localized: "Unable to reach the remote Mac over SSH")) +
             "; fi; exec /bin/zsh -l"
     }
 
     static func quote(_ value: String) -> String {
         "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
+    // Quoting alone would stop the remote shell expanding `~/`.
+    static func remotePath(_ value: String) -> String {
+        value.hasPrefix("~/") ? "\"$HOME/\"" + quote(String(value.dropFirst(2))) : quote(value)
     }
 
     enum ConfigurationError: LocalizedError {
