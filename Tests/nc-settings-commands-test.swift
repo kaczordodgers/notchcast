@@ -52,7 +52,7 @@ extension NotchcastCommandCatalog {
         process.waitUntilExit()
         precondition(process.terminationStatus == 0)
         let rows = try JSONDecoder().decode([Row].self, from: data)
-        precondition(rows.count == 100, "Every catalog command must retain owner gate coverage")
+        precondition(rows.count == 97, "Every catalog command must retain owner gate coverage")
         let preferences = NotchcastPreferences.shared
         let home = ProcessInfo.processInfo.environment["NC_SETTINGS_COMMANDS_HOME"]!
         precondition(NSHomeDirectory() == home, "preferences must stay in the throwaway home")

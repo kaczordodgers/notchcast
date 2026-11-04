@@ -83,7 +83,6 @@ extension NotchcastCommandCatalog {
         SettingsActionCommands.scanAI,
         SettingsActionCommands.scanDisk,
         SettingsActionCommands.scanProjects,
-        SettingsActionCommands.scanSystem,
         SettingsActionCommands.resetQuickLook,
         SettingsActionCommands.clearDownloads,
         SettingsActionCommands.rebuildOpenWith,
@@ -98,7 +97,5 @@ extension NotchcastCommandCatalog {
         SettingsActionCommands.restrictBooks,
         SettingsActionCommands.installCLI,
         SettingsActionCommands.revealBackup,
-        SettingsActionCommands.addChat,
-        SettingsActionCommands.removeChat,
     ]
 }

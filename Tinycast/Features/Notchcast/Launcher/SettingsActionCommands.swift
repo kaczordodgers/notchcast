@@ -26,11 +26,6 @@ enum SettingsActionCommands {
         sfSymbol: "folder", feature: .cleanPurge,
         run: { scan(.cleanPurge) })
 
-    static let scanSystem = NotchcastCommand(
-        slug: "settings-scanSystem", name: String(localized: "Scan System Data"),
-        sfSymbol: "internaldrive", feature: .cleanSystem,
-        run: { scan(.cleanSystem) })
-
     static let resetQuickLook = NotchcastCommand(
         slug: "settings-resetQuickLook", name: String(localized: "Reset Quick Look Cache"),
         sfSymbol: "arrow.clockwise", feature: .cleanOptimize,
@@ -106,20 +101,6 @@ enum SettingsActionCommands {
             NSWorkspace.shared.selectFile(nil, inFileViewerRootedAtPath:
                 IPhoneBackupPolicy.backupDirectory(home: FileManager.default.homeDirectoryForCurrentUser).path)
         })
-
-    static let addChat = NotchcastCommand(
-        slug: "settings-addChat", name: String(localized: "Add Notchcast to AI Chat"),
-        sfSymbol: "plus", feature: .agentChatTools,
-        run: {
-            if NotchcastCore.agentChatTools?.add() == .binaryMissing {
-                AppCore.shared.showMessage(String(localized: "Install the Notchcast CLI first."), tone: .danger)
-            }
-        })
-
-    static let removeChat = NotchcastCommand(
-        slug: "settings-removeChat", name: String(localized: "Remove Notchcast from AI Chat"),
-        sfSymbol: "minus", feature: .agentChatTools,
-        run: { NotchcastCore.agentChatTools?.remove() })
 
     @MainActor static func show(_ tab: SettingsTab, _ feature: NotchcastFeature) {
         AppCore.shared.settingsCoordinator.showSettings(
