@@ -24,6 +24,7 @@ struct NotchcastSettingsView: View {
             NotchcastExtrasSection()
             AgentPricingSettingsSection()
             FleetSettingsSection(settings: NotchcastCore.fleetSettings)
+            BuildStatsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island) || preferences.isOn(.botHost))
