@@ -71,6 +71,7 @@ for file in $(awk '$2 == "merge=union" {print $1}' .gitattributes); do
 done
 [ "$(git rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$base^{tree}")" ] || refuse 'nothing to land: main already has this change'
 python3 notchcast/check-feature-shape.py || refuse 'feature shape'
+notchcast/check-bundle-readme.sh || refuse 'two README.md files under Tinycast/ break the Xcode build'
 "$selector" "$base" HEAD > "$scratch/selected"
 while IFS= read -r name; do
     [ -n "$name" ] || continue
