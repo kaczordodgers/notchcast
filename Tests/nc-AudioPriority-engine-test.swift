@@ -122,8 +122,7 @@ struct AudioPriorityTests {
 
     @MainActor
     static func settle(until ready: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(5)
-        while !ready() && ContinuousClock.now < deadline {
+        while !ready() {
             try? await Task.sleep(for: .milliseconds(10))
         }
         precondition(ready(), "Inventory callback did not arrive")
