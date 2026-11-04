@@ -1,3 +1,5 @@
+import Foundation
+
 @MainActor
 enum NotchcastCore {
     static let lowDisk = LowDiskModule()
@@ -12,6 +14,8 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let dictationHistory = DictationHistoryModule(repository: .init(
+        directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
@@ -25,6 +29,13 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        dictationHistory.onFailure = { [weak core] in
+            core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+        }
+        DictationCleanup.transcriptObserver = { raw, cleaned in
+            await dictationHistory.record(raw: raw, cleaned: cleaned)
+        }
+        Task { await dictationHistory.maintain() }
         NotchcastPreferences.shared.onCommandsChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
         }
@@ -46,6 +57,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.dictationHistory], module: dictationHistory),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
