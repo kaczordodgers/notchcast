@@ -23,6 +23,11 @@ final class TweaksModule: NotchcastModule {
         var plans: [String: TypingPreferencePlan] = [:]
         do {
             if let data { plans = try JSONDecoder().decode([String: TypingPreferencePlan].self, from: data) }
+            guard plans.values.allSatisfy({ plan in
+                (plan.apply + plan.revert).allSatisfy {
+                    SystemToolsProcessRunner.allowedExecutables.contains($0.executable)
+                }
+            }) else { throw SystemToolsProcessRunner.Failure.invalidExecutable }
             journalFailure = nil
         } catch { journalFailure = error.localizedDescription }
         store = TweaksStore(plans: plans, read: TypingPreferenceService().readPreference,
@@ -134,16 +139,12 @@ final class TweaksModule: NotchcastModule {
 
     @concurrent
     private static func run(_ commands: [TypingPreferencePlan.Command]) async throws {
+        guard commands.allSatisfy({ SystemToolsProcessRunner.allowedExecutables.contains($0.executable) }) else {
+            throw SystemToolsProcessRunner.Failure.invalidExecutable
+        }
         for command in commands {
             try Task.checkCancellation()
-            let process = Process()
-            process.executableURL = URL(filePath: command.executable)
-            process.arguments = command.arguments
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            let exit = try process.runObservingExit()
-            exit.wait()
-            guard process.terminationStatus == 0 else { throw CocoaError(.executableRuntimeMismatch) }
+            _ = try SystemToolsProcessRunner().run(command.executable, arguments: command.arguments)
         }
     }
 }

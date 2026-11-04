@@ -3,10 +3,14 @@ import Darwin
 
 nonisolated struct SystemToolsProcessRunner: Sendable {
     enum Failure: Error { case invalidExecutable, timedOut, failed(Int32) }
+    static let allowedExecutables: Set<String> = [
+        "/bin/launchctl", "/usr/bin/defaults", "/bin/kill", "/usr/bin/open",
+        "/usr/bin/killall", "/bin/chflags"
+    ]
 
     func run(_ executable: String, arguments: [String], timeout: TimeInterval = 5) throws -> String {
         try Task.checkCancellation()
-        guard ["/bin/launchctl", "/usr/bin/defaults", "/bin/kill", "/usr/bin/open"].contains(executable) else {
+        guard Self.allowedExecutables.contains(executable) else {
             throw Failure.invalidExecutable
         }
         let outputURL = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
@@ -52,16 +56,9 @@ nonisolated struct SystemToolsProcessRunner: Sendable {
                                ("/System/Library/LaunchAgents", .systemAgent)] {
             guard FileManager.default.fileExists(atPath: folder) else { continue }
             for item in try StartupItemService().read(folder: URL(filePath: folder), kind: kind) {
-                let loaded: Bool
-                do {
-                    _ = try run("/bin/launchctl", arguments: ["print", "gui/\(uid)/\(item.label)"])
-                    loaded = true
-                } catch Failure.failed(113) {
-                    loaded = false
-                }
-                let disabled = disabledText.contains("\"\(item.label)\" => true")
-                items.append(StartupItem(label: item.label, kind: item.kind, path: item.path,
-                                         program: item.program, disabled: disabled, loaded: loaded))
+                items.append(try StartupItemService().status(item, uid: uid, disabledText: disabledText) {
+                    try run($0, arguments: $1)
+                })
             }
         }
         return items

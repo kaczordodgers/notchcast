@@ -17,14 +17,6 @@ extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
-        .init(.notchcastTweaks, "Startup Items", keywords: ["launchagents"]),
-        .init(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"]),
-        .init(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"]),
-        .init(.notchcastTweaks, "Kill Process", keywords: ["terminate"]),
-        .init(.notchcastTweaks, "Mac Setup Presets", keywords: ["preferences", "undo"]),
-        .init(.notchcastTweaks, "AI Features Off", keywords: ["intelligence", "siri"]),
-        .init(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"]),
-        .init(.notchcastTweaks, "Privacy Choices", keywords: ["analytics"]),
         .init(.notchcastTweaksApps, "Disable autocorrect"),
         .init(.notchcastTweaksApps, "Disable smart punctuation"),
         .init(.notchcastTweaksApps, "Disable double-space period"),
@@ -85,5 +77,15 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
-    ]
+    ] + NotchcastFeature.systemToolsSettingsFeatures.map {
+        switch $0 {
+        case .startupItems:
+            SettingsSearchEntry(.notchcastTweaks, "Startup Items", keywords: ["launchagents"])
+        case .notificationCleanup:
+            SettingsSearchEntry(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"])
+        case .sudoTouchID:
+            SettingsSearchEntry(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"])
+        default: SettingsSearchEntry(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"])
+        }
+    }
 }

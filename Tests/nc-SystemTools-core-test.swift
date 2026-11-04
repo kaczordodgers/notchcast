@@ -33,6 +33,22 @@ struct SystemToolsTests {
         defer { try? FileManager.default.removeItem(at: folder) }
         try data.write(to: folder.appending(path: "job.plist"))
         expect(try StartupItemService().read(folder: folder, kind: .userAgent).count == 1, "scanner")
+        try Data().write(to: folder.appending(path: "broken.plist"))
+        try FileManager.default.createSymbolicLink(at: folder.appending(path: "link.plist"),
+                                                  withDestinationURL: folder.appending(path: "job.plist"))
+        expect(try StartupItemService().read(folder: folder, kind: .userAgent).count == 1,
+               "bad and symlinked plists skipped")
+        let system = try StartupItem.decode(data, path: path, kind: .systemAgent)
+        expect(try StartupItemService().status(system, uid: 501, disabledText: "") { _, _ in
+            preconditionFailure("System items must not probe launchctl")
+        } == system, "system plist only")
+        enum ProbeFailure: Error { case failed }
+        let unknown = try StartupItemService().status(item, uid: 501, disabledText: "") { _, _ in
+            throw ProbeFailure.failed
+        }
+        expect(unknown.loaded == nil, "failed probe is unknown")
+        expect(try StartupItemService().status(item, uid: 501, disabledText: "") { _, _ in "" }.loaded == true,
+               "next probe still succeeds")
 
         let sudo = "# sudo\nauth include sudo_local\nauth required pam_opendirectory.so\n"
         let local = "# custom\nauth optional pam_other.so\n"
