@@ -66,55 +66,55 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycast greift nur auf Bluetooth zu, wenn du die Aktion „Bluetooth umschalten“ ausführst."
+            "value" : "Notchcast verwendet Bluetooth, um die Aktion „Bluetooth umschalten“ auszuführen und sich mit deinem Walkingpad zu verbinden."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycast uses Bluetooth access only when you run the Toggle Bluetooth action."
+            "value" : "Notchcast uses Bluetooth to run the Toggle Bluetooth action and connect to your walking pad."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycast solo accede a Bluetooth cuando ejecutas la acción de activar o desactivar Bluetooth."
+            "value" : "Notchcast usa Bluetooth para ejecutar la acción de activar o desactivar Bluetooth y conectarse a tu cinta de caminar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycast accède au Bluetooth uniquement lorsque vous lancez l’action d’activation ou de désactivation du Bluetooth."
+            "value" : "Notchcast utilise le Bluetooth pour exécuter l’action d’activation ou de désactivation du Bluetooth et se connecter à votre tapis de marche."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycastは、Bluetoothの切り替えアクションを実行したときのみBluetoothにアクセスします。"
+            "value" : "Notchcastは、Bluetoothの切り替えアクションの実行とウォーキングパッドへの接続にBluetoothを使用します。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycast는 Bluetooth 전환 동작을 실행할 때에만 Bluetooth에 접근합니다."
+            "value" : "Notchcast는 Bluetooth 전환 동작을 실행하고 워킹패드에 연결하기 위해 Bluetooth를 사용합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Tinycast acessa o Bluetooth apenas quando você executa a ação de ativar ou desativar o Bluetooth."
+            "value" : "O Notchcast usa o Bluetooth para executar a ação de ativar ou desativar o Bluetooth e conectar-se à sua esteira de caminhada."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycast обращается к Bluetooth только при запуске действия переключения Bluetooth."
+            "value" : "Notchcast использует Bluetooth для выполнения действия «Переключить Bluetooth» и подключения к вашей беговой дорожке."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tinycast 仅在你运行切换蓝牙操作时访问蓝牙。"
+            "value" : "Notchcast 使用蓝牙来运行切换蓝牙操作并连接到你的走步机。"
           }
         }
       }
