@@ -24,6 +24,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case aiUsageOtherMac
     case machLink
     case machRemote
+    case remoteDialogAlert
     case backupStatus
     case linkHealth
     case shelfBetweenMacs
@@ -69,6 +70,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsageOtherMac: .activities
         case .machLink: .system
         case .machRemote: .system
+        case .remoteDialogAlert: .system
         case .backupStatus: .system
         case .linkHealth: .system
         case .shelfBetweenMacs: .activities
@@ -102,6 +104,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
         case .machLink: String(localized: "Mac Link")
         case .machRemote: String(localized: "Remote Mac")
+        case .remoteDialogAlert: String(localized: "Remote Dialog Alerts")
         case .backupStatus: String(localized: "Backup Status")
         case .linkHealth: String(localized: "Link Health")
         case .shelfBetweenMacs: String(localized: "Shelf between Macs")
@@ -142,6 +145,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
         case .machLink: String(localized: "Connect to a paired Mac on the local network.")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
+        case .remoteDialogAlert: String(localized: "Notify when the paired Mac is waiting on a system dialog.")
         case .backupStatus: String(localized: "Warns when backups fail or become stale.")
         case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
         case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.")
@@ -186,6 +190,7 @@ extension NotchcastFeature {
         case .aiUsageOtherMac: true
         case .machLink: true
         case .machRemote: true
+        case .remoteDialogAlert: true
         case .backupStatus: true
         case .linkHealth: true
         case .shelfBetweenMacs: true

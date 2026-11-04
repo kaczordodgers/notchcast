@@ -1,3 +1,5 @@
+import Foundation
+
 @MainActor
 enum NotchcastCore {
     static let linkQuickFixes = LinkQuickFixModule()
@@ -12,6 +14,8 @@ enum NotchcastCore {
     static let macLink = AIUsageLinkModule()
     static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
     static let machRemote = MachRemoteModule()
+    static let remoteDialog = RemoteDialogModule(windows: RemoteDialogWindows.current,
+        macName: { Host.current().localizedName ?? "Mac" }, send: macLink.channel.sendDialogNotice, post: remoteNotice)
     static let shelf = ShelfModule()
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
     static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run,
@@ -40,6 +44,7 @@ enum NotchcastCore {
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         macLink.listenerRoute = { request in
+            if request.method == "dialog-shown" { return try await remoteDialog.response(to: request) }
             if request.method == "shelf-item" {
                 guard await NotchcastPreferences.shared.isOn(.machLink),
                       await NotchcastPreferences.shared.isOn(.shelfBetweenMacs) else {
@@ -75,6 +80,7 @@ enum NotchcastCore {
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
             .init(requires: [.machRemote], module: machRemote),
+            .init(requires: [.machLink, .remoteDialogAlert], module: remoteDialog),
             .init(requires: [.machRemote, .sendFiles], module: sendFiles),
             .init(requires: [.machRemote, .updateRemote], module: updateRemote),
             .init(requires: [.backupStatus], module: backupStatus),
