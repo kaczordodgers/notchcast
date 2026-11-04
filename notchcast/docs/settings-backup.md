@@ -90,7 +90,7 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | notchcast.day.marketSymbols | String array: 100 × 64 characters | Selected symbols |
 | notchcast.day.excludedCalendars | String array: 500 × 256 characters | Calendar exclusions |
 | notchcast.day.weatherPlace | JSON String ≤262144 bytes | Name/country ≤256, latitude ±90, longitude ±180 |
-| dictationCleanup | JSON String ≤262144 bytes | Plain cleanup configuration; no key material |
+| notchcast.dictationCleanup.settings | JSON String ≤262144 bytes | Plain cleanup configuration; no key material |
 | notchcast.appearance.surface | String: glass, black, matte | Surface style |
 | notchcast.appearance.theme.backgroundOpacity | Double, 0.2...1 | Surface opacity |
 | notchcast.appearance.theme.light | JSON String ≤262144 bytes | Selected light theme |
