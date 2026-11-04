@@ -15,6 +15,7 @@ struct CaptureDictationSettingsSection: View {
             ScrollingCaptureSettingsSection()
             DictationTriggerSettingsSection()
             AgentMCPSettingsSection()
+            if let module = NotchcastCore.agentChatTools { AgentChatToolsSettingsSection(module: module) }
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }

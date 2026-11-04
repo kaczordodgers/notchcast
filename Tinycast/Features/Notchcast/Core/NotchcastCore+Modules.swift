@@ -30,6 +30,7 @@ extension NotchcastCore {
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
     static let screenText = ScreenTextModule()
+    static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
     static let scrollingCapture = ScrollingCaptureModule()
@@ -44,6 +45,9 @@ extension NotchcastCore {
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
+        let chatTools = AgentChatToolsModule(store: core.mcpSettings, binaryPath: binaryPath, isBinaryInstalled: { FileManager.default.isExecutableFile(atPath: binaryPath) }, onChange: { [weak core] in core?.mcpCoordinator.applyEnabled() })
+        agentChatTools = chatTools
         let trigger = makeDictationTrigger(core)
         dictationTrigger = trigger
         let voiceRecording = VoiceAskRecording(core: core)
@@ -80,6 +84,7 @@ extension NotchcastCore {
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.screenText], module: screenText),
+            .init(requires: [.agentChatTools], module: chatTools),
             .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.scrollingCapture], module: scrollingCapture),
