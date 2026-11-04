@@ -1,5 +1,7 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
+import Foundation
+
 extension NotchcastCore {
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
@@ -29,8 +31,19 @@ extension NotchcastCore {
     static let screenshot = ScreenshotModule()
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
+    static let dictationCleanup = DictationCleanupModule.live()
+    static let captureTrimmer = CaptureTrimmerModule.live()
+    static let agentAnswer = AgentAnswerModule()
+    static let recording = RecordingModule()
+    static private(set) var voiceAsk: VoiceAskModule?
+    private static var voiceAskInput: VoiceAskInput?
+    static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        let recording = VoiceAskRecording(core: core)
+        let voiceAsk = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: recording.begin, finish: recording.finish, cancel: recording.cancel)
+        self.voiceAsk = voiceAsk
+        voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAsk)
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = pastePlain
         pasteImage.configureFeedback(core)
@@ -62,6 +75,12 @@ extension NotchcastCore {
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),
+            .init(requires: [.dictationCleanup], module: dictationCleanup),
+            .init(requires: [.captureTrimmer], module: captureTrimmer),
+            .init(requires: [.agentAnswer], module: agentAnswer),
+            .init(requires: [.recording], module: recording),
+            .init(requires: [.voiceAsk], module: voiceAsk),
+            .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }

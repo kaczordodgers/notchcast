@@ -5,6 +5,12 @@ struct CaptureDictationSettingsSection: View {
         Section {
             ColorPickerSettingsSection(module: NotchcastCore.colorPicker)
             ScreenshotSettingsSection(module: NotchcastCore.screenshot)
+            DictationHistorySettingsSection()
+            DictationCleanupSettingsSection(module: NotchcastCore.dictationCleanup)
+            CaptureTrimmerSettingsSection()
+            AgentAnswerSettingsSection()
+            if let module = NotchcastCore.voiceAsk { VoiceAskSettingsSection(module: module) }
+            RecordingSettingsSection(module: NotchcastCore.recording)
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }
