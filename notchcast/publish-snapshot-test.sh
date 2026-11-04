@@ -33,6 +33,7 @@ case "$1 $2" in
         cat "$state/release" ;;
     "release delete") rm -f "$state/release"; echo delete >> "$state/log" ;;
     "release create")
+        [ -f "$state/release" ] && { echo "HTTP 422: Validation Failed (already_exists)" >&2; exit 1; }
         n=$(cat "$state/creates" 2>/dev/null || echo 0); echo $((n + 1)) > "$state/creates"
         if [ "$n" -lt "${FAIL_CREATE:-0}" ]; then
             [ "${HALF_CREATE:-0}" = 1 ] && echo "true 1" > "$state/release"
