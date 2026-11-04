@@ -80,6 +80,9 @@ merge_onto() {
     done
     [ "$(git rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$onto^{tree}")" ] || refuse 'nothing to land: main already has this change'
     python3 notchcast/check-feature-shape.py || refuse 'feature shape'
+    # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.
+    typecheck=$(swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift 2>&1) \
+        || refuse "NotchcastFeature*.swift does not typecheck without warnings on the merged tree: $(grep -m3 -E 'error|warning' <<< "$typecheck")"
     notchcast/check-bundle-readme.sh || refuse 'two README.md files under Tinycast/ break the Xcode build'
 }
 harnesses() {
