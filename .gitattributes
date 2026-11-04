@@ -1,0 +1,3 @@
+Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift merge=union
+Tinycast/Features/Notchcast/Core/NotchcastFeature.swift merge=union
+Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift merge=union
