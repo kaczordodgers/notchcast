@@ -587,6 +587,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .accessoryNotices: [.bluetooth]
         case .cleaningMode: [.accessibility]
         case .screenText: [.screenRecording]
         case .scrollingCapture: [.screenRecording]
@@ -866,4 +867,5 @@ extension NotchcastFeature {
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
     case screenRecording
+    case bluetooth
 }
