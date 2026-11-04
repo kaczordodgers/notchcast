@@ -8,12 +8,14 @@ enum NotchcastCommandCatalog {
     }
 
     @MainActor static func isEnabled(_ id: String) -> Bool {
-        command(for: id)?.isEnabled() ?? true
+        guard let command = command(for: id) else { return true }
+        guard let owner = command.feature else { return false }
+        return NotchcastPreferences.shared.isEnabled(owner) && command.isEnabled()
     }
 
     @MainActor static func dispatch(_ id: String, dismiss: () -> Void) -> Bool {
         guard let command = command(for: id) else { return false }
-        if command.isEnabled() {
+        if isEnabled(id) {
             dismiss()
             command.run()
         }

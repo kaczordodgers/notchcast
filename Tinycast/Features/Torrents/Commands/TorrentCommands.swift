@@ -10,13 +10,13 @@ enum TorrentCommands {
     nonisolated static let downloadClipboardCommand =
         NotchcastCommand(slug: "download-torrent-from-clipboard",
                          name: String(localized: "Download Torrent from Clipboard"),
-                         sfSymbol: "arrow.down.doc", isEnabled: { enabled }, run: { downloadClipboard() })
+                         sfSymbol: "arrow.down.doc", feature: .torrents, isEnabled: { enabled }, run: { downloadClipboard() })
     nonisolated static let openFileCommand =
         NotchcastCommand(slug: "open-torrent-file", name: String(localized: "Open Torrent File…"),
-                         sfSymbol: "doc", isEnabled: { enabled }, run: { openFile() })
+                         sfSymbol: "doc", feature: .torrents, isEnabled: { enabled }, run: { openFile() })
     nonisolated static let cancelAllCommand =
         NotchcastCommand(slug: "cancel-all-torrents", name: String(localized: "Cancel All Torrents"),
-                         sfSymbol: "xmark.circle", isEnabled: { enabled }, run: { cancelAll() })
+                         sfSymbol: "xmark.circle", feature: .torrents, isEnabled: { enabled }, run: { cancelAll() })
 
     private static let availability = TorrentCommandAvailability()
     static var enabled: Bool {
