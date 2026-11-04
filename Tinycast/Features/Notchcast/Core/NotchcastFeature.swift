@@ -18,6 +18,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case machLink
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case remoteScreen
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -34,6 +35,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake, .machLink: .system
         case .liveTimers, .dayWeather, .dayMarkets, .aiUsage, .aiUsageOtherMac: .activities
+        case .remoteScreen: .system
         }
     }
 
@@ -66,6 +68,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .remoteScreen: String(localized: "Remote Screen")
         }
     }
 
@@ -98,12 +101,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .remoteScreen: String(localized: "Request screen sharing with the paired Mac.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .remoteScreen: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
@@ -119,7 +124,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink].contains(self)
+        if self == .remoteScreen { return false }
+        return ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink].contains(self)
             && !isSystemFeature
     }
 
