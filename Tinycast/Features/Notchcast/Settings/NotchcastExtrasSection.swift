@@ -2,7 +2,7 @@ import SwiftUI
 
 struct NotchcastExtrasSection: View {
     static var features: [NotchcastFeature] {
-        NotchcastFeature.allCases.filter { $0.settingsGroup == .activities }
+        NotchcastFeature.allCases.filter { $0.isWired && $0.settingsGroup == .activities }
     }
 
     private let preferences = NotchcastPreferences.shared

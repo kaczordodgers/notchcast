@@ -165,6 +165,8 @@ struct MachineBackupActionsTest {
         let suite = "nc-backup-test-" + UUID().uuidString
         let preferences = NotchcastPreferences(suiteName: suite)
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        preferences.set(.backupRunNow, true) // hidden switches read off until set
+        preferences.set(.backupBrowseRestore, true)
         let fake = FakeBackupTooling()
         let coordinator = MachineBackupCoordinator(tooling: fake, preferences: preferences)
         coordinator.start()

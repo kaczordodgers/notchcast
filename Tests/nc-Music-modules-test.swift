@@ -89,7 +89,7 @@ struct MusicModuleTests {
         precondition(preferences.isOn(.musicLastPlayer))
         precondition(preferences.isOn(.musicBlockAppleMusic))
         precondition(preferences.isOn(.microphoneMute))
-        precondition(preferences.isOn(.inUseMarks))
+        precondition(!preferences.isOn(.inUseMarks), "hidden switches read off")
         let counters = Dictionary(uniqueKeysWithValues: NotchcastFeature.allCases.map { ($0, CountingModule()) })
         let entries = NotchcastFeature.allCases.map { feature in
             NotchcastModuleController.Entry(requires: [feature] + feature.dependencies, module: counters[feature]!)
@@ -164,8 +164,9 @@ struct MusicModuleTests {
         controller.run()
         let modules = [services.music, services.lastPlayer, services.appleMusic,
                        services.spotify, services.microphone, services.marks]
-        precondition(modules.map(\.starts) == [1, 1, 1, 0, 1, 1])
+        precondition(modules.map(\.starts) == [1, 1, 1, 0, 1, 0])
         preferences.set(.spotifyConnect, true)
+        preferences.set(.inUseMarks, true)
         await settle()
         precondition(modules.map(\.starts) == [1, 1, 1, 1, 1, 1])
         preferences.set(.musicNowPlaying, false)
