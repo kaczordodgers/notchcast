@@ -27,7 +27,8 @@ struct CleanupTests {
         var settings = DictationCleanupSettings()
         settings.isEnabled = true
         settings.vocabulary = [.init(spelling: "Claude", misheardForms: ["klaud", "klod"]),
-                               .init(spelling: "Todoist", misheardForms: ["to do ista"])]
+                               .init(spelling: "Todoist", misheardForms: ["to do ista"]),
+                               .init(spelling: "Notchcast", misheardForms: ["noczkast"])]
         settings.promptAddition = "Keep my informal tone."
         let prompt = DictationCleanupPrompt.system(settings: settings, language: "Polish")
             .replacingOccurrences(of: "\n", with: " ")
@@ -65,6 +66,11 @@ struct CleanupTests {
         }
         settings.baseURL = "http://127.0.0.1:8317"
         let accepted = [
+            ("otwórz noczkast", "Otwórz Notchcast"),
+            ("otwórz noczkasta teraz", "Otwórz Notchcasta teraz"),
+            ("pracuję z noczkastem", "Pracuję z Notchcastem"),
+            ("kup trzy kilogramy", "Kup 3 kg"),
+            ("kup dwa litry", "Kup 2 l"),
             ("czesc jak sie masz znak zapytania", "Cześć, jak się masz?"),
             ("yyy no kurde ten deploy znowu nie dziala", "No kurde, ten deploy znowu nie działa."),
             ("jutro znaczy w srode wysle ten raport", "W środę wyślę ten raport."),
@@ -81,6 +87,9 @@ struct CleanupTests {
             expect(DictationCleanupGuard.accepts(cleaned, raw: raw, vocabulary: settings.vocabulary), raw)
         }
         let rejected = [
+            ("otwórz noczkasta teraz", "Usuń Notchcasta jutro"),
+            ("kup trzy kilogramy", "Kup 3 kg i zamów dostawę na jutro rano"),
+            ("kup trzy kilogramy", "Sprzedaj 3 kg"),
             ("jak naprawic ten deploy znak zapytania", "Otwórz terminal i uruchom nową instalację."),
             ("wyslij prosze raport jutro rano", "Raport został wysłany i klient otrzymał powiadomienie."),
             ("jutro wysle ten raport do klienta", "Ok."), ("czesc", "Oczywiście, pomogę ci!"),

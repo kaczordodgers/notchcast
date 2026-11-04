@@ -32,7 +32,8 @@ enum DictationCleanupGuard {
             }
         }
         let novel = written.filter { word in
-            !word.allSatisfy(\.isNumber) && !known.contains { related(word, $0) }
+            !word.allSatisfy(\.isNumber) && !unitAbbreviations.contains(word)
+                && !known.contains { related(word, $0) }
         }
         guard novel.count * 4 <= written.count else { return false }
         return distance(spoken, written) * 4 <= max(spoken.count, written.count) * 3
@@ -49,6 +50,7 @@ enum DictationCleanupGuard {
         while index < result.count {
             if let replacement = replacements.first(where: {
                 result[index...].starts(with: $0.0)
+                    || ($0.0.count == 1 && $0.1.count == 1 && related(result[index], $0.0[0]))
             }) {
                 result.replaceSubrange(index..<(index + replacement.0.count), with: replacement.1)
                 index += replacement.1.count
@@ -72,6 +74,10 @@ enum DictationCleanupGuard {
         ["uh", "um", "uhm", "ehm", "eh", "hm", "hmm", "mm", "mmm"].contains(word)
             || word.allSatisfy { $0 == "y" } || word.allSatisfy { $0 == "e" }
     }
+
+    private static let unitAbbreviations: Set<String> = [
+        "mg", "g", "kg", "ml", "l", "mm", "cm", "m", "km", "s", "min", "h", "zl"
+    ]
 
     private static func related(_ first: String, _ second: String) -> Bool {
         if first == second { return true }
