@@ -3,13 +3,13 @@ import SwiftUI
 @MainActor
 @Observable
 final class IslandPagesCoordinator {
-    private(set) var isRefreshing = false
+    var isRefreshing: Bool { refreshState.isRefreshing }
+    private let refreshState = IslandPageRefresh()
+    private var homeRevision = UUID()
     var headerFocus: Int?
     let pages = IslandPage.allCases
     @ObservationIgnored private let day: IslandDayPage
     @ObservationIgnored private let openSettings: () -> Void
-    @ObservationIgnored private var refreshTask: Task<Void, Never>?
-    @ObservationIgnored private var refreshID: UUID?
 
     init(core: AppCore, island: IslandController) {
         openSettings = { [weak core, weak island] in
@@ -28,7 +28,7 @@ final class IslandPagesCoordinator {
     }
 
     func content(_ page: IslandPage) -> AnyView {
-        page.content(day: day)
+        page.content(day: day, homeRevision: homeRevision)
     }
 
     func didOpen(page: IslandPage) {
@@ -45,27 +45,14 @@ final class IslandPagesCoordinator {
     }
 
     func refresh(_ page: IslandPage) {
-        cancelRefresh()
-        let identity = UUID()
-        refreshID = identity
-        isRefreshing = true
-        page.refresh(day: day)
-        refreshTask = Task { [weak self] in
-            try? await Task.sleep(for: .seconds(0.4))
-            guard !Task.isCancelled, self?.refreshID == identity else { return }
+        refreshState.run { [weak self] in
             guard let self else { return }
-            guard !Task.isCancelled, refreshID == identity else { return }
-            isRefreshing = false
-            refreshTask = nil
-            refreshID = nil
+            await page.refresh(home: { homeRevision = UUID() }, day: { day.refresh() })
         }
     }
 
     func cancelRefresh() {
-        refreshTask?.cancel()
-        refreshTask = nil
-        refreshID = nil
-        isRefreshing = false
+        refreshState.cancel()
     }
 
     func moveHeader(_ delta: Int) {
