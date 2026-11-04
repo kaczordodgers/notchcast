@@ -3,5 +3,7 @@ extension NotchcastCommandCatalog {
         IslandController.launcherCommand,
         ColorPickerModule.launcherCommand,
         ScreenshotModule.launcherCommand,
+        IslandPage.home.launcherCommand,
+        IslandPage.day.launcherCommand,
     ]
 }
