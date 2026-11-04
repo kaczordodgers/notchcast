@@ -22,8 +22,9 @@ Toggle Island uses `legacyID: "command:toggle-island"` for its entry, retaining
 ranking, aliases, visibility, favorites and `hotkey.command:toggle-island` bindings.
 Its command value also resolves `command:nc-toggle-island`.
 
-Ordinary command deep links use `notchcast://command/nc-<slug>` without consent,
-preserving Toggle Island's prior consent behavior.
+Ordinary command deep links use `notchcast://command/nc-<slug>` and ask for consent
+like system actions. Only the legacy `notchcast://command/toggle-island` link skips
+consent when it carries no input. Hotkeys and launcher execution do not ask.
 The shorter `/command/<slug>` spelling is deferred: resolving it needs a catalog
 dependency in the pure deep-link parser. Toggle Island's legacy link still works.
 
