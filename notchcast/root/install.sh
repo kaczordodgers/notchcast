@@ -59,10 +59,10 @@ else
     trap '/bin/rm -rf "$stage"' EXIT
 fi
 
-step /bin/cp "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$stage/"
-step /usr/bin/shasum -a 256 "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift"
-step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/RootContract.swift" \
-    "$stage/main.swift" "$stage/FanSMC.swift" -o "$stage/helper"
+step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$source_directory/BatterySMC.swift" "$source_directory/Spotlight.swift" "$source_directory/SudoTouchID.swift" "$source_directory/TouchIDPolicy.swift" "$source_directory/Power.swift" "$stage/"
+step /usr/bin/shasum -a 256 "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift"
+step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" \
+    "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift" -o "$stage/helper"
 if [ "$dry_run" -eq 1 ]; then
     printf 'Would write %s with exactly one rule:\n' "$stage/notchcast"
     printf '%s ALL=(root) NOPASSWD: %s\n' "$console_user" "$helper"
