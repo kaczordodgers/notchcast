@@ -65,6 +65,7 @@ final class AgentSocketServer: Sendable {
         let lock = try lockDirectory()
         var descriptor: Int32 = -1
         var ownsSocket = false
+        var identity = stat()
         do {
             var existing = stat()
             if lstat(socketURL.path, &existing) == 0 {
@@ -85,10 +86,13 @@ final class AgentSocketServer: Sendable {
             }
             guard bound == 0 else { throw AgentReply.Code.failed }
             ownsSocket = true
+            guard lstat(socketURL.path, &identity) == 0, identity.st_mode & S_IFMT == S_IFSOCK,
+                identity.st_uid == geteuid()
+            else { throw AgentReply.Code.failed }
             guard chmod(socketURL.path, 0o600) == 0, listen(descriptor, 8) == 0 else { throw AgentReply.Code.failed }
         } catch {
             if descriptor >= 0 { Darwin.close(descriptor) }
-            if ownsSocket { unlink(socketURL.path) }
+            if ownsSocket { Self.removeSocket(socketURL.path, device: identity.st_dev, inode: identity.st_ino) }
             Darwin.close(lock)
             throw error
         }
@@ -96,17 +100,27 @@ final class AgentSocketServer: Sendable {
         let listener = descriptor
         let ended = DispatchSemaphore(value: 0)
         let path = socketURL.path
+        let device = identity.st_dev
+        let inode = identity.st_ino
         let source = DispatchSource.makeReadSource(fileDescriptor: listener, queue: queue)
         source.setEventHandler { @Sendable [weak self] in self?.acceptClients(listener) }
         source.setCancelHandler { @Sendable in
             Darwin.close(listener)
-            unlink(path)
+            Self.removeSocket(path, device: device, inode: inode)
             Darwin.close(lock)
             ended.signal()
         }
         self.source = source
         listenerEnded = ended
         source.resume()
+    }
+
+    private static func removeSocket(_ path: String, device: dev_t, inode: ino_t) {
+        var current = stat()
+        guard lstat(path, &current) == 0, current.st_mode & S_IFMT == S_IFSOCK,
+            current.st_dev == device, current.st_ino == inode
+        else { return }
+        unlink(path)
     }
 
     @MainActor

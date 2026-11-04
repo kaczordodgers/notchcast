@@ -143,6 +143,11 @@ struct AgentSocketTests {
             preconditionFailure("long socket path accepted")
         } catch {}
         check(!AgentSocketIO.isSameUser(-1))
+        try server.start()
+        try FileManager.default.removeItem(at: url)
+        try Data("replacement".utf8).write(to: url)
+        server.stop()
+        check(try String(contentsOf: url, encoding: .utf8) == "replacement", "cleanup deleted a replacement file")
         print("PASS: private socket, same-user peers, concurrency, locking, framing, timeouts, restart and safe paths")
     }
 }
