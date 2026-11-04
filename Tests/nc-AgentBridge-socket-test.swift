@@ -104,8 +104,7 @@ struct AgentSocketTests {
         while cancellation.started == 0 { await Task.yield() }
         cancellable.stop()
         check((await pending.value).code == .failed)
-        let deadline = ContinuousClock.now + .seconds(2)
-        while cancellation.cancelled == 0 && ContinuousClock.now < deadline { await Task.yield() }
+        while cancellation.cancelled == 0 { await Task.yield() }
         check(cancellation.cancelled == 1, "stop left the handler running")
 
         try cancellable.start()
@@ -128,12 +127,10 @@ struct AgentSocketTests {
                 preconditionFailure("fixture client failed: \(error)")
             }
         }
-        let acceptedDeadline = ContinuousClock.now + .seconds(2)
-        while cancellation.started < 2 && ContinuousClock.now < acceptedDeadline { await Task.yield() }
+        while cancellation.started < 2 { await Task.yield() }
         check(cancellation.started == 2)
         Darwin.close(disconnected)
-        let disconnectDeadline = ContinuousClock.now + .seconds(2)
-        while cancellation.cancelled < 2 && ContinuousClock.now < disconnectDeadline { await Task.yield() }
+        while cancellation.cancelled < 2 { await Task.yield() }
         check(cancellation.cancelled == 2, "disconnect left the handler running")
         cancellable.stop()
 

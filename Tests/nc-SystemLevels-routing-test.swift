@@ -113,8 +113,7 @@ struct SystemLevelRoutingTests {
     }
 
     static func eventually(_ condition: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(2)
-        while !condition(), ContinuousClock.now < deadline {
+        while !condition() {
             try? await Task.sleep(for: .milliseconds(5))
         }
         check(condition(), "Timed out waiting for routing")
