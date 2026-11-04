@@ -35,6 +35,10 @@ git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$head" >/dev/null 2>&
 # so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
 generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
 git checkout "$base" -- "${generated[@]}"
+# The string catalog conflicts on neighbouring keys; xcstrings-union.py merges it by key or exits non-zero.
+if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Localizable.xcstrings; then
+    python3 notchcast/xcstrings-union.py --git --main-ref "$base" || refuse 'string catalog conflict xcstrings-union.py cannot merge'
+fi
 unmerged=$(git diff --name-only --diff-filter=U)
 [ -z "$unmerged" ] || refuse "merge conflict: $(echo $unmerged)"
 git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
