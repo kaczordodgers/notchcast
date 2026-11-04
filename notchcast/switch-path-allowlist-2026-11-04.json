@@ -15,8 +15,6 @@
   "agentConfirmation": "transport/actions implementations (island prompt), constructing the coordinator in the agent request path (AgentActionIndex.handle) and reading the switch there",
   "killProcess": "a process-list launcher command calling stopProcesses, then unhide",
   "macSetup": "preset picker UI calling apply, then unhide",
-  "remoteScreen": "Mac Link request + peer handler, Screen Sharing open, and a command",
-  "machMBPFans": "peer-side \"mbp-fans\" handler driving FanControl and a command/island control calling run",
   "backupRunNow": "a configuration source (Settings fields → configure) and a \"Back Up Now\" button/command",
   "backupBrowseRestore": "configuration source and a snapshot browser + restore UI",
   "markdownFiles": "an open route (AppCore.handleOpenURL / Open With / command) and an editor window view",
