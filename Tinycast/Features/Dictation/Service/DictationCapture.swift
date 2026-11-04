@@ -103,7 +103,12 @@ final class DictationCapture {
         guard let session else { return [] }
         self.session = nil
         let box = CaptureSessionBox(session)
-        await Task.detached { box.session.stopRunning() }.value
+        await withCheckedContinuation { continuation in
+            DispatchQueue.global().async {
+                box.session.stopRunning()
+                continuation.resume()
+            }
+        }
         output?.setSampleBufferDelegate(nil, queue: nil)
         output = nil
         let samples = collector?.finish() ?? []
@@ -132,7 +137,7 @@ extension DictationCapture {
                 }
                 attempt.setDeadline(deadline)
                 // A blocked driver cannot be cancelled; late success closes its own session.
-                Task.detached {
+                DispatchQueue.global().async {
                     let running = start()
                     if !attempt.complete(.success(running)), running { stop() }
                 }
