@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case launcherNumberKeys, launcherAliasSpace
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -26,6 +27,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .launcherNumberKeys, .launcherAliasSpace: .launcher
         case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
@@ -43,6 +45,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Status Messages")
         case .islandLiveActivities: String(localized: "Live Activities")
         case .launcherFromIsland: String(localized: "Launcher from Island")
+        case .launcherNumberKeys: String(localized: "Launcher Number Keys")
+        case .launcherAliasSpace: String(localized: "Alias and Space")
         case .systemMonitor: String(localized: "System Monitor")
         case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
@@ -72,6 +76,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: String(localized: "Show status messages in the island.")
         case .islandLiveActivities: String(localized: "Show live activities in the island.")
         case .launcherFromIsland: String(localized: "Open the launcher from the island.")
+        case .launcherNumberKeys: String(localized: "Open the first nine search results with Command-1 through Command-9.")
+        case .launcherAliasSpace: String(localized: "Press Space after an exact alias to open its command.")
         case .systemMonitor: String(localized: "Monitor system performance.")
         case .monitorAlerts: String(localized: "Evaluate alerts while the Monitor page is open.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
@@ -96,6 +102,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .launcherNumberKeys, .launcherAliasSpace: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
@@ -108,7 +115,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature && !isLauncherKeysFeature }
+
+    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
+
+    var defaultEnabled: Bool { !isSystemFeature && !isLauncherKeysFeature }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
