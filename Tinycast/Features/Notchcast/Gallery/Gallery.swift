@@ -16,7 +16,7 @@ enum NotchcastGallery {
             exit(2)
         }
         let application = NSApplication.shared
-        application.setActivationPolicy(.prohibited)
+        application.setActivationPolicy(environment["NOTCHCAST_SETTINGS_ONSCREEN"] == "1" ? .accessory : .prohibited)
         UserDefaults.standard.setVolatileDomain([
             "showInMenuBar": false, "calendarEnabled": false, "automaticallyCheckForUpdates": false,
             "AppleLanguages": ["en"], "NSQuitAlwaysKeepsWindows": false

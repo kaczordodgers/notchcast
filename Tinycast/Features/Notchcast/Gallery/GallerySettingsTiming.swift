@@ -10,11 +10,14 @@ enum GallerySettingsTiming {
         let source: String
         let openMilliseconds: [Double]
         let switchMilliseconds: [Double]
+        var onscreen: Bool? = nil
+        var screenRefreshRate: Double? = nil
         var openMedian: Double { openMilliseconds.sorted()[openMilliseconds.count / 2] }
         var switchMedian: Double { switchMilliseconds.sorted()[switchMilliseconds.count / 2] }
 
         enum CodingKeys: String, CodingKey {
             case slug, appearance, source, openMilliseconds, switchMilliseconds, openMedian, switchMedian
+            case onscreen, screenRefreshRate
         }
 
         func encode(to encoder: any Encoder) throws {
@@ -26,6 +29,8 @@ enum GallerySettingsTiming {
             try values.encode(switchMilliseconds, forKey: .switchMilliseconds)
             try values.encode(openMedian, forKey: .openMedian)
             try values.encode(switchMedian, forKey: .switchMedian)
+            try values.encodeIfPresent(onscreen, forKey: .onscreen)
+            try values.encodeIfPresent(screenRefreshRate, forKey: .screenRefreshRate)
         }
     }
 
@@ -49,6 +54,13 @@ enum GallerySettingsTiming {
                 let output = URL(filePath: directory, directoryHint: .isDirectory)
                 try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
                 var results: [Measurement] = []
+                if environment["NOTCHCAST_SETTINGS_ONSCREEN"] == "1" {
+                    results = try await GallerySettingsOnscreenTiming.measure(core, tabs: tabs, trials: trials)
+                    let encoder = JSONEncoder()
+                    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+                    try encoder.encode(results).write(to: output.appending(path: "timings.json"))
+                    exit(0)
+                }
                 for tab in tabs {
                     for dark in [false, true] {
                         let source: SettingsTab = tab == .general ? .about : .general
