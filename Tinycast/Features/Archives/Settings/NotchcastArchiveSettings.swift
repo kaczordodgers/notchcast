@@ -33,9 +33,7 @@ struct NotchcastArchiveSettings: View {
                 Text(failure)
                     .foregroundStyle(.secondary)
             }
-            ForEach(module.queue.jobs) { job in
-                ArchiveJobRow(job: job, module: module)
-            }
+            ArchiveJobList(module: module)
         } header: {
             SettingsSectionHeader(.notchcastArchives)
         }
