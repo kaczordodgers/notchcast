@@ -6,7 +6,7 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .buildStats && self != .spacesOrder
+        !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .pastePlain
             && self != .switcherQuitKey && !isLauncherKeysFeature
     }
 

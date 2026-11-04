@@ -42,6 +42,12 @@ let pinned: [String: Bool] = [
     "switcherQuitKey": false,
     "linkQuickFixes": false,
     "buildStats": false,
+    "pastePlain": false,
+    "finderCutPaste": true,
+    "finderRename": true,
+    "pasteImage": true,
+    "colorPicker": true,
+    "screenshot": true,
 ]
 
 @main
