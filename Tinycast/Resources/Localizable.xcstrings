@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Dictate in English" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Auf Englisch diktieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dictar en inglés" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dicter en anglais" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "英語で音声入力" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영어로 받아쓰기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ditar em inglês" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Диктовать на английском" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "用英语听写" } }
+      }
+    },
     "Monitor Alerts" : {
       "localizations" : {
         "de" : {

@@ -46,6 +46,8 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.dictationEnglish], module: DictationEnglishModule(
+                hub: eventTapHub, coordinator: core.dictationCoordinator)),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
