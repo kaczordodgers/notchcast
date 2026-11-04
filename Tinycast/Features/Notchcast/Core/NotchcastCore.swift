@@ -21,7 +21,7 @@ enum NotchcastCore {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
-        for module in [typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {
+        for module in [tweaks, typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {
             module.configure(core)
         }
         let modules: [NotchcastModuleController.Entry] = [

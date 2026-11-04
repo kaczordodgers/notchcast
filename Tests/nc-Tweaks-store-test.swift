@@ -10,7 +10,7 @@ struct TweaksStoreTests {
         let suite = "test.tweaks." + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(NotchcastFeature.allCases.filter(\.isTweak).allSatisfy { !preferences.isOn($0) })
+        precondition(NotchcastFeature.allCases.filter(\.isSystemTweak).allSatisfy { !preferences.isOn($0) })
         var recorded: [TypingPreferencePlan.Command] = []
         var journal: [String: TypingPreferencePlan] = [:]
         let store = TweaksStore(read: { _ in .bool(true) }, run: { recorded += $0 }, save: { journal = $0 })

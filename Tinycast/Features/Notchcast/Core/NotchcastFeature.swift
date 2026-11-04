@@ -107,7 +107,6 @@ extension NotchcastFeature {
     }
 
     var defaultEnabled: Bool { !isSystemTweak }
-
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
