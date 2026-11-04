@@ -31,6 +31,8 @@ final class RecordingModule: NotchcastModule {
     private(set) var phase = Phase.idle
     private(set) var lastError: (any Error)?
     private(set) var enabled = false
+    let commandArea: CaptureAreaService
+    var commandTask: Task<Void, Never>?
     private var storedFrameRate: Int
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let makeSource: @MainActor () -> any RecordingSource
@@ -52,6 +54,7 @@ final class RecordingModule: NotchcastModule {
         defaults: UserDefaults = UserDefaults(suiteName:
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
         defaultFolder: URL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0],
+        commandArea: CaptureAreaService = CaptureAreaService(),
         makeSource: @escaping @MainActor () -> any RecordingSource = { ScreenRecordingSource() },
         makeWriter: @escaping WriterFactory = { try await RecordingWriter.create(url: $0, format: $1) },
         sleep: @escaping @Sendable () async throws -> Void = { try await Task.sleep(for: .seconds(1)) },
@@ -60,6 +63,7 @@ final class RecordingModule: NotchcastModule {
         hostTime: @escaping () -> CMTime = { CMClockGetTime(CMClockGetHostTimeClock()) }
     ) {
         self.defaults = defaults
+        self.commandArea = commandArea
         self.makeSource = makeSource
         self.makeWriter = makeWriter
         self.sleep = sleep
@@ -75,6 +79,8 @@ final class RecordingModule: NotchcastModule {
 
     func stop() {
         enabled = false
+        commandArea.stop()
+        commandTask?.cancel()
         cancel()
     }
 
@@ -228,6 +234,7 @@ final class RecordingModule: NotchcastModule {
     }
 
     isolated deinit {
+        commandTask?.cancel()
         startTask?.cancel()
         finishTask?.cancel()
         cleanupTask?.cancel()

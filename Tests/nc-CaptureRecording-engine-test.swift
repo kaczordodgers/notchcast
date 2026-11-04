@@ -6,6 +6,7 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingStreamTap.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/ScreenRecordingSource.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingModule.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift Tinycast/Features/CaptureArea/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
