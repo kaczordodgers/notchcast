@@ -32,7 +32,7 @@ trap cleanup EXIT
 trap 'exit 1' HUP INT TERM
 git worktree add --quiet --detach "$scratch/tree" "$base"
 cd "$scratch/tree"
-git merge --no-commit --no-ff "$head" >/dev/null 2>&1 || true
+git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$head" >/dev/null 2>&1 || true
 # Generated files (ci.py GENERATED) keep main's version, conflicting or not: CI regenerates them before every build,
 # so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
 generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
@@ -43,7 +43,7 @@ if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Localizab
 fi
 unmerged=$(git diff --name-only --diff-filter=U)
 [ -z "$unmerged" ] || refuse "merge conflict: $(echo $unmerged)"
-git -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
+git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
     commit --quiet --allow-empty --no-edit -m "Merge $head"
 mkdir "$scratch/tmp"
 export TMPDIR="$scratch/tmp"
