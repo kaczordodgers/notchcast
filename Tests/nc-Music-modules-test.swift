@@ -66,6 +66,7 @@ final class NotchcastServices {
     let spotify = CountingModule()
     let microphone = CountingModule()
     let marks = CountingModule()
+    let tasks = CountingModule()
     let keys = Keys()
 
     init(core: AppCore, preferences: NotchcastPreferences) {}
