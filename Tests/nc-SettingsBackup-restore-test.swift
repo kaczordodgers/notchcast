@@ -98,10 +98,10 @@ struct NotchcastCommand: Sendable {
         editorDefaults.removePersistentDomain(forName: editorDomain)
         defer { editorDefaults.removePersistentDomain(forName: editorDomain) }
         let complete = try ForkSettingsBackupState.live.snapshot()
-        for key in ["urlCleaner", "dictationHistory", "captureTrimmer"] {
-            precondition(complete[key] as? Bool == false, key)
+        for feature: NotchcastFeature in [.urlCleaner, .dictationHistory, .captureTrimmer] {
+            precondition(complete[feature.rawValue] as? Bool == NotchcastPreferences.shared.isOn(feature), feature.rawValue)
         }
-        print("PASS: default snapshots keep urlCleaner, dictationHistory, captureTrimmer off")
+        print("PASS: snapshots record urlCleaner, dictationHistory, captureTrimmer as they are")
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
             bundleIdentifier: Bundle.main.bundleIdentifier!)
