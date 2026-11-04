@@ -39,6 +39,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case agentActions
+    case agentCLI
+    case treadmillWalk
+    case treadmillHistory
+    case katana
+    case appearance
     case cleaningMode
     case appUpdates
     case macUpdate
@@ -249,6 +255,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .agentActions: .system
+        case .agentCLI: .system
+        case .treadmillWalk: .activities
+        case .treadmillHistory: .activities
+        case .katana: .system
+        case .appearance: .appearance
         case .startupItems: .tweaks
         case .notificationCleanup: .tweaks
         case .sudoTouchID: .tweaks
@@ -335,6 +347,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .agentActions: String(localized: "Agent access")
+        case .agentCLI: String(localized: "Command line tool")
+        case .treadmillWalk: String(localized: "Walking Pad")
+        case .treadmillHistory: String(localized: "Walk History")
+        case .katana: String(localized: "Katana")
+        case .appearance: String(localized: "Custom appearance")
         case .agentSessions: String(localized: "Agent Session Logs")
         case .agentPricing: String(localized: "Agent API Value")
         case .pastePlain: String(localized: "Paste Plain Text")
@@ -471,6 +489,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .agentActions: String(localized: "Expose actions and read-only state to local agents.")
+        case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
+        case .treadmillWalk: String(localized: "Walking pad controls are not available yet.")
+        case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
+        case .katana: String(localized: "Katana channels, tones and USB audio.")
+        case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
         case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
         case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
@@ -689,6 +713,11 @@ extension NotchcastFeature {
         case .agentChatTools: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .agentActions: false
+        case .agentCLI: false
+        case .treadmillWalk: false
+        case .treadmillHistory: false
+        case .appearance: false
         case .downloads: false
         case .downloadsAria2: false
         case .distill: false
@@ -785,7 +814,12 @@ extension NotchcastFeature {
         }
     }
 
-    var isSystemFeature: Bool { settingsGroup == .systemTools || settingsGroup == .tools }
+    var isSystemFeature: Bool {
+        switch self {
+        case .katana: true
+        default: settingsGroup == .systemTools || settingsGroup == .tools
+        }
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

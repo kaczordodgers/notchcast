@@ -137,6 +137,7 @@ struct AppearanceThemesTest {
         expect(Set(damaged.invalidPreferenceKeys) == [AppearanceStore.lightKey, AppearanceStore.darkKey],
                "bad preferences available for reporting")
         expect(damaged.surfaceStyle == .glass && damaged.backgroundOpacity == 0.7, "bad preferences use defaults")
+        expect(AppearanceStore(defaults: defaults).invalidPreferenceKeys.isEmpty, "reset is reported only once")
     }
 
     @MainActor
@@ -214,7 +215,29 @@ struct AppearanceThemesTest {
         darkAppearance.performAsCurrentDrawingAppearance { alpha = dynamic.alphaComponent }
         expect(alpha == 0, "existing dynamic colors resolve new state")
         _ = AppearanceThemeColors.shared.ramp(dark: 0.4, light: 0.5)
-        _ = store.backdrop
+        _ = AppearanceThemeColors.backdrop(hidden: false)
+        _ = AppearanceThemeColors.backdrop(hidden: true)
+        _ = AppearanceThemeColors.tinted(.regular)
+        store.surfaceStyle = .black
+        store.preview(.theme(light))
+        store.setEnabled(false)
+        expect(store.effectiveSurfaceStyle == .glass, "disabled appearance restores native glass")
+        expect(store.previewTarget == nil, "disable ends a preview")
+        expect(store.colors.ink(.text, in: lightAppearance, dark: 1, light: 1) == nil, "disable restores upstream ink")
+        expect(store.colors.ink(.selection, in: lightAppearance, dark: 1, light: 1) == nil,
+               "disable restores upstream selection")
+        expect(store.colors.ink(.background, in: lightAppearance, dark: 1, light: 1) == nil,
+               "disable removes the backdrop")
+        expect(!store.colors.hasPalette, "disable leaves glass untinted")
+        expect(store.surfaceStyle == .black && store.light == light, "disable preserves preferences")
+        expect(store.requestImport(url: link(), applicationScheme: "notchcast-dev") == nil,
+               "disabled import cannot ask or apply")
+        store.preview(.theme(light))
+        expect(store.previewTarget == nil, "disabled preview cannot change colours")
+        store.setEnabled(true)
+        expect(store.effectiveSurfaceStyle == .black && store.colors.hasPalette, "reenable restores saved appearance")
+        expect(store.colors.ink(.text, in: lightAppearance, dark: 0.4, light: 0.5)?.alphaComponent == 0.5,
+               "reenable restores saved ink with token alpha")
     }
 
     static func listings() {
@@ -227,10 +250,11 @@ struct AppearanceThemesTest {
         expect(matching.imported == [theme], "author search trims whitespace")
         let rows = AppearanceThemeCommand.rows(currentAppearance: .dark, light: variant, dark: theme, imported: [theme])
         expect(rows.first?.target.appearance == .dark, "current slot first")
-        expect(rows.count == 4 && rows.filter(\.isSelected).count == 2, "native rows include both selected slots")
+        expect(rows.count > 70 && rows.filter(\.isSelected).count == 2, "native rows include catalog and selected slots")
+        expect(rows.first?.title == "Default", "default theme is rebranded")
         expect(Set(rows.map(\.id)).count == rows.count, "stable command row IDs")
         expect(AppearanceThemeCommand.rows(currentAppearance: .dark, light: nil, dark: nil,
-                                          imported: [], query: "missing").isEmpty, "command search")
+                                          imported: [], query: "missing-theme-fixture").isEmpty, "command search")
     }
 
     @MainActor

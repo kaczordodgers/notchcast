@@ -11,10 +11,12 @@ enum NotchcastCore {
     static var confirmMacUpdate: () async -> Bool = { false }
 
     static func stopForTermination() async {
+        katana.stop()
         cleaning.stop()
         appUpdates.stop()
         await macUpdate.stopForTermination()
         dictationTrigger?.stop()
+        await treadmill.stopForTermination()
         settingsBackup.stop()
         captureTrimmer.stop()
         voiceAsk?.stop()

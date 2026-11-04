@@ -1,0 +1,407 @@
+// notchcast-sources: Tinycast/Features/Treadmill/Model/*.swift
+// notchcast-sources: Tinycast/Features/Treadmill/Service/*.swift
+// notchcast-sources: Tinycast/Features/Treadmill/TreadmillModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+import Foundation
+
+@MainActor
+private final class FakeTreadmillTransport: TreadmillTransport {
+    var onBytes: ((Data) -> Void)?
+    var onDisconnect: (() -> Void)?
+    var sent: [Data] = []
+    var opens = 0
+    var closes = 0
+    var sentAtClose: [Data] = []
+    var failSend = false
+    var onOpen: (() -> Void)?
+
+    func open() throws { opens += 1; onOpen?() }
+    func send(_ data: Data) throws {
+        if failSend { throw TreadmillFailure.unavailable }
+        sent.append(data)
+    }
+    func close() { closes += 1; sentAtClose = sent }
+    func emit(_ data: Data) { onBytes?(data) }
+}
+
+@MainActor @main
+private struct TreadmillTests {
+    private static var checks = 0
+    private static let now = Date(timeIntervalSince1970: 1_793_793_600)
+    private static var calendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+        calendar.firstWeekday = 2
+        return calendar
+    }
+
+    private static func expect(_ condition: Bool, _ label: String) {
+        checks += 1
+        guard condition else { fatalError(label) }
+    }
+
+    private static func refuses(_ failure: TreadmillFailure, _ action: () throws -> Void) {
+        do {
+            try action()
+            fatalError("Expected refusal: \(failure)")
+        } catch {
+            expect(error as? TreadmillFailure == failure, "Wrong refusal: \(error)")
+        }
+    }
+
+    private static func status(_ phase: UInt8, speed: UInt8 = 40, seconds: Int = 60,
+                               meters: Int = 100, steps: Int = 90) -> Data {
+        func word(_ value: Int) -> [UInt8] { [UInt8(value & 255), UInt8(value >> 8)] }
+        return TreadmillProtocol.frame([0x51, phase, speed, 0] + word(seconds) + word(meters / 10)
+                                      + word(123) + word(steps) + [0, 0, 0, 0])
+    }
+
+    private static func short(_ phase: UInt8, _ detail: UInt8 = 0) -> Data {
+        TreadmillProtocol.frame([0x51, phase, detail])
+    }
+
+    private static func message(_ bytes: Data) -> TreadmillProtocol.Message {
+        var stream = TreadmillStream()
+        return stream.feed(bytes)[0]
+    }
+
+    private static func record(started: Double = now.timeIntervalSince1970, meters: Double = 1000) -> TreadmillRecord {
+        TreadmillRecord(started: started, ended: started + 600, seconds: 600, meters: meters,
+                         kcal: 40, steps: 1000, averageKmh: 6)
+    }
+
+    static func main() async throws {
+        try frames()
+        try session()
+        try summaries()
+        try await history()
+        try await coordinator()
+        print("Treadmill: \(checks) checks passed; fake transport only")
+    }
+
+    private static func frames() throws {
+        expect(TreadmillProtocol.queryStatus == Data([2, 0x51, 0x0B, 3]), "Status query")
+        expect(TreadmillProtocol.stop == Data([2, 0x53, 3, 0x0C, 3]), "Stop frame")
+        expect(TreadmillProtocol.pause == Data([2, 0x53, 0x0A, 7, 3]), "Pause frame")
+        expect(TreadmillProtocol.resume == Data([2, 0x53, 9, 6, 3]), "Resume frame")
+        let start = try TreadmillProtocol.start(minutes: 10)
+        expect(Array(start)[5...6] == [0x58, 2], "Time target little endian")
+        let maximum = try TreadmillProtocol.start(minutes: TreadmillProtocol.maximumMinutes)
+        expect(Array(maximum)[5...6] == [0xF0, 0xFF], "16-bit time boundary")
+        let speed = try TreadmillProtocol.speed(4.25)
+        expect(Array(speed)[3] == 43, "Speed rounded to tenths")
+        for invalid in [Double.nan, .infinity, -.infinity, 0, 0.99, 6.01, 100] {
+            refuses(.invalidSpeed) { _ = try TreadmillProtocol.speed(invalid) }
+        }
+        for invalid in [-1, 1093, Int.max] {
+            refuses(.invalidMinutes) { _ = try TreadmillProtocol.start(minutes: invalid) }
+        }
+        let full = status(3, seconds: 6015, meters: 4320, steps: 10_019)
+        for split in 0...full.count {
+            var stream = TreadmillStream()
+            let decoded = stream.feed(full.prefix(split)) + stream.feed(full.dropFirst(split))
+            expect(decoded.count == 1, "Split frame at \(split)")
+            if case .status(let status) = decoded[0] {
+                expect(status.sample?.seconds == 6015 && status.sample?.steps == 10_019
+                       && status.sample?.meters == 4320, "Counters exceed display widths")
+            } else { fatalError("Expected status") }
+        }
+        var stream = TreadmillStream()
+        expect(stream.feed(short(0) + full + short(10)).count == 2, "Joined frames; reject truncated paused counters")
+        var damaged = full
+        damaged[damaged.count - 2] ^= 1
+        expect(stream.feed(damaged).isEmpty, "Bad checksum")
+        let junk = Data([2, 0xFF] + Array(repeating: UInt8(255), count: 100))
+        expect(stream.feed(junk + short(2, 3)).count == 1, "Recover after garbage")
+        expect(stream.feed(TreadmillProtocol.frame([0x51, 254, 0])).isEmpty, "Unknown status")
+        expect(stream.feed(Data(repeating: 2, count: 100_000) + full).count == 1, "Bounded junk buffer")
+    }
+
+    private static func session() throws {
+        var engine = TreadmillSessionEngine()
+        _ = try engine.start(speed: 4, minutes: 10, now: now)
+        expect(engine.walk == nil, "Start request is not confirmation")
+        refuses(.alreadyWalking) { _ = try engine.start(speed: 4, minutes: 0, now: now) }
+        let wake = engine.receive(message(short(0)), now: now)
+        expect(wake.commands.count == 1, "Wake start retried once")
+        expect(engine.receive(message(short(0)), now: now).commands.isEmpty, "No endless start retry")
+        _ = engine.receive(message(short(2, 3)), now: now)
+        expect(engine.walk?.phase == .countdown, "Countdown confirmation")
+        _ = try engine.setSpeed(4.5)
+        let running = engine.receive(message(status(3, speed: 10)), now: now.addingTimeInterval(3))
+        expect(running.commands == [try TreadmillProtocol.speed(4.5)], "Apply speed after countdown")
+        _ = try engine.nudgeSpeed(0.5)
+        let secondNudge = try engine.nudgeSpeed(0.5)
+        expect(secondNudge == [try TreadmillProtocol.speed(5.5)], "Rapid nudges accumulate")
+        _ = try engine.pause()
+        _ = engine.receive(message(status(10, speed: 0, seconds: 120)), now: now.addingTimeInterval(120))
+        let paused = engine.walk
+        refuses(.notRunning) { _ = try engine.setSpeed(4) }
+        _ = try engine.resume()
+        _ = engine.receive(message(short(2, 3)), now: now.addingTimeInterval(123))
+        let resumed = engine.receive(message(status(3, speed: 10, seconds: 120)), now: now.addingTimeInterval(126))
+        expect(resumed.commands == [try TreadmillProtocol.speed(5.5)], "Resume restores requested speed")
+        expect(engine.walk?.sample.seconds == 120, "Pause does not add wall time")
+        var recovered = TreadmillSessionEngine(walk: paused)
+        _ = try recovered.resume()
+        expect(recovered.receive(message(status(3, speed: 10, seconds: 120)), now: now.addingTimeInterval(126)).commands
+               == [try TreadmillProtocol.speed(5.5)], "Recovery preserves paused speed")
+        _ = engine.stop()
+        expect(engine.walk != nil, "Stop request keeps final counters pending")
+        let finished = engine.receive(message(status(1, seconds: 180, meters: 200, steps: 270)),
+                                      now: now.addingTimeInterval(180))
+        expect(finished.finished.first?.seconds == 180 && finished.finished.first?.meters == 200, "Final counters saved")
+        expect(engine.receive(message(short(0)), now: now).finished.isEmpty, "Final record exactly once")
+        expect(engine.stop() == [TreadmillProtocol.stop], "Stop accepts unknown belt state")
+        _ = try engine.start(speed: 4, minutes: 0, now: now)
+        expect(engine.checkTimeout(now: now.addingTimeInterval(14)) == nil, "No early timeout")
+        expect(engine.checkTimeout(now: now.addingTimeInterval(15)) == .timedOut, "Silent start times out")
+        expect(engine.checkTimeout(now: now.addingTimeInterval(16)) == nil, "Timeout once")
+        _ = engine.receive(message(status(3, seconds: 300)), now: now)
+        let replaced = engine.receive(message(status(3, seconds: 1)), now: now.addingTimeInterval(1))
+        expect(replaced.finished.count == 1 && engine.walk?.sample.seconds == 1, "Counter reset starts new session")
+        let error = engine.receive(message(short(5, 6)), now: now.addingTimeInterval(2))
+        expect(error.failure == .padError(6) && error.finished.count == 1, "Pad error ends and saves walk")
+    }
+
+    private static func summaries() throws {
+        let yesterday = now.addingTimeInterval(-86_400).timeIntervalSince1970
+        let records = [record(), record(started: yesterday), record(started: now.timeIntervalSince1970 + 86_400)]
+        let summary = TreadmillSummary(records: records, current: nil, now: now, calendar: calendar)
+        expect(summary.today.walks == 1 && summary.odometerKm == 2, "Calendar buckets exclude future records")
+        expect(summary.today.averageKmh == 6, "Distance weighted average")
+        let imported = TreadmillImport.phoneTotals(calendar: calendar)
+        let phoneSummary = TreadmillSummary(records: imported, current: nil, now: now, calendar: calendar)
+        expect(abs(phoneSummary.odometerKm - 509.71) < 0.001, "Phone odometer continued")
+        expect(phoneSummary.year.walks == 0 && phoneSummary.year.seconds == 7670 * 60, "Aggregate blocks are not walks")
+        expect(TreadmillGoal.standard.progress(summary.today) == 1.0 / 6, "Default minutes goal")
+        expect(TreadmillGoal(unit: .steps, target: 1000).progress(summary.today) == 1, "Steps goal")
+        expect(TreadmillGoal(unit: .kilometers, target: 2).progress(summary.today) == 0.5, "Distance goal")
+        let merged = TreadmillImport.merge(imported + records, into: [records[0]], calendar: calendar)
+        expect(merged.count == 6, "Import deduplicates overlapping sources and phone blocks")
+        var shifted = imported[0]
+        shifted = TreadmillRecord(started: shifted.started + 3600, ended: shifted.ended + 3600,
+                                  seconds: shifted.seconds, meters: shifted.meters, kcal: shifted.kcal,
+                                  steps: shifted.steps, averageKmh: 0, imported: true)
+        expect(TreadmillImport.merge([shifted], into: imported, calendar: calendar).count == 3,
+               "Phone blocks deduplicate across time zones")
+        var archive = TreadmillArchive()
+        archive.lubricatedKm = 400
+        expect(archive.lubeDueMark(odometerKm: 599.99) == nil, "Not due before lube mark")
+        expect(archive.lubeDueMark(odometerKm: 600) == 600, "Lube due at 200 km boundary")
+        archive.lubricatedKm = 650
+        expect(archive.lubeDueMark(odometerKm: 799.99) == nil, "Lubricated between marks")
+        let invalid = record(meters: -.infinity)
+        expect(!invalid.isValid, "Non-finite history rejected")
+        let encoded = try JSONEncoder().encode(record())
+        let parsed = TreadmillRecord.parseJSONLines(encoded + Data("\n{partial\n".utf8) + encoded)
+        expect(parsed.count == 2, "Partial JSONL line cannot hide neighboring records")
+    }
+
+    @MainActor
+    private static func history() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "nc-Treadmill-" + UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let legacy = root.appending(path: "legacy")
+        try FileManager.default.createDirectory(at: legacy, withIntermediateDirectories: true)
+        let legacyData = try JSONEncoder().encode(record()) + Data("\n{partial".utf8)
+        try legacyData.write(to: legacy.appending(path: "history.jsonl"))
+        try Data("{\"reminded_km\":400}".utf8).write(to: legacy.appending(path: "lube.json"))
+        let repository = TreadmillRepository(directory: root.appending(path: "fork"), legacyDirectories: [legacy, legacy],
+                                              legacyLubeDirectory: legacy)
+        let store = TreadmillHistoryStore(repository: repository)
+        try await store.load(calendar: calendar)
+        expect(store.archive.records.count == 4 && store.archive.lubricatedKm == 400, "Legacy import once, read only")
+        let secondLegacy = root.appending(path: "second-legacy")
+        try FileManager.default.createDirectory(at: secondLegacy, withIntermediateDirectories: true)
+        try legacyData.write(to: secondLegacy.appending(path: "history.jsonl"))
+        try Data("{\"reminded_km\":0}".utf8).write(to: legacy.appending(path: "lube.json"))
+        let explicitMark = TreadmillRepository(directory: root.appending(path: "explicit-mark"),
+                                               legacyDirectories: [legacy, secondLegacy], legacyLubeDirectory: legacy)
+        let explicitArchive = try await explicitMark.load(calendar: calendar)
+        expect(explicitArchive.lubricatedKm == 0, "Second history source cannot override an explicit lube mark")
+        let onlyHistory = TreadmillRepository(directory: root.appending(path: "history-only"),
+                                              legacyDirectories: [secondLegacy])
+        let historyArchive = try await onlyHistory.load(calendar: calendar)
+        expect(historyArchive.lubricatedKm == 0, "History-only import cannot invent a lubrication mark")
+        try FileManager.default.removeItem(at: legacy.appending(path: "lube.json"))
+        let fallbackArchive = try await explicitMark.load(calendar: calendar)
+        expect(fallbackArchive.lubricatedKm == 400, "Old treadmill folder alone supplies the legacy default")
+        var engine = TreadmillSessionEngine()
+        _ = engine.receive(message(status(3)), now: now.addingTimeInterval(1000))
+        store.update(current: engine.walk, finished: [])
+        async let first: Void = store.flush()
+        async let second: Void = store.flush()
+        try await first
+        try await second
+        let restored = try await repository.load(calendar: calendar)
+        expect(restored.current == engine.walk, "Concurrent flushes preserve recovery snapshot")
+        let end = engine.receive(message(status(1, seconds: 120)), now: now.addingTimeInterval(1120))
+        store.update(current: engine.walk, finished: end.finished)
+        store.update(current: engine.walk, finished: end.finished)
+        expect(store.archive.records.count == 5, "Duplicate finish cannot duplicate history")
+        expect(store.takeGoalReached(TreadmillGoal(unit: .steps, target: 1), now: now, calendar: calendar), "Goal event")
+        expect(!store.takeGoalReached(.standard, now: now, calendar: calendar), "Goal event once per day")
+        try await store.flush()
+        let afterFinish = try await repository.load(calendar: calendar)
+        expect(afterFinish.current == nil && afterFinish.records.count == 5, "Finish and clear commit atomically")
+        expect(afterFinish.goalAnnouncedDay == calendar.startOfDay(for: now), "Goal announcement survives restart")
+        expect(try Data(contentsOf: legacy.appending(path: "history.jsonl")) == legacyData, "Legacy data unchanged")
+        let reopened = TreadmillHistoryStore(repository: repository)
+        try await reopened.load(calendar: calendar)
+        expect(reopened.archive.records.count == 5, "Committed import does not repeat")
+        async let concurrent: Void = reopened.flush()
+        for index in 1...20 {
+            reopened.markLubricated(odometerKm: Double(index))
+            await Task.yield()
+        }
+        try await concurrent
+        try await reopened.flush()
+        let latest = try await repository.load(calendar: calendar)
+        expect(latest.lubricatedKm == 20, "Changes during a write finish in the latest snapshot")
+        let corrupt = root.appending(path: "corrupt")
+        try FileManager.default.createDirectory(at: corrupt, withIntermediateDirectories: true)
+        let damaged = Data("{\"records\": [".utf8)
+        try damaged.write(to: corrupt.appending(path: "treadmill.json"))
+        let badStore = TreadmillHistoryStore(repository: TreadmillRepository(directory: corrupt))
+        do { try await badStore.load(calendar: calendar); fatalError("Corrupt archive accepted") } catch {}
+        expect(!badStore.isLoaded, "Corruption does not initialize an empty replacement")
+        expect(try Data(contentsOf: corrupt.appending(path: "treadmill.json")) == damaged, "Corrupt archive preserved")
+        let blocked = root.appending(path: "blocked")
+        let failedStore = TreadmillHistoryStore(repository: TreadmillRepository(directory: blocked.appending(path: "fork")))
+        try await failedStore.load(calendar: calendar)
+        try Data().write(to: blocked)
+        do { try await failedStore.flush(); fatalError("Expected write failure") } catch {}
+        try FileManager.default.removeItem(at: blocked)
+        try await failedStore.flush()
+        expect(FileManager.default.fileExists(atPath: blocked.appending(path: "fork/treadmill.json").path), "Failed save retries")
+    }
+
+    @MainActor
+    private static func coordinator() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: "nc-Treadmill-" + UUID().uuidString)
+        let domain = "nc-Treadmill-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: domain)!
+        defer {
+            defaults.removePersistentDomain(forName: domain)
+            try? FileManager.default.removeItem(at: root)
+        }
+        let preferences = TreadmillPreferences(defaults: defaults)
+        expect(preferences.goal == .standard, "60 minutes default")
+        try preferences.setGoal(nil)
+        expect(TreadmillPreferences(defaults: defaults).goal == nil, "Disabled goal persists")
+        try preferences.setGoal(TreadmillGoal(unit: .steps, target: 100))
+        expect(TreadmillPreferences(defaults: defaults).goal?.unit == .steps, "Goal preference round trip")
+        let transport = FakeTreadmillTransport()
+        let store = TreadmillHistoryStore(repository: TreadmillRepository(directory: root))
+        let coordinator = TreadmillCoordinator(transport: transport, history: store, preferences: preferences,
+                                              clock: { now }, calendar: { calendar })
+        refuses(.disabled) { try coordinator.startWalk() }
+        try await coordinator.prepare()
+        let module = TreadmillModule(coordinator, capability: .walk)
+        module.start()
+        expect(!NotchcastFeature.treadmillWalk.needsIsland && !NotchcastFeature.treadmillHistory.needsIsland,
+               "Treadmill switches work without island")
+        coordinator.setEnabled(.history, true)
+        expect(transport.opens == 0 && transport.sent.isEmpty, "Enabling never opens transport")
+        coordinator.setEnabled(.walk, false)
+        expect(transport.opens == 0 && transport.sent.isEmpty && coordinator.lastError == nil,
+               "Idle disable leaves a phone-started walk alone without connecting")
+        coordinator.setEnabled(.walk, true)
+        await coordinator.stopForTermination()
+        expect(transport.opens == 0 && transport.sent.isEmpty && coordinator.lastError == nil,
+               "Idle termination needs no nearby pad")
+        coordinator.setEnabled(.walk, true)
+        coordinator.setEnabled(.history, true)
+        try coordinator.stopWalk()
+        expect(transport.opens == 1 && transport.sent == [TreadmillProtocol.stop],
+               "Stop connects even with no known walk")
+        coordinator.setEnabled(.walk, false)
+        expect(transport.sent == [TreadmillProtocol.stop, TreadmillProtocol.stop],
+               "Connected idle disable sends Stop")
+        coordinator.setEnabled(.walk, true)
+        coordinator.disconnect()
+        transport.sent = []
+        try coordinator.toggleWalk()
+        expect(transport.sent == [TreadmillProtocol.queryStatus], "Unknown toggle queries before starting")
+        transport.emit(status(3))
+        expect(transport.sent == [TreadmillProtocol.queryStatus, TreadmillProtocol.stop],
+               "Remote walk toggle stops without START")
+        transport.emit(short(0))
+        coordinator.disconnect()
+        transport.sent = []
+        try coordinator.toggleWalk()
+        expect(transport.sent == [TreadmillProtocol.queryStatus], "Idle toggle waits for reply")
+        transport.emit(short(0))
+        expect(transport.sent.last == (try TreadmillProtocol.start(minutes: 0)), "Confirmed idle toggle starts")
+        coordinator.disconnect()
+        transport.sent = []
+        coordinator.setEnabled(.walk, false)
+        expect(transport.sent.isEmpty && !coordinator.connected,
+               "Disabling disconnected idle state does not send Stop")
+        coordinator.setEnabled(.walk, true)
+        transport.sent = []
+        try coordinator.startWalk()
+        expect(transport.sent.count == 1, "Start opens injected transport once")
+        coordinator.setEnabled(.walk, false)
+        expect(transport.sent.last == TreadmillProtocol.stop && transport.sentAtClose == transport.sent,
+               "Disabling a pending start sends Stop before closing")
+        coordinator.setEnabled(.walk, true)
+        transport.sent = []
+        try coordinator.startWalk()
+        transport.emit(short(2, 3))
+        transport.emit(status(3, steps: 100))
+        try coordinator.faster()
+        try coordinator.faster()
+        expect(transport.sent.last == TreadmillProtocol.frame([0x53, 2, 50, 0]), "Commands accumulate speed")
+        let stale = transport.onBytes
+        let count = transport.sent.count
+        coordinator.setEnabled(.walk, false)
+        stale?(status(1, seconds: 500))
+        expect(transport.sent.count == count + 1 && transport.sent.last == TreadmillProtocol.stop
+               && transport.sentAtClose == transport.sent && coordinator.engine.walk?.sample.seconds == 60,
+               "Disable sends Stop and invalidates callbacks")
+        refuses(.disabled) { try coordinator.faster() }
+        coordinator.setEnabled(.history, false)
+        refuses(.disabled) { _ = try coordinator.stats() }
+        try await store.flush()
+        let unavailable = UnavailableTreadmillTransport()
+        refuses(.unavailable) { try unavailable.open() }
+        refuses(.unavailable) { try unavailable.send(TreadmillProtocol.stop) }
+        coordinator.setEnabled(.walk, true)
+        transport.failSend = true
+        let before = coordinator.engine.requestedSpeed
+        refuses(.unavailable) { try coordinator.faster() }
+        expect(coordinator.engine.requestedSpeed == before, "Failed send rolls back requested speed")
+        transport.failSend = false
+        transport.onDisconnect?()
+        expect(!coordinator.connected, "Disconnect clears connection")
+        let opensBeforeTermination = transport.opens
+        await coordinator.stopForTermination()
+        expect(transport.opens == opensBeforeTermination + 1 && transport.sent.last == TreadmillProtocol.stop
+               && transport.sentAtClose == transport.sent,
+               "Termination reconnects a known walk and sends Stop before closing")
+        try await store.flush()
+        module.stop()
+        let reentrantTransport = FakeTreadmillTransport()
+        let reentrantStore = TreadmillHistoryStore(repository: TreadmillRepository(directory: root.appending(path: "reentrant")))
+        let reentrant = TreadmillCoordinator(transport: reentrantTransport, history: reentrantStore,
+                                            preferences: preferences, clock: { now }, calendar: { calendar })
+        try await reentrant.prepare()
+        reentrant.setEnabled(.walk, true)
+        reentrant.setEnabled(.history, true)
+        reentrant.onGoalReached = { [weak reentrant] in reentrant?.setEnabled(.walk, false) }
+        try reentrant.startWalk()
+        reentrantTransport.emit(short(2, 3))
+        reentrantTransport.emit(status(3, speed: 10, steps: 100))
+        expect(!reentrant.walkEnabled && reentrantTransport.sent.count == 2
+               && reentrantTransport.sent.last == TreadmillProtocol.stop,
+               "Goal callback disabling Walk prevents queued speed commands")
+        await reentrant.stopForTermination()
+        let terminated = try await TreadmillRepository(directory: root.appending(path: "reentrant")).load(calendar: calendar)
+        expect(terminated.current?.sample.steps == 100, "Termination flushes the last counters")
+    }
+}
