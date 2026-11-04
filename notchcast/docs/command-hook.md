@@ -4,10 +4,14 @@ Features append one case per line in `Core/NotchcastFeature.swift`, one line per
 each switch, and one group line in `settingsGroup`. Never extend an existing line or combine
 switch arms. `settingsGroup` stays exhaustive; `requiredGrants` lists only exceptions before
 `default: []`. If `startsOff` is present, its arms follow the same rule.
+`needsIsland` first excludes system features, then uses one exception arm per line and
+`default: true`; add exceptions as separate arms rather than extending a Boolean expression.
 New groups append one case line in `Core/NotchcastFeature+SettingsGroup.swift`, inside the
 separator comments. Keep separators between cases and members and between switches.
 Both files use `merge=union`; run `python3 notchcast/check-feature-shape.py` and
 `python3 notchcast/check-feature-shape-test.py` after merging.
+The checker rejects repeated enum cases and repeated feature cases within a switch: union
+can retain both the old and edited arm when another branch appends nearby.
 
 Define a `NotchcastCommand` beside its feature, then add one array element in
 `Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift`:

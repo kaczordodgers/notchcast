@@ -232,6 +232,11 @@ extension NotchcastFeature {
         case .batteryCalibration: false
         case .keepAwake: false
         case .lidClosedAwake: false
+        if isSystemFeature { return false }
+        return switch self {
+        case .displayBrightness: false
+        case .quitProtection: false
+        default: true
         }
     }
 
