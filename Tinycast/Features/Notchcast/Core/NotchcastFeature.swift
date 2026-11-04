@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case colorPicker
     case screenshot
+    case dictationCleanup
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -40,6 +41,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
         case .screenshot: String(localized: "Screenshots")
+        case .dictationCleanup: String(localized: "AI cleanup")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -71,6 +73,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
         case .screenshot: String(localized: "Capture an area, window or display.")
+        case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -87,7 +90,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .screenshot: [.screenRecording]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker,
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker, .dictationCleanup,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
             []
@@ -101,7 +104,7 @@ extension NotchcastFeature {
         self != .displayBrightness && self != .quitProtection && !belongsToCaptureAndDictation && !isSystemFeature
     }
 
-    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot }
+    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot || self == .dictationCleanup }
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
