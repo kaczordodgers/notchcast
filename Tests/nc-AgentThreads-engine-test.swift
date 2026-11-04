@@ -192,7 +192,7 @@ struct AgentThreadsTest {
         try temporary.run()
         temporary.waitUntilExit()
         precondition(temporary.terminationStatus == 0)
-        let scratch = String(decoding: output.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+        let scratch = String(bytes: output.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
             .trimmingCharacters(in: .whitespacesAndNewlines)
         defer { try? FileManager.default.removeItem(atPath: scratch) }
         let databaseURL = URL(filePath: scratch).appending(path: "projects.sqlite")
