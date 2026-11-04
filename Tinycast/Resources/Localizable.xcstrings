@@ -1,6 +1,56 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Fix Mac Link" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Mac-Verbindung reparieren" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Reparar enlace Mac" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Réparer la liaison Mac" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクを修復" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결 복구" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Reparar ligação Mac" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Восстановить связь с Mac" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "修复 Mac 连接" } }
+    } },
+    "Mac Link is connected." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Die Mac-Verbindung ist hergestellt." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "El enlace Mac está conectado." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "La liaison Mac est connectée." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "Macリンクは接続済みです。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 연결이 설정되었습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "A ligação Mac está conectada." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Связь с Mac установлена." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Mac 连接已建立。" } }
+    } },
+    "Command copied." : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Befehl kopiert." } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Comando copiado." } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Commande copiée." } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "コマンドをコピーしました。" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "명령을 복사했습니다." } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Comando copiado." } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Команда скопирована." } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "命令已复制。" } }
+    } },
+    "Open Network Settings" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Netzwerkeinstellungen öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes de red" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir les réglages réseau" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ネットワーク設定を開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "네트워크 설정 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes de rede" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть настройки сети" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开网络设置" } }
+    } },
+    "Open Log" : { "localizations" : {
+      "de" : { "stringUnit" : { "state" : "translated", "value" : "Protokoll öffnen" } },
+      "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir registro" } },
+      "fr" : { "stringUnit" : { "state" : "translated", "value" : "Ouvrir le journal" } },
+      "ja" : { "stringUnit" : { "state" : "translated", "value" : "ログを開く" } },
+      "ko" : { "stringUnit" : { "state" : "translated", "value" : "로그 열기" } },
+      "pt" : { "stringUnit" : { "state" : "translated", "value" : "Abrir registro" } },
+      "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть журнал" } },
+      "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开日志" } }
+    } },
     "Clipboard is empty" : {
       "localizations" : {
         "de" : {
