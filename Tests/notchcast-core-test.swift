@@ -44,6 +44,12 @@ struct NotchcastCoreTests {
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
+        precondition(!preferences.isOn(.pastePlain) && preferences.isOn(.pasteImage))
+        precondition(NotchcastFeature.finderCutPaste.settingsGroup == .finder)
+        precondition(NotchcastFeature.finderRename.settingsGroup == .finder)
+        precondition(!NotchcastFeature.finderCutPaste.needsIsland)
+        precondition(NotchcastFeature.finderRename.requiredGrants == [.accessibility])
+        precondition(NotchcastFeature.pastePlain.subtitle.contains("launcher"))
         precondition(NotchcastFeature.dayCalendar.needsIsland)
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)

@@ -13,6 +13,11 @@ extension NotchcastCore {
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast") + ".urlCleaner"))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
+    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
+    static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
+    static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
+    static let pasteImage = PasteImageModule(hub: eventTapHub)
+    static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
@@ -35,6 +40,9 @@ extension NotchcastCore {
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let downloadServices = NotchcastDownloadServices(core: core)
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
+        pasteImage.configureFeedback(core)
         return [
             .init(requires: [.githubSearch], module: github),
             .init(requires: [.clearNotifications], module: clearNotifications),
@@ -49,6 +57,10 @@ extension NotchcastCore {
             .init(requires: [], module: NotchcastToolsCommands(core: core)),
             .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
             .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
+            .init(requires: [.finderCutPaste], module: finderCut),
+            .init(requires: [.finderRename], module: finderRename),
+            .init(requires: [.pastePlain], module: pastePlain),
+            .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),

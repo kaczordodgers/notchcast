@@ -28,6 +28,8 @@ extension SettingsAnchor {
     static let notchcastDownloads = Self(tab: .notchcast, title: "Downloads")
     static let notchcastLauncherTools = Self(tab: .notchcast, title: "Launcher tools")
     static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
+    static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
+    static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
 }
 
 extension SettingsSearchCatalog {
@@ -99,5 +101,11 @@ extension SettingsSearchCatalog {
         .init(.notchcastLauncher, "Copy Path", keywords: ["finder", "browser", "document", "link"]),
         .init(.notchcastLauncher, "Small Commands", keywords: ["password", "shorten", "noise", "airdrop"]),
         .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
+        .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
+        .init(.notchcastFinder, "Finder Cut and Paste", keywords: ["files", "move", "clipboard"]),
+        .init(.notchcastFinder, "Finder Rename", keywords: ["hyper", "shortcut", "return"]),
+        .init(.notchcastFinder, "Cut and move files", keywords: ["copy", "escape", "cancel"]),
+        .init(.notchcastFinder, "Rename selection", keywords: ["hyper", "shortcut", "return"]),
+        .init(.notchcastPaste, "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
     ]
 }

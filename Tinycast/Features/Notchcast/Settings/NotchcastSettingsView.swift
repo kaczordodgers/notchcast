@@ -19,6 +19,9 @@ struct NotchcastSettingsView: View {
             LauncherToolsSettingsSection()
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            PasteToolsSettingsSection()
+            featureSection(.notchcastFinder, group: .finder)
+            FinderSettingsSection()
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
             URLCleanerSettingsSection(module: NotchcastCore.urlCleaner)
@@ -29,7 +32,6 @@ struct NotchcastSettingsView: View {
             BuildStatsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
-                .settingsEnabled(preferences.isOn(.island))
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
