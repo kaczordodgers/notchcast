@@ -9,6 +9,7 @@
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdownParser.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteInlineScanner.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteTitle.swift
+import Darwin
 import Foundation
 
 @main
@@ -24,6 +25,7 @@ struct EditorDocumentTests {
     static func main() async throws {
         try codec()
         try await repository()
+        try await recovery()
         try await sessions()
         try await statistics()
         preferences()
@@ -73,6 +75,19 @@ struct EditorDocumentTests {
             preconditionFailure("must detect external change")
         } catch EditorFailure.externalChange {}
         try check(try Data(contentsOf: url) == Data("external".utf8))
+        let attribute = "com.notchcast.editor-test"
+        let tag = Data("finder metadata".utf8)
+        let result = tag.withUnsafeBytes { buffer in
+            setxattr(url.path, attribute, buffer.baseAddress, buffer.count, 0, 0)
+        }
+        precondition(result == 0)
+        let beforeReplacement = try await EditorDocumentRepository.load(url)
+        _ = try await EditorDocumentRepository.save("replacement", to: url, expecting: beforeReplacement)
+        var actual = Data(count: tag.count)
+        let count = actual.withUnsafeMutableBytes { buffer in
+            getxattr(url.path, attribute, buffer.baseAddress, buffer.count, 0, 0)
+        }
+        precondition(count == tag.count && actual == tag)
         let restored = try await EditorDocumentRepository.load(url)
         try FileManager.default.removeItem(at: url)
         do {
@@ -91,6 +106,23 @@ struct EditorDocumentTests {
             _ = try EditorDocumentRepository.kind(of: directory.appendingPathComponent("rich.rtf"))
             preconditionFailure("rich text is unsupported")
         } catch EditorFailure.unsupportedFile {}
+    }
+
+    private static func recovery() async throws {
+        let directory = try temporaryDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let document = EditorDocumentSession(
+            url: directory.appendingPathComponent("legacy.txt"),
+            snapshot: try EditorDocumentSnapshot(bytes: Data()), rendersMarkdown: false)
+        document.setEnabled(true)
+        defer { document.setEnabled(false) }
+        precondition(document.edit("unsaved 🙂\r\ntext"))
+        let recovered = try await EditorRecoveryService.flush(document, directory: directory) {
+            throw EditorFailure.invalidEncoding
+        }
+        precondition(recovered != nil)
+        try check(try Data(contentsOf: recovered!) == Data(document.source.utf8))
+        precondition(document.isDirty)
     }
 
     private static func sessions() async throws {

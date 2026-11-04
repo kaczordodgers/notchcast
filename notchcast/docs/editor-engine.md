@@ -17,6 +17,8 @@ it adds no document window, launcher command, file association or default-handle
   Save My Changes also compares against the external version presented for that decision, so a
   second external change cannot be overwritten silently. Non-coordinating writers can still race
   the write, as with Apple's document coordination generally.
+- Failed quit saves write the current draft as UTF-8 under the channel’s Application Support
+  `EditorRecovery` directory and log its path. Replacements preserve destination metadata.
 - UTF-8, UTF-8 BOM, BOM-marked UTF-16 LE/BE and Windows-1250 are read and saved without loss.
   Unmodified saves do not write. Line endings, NUL, normalization and BOM bytes are preserved.
   Unrepresentable edits fail without changing the file. Save As claims a new file without replacing
@@ -36,8 +38,8 @@ the coordinator to enforce the destination's feature switch, and display failure
 dialogs/HUDs. A failed save never means a successful close.
 
 Markdown Files and Plain Text Files control their sessions independently of the island. Editor
-Spell Checking defaults on and applies when Notes creates its text view; a document surface can
-apply it through `configure`. Font (`jetBrainsMono`), theme (`githubDark`) and pairing preferences
+Spell Checking defaults on and applies when Notes creates its text view; document surfaces read
+`NotchcastPreferences.shared.isOn(.editorSpellChecking)`. Font (`jetBrainsMono`), theme (`githubDark`) and pairing preferences
 are persisted in a bundle-scoped fork store. This phase does not apply font or color styling.
 
 ## Left for the look
@@ -52,5 +54,5 @@ that window. Mermaid, a preview pane, rich text and printing remain outside this
 `./Scripts/run-tests.sh nc-DocumentEditor-document-test` covers encoding, revision checks, Save As,
 deletion, conflict decisions, autosave, the real presenter, Notes edit plans, counts and preferences.
 `./Scripts/run-tests.sh nc-DocumentEditor-coordinator-test` covers lifecycle, concurrent opens,
-symlink identity, feature switches, cancellation, spelling configuration and dirty-close protection.
+symlink identity, feature switches, cancellation and dirty-close protection.
 Both use isolated preferences and temporary directories; neither opens a document window.

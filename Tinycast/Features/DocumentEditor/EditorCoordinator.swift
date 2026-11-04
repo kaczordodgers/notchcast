@@ -82,18 +82,18 @@ final class EditorCoordinator: NotchcastModule {
 
     func flushForTermination() async {
         for document in documents where document.isEnabled {
+            let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "editor")
             do {
-                try await document.flush()
+                let recovery = try await EditorRecoveryService.flush(
+                    document, directory: AppPaths.applicationSupport().appendingPathComponent("EditorRecovery"))
+                if let recovery {
+                    logger.error("Document recovered at termination: \(recovery.path, privacy: .public)")
+                }
             } catch {
-                Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "editor")
-                    .error("Document save failed at termination: \(error.localizedDescription, privacy: .private)")
+                logger.error("Document recovery failed at termination: \(error.localizedDescription, privacy: .private)")
             }
         }
         stop()
-    }
-
-    func configure(_ textView: NSTextView) {
-        textView.isContinuousSpellCheckingEnabled = preferences.isOn(.editorSpellChecking)
     }
 
     private func observeAvailability() {

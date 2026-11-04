@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/DocumentEditor/Model/*.swift
 // notchcast-sources: Tinycast/Features/DocumentEditor/Service/*.swift
 // notchcast-sources: Tinycast/Features/DocumentEditor/EditorCoordinator.swift
@@ -44,12 +45,6 @@ struct EditorCoordinatorTests {
         try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: url)
         let aliased = try await coordinator.open(alias)
         precondition(aliased === first)
-        let textView = NSTextView()
-        coordinator.configure(textView)
-        precondition(textView.isContinuousSpellCheckingEnabled)
-        preferences.set(.editorSpellChecking, false)
-        coordinator.configure(textView)
-        precondition(!textView.isContinuousSpellCheckingEnabled)
         precondition(first.edit("draft"))
         do {
             try coordinator.close(first)

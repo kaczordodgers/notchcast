@@ -26,7 +26,12 @@ struct EditorDocumentRepository: Sendable {
         return try coordinated(url, writing: true) { location in
             try Task.checkCancellation()
             guard try read(location) == snapshot.bytes else { throw EditorFailure.externalChange }
-            if bytes != snapshot.bytes { try bytes.write(to: location, options: .atomic) }
+            if bytes != snapshot.bytes {
+                let temporary = location.deletingLastPathComponent().appendingPathComponent(".\(UUID().uuidString).tmp")
+                defer { try? FileManager.default.removeItem(at: temporary) }
+                try bytes.write(to: temporary)
+                _ = try FileManager.default.replaceItemAt(location, withItemAt: temporary)
+            }
             return try EditorDocumentSnapshot(bytes: bytes)
         }
     }
