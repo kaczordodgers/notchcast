@@ -107,4 +107,3 @@ private struct NotchcastGrantsSection: View {
         }
     }
 }
-
