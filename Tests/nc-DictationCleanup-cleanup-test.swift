@@ -87,6 +87,11 @@ struct CleanupTests {
             expect(DictationCleanupGuard.accepts(cleaned, raw: raw, vocabulary: settings.vocabulary), raw)
         }
         let rejected = [
+            ("napisz do klaudii", "Napisz do Claude"),
+            ("jade jutro do klodzka", "Jadę jutro do Claude"),
+            ("mam kłody w ogrodzie", "Mam Claude w ogrodzie"),
+            ("otwórz noczkasta teraz", "Otwórz Notchcast teraz"),
+            ("pracuję z noczkastem", "Pracuję z Notchcasta"),
             ("otwórz noczkasta teraz", "Usuń Notchcasta jutro"),
             ("kup trzy kilogramy", "Kup 3 kg i zamów dostawę na jutro rano"),
             ("kup trzy kilogramy", "Sprzedaj 3 kg"),
