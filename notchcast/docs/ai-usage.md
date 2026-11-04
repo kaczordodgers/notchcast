@@ -6,6 +6,8 @@ The other-Mac switch is effective only while AI usage and Mac link are enabled.
 
 `AIUsageModule.refresh()` reads the local cache on demand. Starting a module does not read it, and
 there is no refresh timer. The provider accepts an injected directory and clock for fixture tests.
+An empty cache path resolves to `~/.t3/caches` at refresh time; an explicit path wins.
+Local snapshots retain optional reset credits (`availableCount`); malformed credits are ignored.
 `AIUsageSnapshotAdapter` projects provider windows into the peer engine's normalized wire readings;
 the wire representation intentionally carries no provider-specific display or reset metadata.
 
