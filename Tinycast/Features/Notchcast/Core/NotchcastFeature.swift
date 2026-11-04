@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case colorPicker
     case screenshot
+    case agentChatTools
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -33,7 +34,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
-        case .colorPicker, .screenshot: .captureAndDictation
+        case .colorPicker, .screenshot, .agentChatTools: .captureAndDictation
         }
     }
 
@@ -59,6 +60,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
         case .screenshot: String(localized: "Screenshots")
+        case .agentChatTools: String(localized: "AI Chat Tools")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -90,6 +92,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
         case .screenshot: String(localized: "Capture an area, window or display.")
+        case .agentChatTools: String(localized: "Add Notchcast tools to AI chat.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -104,6 +107,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .screenshot: [.screenRecording]
+        case .agentChatTools: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker,
@@ -120,7 +124,7 @@ extension NotchcastFeature {
         self != .displayBrightness && self != .quitProtection && !belongsToCaptureAndDictation && !isSystemFeature
     }
 
-    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot }
+    var belongsToCaptureAndDictation: Bool { [.colorPicker, .screenshot, .agentChatTools].contains(self) }
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
