@@ -12,8 +12,6 @@
   "agentAnswer": "T3/bot transport, waiting-item source, reply UI",
   "voiceAsk": "concrete transport + configure call; destination setting exists",
   "recording": "launcher command or hotkey, target picker, stop/pause control",
-  "agentMCPServer": "engine n: JSON-RPC handler done and harness-tested (nc-AgentMCPServer-engine/module), but missing a real backend over AgentActionIndex and a stdio transport (CLI `mcp` verb → app socket → engine.receive)",
-  "agentChatTools": "the CLI `mcp` subcommand and the agentMCPServer wiring above",
   "cleanSystem": "root helper commands clean-system-list / clean-system-trash in Tinycast/Features/Notchcast/Root/RootContract.swift and the real scan/trash body in CleanModule.swift:182",
   "agentConfirmation": "transport/actions implementations (island prompt), constructing the coordinator in the agent request path (AgentActionIndex.handle) and reading the switch there",
   "linkQuickFixes": "cause detection from Link Health, a surface listing the fixes, and an executor for copyCommand/openMirrorLog/openNetworkSettings/relink",
