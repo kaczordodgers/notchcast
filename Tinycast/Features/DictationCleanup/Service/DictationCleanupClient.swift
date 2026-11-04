@@ -32,7 +32,7 @@ struct DictationCleanupHTTPClient: DictationCleanupClient {
         configuration.urlCache = nil
         configuration.httpCookieStorage = nil
         configuration.urlCredentialStorage = nil
-        configuration.timeoutIntervalForResource = 4
+        configuration.timeoutIntervalForResource = request.timeoutInterval
         let session = URLSession(configuration: configuration, delegate: RedirectBlocker(), delegateQueue: nil)
         defer { session.invalidateAndCancel() }
         let (data, response) = try await session.data(for: request)
