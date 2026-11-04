@@ -47,7 +47,7 @@ extension NotchcastCore {
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static private(set) var pastePlain: PlainPasteModule?
-    static let linkQuickFixes = LinkQuickFixModule()
+    static let linkQuickFixes = LinkQuickFixModule().configure()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()

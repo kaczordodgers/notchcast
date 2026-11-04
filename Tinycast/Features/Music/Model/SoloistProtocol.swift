@@ -13,6 +13,8 @@ enum SoloistProtocol {
         case changed
         case failure(String)
         case other
+        case options(shuffle: Bool?, repeatMode: RepeatMode?)
+        case queue([MusicQueueItem]?)
     }
 
     struct Command: Encodable, Sendable {
@@ -20,6 +22,8 @@ enum SoloistProtocol {
         var command: String
         var position_ms: Double?
         var volume: Int?
+        var shuffle: Bool?
+        var uri: String?
     }
 
     private struct Entity: Decodable {
@@ -55,6 +59,23 @@ enum SoloistProtocol {
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
         let data = Data(text.utf8)
+        let object = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
+        let options = object["options"] as? [String: Any] ?? object
+        let shuffle = (options["shuffle"] as? NSNumber).flatMap {
+            CFGetTypeID($0) == CFBooleanGetTypeID() ? $0.boolValue : nil
+        }
+        let repeatMode = (options["repeat"] as? String).flatMap(RepeatMode.init(rawValue:))
+        if object["type"] as? String == "options_changed", shuffle != nil || repeatMode != nil {
+            return .options(shuffle: shuffle, repeatMode: repeatMode)
+        }
+        if object["type"] as? String == "get_queue"
+            || (object["type"] as? String == "queue_changed" && object["queue"] != nil) {
+            let items = (object["queue"] as? [[String: Any]])?.map {
+                MusicQueueItem(title: $0["title"] as? String,
+                               artist: $0["artist"] as? String, uri: $0["uri"] as? String)
+            }
+            return .queue(items)
+        }
         let frame = try decoder.decode(Frame.self, from: data)
         switch frame.type {
         case "error": return .failure(frame.message ?? "")
@@ -73,7 +94,7 @@ enum SoloistProtocol {
                 duration: max(0, details.playback?.durationMs ?? 0) / 1000,
                 elapsed: max(0, frame.position?.positionMs ?? 0) / 1000,
                 stamp: min(stamp, now), isPlaying: frame.status == "playing" && frame.isActive != false,
-                artwork: nil, origin: .soloist
+                artwork: nil, origin: .soloist, shuffle: shuffle, repeatMode: repeatMode
             )
             return .state(track, cover: cover)
         case "track_changed", "playback_changed", "position_sync", "queue_changed",
@@ -94,10 +115,17 @@ enum SoloistProtocol {
             value = Command(command: "seek", position_ms: seconds.isFinite ? (max(0, seconds) * 1000).rounded() : 0)
         case .volume(let level):
             value = Command(command: "set_volume", volume: level.isFinite ? Int((min(1, max(0, level)) * 100).rounded()) : 0)
+        case .shuffle(let enabled): value = Command(command: "set_shuffle", shuffle: enabled)
+        case .repeat(let mode): value = Command(command: "set_repeat_" + mode.rawValue)
         }
         return String(data: try JSONEncoder().encode(value), encoding: .utf8)!
     }
 
     static let getState = #"{"type":"command","command":"get_state"}"#
     static let getAuthState = #"{"type":"command","command":"get_auth_state"}"#
+    static let getQueue = #"{"type":"command","command":"get_queue"}"#
+
+    static func addToQueue(uri: String) throws -> String {
+        String(data: try JSONEncoder().encode(Command(command: "add_to_queue", uri: uri)), encoding: .utf8)!
+    }
 }
