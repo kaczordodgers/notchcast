@@ -2,7 +2,6 @@ import Foundation
 
 enum NotchcastCommandCatalog {
     struct Command {
-        var sfSymbol: String { "rectangle" }
         var owner: SettingsTab? { nil }
     }
 

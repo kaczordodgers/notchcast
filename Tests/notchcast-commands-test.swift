@@ -19,10 +19,10 @@ struct AppEntry: Sendable {
     let url: URL
     let bundleID: String?
     let kind: Kind
-    var symbolName: String?
-    let settingsOwner: SettingsTab?
+    var settingsOwner: SettingsTab?
     var subtitle: String?
     var alternateTitles: [String] = []
+    var symbolName: String?
     var hotKeyAction: HotKeyAction? { HotKeyAction(entryID: id) }
 }
 
