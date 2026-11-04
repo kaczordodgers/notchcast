@@ -1,9 +1,6 @@
 import Foundation
 import Observation
 
-/// One stored setting per line and one init assignment per line, so branches that add a setting
-/// merge by union. Types and helpers go in the extension below.
-/// `notchcast/check-feature-shape.py` rejects a setting or an assignment a union merge kept twice.
 @MainActor
 @Observable
 final class NotchcastPreferences {

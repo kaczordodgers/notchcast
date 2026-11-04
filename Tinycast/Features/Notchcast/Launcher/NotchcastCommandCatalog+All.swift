@@ -15,5 +15,9 @@ extension NotchcastCommandCatalog {
         TorrentCommands.cancelAllCommand,
         ArchiveCommands.extractCommand,
         ArchiveCommands.cancelCommand,
+        PlainPasteModule.launcherCommand,
+        FinderToolsCoordinator.cutCommand,
+        FinderToolsCoordinator.pasteCommand,
+        FinderToolsCoordinator.renameCommand,
     ]
 }

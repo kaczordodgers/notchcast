@@ -10,6 +10,8 @@ extension NotchcastFeature {
         case music
         case torrents
         case archives
+        case clipboard
+        case finder
         case buildStats
         // Keep group appends away from the closing braces during union merges.
     }
