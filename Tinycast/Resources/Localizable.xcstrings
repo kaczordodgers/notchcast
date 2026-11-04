@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Send Clipboard to Other Mac" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zwischenablage an anderen Mac senden" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Enviar portapapeles al otro Mac" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Envoyer le presse-papiers à l’autre Mac" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボードをほかのMacに送信" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클립보드를 다른 Mac으로 보내기" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Enviar área de transferência ao outro Mac" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Отправить буфер обмена на другой Mac" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "将剪贴板发送到另一台 Mac" } }
+      }
+    },
+    "Sent Clipboard to Other Mac" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zwischenablage an anderen Mac gesendet" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Portapapeles enviado al otro Mac" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Presse-papiers envoyé à l’autre Mac" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボードをほかのMacに送信しました" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클립보드를 다른 Mac으로 보냄" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Área de transferência enviada ao outro Mac" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Буфер обмена отправлен на другой Mac" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已将剪贴板发送到另一台 Mac" } }
+      }
+    },
+    "Could Not Send Clipboard to Other Mac" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zwischenablage konnte nicht an anderen Mac gesendet werden" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo enviar el portapapeles al otro Mac" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible d’envoyer le presse-papiers à l’autre Mac" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボードをほかのMacに送信できませんでした" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클립보드를 다른 Mac으로 보낼 수 없음" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível enviar a área de transferência ao outro Mac" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось отправить буфер обмена на другой Mac" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法将剪贴板发送到另一台 Mac" } }
+      }
+    },
     "Check Other Mac Dialogs" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Dialoge auf anderem Mac prüfen" } },

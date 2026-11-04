@@ -3,7 +3,7 @@ import Foundation
 @MainActor
 final class ShelfModule: NotchcastModule {
     private(set) var isRunning = false
-    private var generation = UUID()
+    private(set) var generation = UUID()
     var linkStatus: (any ShelfLinkStatus)?
     var transport: (any ShelfTransport)?
     let store: ShelfReceivedStore

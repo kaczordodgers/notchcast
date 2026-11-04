@@ -69,5 +69,6 @@ extension NotchcastCommandCatalog {
         ScreenTextModule.launcherCommand,
         ScrollingCaptureModule.launcherCommand,
         BlockedDialogModule.checkCommand,
+        ShelfModule.sendCommand,
     ]
 }

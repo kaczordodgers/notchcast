@@ -28,12 +28,13 @@ struct NotchcastCommand: Sendable {
     static var requests = 0
     static var messages: [String] = []
     static var fail = false
+    static var windows: [BlockedDialogWindow] = []
     static let blockedDialogs = BlockedDialogModule(transport: { request in
         requests += 1
         if fail { throw MachLinkMessage.Failure.disconnected }
         return try MachLinkMessage(id: request.id, method: request.method,
-                                  value: [BlockedDialogWindow]())
-    }, enabled: { true }, present: { _ in preconditionFailure("Unexpected window") })
+                                  value: windows)
+    }, enabled: { true }, present: { _ in })
     static func remoteResult(_ text: String) { messages.append(text) }
 }
 
@@ -54,6 +55,12 @@ struct NotchcastCommand: Sendable {
         while NotchcastCore.messages.count < 2 { await Task.yield() }
         precondition(NotchcastCore.requests == 2)
         precondition(NotchcastCore.messages.last == "Could Not Check Other Mac Dialogs")
+        NotchcastCore.fail = false
+        NotchcastCore.windows = [.init(owner: "SecurityAgent", processID: 42, windowID: 9,
+            layer: 1, width: 300, height: 100)]
+        command.run()
+        while NotchcastCore.messages.count < 3 { await Task.yield() }
+        precondition(NotchcastCore.messages.last == "Other Mac: SecurityAgent is waiting.")
         NotchcastCore.blockedDialogs.stop()
         print("blocked dialog command: fake transport reached; success, failure and gate passed")
     }

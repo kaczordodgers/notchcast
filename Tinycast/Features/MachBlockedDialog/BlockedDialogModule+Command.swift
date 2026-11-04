@@ -13,11 +13,16 @@ extension BlockedDialogModule {
 
     func checkAndReport() {
         guard isRunning else { return }
+        let token = generation
         check()
         Task { [weak self] in
             guard let self else { return }
             await waitUntilIdle()
-            guard !Task.isCancelled, isRunning else { return }
+            guard !Task.isCancelled, isRunning, generation == token else { return }
+            if !failed, let owner = detectedOwner {
+                NotchcastCore.remoteResult(String(localized: "Other Mac: \(owner) is waiting."))
+                return
+            }
             NotchcastCore.remoteResult(failed
                 ? String(localized: "Could Not Check Other Mac Dialogs")
                 : String(localized: "Other Mac Dialog Check Complete"))
