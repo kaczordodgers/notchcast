@@ -2,22 +2,34 @@ import Foundation
 
 @MainActor
 final class AgentMCPEngine {
-    private let backend: any AgentMCPBackend
+    private var backend: (any AgentMCPBackend)?
     private(set) var isRunning = false
-    private var initialized = false
+    private var initialized: [String] = []
     private var generation = UUID()
+    private var pending: [UUID: (session: String, task: Task<Data, any Error>)] = [:]
 
-    init(backend: any AgentMCPBackend) { self.backend = backend }
+    init(backend: (any AgentMCPBackend)? = nil) { self.backend = backend }
+
+    func configure(backend: any AgentMCPBackend) {
+        stop()
+        self.backend = backend
+    }
 
     func start() { isRunning = true }
 
     func stop() {
         isRunning = false
-        initialized = false
+        initialized.removeAll()
         generation = UUID()
+        for operation in pending.values { operation.task.cancel() }
     }
 
-    func receive(line: Data) async -> Data? {
+    func endSession(_ session: String) {
+        initialized.removeAll { $0 == session }
+        for operation in pending.values where operation.session == session { operation.task.cancel() }
+    }
+
+    func receive(line: Data, session: String = "direct") async -> Data? {
         let value: Any
         do {
             value = try JSONSerialization.jsonObject(with: line, options: .fragmentsAllowed)
@@ -36,9 +48,16 @@ final class AgentMCPEngine {
         }
         guard request["id"] != nil else { return nil }
         guard isRunning else { return response(id: id, error: -32000, message: "Server stopped") }
+        if initialized.contains(session) {
+            initialized.removeAll { $0 == session }
+            initialized.append(session)
+        }
         let operation = generation
         let params = request["params"] as? [String: Any] ?? [:]
         do {
+            guard let backend else {
+                return response(id: id, error: -32000, message: "MCP backend unavailable")
+            }
             let result: [String: Any]
             switch method {
             case "initialize":
@@ -46,25 +65,28 @@ final class AgentMCPEngine {
                       params["clientInfo"] is [String: Any] else {
                     return response(id: id, error: -32602, message: "Invalid params")
                 }
-                initialized = true
+                if !initialized.contains(session) {
+                    if initialized.count == 64 { endSession(initialized[0]) }
+                    initialized.append(session)
+                }
                 result = ["protocolVersion": "2025-06-18", "capabilities": ["tools": [:], "resources": [:]],
                           "serverInfo": ["name": "notchcast", "version": "1"]]
             case "ping": result = [:]
             default:
-                guard initialized else { return response(id: id, error: -32002, message: "Initialize first") }
+                guard initialized.contains(session) else {
+                    return response(id: id, error: -32002, message: "Initialize first")
+                }
                 switch method {
                 case "tools/list":
-                    result = ["tools": try await backend.actions().filter(\.isAllowed).map { action in
+                    result = ["tools": try await backend.actions().map { action in
                         ["name": action.id, "description": "\(action.title) (danger: \(action.danger))",
                          "inputSchema": try JSONSerialization.jsonObject(with: action.inputSchema),
-                         "annotations": ["readOnlyHint": action.id == "agents.list",
-                                         "destructiveHint": action.danger != "harmless",
+                         "annotations": ["destructiveHint": action.danger != "harmless",
                                          "openWorldHint": true]] as [String: Any]
                     }]
                 case "tools/call":
-                    guard let name = params["name"] as? String,
-                          AgentMCPAction.allowedNames.contains(name) else {
-                        return response(id: id, error: -32602, message: "Action refused")
+                    guard let name = params["name"] as? String else {
+                        return response(id: id, error: -32602, message: "Invalid tool name")
                     }
                     guard let arguments = (params["arguments"] ?? [:]) as? [String: Any],
                           JSONSerialization.isValidJSONObject(arguments) else {
@@ -72,26 +94,25 @@ final class AgentMCPEngine {
                     }
                     let actions = try await backend.actions()
                     try validate(operation)
-                    guard actions.contains(where: { $0.id == name && $0.isAllowed }) else {
+                    guard actions.contains(where: { $0.id == name }) else {
                         return response(id: id, error: -32602, message: "Unknown tool")
                     }
-                    let output = try await backend.call(name, arguments: JSONSerialization.data(withJSONObject: arguments))
+                    let data = try JSONSerialization.data(withJSONObject: arguments)
+                    let output = try await perform(session: session) { try await backend.call(name, arguments: data) }
                     result = ["content": [["type": "text", "text": String(bytes: output, encoding: .utf8) ?? ""]]]
                 case "resources/list":
-                    result = ["resources": try await backend.states().filter {
-                        AgentMCPAction.allowedNames.contains($0.id)
-                    }.map {
+                    result = ["resources": try await backend.states().map {
                         ["uri": "notchcast-state:" + $0.id, "name": $0.title, "mimeType": "application/json"]
                     }]
                 case "resources/read":
                     guard let uri = params["uri"] as? String,
                           let state = try await backend.states().first(where: {
-                              AgentMCPAction.allowedNames.contains($0.id) && "notchcast-state:" + $0.id == uri
+                              "notchcast-state:" + $0.id == uri
                           }) else {
                         return response(id: id, error: -32602, message: "Unknown resource")
                     }
                     try validate(operation)
-                    let output = try await backend.readState(state.id)
+                    let output = try await perform(session: session) { try await backend.readState(state.id) }
                     result = ["contents": [["uri": uri, "mimeType": "application/json",
                                              "text": String(bytes: output, encoding: .utf8) ?? ""]]]
                 default: return response(id: id, error: -32601, message: "Method not found")
@@ -99,9 +120,22 @@ final class AgentMCPEngine {
             }
             try validate(operation)
             return response(id: id, result: result)
+        } catch let failure as AgentMCPFailure {
+            return response(id: id, error: failure.code, message: failure.message)
         } catch {
             return response(id: id, error: -32603, message: "Operation failed")
         }
+    }
+
+    private func perform(session: String, work: @escaping @MainActor () async throws -> Data) async throws -> Data {
+        let id = UUID()
+        let task = Task { try await work() }
+        pending[id] = (session, task)
+        defer { pending[id] = nil }
+        return try await withTaskCancellationHandler {
+            try Task.checkCancellation()
+            return try await task.value
+        } onCancel: { task.cancel() }
     }
 
     private func validate(_ operation: UUID) throws {
@@ -119,4 +153,6 @@ final class AgentMCPEngine {
         data.append(0x0A)
         return data
     }
+
+    isolated deinit { for operation in pending.values { operation.task.cancel() } }
 }
