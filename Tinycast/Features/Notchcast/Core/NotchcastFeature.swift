@@ -1,6 +1,7 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
+    case tasks
     case island
     case islandExternalDisplays
     case islandFullScreen
@@ -85,6 +86,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .tasks: .tasks
         case .musicNowPlaying: .music
         case .musicLastPlayer: .music
         case .musicBlockAppleMusic: .music
@@ -156,6 +158,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .tasks: String(localized: "Tasks")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
@@ -227,6 +230,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .tasks: String(localized: "Keep tasks on this Mac.")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
@@ -328,6 +332,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .tasks: false
         case .colorPicker: false
         case .screenshot: false
         case .buildStats: false
@@ -370,6 +375,7 @@ extension NotchcastFeature {
     var defaultEnabled: Bool {
         if isSystemFeature || isLauncherKeysFeature { return false }
         return switch self {
+        case .tasks: false
         case .spotifyConnect: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
