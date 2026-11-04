@@ -147,7 +147,7 @@ final class BatteryModule: NotchcastModule {
                 let version = try await self.runner.version()
                 try Task.checkCancellation()
                 guard let version = Int(version) else { throw RootHelperClient.Failure.invalidResponse }
-                self.needsHelperUpdate = version < 2
+                self.needsHelperUpdate = version < (Int(RootContract.version) ?? 3)
                 if self.helperGateClosed && !self.needsHelperUpdate { self.launchRepair = true }
                 self.helperGateClosed = self.needsHelperUpdate
                 self.versionReadFailed = false
@@ -320,10 +320,12 @@ final class BatteryModule: NotchcastModule {
                         chargingUnsupported = true
                         preferences.set(.batteryCalibration, false)
                     }
+                    if error as? RootHelperClient.Failure == .reinstallRequired { needsHelperUpdate = true }
                     failure = error
                 }
             }
         } catch {
+            if error as? RootHelperClient.Failure == .reinstallRequired { needsHelperUpdate = true }
             failure = error
         }
     }

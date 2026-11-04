@@ -91,7 +91,7 @@ struct BatteryStoreTests {
             if $0.rawValue.hasPrefix("charge-limit-") {
                 currentLimit = Int($0.rawValue.components(separatedBy: "-").last ?? "")
             }
-        }, installed: { true }, version: { "2" }, create: { _ in 99 }, release: { _ in },
+        }, installed: { true }, version: { RootContract.version }, create: { _ in 99 }, release: { _ in },
            supports: { _ in true }, readLimit: { currentLimit }))
         preferences.set(.keepAwake, false)
         preferences.set(.batterySailing, true)
