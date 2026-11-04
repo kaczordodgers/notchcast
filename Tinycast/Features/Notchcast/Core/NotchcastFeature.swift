@@ -404,11 +404,7 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && !isSystemTweak && settingsGroup != .clean && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
-        switch self {
-        case .pastePlain: false
-        default: !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
-        }
+        !isSystemFeature && !isSystemTweak && settingsGroup != .clean && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && self != .pastePlain && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools || settingsGroup == .tools }

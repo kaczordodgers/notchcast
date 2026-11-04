@@ -40,7 +40,10 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
-        [
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
+        pasteImage.configureFeedback(core)
+        return [
             .init(requires: [], requiresAny: [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess], module: systemTools),
             .init(requires: [], requiresAny: [.macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices], module: tweaks),
             .init(requires: [.typingTweaks], module: typingTweaks),
@@ -53,10 +56,6 @@ extension NotchcastCore {
             .init(requires: [.macUpdate], module: macUpdate),
             .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
             .init(requires: [.audioPriority], module: AudioPriorityModule()),
-        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
-        self.pastePlain = pastePlain
-        pasteImage.configureFeedback(core)
-        return [
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: pastePlain),
