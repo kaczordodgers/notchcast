@@ -1,0 +1,92 @@
+#!/usr/bin/env python3
+"""Standalone catalog merge and PR policy harness."""
+import json
+from pathlib import Path
+import runpy
+import subprocess
+import tempfile
+import unittest
+
+ROOT = Path(__file__).resolve().parent
+tool = runpy.run_path(str(ROOT / "xcstrings-union.py"))
+merge, dump = tool["merge"], tool["dump"]
+check = runpy.run_path(str(ROOT / "check-xcstrings-order.py"))["check"]
+
+
+def catalog(**strings):
+    return dump({"sourceLanguage": "en", "strings": strings, "version": "1.0"}) + "\n"
+
+
+class CatalogTests(unittest.TestCase):
+    def test_identity(self):
+        text = (ROOT.parent / tool["CATALOG"]).read_text()
+        self.assertEqual(merge(text, text, text), text)
+
+    def test_deletions_additions_and_order(self):
+        base = catalog(Alpha={}, Deleted={}, Omega={})
+        main = catalog(Alpha={}, Omega={})
+        branch = catalog(Alpha={}, Beta={}, Deleted={}, Omega={})
+        result = merge(base, main, branch)
+        self.assertEqual(list(json.loads(result)["strings"]), ["Alpha", "Beta", "Omega"])
+        self.assertEqual(merge(base, branch, main), result)
+        self.assertEqual(merge(base, main, catalog(Omega={})), catalog(Omega={}))
+
+    def test_conflicts(self):
+        with self.assertRaisesRegex(ValueError, "value conflicts"):
+            merge(catalog(Key={"value": "old"}), catalog(Key={"value": "main"}),
+                  catalog(Key={"value": "branch"}))
+
+    def test_empty_and_last(self):
+        self.assertEqual(json.loads(merge(catalog(A={}), catalog(A={}), catalog()))["strings"], {})
+        self.assertEqual(list(json.loads(merge(catalog(), catalog(), catalog(Z={})))['strings']), ['Z'])
+
+    def test_check(self):
+        self.assertTrue(check(dict(A={}, B={}), dict(B={}, A={}), '', ''))
+        self.assertTrue(check({}, dict(Restored={}), '', ''))
+        self.assertFalse(check({}, dict(New={}), 'Text("New")', ''))
+        self.assertTrue(check(dict(A={}), {}, '', 'Text("A")'))
+        self.assertFalse(check(dict(A={}), {}, '', ''))
+        self.assertFalse(check({}, dict(Listed={}), '', '', ['Listed']))
+
+    def test_git_operations(self):
+        for operation in ('branch-first', 'main-first', 'rebase', 'cherry-pick'):
+            with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
+                def git(*args, check=True):
+                    return subprocess.run(['git', *args], cwd=directory, check=check,
+                                          capture_output=True, text=True)
+                git('init', '-b', 'main')
+                git('config', 'user.name', 'Catalog Test')
+                git('config', 'user.email', 'test@example.com')
+                path = Path(directory) / tool['CATALOG']
+                path.parent.mkdir(parents=True)
+                base = catalog(Alpha={}, Deleted={}, Key={'value': 'old'}, Omega={})
+                path.write_text(base)
+                git('add', '.')
+                git('commit', '-m', 'base')
+                git('checkout', '-b', 'branch')
+                branch = catalog(Alpha={}, Beta={}, Deleted={}, Key={'value': 'old'}, Omega={})
+                path.write_text(branch.replace('"value" : "old"', '"value": "old"'))
+                git('commit', '-am', 'branch')
+                git('checkout', 'main')
+                main = catalog(Alpha={}, Key={'value': 'main'}, Omega={})
+                path.write_text(main)
+                git('commit', '-am', 'main')
+                if operation in ('branch-first', 'rebase'):
+                    git('checkout', 'branch')
+                if operation == 'branch-first':
+                    git('merge', '--no-commit', 'main', check=False)
+                elif operation == 'main-first':
+                    git('merge', '--no-commit', 'branch', check=False)
+                elif operation == 'rebase':
+                    git('rebase', 'main', check=False)
+                else:
+                    git('cherry-pick', 'branch', check=False)
+                result = subprocess.run(['python3', str(ROOT / 'xcstrings-union.py'),
+                                         '--git', '--main-ref', 'main'], cwd=directory,
+                                        capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertEqual(path.read_text(), merge(base, main, branch))
+
+
+if __name__ == "__main__":
+    unittest.main()
