@@ -11,7 +11,9 @@ extension NotchcastPreferences {
             .diskFree: .init(direction: .below, threshold: Double(monitorDisk),
                              recoverValue: Double(monitorDisk + 5)),
             .battery: .init(direction: .below, threshold: Double(monitorBattery),
-                            recoverValue: Double(monitorBattery + 5))
+                            recoverValue: Double(monitorBattery + 5)),
+            .batteryTemperature: .init(direction: .above, threshold: Double(monitorBatteryTemperature),
+                                       recoverValue: Double(monitorBatteryTemperature - 5))
         ]
     }
 }

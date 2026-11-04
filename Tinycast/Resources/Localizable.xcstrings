@@ -771,6 +771,58 @@
         }
       }
     },
+    "Could not reach the other Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der andere Mac ist nicht erreichbar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo conectar con el otro Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impossible de joindre l’autre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一方のMacに接続できませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 Mac에 연결할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível contactar o outro Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось связаться с другим Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法连接另一台 Mac。"
+          }
+        }
+      }
+    },
     "Daily walking goal reached." : {
       "localizations" : {
         "de" : {
@@ -819,6 +871,110 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已达到每日步行目标。"
+          }
+        }
+      }
+    },
+    "Enter a T3 thread ID without whitespace." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gib eine T3-Thread-ID ohne Leerzeichen ein."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Introduce un ID de hilo de T3 sin espacios."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saisissez un identifiant de fil T3 sans espaces."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "空白を含まないT3スレッドIDを入力してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "공백 없이 T3 스레드 ID를 입력하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insira um ID de conversa do T3 sem espaços."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Введите ID потока T3 без пробелов."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入不含空白字符的 T3 线程 ID。"
+          }
+        }
+      }
+    },
+    "Fan mode: %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lüftermodus: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo de ventilador: %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode des ventilateurs : %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファンモード：%@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "팬 모드: %@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo das ventoinhas: %@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Режим вентиляторов: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "风扇模式：%@"
           }
         }
       }
@@ -1027,6 +1183,11 @@
       "ru" : { "stringUnit" : { "state" : "translated", "value" : "Открыть журнал" } },
       "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "打开日志" } }
     } },
+    "Bluetooth" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Bluetooth"}},"es":{"stringUnit":{"state":"translated","value":"Bluetooth"}},"fr":{"stringUnit":{"state":"translated","value":"Bluetooth"}},"ja":{"stringUnit":{"state":"translated","value":"Bluetooth"}},"ko":{"stringUnit":{"state":"translated","value":"Bluetooth"}},"pt":{"stringUnit":{"state":"translated","value":"Bluetooth"}},"ru":{"stringUnit":{"state":"translated","value":"Bluetooth"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"蓝牙"}}}},
+    "%@: Connected" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"%@: Verbunden"}},"es":{"stringUnit":{"state":"translated","value":"%@: Conectado"}},"fr":{"stringUnit":{"state":"translated","value":"%@: Connecté"}},"ja":{"stringUnit":{"state":"translated","value":"%@: 接続済み"}},"ko":{"stringUnit":{"state":"translated","value":"%@: 연결됨"}},"pt":{"stringUnit":{"state":"translated","value":"%@: Conectado"}},"ru":{"stringUnit":{"state":"translated","value":"%@: Подключено"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@: 已连接"}}}},
+    "%@: Low battery: %lld%%" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"%@: Niedriger Batteriestand: %lld%%"}},"es":{"stringUnit":{"state":"translated","value":"%@: Batería baja: %lld%%"}},"fr":{"stringUnit":{"state":"translated","value":"%@: Batterie faible : %lld%%"}},"ja":{"stringUnit":{"state":"translated","value":"%@: バッテリー残量低下: %lld%%"}},"ko":{"stringUnit":{"state":"translated","value":"%@: 배터리 부족: %lld%%"}},"pt":{"stringUnit":{"state":"translated","value":"%@: Bateria fraca: %lld%%"}},"ru":{"stringUnit":{"state":"translated","value":"%@: Низкий заряд батареи: %lld%%"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@: 电量低：%lld%%"}}}},
+    "Accessory notices" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Zubehörhinweise"}},"es":{"stringUnit":{"state":"translated","value":"Avisos de accesorios"}},"fr":{"stringUnit":{"state":"translated","value":"Avis des accessoires"}},"ja":{"stringUnit":{"state":"translated","value":"アクセサリの通知"}},"ko":{"stringUnit":{"state":"translated","value":"액세서리 알림"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"配件通知"}},"pt":{"stringUnit":{"state":"translated","value":"Avisos de acessórios"}},"ru":{"stringUnit":{"state":"translated","value":"Уведомления об аксессуарах"}}}},
+    "Show accessory connections and low battery notices." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Verbindungen und niedrige Akkustände von Zubehör anzeigen."}},"es":{"stringUnit":{"state":"translated","value":"Mostrar conexiones de accesorios y avisos de batería baja."}},"fr":{"stringUnit":{"state":"translated","value":"Afficher les connexions des accessoires et les alertes de batterie faible."}},"ja":{"stringUnit":{"state":"translated","value":"アクセサリの接続とバッテリー残量低下を通知します。"}},"ko":{"stringUnit":{"state":"translated","value":"액세서리 연결 및 배터리 부족 알림을 표시합니다."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"显示配件连接和低电量通知。"}},"pt":{"stringUnit":{"state":"translated","value":"Mostrar conexões de acessórios e avisos de bateria fraca."}},"ru":{"stringUnit":{"state":"translated","value":"Показывать подключения аксессуаров и уведомления о низком заряде."}}}},
     "Clipboard is empty" : {
       "localizations" : {
         "de" : {
@@ -1131,6 +1292,58 @@
         }
       }
     },
+    "Remote Screen is off on the other Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernter Bildschirm ist auf dem anderen Mac deaktiviert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pantalla remota está desactivada en el otro Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Écran distant est désactivé sur l’autre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一方のMacでリモート画面がオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 Mac에서 원격 화면이 꺼져 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Ecrã remoto está desativado no outro Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Удалённый экран выключен на другом Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一台 Mac 上的远程屏幕已关闭。"
+          }
+        }
+      }
+    },
     "Review a profile disabling all Apple intelligence features." : {
       "localizations" : {
         "de" : {
@@ -1231,6 +1444,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "检查用于停用分析、个性化广告、网页结果和建议的描述文件。"
+          }
+        }
+      }
+    },
+    "Screen Sharing is off on the other Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Bildschirmfreigabe ist auf dem anderen Mac deaktiviert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir pantalla está desactivado en el otro Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le partage d’écran est désactivé sur l’autre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "もう一方のMacで画面共有がオフです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다른 Mac에서 화면 공유가 꺼져 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A partilha de ecrã está desativada no outro Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Общий экран выключен на другом Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "另一台 Mac 上的屏幕共享已关闭。"
           }
         }
       }
@@ -18451,6 +18716,58 @@
         }
       }
     },
+    "Battery temperature threshold": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schwellenwert der Batterietemperatur"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Umbral de temperatura de la batería"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seuil de température de la batterie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バッテリー温度のしきい値"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "배터리 온도 임계값"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Limite de temperatura da bateria"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Порог температуры аккумулятора"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电池温度阈值"
+          }
+        }
+      }
+    },
     "Battery threshold": {
       "localizations": {
         "de": {
@@ -28685,6 +29002,266 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Katana 数据无效或不完整。"
+          }
+        }
+      }
+    },
+    "The T3 CLI could not be found." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die T3-CLI wurde nicht gefunden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se encontró la CLI de T3."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La CLI T3 est introuvable."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 CLIが見つかりません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 CLI를 찾을 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A CLI do T3 não foi encontrada."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось найти CLI T3."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "找不到 T3 CLI。"
+          }
+        }
+      }
+    },
+    "The T3 CLI returned an invalid response." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die T3-CLI hat eine ungültige Antwort zurückgegeben."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La CLI de T3 devolvió una respuesta no válida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La CLI T3 a renvoyé une réponse non valide."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 CLIが無効な応答を返しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 CLI가 잘못된 응답을 반환했습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A CLI do T3 retornou uma resposta inválida."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI T3 вернул некорректный ответ."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 CLI 返回了无效响应。"
+          }
+        }
+      }
+    },
+    "The T3 request timed out." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die T3-Anfrage hat das Zeitlimit überschritten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La solicitud de T3 agotó el tiempo de espera."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La demande T3 a expiré."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3リクエストがタイムアウトしました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 요청 시간이 초과되었습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A solicitação do T3 expirou."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Время ожидания запроса T3 истекло."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 请求超时。"
+          }
+        }
+      }
+    },
+    "The T3 run stopped." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der T3-Lauf wurde gestoppt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La ejecución de T3 se detuvo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’exécution de T3 s’est arrêtée."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3の実行が停止しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 실행이 중지되었습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A execução do T3 parou."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выполнение T3 остановлено."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "T3 运行已停止。"
+          }
+        }
+      }
+    },
+    "The agent is waiting for an answer in T3 Code." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Agent wartet auf eine Antwort in T3 Code."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El agente espera una respuesta en T3 Code."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L’agent attend une réponse dans T3 Code."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エージェントはT3 Codeでの回答を待っています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에이전트가 T3 Code에서 답변을 기다리고 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O agente está aguardando uma resposta no T3 Code."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Агент ожидает ответа в T3 Code."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理正在 T3 Code 中等待回答。"
           }
         }
       }
