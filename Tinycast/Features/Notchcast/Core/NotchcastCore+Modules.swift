@@ -46,16 +46,16 @@ extension NotchcastCore {
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let voiceRecording = VoiceAskRecording(core: core)
-        let voiceAsk = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel)
-        self.voiceAsk = voiceAsk
-        voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAsk)
-        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
-        self.pastePlain = pastePlain
+        let voiceAskModule = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel)
+        self.voiceAsk = voiceAskModule
+        voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)
+        let plainPasteModule = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = plainPasteModule
         pasteImage.configureFeedback(core)
         return [
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
-            .init(requires: [.pastePlain], module: pastePlain),
+            .init(requires: [.pastePlain], module: plainPasteModule),
             .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
@@ -83,7 +83,7 @@ extension NotchcastCore {
             .init(requires: [.captureTrimmer], module: captureTrimmer),
             .init(requires: [.agentAnswer], module: agentAnswer),
             .init(requires: [.recording], module: recording),
-            .init(requires: [.voiceAsk], module: voiceAsk),
+            .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),

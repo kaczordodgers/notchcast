@@ -34,7 +34,7 @@ struct SettingsBackupTest {
             try archive(["islandHoverDelay": 0.4]), try archive(["future": true]),
             try archive(["notchcast.quitProtection.mode": "future"]),
             try archive(["notchcast.day.marketSymbols": [String(repeating: "x", count: 65)]]),
-            try archive(["dictationCleanup": "{\"apiKey\":\"secret\"}"]),
+            try archive(["notchcast.dictationCleanup.settings": "{\"apiKey\":\"secret\"}"]),
             try archive(["monitorCPU": 70], extra: ["future": true])]
         for key in excluded { invalid.append(try archive(["monitorCPU": 70, key: true])) }
         for input in invalid {
