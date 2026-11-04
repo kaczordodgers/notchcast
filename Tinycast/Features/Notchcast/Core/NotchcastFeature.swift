@@ -23,6 +23,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case displayBrightness
     case quitProtection
     case liveTimers
+    case dayCalendar
     case dayWeather
     case dayMarkets
     case batteryChargeLimit
@@ -35,41 +36,22 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case torrentsUseIPhone
     case torrentsKeepSharing
 
+    /// System tools start off; everything else starts on except the exceptions below.
     var defaultOn: Bool {
-        switch self {
-        case .island: true
-        case .islandExternalDisplays: true
-        case .islandFullScreen: true
-        case .islandHoverOpen: true
-        case .islandStatusMessages: true
-        case .islandLiveActivities: true
-        case .launcherFromIsland: true
-        case .musicNowPlaying: true
-        case .musicLastPlayer: true
-        case .musicBlockAppleMusic: true
+        if isSystemFeature { return false }
+        return switch self {
         case .spotifyConnect: false
-        case .microphoneMute: true
-        case .inUseMarks: true
         case .systemMonitor: false
         case .fanControl: false
         case .monitorAlerts: false
-        case .lowDiskWarning: true
-        case .systemNotices: true
-        case .volumeLevels: true
-        case .displayBrightness: true
-        case .quitProtection: true
-        case .liveTimers: true
-        case .dayWeather: true
-        case .dayMarkets: true
         case .batteryChargeLimit: false
         case .batterySailing: false
         case .batteryHeatProtection: false
         case .batteryCalibration: false
         case .keepAwake: false
-        case .torrents: true
-        case .torrentsUseIPhone: true
         case .torrentsKeepSharing: false
         case .lidClosedAwake: false
+        default: true
         }
     }
 
@@ -115,6 +97,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
         case .liveTimers: .activities
+        case .dayCalendar: .activities
         case .dayWeather: .activities
         case .dayMarkets: .activities
         case .torrents: .torrents
@@ -147,6 +130,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Display Brightness")
         case .quitProtection: String(localized: "Quit Protection")
         case .liveTimers: String(localized: "Timers")
+        case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .torrents: String(localized: "Torrents")
@@ -185,6 +169,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
         case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
