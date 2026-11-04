@@ -88,6 +88,7 @@ final class DayCalendarService {
     func setExcludedCalendars(_ ids: Set<String>) {
         excludedIDs = ids
         defaults.set(Array(ids), forKey: excludedKey)
+        revision += 1
     }
 
     func refresh() {
