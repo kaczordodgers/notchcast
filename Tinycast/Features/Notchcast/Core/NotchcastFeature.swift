@@ -11,6 +11,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case displayBrightness
     case quitProtection
     case liveTimers
+    case dayCalendar
     case dayWeather
     case dayMarkets
     case colorPicker
@@ -32,7 +33,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
-        case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .liveTimers, .dayCalendar, .dayWeather, .dayMarkets: .activities
         case .colorPicker, .screenshot: .captureAndDictation
         }
     }
@@ -55,6 +56,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Display Brightness")
         case .quitProtection: String(localized: "Quit Protection")
         case .liveTimers: String(localized: "Timers")
+        case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
@@ -86,6 +88,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
         case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
@@ -106,7 +109,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .screenshot: [.screenRecording]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker,
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets, .colorPicker,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
             []
