@@ -4,6 +4,9 @@ import Observation
 @MainActor
 @Observable
 final class NotchcastPreferences {
+    var buildStatsPath: String {
+        didSet { defaults.set(buildStatsPath, forKey: "buildStatsPath") }
+    }
     var greenMaximizeExcludedApps: String {
         didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") }
     }
@@ -55,6 +58,7 @@ final class NotchcastPreferences {
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        buildStatsPath = defaults.string(forKey: "buildStatsPath") ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         func threshold(_ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
             let value = defaults.object(forKey: key) as? Int ?? fallback
