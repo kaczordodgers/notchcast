@@ -139,6 +139,7 @@ struct NotchcastCommand: Sendable {
         changed["monitorMemory"] = 1
         changed["monitorDisk"] = 20
         changed["monitorBattery"] = 25
+        changed["monitorBatteryTemperature"] = 45
         changed["buildStatsPath"] = "/tmp/build.json"
         changed["greenMaximizeExcludedApps"] = "com.example.app"
         changed["islandHoverDelay"] = 1.0
@@ -185,6 +186,7 @@ struct NotchcastCommand: Sendable {
         try ForkSettingsBackupState.live.apply(ForkSettingsBackupEngine.decode(
             ForkSettingsBackupEngine.encode(savedLive, created: .now)))
         let restoredLive = try ForkSettingsBackupState.live.snapshot()
+        precondition(restoredLive["monitorBatteryTemperature"] as? Int == 45)
         for (key, expected) in savedLive {
             if case .json = ForkSettingsBackupSchema.allowed[key]! {
                 let actual = try JSONSerialization.jsonObject(
