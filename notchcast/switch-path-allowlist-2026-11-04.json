@@ -11,7 +11,6 @@
   "captureTrimmer": "trimmer UI (opened after a recording) calling save",
   "captureEditor": "editor view in the open notch, then unhide",
   "agentAnswer": "T3/bot transport, waiting-item source, reply UI",
-  "voiceAsk": "concrete transport + configure call; destination setting exists",
   "recording": "launcher command or hotkey, target picker, stop/pause control",
   "agentConfirmation": "transport/actions implementations (island prompt), constructing the coordinator in the agent request path (AgentActionIndex.handle) and reading the switch there",
   "killProcess": "a process-list launcher command calling stopProcesses, then unhide",
