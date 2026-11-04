@@ -22,7 +22,9 @@ final class IslandDayPage {
         closeIsland = close
     }
 
-    var hasAccess: Bool { settings.calendarEnabled && store.access == .granted }
+    var hasAccess: Bool {
+        settings.calendarEnabled && NotchcastPreferences.shared.isOn(.dayCalendar) && store.access == .granted
+    }
     var events: [MeetingEvent] {
         hasAccess ? UpcomingWindow.agenda(from: store.events, now: clock.now) : []
     }
@@ -31,12 +33,14 @@ final class IslandDayPage {
     }
 
     func refresh() {
+        guard settings.calendarEnabled && NotchcastPreferences.shared.isOn(.dayCalendar) else { return }
         store.refreshAccess()
-        if settings.calendarEnabled { store.reload() }
+        store.reload()
     }
 
     func reloadIfStale() {
-        if settings.calendarEnabled { store.reloadIfStale(now: clock.now) }
+        guard settings.calendarEnabled && NotchcastPreferences.shared.isOn(.dayCalendar) else { return }
+        store.reloadIfStale(now: clock.now)
     }
 
     func moveSelection(_ delta: Int) {
