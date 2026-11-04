@@ -15,6 +15,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
     private var input = IslandInputState()
     var isOpen: Bool { input.isOpen }
     var isPinned: Bool { input.isPinned }
+    private(set) var commandsAvailable = false
     private(set) var hasKeyboardFocus = false
     var hasLiveActivities = false
     private(set) var page = IslandPage.home
@@ -43,7 +44,10 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
         let pages = IslandPagesCoordinator(core: core, island: self)
         self.pages = pages
         openContent = AnyView(IslandPagesView().environment(self).environment(pages).environment(core.palette))
-        setCommandAvailable = { [weak core] in core?.appIndex.setCommandsVisible([.toggleIsland], $0) }
+        setCommandAvailable = { [weak self, weak core] available in
+            self?.commandsAvailable = available
+            core?.appIndex.refreshNotchcastCommands()
+        }
         setCommandAvailable(false)
     }
 
@@ -90,7 +94,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
         panels.removeAll()
     }
 
-    func open(page: IslandPage, on screen: NSScreen? = nil, takeKey: Bool = false) {
+    func open(page: IslandPage, on screen: NSScreen? = nil, takeKey: Bool = true) {
         guard observationID != nil, NotchcastPreferences.shared.isOn(.island) else { return }
         let frames = panels.map(\.displayFrame)
         let point = screen.map { CGPoint(x: $0.frame.midX, y: $0.frame.midY) } ?? NSEvent.mouseLocation
@@ -123,7 +127,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
     }
 
     func toggle() {
-        if isOpen { close() } else { open(page: page, takeKey: true) }
+        if isOpen { close() } else { open(page: page) }
     }
 
     func selectPage(_ page: IslandPage) {
@@ -145,7 +149,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
         for panel in panels {
             panel.onOpen = { [weak self, weak panel] in
                 guard let self, let panel else { return }
-                open(page: page, on: panel.screen, takeKey: false)
+                open(page: page, on: panel.screen)
             }
             panel.onKey = { [weak self] in self?.handleKey($0) ?? false }
             panel.onFocus = { [weak self] in self?.hasKeyboardFocus = $0 }

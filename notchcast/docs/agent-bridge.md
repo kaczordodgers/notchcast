@@ -38,13 +38,13 @@ Replies contain `code` and `result`. The CLI prints compact JSON with `--json`, 
 Exit codes are 0 success, 1 failed/unavailable, 2 invalid request, 3 not running and 5 declined.
 Dry runs validate schema and availability without asking for consent or running effects.
 
-## Later lanes
+## Consent and audit
 
-`authorize(action, parameters)` is the consent seam. Its default permits only actions upstream
-classifies as harmless; consent and dangerous actions return `declined`. Availability and lifecycle
-are checked again after approval and before dispatch. `didComplete(request, reply)` and `readAudit`
-are the audit seams; audit returns unavailable until a provider is attached. This lane does not
-implement remembered grants, confirmation UI or audit persistence.
+The bridge uses AgentConsentPolicy and the bundle-isolated AgentGrantStore. The socket identifies
+clients only as local-cli; without authenticated per-agent identity, requests needing a new approval
+fail closed. Dangerous actions remain refused while island confirmation is unavailable.
+AgentAuditStore records completed execution requests with redacted parameters. The audit verb returns
+persisted entries; malformed JSONL records are skipped and counted without hiding valid records.
 
 ## Left for the look
 

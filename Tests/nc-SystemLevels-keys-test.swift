@@ -1,0 +1,185 @@
+// notchcast-sources: Tinycast/Features/SystemLevels/Model/*.swift
+// notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+import AppKit
+
+enum Paster {
+    static let tinycastEventTag: Int64 = 0x54494E59
+}
+
+enum SystemLevelsService {
+    enum Result {
+        case applied(LevelNotice), fallbackToNativeKeys, cancelled
+    }
+}
+
+@MainActor
+final class EventTapHub {
+    enum Verdict { case pass, swallow }
+    typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
+    var handlers: [UUID: SynchronousHandler] = [:]
+    var masks: [CGEventMask] = []
+    var refreshes = 0
+
+    func registerSynchronous(mask: CGEventMask, handler: @escaping SynchronousHandler) -> UUID {
+        let id = UUID()
+        handlers[id] = handler
+        masks.append(mask)
+        return id
+    }
+
+    func remove(_ id: UUID) { handlers[id] = nil }
+    func refreshPermission() { refreshes += 1 }
+}
+
+@main @MainActor
+struct MediaLevelKeysTests {
+    static var checks = 0
+
+    static func check(_ condition: Bool, _ message: String) {
+        checks += 1
+        precondition(condition, message)
+    }
+
+    static func data(_ key: MediaLevelKey, down: Bool = true, repeat repeating: Bool = false) -> Int {
+        (key.rawValue << 16) | ((down ? 0xA : 0xB) << 8) | (repeating ? 1 : 0)
+    }
+
+    static func policyChecks() {
+        let keys = Set(MediaLevelKey.allCases)
+        for key in keys {
+            var policy = MediaLevelKeyPolicy()
+            func decide(_ down: Bool = true, repeat repeating: Bool = false, flags: UInt64 = 0)
+                -> MediaLevelKeyPolicy.Decision {
+                policy.decide(subtype: 8, data: data(key, down: down, repeat: repeating),
+                              modifiers: flags, enabled: keys)
+            }
+            check(decide(false) == .pass, "Unowned releases pass")
+            check(decide(repeat: true) == .pass, "Unowned repeats pass")
+            for flags: UInt64 in [0x20000, 0x40000, 0x80000, 0x100000, 0x1E0000] {
+                check(decide(flags: flags) == .pass, "Other shortcuts pass")
+                check(decide(false) == .pass, "Other shortcuts keep their release")
+            }
+            check(decide() == .press(key, fine: false), "Plain key is a standard step")
+            check(decide(repeat: true, flags: 0xA0000) == (key == .mute ? .swallow : .press(key, fine: true)),
+                  "Repeats follow held ownership; mute toggles once")
+            check(decide(false, flags: 0x100000) == .swallow, "Modifier changes cannot leak an owned release")
+            check(decide(false) == .pass, "Release clears ownership")
+            check(decide(flags: 0xA0000) == .press(key, fine: true), "Shift and Option select quarter steps")
+            check(decide(false) == .swallow, "Fine release is owned")
+            check(policy.decide(subtype: 8, data: data(key), modifiers: 0, enabled: []) == .pass,
+                  "Disabled features pass untouched")
+        }
+        var policy = MediaLevelKeyPolicy()
+        check(policy.decide(subtype: 7, data: data(.volumeUp), modifiers: 0, enabled: keys) == .pass,
+              "Other system subtypes pass")
+        check(policy.decide(subtype: 8, data: 16 << 16 | 0xA00, modifiers: 0, enabled: keys) == .pass,
+              "Play and keyboard light keys pass")
+        check(policy.decide(subtype: 8, data: 0xC00, modifiers: 0, enabled: keys) == .pass,
+              "Unknown key states pass")
+    }
+
+    static func event(_ key: MediaLevelKey, down: Bool = true, repeat repeating: Bool = false,
+                      flags: NSEvent.ModifierFlags = [], tagged: Bool = false) -> CGEvent {
+        guard let event = NSEvent.otherEvent(
+            with: .systemDefined, location: .zero, modifierFlags: flags, timestamp: 0,
+            windowNumber: 0, context: nil, subtype: 8,
+            data1: data(key, down: down, repeat: repeating), data2: -1)?.cgEvent
+        else { fatalError("Could not create an unposted media event") }
+        if tagged { event.setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag) }
+        return event
+    }
+
+    static func drain() async {
+        for _ in 0..<20 { await Task.yield() }
+        try? await Task.sleep(for: .milliseconds(10))
+    }
+
+    static func monitorChecks() async {
+        let hub = EventTapHub()
+        var presses: [MediaLevelKeyMonitor.Press] = []
+        var notices: [LevelNotice] = []
+        var replays: [MediaLevelKeyMonitor.Press] = []
+        var result = SystemLevelsService.Result.applied(.init(kind: .volume, level: 0.5))
+        var suspended: CheckedContinuation<Void, Never>?
+        var block = false
+        var executions: [MediaLevelKey] = []
+        let monitor = MediaLevelKeyMonitor(hub: hub, prepare: { press in
+            presses.append(press)
+            return {
+                executions.append(press.key)
+                if block { await withCheckedContinuation { suspended = $0 } }
+                return result
+            }
+        }, applied: { notices.append($0) }, replay: { replays.append($0) })
+        monitor.setEnabled([.volumeUp, .volumeDown, .mute])
+        check(hub.handlers.count == 1 && hub.masks == [1 << 14], "Only system-defined events are registered")
+        let handler = hub.handlers.values.first!
+        let system = CGEventType(rawValue: 14)!
+        check(handler(system, event(.brightnessUp)) == .pass, "Other feature passes")
+        check(handler(system, event(.volumeUp, tagged: true)) == .pass, "Native replays cannot loop")
+        check(handler(.keyDown, event(.volumeUp)) == .pass, "Non-media event types pass")
+        check(handler(system, event(.volumeUp, flags: [.shift, .option])) == .swallow, "Press is swallowed synchronously")
+        check(handler(system, event(.volumeUp, down: false)) == .swallow, "Release is swallowed synchronously")
+        await drain()
+        check(presses.count == 1 && presses[0].fine, "Decode sends one fine operation")
+        check(notices.count == 1 && replays.isEmpty, "Success publishes without native HUD")
+        let native = MediaLevelKeyMonitor.nativeEvents(for: presses[0])
+        check(native.count == 2, "Native fallback is a complete press and release")
+        for (index, event) in native.enumerated() {
+            check(event.getIntegerValueField(.eventSourceUserData) == Paster.tinycastEventTag,
+                  "Every replay event bypasses interception")
+            check(NSEvent(cgEvent: event)?.data1 == data(.volumeUp, down: index == 0),
+                  "Native fallback preserves the key and clears the repeat bit")
+            check(event.flags.intersection([.maskShift, .maskAlternate]) == [.maskShift, .maskAlternate],
+                  "Native fallback preserves fine-step modifiers")
+        }
+        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
+        await drain()
+        check(hub.refreshes == 1, "Returning from permission settings refreshes the shared hub")
+        result = .fallbackToNativeKeys
+        check(handler(system, event(.volumeDown)) == .swallow, "Failed hardware starts intercepted")
+        await drain()
+        check(replays.count == 1 && replays[0].key == .volumeDown, "Failure replays the original key")
+        result = .cancelled
+        _ = handler(system, event(.mute))
+        _ = handler(system, event(.mute, repeat: true))
+        await drain()
+        check(presses.count == 3 && replays.count == 1, "Cancelled destinations do not replay; mute repeats do nothing")
+        block = true
+        _ = handler(system, event(.volumeUp))
+        await drain()
+        for _ in 0..<20 { _ = handler(system, event(.volumeUp, repeat: true)) }
+        await drain()
+        check(presses.count == 24, "All repeated events decode")
+        block = false
+        suspended?.resume()
+        await drain()
+        check(replays.count == 1, "Repeated cancelled commands do not replay")
+        check(executions.count == 5, "Held repeats leave only one pending hardware operation")
+        block = true
+        result = .fallbackToNativeKeys
+        _ = handler(system, event(.volumeDown))
+        await drain()
+        monitor.stop()
+        suspended?.resume()
+        await drain()
+        check(hub.handlers.isEmpty && replays.count == 1, "Stop removes the consumer and cancels late fallback")
+        monitor.setEnabled([.brightnessUp])
+        let brightness = hub.handlers.values.first!
+        _ = brightness(system, event(.brightnessUp))
+        monitor.stop()
+        await drain()
+        check(presses.count == 25, "Already-dispatched callbacks cannot outlive registration")
+        let refreshes = hub.refreshes
+        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
+        await drain()
+        check(hub.refreshes == refreshes, "Off removes permission observation")
+    }
+
+    static func main() async {
+        policyChecks()
+        await monitorChecks()
+        print("PASS: \(checks) media-key checks; unposted events, no real hardware writes")
+    }
+}
