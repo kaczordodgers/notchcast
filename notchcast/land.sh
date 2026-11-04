@@ -37,13 +37,24 @@ fi
 mkdir "$scratch/tmp"
 export TMPDIR="$scratch/tmp"
 cd "$scratch/tree"
+python3 notchcast/check-feature-shape.py || refuse 'feature shape'
+swiftc -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift || refuse 'feature typecheck'
 "$selector" "$base" HEAD > "$scratch/selected"
 while IFS= read -r name; do
     [ -n "$name" ] || continue
     ./Scripts/run-tests.sh "$name" || refuse "$name failed"
 done < "$scratch/selected"
 echo 'PASS: merged-tree harnesses'
+# Squash here, not on GitHub: GitHub ignores .gitattributes merge=union and calls union-only overlaps conflicts.
+# Not covered without an Xcode build of this tree: code no selected harness compiles (UI, AppCore wiring,
+# resources); the PR build covered the head alone, and the main harness job, Sync and Snapshot follow on main.
 if [ "$check" -eq 0 ]; then
-    gh pr merge "$pr" --squash --match-head-commit "$head" \
-        --author-email 336236323+kaczordodgers@users.noreply.github.com -R kaczordodgers/notchcast
+    title=$(gh pr view "$pr" -R kaczordodgers/notchcast --json title --jq .title)
+    [[ "$title" == Notchcast:* ]] || title="Notchcast: $title"
+    commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
+        GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
+        git commit-tree "HEAD^{tree}" -p "$base" -m "$title (#$pr)")
+    # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
+    git push origin "$commit:refs/heads/main" || refuse "main moved past ${base:0:8}; run land.sh $pr again"
+    gh pr close "$pr" -R kaczordodgers/notchcast --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base."
 fi
