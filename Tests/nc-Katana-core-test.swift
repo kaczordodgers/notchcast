@@ -8,6 +8,8 @@
 
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 import Foundation
 
 @MainActor
@@ -308,7 +310,7 @@ struct KatanaTests {
         expect(!FileManager.default.fileExists(atPath: "Tinycast/Features/Katana/README.md"),
                "Katana documentation cannot collide with bundled README")
         expect(FileManager.default.fileExists(atPath: "notchcast/docs/katana.md"), "Katana docs live in fork docs")
-        let module = KatanaModule()
+        let module = KatanaModule(midi: SilentKatanaMIDI())
         expect(NotchcastFeature.katana.settingsGroup == .system, "Katana uses the System settings group")
         module.start()
         expect(!module.client.isConnected && module.audio.isEnabled, "Module starts without opening hardware")
@@ -362,4 +364,15 @@ struct KatanaTests {
         do { try await store.importFiles([bad]); fatalError("Bad import accepted") } catch {}
         expect(try Data(contentsOf: library) == data, "Failed import preserves library")
     }
+}
+
+@MainActor
+final class SilentKatanaMIDI: KatanaMIDILayer {
+    var endpoints: [String] = []
+    var changed: (() -> Void)?
+    var received: (([UInt8]) -> Void)?
+    func start() throws {}
+    func connect(_ name: String) throws { fatalError("No hardware in tests") }
+    func send(_ bytes: [UInt8]) throws { fatalError("No hardware in tests") }
+    func stop() {}
 }
