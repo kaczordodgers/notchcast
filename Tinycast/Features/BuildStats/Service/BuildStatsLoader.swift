@@ -21,8 +21,10 @@ enum BuildStatsLoader {
         let latestChangelog: [BuildStatsSnapshot.DatedEntry]
         let metrics: [String: Double]
         let entryCount: Int
+        let modificationDate: Date
 
-        init(_ snapshot: BuildStatsSnapshot) throws {
+        init(_ snapshot: BuildStatsSnapshot, modificationDate: Date) throws {
+            self.modificationDate = modificationDate
             var models: [String: Totals] = [:]
             var efforts: [String: Totals] = [:]
             for usage in snapshot.tokens {
@@ -54,8 +56,10 @@ enum BuildStatsLoader {
         }
         do {
             let url = URL(filePath: (path as NSString).expandingTildeInPath)
-            let values = try url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
-            guard values.isRegularFile == true else { return .failed(.unreadable) }
+            let values = try url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey, .contentModificationDateKey])
+            guard values.isRegularFile == true, let modificationDate = values.contentModificationDate else {
+                return .failed(.unreadable)
+            }
             guard (values.fileSize ?? 0) <= BuildStatsSnapshot.maximumBytes else {
                 return .failed(.tooLarge)
             }
@@ -66,8 +70,11 @@ enum BuildStatsLoader {
             try Task.checkCancellation()
             let snapshot: BuildStatsSnapshot
             do { snapshot = try BuildStatsSnapshot.decode(data) }
+            catch is CancellationError { return .unconfigured }
             catch { return .failed(.invalid) }
-            return try .loaded(ReadModel(snapshot))
+            return try .loaded(ReadModel(snapshot, modificationDate: modificationDate))
+        } catch is CancellationError {
+            return .unconfigured
         } catch let failure as Failure {
             return .failed(failure)
         } catch {
