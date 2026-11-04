@@ -11,6 +11,10 @@ enum MusicCommands {
     static let launcherCommands: [NotchcastCommand] = []
 }
 
+enum TorrentCommands {
+    static let launcherCommands: [NotchcastCommand] = []
+}
+
 enum SettingsTab: CaseIterable, Sendable {
     case commands, quicklinks, ai, quickActions, fileSearch, notes, snippets, navigation
     case windowManagement, clipboard, emoji, calendar, notchcast
