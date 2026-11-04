@@ -1,5 +1,11 @@
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
-// notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentModule.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentAria2Session.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentManager.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentQueueHost.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentRPCClient.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentS*.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentTool*.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
@@ -9,6 +15,16 @@
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift
 import Foundation
+
+// notchcast-sources: Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift
+@MainActor enum NotchcastCore {}
+enum AppPaths {
+    static func applicationSupport() -> URL { URL(fileURLWithPath: "/unused") }
+}
+@MainActor final class AppCore {
+    var messages: [String] = []
+    func showMessage(_ message: String) { messages.append(message) }
+}
 
 @main @MainActor
 struct TorrentModuleTests {
@@ -51,6 +67,7 @@ struct TorrentModuleTests {
     }
 
     static func main() async throws {
+        try await processLifecycle()
         let suite = "torrent-module-test.\(UUID())"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -149,5 +166,50 @@ struct TorrentModuleTests {
         precondition(!NotchcastPreferences(suiteName: suite).isOn(.torrents))
         precondition(NotchcastPreferences(suiteName: suite).isOn(.torrentsKeepSharing))
         print("PASS: torrent module lifecycle, defaults, gating, magnet/file routing and policy injection")
+    }
+
+    struct FakeTool: TorrentToolLocating {
+        let url: URL
+        func aria2c() -> URL? { url }
+    }
+
+    static func processLifecycle() async throws {
+        let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
+            ?? FileManager.default.temporaryDirectory.path).appending(path: "fake-aria2-module")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let tool = root.appending(path: "aria2c")
+        try "#!/bin/sh\nexit 1\n".write(to: tool, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: tool.path)
+        let suite = "torrent-process-module.\(UUID())"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        let session = TorrentAria2Session(stateDirectory: root.appending(path: "state"), locator: FakeTool(url: tool))
+        let module = TorrentModule(session: session, preferences: preferences, destination: root,
+                                  locator: FakeTool(url: tool), readInterfaces: { [] })
+        let controller = NotchcastModuleController([.init(requires: [.torrents], module: module)],
+                                                  preferences: preferences)
+        controller.run()
+        await module.refreshTool()
+        precondition(module.toolURL == tool && module.isRunning)
+        precondition(module.open(URL(string: "magnet:?xt=urn:btih:" + String(repeating: "b", count: 40))!))
+        try await until("fake executable failure") { module.manager.jobs.first?.state == .failed }
+        preferences.set(.torrents, false)
+        try await until("fake executable module stops") { !module.isRunning }
+        await module.manager.stop()
+        precondition(!session.isAlive)
+        preferences.set(.torrents, true)
+        try await until("fake executable module restarts") { module.isRunning }
+        module.stop()
+        await module.manager.stop()
+        let core = AppCore()
+        precondition(!core.handleTorrentURL(URL(string: "https://example.invalid")!))
+        let shared = NotchcastCore.torrents.preferences
+        let original = shared.isOn(.torrents)
+        defer { shared.set(.torrents, original) }
+        shared.set(.torrents, false)
+        precondition(core.handleTorrentURL(URL(fileURLWithPath: "/fixture/test.torrent")))
+        precondition(core.messages.count == 1)
+        print("PASS: production entries and fake aria2c process start, failure, stop and toggle; no network")
     }
 }
