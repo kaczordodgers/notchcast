@@ -151,7 +151,7 @@ extension NotchcastFeature {
     }
 
     var defaultEnabled: Bool {
-        ![.urlCleaner, .convertFiles, .mediaTools, .commandRunner].contains(self) && !isSystemFeature && !isDownloadsFeature
+        ![.urlCleaner, .convertFiles, .mediaTools, .commandRunner].contains(self) && !isSystemFeature
     }
 
     var isSystemFeature: Bool {
