@@ -845,6 +845,7 @@ extension NotchcastFeature {
         case .machMBPFans: false
         case .agentSessions: false
         case .agentPricing: false
+        case .treadmillWalk: false
         default: true
         }
     }
