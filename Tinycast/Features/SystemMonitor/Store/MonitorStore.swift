@@ -36,6 +36,8 @@ nonisolated struct MonitorSnapshot: Sendable {
 @MainActor
 @Observable
 final class MonitorStore {
+    var ejectStates: [String: DiskEjectState] = [:]
+    var ejectLifecycle: (enabled: Bool, generation: Int) { (enabled, generation) }
     private(set) var latest = MonitorSnapshot()
     private(set) var histories: [String: MonitorHistory] = [:]
     private(set) var demand = 0
