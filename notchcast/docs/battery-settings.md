@@ -1,7 +1,8 @@
 # Battery and energy settings
 
 `NotchcastSystemSettingsSection` owns the system monitor, fan, battery and energy rows in
-Settings > Notchcast. These switches default off and work independently of the island.
+Settings > Notchcast. Monitor switches default on; the fan, battery and energy switches start
+off (`NotchcastFeature.startsOff`). All work independently of the island.
 Charge limits are 50–100%, in steps of 5; keep-awake durations are 15–240 minutes.
 Both options persist in the fork-local preferences suite.
 

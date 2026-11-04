@@ -20,6 +20,7 @@ jobs:
   regenerate:
     runs-on: macos-15
     timeout-minutes: 15
+    environment: sync
     steps:
       - uses: actions/checkout@v7
         with:
