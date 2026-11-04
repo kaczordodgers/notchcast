@@ -29,6 +29,7 @@ struct NotchcastSettingsView: View {
                 .settingsEnabled(preferences.isOn(.island))
 
             NotchcastMusicSettings()
+            NotchcastArchiveSettings()
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
             }

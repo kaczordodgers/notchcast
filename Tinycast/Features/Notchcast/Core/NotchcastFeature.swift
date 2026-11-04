@@ -22,22 +22,28 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
-    var defaultOn: Bool { self != .spotifyConnect && !isSystemFeature }
+    case archives, archivesInPlace, archivesDefaultApp
+
+    var defaultOn: Bool {
+        self != .spotifyConnect && !isSystemFeature && self != .archivesInPlace && self != .archivesDefaultApp
+    }
 
     var dependencies: [Self] {
         switch self {
         case .island: []
+        case .archivesInPlace, .archivesDefaultApp: [.archives]
         case .musicLastPlayer, .spotifyConnect: [.island, .musicNowPlaying]
         default: needsIsland ? [.island] : []
         }
     }
 
     enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities, music
+        case island, islandOptions, launcher, system, activities, music, archives
     }
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .archives, .archivesInPlace, .archivesDefaultApp: .archives
         case .island: .island
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
@@ -54,6 +60,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .archives: String(localized: "Archives")
+        case .archivesInPlace: String(localized: "Extract in place")
+        case .archivesDefaultApp: String(localized: "Open archives with Notchcast")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -89,6 +98,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .archives: String(localized: "Extract opened archives beside the original file.")
+        case .archivesInPlace: String(localized: "The archive shrinks while extracting.")
+        case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -125,6 +137,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .archives, .archivesInPlace, .archivesDefaultApp: []
         case .musicLastPlayer, .musicBlockAppleMusic, .microphoneMute,
             .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
@@ -140,7 +153,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        self != .displayBrightness && self != .quitProtection && !isSystemFeature && settingsGroup != .archives
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
