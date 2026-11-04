@@ -2,7 +2,7 @@ import SwiftUI
 
 struct NotchcastAudioPrioritySettingsRows: View {
     @Bindable private var preferences = NotchcastPreferences.shared
-    @Bindable private var store = NotchcastPreferences.shared.audioPriority
+    @Bindable private var store = AudioPriorityPreferences.shared
 
     var body: some View {
         Toggle("Audio device priority", isOn: $preferences.audioPriorityEnabled)

@@ -156,7 +156,7 @@ struct NotchcastTweaksAppsSettingsRows: View {
     private var backupRows: some View {
         Group {
             featureSwitch(.iPhoneBackupTweaks)
-            preference("automatic-backups", title: "Disable automatic iPhone backups",
+            preference("automatic-backups", title: "Turn off iPhone auto backups",
                        module: NotchcastCore.iPhoneBackupTweaks, feature: .iPhoneBackupTweaks,
                        writes: IPhoneBackupPolicy.writes(automaticBackups: false), restart: nil)
             LabeledContent {

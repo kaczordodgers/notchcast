@@ -4,6 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class AudioPriorityPreferences: AudioPriorityStore {
+    static let shared = AudioPriorityPreferences(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
     private let defaults: UserDefaults
     var outputs: [String] { didSet { defaults.set(outputs, forKey: "audioOutputs") } }
     var microphones: [String] { didSet { defaults.set(microphones, forKey: "audioMicrophones") } }

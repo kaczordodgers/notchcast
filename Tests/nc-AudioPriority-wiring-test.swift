@@ -42,7 +42,7 @@ struct AudioPriorityWiringTests {
         let suite = "audio-priority-test-" + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        let store = preferences.audioPriority
+        let store = AudioPriorityPreferences(suiteName: suite)
         store.save(.init(enabled: true, uids: ["high", "low"]), for: .output)
         let restored = AudioPriorityPreferences(suiteName: suite)
         precondition(restored.ranking(for: .output) == store.ranking(for: .output))

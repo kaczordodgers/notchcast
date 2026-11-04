@@ -112,7 +112,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastTweaksApps, "Key repeat speed"),
         .init(.notchcastTweaksApps, "Key repeat delay"),
         .init(.notchcastTweaksApps, "New Finder windows"),
-        .init(.notchcastTweaksApps, "Disable automatic iPhone backups"),
+        .init(.notchcastTweaksApps, "Turn off iPhone auto backups"),
         .init(.notchcastTweaksApps, "iPhone backup folder"),
         .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
         .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display", "hover delay"]),

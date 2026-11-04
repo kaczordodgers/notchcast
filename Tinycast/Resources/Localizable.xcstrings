@@ -3159,7 +3159,7 @@
         }
       }
     },
-    "Disable automatic iPhone backups" : {
+    "Turn off iPhone auto backups" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {

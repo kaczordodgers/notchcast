@@ -21,7 +21,6 @@ final class NotchcastPreferences {
     var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.chargeLimits.last(where: { $0 <= newValue }) ?? 60; defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
 
-    let audioPriority: AudioPriorityPreferences
     var audioPriorityEnabled: Bool { get { isOn(.audioPriority) } set { set(.audioPriority, newValue) } }
     @ObservationIgnored var commandAvailabilityChanged: (() -> Void)?
     var batteryJournalData: Data? { get { defaults.data(forKey: "batteryOwnershipJournal") } set { defaults.set(newValue, forKey: "batteryOwnershipJournal") } }
@@ -34,7 +33,6 @@ final class NotchcastPreferences {
     var batteryPriorLimit: Int { get { defaults.integer(forKey: "batteryPriorLimit") } set { defaults.set(newValue, forKey: "batteryPriorLimit") } }
 
     init(suiteName: String) {
-        audioPriority = AudioPriorityPreferences(suiteName: suiteName)
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
         buildStatsPath = defaults.string(forKey: "buildStatsPath") ?? ""
