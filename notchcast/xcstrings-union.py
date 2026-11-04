@@ -87,7 +87,7 @@ def git(*args):
     return subprocess.check_output(["git", *args], text=True).strip("\n")
 
 
-def git_inputs(main_ref):
+def git_inputs(main_ref, catalog=CATALOG):
     incoming = next((r for r in ("MERGE_HEAD", "REBASE_HEAD", "CHERRY_PICK_HEAD")
                      if subprocess.run(["git", "rev-parse", "--verify", "-q", r],
                                        capture_output=True).returncode == 0), None)
@@ -103,24 +103,31 @@ def git_inputs(main_ref):
     upstream = matches[0]
     branch = next(r for r in refs if r != upstream)
     try:
-        base = git("show", ":1:" + CATALOG)
+        base = git("show", ":1:" + catalog)
     except subprocess.CalledProcessError:
         ancestor = git("merge-base", *refs) if incoming == "MERGE_HEAD" else git("rev-parse", incoming + "^")
-        base = git("show", ancestor + ":" + CATALOG)
-    target = subprocess.check_output(["git", "show", upstream + ":" + CATALOG]).decode()
-    return base, target, git("show", branch + ":" + CATALOG)
+        base = git_catalog(ancestor, catalog)
+    target = git_catalog(upstream, catalog)
+    return base, target, git_catalog(branch, catalog)
+
+
+def git_catalog(ref, catalog):
+    if catalog not in git('ls-tree', '-r', '--name-only', ref).splitlines():
+        return dump({'sourceLanguage': 'en', 'strings': {}, 'version': '1.0'}) + '\n'
+    return subprocess.check_output(['git', '-C', str(Path.cwd()), 'show', ref + ':' + catalog]).decode()
 
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--git", action="store_true")
     parser.add_argument("--main-ref", default="origin/main")
+    parser.add_argument("--catalog", default=CATALOG)
     parser.add_argument("files", nargs="*")
     args = parser.parse_args()
     try:
         if args.git:
-            inputs = git_inputs(args.main_ref)
-            out = Path(git("rev-parse", "--show-toplevel")) / CATALOG
+            inputs = git_inputs(args.main_ref, args.catalog)
+            out = Path(git("rev-parse", "--show-toplevel")) / args.catalog
         else:
             if len(args.files) != 4:
                 parser.error("expected BASE MAIN BRANCH OUT")
