@@ -27,6 +27,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case cleaningMode
     case appUpdates
     case macUpdate
+    case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -64,9 +65,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dockTweaks
     case appleAppsTweaks
     case iPhoneBackupTweaks
-
-
-
+    case buildStats
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -74,6 +73,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleaningMode: .tools
         case .appUpdates: .tools
         case .macUpdate: .tools
+        case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -83,6 +83,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherFromIsland: .launcher
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .accessoryBatteries: .systemTools
@@ -142,6 +143,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleaningMode: String(localized: "Cleaning mode")
         case .appUpdates: String(localized: "App updates")
         case .macUpdate: String(localized: "Update this Mac")
+        case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -182,6 +184,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: String(localized: "Dock and windows")
         case .appleAppsTweaks: String(localized: "Apple apps")
         case .iPhoneBackupTweaks: String(localized: "iPhone backup")
+        case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -210,6 +213,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleaningMode: String(localized: "Press Escape five times to exit; ends after 300 seconds.")
         case .appUpdates: String(localized: "Check installed apps for updates on demand.")
         case .macUpdate: String(localized: "Run maintenance only after confirmation.")
+        case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -250,6 +254,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: String(localized: "Enable confirmed system preference changes.")
         case .appleAppsTweaks: String(localized: "Enable confirmed system preference changes.")
         case .iPhoneBackupTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -337,6 +342,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
+        case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -371,13 +377,10 @@ extension NotchcastFeature {
         default: false
         }
     }
-
-
-
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && !isSystemTweak && settingsGroup != .clean && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        !isSystemFeature && !isSystemTweak && settingsGroup != .clean && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools || settingsGroup == .tools }

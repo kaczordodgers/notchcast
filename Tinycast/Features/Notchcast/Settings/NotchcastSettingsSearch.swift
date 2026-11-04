@@ -8,6 +8,7 @@ extension SettingsAnchor {
     static let notchcastAppUpdates = Self(tab: .notchcast, title: "App updates")
     static let notchcastMacUpdate = Self(tab: .notchcast, title: "Update this Mac")
     static let notchcastTweaksApps = Self(tab: .notchcast, title: "System preferences")
+    static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -47,6 +48,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastCleaning, "Cleaning mode"),
         .init(.notchcastAppUpdates, "App updates"),
         .init(.notchcastMacUpdate, "Update this Mac"),
+        .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),

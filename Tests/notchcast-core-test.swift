@@ -40,6 +40,13 @@ struct NotchcastCoreTests {
         precondition(m0.isSubset(of: NotchcastFeature.allCases.map(\.rawValue)))
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
         precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
+        for feature: NotchcastFeature in [.audioPriority, .cleanJunk, .cleanHistory, .cleanAIData,
+            .cleanDisk, .cleanPurge, .cleanOptimize, .cleanSystem, .cleaningMode, .appUpdates,
+            .macUpdate, .startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
+            .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices, .typingTweaks,
+            .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks, .buildStats] {
+            precondition(!feature.defaultEnabled && !preferences.isOn(feature))
+        }
         let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
             .displayBrightness, .quitProtection, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets]
         for feature in l3 {

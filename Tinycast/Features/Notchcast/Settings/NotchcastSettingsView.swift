@@ -32,6 +32,7 @@ struct NotchcastSettingsView: View {
             Section("Tools") { NotchcastToolsWiringSettingsRows() }
 
             NotchcastExtrasSection()
+            BuildStatsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
