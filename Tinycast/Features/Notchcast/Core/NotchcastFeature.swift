@@ -100,7 +100,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .machLink: String(localized: "Connect to a paired Mac on the local network.")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
         case .backupStatus: String(localized: "Warns when backups fail or become stale.")
-        case .linkHealth: String(localized: "Monitor the connection to the paired Mac.")
+        case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
