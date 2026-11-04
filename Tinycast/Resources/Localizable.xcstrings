@@ -1,6 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Not supported on this Mac" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Auf diesem Mac nicht unterstützt" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No compatible con este Mac" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Non pris en charge sur ce Mac" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "このMacでは非対応です" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "이 Mac에서는 지원되지 않음" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não compatível com este Mac" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не поддерживается на этом Mac" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "此 Mac 不支持" } }
+      }
+    },
     "Monitor Alerts": {
       "localizations": {
         "de": {

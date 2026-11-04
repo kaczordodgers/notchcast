@@ -53,8 +53,16 @@ enum RootContract {
         case version(String)
         case pong
         case ok
+        case chargeLimit(Int?)
 
         init?(command: Command, output: String) {
+            if command.rawValue == "charge-limit-read" {
+                if output == "off\n" { self = .chargeLimit(nil); return }
+                guard let value = Int(output.dropLast()), (1...100).contains(value),
+                      output == "\(value)\n" else { return nil }
+                self = .chargeLimit(value)
+                return
+            }
             if command == .version {
                 let version = output.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard Int(version) != nil else { return nil }

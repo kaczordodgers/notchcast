@@ -21,7 +21,7 @@ struct BatteryStoreTests {
         preferences.batteryChargePercent = 45
         precondition(preferences.batteryChargePercent == 80)
         preferences.batteryChargePercent = 100
-        precondition(preferences.batteryChargePercent == 100)
+        precondition(preferences.batteryChargePercent == 80)
         preferences.keepAwakeMinutes = -1
         precondition(preferences.keepAwakeMinutes == 60)
         precondition(NotchcastPreferences(suiteName: suite).keepAwakeMinutes == 60)
@@ -60,16 +60,25 @@ struct BatteryStoreTests {
         }, root: {
             calls.append($0)
             if fail { throw RootHelperClient.Failure.timedOut }
-        }, installed: { true }, version: { "2" }, create: { _ in 99 }, release: { _ in }))
+        }, installed: { true }, version: { "2" }, create: { _ in 99 }, release: { _ in },
+           supports: { _ in true }, readLimit: { 70 }))
         preferences.set(.keepAwake, false)
         preferences.set(.batterySailing, true)
         preferences.batteryChargePercent = 80
         modern.start()
         for _ in 0..<100 { await Task.yield() }
         await modern.evaluate(now: .now)
-        precondition(!modern.needsHelperUpdate && calls == [.chargingOff])
+        precondition(!modern.needsHelperUpdate && calls == [.chargeLimit80, .chargingOff])
         await modern.evaluate(now: .now)
-        precondition(calls == [.chargingOff])
+        precondition(calls == [.chargeLimit80, .chargingOff])
+        for percent in NotchcastPreferences.chargeLimits {
+            preferences.batteryChargePercent = percent
+            await modern.evaluate(now: .now)
+            precondition(calls.last?.rawValue == "charge-limit-\(percent)")
+        }
+        preferences.set(.batteryChargeLimit, false)
+        await modern.evaluate(now: .now)
+        precondition(calls.last == .chargeLimitOff && modern.nativeLimit == nil)
         preferences.set(.lidClosedAwake, true)
         preferences.set(.keepAwake, true)
         fail = true
@@ -78,6 +87,40 @@ struct BatteryStoreTests {
         precondition(modern.failure != nil && calls == [.sleepOff])
         modern.stop()
         await modern.waitUntilIdle()
+        preferences.set(.batterySailing, true)
+        preferences.set(.batteryHeatProtection, true)
+        preferences.set(.lidClosedAwake, false)
+        preferences.set(.keepAwake, false)
+        var attempts = 0
+        let unsupported = BatteryModule(preferences: preferences, runner: .init(read: {
+            BatteryReading.decode(properties: ["CurrentCapacity": 95, "MaxCapacity": 100,
+                                               "ExternalConnected": true])
+        }, root: { verb in
+            if verb == .chargingOff {
+                attempts += 1
+                throw RootHelperClient.Failure.executionFailed(70)
+            }
+        }, installed: { true }, version: { "2" }, create: { _ in 0 }, release: { _ in },
+           supports: { _ in true }, readLimit: { nil }))
+        unsupported.start()
+        for _ in 0..<100 { await Task.yield() }
+        await unsupported.evaluate(now: .now)
+        await unsupported.evaluate(now: .now)
+        precondition(unsupported.chargingUnsupported && attempts == 1)
+        unsupported.stop()
+        await unsupported.waitUntilIdle()
+        var missingCalls = 0
+        preferences.set(.batteryChargeLimit, true)
+        let missing = BatteryModule(preferences: preferences, runner: .init(read: { nil },
+            root: { _ in missingCalls += 1 }, installed: { true }, version: { "2" },
+            create: { _ in 0 }, release: { _ in }, supports: { _ in false },
+            readLimit: { preconditionFailure("Missing read verb must never run") }))
+        missing.start()
+        for _ in 0..<100 { await Task.yield() }
+        await missing.evaluate(now: .now)
+        precondition(!missing.nativeLimitAvailable && missingCalls == 0)
+        missing.stop()
+        await missing.waitUntilIdle()
         print("PASS: default-off switches, option bounds, missing verbs no-op, switch-off and quit release")
     }
 }

@@ -17,6 +17,14 @@ final class BatteryModule: NotchcastModule {
         }
         var create: (String) throws -> UInt32
         var release: (UInt32) throws -> Void
+        var supports: (String) -> Bool = { RootContract.Command(rawValue: $0) != nil }
+        var readLimit: () async throws -> Int? = {
+            guard let command = RootContract.Command(rawValue: "charge-limit-read"),
+                  case .chargeLimit(let limit) = try await RootHelperClient().run(command) else {
+                throw RootHelperClient.Failure.invalidResponse
+            }
+            return limit
+        }
 
         static var live: Self {
             Self(read: { BatteryService().read() }, root: { command in
@@ -41,6 +49,14 @@ final class BatteryModule: NotchcastModule {
     enum Failure: Error { case assertion(IOReturn) }
     private(set) var needsHelperUpdate = true
     private(set) var helperInstalled = false
+    private(set) var chargingUnsupported = false
+    private(set) var nativeLimit: Int?
+    var nativeLimitAvailable: Bool {
+        !needsHelperUpdate && runner.supports("charge-limit-read")
+            && runner.supports("charge-limit-off")
+            && NotchcastPreferences.chargeLimits.allSatisfy { runner.supports("charge-limit-\($0)") }
+    }
+    @ObservationIgnored private var appliedLimit: BatteryRootVerbs?
     @ObservationIgnored private var observationID: UUID?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
     @ObservationIgnored private var applied: [String: BatteryRootVerbs] = [
@@ -92,6 +108,11 @@ final class BatteryModule: NotchcastModule {
                 let version = try await self.runner.version()
                 try Task.checkCancellation()
                 self.needsHelperUpdate = (Int(version) ?? 0) < 2
+                if self.nativeLimitAvailable {
+                    let limit = try await self.runner.readLimit()
+                    try Task.checkCancellation()
+                    self.nativeLimit = limit
+                }
                 if self.running { self.schedule() }
             } catch {
                 if !Task.isCancelled { self.failure = error }
@@ -144,6 +165,17 @@ final class BatteryModule: NotchcastModule {
         let holding = awake.evaluate(now: now, onBattery: reading?.onBattery ?? false,
                                      percent: percent, locked: false) == .hold
         do {
+            if nativeLimitAvailable {
+                guard let verb = on(.batteryChargeLimit)
+                    ? BatteryRootVerbs(rawValue: "charge-limit-\(preferences.batteryChargePercent)")
+                    : .chargeLimitOff else { return }
+                if appliedLimit != verb && (on(.batteryChargeLimit) || appliedLimit != nil) {
+                    try await runner.root(verb)
+                    try Task.checkCancellation()
+                    appliedLimit = verb
+                    nativeLimit = Int(verb.rawValue.components(separatedBy: "-").last ?? "")
+                }
+            }
             if holding && assertions.isEmpty {
                 assertions = try KeepAwakePlanService().acquire(
                     types: awake.assertionTypes, create: runner.create, release: runner.release)
@@ -153,10 +185,10 @@ final class BatteryModule: NotchcastModule {
             if on(.batteryCalibration) && !calibrationEnabled { engine.calibration.start() }
             if !on(.batteryCalibration) { engine.calibration.cancel() }
             calibrationEnabled = on(.batteryCalibration)
-            let enabled = on(.batteryChargeLimit) || on(.batterySailing)
-                || on(.batteryHeatProtection) || on(.batteryCalibration)
+            let enabled = !chargingUnsupported && (on(.batterySailing)
+                || on(.batteryHeatProtection) || on(.batteryCalibration))
             let policy = ChargePolicy(enabled: enabled,
-                                      limit: on(.batteryChargeLimit) || on(.batterySailing)
+                                      limit: on(.batterySailing)
                                         ? preferences.batteryChargePercent : 100,
                                       drain: on(.batterySailing))
             let decision = engine.evaluate(
@@ -173,10 +205,17 @@ final class BatteryModule: NotchcastModule {
                                              helperReady: true, keepAwakeHolding: holding))
             for verb in verbs {
                 try Task.checkCancellation()
+                if chargingUnsupported && (verb == .chargingOn || verb == .chargingOff) { continue }
+                guard runner.supports(verb.rawValue) else { continue }
                 let key = verb.rawValue.components(separatedBy: "-").dropLast().joined(separator: "-")
                 guard applied[key] != verb else { continue }
                 rootChanged = true
-                try await runner.root(verb)
+                do {
+                    try await runner.root(verb)
+                } catch RootHelperClient.Failure.executionFailed(70) where verb == .chargingOff {
+                    chargingUnsupported = true
+                    continue
+                }
                 applied[key] = verb
             }
             rootChanged = enabled || on(.lidClosedAwake)

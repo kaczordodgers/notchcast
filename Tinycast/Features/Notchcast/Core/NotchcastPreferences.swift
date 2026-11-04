@@ -25,7 +25,7 @@ final class NotchcastPreferences {
     var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
     var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
-    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
+    static let chargeLimits = [60, 70, 80, 90]
     static let awakeDurations = [15, 30, 60, 120, 240]
     private var chargePercent: Int
     var batteryChargePercent: Int {
