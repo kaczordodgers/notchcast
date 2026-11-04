@@ -3,6 +3,11 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastClean = Self(tab: .notchcast, title: "Clean")
+    static let notchcastCleaning = Self(tab: .notchcast, title: "Cleaning mode")
+    static let notchcastAppUpdates = Self(tab: .notchcast, title: "App updates")
+    static let notchcastMacUpdate = Self(tab: .notchcast, title: "Update this Mac")
+    static let notchcastTweaksApps = Self(tab: .notchcast, title: "System preferences")
     static let notchcastTasks = Self(tab: .notchcast, title: "Tasks")
     static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
     static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
@@ -12,6 +17,7 @@ extension SettingsAnchor {
     static let notchcastAlertMemory = Self(tab: .notchcast, title: "Memory pressure threshold")
     static let notchcastAlertDisk = Self(tab: .notchcast, title: "Disk free threshold")
     static let notchcastAlertBattery = Self(tab: .notchcast, title: "Battery threshold")
+    static let notchcastAccessories = Self(tab: .notchcast, title: "Accessory batteries")
     static let notchcastChargePercent = Self(tab: .notchcast, title: "Charge limit percent")
     static let notchcastAwakeDuration = Self(tab: .notchcast, title: "Keep-awake duration")
     static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor"))
@@ -31,6 +37,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastTweaks = Self(tab: .notchcast, title: "Tweaks")
     static let notchcastDownloads = Self(tab: .notchcast, title: "Downloads")
     static let notchcastLauncherTools = Self(tab: .notchcast, title: "Launcher tools")
     static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
@@ -44,6 +51,17 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastSystem, "Audio device priority", keywords: ["sound", "outputs", "microphones"]),
+        .init(.notchcastClean, "Junk", keywords: ["trash", "cache"]),
+        .init(.notchcastClean, "Clean history", keywords: ["restore", "runs"]),
+        .init(.notchcastClean, "AI data", keywords: ["claude", "codex", "opencode"]),
+        .init(.notchcastClean, "Disk analyzer", keywords: ["folder", "size"]),
+        .init(.notchcastClean, "Project purge", keywords: ["projects", "build", "artifacts"]),
+        .init(.notchcastClean, "Optimize", keywords: ["quick look", "download history", "open with"]),
+        .init(.notchcastClean, "System root", keywords: ["helper", "system cache"]),
+        .init(.notchcastCleaning, "Cleaning mode"),
+        .init(.notchcastAppUpdates, "App updates"),
+        .init(.notchcastMacUpdate, "Update this Mac"),
         .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
         .init(group: .notchcastTasks, "Import Todoist JSON export…", keywords: ["json", "local file", "import"]),
         .init(.notchcastSystem, "URL cleaner", keywords: ["tracking", "clipboard", "parameters"]),
@@ -63,6 +81,50 @@ extension SettingsSearchCatalog {
         .init(.notchcastAlertDisk, "Disk free threshold"),
         .init(.notchcastAlertBattery, "Battery threshold"),
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
+        .init(.notchcastTweaksApps, "Disable autocorrect"),
+        .init(.notchcastTweaksApps, "Disable smart punctuation"),
+        .init(.notchcastTweaksApps, "Disable double-space period"),
+        .init(.notchcastTweaksApps, "Disable auto-capitalization"),
+        .init(.notchcastTweaksApps, "Enable key repeat"),
+        .init(.notchcastTweaksApps, "Show file extensions"),
+        .init(.notchcastTweaksApps, "Show hidden files"),
+        .init(.notchcastTweaksApps, "Show path bar"),
+        .init(.notchcastTweaksApps, "Show status bar"),
+        .init(.notchcastTweaksApps, "Keep folders first"),
+        .init(.notchcastTweaksApps, "Search current folder"),
+        .init(.notchcastTweaksApps, "Disable extension warning"),
+        .init(.notchcastTweaksApps, "Show path in title"),
+        .init(.notchcastTweaksApps, "Avoid network metadata"),
+        .init(.notchcastTweaksApps, "Remove trash after 30 days"),
+        .init(.notchcastTweaksApps, "Save locally"),
+        .init(.notchcastTweaksApps, "Expand save dialogs"),
+        .init(.notchcastTweaksApps, "Use list view"),
+        .init(.notchcastTweaksApps, "Avoid USB metadata"),
+        .init(.notchcastTweaksApps, "Hide desktop disks"),
+        .init(.notchcastTweaksApps, "Hide recent apps"),
+        .init(.notchcastTweaksApps, "Remove auto-hide delay"),
+        .init(.notchcastTweaksApps, "Disable launch animation"),
+        .init(.notchcastTweaksApps, "Minimize into app"),
+        .init(.notchcastTweaksApps, "Disable window animations"),
+        .init(.notchcastTweaksApps, "Remove tiled window margins"),
+        .init(.notchcastTweaksApps, "Remove screenshot shadow"),
+        .init(.notchcastTweaksApps, "Disable click to desktop"),
+        .init(.notchcastTweaksApps, "Hide desktop widgets"),
+        .init(.notchcastTweaksApps, "Typing"),
+        .init(.notchcastTweaksApps, "Show library"),
+        .init(.notchcastTweaksApps, "Restrict gaming"),
+        .init(.notchcastTweaksApps, "Restrict iPhone mirroring"),
+        .init(.notchcastTweaksApps, "Restrict music service"),
+        .init(.notchcastTweaksApps, "Restrict book store"),
+        .init(.notchcastTweaksApps, "Finder"),
+        .init(.notchcastTweaksApps, "Dock and windows"),
+        .init(.notchcastTweaksApps, "Apple apps"),
+        .init(.notchcastTweaksApps, "iPhone backup"),
+        .init(.notchcastTweaksApps, "Key repeat speed"),
+        .init(.notchcastTweaksApps, "Key repeat delay"),
+        .init(.notchcastTweaksApps, "New Finder windows"),
+        .init(.notchcastTweaksApps, "Turn off iPhone auto backups"),
+        .init(.notchcastTweaksApps, "iPhone backup folder"),
         .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
         .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display", "hover delay"]),
         .init(.notchcastOptions, "Full-Screen Apps", keywords: ["fullscreen", "full screen", "video"]),
@@ -75,6 +137,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastLauncher, "Quick Look on Space", keywords: ["file", "preview", "markdown"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
+        .init(.notchcastAccessories, "Accessory batteries", keywords: ["bluetooth", "charging", "mouse", "keyboard"]),
         .init(.notchcastFanMode, "Fan mode"),
         .init(.notchcastMonitor, "Charge Limit"),
         .init(.notchcastMonitor, "Battery Sailing"),
@@ -129,6 +192,10 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastTweaks, "Startup Items", keywords: ["launchagents"]),
+        .init(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"]),
+        .init(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"]),
+        .init(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"]),
         .init(.notchcastActivities, "Downloads", keywords: ["video", "audio", "transcript", "webpage", "clipboard"]),
         .init(.notchcastActivities, "Fast Downloads with aria2c", keywords: ["download", "speed", "aria2"]),
         .init(.notchcastActivities, "Distill", keywords: ["links", "transcribe", "media", "queue"]),
