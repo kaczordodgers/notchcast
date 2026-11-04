@@ -8,6 +8,7 @@
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/DocumentEditor/Service/EditorPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Service/QuitProtectionStore.swift
@@ -47,6 +48,7 @@ enum DialogTone { case neutral, danger }
 enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
 @MainActor final class PickerStub { var format = ColorPickerFormat.hex }
 @MainActor enum NotchcastCore {
+    static let editor = EditorStub()
     static let settingsBackupRestore = ForkSettingsBackupCoordinator()
     static let colorPicker = PickerStub()
     static let timers = LiveTimerModule()
@@ -54,6 +56,9 @@ enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor,
     static let weather = DayWeatherModule()
     static let quitProtection = QuitProtectionStore()
     static let eventReminder = ReminderStub()
+}
+@MainActor final class EditorStub {
+    let editorPreferences = EditorPreferences(defaults: UserDefaults(suiteName: Bundle.main.bundleIdentifier! + ".editor")!)
 }
 @MainActor final class AppearanceThemeColors {
     static let shared = AppearanceThemeColors()
@@ -86,6 +91,10 @@ struct NotchcastCommand: Sendable {
         let liveDefaults = UserDefaults(suiteName: liveDomain)!
         liveDefaults.removePersistentDomain(forName: liveDomain)
         defer { liveDefaults.removePersistentDomain(forName: liveDomain) }
+        let editorDomain = Bundle.main.bundleIdentifier! + ".editor"
+        let editorDefaults = UserDefaults(suiteName: editorDomain)!
+        editorDefaults.removePersistentDomain(forName: editorDomain)
+        defer { editorDefaults.removePersistentDomain(forName: editorDomain) }
         let complete = try ForkSettingsBackupState.live.snapshot()
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
@@ -95,6 +104,9 @@ struct NotchcastCommand: Sendable {
         cleanup.baseURL = "http://localhost:8317"
         try cleanupStore.save(cleanup)
         var changed = complete
+        changed["notchcast.editor.font"] = "system"
+        changed["notchcast.editor.theme"] = "system"
+        changed["notchcast.editor.pairsAutomatically"] = false
         for (key, value) in complete where ForkSettingsBackupSchema.allowed[key].map({
             if case .bool = $0 { return true }; return false
         }) == true { changed[key] = !(value as? Bool ?? false) }
@@ -126,6 +138,11 @@ struct NotchcastCommand: Sendable {
         _ = try ForkSettingsBackupState.live.snapshot()
         precondition(appearance.revision == revision)
         try ForkSettingsBackupState.live.apply(changed)
+        let editor = NotchcastCore.editor.editorPreferences
+        precondition(editor.font == .system && editor.theme == .system && !editor.pairsAutomatically)
+        precondition(editorDefaults.string(forKey: "font") == "system")
+        precondition(editorDefaults.string(forKey: "theme") == "system")
+        precondition(editorDefaults.object(forKey: "pairsAutomatically") as? Bool == false)
         let savedLive = try ForkSettingsBackupState.live.snapshot()
         for (key, expected) in changed {
             if case .json = ForkSettingsBackupSchema.allowed[key]! {
@@ -140,7 +157,9 @@ struct NotchcastCommand: Sendable {
             }
         }
         try ForkSettingsBackupState.live.apply(complete)
-        try ForkSettingsBackupState.live.apply(savedLive)
+        precondition(editor.font == .jetBrainsMono && editor.theme == .githubDark && editor.pairsAutomatically)
+        try ForkSettingsBackupState.live.apply(ForkSettingsBackupEngine.decode(
+            ForkSettingsBackupEngine.encode(savedLive, created: .now)))
         let restoredLive = try ForkSettingsBackupState.live.snapshot()
         for (key, expected) in savedLive {
             if case .json = ForkSettingsBackupSchema.allowed[key]! {
@@ -188,7 +207,7 @@ struct NotchcastCommand: Sendable {
             ForkSettingsBackupState.applyQuit($0, to: store)
         })
         let saved = try state.snapshot()
-        for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks, .archivesInPlace] {
+        for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks] {
             let original = preferences.isOn(feature)
             preferences.set(feature, !original)
             let captured = try state.snapshot()
