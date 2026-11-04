@@ -41,7 +41,6 @@ final class RemoteScreenCoordinator {
             }
             let availability = try response.value(as: RemoteScreenState.Availability.self)
             guard availability.screenSharingEnabled else { throw RemoteScreenRequest.Failure.unavailable }
-            state = .ready
             let client: RemoteScreenState.Client = preferredClientInstalled ? .preferred : .apple
             usedFallback = client == .apple
             state = .opening

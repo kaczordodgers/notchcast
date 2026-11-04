@@ -1,12 +1,18 @@
 // notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
 // notchcast-sources: Tinycast/Features/RemoteScreen/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
 
 @main
 struct RemoteScreenTest {
     @MainActor
     static func main() async throws {
+        let suite = "app.notchcast.test.remote-screen.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        precondition(!preferences.isOn(.remoteScreen))
         for host in ["", "user@host", "host/path", "host?password=x", "host#fragment", "host name", "..", ":::"] {
             do {
                 _ = try RemoteScreenRequest(host: host).validatedURL()
