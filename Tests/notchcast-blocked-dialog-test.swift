@@ -10,6 +10,10 @@ import Foundation
 struct BlockedDialogTest {
     @MainActor
     static func main() async throws {
+        let suite = "app.notchcast.test.blocked-dialog.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        precondition(!preferences.isOn(.machBlockedDialogAlert))
         let window = BlockedDialogWindow(owner: "SecurityAgent", processID: 42, windowID: 9,
             layer: 1, width: 300, height: 100)
         let ordinary = BlockedDialogWindow(owner: "Editor", processID: 42, windowID: 10,
