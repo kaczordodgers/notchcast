@@ -97,12 +97,18 @@ extension NotchcastFeature {
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
     }
 
-    /// Switches that intercept system input or change how macOS behaves start off on a fresh install,
-    /// until the user turns them on in Settings. A new switch of that kind belongs here.
-    static let startsOff: Set<Self> = [
-        .volumeLevels, .displayBrightness, .quitProtection, .fanControl, .batteryChargeLimit, .batterySailing,
-        .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
-    ]
+    /// Takeover of the Mac's keys, windows or power starts off; no default, so each new case must choose.
+    var startsOff: Bool {
+        switch self {
+        case .volumeLevels, .displayBrightness, .quitProtection, .fanControl, .batteryChargeLimit,
+            .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
+            true
+        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen, .islandStatusMessages,
+            .islandLiveActivities, .launcherFromIsland, .systemMonitor, .monitorAlerts, .lowDiskWarning,
+            .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
+            false
+        }
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
