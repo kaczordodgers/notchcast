@@ -1,6 +1,8 @@
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
+        ForkSettingsBackupCoordinator.restoreCommand,
+        ForkSettingsBackupCoordinator.openCommand,
         ColorPickerModule.launcherCommand,
         ScreenshotModule.launcherCommand,
         MachineSetupProfileCoordinator.launcherCommand,

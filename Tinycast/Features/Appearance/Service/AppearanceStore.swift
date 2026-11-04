@@ -3,6 +3,7 @@ import Observation
 
 @MainActor @Observable
 final class AppearanceStore {
+    private(set) static weak var current: AppearanceStore?
     static let preferences = UserDefaults(
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
     static let lightKey = "notchcast.appearance.theme.light"
@@ -83,6 +84,7 @@ final class AppearanceStore {
         previewTarget = nil
         pendingImport = nil
         refreshColors()
+        Self.current = self
     }
 
     func theme(for slot: RaycastTheme.Appearance) -> RaycastTheme? {
@@ -110,6 +112,12 @@ final class AppearanceStore {
         let next = [theme] + imported.filter { $0.id != theme.id }
         defaults.set(try JSONEncoder().encode(next), forKey: Self.importedKey)
         imported = next
+    }
+
+    func replaceImported(_ themes: [RaycastTheme]) throws {
+        guard themes.allSatisfy(\.isValid) else { throw RaycastTheme.ValidationError.invalidTheme }
+        defaults.set(try JSONEncoder().encode(themes), forKey: Self.importedKey)
+        imported = themes
     }
 
     func install(_ theme: RaycastTheme) throws {
