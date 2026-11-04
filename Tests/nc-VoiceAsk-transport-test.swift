@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskCLI*.swift
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskProcessRunner.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
@@ -19,6 +20,7 @@ struct VoiceAskTransportTest {
         var text = VoiceAskTransportTest.completed
         var gate: CheckedContinuation<Void, Never>?
         var delay = false
+        var stderr = Data()
     }
     static let completed = #"""
     {"threadId":"thread-7f3c2a","runId":"run-4d2e81","status":"completed",
@@ -46,7 +48,7 @@ struct VoiceAskTransportTest {
             precondition(arguments == ["thread", "send", "--wait", "--json", "fixture", "-"])
             precondition(input == Data("private spoken text\nsecond line".utf8))
             if fixture.delay { await withCheckedContinuation { fixture.gate = $0 } }
-            return .init(status: fixture.status, stdout: Data(fixture.text.utf8))
+            return .init(status: fixture.status, stdout: Data(fixture.text.utf8), stderr: fixture.stderr)
         })
         let text = "private spoken text\nsecond line"
         let reply = try await transport.send(text, destination: "fixture")
@@ -55,6 +57,14 @@ struct VoiceAskTransportTest {
         fixture.text = failed
         let failure = try await transport.send(text, destination: "fixture")
         precondition(failure == .init(state: .failed, firstLines: ["Provider returned an error: rate limited."]))
+        for output in ["", #"{"status":"interrupted","error":null,"reply":null}"#] {
+            fixture.text = output
+            fixture.stderr = Data("Server stopped".utf8)
+            let stopped = try await transport.send(text, destination: "fixture")
+            precondition(stopped == .init(state: .failed, firstLines: ["The T3 run stopped.", "Server stopped"]))
+        }
+        fixture.stderr = Data()
+        print("PASS: exit 1 without JSON and with null error report stopped run and stderr")
         fixture.status = 2
         fixture.text = waiting
         let pending = try await transport.send(text, destination: "fixture")
@@ -64,7 +74,7 @@ struct VoiceAskTransportTest {
         precondition(pendingAtZero == pending)
         fixture.text = "not JSON"
         try await expect(.invalidOutput) { _ = try await transport.send(text, destination: "fixture") }
-        for destination in ["", "has space", "line\nbreak"] {
+        for destination in ["", "has space", "line\nbreak", "--help"] {
             try await expect(.invalidDestination) { _ = try await transport.send(text, destination: destination) }
         }
         let missing = VoiceAskCLITransport(resolve: { nil }, run: { _, _, _ in preconditionFailure("Must not launch") })
@@ -128,6 +138,27 @@ struct VoiceAskTransportTest {
         print("PASS: invalid destination, missing CLI, bad JSON, timeout")
         let echoed = try await VoiceAskProcessRunner.run(URL(filePath: "/bin/cat"), arguments: [], input: Data(text.utf8))
         precondition(echoed.status == 0 && echoed.stdout == Data(text.utf8))
+        let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let interpreter = directory.appending(path: "fake-voice-interpreter")
+        try FileManager.default.createSymbolicLink(at: interpreter, withDestinationURL: URL(filePath: "/bin/sh"))
+        let script = directory.appending(path: "stand-in")
+        try Data("#!/usr/bin/env fake-voice-interpreter\nprintf '%s' \"$PATH\"\nprintf '%0600d' 0 >&2\n".utf8).write(to: script)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        let environment = try await VoiceAskProcessRunner.run(script, arguments: [], input: Data())
+        let paths = String(decoding: environment.stdout, as: UTF8.self).split(separator: ":").map(String.init)
+        precondition(environment.status == 0 && paths.contains(directory.path) && paths.contains("/opt/homebrew/bin"),
+                     "status \(environment.status), PATH \(paths), stderr \(String(decoding: environment.stderr, as: UTF8.self))")
+        precondition(environment.stderr.count == 500)
+        do {
+            _ = try await VoiceAskProcessRunner.run(URL(filePath: "/usr/bin/true"), arguments: [],
+                                                    input: Data(repeating: 65, count: 1_048_576))
+            preconditionFailure("Expected broken pipe")
+        } catch {
+            precondition((error as NSError).code == NSFileWriteUnknownError || (error as NSError).code == 32)
+        }
+        print("PASS: env interpreter resolves via child PATH, stderr capped at 500 bytes, 1 MB broken pipe survives")
         try await expect(.timeout) {
             _ = try await VoiceAskProcessRunner.run(URL(filePath: "/bin/sleep"), arguments: ["5"],
                                                     input: Data(), timeout: .milliseconds(30))

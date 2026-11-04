@@ -209,6 +209,18 @@
         }
       }
     },
+    "The T3 run stopped." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Der T3-Lauf wurde gestoppt." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La ejecución de T3 se detuvo." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "L’exécution de T3 s’est arrêtée." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "T3の実行が停止しました。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "T3 실행이 중지되었습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A execução do T3 parou." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Выполнение T3 остановлено." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "T3 运行已停止。" } }
+      }
+    },
     "The agent is waiting for an answer in T3 Code." : {
       "localizations": {
         "de": {

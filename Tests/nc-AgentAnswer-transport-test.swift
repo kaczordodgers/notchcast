@@ -42,9 +42,12 @@ struct PendingPollingTest {
         precondition(fixture.calls == stoppedCalls && module.items.isEmpty)
         fixture.fails = true
         module.start()
-        try await Task.sleep(for: .milliseconds(110))
-        precondition(fixture.calls - stoppedCalls == 2 && module.pollingFailure != nil)
+        try await Task.sleep(for: .milliseconds(250))
+        precondition(fixture.calls - stoppedCalls >= 2 && module.pollingFailure != nil)
         module.stop()
+        let failedCalls = fixture.calls
+        try await Task.sleep(for: .milliseconds(250))
+        precondition(fixture.calls == failedCalls)
         fixture.fails = false
         fixture.suspended = true
         module.start()

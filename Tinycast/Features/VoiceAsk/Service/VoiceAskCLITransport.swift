@@ -5,6 +5,7 @@ struct VoiceAskCLITransport: VoiceAskTransport {
     struct Output: Sendable {
         let status: Int32
         let stdout: Data
+        var stderr = Data()
     }
 
     private struct Reply: Decodable {
@@ -13,26 +14,32 @@ struct VoiceAskCLITransport: VoiceAskTransport {
         let error: String?
     }
 
-    let resolve: @MainActor () -> URL?
+    let resolve: @MainActor () async -> URL?
     let run: @MainActor (URL, [String], Data) async throws -> Output
 
     func send(_ text: String, destination: String) async throws -> VoiceAskResult {
-        guard !destination.isEmpty, !destination.contains(where: \.isWhitespace) else {
+        guard !destination.isEmpty, !destination.hasPrefix("-"), !destination.contains(where: \.isWhitespace) else {
             throw VoiceAskCLIError.invalidDestination
         }
-        guard let executable = resolve() else { throw VoiceAskCLIError.missingCLI }
+        guard let executable = await resolve() else { throw VoiceAskCLIError.missingCLI }
+        try Task.checkCancellation()
         let output = try await run(executable, ["thread", "send", "--wait", "--json", destination, "-"], Data(text.utf8))
         try Task.checkCancellation()
-        guard let reply = try? JSONDecoder().decode(Reply.self, from: output.stdout) else {
+        let decoded = try? JSONDecoder().decode(Reply.self, from: output.stdout)
+        if output.status != 0 && output.status != 2 {
+            let diagnostic = decoded?.error ?? String(decoding: output.stderr.prefix(500), as: UTF8.self)
+            let safeDiagnostic = text.isEmpty ? diagnostic : diagnostic.replacingOccurrences(of: text, with: "")
+            let message = decoded?.error == nil ? String(localized: "The T3 run stopped.") : ""
+            return VoiceAskResult(state: .failed, firstLines: ([message] + safeDiagnostic.components(separatedBy: .newlines))
+                .filter { !$0.isEmpty })
+        }
+        guard let reply = decoded else {
             throw VoiceAskCLIError.invalidOutput
         }
         if output.status == 2 || reply.status == "waiting" {
             return VoiceAskResult(state: .running, firstLines: [
                 String(localized: "The agent is waiting for an answer in T3 Code.")
             ])
-        }
-        if output.status == 1, let error = reply.error {
-            return VoiceAskResult(state: .failed, firstLines: error.components(separatedBy: .newlines))
         }
         guard output.status == 0, reply.status == "completed", let text = reply.reply else {
             throw VoiceAskCLIError.invalidOutput
@@ -42,9 +49,7 @@ struct VoiceAskCLITransport: VoiceAskTransport {
 
     static func production() -> Self {
         Self(resolve: {
-            let paths = (ProcessInfo.processInfo.environment["PATH"] ?? "").split(separator: ":").map(String.init)
-            return (paths.map { URL(filePath: $0).appending(path: "t3") } + [URL(filePath: "/opt/homebrew/bin/t3")])
-                .first { FileManager.default.isExecutableFile(atPath: $0.path) }
+            await ExecutableLocator.locate("t3")
         }, run: { try await VoiceAskProcessRunner.run($0, arguments: $1, input: $2) })
     }
 }
