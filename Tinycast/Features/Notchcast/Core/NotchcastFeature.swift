@@ -700,7 +700,6 @@ extension NotchcastFeature {
         .remoteScreen,
         .machMBPFans,
         .macSetup,
-        .agentConfirmation,
         .machineSetupProfile,
     ]
 
