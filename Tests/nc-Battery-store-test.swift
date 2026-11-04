@@ -518,7 +518,7 @@ struct BatteryStoreTests {
         }, create: { _ in 1 }, release: { _ in }, readLimit: { nil }))
         transient.start()
         for _ in 0..<100 { await Task.yield() }
-        precondition(transient.needsHelperUpdate)
+        precondition(!transient.needsHelperUpdate && !transient.nativeLimitAvailable)
         precondition(calls.isEmpty)
         versionFails = false
         await transient.evaluate(now: .now)

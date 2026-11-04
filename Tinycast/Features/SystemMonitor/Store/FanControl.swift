@@ -35,7 +35,7 @@ final class FanControl {
     @ObservationIgnored private var afterRepair: Request?
     private(set) var failure: Error?
 
-    init(mode: Mode = .auto, confirmed: @escaping (Mode) -> Void = { _ in },
+    init(confirmed: @escaping (Mode) -> Void = { _ in },
          failed: @escaping () -> Void = {}, journalData: Data? = nil,
          persist: @escaping (Data) -> Void = { _ in },
          runner: @escaping @Sendable (RootContract.Command) async throws -> Void = {

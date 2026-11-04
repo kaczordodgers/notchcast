@@ -106,13 +106,18 @@ struct MonitorStoreTests {
             precondition(persisted == .auto && retrying.mode == .auto && failures == attempts)
         }
         let recovery = FakeFans()
-        let crashed = FanControl(mode: .max, confirmed: { persisted = $0 },
+        var journalData: Data?
+        let seed = FanControl(persist: { journalData = $0 }, runner: { _ in })
+        seed.set(.max)
+        await seed.waitUntilIdle()
+        persisted = .max
+        let crashed = FanControl(confirmed: { persisted = $0 }, journalData: journalData,
                                  runner: { try await recovery.run($0) })
-        crashed.restore()
+        crashed.restore(preservingPreference: true)
         await crashed.waitUntilIdle()
         crashed.restore()
         await crashed.waitUntilIdle()
-        precondition(recovery.calls.isEmpty && persisted == .auto)
+        precondition(recovery.calls == [.fansAuto] && persisted == .max)
         let fans = FanControl(runner: { try await restored.run($0) })
         fans.restore()
         await fans.waitUntilIdle()
@@ -124,16 +129,17 @@ struct MonitorStoreTests {
         await fans.waitUntilIdle()
         precondition(restored.calls == [.fansMax, .fansAuto])
         var saved = FanControl.Mode.max
-        let shutdown = FanControl(mode: .max, confirmed: { saved = $0 }, runner: { _ in })
+        let shutdown = FanControl(confirmed: { saved = $0 }, journalData: journalData, runner: { _ in })
         shutdown.restore(preservingPreference: true)
         await shutdown.waitUntilIdle()
         precondition(saved == .max && shutdown.mode == .auto)
         var recoveryFailures = 0
-        let missing = FanControl(mode: .max, confirmed: { saved = $0 }, failed: { recoveryFailures += 1 },
+        let missing = FanControl(confirmed: { saved = $0 }, failed: { recoveryFailures += 1 },
+                                 journalData: journalData,
                                  runner: { _ in throw RootHelperClient.Failure.launchFailed })
         missing.restore(silently: true)
         await missing.waitUntilIdle()
-        precondition(saved == .max && recoveryFailures == 0 && missing.failure == nil)
+        precondition(saved == .max && recoveryFailures == 0 && missing.failure != nil)
         print("PASS: demand counts, serialized latest request, restore after timeout/failure/cancellation and shutdown")
     }
 }

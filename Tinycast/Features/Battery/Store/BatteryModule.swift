@@ -49,13 +49,13 @@ final class BatteryModule: NotchcastModule {
     }
 
     enum Failure: Error { case assertion(IOReturn) }
-    private(set) var needsHelperUpdate = true
+    private(set) var needsHelperUpdate = false
     private(set) var helperInstalled = false
     private(set) var chargingUnsupported = false
     private(set) var nativeLimit: Int?
     private var helperHasNativeLimit = true
     var nativeLimitAvailable: Bool {
-        helperInstalled && !needsHelperUpdate && helperHasNativeLimit && runner.supports("charge-limit-read")
+        helperInstalled && !helperGateClosed && helperHasNativeLimit && runner.supports("charge-limit-read")
             && runner.supports("charge-limit-off")
             && NotchcastPreferences.chargeLimits.allSatisfy { runner.supports("charge-limit-\($0)") }
     }
@@ -76,7 +76,7 @@ final class BatteryModule: NotchcastModule {
     @ObservationIgnored private var launchRepair = false
     @ObservationIgnored private var versionReadFailed = false
     @ObservationIgnored private var wasOnBattery: Bool?
-    @ObservationIgnored private var helperGateClosed = false
+    @ObservationIgnored private var helperGateClosed = true
     @ObservationIgnored private var journal: BatteryOwnershipJournal
     @ObservationIgnored private var timer: Task<Void, Never>?
     @ObservationIgnored private var reschedule = false
@@ -165,7 +165,7 @@ final class BatteryModule: NotchcastModule {
                     return
                 }
                 if !Task.isCancelled {
-                    self.needsHelperUpdate = true
+                    self.needsHelperUpdate = false
                     self.helperGateClosed = true
                     self.versionReadFailed = true
                 }
@@ -298,7 +298,7 @@ final class BatteryModule: NotchcastModule {
                 preferences.set(.batteryCalibration, false)
                 calibrationEnabled = false
             }
-            guard helperInstalled && !needsHelperUpdate else { return }
+            guard helperInstalled && !helperGateClosed else { return }
             guard enabled || on(.lidClosedAwake) || !journal.effects.isEmpty else { return }
             var verbs: [BatteryRootVerbs] = []
             // Adapter disconnection requires a helper watchdog before it can be enabled safely.

@@ -101,12 +101,19 @@ struct OwnershipTests {
                 var saved = FanControl.Mode.max
                 var fanCalls: [RootContract.Command] = []
                 var data: Data?
-                let fans = FanControl(mode: scenario == 7 ? .max : .auto,
-                    confirmed: { saved = $0 }, persist: { data = $0 }, runner: { command in
+                if scenario == 7 {
+                    let seed = FanControl(persist: { data = $0 }, runner: { _ in })
+                    seed.set(.max)
+                    await seed.waitUntilIdle()
+                }
+                let fans = FanControl(
+                    confirmed: { saved = $0 }, journalData: data, persist: { data = $0 }, runner: { command in
                         await MainActor.run { fanCalls.append(command) }
                         throw RootHelperClient.Failure.timedOut
                     })
-                if scenario == 6 { fans.set(.max) } else { fans.restore(silently: true) }
+                if scenario == 6 { fans.set(.max) } else {
+                    fans.restore(preservingPreference: true, silently: true)
+                }
                 await fans.waitUntilIdle()
                 let before = fanCalls.count
                 fans.restore(preservingPreference: true)
