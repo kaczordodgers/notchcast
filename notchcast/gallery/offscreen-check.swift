@@ -2,6 +2,30 @@
 import AppKit
 import Darwin
 
+@_silgen_name("responsibility_get_pid_responsible_for_pid")
+func responsiblePID(_ pid: pid_t) -> pid_t
+
+func belongsToRun(pid: pid_t, parent: pid_t, responsible: pid_t, session: pid_t,
+                  leader: pid_t, parents: Set<pid_t>, sessions: Set<pid_t>, foreign: Set<pid_t>) -> Bool {
+    pid == leader || parents.contains(parent) || parents.contains(responsible)
+        || (!foreign.contains(session) && sessions.contains(session))
+}
+
+if CommandLine.arguments.contains("--self-test") {
+    func owned(_ pid: pid_t, _ parent: pid_t, _ responsible: pid_t, _ session: pid_t) -> Bool {
+        belongsToRun(pid: pid, parent: parent, responsible: responsible, session: session,
+                     leader: 100, parents: [100, 101], sessions: [100], foreign: [-1, 0, 1, 50])
+    }
+    precondition(owned(100, 50, 50, 100))
+    precondition(owned(102, 101, 50, 200))
+    precondition(owned(103, 1, 101, 1))
+    precondition(!owned(106, 1, 106, 1))  // a LaunchServices launch is its own responsible pid: caught by bundle id instead
+    precondition(!owned(104, 1, 50, 1))
+    precondition(!owned(105, 50, 50, 50))
+    print("offscreen ownership fixtures: PASS (leader, descendant, responsible app, foreign apps)")
+    exit(0)
+}
+
 let arguments = Array(CommandLine.arguments.dropFirst().drop { $0 == "--" })
 guard !arguments.isEmpty else {
     FileHandle.standardError.write(Data("usage: offscreen-check -- <command> [arguments]\n".utf8))
@@ -26,6 +50,7 @@ struct TableEntry {
     let process: Proc
     let parent: pid_t
     let session: pid_t
+    let responsible: pid_t
     let isZombie: Bool
 }
 
@@ -43,7 +68,8 @@ func processTable() -> [TableEntry] {
                 let time = proc.kp_proc.p_starttime
                 let pid = proc.kp_proc.p_pid
                 return TableEntry(process: Proc(pid: pid, started: Int(time.tv_sec) * 1_000_000 + Int(time.tv_usec)),
-                                  parent: proc.kp_eproc.e_ppid, session: getsid(pid), isZombie: proc.kp_proc.p_stat == 5)
+                                  parent: proc.kp_eproc.e_ppid, session: getsid(pid),
+                                  responsible: responsiblePID(pid), isZombie: proc.kp_proc.p_stat == 5)
             }
         }
         guard errno == ENOMEM else { fail("sysctl could not read the process table (errno \(errno))") }
@@ -77,23 +103,28 @@ guard spawned == 0 else { fail("cannot start \(arguments[0]): error \(spawned)")
 /// The run's processes and the sessions they own, grown at every sample (never shrunk: an exited process just stops being in the table).
 var tracked: Set<Proc> = []
 var sessions: Set<pid_t> = [leader]
+var liveTracked = Set<pid_t>()
 
 /// Adds what the table shows to `tracked`, and returns the run's processes that are alive now.
 @discardableResult
 func track() -> [Proc] {
-    let table = processTable().filter { $0.process.started >= startedMicros && !foreignSessions.contains($0.session) }
+    let table = processTable().filter { $0.process.started >= startedMicros }
     var grew = true
     while grew {
         grew = false
         let parents = Set(table.filter { tracked.contains($0.process) }.map(\.process.pid))
         for entry in table where !tracked.contains(entry.process) {
-            guard sessions.contains(entry.session) || entry.process.pid == leader || parents.contains(entry.parent) else { continue }
+            guard belongsToRun(pid: entry.process.pid, parent: entry.parent, responsible: entry.responsible,
+                               session: entry.session, leader: leader, parents: parents,
+                               sessions: sessions, foreign: foreignSessions) else { continue }
             tracked.insert(entry.process)
-            sessions.insert(entry.session)
+            if !foreignSessions.contains(entry.session) { sessions.insert(entry.session) }
             grew = true
         }
     }
-    return table.filter { tracked.contains($0.process) && !$0.isZombie }.map(\.process)
+    let alive = table.filter { tracked.contains($0.process) && !$0.isZombie }.map(\.process)
+    liveTracked = Set(alive.map(\.pid))
+    return alive
 }
 
 func send(_ signal: Int32) { for process in track() { kill(process.pid, signal) } }
@@ -114,12 +145,22 @@ var focus: [String] = []
 var notes: [String] = []
 var lastFront = startFront?.processIdentifier
 var sawAnyWindow = false
-var reportedApp = Set<pid_t>()
 
-func owns(_ pid: pid_t) -> Bool { tracked.contains { $0.pid == pid } }
+/// LaunchServices makes a relaunched or URL-opened app its own responsible process (parent launchd), so ancestry misses it:
+/// any copy of the gallery bundle or the installed app started during the run counts as the run's.
+let watchedBundles: Set<String> = ["app.notchcast", ProcessInfo.processInfo.environment["NOTCHCAST_GALLERY_BUNDLE_ID"] ?? "app.notchcast.dev"]
+var relaunched = Set<pid_t>()
+
+func owns(_ pid: pid_t) -> Bool { liveTracked.contains(pid) || relaunched.contains(pid) }
 
 func sample() {
     track()
+    for app in NSWorkspace.shared.runningApplications
+    where watchedBundles.contains(app.bundleIdentifier ?? "") && !owns(app.processIdentifier) {
+        guard let launched = app.launchDate, launched > started else { continue }
+        relaunched.insert(app.processIdentifier)
+        focus.append("\(elapsed()) a copy of \(describe(app)) started outside the run's process tree (a LaunchServices relaunch or URL open)")
+    }
     guard let list = CGWindowListCopyWindowInfo([.optionOnScreenOnly], kCGNullWindowID) as? [[String: Any]] else {
         fail("no WindowServer session: the window list is unavailable, so a shown window could not be seen (run it in the logged-in user's session)")
     }
@@ -141,15 +182,8 @@ func sample() {
         lastFront = front?.processIdentifier
         if let front, owns(front.processIdentifier) {
             focus.append("\(elapsed()) the command took focus: frontmost app became \(describe(front))")
-        } else if let front, let launched = front.launchDate, launched > started {
-            focus.append("\(elapsed()) an app started during the run took focus: frontmost app became \(describe(front)), launched \(String(format: "%.1f", launched.timeIntervalSince(started))) s after the start")
         } else {
-            notes.append("\(elapsed()) frontmost app became \(describe(front)) (already running, not the command's)")
-        }
-    }
-    for app in NSWorkspace.shared.runningApplications where app.bundleIdentifier == ProcessInfo.processInfo.environment["NOTCHCAST_GALLERY_BUNDLE_ID"] && !owns(app.processIdentifier) {
-        if let launched = app.launchDate, launched > started, reportedApp.insert(app.processIdentifier).inserted {
-            focus.append("\(elapsed()) a new instance of the gallery bundle started outside the run: \(describe(app)) (a relaunch through LaunchServices)")
+            notes.append("\(elapsed()) frontmost app became \(describe(front)) (foreign process, not the command's)")
         }
     }
 }
@@ -184,7 +218,7 @@ if windows.isEmpty, focus.isEmpty {
         CGGetActiveDisplayList(0, nil, &displayCount)
         fail("no window of any app was ever listed (active displays: \(displayCount)): with no display or a display asleep a shown window cannot be seen, so this is not a PASS")
     }
-    print("offscreen-check: PASS (no window of the run on screen, no focus taken by the run or by an app it started; frontmost app at start: \(describe(startFront)))")
+    print("offscreen-check: PASS (no window of the run on screen, no focus taken by the run, an app it started or a relaunched gallery/Notchcast app; frontmost app at start: \(describe(startFront)))")
     for line in notes { print("  note: \(line)") }
     exit(commandStatus)
 }

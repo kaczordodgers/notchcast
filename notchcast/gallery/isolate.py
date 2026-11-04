@@ -22,7 +22,8 @@ def launch(scratch, output, bundle, executable):
     exceptions = " ".join(f"(require-not (subpath {quote(path)}))" for path in (scratch, output, bundle))
     profile = ("(version 1) (allow default) (deny network*) "
                f"(deny file-read-data file-write* (require-all (subpath {quote(account_home)}) {exceptions})) "
-               '(deny mach-lookup (global-name "com.apple.securityd"))')
+               '(deny mach-lookup (global-name "com.apple.SecurityServer"))'
+               '(deny mach-lookup (global-name "com.apple.securityd.xpc"))')
     environment = os.environ | {"HOME": str(home), "CFFIXED_USER_HOME": str(home),
                                 "TMPDIR": str(scratch / "tmp") + "/"}
     os.execve("/usr/bin/sandbox-exec", ["sandbox-exec", "-p", profile,
