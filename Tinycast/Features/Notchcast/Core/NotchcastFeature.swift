@@ -33,6 +33,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dictationHistory
     case captureTrimmer
     case agentAnswer
+    case voiceAsk
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -71,6 +72,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationHistory: .captureAndDictation
         case .captureTrimmer: .captureAndDictation
         case .agentAnswer: .captureAndDictation
+        case .voiceAsk: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -147,6 +149,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationHistory: String(localized: "Keep dictation history")
         case .captureTrimmer: String(localized: "Recording Trimmer")
         case .agentAnswer: String(localized: "Agent Answers")
+        case .voiceAsk: String(localized: "Voice Ask")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -202,6 +205,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationHistory: String(localized: "Keep dictation history")
         case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.")
         case .agentAnswer: String(localized: "Reply to waiting agents.")
+        case .voiceAsk: String(localized: "Voice Ask destination")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -226,6 +230,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
         case .switcherQuitKey: [.accessibility]
+        case .voiceAsk: [.accessibility]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -260,6 +265,7 @@ extension NotchcastFeature {
         case .dictationHistory: false
         case .captureTrimmer: false
         case .agentAnswer: false
+        case .voiceAsk: false
         case .displayBrightness: false
         case .quitProtection: false
         case .pastePlain: false
@@ -274,6 +280,7 @@ extension NotchcastFeature {
 
     var defaultEnabled: Bool {
         switch self {
+        case .voiceAsk: false
         case .agentAnswer: false
         case .dictationCleanup: false
         case .pastePlain: false

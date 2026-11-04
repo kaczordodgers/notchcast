@@ -32,9 +32,15 @@ extension NotchcastCore {
     static let dictationCleanup = DictationCleanupModule.live()
     static let captureTrimmer = CaptureTrimmerModule.live()
     static let agentAnswer = AgentAnswerModule()
+    static private(set) var voiceAsk: VoiceAskModule?
+    private static var voiceAskInput: VoiceAskInput?
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        let recording = VoiceAskRecording(core: core)
+        let voiceAsk = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: recording.begin, finish: recording.finish, cancel: recording.cancel)
+        self.voiceAsk = voiceAsk
+        voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAsk)
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = pastePlain
         pasteImage.configureFeedback(core)
@@ -67,6 +73,7 @@ extension NotchcastCore {
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.captureTrimmer], module: captureTrimmer),
             .init(requires: [.agentAnswer], module: agentAnswer),
+            .init(requires: [.voiceAsk], module: voiceAsk),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
