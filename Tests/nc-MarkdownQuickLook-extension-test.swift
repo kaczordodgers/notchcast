@@ -1,4 +1,5 @@
 // notchcast-sources: NotchcastMarkdownPreview/MarkdownPreviewController.swift
+// notchcast-sources: NotchcastMarkdownPreview/PreviewThemeColors.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Model/MarkdownQuickLookDocument.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Service/MarkdownQuickLookReader.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdown.swift
