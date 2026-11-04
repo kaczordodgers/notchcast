@@ -59,6 +59,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Fleet panel", keywords: ["remote environment ID", "agents", "T3"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
     ]

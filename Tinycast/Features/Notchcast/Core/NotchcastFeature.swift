@@ -13,6 +13,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case fleetPanel
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -26,6 +27,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .fleetPanel: .activities
         case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
@@ -54,6 +56,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .fleetPanel: String(localized: "Fleet panel")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -83,6 +86,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .fleetPanel: String(localized: "Show T3 leads and workers across your Macs.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -96,6 +100,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .fleetPanel: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
@@ -108,7 +113,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        self != .fleetPanel && self != .displayBrightness && self != .quitProtection && !isSystemFeature
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,

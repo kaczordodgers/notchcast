@@ -22,6 +22,7 @@ struct NotchcastSettingsView: View {
             NotchcastSystemSettingsSection()
 
             featureSection(.notchcastActivities, group: .activities)
+            FleetSettingsSection()
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
