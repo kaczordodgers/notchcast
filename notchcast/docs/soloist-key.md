@@ -1,0 +1,18 @@
+# Soloist key boundary
+
+The Spotify API key stays in the bundle-scoped Keychain service `soloist`, via `SoloistKey`. It is never a preference. Tests inject an in-memory store and never read or change the Mac's Keychain.
+
+Accepted exposure: while Soloist plays, its `--api-key` command-line argument is visible to the same macOS user and root. Soloist has no other key input (the maintainer checked its help, binary strings and Spotify documentation). Keep this launch channel. This is not protection against inspection by the owning user. Not checked: whether Soloist itself writes the key into its data or cache folders.
+
+## Sink audit
+
+- `SoloistFiles.arguments` passes the key to `LiveSoloistLauncher` only for playback. Its stdout and stderr share `SoloistOutput`, which buffers a complete line before applying `SoloistLogScrub`. Chunk boundaries cannot bypass exact-key replacement; oversized lines are discarded. The injected log receives only scrubbed lines, then the live logger writes those lines with public visibility.
+- `LiveSoloistLauncher` replaces launch errors with `.process`; `SoloistSpeaker` maps unknown errors to fixed `SoloistFailure` cases. `SoloistFailure.message` formats fixed text, status numbers or dates, never arguments or underlying errors. No other Music print/Logger sink carries launch arguments.
+- `ForkSettingsBackupRestore.snapshot` enumerates preferences explicitly. The live snapshot adds an explicit list of other stores, none reading `SoloistKey` or Keychain. `ForkSettingsBackupEngine.encode` filters through the schema allowlist. Neither that schema nor upstream `SettingsBackup`/`BackupComposer` includes Keychain material. This excludes the managed secret; a user manually pasting a secret into arbitrary backed-up content is outside this boundary.
+- An app-wide search found no crash-note writer or crash SDK. Clean's diagnostic report paths are cleanup targets, not writers. Apple crash reports are external to this log scrubber. Apple's documented JSON schema has no ordinary argv field; therefore argv is not expected as a standard field. Application Specific Information can contain process-supplied text, so a child that includes the key in a fatal message could expose it there. No guarantee about arbitrary child crash diagnostics or memory dumps is made, and no real Soloist crash was induced. See [Apple's crash-report schema](https://developer.apple.com/documentation/xcode/interpreting-the-json-format-of-a-crash-report) and [report fields](https://developer.apple.com/documentation/xcode/examining-the-fields-in-a-crash-report).
+
+## Fixture proof
+
+`./Scripts/run-tests.sh soloist-runtime-test` checks that no backup schema key looks like a secret, saves `fixture-secret` in an injected store, echoes actual generated arguments from a stand-in child on both streams, checks a missing-executable failure, split chunks and overlong output, and snapshots real fork preferences while the injected key is set. It checks encoded backup bytes and rejects a deliberately injected secret field. No Spotify traffic is needed.
+
+Mutation checks (temporary changes, all reverted): returning raw text from `SoloistLogScrub.scrub` fails the captured stdout/stderr check; returning the raw `process.runObservingExit` error fails `raw launch error escaped`; inserting the fixture secret into the snapshot fails `snapshot leaked key`; bypassing the encoder filter produces an archive rejected by the decoder's schema validation. The split-chunk check also compares the exact scrubbed output, including the final unterminated line. These mutations validate the boundaries, not an OS crash-report privacy guarantee.
