@@ -260,7 +260,7 @@ extension NotchcastFeature {
 
     var defaultEnabled: Bool {
         !isSystemFeature && self != .buildStats && self != .spacesOrder
-            && self != .switcherQuitKey && !isLauncherKeysFeature
+            && self != .switcherQuitKey && self != .pastePlain && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool {
