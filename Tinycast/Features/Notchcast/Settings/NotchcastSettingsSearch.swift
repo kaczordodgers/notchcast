@@ -55,13 +55,19 @@ extension SettingsAnchor {
 
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
-    static let notchcast: [SettingsSearchEntry] =
+    static let notchcast: [SettingsSearchEntry] = {
+        let candidates: [SettingsSearchEntry] =
         NotchcastSettingsModule.allCases.flatMap { module in
-            module.visibleGroups.flatMap { group -> [SettingsSearchEntry] in
+            (SettingsTab.allCases.contains {
+                NotchcastSettingsModule(tab: $0) == nil && $0.title == module.title
+            } ? [] : [.init(pane: module.tab)]) + module.visibleGroups.flatMap { group -> [SettingsSearchEntry] in
                 let anchor = SettingsAnchor(tab: module.tab, title: group.title)
-                return [.init(group: anchor, group.title, keywords: [module.title])] +
+                let header: [SettingsSearchEntry] = group.items.compactMap(\.feature).contains {
+                    $0.title == group.title.resolved()
+                } ? [] : [.init(group: anchor, group.title, keywords: [module.title])]
+                return header +
                     group.items.compactMap(\.feature).filter(\.isWired).map { feature in
-                        .init(anchor, LocalizedStringResource(stringLiteral: feature.title), keywords: [module.title])
+                        .init(feature: feature, anchor: anchor, keywords: [module.title])
                     }
             }
         } + [
@@ -161,7 +167,7 @@ extension SettingsSearchCatalog {
         .init(group: .notchcastChargePercent, "Charge limit percent"),
         .init(group: .notchcastAwakeDuration, "Keep-awake duration"),
         .init(group: .notchcast(feature: .island), "Toggle Island"),
-        .init(group: .notchcast(feature: .colorPicker), "Color Picker", keywords: ["colour", "eyedropper", "sample"]),
+        .init(group: .notchcast(feature: .colorPicker), "Pick Color", keywords: ["colour", "eyedropper", "sample"]),
         .init(group: .notchcast(feature: .colorPicker), "Color format", keywords: ["colour", "hex", "rgb", "hsl"]),
         .init(group: .notchcast(feature: .screenshot), "Screenshots", keywords: ["screen capture", "image"]),
         .init(group: .notchcast(feature: .screenText), "Capture Text", keywords: ["ocr", "recognize", "barcode", "qr"]),
@@ -242,4 +248,30 @@ extension SettingsSearchCatalog {
         .init(group: .notchcast(feature: .finderRename), "Rename selection", keywords: ["hyper", "shortcut", "return"]),
         .init(group: .notchcast(feature: .pasteImage), "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
     ]
+        var entries: [SettingsSearchEntry] = []
+        for candidate in candidates {
+            if let index = entries.firstIndex(where: { $0.id == candidate.id }) {
+                entries[index] = SettingsSearchEntry(merging: entries[index], keywords: candidate.keywords)
+            } else {
+                entries.append(candidate)
+            }
+        }
+        return entries
+    }()
+}
+
+extension SettingsSearchEntry {
+    init(feature: NotchcastFeature, anchor: SettingsAnchor, keywords: [String]) {
+        tab = anchor.tab
+        target = .row(anchor, feature.title)
+        title = feature.title
+        self.keywords = keywords + [feature.title]
+    }
+
+    init(merging entry: Self, keywords: [String]) {
+        tab = entry.tab
+        target = entry.target
+        title = entry.title
+        self.keywords = entry.keywords + keywords
+    }
 }

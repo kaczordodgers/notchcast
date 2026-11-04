@@ -39,6 +39,9 @@ extension NotchcastSettingsModule {
             ]),
         ]
         case .musicAndSound: [
+            .init(title: "Amp", items: [
+                .feature(.katana, settings: []),
+            ]),
             .init(title: "Now playing", items: [
                 .feature(.musicNowPlaying, settings: []),
                 .feature(.musicLastPlayer, settings: []),
@@ -74,6 +77,10 @@ extension NotchcastSettingsModule {
             ]),
         ]
         case .monitorAndFans: [
+            .init(title: "Walking pad", items: [
+                .feature(.treadmillWalk, settings: []),
+                .feature(.treadmillHistory, settings: []),
+            ]),
             .init(title: "System monitor", items: [
                 .feature(.systemMonitor, settings: []),
             ]),
@@ -167,6 +174,9 @@ extension NotchcastSettingsModule {
                 .feature(.screenshot, settings: [.captureScreenshotDestination]),
                 .feature(.scrollingCapture, settings: []),
                 .feature(.screenText, settings: [.captureScreenTextLineBreaks]),
+            ]),
+            // ai-design-check-ignore-next-line sentence-case -- Matches the feature row title.
+            .init(title: "Color Picker", items: [
                 .feature(.colorPicker, settings: [.captureColorFormat]),
             ]),
             .init(title: "Recording", items: [
@@ -287,15 +297,6 @@ extension NotchcastSettingsModule {
             .init(title: "Tools", items: [
                 .feature(.killProcess, settings: []),
                 .feature(.macSetup, settings: []),
-            ]),
-        ]
-        case .walkingPadAndAmp: [
-            .init(title: "Walking pad", items: [
-                .feature(.treadmillWalk, settings: []),
-                .feature(.treadmillHistory, settings: []),
-            ]),
-            .init(title: "Amp", items: [
-                .feature(.katana, settings: []),
             ]),
         ]
         }

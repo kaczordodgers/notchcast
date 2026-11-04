@@ -266,6 +266,7 @@ struct MusicModuleTests {
         precondition(quits == 1, "hub media key arms Apple Music blocking")
         microphone.start()
         let f5 = CGEvent(keyboardEventSource: nil, virtualKey: 96, keyDown: true)!
+        f5.flags = []
         precondition(hub.handler!(.keyDown, f5) == .swallow)
         await waitUntil { mute.isMuted }
         precondition(mute.isMuted, "F5 toggles mute through hub")

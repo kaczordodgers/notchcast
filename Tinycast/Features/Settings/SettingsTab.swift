@@ -3,7 +3,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         fallbacks, clipboard, snippets, fileSearch, windowManagement, navigation, notes, calendar, emoji,
         dictation, ai, quickActions, extensions, permissions, backup, about
     case notchcast
-    case notchcastLauncher, notchcastMusicAndSound, notchcastDayAndTasks, notchcastMonitorAndFans, notchcastBattery, notchcastWindowsAndDisplay, notchcastDownloads, notchcastFilesAndClipboard, notchcastCapture, notchcastDictation, notchcastAIAndAgents, notchcastTwoMacs, notchcastBackups, notchcastCleanAndUpdates, notchcastTweaks, notchcastPrivacyAndStartup, notchcastWalkingPadAndAmp
+    case notchcastLauncher, notchcastMusicAndSound, notchcastDayAndTasks, notchcastMonitorAndFans, notchcastBattery, notchcastWindowsAndDisplay, notchcastDownloads, notchcastFilesAndClipboard, notchcastCapture, notchcastDictation, notchcastAIAndAgents, notchcastTwoMacs, notchcastBackups, notchcastCleanAndUpdates, notchcastTweaks, notchcastPrivacyAndStartup
     /// The case, never an index: a selectable `List` flattens section and row IDs together.
     var id: Self { self }
 
@@ -131,7 +131,7 @@ enum SettingsSection: CaseIterable, Identifiable {
                 .clipboard, .snippets, .fileSearch, .windowManagement, .navigation, .notes,
                 .calendar, .emoji, .dictation, .ai, .quickActions, .extensions
             ]
-        case .notchcast: return NotchcastSettingsModule.allCases.filter { !$0.visibleGroups.isEmpty }.map(\.tab)
+        case .notchcast: return NotchcastSettingsModule.allCases.map(\.tab)
         case .advanced: return [.backup, .about]
         }
     }
