@@ -1,13 +1,14 @@
 import Foundation
 
 struct AgentMCPAction: Sendable {
+    static let allowedNames = ["agents.list", "agents.send", "agents.wait", "agents.interrupt"]
     let id: String
     let title: String
     let inputSchema: Data
     let danger: String
 
     var isAllowed: Bool {
-        ["agents.list", "agents.send", "agents.wait", "agents.interrupt"].contains(id)
+        Self.allowedNames.contains(id)
     }
 }
 

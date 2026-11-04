@@ -19,7 +19,9 @@ final class FakeBackend: AgentMCPBackend {
         calls += 1
         return arguments
     }
-    func states() async throws -> [AgentMCPState] { [.init(id: "sessions", title: "Sessions")] }
+    func states() async throws -> [AgentMCPState] {
+        [.init(id: "agents.list", title: "Sessions"), .init(id: "credentials", title: "Secrets")]
+    }
     func readState(_ id: String) async throws -> Data {
         onRead?()
         return Data("{}".utf8)
@@ -54,6 +56,8 @@ struct EngineTest {
         precondition(String(bytes: invalid, encoding: .utf8)!.contains("-32600"))
         let early = await send("tools/list")
         precondition(early.contains("-32002"))
+        let infiniteID = await send("ping", id: "-1e999")
+        precondition(infiniteID.contains("-32600"))
         let initializeParams = #"{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1"}}"#
         let initialized = await send("initialize", initializeParams)
         precondition(initialized.contains("2025-06-18"))
@@ -64,6 +68,8 @@ struct EngineTest {
         precondition(badID.contains("-32600"))
         let badArguments = await send("tools/call", #"{"name":"agents.send","arguments":true}"#)
         precondition(badArguments.contains("-32602"))
+        let infiniteArguments = await send("tools/call", #"{"name":"agents.send","arguments":{"nested":[-1e999]}}"#)
+        precondition(infiniteArguments.contains("-32602"))
         for action in ["agents.list", "agents.send", "agents.wait", "agents.interrupt"] {
             let result = await send("tools/call", "{\"name\":\"\(action)\",\"arguments\":{\"text\":\"hello\"}}")
             precondition(result.contains("hello") && result.hasSuffix("\n"))
@@ -79,10 +85,13 @@ struct EngineTest {
         precondition(notification == nil)
         let resources = await send("resources/list")
         precondition(resources.contains("sessions"))
-        let state = await send("resources/read", #"{"uri":"notchcast-state:sessions"}"#)
+        precondition(!resources.contains("Secrets"))
+        let refusedState = await send("resources/read", #"{"uri":"notchcast-state:credentials"}"#)
+        precondition(refusedState.contains("-32602"))
+        let state = await send("resources/read", #"{"uri":"notchcast-state:agents.list"}"#)
         precondition(state.contains("contents") && state.contains("application"))
         backend.onRead = { module.stop(); module.start() }
-        let stale = await send("resources/read", #"{"uri":"notchcast-state:sessions"}"#)
+        let stale = await send("resources/read", #"{"uri":"notchcast-state:agents.list"}"#)
         precondition(stale.contains("-32603"))
         preferences.set(.agentMCPServer, false)
         for _ in 0..<10 { await Task.yield() }
