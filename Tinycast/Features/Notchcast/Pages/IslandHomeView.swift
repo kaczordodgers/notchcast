@@ -16,7 +16,7 @@ struct IslandHomeView: View {
             .edgeDissolve()
             .thinScrollbar()
             .frame(height: min(NotchcastTheme.maximumHeight - NotchcastTheme.monitorHeader,
-                               CGFloat(IslandActivityCenter.shared.activities.count) * 56))
+                               CGFloat(IslandActivityCenter.shared.activities.count) * NotchcastTheme.homeActivityRow))
         } else {
         VStack(spacing: metrics.spacing.md) {
             SymbolImage(name: "house", size: metrics.size.dialogIcon)
