@@ -26,17 +26,16 @@ struct VoiceAskCLITransport: VoiceAskTransport {
         let output = try await run(executable, ["thread", "send", "--wait", "--json", destination, "-"], Data(text.utf8))
         try Task.checkCancellation()
         let decoded = try? JSONDecoder().decode(Reply.self, from: output.stdout)
-        if output.status != 0 && output.status != 2 {
+        if decoded?.status == "failed" || decoded?.error != nil || (output.status != 0 && output.status != 2) {
             let diagnostic = decoded?.error ?? String(decoding: output.stderr.prefix(500), as: UTF8.self)
-            let safeDiagnostic = text.isEmpty ? diagnostic : diagnostic.replacingOccurrences(of: text, with: "")
             let message = decoded?.error == nil ? String(localized: "The T3 run stopped.") : ""
-            return VoiceAskResult(state: .failed, firstLines: ([message] + safeDiagnostic.components(separatedBy: .newlines))
+            return VoiceAskResult(state: .failed, firstLines: ([message] + diagnostic.components(separatedBy: .newlines))
                 .filter { !$0.isEmpty })
         }
         guard let reply = decoded else {
             throw VoiceAskCLIError.invalidOutput
         }
-        if output.status == 2 || reply.status == "waiting" {
+        if reply.status == "waiting" {
             return VoiceAskResult(state: .running, firstLines: [
                 String(localized: "The agent is waiting for an answer in T3 Code.")
             ])

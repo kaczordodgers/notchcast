@@ -9,6 +9,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 
 import Foundation
+import Darwin
 
 enum DialogTone { case success, danger }
 
@@ -57,6 +58,18 @@ struct VoiceAskTransportTest {
         fixture.text = failed
         let failure = try await transport.send(text, destination: "fixture")
         precondition(failure == .init(state: .failed, firstLines: ["Provider returned an error: rate limited."]))
+        let unsanitized = VoiceAskCLITransport(resolve: { URL(filePath: "/fake/t3") }, run: { _, _, input in
+            precondition(input == Data("error".utf8))
+            return .init(status: 1, stdout: Data(failed.utf8))
+        })
+        let intactFailure = try await unsanitized.send("error", destination: "fixture")
+        precondition(intactFailure == failure)
+        fixture.status = 2
+        fixture.text = #"{"status":"failed","error":"No such thread","reply":null}"#
+        let missingThread = try await transport.send(text, destination: "fixture")
+        precondition(missingThread == .init(state: .failed, firstLines: ["No such thread"]))
+        fixture.status = 1
+        print("PASS: utterance error preserves diagnostic; exit 2 failed JSON reports No such thread")
         for output in ["", #"{"status":"interrupted","error":null,"reply":null}"#] {
             fixture.text = output
             fixture.stderr = Data("Server stopped".utf8)
@@ -159,10 +172,40 @@ struct VoiceAskTransportTest {
             precondition((error as NSError).code == NSFileWriteUnknownError || (error as NSError).code == 32)
         }
         print("PASS: env interpreter resolves via child PATH, stderr capped at 500 bytes, 1 MB broken pipe survives")
-        try await expect(.timeout) {
-            _ = try await VoiceAskProcessRunner.run(URL(filePath: "/bin/sleep"), arguments: ["5"],
-                                                    input: Data(), timeout: .milliseconds(30))
+        for ignoresTermination in [false, true] {
+            let pidFile = directory.appending(path: "pid")
+            let command = "echo $$ > '\(pidFile.path)'; " + (ignoresTermination ? "trap '' TERM; exec sleep 30" : "exec sleep 30")
+            let start = ContinuousClock.now
+            try await expect(.timeout) {
+                _ = try await VoiceAskProcessRunner.run(URL(filePath: "/bin/sh"), arguments: ["-c", command],
+                                                        input: Data(), timeout: .milliseconds(100))
+            }
+            precondition(start.duration(to: .now) < .seconds(2.6))
+            let pid = Int32(try String(contentsOf: pidFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
+            precondition(kill(pid, 0) == -1 && errno == ESRCH)
+            print("PASS: timeout returns within timeout + grace; process dead, ignores TERM = \(ignoresTermination)")
         }
+        let cancelPID = directory.appending(path: "cancel-pid")
+        let cancelled = Task {
+            try await VoiceAskProcessRunner.run(URL(filePath: "/bin/sh"),
+                arguments: ["-c", "echo $$ > '\(cancelPID.path)'; trap '' TERM; exec sleep 30"], input: Data())
+        }
+        try await wait { FileManager.default.fileExists(atPath: cancelPID.path) }
+        let cancellationStart = ContinuousClock.now
+        cancelled.cancel()
+        do { _ = try await cancelled.value; preconditionFailure("Expected cancellation") } catch is CancellationError {}
+        let cancelledPID = Int32(try String(contentsOf: cancelPID, encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines))!
+        precondition(cancellationStart.duration(to: .now) < .seconds(2.6))
+        precondition(kill(cancelledPID, 0) == -1 && errno == ESRCH)
+        print("PASS: cancellation kills TERM-ignoring child and returns within grace")
+        let pipeStart = ContinuousClock.now
+        try await expect(.timeout) {
+            _ = try await VoiceAskProcessRunner.run(URL(filePath: "/bin/sh"),
+                arguments: ["-c", "sleep 3 & exit 0"], input: Data(), timeout: .milliseconds(100))
+        }
+        precondition(pipeStart.duration(to: .now) < .seconds(2.6))
+        print("PASS: inherited grandchild pipes cannot hold run past timeout + grace")
         print("PASS: real platform process exit callback, stdin round trip and timeout using harmless stand-in executables")
     }
 
