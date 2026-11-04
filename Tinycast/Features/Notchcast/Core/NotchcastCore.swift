@@ -92,6 +92,7 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Could not change fan mode."), tone: .danger)
         })
         self.monitor = monitor
+        macLink.channel.manager.fanHandler = { [weak monitor] request in guard let monitor else { throw RemoteFanReport.Failure.unavailable }; return try await monitor.remoteFanReport(request) }
         if !NotchcastPreferences.shared.isOn(.systemMonitor)
             || !NotchcastPreferences.shared.isOn(.fanControl) {
             monitor.fans.restore(preservingPreference: true, silently: true)

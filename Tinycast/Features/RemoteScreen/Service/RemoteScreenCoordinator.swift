@@ -25,7 +25,7 @@ final class RemoteScreenCoordinator {
 
     func show(_ request: RemoteScreenRequest, preferredClientInstalled: Bool) async throws {
         guard state != .disabled else { throw RemoteScreenRequest.Failure.unavailable }
-        let url = try request.validatedURL()
+        _ = try request.validatedURL()
         let message = try MachLinkMessage(method: "remote-screen-availability", value: true)
         let operation = RemoteScreenState.checking(message.id)
         operationID = message.id
@@ -40,7 +40,9 @@ final class RemoteScreenCoordinator {
                 throw RemoteScreenRequest.Failure.invalidResponse
             }
             let availability = try response.value(as: RemoteScreenState.Availability.self)
-            guard availability.screenSharingEnabled else { throw RemoteScreenRequest.Failure.unavailable }
+            guard availability.peerEnabled != false else { throw RemoteScreenRequest.Failure.peerDisabled }
+            guard availability.screenSharingEnabled else { throw RemoteScreenRequest.Failure.sharingDisabled }
+            let url = try RemoteScreenRequest(host: availability.host ?? request.host).validatedURL()
             let client: RemoteScreenState.Client = preferredClientInstalled ? .preferred : .apple
             usedFallback = client == .apple
             state = .opening
