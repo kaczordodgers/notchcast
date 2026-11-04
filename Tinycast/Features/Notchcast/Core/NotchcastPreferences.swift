@@ -26,6 +26,18 @@ final class NotchcastPreferences {
     var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
     static let chargeLimits = [60, 70, 80, 90]
+    var batteryCalibrationCompletedAt: Date? {
+        get { defaults.object(forKey: "batteryCalibrationCompletedAt") as? Date }
+        set { defaults.set(newValue, forKey: "batteryCalibrationCompletedAt") }
+    }
+    var batteryRootDirty: Bool {
+        get { defaults.bool(forKey: "batteryRootDirty") }
+        set { defaults.set(newValue, forKey: "batteryRootDirty") }
+    }
+    var batteryOwnsNativeLimit: Bool {
+        get { defaults.bool(forKey: "batteryOwnsNativeLimit") }
+        set { defaults.set(newValue, forKey: "batteryOwnsNativeLimit") }
+    }
     static let awakeDurations = [15, 30, 60, 120, 240]
     private var chargePercent: Int
     var batteryChargePercent: Int {

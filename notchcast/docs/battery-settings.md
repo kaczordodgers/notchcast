@@ -2,7 +2,7 @@
 
 `NotchcastSystemSettingsSection` owns the system monitor, fan, battery and energy rows in
 Settings > Notchcast. These switches default off and work independently of the island.
-Charge limits are 50–100%, in steps of 5; keep-awake durations are 15–240 minutes.
+Charge limits are 60, 70, 80 and 90%; keep-awake durations are 15–240 minutes.
 Both options persist in the fork-local preferences suite.
 
 Accessory Batteries defaults off and requires System Monitor. Its read-only Settings rows
@@ -19,8 +19,13 @@ Battery helper operations require installed helper version 2 or later and the co
 `battery-*` commands in the app contract. The installed version is refreshed at module start
 and when the settings section appears. Older helpers show “Needs the Notchcast helper update”
 and receive no battery commands. Until a watchdog is available, sailing and calibration drain
-plans pause charging without disconnecting the adapter. Failed writes preserve the last applied
-state and show their error in Settings. Repeated evaluations skip unchanged root state.
+plans pause charging without disconnecting the adapter. Failed writes invalidate the applied
+state and show their error in Settings. Repeated evaluations skip confirmed unchanged root state.
 Keep Awake uses no root helper.
+
+Root changes and native-limit ownership are marked in fork-local preferences before writes.
+Launch repairs marked changes even with every switch off; failed repairs retain their markers.
+An existing macOS charge limit is read without claiming ownership. Calibration stops on relaunch
+and turns its switch off on completion, recording the completion date.
 
 `Tests/nc-Battery-store-test.swift` uses fake readings, assertions and commands exclusively.

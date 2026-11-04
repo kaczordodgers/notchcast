@@ -125,7 +125,7 @@ struct BatteryStoreTests {
         for _ in 0..<100 { await Task.yield() }
         await unsupported.evaluate(now: .now)
         await unsupported.evaluate(now: .now)
-        precondition(unsupported.chargingUnsupported && attempts == 1)
+        precondition(!unsupported.chargingUnsupported && attempts >= 2 && unsupported.failure != nil)
         unsupported.stop()
         await unsupported.waitUntilIdle()
         for feature in NotchcastFeature.allCases where feature.isSystemFeature {
@@ -139,12 +139,12 @@ struct BatteryStoreTests {
         leftover.start()
         for _ in 0..<100 { await Task.yield() }
         await leftover.evaluate(now: .now)
-        precondition(cleanupCalls == [.chargeLimitOff] && leftover.nativeLimit == nil)
+        precondition(cleanupCalls.isEmpty && leftover.nativeLimit == 85)
         await leftover.evaluate(now: .now)
-        precondition(cleanupCalls == [.chargeLimitOff])
+        precondition(cleanupCalls.isEmpty)
         leftover.stop()
         await leftover.waitUntilIdle()
-        precondition(cleanupCalls == [.chargeLimitOff])
+        precondition(cleanupCalls.isEmpty)
         var missingCalls = 0
         preferences.set(.batteryChargeLimit, true)
         let missing = BatteryModule(preferences: preferences, runner: .init(read: { nil },
@@ -157,6 +157,33 @@ struct BatteryStoreTests {
         precondition(!missing.nativeLimitAvailable && missingCalls == 0)
         missing.stop()
         await missing.waitUntilIdle()
+        for feature in NotchcastFeature.allCases where feature.isSystemFeature {
+            preferences.set(feature, false)
+        }
+        preferences.batteryRootDirty = true
+        preferences.batteryOwnsNativeLimit = true
+        var repairCalls: [BatteryRootVerbs] = []
+        let repair = BatteryModule(preferences: preferences, runner: .init(read: { nil },
+            root: { repairCalls.append($0) }, installed: { true }, version: { "2" },
+            create: { _ in 0 }, release: { _ in }, readLimit: { nil }))
+        repair.repairAtLaunch()
+        await repair.waitUntilIdle()
+        precondition(repairCalls == [.adapterOn, .chargingOn, .sleepOn, .chargeLimitOff])
+        precondition(!preferences.batteryRootDirty && !preferences.batteryOwnsNativeLimit)
+        preferences.set(.batterySailing, true)
+        let stop = BatteryModule(preferences: preferences, runner: .init(read: {
+            BatteryReading.decode(properties: ["CurrentCapacity": 95, "MaxCapacity": 100,
+                                               "ExternalConnected": true])
+        }, root: { repairCalls.append($0) }, installed: { true }, version: { "2" },
+           create: { _ in 0 }, release: { _ in }, readLimit: { nil }))
+        stop.start()
+        for _ in 0..<100 { await Task.yield() }
+        await stop.evaluate(now: .now)
+        precondition(preferences.batteryRootDirty)
+        stop.refreshHelper()
+        stop.stop()
+        await stop.waitUntilIdle()
+        precondition(!preferences.batteryRootDirty && repairCalls.suffix(3) == [.adapterOn, .chargingOn, .sleepOn])
         print("PASS: stored limit rounding, startup cleanup once, missing verbs, switch-off and quit release")
     }
 }

@@ -22,8 +22,10 @@ final class BatteryModule: NotchcastModule {
             guard let command = RootContract.Command(rawValue: "charge-limit-read") else {
                 throw RootHelperClient.Failure.invalidResponse
             }
-            _ = try await RootHelperClient().run(command)
-            throw RootHelperClient.Failure.invalidResponse
+            guard case .chargeLimit(let limit) = try await RootHelperClient().run(command) else {
+                throw RootHelperClient.Failure.invalidResponse
+            }
+            return limit
         }
 
         static var live: Self {
@@ -51,12 +53,14 @@ final class BatteryModule: NotchcastModule {
     private(set) var helperInstalled = false
     private(set) var chargingUnsupported = false
     private(set) var nativeLimit: Int?
+    private var helperHasNativeLimit = true
     var nativeLimitAvailable: Bool {
-        !needsHelperUpdate && runner.supports("charge-limit-read")
+        !needsHelperUpdate && helperHasNativeLimit && runner.supports("charge-limit-read")
             && runner.supports("charge-limit-off")
             && NotchcastPreferences.chargeLimits.allSatisfy { runner.supports("charge-limit-\($0)") }
     }
     @ObservationIgnored private var appliedLimit: String?
+    @ObservationIgnored private var limitGeneration = 0
     @ObservationIgnored private var observationID: UUID?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
     @ObservationIgnored private var applied: [String: BatteryRootVerbs] = [
@@ -74,16 +78,22 @@ final class BatteryModule: NotchcastModule {
     @ObservationIgnored private var awakePaused = false
     @ObservationIgnored private var calibrationEnabled = false
     @ObservationIgnored private var rootChanged = false
+    @ObservationIgnored private var launchRepair = false
     private(set) var failure: Error?
 
     init(preferences: NotchcastPreferences, runner: Runner) {
         self.preferences = preferences
         self.runner = runner
+        launchRepair = preferences.batteryRootDirty || preferences.batteryOwnsNativeLimit
+        if preferences.isOn(.batteryCalibration) { preferences.set(.batteryCalibration, false) }
     }
+
+    func repairAtLaunch() { schedule() }
 
     func start() {
         guard !running else { return }
         running = true
+        chargingUnsupported = false
         appliedLimit = nil
         let identity = UUID()
         observationID = identity
@@ -111,6 +121,7 @@ final class BatteryModule: NotchcastModule {
         refreshTask?.cancel()
         helperInstalled = runner.installed()
         needsHelperUpdate = true
+        helperHasNativeLimit = true
         refreshTask = Task { [weak self] in
             guard let self, self.helperInstalled else { return }
             do {
@@ -118,15 +129,18 @@ final class BatteryModule: NotchcastModule {
                 try Task.checkCancellation()
                 self.needsHelperUpdate = (Int(version) ?? 0) < 2
                 if self.nativeLimitAvailable {
+                    let generation = self.limitGeneration
                     let limit = try await self.runner.readLimit()
                     try Task.checkCancellation()
-                    self.nativeLimit = limit
-                    if self.appliedLimit == nil {
-                        self.appliedLimit = limit.map { "charge-limit-\($0)" }
-                    }
+                    if generation == self.limitGeneration { self.nativeLimit = limit }
                 }
                 if self.running { self.schedule() }
             } catch {
+                if case RootHelperClient.Failure.executionFailed(RootContract.usageExit) = error {
+                    self.helperHasNativeLimit = false
+                    if self.running { self.schedule() }
+                    return
+                }
                 if !Task.isCancelled { self.failure = error }
             }
         }
@@ -161,6 +175,37 @@ final class BatteryModule: NotchcastModule {
     }
 
     func evaluate(now: Date) async {
+        failure = nil
+        if !running {
+            do { try releaseAssertions() } catch { failure = error }
+        }
+        if launchRepair || (!running && (preferences.batteryRootDirty || preferences.batteryOwnsNativeLimit)) {
+            do {
+                guard runner.installed(), (Int(try await runner.version()) ?? 0) >= 2 else { return }
+                if preferences.batteryRootDirty {
+                    var restored = true
+                    for verb in [BatteryRootVerbs.adapterOn, .chargingOn, .sleepOn] {
+                        do { try await runner.root(verb) } catch {
+                            restored = false
+                            failure = error
+                        }
+                    }
+                    if restored {
+                        preferences.batteryRootDirty = false
+                        rootChanged = false
+                        applied = ["battery-adapter": .adapterOn,
+                                   "battery-charging": .chargingOn, "battery-sleep": .sleepOn]
+                    }
+                }
+                if preferences.batteryOwnsNativeLimit {
+                    try await runner.root(.chargeLimitOff)
+                    preferences.batteryOwnsNativeLimit = false
+                    appliedLimit = nil
+                    nativeLimit = nil
+                }
+                launchRepair = preferences.batteryRootDirty || preferences.batteryOwnsNativeLimit
+            } catch { failure = error }
+        }
         let on: (NotchcastFeature) -> Bool = { self.running && self.preferences.isOn($0) }
         let reading = runner.read()
         let percent = reading?.percent.map { Int($0) }
@@ -182,19 +227,32 @@ final class BatteryModule: NotchcastModule {
                 guard let verb = on(.batteryChargeLimit)
                     ? BatteryRootVerbs(rawValue: "charge-limit-\(preferences.batteryChargePercent)")
                     : .chargeLimitOff else { return }
-                if appliedLimit != verb.rawValue && (on(.batteryChargeLimit) || appliedLimit != nil) {
+                if appliedLimit != verb.rawValue
+                    && (on(.batteryChargeLimit) || preferences.batteryOwnsNativeLimit) {
+                    limitGeneration += 1
+                    preferences.batteryOwnsNativeLimit = true
+                    appliedLimit = nil
                     try await runner.root(verb)
                     try Task.checkCancellation()
                     appliedLimit = verb.rawValue
+                    preferences.batteryOwnsNativeLimit = verb != .chargeLimitOff
                     nativeLimit = Int(verb.rawValue.components(separatedBy: "-").last ?? "")
                 }
             }
+        } catch {
+            failure = error
+        }
+        do {
             if holding && assertions.isEmpty {
                 assertions = try KeepAwakePlanService().acquire(
                     types: awake.assertionTypes, create: runner.create, release: runner.release)
             } else if !holding {
                 try releaseAssertions()
             }
+        } catch {
+            failure = error
+        }
+        do {
             if on(.batteryCalibration) && !calibrationEnabled { engine.calibration.start() }
             if !on(.batteryCalibration) { engine.calibration.cancel() }
             calibrationEnabled = on(.batteryCalibration)
@@ -209,6 +267,11 @@ final class BatteryModule: NotchcastModule {
                 connected: reading.map { !$0.onBattery } ?? false,
                 celsius: reading?.temperatureCelsius, now: now,
                 heatEnabled: on(.batteryHeatProtection))
+            if calibrationEnabled && engine.calibration.completedAt != nil {
+                preferences.batteryCalibrationCompletedAt = engine.calibration.completedAt
+                preferences.set(.batteryCalibration, false)
+                calibrationEnabled = false
+            }
             guard !needsHelperUpdate else { return }
             guard enabled || on(.lidClosedAwake) || rootChanged else { return }
             var verbs: [BatteryRootVerbs] = []
@@ -223,16 +286,17 @@ final class BatteryModule: NotchcastModule {
                 let key = verb.rawValue.components(separatedBy: "-").dropLast().joined(separator: "-")
                 guard applied[key] != verb else { continue }
                 rootChanged = true
-                do {
-                    try await runner.root(verb)
-                } catch RootHelperClient.Failure.executionFailed(70) where verb == .chargingOff {
-                    chargingUnsupported = true
-                    continue
-                }
+                preferences.batteryRootDirty = true
+                applied[key] = nil
+                try await runner.root(verb)
                 applied[key] = verb
             }
             rootChanged = enabled || on(.lidClosedAwake)
-            failure = nil
+            if applied["battery-adapter"] == .adapterOn,
+               applied["battery-charging"] == .chargingOn,
+               applied["battery-sleep"] == .sleepOn {
+                preferences.batteryRootDirty = false
+            }
         } catch {
             failure = error
         }
