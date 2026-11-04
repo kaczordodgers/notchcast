@@ -26,6 +26,7 @@ struct NotchcastSettingsView: View {
             NotchcastExtrasSection()
             DownloadsSettingsSection()
             AIUsageSettingsSection(link: NotchcastCore.macLink)
+            BuildStatsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
