@@ -15,11 +15,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case colorPicker
     case screenshot
+    case screenText, scrollingCapture
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
     enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities
+        case island, islandOptions, launcher, system, activities, captureAndDictation
     }
 
     var settingsGroup: SettingsGroup {
@@ -33,6 +34,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .colorPicker, .screenshot, .screenText, .scrollingCapture: .captureAndDictation
         }
     }
 
@@ -58,6 +60,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
         case .screenshot: String(localized: "Screenshots")
+        case .screenText: String(localized: "Capture Text")
+        case .scrollingCapture: String(localized: "Scrolling Capture")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -89,6 +93,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
         case .screenshot: String(localized: "Capture an area, window or display.")
+        case .screenText: String(localized: "Copy text from a selected screen area.")
+        case .scrollingCapture: String(localized: "Copy a scrolling area as one image.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -102,7 +108,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
-        case .screenshot: [.screenRecording]
+        case .screenshot, .screenText, .scrollingCapture: [.screenRecording]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker,
@@ -119,7 +125,9 @@ extension NotchcastFeature {
         self != .displayBrightness && self != .quitProtection && !belongsToCaptureAndDictation && !isSystemFeature
     }
 
-    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot }
+    var belongsToCaptureAndDictation: Bool {
+        [.colorPicker, .screenshot, .screenText, .scrollingCapture].contains(self)
+    }
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)

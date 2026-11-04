@@ -4,6 +4,9 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandController+Command.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Command.swift
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
+// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule+Command.swift
+// notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule+Command.swift
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
 import AppKit
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
@@ -101,7 +104,7 @@ enum QuicklinkDestination {
     enum Tone { case danger }
 }
 
-enum Feature { case colorPicker, screenshot }
+enum Feature { case colorPicker, screenshot, screenText, scrollingCapture }
 @MainActor final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
     var disabled: Set<Feature> = []
@@ -110,6 +113,14 @@ enum Feature { case colorPicker, screenshot }
 @MainActor enum NotchcastCore {
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let screenText = ScreenTextModule()
+    static let scrollingCapture = ScrollingCaptureModule()
+}
+@MainActor final class ScreenTextModule {
+    func capture(report: @escaping (String) -> Void) {}
+}
+@MainActor final class ScrollingCaptureModule {
+    func capture(report: @escaping (String) -> Void) {}
 }
 @MainActor final class ColorPickerModule {
     var runs = 0
@@ -135,12 +146,14 @@ enum Feature { case colorPicker, screenshot }
 @main @MainActor struct NotchcastCommandsTest {
     static func main() {
         let commands = NotchcastCommandCatalog.all
-        for id in ["command:nc-pick-color", "command:nc-screenshot-display"] {
+        for id in ["command:nc-pick-color", "command:nc-screenshot-display", "command:nc-screen-text",
+                   "command:nc-scrolling-capture"] {
             assert(commands.contains { $0.id == id })
             assert(HotKeyAction(entryID: id) == .notchcastCommand(entryID: id))
         }
-        NotchcastPreferences.shared.disabled = [.colorPicker, .screenshot]
-        for id in ["command:nc-pick-color", "command:nc-screenshot-display"] {
+        NotchcastPreferences.shared.disabled = [.colorPicker, .screenshot, .screenText, .scrollingCapture]
+        for id in ["command:nc-pick-color", "command:nc-screenshot-display", "command:nc-screen-text",
+                   "command:nc-scrolling-capture"] {
             assert(!NotchcastCommandCatalog.isEnabled(id))
             assert(NotchcastCommandCatalog.dispatch(id, dismiss: { fatalError("Disabled command dismissed") }))
         }

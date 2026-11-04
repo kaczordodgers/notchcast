@@ -5,6 +5,8 @@ enum NotchcastCommandCatalog {
         IslandController.launcherCommand,
         ColorPickerModule.launcherCommand,
         ScreenshotModule.launcherCommand,
+        ScreenTextModule.launcherCommand,
+        ScrollingCaptureModule.launcherCommand,
     ]
 
     static var entries: [AppEntry] { all.map(\.entry) }

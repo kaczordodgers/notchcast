@@ -30,6 +30,18 @@ Permissions pane has no Screen Recording row. The engine asks for access only wh
 
 ## Verification
 
+Capture Text (`command:nc-screen-text`) selects an area and copies recognized text or barcode content.
+Remove line breaks persists in the fork defaults suite and cancels pending recognition when changed.
+Scrolling Capture (`command:nc-scrolling-capture`) selects a Quartz area and collects scrolling frames.
+Run the command again to stop and copy the stitched PNG; reaching 20,000 pixels copies automatically
+and presents a HUD notice. Both switches are independent of Island and require Screen Recording only
+when invoked. Disabling either cancels selection and pending output. Capture commands report distinct
+permission, unavailable-area, recognition and clipboard failures through the existing HUD.
+
+`./Scripts/run-tests.sh notchcast-capture-wiring-test` checks the new switch lifecycle, permission
+gating, OCR option persistence, command refresh for every switch and Island independence with private
+defaults and denied permission probes. `notchcast-commands-test` covers both new command registrations.
+
 `./Scripts/run-tests.sh nc-ColorPicker-lifecycle-test` checks disabled sampling, switch teardown,
 re-enabling, format persistence and Island independence with injected sampling and clipboard effects.
 `./Scripts/run-tests.sh nc-CaptureScreenshot-lifecycle-test` checks switch teardown, caller and destination
