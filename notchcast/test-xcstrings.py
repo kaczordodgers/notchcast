@@ -36,6 +36,24 @@ class CatalogTests(unittest.TestCase):
             merge(catalog(Key={"value": "old"}), catalog(Key={"value": "main"}),
                   catalog(Key={"value": "branch"}))
 
+    def test_conflict_cli_keeps_destination(self):
+        with tempfile.TemporaryDirectory() as directory:
+            paths = [Path(directory) / name for name in ('base', 'main', 'branch', 'out')]
+            for path, value in zip(paths, ('old', 'main', 'branch')):
+                path.write_text(catalog(Key={'value': value}))
+            paths[-1].write_text('untouched')
+            result = subprocess.run(['python3', str(ROOT / 'xcstrings-union.py'),
+                                     *map(str, paths)], capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn('value conflicts', result.stderr)
+            self.assertEqual(paths[-1].read_text(), 'untouched')
+
+    def test_preserves_upstream_text(self):
+        main = catalog(Zebra={'value': 'main'}, Alpha={}).replace('"value" :', '"value":')
+        result = merge(catalog(), main, catalog(Beta={}))
+        self.assertIn('"value": "main"', result)
+        self.assertEqual(list(json.loads(result)['strings']), ['Beta', 'Zebra', 'Alpha'])
+
     def test_empty_and_last(self):
         self.assertEqual(json.loads(merge(catalog(A={}), catalog(A={}), catalog()))["strings"], {})
         self.assertEqual(list(json.loads(merge(catalog(), catalog(), catalog(Z={})))['strings']), ['Z'])
