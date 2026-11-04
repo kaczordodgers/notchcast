@@ -2,6 +2,7 @@ import Darwin
 import Foundation
 
 nonisolated struct NetworkPublicIPService: Sendable {
+    @concurrent
     func lookup() async -> String? {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.urlCache = nil
