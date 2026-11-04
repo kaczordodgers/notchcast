@@ -5,6 +5,10 @@ Settings > Notchcast. These switches default off and work independently of the i
 Charge limits are 50–100%, in steps of 5; keep-awake durations are 15–240 minutes.
 Both options persist in the fork-local preferences suite.
 
+Accessory Batteries defaults off and requires System Monitor. Its read-only Settings rows
+sample IOKit peripheral readings on appearance and every 60 seconds while enabled and visible.
+Charging appears only when the device reports it. No Bluetooth monitor or helper is started.
+
 `BatteryModule` runs while any battery or energy switch is on, samples every 60 seconds,
 and reevaluates immediately after
 preference changes. Its injected runner owns helper commands and power assertions. Disabling
