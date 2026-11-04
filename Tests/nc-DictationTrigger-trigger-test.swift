@@ -90,7 +90,7 @@ struct DictationTriggerTest {
         hub.send(.flagsChanged, key: kVK_Shift, flags: .maskAlphaShift, at: 3.1)
         expect(actions.isEmpty, "Function-key fn residue and Caps Lock cannot start dictation")
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 4)
-        try await Task.sleep(for: .milliseconds(400))
+        try await wait { actions == [.start] }
         hub.send(.keyDown, key: kVK_ANSI_A, at: 4.1, isRepeat: true)
         hub.send(.keyDown, key: kVK_ANSI_A, at: 4.2, isSynthetic: true)
         hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 4.5)
@@ -99,14 +99,14 @@ struct DictationTriggerTest {
         for key in [kVK_Escape, kVK_Return, kVK_ANSI_KeypadEnter] {
             actions = []
             hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 5)
-            try await Task.sleep(for: .milliseconds(400))
+            try await wait { actions == [.start] }
             hub.send(.keyDown, key: key, at: 5.1)
             hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 5.2)
             expect(actions == [.start, .finish], "Finish keys preserve audio and suppress release toggling")
         }
         actions = []
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 6)
-        try await Task.sleep(for: .milliseconds(400))
+        try await wait { actions == [.start] }
         hub.send(.flagsChanged, key: kVK_Shift, flags: [.maskSecondaryFn, .maskShift], at: 6.4)
         hub.send(.flagsChanged, key: kVK_Shift, flags: .maskSecondaryFn, at: 6.5)
         hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 6.6)
@@ -125,7 +125,7 @@ struct DictationTriggerTest {
         }
         temporary?.setEnabled(true)
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 8)
-        try await Task.sleep(for: .milliseconds(400))
+        try await wait { actions == [.start] }
         temporary = nil
         expect(actions == [.start, .finish] && hub.handlers.isEmpty, "Owner teardown preserves provisional audio")
     }
