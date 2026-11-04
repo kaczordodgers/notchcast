@@ -1,13 +1,11 @@
 import Foundation
 import Observation
 
-/// One stored setting per line and one init assignment per line, so branches that add a setting
-/// merge by union. Types and helpers go in the extension below.
-/// `notchcast/check-feature-shape.py` rejects a setting or an assignment a union merge kept twice.
 @MainActor
 @Observable
 final class NotchcastPreferences {
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored var onCommandsChanged: (() -> Void)?
     private var off: Set<NotchcastFeature>
     private var chargePercent: Int
     private var awakeDuration: Int
@@ -46,6 +44,7 @@ final class NotchcastPreferences {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
         if enabled { off.remove(feature) } else { off.insert(feature) }
+        if feature == .colorPicker || feature == .screenshot { onCommandsChanged?() }
     }
 }
 
