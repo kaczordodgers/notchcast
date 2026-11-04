@@ -3,6 +3,16 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
+import Observation
+
+enum SystemLanguages {
+    static let preferred = ["pl-PL"]
+}
+
+@MainActor @Observable
+final class RefreshState {
+    var value = 0
+}
 
 enum SettingsTab: Sendable { case notchcast }
 struct AppEntry {
@@ -39,6 +49,9 @@ struct TodoCommandTests {
         let context = TodoCommandContext(isEnabled: { enabled }, store: { store },
             clipboardText: { reads += 1; return clipboard }, report: { messages.append($0) },
             now: { now }, calendar: calendar, language: .english)
+        let defaultContext = TodoCommandContext(isEnabled: { enabled }, store: { store },
+            clipboardText: { clipboard }, report: { messages.append($0) })
+        precondition(defaultContext.language == .polish)
         let commands = TodoCommands.commands(context: { context })
         precondition(commands.map(\.slug) == ["add-task-from-clipboard", "complete-next-task", "undo-last-task-change"])
         for command in commands {
@@ -92,7 +105,15 @@ struct TodoCommandTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         var refreshes = 0
-        let observer = TodoCommandAvailability(preferences: preferences) { refreshes += 1 }
+        let refreshState = RefreshState()
+        let observer = TodoCommandAvailability(preferences: preferences) {
+            _ = refreshState.value
+            refreshes += 1
+        }
+        precondition(refreshes == 1)
+        refreshState.value += 1
+        for _ in 0..<50 { await Task.yield() }
+        precondition(refreshes == 1)
         preferences.set(.tasks, true)
         for _ in 0..<50 where refreshes < 2 { await Task.yield() }
         precondition(refreshes >= 2)

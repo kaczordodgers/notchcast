@@ -37,7 +37,7 @@ extension SettingsSearchCatalog {
         .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
-        .init(group: .notchcastTasks, "Import Todoist backup…", keywords: ["json", "local file", "import"]),
+        .init(group: .notchcastTasks, "Import Todoist JSON export…", keywords: ["json", "local file", "import"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),

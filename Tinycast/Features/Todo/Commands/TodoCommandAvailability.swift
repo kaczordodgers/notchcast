@@ -14,9 +14,9 @@ final class TodoCommandAvailability {
     private func observe() {
         withObservationTracking {
             _ = preferences.isEnabled(.tasks)
-            refresh()
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observe() }
         }
+        refresh()
     }
 }

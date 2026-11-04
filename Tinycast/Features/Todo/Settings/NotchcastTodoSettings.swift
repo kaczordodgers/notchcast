@@ -12,8 +12,8 @@ struct NotchcastTodoSettings: View {
                 if let store = module.store {
                     Text("Tasks: \(store.state.tasks.count)").foregroundStyle(.secondary)
                 }
-                Button("Import Todoist backup…", action: selectFile)
-                    .help("Accepts local JSON in the Todoist fixture export format (tasks, projects, sections and labels).")
+                Button("Import Todoist JSON export…", action: selectFile)
+                    .help("Accepts a JSON object with Todoist tasks, projects, sections and labels arrays.")
                     .disabled(module.store == nil || selectedFile != nil)
                     .settingsAnchor(.notchcastTasks)
                 if let result { Text(result).foregroundStyle(.secondary) }
@@ -33,7 +33,7 @@ struct NotchcastTodoSettings: View {
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled, module.store === store else { return }
-                result = String(localized: "The task backup could not be imported.")
+                result = String(localized: "The file is not a Todoist JSON export.")
             }
         }
     }

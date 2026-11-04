@@ -8,7 +8,8 @@ struct TodoCommandContext {
     var report: (String) -> Void
     var now: () -> Date = { Date() }
     var calendar: Calendar = .current
-    var language: TodoDateParser.Language = Locale.current.language.languageCode?.identifier == "pl" ? .polish : .english
+    var language: TodoDateParser.Language = SystemLanguages.preferred.first
+        .map { Locale(identifier: $0).language.languageCode?.identifier } == "pl" ? .polish : .english
 
     func add() {
         execute { store in
