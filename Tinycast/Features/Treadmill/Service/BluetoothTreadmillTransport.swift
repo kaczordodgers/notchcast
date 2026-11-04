@@ -26,6 +26,7 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
     var onDisconnect: (() -> Void)?
     var onReady: (() -> Void)?
     var onFailure: (((any Error)?) -> Void)?
+    let maintainsConnection = true
     private let central: any TreadmillBluetoothCentral
     private let timeoutDuration: Duration
     private var timeout: Task<Void, Never>?
@@ -62,13 +63,18 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
         central.stop()
     }
 
-    private func deadline() {
+    private func deadline(reconnect: Bool = false) {
         timeout?.cancel()
         timeout = Task { [weak self, timeoutDuration] in
             do { try await Task.sleep(for: timeoutDuration) } catch { return }
-            guard let self, self.wanted, !self.ready else { return }
-            self.central.stop()
-            self.onFailure?(TreadmillBluetoothFailure.padAbsent)
+            guard let self, self.wanted, self.powered, !self.ready else { return }
+            if reconnect {
+                self.central.connect()
+            } else {
+                self.onFailure?(TreadmillBluetoothFailure.padAbsent)
+                self.central.scan()
+                self.deadline()
+            }
         }
     }
 
@@ -81,8 +87,8 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
             central.scan()
             deadline()
         case .discovered:
+            timeout?.cancel()
             central.connect()
-            deadline()
         case .ready:
             timeout?.cancel()
             ready = true
@@ -93,8 +99,13 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
         case .disconnected:
             ready = false
             onDisconnect?()
-            if wanted, powered { central.connect(); deadline() }
-        case .poweredOff, .unauthorized, .failed:
+            if wanted, powered { central.connect() }
+        case .failed:
+            ready = false
+            onDisconnect?()
+            onFailure?(TreadmillBluetoothFailure.connectionFailed)
+            deadline(reconnect: true)
+        case .poweredOff, .unauthorized:
             ready = false
             powered = false
             timeout?.cancel()

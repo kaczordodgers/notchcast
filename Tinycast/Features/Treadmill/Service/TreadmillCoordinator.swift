@@ -37,15 +37,13 @@ final class TreadmillCoordinator {
         self.preferences = preferences
         self.clock = clock
         self.calendar = calendar
-        if let bluetooth = transport as? BluetoothTreadmillTransport {
-            bluetooth.onReady = { [weak self, weak bluetooth] in
-                guard let self, self.walkEnabled else { return }
-                self.connected = true
-                self.lastError = nil
-                do { try bluetooth?.send(TreadmillProtocol.queryStatus) } catch { self.report(error) }
-            }
-            bluetooth.onFailure = { [weak self] error in self?.lastError = error }
+        transport.onReady = { [weak self] in
+            guard let self, self.walkEnabled else { return }
+            self.connected = true
+            self.lastError = nil
+            do { try self.transport.send(TreadmillProtocol.queryStatus) } catch { self.report(error) }
         }
+        transport.onFailure = { [weak self] error in self?.lastError = error }
     }
 
     isolated deinit {
@@ -66,7 +64,7 @@ final class TreadmillCoordinator {
             walkEnabled = enabled
             updateAgentRegistration()
             if !enabled { disconnect() }
-            if enabled, transport is BluetoothTreadmillTransport {
+            if enabled, transport.maintainsConnection {
                 do { try connect() } catch { report(error) }
             }
         case .history: historyEnabled = enabled
@@ -206,7 +204,7 @@ final class TreadmillCoordinator {
         }
         transport.onDisconnect = { [weak self] in
             guard let self, self.generation == token else { return }
-            if self.transport is BluetoothTreadmillTransport {
+            if self.transport.maintainsConnection {
                 self.connected = false
                 self.togglePending = false
                 self.stream = TreadmillStream()
@@ -216,7 +214,7 @@ final class TreadmillCoordinator {
         do {
             try transport.open()
             guard generation == token else { throw TreadmillFailure.unavailable }
-            if !(transport is BluetoothTreadmillTransport) { connected = true }
+            if !transport.maintainsConnection { connected = true }
         } catch {
             disconnect()
             report(error)
