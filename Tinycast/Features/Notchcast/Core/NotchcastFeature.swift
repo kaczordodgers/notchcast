@@ -126,7 +126,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        if isSystemFeature { return false }
+        return switch self {
+        case .displayBrightness: false
+        case .quitProtection: false
+        default: true
+        }
+    }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
