@@ -81,6 +81,38 @@ class FeatureShapeTests(unittest.TestCase):
         self.rejected(SHAPE.GROUPS, source.replace(
             "case island\n", "case island; case islandOptions\n"), "own line")
 
+    def test_bare_case_before_multiline_arm(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        self.rejected(SHAPE.FEATURE, source.replace(
+            "case .island: .island", "case\n            .island, .islandExternalDisplays: .island"),
+            "multi-case arm")
+
+    def test_enum_comma_on_next_line(self):
+        source = (self.root / SHAPE.GROUPS).read_text()
+        self.rejected(SHAPE.GROUPS, source.replace(
+            "case launcher\n", "case launcher\n        , launcher2\n"), "one enum case per line")
+
+    def test_repeated_enum_cases(self):
+        for path, name in ((SHAPE.FEATURE, "island"), (SHAPE.FEATURE, "accessibility"),
+                           (SHAPE.GROUPS, "launcher")):
+            with self.subTest(path=path, name=name):
+                source = (ROOT / path).read_text()
+                self.rejected(path, source.replace(
+                    f"case {name}\n", f"case {name}\n    case {name}\n"), f"repeated case {name}")
+                (self.root / path).write_text(source)
+
+    def test_repeated_switch_arm(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        self.rejected(SHAPE.FEATURE, source.replace(
+            "case .dayMarkets: .activities", "case .dayMarkets: .activities\n        case .dayMarkets: .system"),
+            "repeated case .dayMarkets in switch")
+
+    def test_needs_island_multi_case_arm(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        self.rejected(SHAPE.FEATURE, source.replace(
+            "case .displayBrightness: false", "case .displayBrightness, .quitProtection: false"),
+            "multi-case arm")
+
     def test_union_duplicated_group_header(self):
         source = (self.root / SHAPE.GROUPS).read_text()
         self.rejected(SHAPE.GROUPS, source + source, "expected one SettingsGroup enum, found 2")
@@ -92,7 +124,7 @@ class FeatureShapeTests(unittest.TestCase):
         source += "        }\n    }\n}\n"
         self.rejected(SHAPE.FEATURE, source, "multi-case arm")
 
-    def test_three_branch_union_merge(self):
+    def init_repository(self):
         (self.root / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
         run(self.root, "git", "init", "-q", "-b", "base")
         run(self.root, "git", "config", "user.name", "Feature shape test")
@@ -104,6 +136,39 @@ class FeatureShapeTests(unittest.TestCase):
             self.assertTrue(run(self.root, "git", "check-attr", "merge", "--", str(path)).endswith(": union"))
         run(self.root, "git", "add", ".")
         run(self.root, "git", "commit", "-qm", "Base feature shape")
+
+    def test_union_append_beside_edited_arm(self):
+        self.init_repository()
+        feature = self.root / SHAPE.FEATURE
+        run(self.root, "git", "switch", "-qc", "append", "base")
+        source = feature.read_text().replace("    case dayMarkets\n", "    case dayMarkets\n    case captureArea\n")
+        for member, value in (("settingsGroup", ".activities"),
+                              ("title", 'String(localized: "Capture Area")'),
+                              ("subtitle", 'String(localized: "Capture an area.")')):
+            start = source.index(f"    var {member}:")
+            end = source.index("\n        }", start)
+            arm = re.search(r"^        case \.dayMarkets:[^\n]*", source[start:end], re.M)
+            insertion = start + arm.end() + 1
+            source = source[:insertion] + f"        case .captureArea: {value}\n" + source[insertion:]
+        feature.write_text(source)
+        run(self.root, "git", "add", ".")
+        run(self.root, "git", "commit", "-qm", "Append captureArea beside dayMarkets")
+        run(self.root, "git", "switch", "-qc", "edit", "base")
+        feature.write_text(feature.read_text().replace("case .dayMarkets: .activities", "case .dayMarkets: .system"))
+        run(self.root, "git", "add", ".")
+        run(self.root, "git", "commit", "-qm", "Change dayMarkets group")
+        run(self.root, "git", "switch", "-q", "append")
+        run(self.root, "git", "merge", "--no-ff", "--no-edit", "edit")
+        self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
+        merged = feature.read_text()
+        self.assertIn("case .dayMarkets: .activities", merged)
+        self.assertIn("case .dayMarkets: .system", merged)
+        self.assertIn("case .captureArea: .activities", merged)
+        self.rejected(SHAPE.FEATURE, merged, "repeated case .dayMarkets in switch")
+        print("PASS: captureArea append plus dayMarkets edit merges clean; checker rejects retained old arm", flush=True)
+
+    def test_three_branch_union_merge(self):
+        self.init_repository()
         for name in ("unionAlpha", "unionBeta", "unionGamma"):
             run(self.root, "git", "switch", "-qc", name, "base")
             feature = self.root / SHAPE.FEATURE
