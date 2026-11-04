@@ -188,17 +188,9 @@ struct AgentThreadsTest {
         }
         await counted.waitUntilIdle()
         precondition(opened == URL(string: "https://example.com/new"))
-        let temporary = Process()
-        let output = Pipe()
-        temporary.executableURL = URL(filePath: "/usr/bin/mktemp")
-        temporary.arguments = ["-d", FileManager.default.homeDirectoryForCurrentUser
-            .appending(path: "agents/nc-engines-3/fix.XXXXXX").path]
-        temporary.standardOutput = output
-        try temporary.run()
-        temporary.waitUntilExit()
-        precondition(temporary.terminationStatus == 0)
-        let scratch = String(bytes: output.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)!
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let scratch = FileManager.default.temporaryDirectory
+            .appending(path: "nc-agent-threads-\(UUID().uuidString)").path
+        try FileManager.default.createDirectory(atPath: scratch, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(atPath: scratch) }
         let databaseURL = URL(filePath: scratch).appending(path: "projects.sqlite")
         var database: OpaquePointer?
