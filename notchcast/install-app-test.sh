@@ -6,7 +6,7 @@ mkdir -p "$ROOT"
 WORK="$(mktemp -d "$ROOT/run.XXXXXX")"
 export NOTCHCAST_APP="$WORK/Installed.app"
 export NOTCHCAST_AGENT=notchcast.test.app
-export NOTCHCAST_WATCH_SECONDS=5
+export NOTCHCAST_WATCH_SECONDS=8
 export NOTCHCAST_TRASH="$WORK/Trash"
 AGENT="gui/$(id -u)/$NOTCHCAST_AGENT"
 PLIST="$WORK/agent.plist"
@@ -29,10 +29,19 @@ bundle() {
 }
 bundle Good 1.0.0 'exec /bin/sleep 600'
 bundle Bad 2.0.0 'exit 1'
-printf '%s\n' '<?xml version="1.0"?><plist version="1.0"><dict><key>Label</key><string>notchcast.test.app</string><key>ProgramArguments</key><array>' "<string>$NOTCHCAST_APP/Contents/MacOS/test-app</string>" '</array><key>KeepAlive</key><dict><key>PathState</key><dict>' "<key>$NOTCHCAST_APP/Contents/MacOS/test-app</key><true/>" '</dict></dict></dict></plist>' > "$PLIST"
-/usr/libexec/PlistBuddy -c 'Add :ThrottleInterval integer 1' "$PLIST"
+bundle Quitter 0.9.0 'exit 0'
+# The keys install-launchd.sh gives the real agent, ThrottleInterval included.
+cat > "$PLIST" <<PLIST
+<?xml version="1.0"?><plist version="1.0"><dict><key>Label</key><string>$NOTCHCAST_AGENT</string>
+<key>ProgramArguments</key><array><string>$NOTCHCAST_APP/Contents/MacOS/test-app</string></array>
+<key>RunAtLoad</key><true/><key>KeepAlive</key><true/><key>ThrottleInterval</key><integer>10</integer></dict></plist>
+PLIST
+# A healthy build over an old one in a quit loop must stay: kickstart waits out the throttle.
+ditto "$WORK/Quitter.app" "$NOTCHCAST_APP"
 launchctl bootstrap "gui/$(id -u)" "$PLIST"
+sleep 3
 "$HERE/install-app.sh" "$WORK/Good.app" | tee "$WORK/good.log"
+grep -q '^left running: 1.0.0 (new)$' "$WORK/good.log"
 STATUS=0
 "$HERE/install-app.sh" "$WORK/Bad.app" > "$WORK/bad.log" 2>&1 || STATUS=$?
 cat "$WORK/bad.log"
