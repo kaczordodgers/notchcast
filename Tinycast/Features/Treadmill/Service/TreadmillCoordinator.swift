@@ -33,12 +33,12 @@ final class TreadmillCoordinator {
     init(transport: any TreadmillTransport, history: TreadmillHistoryStore, preferences: TreadmillPreferences,
          clock: @escaping () -> Date = Date.init, calendar: @escaping () -> Calendar = { .autoupdatingCurrent },
          reminders: TreadmillReminders? = nil) {
+        self.reminders = reminders
         self.transport = transport
         self.history = history
         self.preferences = preferences
         self.clock = clock
         self.calendar = calendar
-        self.reminders = reminders
     }
 
     isolated deinit {
