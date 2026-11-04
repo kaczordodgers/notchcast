@@ -16,6 +16,7 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
+MODULES, SEARCH = SHAPE.LISTS
 
 
 def run(root, *args):
@@ -53,7 +54,7 @@ class FeatureShapeTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        for path in (SHAPE.FEATURE, SHAPE.GROUPS):
+        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text((ROOT / path).read_text())
 
@@ -144,6 +145,32 @@ class FeatureShapeTests(unittest.TestCase):
         source += "        }\n    }\n}\n"
         self.rejected(SHAPE.FEATURE, source, "multi-case arm")
 
+    def test_list_entry_split_over_lines(self):
+        source = (self.root / MODULES).read_text()
+        self.rejected(MODULES, source.replace(
+            "[.island, .lowDiskWarning], module: lowDisk),", "[.island, .lowDiskWarning],\n                module: lowDisk),"),
+            "keep each list entry on one line")
+
+    def test_repeated_module_entry(self):
+        source = (self.root / MODULES).read_text()
+        self.rejected(MODULES, source.replace(
+            ".init(requires: [.island, .lowDiskWarning], module: lowDisk),",
+            ".init(requires: [.island, .lowDiskWarning], module: lowDisk),\n            .init(requires: [.lowDiskWarning], module: lowDisk),"),
+            "repeated entry lowDisk")
+
+    def test_repeated_static(self):
+        source = (self.root / MODULES).read_text()
+        self.rejected(MODULES, source.replace(
+            "    static let timers = LiveTimerModule()\n",
+            "    static let timers = LiveTimerModule()\n    static let timers = LiveTimerModule(sound: true)\n"),
+            "repeated static timers")
+
+    def test_repeated_search_entry_with_new_keywords(self):
+        source = (self.root / SEARCH).read_text()
+        line = '        .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),\n'
+        self.rejected(SEARCH, source.replace(line, line + line.replace('"forecast"', '"forecast", "rain"')),
+                      'repeated entry .init(.notchcastActivities, "Weather"')
+
     def init_repository(self):
         (self.root / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
         run(self.root, "git", "init", "-q", "-b", "base")
@@ -152,7 +179,7 @@ class FeatureShapeTests(unittest.TestCase):
         run(self.root, "git", "config", "core.hooksPath", os.devnull)
         run(self.root, "git", "config", "commit.gpgSign", "false")
         run(self.root, "git", "config", "merge.gpgSign", "false")
-        for path in (SHAPE.FEATURE, SHAPE.GROUPS):
+        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS):
             self.assertTrue(run(self.root, "git", "check-attr", "merge", "--", str(path)).endswith(": union"))
         run(self.root, "git", "add", ".")
         run(self.root, "git", "commit", "-qm", "Base feature shape")
@@ -215,6 +242,38 @@ class FeatureShapeTests(unittest.TestCase):
             self.assertEqual(groups.count(f"        case {name}Group\n"), 1)
             expected_arms = 5 if "var startsOff:" in features else 4
             self.assertEqual(features.count(f"case .{name}:"), expected_arms)
+
+    def test_list_appends_merge_and_edit_is_caught(self):
+        self.init_repository()
+        modules, search = self.root / MODULES, self.root / SEARCH
+        base = (modules.read_text(), search.read_text())
+        anchor = "            .init(requires: [.island, .dayMarkets], module: markets),\n"
+        row = '        .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),\n'
+        for name in ("alpha", "beta"):
+            run(self.root, "git", "switch", "-qc", name, "base")
+            modules.write_text(base[0].replace(
+                "    static let battery", f"    static let {name} = LiveTimerModule()\n    static let battery").replace(
+                anchor, anchor + f"            .init(requires: [.island], module: {name}),\n"))
+            search.write_text(base[1].replace(row, row + f'        .init(.notchcastActivities, "{name}"),\n'))
+            self.assertEqual(SHAPE.check(self.root), [])
+            run(self.root, "git", "commit", "-qam", f"Append {name}")
+        run(self.root, "git", "switch", "-q", "base")
+        for name in ("alpha", "beta"):
+            run(self.root, "git", "merge", "--no-ff", "--no-edit", name)
+            self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
+        self.assertEqual(SHAPE.check(self.root), [])
+        for name in ("alpha", "beta"):
+            self.assertEqual(modules.read_text().count(f"module: {name})"), 1)
+            self.assertEqual(search.read_text().count(f'"{name}"'), 1)
+        run(self.root, "git", "switch", "-qc", "edit", "base~2")
+        modules.write_text(base[0].replace("module: markets)", "module: markets, order: 1)"))
+        run(self.root, "git", "commit", "-qam", "Edit markets entry")
+        run(self.root, "git", "switch", "-q", "base")
+        run(self.root, "git", "merge", "--no-ff", "--no-edit", "edit")
+        self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
+        self.assertIn(f"{MODULES}", "\n".join(SHAPE.check(self.root)))
+        self.assertIn("repeated entry markets", "\n".join(SHAPE.check(self.root)))
+        print("PASS: module and search appends merge clean; checker rejects an edited entry kept twice", flush=True)
 
 
 if __name__ == "__main__":
