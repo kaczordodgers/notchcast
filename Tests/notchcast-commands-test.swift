@@ -10,12 +10,14 @@ import Foundation
 
 @MainActor final class MachRemoteModule {
     func openTerminal() {}
+    func sendFinderSelection() {}
+    func update() {}
 }
 @MainActor enum NotchcastCore {
     static let machRemote = MachRemoteModule()
 }
 @MainActor final class NotchcastPreferences {
-    enum Feature { case machRemote }
+    enum Feature { case machRemote, sendFiles, updateRemote }
     static let shared = NotchcastPreferences()
     var enabled = false
     func isOn(_ feature: Feature) -> Bool { enabled }
@@ -126,6 +128,12 @@ enum QuicklinkDestination {
         let remoteID = "command:nc-open-remote-mac-terminal"
         assert(commands.contains { $0.id == remoteID })
         assert(!NotchcastCommandCatalog.isEnabled(remoteID))
+        for slug in ["send-to-remote-mac", "update-remote-mac"] {
+            let id = "command:nc-" + slug
+            assert(commands.contains { $0.id == id })
+            assert(!NotchcastCommandCatalog.isEnabled(id))
+            assert(NotchcastCommandCatalog.dispatch(id) { assertionFailure("Disabled command dismissed palette") })
+        }
         var remoteDismissed = false
         assert(NotchcastCommandCatalog.dispatch(remoteID) { remoteDismissed = true })
         assert(!remoteDismissed)

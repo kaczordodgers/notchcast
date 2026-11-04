@@ -17,6 +17,7 @@ final class SendFilesCoordinator {
 
     private(set) var progress = 0
     private(set) var report: Report?
+    var isRunning: Bool { task != nil }
     @ObservationIgnored private let shell: any RemoteShellRunning
     @ObservationIgnored private let post: @MainActor (String) -> Void
     @ObservationIgnored private var task: Task<Void, Never>?
@@ -92,8 +93,7 @@ final class SendFilesCoordinator {
         } catch is CancellationError {
             result.outcome = .cancelled
         } catch {
-            if Task.isCancelled { result.outcome = .cancelled }
-            else { result.failed = urls.count - result.sent }
+            if Task.isCancelled { result.outcome = .cancelled } else { result.failed = urls.count - result.sent }
         }
         let cleanup = await Task { try? await self.ssh("rm -rf -- " + SendFilesPlan.quote(staging)) }.value
         if cleanup?.status != 0 { result.failed = max(1, result.failed) }

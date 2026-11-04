@@ -69,6 +69,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Link Health", keywords: ["connection", "latency", "peer"]),
         .init(.notchcastSystem, "Backup Status", keywords: ["backup", "stale", "failure", "restore"]),
         .init(.notchcastSystem, "Remote Mac", keywords: ["ssh", "terminal", "Remote Mac address"]),
+        .init(.notchcastSystem, "Send to Remote Mac", keywords: ["files", "Finder"]),
+        .init(.notchcastSystem, "Update Remote Mac", keywords: ["update", "ssh"]),
         .init(.notchcastRemoteMac, "Remote Mac address", keywords: ["ssh", "host", "alias"]),
         .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
     ]

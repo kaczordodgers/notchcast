@@ -76,6 +76,12 @@ final class AIUsageLinkModule: NotchcastModule {
         let preferences = preferences
         let name = SCDynamicStoreCopyLocalHostName(nil) as String? ?? UUID().uuidString
         try channel.manager.start(pairing: pairing, name: name) { request in
+            if request.method == "shelf-item" {
+                guard await preferences.isOn(.machLink), await preferences.isOn(.shelfBetweenMacs) else {
+                    throw MachLinkMessage.Failure.disconnected
+                }
+                return try await ShelfMachLinkTransport.response(to: request, module: NotchcastCore.shelf)
+            }
             if request.method == "link-health" {
                 _ = try request.value(as: Bool.self)
                 return try MachLinkMessage(id: request.id, method: request.method, value: true)

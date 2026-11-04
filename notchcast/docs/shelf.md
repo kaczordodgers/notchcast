@@ -9,12 +9,11 @@ At most 64 received envelopes are retained; a full store refuses further items w
 Received JSON envelopes live in the bundle-scoped user cache, independent of temporary transport files.
 They are disposable cache data, not permanent originals. Storage errors propagate to callers.
 
-Integration supplies `ShelfModule.linkStatus` using the folder-local `ShelfLinkStatus` protocol
-and sets `transport` to `ShelfMachLinkTransport` for the current paired endpoint.
-The shared MachLink listener must route method `shelf-item` to
+`NotchcastCore` supplies `ShelfModule.linkStatus` and `transport` through `MachLinkShelfChannel`,
+which resolves the current paired endpoint at send time. The shared MachLink listener routes `shelf-item` to
 `ShelfMachLinkTransport.response(to:module:)` before AI usage dispatch. It acknowledges only
 after the validated item is written. The adapter is intentionally separate from link health,
-which is built by another worker. Until these connections are supplied, sends refuse as peer down.
+which observes the same TLS link independently. Disabled or unpaired links refuse sends as peer down.
 
 The harness uses synthetic data, a fake transport and an isolated temporary directory.
 No network or other Mac is contacted. Run `./Scripts/run-tests.sh notchcast-shelf-between-macs-test`.

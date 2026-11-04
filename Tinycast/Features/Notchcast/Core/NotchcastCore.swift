@@ -11,6 +11,15 @@ enum NotchcastCore {
     static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let machRemote = MachRemoteModule()
     static let shelf = ShelfModule()
+    static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run,
+        post: remoteNotice, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run,
+        post: remoteNotice, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+
+    static func remoteNotice(_ text: String) {
+        guard NotchcastPreferences.shared.isOn(.islandStatusMessages) else { return }
+        IslandActivityCenter.shared.showMessage(text, tone: .neutral, dwell: Theme.Duration.messageHUD)
+    }
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }) { text in
         guard NotchcastPreferences.shared.isOn(.islandStatusMessages) else { return }
         IslandActivityCenter.shared.showMessage(text, tone: .neutral, dwell: Theme.Duration.messageHUD)
@@ -31,6 +40,11 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        let shelfChannel = MachLinkShelfChannel(channel: macLink.channel) {
+            macLink.isRunning && macLink.isPaired && (!linkHealth.isRunning || linkHealth.health.reachability != .down)
+        }
+        shelf.linkStatus = shelfChannel
+        shelf.transport = shelfChannel
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
@@ -50,6 +64,8 @@ enum NotchcastCore {
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
             .init(requires: [.machRemote], module: machRemote),
+            .init(requires: [.machRemote, .sendFiles], module: sendFiles),
+            .init(requires: [.machRemote, .updateRemote], module: updateRemote),
             .init(requires: [.backupStatus], module: BackupStatusModule()),
             .init(requires: [.machLink, .linkHealth], module: linkHealth),
             .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
