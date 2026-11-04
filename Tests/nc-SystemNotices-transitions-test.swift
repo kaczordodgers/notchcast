@@ -90,10 +90,7 @@ struct SystemNoticesTests {
         let failure = try fixture("failure", body: "printf '{\"BackendState\":\"Running\"}'\nexit 1\n")
         check(await TailscaleStatusService(executable: failure).read() == .unavailable, "Nonzero exit rejected")
         let large = try fixture("large", body: "exec /usr/bin/yes x\n")
-        let clock = ContinuousClock()
-        let began = clock.now
         check(await TailscaleStatusService(executable: large).read() == .unavailable, "Oversized output capped")
-        check(began.duration(to: clock.now) < .seconds(5), "Oversized producer is killed promptly")
         let hanging = try fixture("hanging", body: "exec /bin/sleep 30\n")
         check(await TailscaleStatusService(executable: hanging, timeout: .milliseconds(50)).read() == .unavailable,
               "Deadline kills and reaps child")

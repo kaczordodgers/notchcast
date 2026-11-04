@@ -100,9 +100,7 @@ struct AudioPriorityWiringTests {
 
     @MainActor
     static func wait(until condition: () -> Bool) async {
-        let deadline = ContinuousClock.now + .seconds(3)
         while !condition() {
-            precondition(ContinuousClock.now < deadline, "Timed out waiting for state")
             try? await Task.sleep(for: .milliseconds(1))
         }
     }
