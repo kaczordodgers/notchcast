@@ -1,0 +1,91 @@
+import Foundation
+
+@MainActor
+final class BackupStatusModule: NotchcastModule {
+    typealias Cancel = @MainActor () -> Void
+    typealias Watch = @MainActor (@escaping @MainActor () -> Void) -> Cancel
+    typealias Schedule = @MainActor (Date, @escaping @MainActor () -> Void) -> Cancel
+
+    private let read: @MainActor () async throws -> Data
+    private let watch: Watch
+    private let schedule: Schedule
+    private let now: @MainActor () -> Date
+    private let post: @MainActor (String) -> Void
+    private let staleAfter: TimeInterval
+    private var cancelWatch: Cancel?
+    private var cancelDeadline: Cancel?
+    private var reading: Task<Void, Never>?
+    private var generation = 0
+    private var running = false
+    private var status: BackupStatus?
+    private var previousIssues: [BackupStatusEngine.Issue] = []
+
+    init(read: @escaping @MainActor () async throws -> Data, watch: @escaping Watch,
+         schedule: @escaping Schedule, now: @escaping @MainActor () -> Date = { Date() },
+         staleAfter: TimeInterval = 7200, post: @escaping @MainActor (String) -> Void) {
+        self.read = read
+        self.watch = watch
+        self.schedule = schedule
+        self.now = now
+        self.staleAfter = staleAfter
+        self.post = post
+    }
+
+    func start() {
+        guard !running else { return }
+        running = true
+        cancelWatch = watch { [weak self] in self?.reload() }
+        reload()
+    }
+
+    func stop() {
+        running = false
+        generation += 1
+        reading?.cancel()
+        reading = nil
+        cancelWatch?()
+        cancelWatch = nil
+        cancelDeadline?()
+        cancelDeadline = nil
+        status = nil
+        previousIssues = []
+    }
+
+    private func reload() {
+        guard running else { return }
+        generation += 1
+        let identity = generation
+        reading?.cancel()
+        reading = Task { [weak self, read] in
+            let result: BackupStatus?
+            do { result = try BackupStatusEngine.parse(await read()) } catch { result = nil }
+            guard !Task.isCancelled, let self, self.running, self.generation == identity else { return }
+            self.status = result
+            self.evaluate()
+        }
+    }
+
+    private func evaluate() {
+        guard running else { return }
+        cancelDeadline?()
+        cancelDeadline = nil
+        let date = now()
+        let issues = BackupStatusEngine.issues(status, now: date, staleAfter: staleAfter)
+        if issues.contains(where: { !previousIssues.contains($0) }) {
+            post(String(localized: "Backup needs attention."))
+        }
+        previousIssues = issues
+        guard let status else { return }
+        let dates = [status.lastSuccess, status.lastAttempt, status.mbpTimeMachine?.latest]
+            .compactMap { $0?.addingTimeInterval(staleAfter) }.filter { $0 > date }
+        if let deadline = dates.min() {
+            cancelDeadline = schedule(deadline) { [weak self] in self?.evaluate() }
+        }
+    }
+
+    isolated deinit {
+        reading?.cancel()
+        cancelWatch?()
+        cancelDeadline?()
+    }
+}

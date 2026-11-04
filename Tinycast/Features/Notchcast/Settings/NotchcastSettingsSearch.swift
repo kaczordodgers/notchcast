@@ -31,5 +31,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastOptions, "Backup Status", keywords: ["backup", "stale", "failure", "restore"]),
     ]
 }
