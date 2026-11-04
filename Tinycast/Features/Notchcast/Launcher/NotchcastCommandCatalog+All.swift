@@ -8,6 +8,7 @@ extension NotchcastCommandCatalog {
         MachineSetupProfileCoordinator.launcherCommand,
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
+        AgentSessionsModule.refreshCommand,
         MusicCommands.openCurrentPlayerCommand,
         MusicCommands.resumeLastPlayerCommand,
         MusicCommands.speakerOnCommand,

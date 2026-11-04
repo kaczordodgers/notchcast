@@ -100,6 +100,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastActivities, "Agent Session Logs", keywords: ["claude", "codex", "tokens"]),
+        .init(.notchcastSystem, "Agent API Value", keywords: ["pricing", "cost", "tokens"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),
