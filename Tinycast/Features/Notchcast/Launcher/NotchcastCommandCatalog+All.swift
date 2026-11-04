@@ -1,7 +1,6 @@
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
-        EditorCoordinator.openCommand,
         LiveTimerModule.startCommand,
         LiveTimerModule.stopCommand,
         DayCommands.weather,
