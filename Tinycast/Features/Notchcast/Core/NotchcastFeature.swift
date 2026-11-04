@@ -51,6 +51,22 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case startupItems
+    case notificationCleanup
+    case sudoTouchID
+    case killProcess
+    case macSetup
+    case aiFeaturesOff
+    case spotlightOff
+    case privacyChoices
+    case typingTweaks
+    case finderTweaks
+    case dockTweaks
+    case appleAppsTweaks
+    case iPhoneBackupTweaks
+
+
+
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -104,6 +120,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .startupItems: .tweaks
+        case .notificationCleanup: .tweaks
+        case .sudoTouchID: .tweaks
+        case .killProcess: .tweaks
+        case .macSetup: .tweaks
+        case .aiFeaturesOff: .tweaks
+        case .spotlightOff: .tweaks
+        case .privacyChoices: .tweaks
+        case .typingTweaks: .tweaks
+        case .finderTweaks: .tweaks
+        case .dockTweaks: .tweaks
+        case .appleAppsTweaks: .tweaks
+        case .iPhoneBackupTweaks: .tweaks
         }
     }
 
@@ -140,6 +169,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .startupItems: String(localized: "Startup Items")
+        case .notificationCleanup: String(localized: "Notification Cleanup")
+        case .sudoTouchID: String(localized: "Touch ID for sudo")
+        case .killProcess: String(localized: "Kill Process")
+        case .macSetup: String(localized: "Mac Setup Presets")
+        case .aiFeaturesOff: String(localized: "AI Features Off")
+        case .spotlightOff: String(localized: "Spotlight Indexing Off")
+        case .privacyChoices: String(localized: "Privacy Choices")
+        case .typingTweaks: String(localized: "Typing")
+        case .finderTweaks: String(localized: "Finder")
+        case .dockTweaks: String(localized: "Dock and windows")
+        case .appleAppsTweaks: String(localized: "Apple apps")
+        case .iPhoneBackupTweaks: String(localized: "iPhone backup")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -195,6 +237,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .startupItems: String(localized: "Manage user LaunchAgents and inspect system items.")
+        case .notificationCleanup: String(localized: "Dismiss disk-ejection alerts automatically.")
+        case .sudoTouchID: String(localized: "Use Touch ID to authorize sudo.")
+        case .killProcess: String(localized: "Adds a command to stop a process.")
+        case .macSetup: String(localized: "Apply reversible macOS preferences.")
+        case .aiFeaturesOff: String(localized: "Choose which Apple intelligence features to disable.")
+        case .spotlightOff: String(localized: "Turn off Spotlight indexing.")
+        case .privacyChoices: String(localized: "Choose macOS privacy restrictions.")
+        case .typingTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .finderTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .dockTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .appleAppsTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .iPhoneBackupTweaks: String(localized: "Enable confirmed system preference changes.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -229,15 +284,58 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .notificationCleanup: [.accessibility]
+        case .startupItems: []
+        case .sudoTouchID: []
+        case .killProcess: []
+        case .macSetup: []
+        case .aiFeaturesOff: []
+        case .spotlightOff: []
+        case .privacyChoices: []
+        case .island: []
+        case .islandExternalDisplays: []
+        case .islandFullScreen: []
+        case .islandHoverOpen: []
+        case .islandStatusMessages: []
+        case .islandLiveActivities: []
+        case .launcherFromIsland: []
+        case .lowDiskWarning: []
+        case .systemNotices: []
+        case .liveTimers: []
+        case .dayWeather: []
+        case .dayMarkets: []
+        case .typingTweaks: []
+        case .finderTweaks: []
+        case .dockTweaks: []
+        case .appleAppsTweaks: []
+        case .iPhoneBackupTweaks: []
+        case .systemMonitor: []
+        case .monitorAlerts: []
+        case .fanControl: []
+        case .batteryChargeLimit: []
+        case .batterySailing: []
+        case .batteryHeatProtection: []
+        case .batteryCalibration: []
+        case .keepAwake: []
+        case .lidClosedAwake: []
         default: []
         }
     }
 }
 
 extension NotchcastFeature {
+    var isWired: Bool {
+        ![Self.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices].contains(self)
+    }
+
+    static var systemToolsSettingsFeatures: [Self] {
+        [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
+         .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
+    }
+
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        if isSystemFeature || settingsGroup == .clean { return false }
+        if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
@@ -255,10 +353,31 @@ extension NotchcastFeature {
         }
     }
 
+    var isSystemTweak: Bool {
+        switch self {
+        case .startupItems: true
+        case .notificationCleanup: true
+        case .sudoTouchID: true
+        case .killProcess: true
+        case .macSetup: true
+        case .aiFeaturesOff: true
+        case .spotlightOff: true
+        case .privacyChoices: true
+        case .typingTweaks: true
+        case .finderTweaks: true
+        case .dockTweaks: true
+        case .appleAppsTweaks: true
+        case .iPhoneBackupTweaks: true
+        default: false
+        }
+    }
+
+
+
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && settingsGroup != .clean && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        !isSystemFeature && !isSystemTweak && settingsGroup != .clean && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools || settingsGroup == .tools }

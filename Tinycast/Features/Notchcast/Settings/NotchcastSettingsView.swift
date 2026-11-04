@@ -18,6 +18,10 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastLauncher, group: .launcher)
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            Section("Tweaks") {
+                NotchcastTweaksSettingsRows()
+                NotchcastTweaksAppsSettingsRows()
+            }
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
             Section { NotchcastAudioPrioritySettingsRows() }

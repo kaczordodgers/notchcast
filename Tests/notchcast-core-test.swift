@@ -49,6 +49,7 @@ struct NotchcastCoreTests {
         precondition(NotchcastFeature.dayCalendar.needsIsland)
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)
+        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultEnabled })
         precondition(l3.allSatisfy { preferences.isOn($0) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)

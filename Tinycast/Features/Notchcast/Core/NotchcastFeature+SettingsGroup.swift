@@ -9,6 +9,7 @@ extension NotchcastFeature {
         case systemTools
         case clean
         case tools
+        case tweaks
         // Keep group appends away from the closing braces during union merges.
     }
 }

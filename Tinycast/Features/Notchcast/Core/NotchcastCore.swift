@@ -40,6 +40,10 @@ enum NotchcastCore {
         }
         spacesOrder.restoreIfDisabled()
         IslandController.shared.configurePages(core)
+        systemTools.configure(core)
+        for module in [tweaks, typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {
+            module.configure(core)
+        }
         let monitor = MonitorModule(preferences: .shared, alertSink: { [weak core] in
             core?.showMessage($0, tone: .danger)
         }, fanFailure: { [weak core] in
