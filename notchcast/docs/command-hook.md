@@ -17,7 +17,8 @@ Modules register in `Core/NotchcastCore+Modules.swift`: one `static let` line an
 line each. Settings search anchors and rows live one per line in
 `Settings/NotchcastSettingsSearch.swift`. Both files use `merge=union`; the same checker
 rejects an entry split over lines, a repeated `static` name, a module registered twice and
-a search row whose anchor and title repeat.
+a search row whose anchor and title repeat. It cannot tell a renamed module or a retitled
+row from a new one: after a merge, check that an edited line did not come back beside its edit.
 
 Define a `NotchcastCommand` beside its feature, then add one array element in
 `Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift`:
