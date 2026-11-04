@@ -12,6 +12,11 @@ nonisolated struct ArchiveRecovery: Codable {
     private static let key = "archiveRecoveryParents"
     var sidecar: URL { URL(fileURLWithPath: staging.path + ".json") }
 
+    private var resolved: Self {
+        Self(archive: ArchiveFiles.resolvedParent(archive), staging: ArchiveFiles.resolvedParent(staging),
+             inPlace: inPlace, state: state, owner: owner)
+    }
+
     func save() throws {
         var parents = UserDefaults.standard.stringArray(forKey: Self.key) ?? []
         let parent = staging.deletingLastPathComponent().path
@@ -32,7 +37,7 @@ nonisolated struct ArchiveRecovery: Codable {
             try recover(in: parent)
             for file in try FileManager.default.contentsOfDirectory(at: parent, includingPropertiesForKeys: nil)
             where file.lastPathComponent.hasPrefix(".notchcast-extract-") && file.pathExtension == "json" {
-                let record = try JSONDecoder().decode(Self.self, from: Data(contentsOf: file))
+                let record = try JSONDecoder().decode(Self.self, from: Data(contentsOf: file)).resolved
                 let owner = record.owner ?? 0
                 guard record.inPlace, record.state == .running,
                       owner == 0 || kill(owner, 0) != 0,
@@ -48,12 +53,14 @@ nonisolated struct ArchiveRecovery: Codable {
     }
 
     @discardableResult static func recover(in parent: URL, archive: URL? = nil) throws -> URL? {
+        let parent = ArchiveFiles.resolvedDirectory(parent)
+        let archive = archive.map(ArchiveFiles.resolvedParent)
         let children = try FileManager.default.contentsOfDirectory(at: parent, includingPropertiesForKeys: nil)
         for sidecar in children where sidecar.lastPathComponent.hasPrefix(".notchcast-extract-")
             && sidecar.pathExtension == "json" {
-            let record = try JSONDecoder().decode(Self.self, from: Data(contentsOf: sidecar))
-            guard archive == nil || record.archive.path == archive?.path else { continue }
-            guard record.sidecar.path == sidecar.path else { throw ArchiveFailure.existingProgress }
+            let record = try JSONDecoder().decode(Self.self, from: Data(contentsOf: sidecar)).resolved
+            guard archive == nil || record.archive == archive else { continue }
+            guard record.sidecar == sidecar else { throw ArchiveFailure.existingProgress }
             if let owner = record.owner, owner != 0, kill(owner, 0) == 0 { continue }
             if !ArchiveFiles.exists(record.staging) { try record.remove(); continue }
             try ArchiveJournal.validateStaging(record.staging, archive: record.archive)
@@ -78,7 +85,7 @@ nonisolated struct ArchiveRecovery: Codable {
                 guard let data = try? Data(contentsOf: journal),
                       let saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                       let output = saved["output"] as? String else { return true }
-                return output == staging.path
+                return ArchiveFiles.resolvedParent(URL(fileURLWithPath: output)) == staging
             }
             guard !protected else { continue }
             let source = parent.appending(path: "Recovered archive.zip")

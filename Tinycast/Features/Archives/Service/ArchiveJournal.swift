@@ -4,8 +4,10 @@ import Foundation
 nonisolated struct ArchiveJournal {
     let recovery: ArchiveJob.Recovery
     let mode: ArchiveJob.Mode
+    let outputPath: String
 
     static func read(_ archive: URL) throws -> ArchiveJournal? {
+        let archive = ArchiveFiles.resolvedParent(archive)
         let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
         guard ArchiveFiles.exists(journal) else { return nil }
         let descriptor = open(journal.path, O_RDONLY | O_NOFOLLOW)
@@ -19,10 +21,13 @@ nonisolated struct ArchiveJournal {
               let saved = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let path = saved["output"] as? String, let total = saved["total_size"] as? Int64, total >= 0,
               let parts = saved["parts"] as? [[Any]],
-              parts.contains(where: { $0.first as? String == archive.path }) else {
+              parts.contains(where: {
+                  guard let path = $0.first as? String else { return false }
+                  return ArchiveFiles.resolvedParent(URL(fileURLWithPath: path)) == archive
+              }) else {
             throw ArchiveFailure.existingProgress
         }
-        let staging = URL(fileURLWithPath: path).standardizedFileURL
+        let staging = ArchiveFiles.resolvedParent(URL(fileURLWithPath: path))
         try validateStaging(staging, archive: archive)
         for suffix in [".hatchzip-tail", ".tmp"] {
             let sidecar = URL(fileURLWithPath: archive.path + suffix)
@@ -35,10 +40,13 @@ nonisolated struct ArchiveJournal {
         }
         let mode: ArchiveJob.Mode = saved["keep"] as? Bool == true ? .keepArchive : .inPlace
         let warning = try ArchiveFiles.quarantine(ArchiveFiles.exists(archive) ? archive : staging)
-        return ArchiveJournal(recovery: ArchiveJob.Recovery(staging: staging, totalBytes: total, quarantine: warning), mode: mode)
+        return ArchiveJournal(recovery: ArchiveJob.Recovery(staging: staging, totalBytes: total, quarantine: warning),
+                              mode: mode, outputPath: path)
     }
 
     static func validateStaging(_ staging: URL, archive: URL) throws {
+        let staging = ArchiveFiles.resolvedParent(staging)
+        let archive = ArchiveFiles.resolvedParent(archive)
         let prefix = ".notchcast-extract-"
         guard staging.deletingLastPathComponent() == archive.deletingLastPathComponent(),
               staging.lastPathComponent.hasPrefix(prefix),

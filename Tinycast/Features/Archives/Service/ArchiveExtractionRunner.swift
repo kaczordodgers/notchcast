@@ -16,6 +16,13 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         progress: @escaping @MainActor @Sendable (Progress) -> Void = { _ in }
     ) async throws -> URL {
         guard ArchiveFormat.accepts(archive), archive.isFileURL else { throw ArchiveFailure.unsupportedFormat }
+        let archive = ArchiveFiles.resolvedParent(archive)
+        var recovery = recovery
+        if let previous = recovery {
+            recovery = ArchiveJob.Recovery(staging: ArchiveFiles.resolvedParent(previous.staging),
+                totalBytes: previous.totalBytes, quarantine: previous.quarantine,
+                readyToPublish: previous.readyToPublish)
+        }
         guard let tool = locator.locate() else { throw ArchiveFailure.toolMissing }
         if let output = try ArchiveRecovery.recover(in: archive.deletingLastPathComponent(), archive: archive) {
             return output
@@ -35,7 +42,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             let flags = plan.mode == .inPlace ? ["-y", "-q", "--keep-free", "2GB"] : ["--keep-archive", "-q"]
             let initial = update
             let extraction = try await ArchiveProcess.run(
-                tool: tool, arguments: ["extract"] + flags + ["-o", staging.path, archive.path]
+                tool: tool, arguments: ["extract"] + flags + ["-o", plan.outputPath, archive.path]
             ) {
                 if let written = try? ArchiveFiles.bytes(staging) {
                     var current = initial
@@ -72,6 +79,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         let recovery: ArchiveJob.Recovery
         let mode: ArchiveJob.Mode
         let fallback: ArchiveJob.Fallback?
+        let outputPath: String
     }
 
     private func plan(
@@ -89,7 +97,8 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             var recovery = journal.recovery
             if let previous, previous.staging.path == recovery.staging.path { recovery = previous }
             return Plan(recovery: recovery, mode: journal.mode,
-                        fallback: journal.mode == .keepArchive ? .resumingKeepArchive : nil)
+                        fallback: journal.mode == .keepArchive ? .resumingKeepArchive : nil,
+                        outputPath: journal.outputPath)
         }
         for suffix in [".hatchzip-tail", ".tmp"]
         where ArchiveFiles.exists(URL(fileURLWithPath: archive.path + suffix)) {
@@ -133,7 +142,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             throw error
         }
         return Plan(recovery: ArchiveJob.Recovery(staging: staging, totalBytes: total, quarantine: warning),
-                    mode: effective, fallback: fallback)
+                    mode: effective, fallback: fallback, outputPath: staging.path)
     }
 
     private func finishInPlace(_ recovery: ArchiveJob.Recovery, archive: URL) async throws -> URL {
@@ -163,11 +172,14 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
     }
 
     static func cleanupKeepProgress(_ archive: URL, staging: URL) throws {
+        let archive = ArchiveFiles.resolvedParent(archive)
+        let staging = ArchiveFiles.resolvedParent(staging)
         let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
         guard ArchiveFiles.exists(journal) else { return }
         let data = try Data(contentsOf: journal)
         guard let saved = try JSONSerialization.jsonObject(with: data) as? [String: Any],
-              saved["keep"] as? Bool == true, saved["output"] as? String == staging.path else {
+              saved["keep"] as? Bool == true, let output = saved["output"] as? String,
+              ArchiveFiles.resolvedParent(URL(fileURLWithPath: output)) == staging else {
             throw ArchiveFailure.existingProgress
         }
         for suffix in [".hatchzip", ".hatchzip-tail", ".tmp"] {

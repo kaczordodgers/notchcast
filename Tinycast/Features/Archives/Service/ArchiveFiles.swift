@@ -2,6 +2,16 @@ import Darwin
 import Foundation
 
 nonisolated enum ArchiveFiles {
+    static func resolvedParent(_ url: URL) -> URL {
+        resolvedDirectory(url.deletingLastPathComponent()).appending(path: url.lastPathComponent)
+    }
+
+    static func resolvedDirectory(_ url: URL) -> URL {
+        guard let path = realpath(url.path, nil) else { return url.resolvingSymlinksInPath() }
+        defer { free(path) }
+        return URL(fileURLWithPath: String(cString: path), isDirectory: true)
+    }
+
     static func supportsExclusiveRename(_ parent: URL) -> Bool {
         let source = parent.appending(path: ".notchcast-probe-\(UUID().uuidString)")
         let target = parent.appending(path: ".notchcast-probe-\(UUID().uuidString)")
