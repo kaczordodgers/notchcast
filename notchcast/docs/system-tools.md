@@ -14,6 +14,16 @@ and bounds child execution with a timeout and cancellation. Blocking process wor
 the main actor. Helper operations use RootHelperClient and remain unavailable until their verbs
 exist in RootContract.
 
-The Accessibility notification observer, preset Apply/Undo controls, AI feature selectors and
-privacy selectors are deferred. This wiring adds no automatic preference writes or AX actions.
-Local harnesses use fake effects; they never apply changes to the host.
+The notification observer attaches to Notification Center only while cleanup is enabled and
+Accessibility is granted. It rechecks both before each sweep and selects individual disk-ejection
+alerts through NotificationCleanupPolicy. Currently recognized system titles are English and Polish.
+Turning cleanup off detaches the observer; module teardown also invalidates its lifecycle timer.
+
+TweakProfileRunner stages generated profiles in a bundle-scoped cache folder and hands them to
+macOS using /usr/bin/open through an injected closure. This requests user approval; it does not
+install a profile or prove approval. Local harnesses replace the closure and never apply changes
+to the host.
+
+Preset Apply/Undo controls and AI/privacy selectors remain deferred. MacSetupPlan receipts cover
+preference changes only; the broader preset catalog also contains service, power, Dock and profile
+actions that have no reversible runner in this wiring.

@@ -9,6 +9,7 @@ final class SystemToolsModule: NotchcastModule {
     private var core: AppCore?
     private let runner = SystemToolsProcessRunner()
     private var running = false
+    private let notificationCleanup = NotificationCleanupObserver()
     @ObservationIgnored private lazy var store = SystemToolsStore(preferences: .shared,
                                               available: SystemToolsHelperPolicy.available,
                                               apply: SystemToolsModule.apply)
@@ -23,8 +24,8 @@ final class SystemToolsModule: NotchcastModule {
     }
 
     func configure(_ core: AppCore) { self.core = core }
-    func start() { running = true }
-    func stop() { running = false }
+    func start() { running = true; notificationCleanup.start() }
+    func stop() { running = false; notificationCleanup.stop() }
 
     func set(_ feature: NotchcastFeature, enabled: Bool) async {
         guard !busy, SystemToolsHelperPolicy.available(feature) else { return }
@@ -36,6 +37,7 @@ final class SystemToolsModule: NotchcastModule {
                                                   symbol: "gearshape", confirmTitle: feature.title) else { return }
             }
             try await store.set(feature, enabled: enabled)
+            notificationCleanup.update()
         } catch { core?.showMessage(error.localizedDescription, tone: .danger) }
     }
 
