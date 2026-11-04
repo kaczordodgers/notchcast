@@ -27,7 +27,10 @@ struct NotchcastSettingsView: View {
             }
 
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
-            Section("Tweaks") { NotchcastTweaksSettingsRows() }
+            Section("Tweaks") {
+                NotchcastTweaksSettingsRows()
+                NotchcastTweaksAppsSettingsRows()
+            }
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)

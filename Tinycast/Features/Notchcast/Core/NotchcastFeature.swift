@@ -13,6 +13,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case startupItems, notificationCleanup, sudoTouchID, killProcess
     case macSetup, aiFeaturesOff, spotlightOff, privacyChoices
+    case typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks
 
     var title: String {
         switch self {
@@ -39,6 +40,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiFeaturesOff: String(localized: "AI Features Off")
         case .spotlightOff: String(localized: "Spotlight Indexing Off")
         case .privacyChoices: String(localized: "Privacy Choices")
+        case .typingTweaks: String(localized: "Typing")
+        case .finderTweaks: String(localized: "Finder")
+        case .dockTweaks: String(localized: "Dock and windows")
+        case .appleAppsTweaks: String(localized: "Apple apps")
+        case .iPhoneBackupTweaks: String(localized: "iPhone backup")
         }
     }
 
@@ -67,6 +73,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiFeaturesOff: String(localized: "Choose which Apple intelligence features to disable.")
         case .spotlightOff: String(localized: "Turn off Spotlight indexing.")
         case .privacyChoices: String(localized: "Choose macOS privacy restrictions.")
+        case .typingTweaks, .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks:
+            String(localized: "Enable confirmed system preference changes.")
         }
     }
 
@@ -78,7 +86,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .spotlightOff, .privacyChoices: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
+            .typingTweaks, .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks:
             []
         }
     }
@@ -91,12 +100,14 @@ extension NotchcastFeature {
     var isSystemTweak: Bool {
         switch self {
         case .startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
-            .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices: true
+            .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices,
+            .typingTweaks, .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks: true
         default: false
         }
     }
 
     var defaultEnabled: Bool { !isSystemTweak }
+
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
