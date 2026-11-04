@@ -55,6 +55,7 @@ final class BatteryModule: NotchcastModule {
     @ObservationIgnored private var assertions: [UInt32] = []
     @ObservationIgnored private var awakeUntil: Date?
     @ObservationIgnored private var awakeMinutes: Int?
+    @ObservationIgnored private var awakePaused = false
     @ObservationIgnored private var calibrationEnabled = false
     @ObservationIgnored private var rootChanged = false
     private(set) var failure: Error?
@@ -81,6 +82,13 @@ final class BatteryModule: NotchcastModule {
     }
 
     func waitUntilIdle() async { await task?.value }
+
+    func toggleKeepAwake() {
+        guard running, preferences.isOn(.keepAwake) else { return }
+        awakePaused = !assertions.isEmpty
+        awakeMinutes = nil
+        schedule()
+    }
 
     func refreshHelper() {
         refreshTask?.cancel()
@@ -131,7 +139,8 @@ final class BatteryModule: NotchcastModule {
         let on: (NotchcastFeature) -> Bool = { self.running && self.preferences.isOn($0) }
         let reading = runner.read()
         let percent = reading?.percent.map { Int($0) }
-        if on(.keepAwake) {
+        if !on(.keepAwake) { awakePaused = false }
+        if on(.keepAwake) && !awakePaused {
             if awakeMinutes != preferences.keepAwakeMinutes {
                 awakeMinutes = preferences.keepAwakeMinutes
                 awakeUntil = now.addingTimeInterval(Double(preferences.keepAwakeMinutes * 60))
@@ -140,7 +149,7 @@ final class BatteryModule: NotchcastModule {
             awakeMinutes = nil
             awakeUntil = nil
         }
-        let awake = KeepAwakePolicy(enabled: on(.keepAwake), until: awakeUntil)
+        let awake = KeepAwakePolicy(enabled: on(.keepAwake) && !awakePaused, until: awakeUntil)
         let holding = awake.evaluate(now: now, onBattery: reading?.onBattery ?? false,
                                      percent: percent, locked: false) == .hold
         do {

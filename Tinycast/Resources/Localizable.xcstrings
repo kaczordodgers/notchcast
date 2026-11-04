@@ -1,366 +1,366 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Monitor Alerts": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monitorwarnungen"
+    "Monitor Alerts" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monitorwarnungen"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alertas del monitor"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alertas del monitor"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alertes du moniteur"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alertes du moniteur"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "モニターのアラート"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モニターのアラート"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모니터 알림"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모니터 알림"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alertas do monitor"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alertas do monitor"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Оповещения монитора"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оповещения монитора"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "监视器提醒"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "监视器提醒"
           }
         }
       }
     },
-    "Evaluate alerts while the Monitor page is open.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Warnungen auswerten, während die Monitorseite geöffnet ist."
+    "Evaluate alerts while the Monitor page is open." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warnungen auswerten, während die Monitorseite geöffnet ist."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Evaluar alertas mientras la página Monitor esté abierta."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evaluar alertas mientras la página Monitor esté abierta."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Évaluer les alertes lorsque la page Moniteur est ouverte."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Évaluer les alertes lorsque la page Moniteur est ouverte."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "モニターページを開いている間にアラートを評価します。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "モニターページを開いている間にアラートを評価します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모니터 페이지가 열려 있는 동안 알림을 평가합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모니터 페이지가 열려 있는 동안 알림을 평가합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avaliar alertas enquanto a página Monitor estiver aberta."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avaliar alertas enquanto a página Monitor estiver aberta."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Проверять оповещения, пока открыта страница монитора."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверять оповещения, пока открыта страница монитора."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在监视器页面打开时评估提醒。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在监视器页面打开时评估提醒。"
           }
         }
       }
     },
-    "CPU usage threshold": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU-Auslastungsgrenze"
+    "CPU usage threshold" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU-Auslastungsgrenze"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Umbral de uso de CPU"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbral de uso de CPU"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seuil d’utilisation du processeur"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuil d’utilisation du processeur"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU使用率のしきい値"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU使用率のしきい値"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU 사용량 임계값"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU 사용량 임계값"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limite de utilização da CPU"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de utilização da CPU"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Порог загрузки ЦП"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Порог загрузки ЦП"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU 使用率阈值"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU 使用率阈值"
           }
         }
       }
     },
-    "CPU temperature threshold": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU-Temperaturgrenze"
+    "CPU temperature threshold" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU-Temperaturgrenze"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Umbral de temperatura de CPU"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbral de temperatura de CPU"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seuil de température du processeur"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuil de température du processeur"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU温度のしきい値"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU温度のしきい値"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU 온도 임계값"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU 온도 임계값"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limite de temperatura da CPU"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de temperatura da CPU"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Порог температуры ЦП"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Порог температуры ЦП"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CPU 温度阈值"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CPU 温度阈值"
           }
         }
       }
     },
-    "Memory pressure threshold": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Speicherdruckgrenze"
+    "Memory pressure threshold" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speicherdruckgrenze"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Umbral de presión de memoria"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbral de presión de memoria"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seuil de pression mémoire"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuil de pression mémoire"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メモリプレッシャーのしきい値"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモリプレッシャーのしきい値"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "메모리 압력 임계값"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메모리 압력 임계값"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limite de pressão da memória"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de pressão da memória"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Порог нагрузки на память"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Порог нагрузки на память"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "内存压力阈值"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内存压力阈值"
           }
         }
       }
     },
-    "Disk free threshold": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grenze für freien Speicherplatz"
+    "Disk free threshold" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grenze für freien Speicherplatz"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Umbral de espacio libre"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbral de espacio libre"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seuil d’espace disque libre"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuil d’espace disque libre"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ディスク空き容量のしきい値"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ディスク空き容量のしきい値"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "디스크 여유 공간 임계값"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디스크 여유 공간 임계값"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limite de espaço livre"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite de espaço livre"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Порог свободного места"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Порог свободного места"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "磁盘可用空间阈值"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "磁盘可用空间阈值"
           }
         }
       }
     },
-    "Battery threshold": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Batteriegrenze"
+    "Battery threshold" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batteriegrenze"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Umbral de batería"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbral de batería"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Seuil de batterie"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seuil de batterie"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "バッテリーのしきい値"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バッテリーのしきい値"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "배터리 임계값"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "배터리 임계값"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Limite da bateria"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limite da bateria"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Порог заряда батареи"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Порог заряда батареи"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "电池阈值"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "电池阈值"
           }
         }
       }
@@ -991,14 +991,54 @@
     },
     "Day" : {
       "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Tag" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Día" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Journée" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "予定" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "일정" } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Dia" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "День" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日程" } }
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tag"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Día"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "予定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일정"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "День"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "日程"
+          }
+        }
       }
     },
     "Default timer" : {
@@ -145360,6 +145400,110 @@
         }
       }
     },
+    "Set Fans to Auto" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lüfter auf Automatik stellen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poner ventiladores en automático"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Régler les ventilateurs en automatique"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファンを自動に設定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "팬을 자동으로 설정"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definir ventoinhas no automático"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Установить автоматическую скорость вентиляторов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将风扇设为自动"
+          }
+        }
+      }
+    },
+    "Set Fans to Max" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lüfter auf Maximum stellen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poner ventiladores al máximo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Régler les ventilateurs au maximum"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファンを最大に設定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "팬을 최대로 설정"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Definir ventoinhas no máximo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Установить максимальную скорость вентиляторов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将风扇设为最大"
+          }
+        }
+      }
+    },
     "settings pane “%@”" : {
       "comment" : "Lowercase, follows “settings.json: key:” in an error; %@ is an identifier",
       "localizations" : {
@@ -146023,6 +146167,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "切换灵动岛显示"
+          }
+        }
+      }
+    },
+    "Toggle Keep Awake" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruhezustand verhindern umschalten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternar mantener despierto"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer ou désactiver le maintien en éveil"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スリープ防止を切り替え"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "잠자기 방지 전환"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alternar manter ativo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переключить запрет сна"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换保持唤醒"
           }
         }
       }

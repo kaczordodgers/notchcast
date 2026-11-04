@@ -23,6 +23,9 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
+            core?.appIndex.refreshNotchcastCommands()
+        }
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
