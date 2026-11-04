@@ -27,21 +27,38 @@ struct MachineSetupProcessTests {
         var calls: [[String]] = []
         var enabled = false
         var executor = MachineSetupProfileProcessExecutor(process: { path, arguments in
-            precondition(path == "/usr/bin/defaults")
+            precondition(path == (arguments == ["Dock"] ? "/usr/bin/killall" : "/usr/bin/defaults"))
             calls.append(arguments)
             if arguments.first == "write" { enabled = true }
-            return .init(status: 0, output: enabled ? "1\n" : "0\n")
+            return .init(status: enabled ? 0 : 1, output: enabled ? "1\n" : "missing key")
         }, isRoot: { false })
         try executor.preview(plan)
         precondition(calls.count == 1 && !enabled)
         precondition(executor.report.map(\.status) == [.planned, .needsHelper])
         try executor.apply(plan)
-        precondition(enabled && calls.count == 4)
+        precondition(enabled && calls == [
+            ["read", "com.apple.dock", "autohide"],
+            ["read", "com.apple.dock", "autohide"],
+            ["write", "com.apple.dock", "autohide", "-bool", "true"],
+            ["Dock"],
+            ["read", "com.apple.dock", "autohide"]
+        ])
         precondition(executor.report.map(\.status) == [.applied, .needsHelper])
         try executor.apply(plan)
-        precondition(calls.count == 5 && executor.report.first?.status == .satisfied)
+        precondition(calls.count == 6 && executor.report.first?.status == .satisfied)
+        var restartCalls: [[String]] = []
+        var restartFailed = MachineSetupProfileProcessExecutor(process: { _, arguments in
+            restartCalls.append(arguments)
+            return .init(status: arguments == ["Dock"] ? 1 : 0, output: "0")
+        }, isRoot: { false })
+        do { try restartFailed.apply(plan); fatalError("Expected restart failure") } catch {}
+        precondition(restartCalls == [
+            ["read", "com.apple.dock", "autohide"],
+            ["write", "com.apple.dock", "autohide", "-bool", "true"], ["Dock"]
+        ])
+        precondition(restartFailed.report.map(\.status) == [.failed, .notRun])
         var failed = MachineSetupProfileProcessExecutor(process: { _, _ in
-            .init(status: 1, output: "private output")
+            .init(status: 2, output: "private output")
         }, isRoot: { false })
         do { try failed.apply(plan); fatalError("Expected failure") } catch {}
         precondition(failed.report.map(\.status) == [.failed, .notRun])
@@ -55,9 +72,9 @@ struct MachineSetupProcessTests {
                 dryRun: false, confirmed: false, executor: &gated)
             fatalError("Expected consent rejection")
         } catch {}
-        precondition(calls.count == 5)
+        precondition(calls.count == 6)
         _ = try MachineSetupProfileRunner.run(profile, policy: policy, enabled: true, executor: &gated)
-        precondition(calls.count == 5)
+        precondition(calls.count == 6)
         for invalid in [
             MachineSetupProfile(format: 1, appVersion: "1", backup: Data([1]),
                 tweaks: [], files: [:], modules: [:]),
@@ -73,7 +90,7 @@ struct MachineSetupProcessTests {
                 fatalError("Unsupported payload must be rejected")
             } catch {}
         }
-        precondition(calls.count == 5)
+        precondition(calls.count == 6)
         var applied = 0
         var confirmed = 0
         var presented = 0
