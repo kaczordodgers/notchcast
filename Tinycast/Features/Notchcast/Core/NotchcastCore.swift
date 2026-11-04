@@ -30,6 +30,9 @@ enum NotchcastCore {
     }
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
+        #if DEBUG
+        if NotchcastGallery.runIfRequested(core) { return }
+        #endif
         guard controller == nil else { return }
         battery.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
