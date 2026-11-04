@@ -11,19 +11,19 @@ while (( $# )); do
     *) echo "usage: $0 [--out <dir>] [--app <Debug.app>]"; exit 2 ;;
   esac
 done
-scratch=$(mktemp -d ~/agents/nc-design/gallery.XXXXXX)
+scratch=$(mktemp -d "${NOTCHCAST_GALLERY_SCRATCH_ROOT:-${TMPDIR:-/tmp}}/notchcast-gallery.XXXXXX")
 out=${out:-$scratch/shots}
+trap 'find "$scratch" -mindepth 1 -maxdepth 1 ! -name shots -exec rm -rf {} +; rmdir "$scratch" 2>/dev/null || true' EXIT
 mkdir -p "$out"
 out=${out:A}
 [[ -z $(ls -A "$out") ]] || { echo "snap: output must be empty: $out"; exit 2; }
 if [[ -z $bundle ]]; then
   cd "$root"
   xcodegen generate > "$scratch/generate.log" 2>&1
-  derived=${NOTCHCAST_GALLERY_DERIVED_DATA:-$scratch/DerivedData}
+  derived=${NOTCHCAST_GALLERY_DERIVED_DATA:-$HOME/Library/Caches/NotchcastGallery/DerivedData}
   build=(xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath "$derived" CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=NO build)
-  queue=$HOME/chad/bin/build-queue.py
-  if [[ -f $queue ]]; then
-    python3 "$queue" hold -- "${build[@]}" > "$scratch/build.log" 2>&1 || { tail -80 "$scratch/build.log"; exit 1; }
+  if [[ -n ${NOTCHCAST_BUILD_WRAPPER:-} ]]; then
+    "$NOTCHCAST_BUILD_WRAPPER" "${build[@]}" > "$scratch/build.log" 2>&1 || { tail -80 "$scratch/build.log"; exit 1; }
   else
     "${build[@]}" > "$scratch/build.log" 2>&1 || { tail -80 "$scratch/build.log"; exit 1; }
   fi
@@ -48,6 +48,7 @@ while IFS= read -r page; do
   (( count += 1 ))
 done < "$out/manifest.txt"
 python3 "$here/inventory.py" "$out"
+swift "$here/check-pixels.swift" "$out"
 python3 "$here/check-layout.py" "$out" > "$out/layout-check.log" || true
 tail -1 "$out/layout-check.log"
 tail -2 "$out/run.log"
