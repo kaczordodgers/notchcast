@@ -8,7 +8,7 @@ SELF="$(cd "$(dirname "$0")" && pwd)/$(basename "$0")"
 cd "$(dirname "$0")/.." || exit 1
 
 BIN="${TMPDIR:-/tmp}/tinycast-harness"
-# Fork: one harness dir per checkout, so worktrees never share a suite lock or overwrite each other's binaries; CI keeps the plain path.
+# Fork: one harness dir per checkout, so worktrees never share a suite lock; CI keeps the plain path.
 [ -n "${CI:-}" ] || BIN="$BIN-$(pwd -P | shasum | cut -c1-8)"
 mkdir -p "$BIN"
 

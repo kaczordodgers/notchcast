@@ -50,10 +50,12 @@ if [ "$want" != "${last_main:-} ${last_release:-}" ]; then reason="upstream chan
 elif [ $((now - ${last_at:-0})) -ge "$HEARTBEAT_SEC" ]; then reason="hourly heartbeat"
 fi
 if [ -n "$reason" ] || [ "$DRY" = 1 ]; then
-    main_sha="${CHECK_SHA:-$(gh api "repos/$FORK_REPO/commits/main" --jq .sha 2>&1)}" || fail "reading main: $main_sha"
-    snapshots="$(gh run list -R "$FORK_REPO" -w snapshot.yml -L 30 --json headSha,status,conclusion --jq "[.[] | select(.headSha == \"$main_sha\")
-        | select(.status != \"completed\" or .conclusion == \"success\")] | length" 2>&1)" || fail "snapshot runs: $snapshots"
-    if [ "$snapshots" -gt 0 ]; then snapshot="skip: $snapshots run(s) for main ${main_sha:0:8} queued, running or green"
+    main_sha="${CHECK_SHA:-$(gh api "repos/$FORK_REPO/commits/main" --jq .sha 2>&1)}" || main_sha=""
+    snapshots="unknown (main unreadable)"
+    [ -z "$main_sha" ] || snapshots="$(gh run list -R "$FORK_REPO" -w snapshot.yml -L 30 --json headSha,status,conclusion --jq "[.[] | select(.headSha == \"$main_sha\")
+        | select(.status != \"completed\" or .conclusion == \"success\")] | length" 2>&1)" || snapshots="unknown ($snapshots)"
+    # Unknown skips only the snapshot: Sync still starts, and snapshot.yml's hourly schedule covers the gap.
+    if [ "$snapshots" != 0 ]; then snapshot="skip: $snapshots run(s) for main ${main_sha:0:8} queued, running or green"
     else snapshot="dispatch for main ${main_sha:0:8}"; fi
     if [ "$DRY" = 1 ]; then log "would ${reason:+start sync ($reason); }snapshot: $snapshot"
     else
