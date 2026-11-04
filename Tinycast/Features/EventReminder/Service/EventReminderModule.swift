@@ -6,7 +6,7 @@ extension DayCalendarService: EventReminderSource {}
 
 @MainActor
 final class EventReminderModule: NotchcastModule {
-    private let calendar: DayCalendarService
+    let calendar: DayCalendarService
     private let center: IslandActivityCenter
     private var engine = EventReminderEngine(armedAt: .distantFuture)
     private var running = false

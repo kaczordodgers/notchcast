@@ -27,6 +27,8 @@ extension NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackup = ForkSettingsBackupModule()
+    static let settingsBackupRestore = ForkSettingsBackupCoordinator()
+    static let eventReminder = EventReminderModule(store: AppCore.shared.calendarStore)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
     static let screenText = ScreenTextModule()
@@ -84,6 +86,7 @@ extension NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
+            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: eventReminder),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.screenText], module: screenText),
@@ -103,7 +106,6 @@ extension NotchcastCore {
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
             .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
-            .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }
 }
