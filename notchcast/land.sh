@@ -29,14 +29,18 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 1' HUP INT TERM
 git worktree add --quiet --detach "$scratch/tree" "$base"
-if ! git -C "$scratch/tree" -c core.hooksPath=/dev/null -c user.name=Damian \
-    -c user.email=336236323+kaczordodgers@users.noreply.github.com \
-    merge --no-edit --no-ff "$head"; then
-    refuse 'merge conflict'
-fi
+cd "$scratch/tree"
+git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$head" >/dev/null 2>&1 || true
+# Generated files (ci.py GENERATED) keep main's version, conflicting or not: CI regenerates them before every build,
+# so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
+generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
+git checkout "$base" -- "${generated[@]}"
+unmerged=$(git diff --name-only --diff-filter=U)
+[ -z "$unmerged" ] || refuse "merge conflict: $(echo $unmerged)"
+git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
+    commit --quiet --allow-empty --no-edit -m "Merge $head"
 mkdir "$scratch/tmp"
 export TMPDIR="$scratch/tmp"
-cd "$scratch/tree"
 # A union merge keeps a line the PR deleted when main appended next to it; refuse instead of reviving it.
 fork=$(git merge-base "$base" "$head")
 for file in $(awk '$2 == "merge=union" {print $1}' .gitattributes); do
