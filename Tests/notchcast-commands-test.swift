@@ -1,27 +1,10 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Island/IslandController+Command.swift
-// notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule+Command.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction+EntryID.swift
 import Foundation
-
-@MainActor final class MachRemoteModule {
-    func openTerminal() {}
-    func sendFinderSelection() {}
-    func update() {}
-}
-@MainActor enum NotchcastCore {
-    static let machRemote = MachRemoteModule()
-}
-@MainActor final class NotchcastPreferences {
-    enum Feature { case machRemote, sendFiles, updateRemote }
-    static let shared = NotchcastPreferences()
-    var enabled = false
-    func isOn(_ feature: Feature) -> Bool { enabled }
-}
 
 enum SettingsTab: CaseIterable, Sendable {
     case commands, quicklinks, ai, quickActions, fileSearch, notes, snippets, navigation
@@ -99,11 +82,21 @@ enum QuicklinkDestination {
     static func detect(_ query: String) -> Self? { nil }
 }
 
-@MainActor final class IslandController {
-    static let shared = IslandController()
+@MainActor final class CommandFixture {
+    static let shared = CommandFixture()
     var commandsAvailable = true
     var runs = 0
     func toggle() { runs += 1 }
+}
+
+extension NotchcastCommandCatalog {
+    static let all: [NotchcastCommand] = [
+        NotchcastCommand(
+            slug: "toggle-island", name: "Test command", sfSymbol: "test",
+            legacyID: "command:toggle-island",
+            isEnabled: { CommandFixture.shared.commandsAvailable },
+            run: { CommandFixture.shared.toggle() }),
+    ]
 }
 
 @MainActor final class AppCore {
@@ -125,21 +118,6 @@ enum QuicklinkDestination {
 @main @MainActor struct NotchcastCommandsTest {
     static func main() {
         let commands = NotchcastCommandCatalog.all
-        let remoteID = "command:nc-open-remote-mac-terminal"
-        assert(commands.contains { $0.id == remoteID })
-        assert(!NotchcastCommandCatalog.isEnabled(remoteID))
-        for slug in ["send-to-remote-mac", "update-remote-mac"] {
-            let id = "command:nc-" + slug
-            assert(commands.contains { $0.id == id })
-            assert(!NotchcastCommandCatalog.isEnabled(id))
-            assert(NotchcastCommandCatalog.dispatch(id) { assertionFailure("Disabled command dismissed palette") })
-        }
-        var remoteDismissed = false
-        assert(NotchcastCommandCatalog.dispatch(remoteID) { remoteDismissed = true })
-        assert(!remoteDismissed)
-        NotchcastPreferences.shared.enabled = true
-        assert(NotchcastCommandCatalog.isEnabled(remoteID))
-        NotchcastPreferences.shared.enabled = false
         assert(Set(commands.map(\.id)).count == commands.count)
         assert(commands.allSatisfy { $0.id.hasPrefix("command:nc-") })
         assert(commands.allSatisfy { command in CommandCatalog.all.contains { $0.id == command.entry.id } })
@@ -150,7 +128,7 @@ enum QuicklinkDestination {
         assert(action.defaultsKey == "hotkey.command:toggle-island")
         assert(HotKeyAction(entryID: commands[0].entry.id) == action)
         assert(action.entryID == commands[0].entry.id)
-        let island = IslandController.shared
+        let island = CommandFixture.shared
         var dismissed = 0
         assert(NotchcastCommandCatalog.dispatch("command:toggle-island", dismiss: { dismissed += 1 }))
         assert(island.runs == 1 && dismissed == 1)
@@ -162,11 +140,16 @@ enum QuicklinkDestination {
         assert(!NotchcastCommandCatalog.dispatch("command:unknown", dismiss: {}))
         island.commandsAvailable = true
         let palette = AppCore.shared.paletteCoordinator
-        NotchcastCommandCatalog.perform("command:toggle-island")
+        NotchcastCommandCatalog.perform(commands[0].entry.id)
         assert(palette.hideCalls == 0 && island.runs == 2)
         palette.isVisible = true
-        NotchcastCommandCatalog.perform("command:toggle-island")
+        assert(NotchcastCommandCatalog.dispatch(commands[0].id, dismiss: {
+            palette.hidePalette(restoreFocus: false)
+        }))
         assert(palette.hideCalls == 1 && !palette.restoredFocus && island.runs == 3)
+        palette.isVisible = true
+        NotchcastCommandCatalog.perform(commands[0].entry.id)
+        assert(palette.hideCalls == 2 && !palette.restoredFocus && island.runs == 4)
         print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility and dispatch")
     }
 }

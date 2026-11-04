@@ -1,9 +1,15 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
-    case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
-    case islandStatusMessages, islandLiveActivities, launcherFromIsland
-    case systemMonitor, fanControl
+    case island
+    case islandExternalDisplays
+    case islandFullScreen
+    case islandHoverOpen
+    case islandStatusMessages
+    case islandLiveActivities
+    case launcherFromIsland
+    case systemMonitor
+    case fanControl
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -11,6 +17,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case displayBrightness
     case quitProtection
     case liveTimers
+    case dayCalendar
     case dayWeather
     case dayMarkets
     case aiUsage
@@ -20,26 +27,51 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case backupStatus
     case linkHealth
     case shelfBetweenMacs
-    case sendFiles, updateRemote
-    case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
-    case keepAwake, lidClosedAwake
-
-    enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities
-    }
+    case sendFiles
+    case updateRemote
+    case batteryChargeLimit
+    case batterySailing
+    case batteryHeatProtection
+    case batteryCalibration
+    case keepAwake
+    case lidClosedAwake
 
     var settingsGroup: SettingsGroup {
         switch self {
         case .island: .island
-        case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-             .islandStatusMessages, .islandLiveActivities: .islandOptions
+        case .islandExternalDisplays: .islandOptions
+        case .islandFullScreen: .islandOptions
+        case .islandHoverOpen: .islandOptions
+        case .islandStatusMessages: .islandOptions
+        case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
-        case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
-             .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
-             .batterySailing, .batteryHeatProtection, .batteryCalibration,
-             .keepAwake, .lidClosedAwake, .machLink, .machRemote, .backupStatus, .linkHealth,
-             .sendFiles, .updateRemote: .system
-        case .liveTimers, .dayWeather, .dayMarkets, .aiUsage, .aiUsageOtherMac, .shelfBetweenMacs: .activities
+        case .systemMonitor: .systemTools
+        case .fanControl: .systemTools
+        case .monitorAlerts: .systemTools
+        case .lowDiskWarning: .system
+        case .systemNotices: .system
+        case .volumeLevels: .system
+        case .displayBrightness: .system
+        case .quitProtection: .system
+        case .batteryChargeLimit: .systemTools
+        case .batterySailing: .systemTools
+        case .batteryHeatProtection: .systemTools
+        case .batteryCalibration: .systemTools
+        case .keepAwake: .systemTools
+        case .lidClosedAwake: .systemTools
+        case .liveTimers: .activities
+        case .dayCalendar: .activities
+        case .dayWeather: .activities
+        case .dayMarkets: .activities
+        case .aiUsage: .activities
+        case .aiUsageOtherMac: .activities
+        case .machLink: .system
+        case .machRemote: .system
+        case .backupStatus: .system
+        case .linkHealth: .system
+        case .shelfBetweenMacs: .activities
+        case .sendFiles: .system
+        case .updateRemote: .system
         }
     }
 
@@ -61,6 +93,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Display Brightness")
         case .quitProtection: String(localized: "Quit Protection")
         case .liveTimers: String(localized: "Timers")
+        case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .aiUsage: String(localized: "AI Usage")
@@ -99,6 +132,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
         case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .aiUsage: String(localized: "Read local AI usage on demand.")
@@ -122,15 +156,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
-        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
-            .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
-            .aiUsage, .aiUsageOtherMac, .machLink, .machRemote, .backupStatus, .linkHealth,
-            .shelfBetweenMacs, .sendFiles, .updateRemote:
-            []
+        case .volumeLevels: [.accessibility]
+        case .displayBrightness: [.accessibility]
+        case .quitProtection: [.accessibility]
+        default: []
         }
     }
 }
@@ -138,16 +167,40 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac,
-          .machLink, .machRemote, .shelfBetweenMacs, .backupStatus,
-          .linkHealth, .sendFiles, .updateRemote].contains(self)
-            && !isSystemFeature
+        if isSystemFeature { return false }
+        return switch self {
+        case .displayBrightness: false
+        case .quitProtection: false
+        case .aiUsage: false
+        case .aiUsageOtherMac: false
+        case .machLink: false
+        case .machRemote: false
+        case .backupStatus: false
+        case .linkHealth: false
+        case .shelfBetweenMacs: false
+        case .sendFiles: false
+        case .updateRemote: false
+        default: true
+        }
     }
 
-    var isSystemFeature: Bool {
-        [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
+    var startsOff: Bool {
+        if isSystemFeature { return true }
+        return switch self {
+        case .aiUsage: true
+        case .aiUsageOtherMac: true
+        case .machLink: true
+        case .machRemote: true
+        case .backupStatus: true
+        case .linkHealth: true
+        case .shelfBetweenMacs: true
+        case .sendFiles: true
+        case .updateRemote: true
+        default: false
+        }
     }
+
+    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
