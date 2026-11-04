@@ -62,6 +62,21 @@ struct NotchcastCommand: Sendable {
         precondition(runs.count == before)
         controller.stop()
         precondition(commands.allSatisfy { !$0.isEnabled() })
+        var staleApplied = false
+        preferences.set(.mediaTools, true)
+        let suspended = NotchcastToolsCommands(preferences: preferences, selection: {
+            [URL(fileURLWithPath: "/synthetic/input.png")]
+        }, post: { _ in }, refresh: {}) { action, _, valid in
+            preferences.set(action.feature, false)
+            preferences.set(action.feature, true)
+            await Task.yield()
+            staleApplied = valid()
+        }
+        suspended.start()
+        suspended.perform(.makeGIF)
+        await suspended.settle()
+        precondition(!staleApplied)
+        suspended.stop()
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
