@@ -28,7 +28,8 @@ final class NotchcastPreferences {
         self.defaults = defaults
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool ?? ![.aiUsage, .aiUsageOtherMac, .machLink].contains($0))
+            !(defaults.object(forKey: $0.rawValue) as? Bool
+                ?? ![.aiUsage, .aiUsageOtherMac, .machLink, .linkHealth].contains($0))
         })
     }
 

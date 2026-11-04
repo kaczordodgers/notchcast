@@ -14,6 +14,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case aiUsage
     case aiUsageOtherMac
     case machLink
+    case linkHealth
 
     var title: String {
         switch self {
@@ -35,6 +36,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: String(localized: "AI Usage")
         case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
         case .machLink: String(localized: "Mac Link")
+        case .linkHealth: String(localized: "Link Health")
         }
     }
 
@@ -58,6 +60,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: String(localized: "Read local AI usage on demand.")
         case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
         case .machLink: String(localized: "Connect to a paired Mac on the local network.")
+        case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
         }
     }
 
@@ -68,7 +71,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
-            .aiUsage, .aiUsageOtherMac, .machLink:
+            .aiUsage, .aiUsageOtherMac, .machLink, .linkHealth:
             []
         }
     }
@@ -77,7 +80,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink].contains(self)
+        ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink, .linkHealth].contains(self)
     }
 }
 
