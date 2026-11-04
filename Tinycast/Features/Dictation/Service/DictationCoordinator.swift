@@ -4,6 +4,7 @@ import AVFoundation
 @MainActor
 @Observable
 final class DictationCoordinator {
+    static var transcriptStage: (@Sendable (String, String?) async -> String)?
     private enum Phase { case idle, starting, listening, transcribing, stopping }
 
     private let settings: AppSettings
@@ -242,9 +243,10 @@ final class DictationCoordinator {
                 return
             }
             do {
-                let transcript = try await models.transcribe(
+                var transcript = try await models.transcribe(
                     tail, model: model,
                     language: language)
+                if let stage = Self.transcriptStage { transcript = await stage(transcript, language) }
                 guard token == current else { return }
                 // A mic belongs to its field: the text goes in there, never to the clipboard.
                 let context = destination.pastes ? insertionContext() : nil
