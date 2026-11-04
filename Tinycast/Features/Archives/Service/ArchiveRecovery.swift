@@ -59,8 +59,8 @@ nonisolated struct ArchiveRecovery: Codable {
         for sidecar in children where sidecar.lastPathComponent.hasPrefix(".notchcast-extract-")
             && sidecar.pathExtension == "json" {
             let record = try JSONDecoder().decode(Self.self, from: Data(contentsOf: sidecar)).resolved
-            guard archive == nil || record.archive == archive else { continue }
-            guard record.sidecar == sidecar else { throw ArchiveFailure.existingProgress }
+            if let archive, !ArchiveFiles.samePath(record.archive, archive) { continue }
+            guard ArchiveFiles.samePath(record.sidecar, sidecar) else { throw ArchiveFailure.existingProgress }
             if let owner = record.owner, owner != 0, kill(owner, 0) == 0 { continue }
             if !ArchiveFiles.exists(record.staging) { try record.remove(); continue }
             try ArchiveJournal.validateStaging(record.staging, archive: record.archive)
@@ -85,7 +85,7 @@ nonisolated struct ArchiveRecovery: Codable {
                 guard let data = try? Data(contentsOf: journal),
                       let saved = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                       let output = saved["output"] as? String else { return true }
-                return ArchiveFiles.resolvedParent(URL(fileURLWithPath: output)) == staging
+                return ArchiveFiles.samePath(URL(fileURLWithPath: output), staging)
             }
             guard !protected else { continue }
             let source = parent.appending(path: "Recovered archive.zip")

@@ -1,5 +1,4 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift
-// notchcast-sources: Tinycast/Features/Archives/NotchcastArchiveSettingsMetadata.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
@@ -47,7 +46,6 @@ struct ArchiveRoutingTests {
         precondition(delegate.contains("for url in urls") && delegate.contains("AppCore.shared.handleOpenURL(url)"))
         let features: [NotchcastFeature] = [.archives, .archivesInPlace, .archivesDefaultApp]
         for feature in features {
-            precondition(feature.isArchiveSetting)
             precondition(feature.settingsGroup == .archives)
             let entries = SettingsSearchCatalog.notchcast.filter { $0.title == feature.title }
             precondition(entries.count == 1 && entries[0].anchor == .notchcastArchives)

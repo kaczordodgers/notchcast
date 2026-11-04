@@ -28,6 +28,7 @@ struct NotchcastSettingsView: View {
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
 
+            NotchcastTorrentSettings(module: NotchcastCore.torrents)
             NotchcastMusicSettings()
             NotchcastArchiveSettings()
             if !requiredGrants.isEmpty {

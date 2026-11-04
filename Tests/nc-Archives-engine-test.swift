@@ -55,6 +55,8 @@ struct ArchivesEngineTest {
         print("PASS: safe relative symlink under symlinked parent")
         try await fakeTool(root)
         try await fakeTool(aliasParent)
+        try protectedOrphan(aliasParent)
+        try protectedOrphan(ArchiveFiles.resolvedDirectory(realParent))
         print("PASS: archive extraction, cancellation and resume behind a symlinked directory")
         if let tool = ArchiveToolLocator().locate() {
             try await realTool(root, tool: tool)
@@ -67,6 +69,30 @@ struct ArchivesEngineTest {
 
     static func expect(_ condition: Bool, _ message: String) {
         if !condition { fatalError(message) }
+    }
+
+    static func protectedOrphan(_ root: URL) throws {
+        let staging = root.appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        let archive = root.appending(path: "movie.zip")
+        let journal = URL(fileURLWithPath: archive.path + ".hatchzip")
+        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false)
+        let payload = staging.appending(path: "part.bin")
+        try Data("partial".utf8).write(to: payload)
+        try Data("archive".utf8).write(to: archive)
+        let data = try JSONSerialization.data(withJSONObject: ["output": staging.path])
+        try data.write(to: journal)
+        defer {
+            try? FileManager.default.removeItem(at: staging)
+            try? FileManager.default.removeItem(at: archive)
+            try? FileManager.default.removeItem(at: journal)
+        }
+        let before = try FileManager.default.contentsOfDirectory(atPath: root.path).sorted()
+        try ArchiveRecovery.recover(in: root)
+        expect(try Data(contentsOf: payload) == Data("partial".utf8), "journal protects partial staging")
+        expect(try Data(contentsOf: journal) == data, "orphan journal unchanged")
+        expect(try FileManager.default.contentsOfDirectory(atPath: root.path).sorted() == before,
+               "protected orphan never published")
+        print("PASS: journal without JSON sidecar protects partial staging at \(root.path)")
     }
 
     static func crashRecovery(_ root: URL) throws {

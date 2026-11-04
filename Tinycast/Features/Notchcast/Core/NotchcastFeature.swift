@@ -19,26 +19,32 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case torrents
+    case torrentsUseIPhone
+    case torrentsKeepSharing
+
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
     case archives, archivesInPlace, archivesDefaultApp
 
     var defaultOn: Bool {
-        self != .spotifyConnect && !isSystemFeature && self != .archivesInPlace && self != .archivesDefaultApp
+        self != .spotifyConnect && self != .torrentsKeepSharing && !isSystemFeature
+            && self != .archivesInPlace && self != .archivesDefaultApp
     }
 
     var dependencies: [Self] {
         switch self {
-        case .island: []
+        case .island, .torrents: []
         case .archivesInPlace, .archivesDefaultApp: [.archives]
+        case .torrentsUseIPhone, .torrentsKeepSharing: [.torrents]
         case .musicLastPlayer, .spotifyConnect: [.island, .musicNowPlaying]
         default: needsIsland ? [.island] : []
         }
     }
 
     enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities, music, archives
+        case island, islandOptions, launcher, system, activities, music, archives, torrents
     }
 
     var settingsGroup: SettingsGroup {
@@ -53,6 +59,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
+        case .torrents, .torrentsUseIPhone, .torrentsKeepSharing: .torrents
         case .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect,
              .microphoneMute, .inUseMarks: .music
         }
@@ -93,6 +100,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .torrents: String(localized: "Torrents")
+        case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
+        case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
         }
     }
 
@@ -131,6 +141,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
+        case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
+        case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
         }
     }
 
@@ -145,7 +158,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .musicNowPlaying, .spotifyConnect, .inUseMarks,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
+            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
+            .torrents, .torrentsUseIPhone, .torrentsKeepSharing:
             []
         }
     }
@@ -154,8 +168,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        self != .displayBrightness && self != .quitProtection && !isSystemFeature && settingsGroup != .archives
+        self != .displayBrightness && self != .quitProtection && !isSystemFeature
+            && settingsGroup != .archives && !isTorrentFeature
     }
+
+    var isTorrentFeature: Bool { [.torrents, .torrentsUseIPhone, .torrentsKeepSharing].contains(self) }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,

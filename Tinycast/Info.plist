@@ -34,6 +34,16 @@
 				<string>com.raycast</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>BitTorrent Magnet</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>magnet</string>
+			</array>
+		</dict>
 	</array>
 	<!-- Exported, but deliberately no CFBundleDocumentTypes: claiming the type would make a
 	     double-clicked .tinycast launch straight into writing over someone's data. The identifier
@@ -97,6 +107,18 @@
 				<string>org.gnu.gnu-zip-tar-archive</string>
 				<string>org.gnu.gnu-zip-archive</string>
 				<string>app.notchcast.split-archive</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>BitTorrent</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.bittorrent.torrent</string>
 			</array>
 		</dict>
 	</array>
@@ -164,6 +186,23 @@
 				<array>
 					<string>001</string>
 				</array>
+			</dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.bittorrent.torrent</string>
+			<key>UTTypeDescription</key>
+			<string>BitTorrent</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<string>torrent</string>
+				<key>public.mime-type</key>
+				<string>application/x-bittorrent</string>
 			</dict>
 		</dict>
 	</array>

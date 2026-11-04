@@ -24,9 +24,10 @@ extension SettingsAnchor {
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
-    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastTorrents = Self(tab: .notchcast, title: "Torrents")
 }
 
 extension SettingsSearchCatalog {
@@ -77,6 +78,11 @@ extension SettingsSearchCatalog {
         .init(.notchcastSpotify, "Device name", keywords: ["soloist", "speaker name"]),
         .init(group: .notchcastSpotify, "Download Soloist", keywords: ["soloist", "update", "build", "expiry"]),
         .init(.notchcastMicrophone, "Microphone mute", keywords: ["mute", "f5", "mic"]),
-        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"])
+        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"]),
+        .init(.notchcastTorrents, "Torrents", keywords: ["magnet", "torrent", "download"]),
+        .init(.notchcastTorrents, "Use a plugged-in iPhone for big downloads",
+              keywords: ["wifi", "iphone", "usb", "hotspot", "network"]),
+        .init(.notchcastTorrents, "Keep sharing until ratio 1.0", keywords: ["seed", "seeding", "upload"]),
+        .init(.notchcastTorrents, "aria2c", keywords: ["install", "homebrew", "tool", "path"]),
     ]
 }
