@@ -669,7 +669,6 @@ extension NotchcastFeature {
         .agentSessions,
         .agentPricing,
         .captureTrimmer,
-        .recording,
         .backupRunNow,
         .backupBrowseRestore,
         .markdownFiles,
