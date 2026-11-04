@@ -3,6 +3,7 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
     static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
@@ -19,12 +20,17 @@ extension SettingsAnchor {
     static let notchcastLauncher = Self(tab: .notchcast, title: "Launcher")
     static let notchcastSystem = Self(tab: .notchcast, title: "System")
     static let notchcastActivities = Self(tab: .notchcast, title: "Activities")
+    static let notchcastMusic = Self(tab: .notchcast, title: "Music")
+    // ai-design-check-ignore-next-line sentence-case -- Spotify Connect is a product name.
+    static let notchcastSpotify = Self(tab: .notchcast, title: "Spotify Connect")
+    static let notchcastMicrophone = Self(tab: .notchcast, title: "Microphone")
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastTorrents = Self(tab: .notchcast, title: "Torrents")
     static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
     static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
     static let notchcastCaptureAndDictation = Self(tab: .notchcast, title: "Capture and dictation")
@@ -36,6 +42,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
+        .init(.notchcastArchives, "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
+        .init(.notchcastArchives, "Extract in place", keywords: ["shrink", "space", "destructive"]),
+        .init(.notchcastArchives, "Open archives with Notchcast", keywords: ["default", "handler", "Archive Utility"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -85,6 +94,19 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
+        .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
+        .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),
+        .init(.notchcastSpotify, "Spotify Connect speaker", keywords: ["soloist", "spotify", "speaker", "connect", "phone"]),
+        .init(.notchcastSpotify, "API key", keywords: ["soloist", "key", "developer"]),
+        .init(.notchcastSpotify, "Device name", keywords: ["soloist", "speaker name"]),
+        .init(group: .notchcastSpotify, "Download Soloist", keywords: ["soloist", "update", "build", "expiry"]),
+        .init(.notchcastMicrophone, "Microphone mute", keywords: ["mute", "f5", "mic"]),
+        .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"]),
+        .init(.notchcastTorrents, "Torrents", keywords: ["magnet", "torrent", "download"]),
+        .init(.notchcastTorrents, "Use a plugged-in iPhone for big downloads", keywords: ["wifi", "iphone", "usb", "hotspot", "network"]),
+        .init(.notchcastTorrents, "Keep sharing until ratio 1.0", keywords: ["seed", "seeding", "upload"]),
+        .init(.notchcastTorrents, "aria2c", keywords: ["install", "homebrew", "tool", "path"]),
         .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
         .init(.notchcastFinder, "Finder Cut and Paste", keywords: ["files", "move", "clipboard"]),
         .init(.notchcastFinder, "Finder Rename", keywords: ["hyper", "shortcut", "return"]),

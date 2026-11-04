@@ -11,7 +11,7 @@ struct NotchcastSettingsView: View {
                         anchor: .notchcastIsland, title: "Island",
                         subtitle: "Show the island at the top of the screen.")
                 }
-            }
+            } header: { SettingsSectionHeader(.notchcastIsland) }
             .settingsAnchor(.notchcastIsland)
 
             featureSection(.notchcastOptions, group: .islandOptions)
@@ -31,12 +31,16 @@ struct NotchcastSettingsView: View {
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
 
+            NotchcastTorrentSettings(module: NotchcastCore.torrents)
+            NotchcastMusicSettings()
+            NotchcastArchiveSettings()
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
             }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.notchcast)
+        .notchcastEnvironment()
     }
 
     /// Grants needed by the switches that are on, in a stable order.
