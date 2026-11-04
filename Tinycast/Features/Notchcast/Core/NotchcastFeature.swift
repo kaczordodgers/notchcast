@@ -24,6 +24,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case agentActions
     case agentCLI
+    case treadmillWalk
+    case treadmillHistory
     case appearance
     case pastePlain
     case pasteImage
@@ -87,6 +89,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .switcherQuitKey: .launcher
         case .agentActions: .system
         case .agentCLI: .system
+        case .treadmillWalk: .activities
+        case .treadmillHistory: .activities
         case .appearance: .appearance
         case .pastePlain: .clipboard
         case .pasteImage: .clipboard
@@ -117,6 +121,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Weather")
         case .agentActions: String(localized: "Agent access")
         case .agentCLI: String(localized: "Command line tool")
+        case .treadmillWalk: String(localized: "Walking Pad")
+        case .treadmillHistory: String(localized: "Walk History")
         case .appearance: String(localized: "Custom appearance")
         case .pastePlain: String(localized: "Paste Plain Text")
         case .pasteImage: String(localized: "Paste Image in Finder")
@@ -165,6 +171,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .agentActions: String(localized: "Expose actions and read-only state to local agents.")
         case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
+        case .treadmillWalk: String(localized: "Walking pad controls are not available yet.")
+        case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .pastePlain: String(localized: "Hyper+V pastes text without formatting.")
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
@@ -226,6 +234,8 @@ extension NotchcastFeature {
         case .quitProtection: false
         case .agentActions: false
         case .agentCLI: false
+        case .treadmillWalk: false
+        case .treadmillHistory: false
         case .appearance: false
         case .pastePlain: false
         case .pasteImage: false

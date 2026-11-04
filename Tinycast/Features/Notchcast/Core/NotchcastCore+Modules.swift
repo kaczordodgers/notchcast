@@ -1,6 +1,7 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension NotchcastCore {
+    static let treadmill = TreadmillCoordinator.live()
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
     static let pasteImage = PasteImageModule(hub: eventTapHub)
@@ -31,6 +32,8 @@ extension NotchcastCore {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = pastePlain
         return [
+            .init(requires: [.treadmillWalk], module: TreadmillModule(treadmill, capability: .walk)),
+            .init(requires: [.treadmillHistory], module: TreadmillModule(treadmill, capability: .history)),
             .init(requires: [.agentActions], module: agents),
             .init(requires: [.agentActions, .agentCLI], module: agentCLI),
             .init(requires: [.appearance], module: core.appearanceCoordinator),

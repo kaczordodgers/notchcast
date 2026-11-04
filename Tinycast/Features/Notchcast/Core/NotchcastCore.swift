@@ -5,6 +5,7 @@ enum NotchcastCore {
     private static var monitor: MonitorModule?
 
     static func stopForTermination() async {
+        await treadmill.stopForTermination()
         settingsBackup.stop()
         battery.stop()
         await battery.waitUntilIdle()
