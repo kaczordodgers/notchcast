@@ -681,6 +681,8 @@ extension NotchcastFeature {
         .katana,
         .agentAnswer,
         .voiceAsk,
+        .agentMCPServer,
+        .agentChatTools,
         .cleanSystem,
         .remoteScreen,
         .machMBPFans,
