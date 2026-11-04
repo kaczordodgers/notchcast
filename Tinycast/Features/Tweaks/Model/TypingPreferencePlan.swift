@@ -44,9 +44,19 @@ nonisolated struct TypingPreferencePlan: Sendable, Equatable, Codable {
     }
 
     let entries: [Entry]
+    let extraApply: [Command]?
+    let extraRevert: [Command]?
 
-    var apply: [Command] { entries.map { Self.command($0.write.preference, value: $0.write.value) } }
-    var revert: [Command] { entries.reversed().map { Self.command($0.write.preference, value: $0.previous) } }
+    init(entries: [Entry], extraApply: [Command]? = nil, extraRevert: [Command]? = nil) {
+        self.entries = entries
+        self.extraApply = extraApply
+        self.extraRevert = extraRevert
+    }
+
+    var apply: [Command] { entries.map { Self.command($0.write.preference, value: $0.write.value) } + (extraApply ?? []) }
+    var revert: [Command] {
+        (extraRevert ?? []) + entries.reversed().map { Self.command($0.write.preference, value: $0.previous) }
+    }
 
     private static func command(_ preference: Preference, value: Value?) -> Command {
         Command(executable: "/usr/bin/defaults", arguments: value.map {
