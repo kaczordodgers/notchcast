@@ -106,6 +106,8 @@ enum ForkSettingsBackupSchema {
         "eventReminder": .bool,
         "switcherQuitKey": .bool,
         "linkQuickFixes": .bool,
+        "buildStats": .bool,
+        "buildStatsPath": .string(4096),
         "greenMaximizeExcludedApps": .string(16_384),
         "monitorCPU": .integer(10...100),
         "monitorTemperature": .integer(40...110),
