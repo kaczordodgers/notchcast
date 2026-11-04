@@ -1,29 +1,41 @@
 import AppKit
 import Carbon.HIToolbox
 import Observation
-import OSLog
+import Synchronization
 
 @MainActor
 final class NotchcastKeyMonitor {
+    private struct Routing: Sendable {
+        var mute = false
+        var media = false
+        var replace = false
+    }
+
+    private enum Key: Sendable {
+        case mute(Bool)
+        case media(Int, Bool)
+    }
+
+    private final class SharedRouting: Sendable {
+        let value = Mutex(Routing())
+    }
+
     private let music: MusicNowPlayingModule
     private let blocker: MusicLaunchBlocker
     private let microphone: MicrophoneMuteModule
     private let preferences: NotchcastPreferences
-    private static let muteSignature: OSType = 0x4E43_4D49
-    private var muteKey: EventHotKeyRef?
-    private var keyHandler: EventHandlerRef?
-    private var tap: CFMachPort?
-    private var source: CFRunLoopSource?
-    private var muteRegistered = false
-    private var retry: Task<Void, Never>?
+    private let hub: EventTapHub
+    private let routing = SharedRouting()
+    private var registration: UUID?
     private var activation: NotificationToken?
 
     init(music: MusicNowPlayingModule, blocker: MusicLaunchBlocker, microphone: MicrophoneMuteModule,
-         preferences: NotchcastPreferences) {
+         preferences: NotchcastPreferences, hub: EventTapHub) {
         self.music = music
         self.blocker = blocker
         self.microphone = microphone
         self.preferences = preferences
+        self.hub = hub
         let center = NotificationCenter.default
         activation = NotificationToken(center.addObserver(
             forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
@@ -33,20 +45,10 @@ final class NotchcastKeyMonitor {
     }
 
     isolated deinit {
-        retry?.cancel()
-        stopTap()
-        unregisterMute()
+        if let registration { hub.remove(registration) }
     }
 
     func run() {
-        if retry == nil {
-            retry = Task { [weak self] in
-                while !Task.isCancelled {
-                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
-                    self?.update()
-                }
-            }
-        }
         withObservationTracking(update) { [weak self] in
             Task { @MainActor [weak self] in self?.run() }
         }
@@ -54,109 +56,66 @@ final class NotchcastKeyMonitor {
 
     func update() {
         let mute = preferences.isEnabled(.microphoneMute)
-        if mute != muteRegistered {
-            if mute {
-                registerMute()
-                muteRegistered = muteKey != nil
-            } else {
-                unregisterMute()
-                muteRegistered = false
-                microphone.model.hotKeyStatus = nil
-            }
-        }
         let media = preferences.isEnabled(.musicLastPlayer) || preferences.isEnabled(.musicBlockAppleMusic)
-        if media { startTap() } else { stopTap() }
-    }
-
-    private func registerMute() {
-        microphone.model.hotKeyStatus = nil
-        unregisterMute()
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-        let installed = InstallEventHandler(
-            GetEventDispatcherTarget(), { @MainActor _, event, context in
-                guard let event, let context else { return OSStatus(eventNotHandledErr) }
-                var identifier = EventHotKeyID()
-                let status = GetEventParameter(event, UInt32(kEventParamDirectObject), UInt32(typeEventHotKeyID),
-                                               nil, MemoryLayout<EventHotKeyID>.size, nil, &identifier)
-                guard status == noErr, identifier.signature == NotchcastKeyMonitor.muteSignature, identifier.id == 1 else {
-                    return OSStatus(eventNotHandledErr)
-                }
-                let monitor = Unmanaged<NotchcastKeyMonitor>.fromOpaque(context).takeUnretainedValue()
-                guard monitor.preferences.isEnabled(.microphoneMute) else { return OSStatus(eventNotHandledErr) }
-                monitor.microphone.toggle()
-                return noErr
-            }, 1, &eventType, Unmanaged.passUnretained(self).toOpaque(), &keyHandler)
-        guard installed == noErr else {
-            reportRegistration(installed)
-            return
-        }
-        let registered = RegisterEventHotKey(UInt32(kVK_F5), 0,
-            EventHotKeyID(signature: Self.muteSignature, id: 1), GetEventDispatcherTarget(), 0, &muteKey)
-        if registered != noErr {
-            unregisterMute()
-            reportRegistration(registered)
-        }
-    }
-
-    private func unregisterMute() {
-        if let muteKey { UnregisterEventHotKey(muteKey) }
-        muteKey = nil
-        if let keyHandler { RemoveEventHandler(keyHandler) }
-        keyHandler = nil
-    }
-
-    private func reportRegistration(_ status: OSStatus) {
-        microphone.model.hotKeyStatus = status
-        Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "Microphone")
-            .error("Could not register F5 (OSStatus \(status))")
-    }
-
-    private func startTap() {
-        guard tap == nil else { return }
-        tap = CGEvent.tapCreate(
-            tap: .cgSessionEventTap, place: .headInsertEventTap, options: .defaultTap,
-            eventsOfInterest: 1 << NSEvent.EventType.systemDefined.rawValue,
-            callback: { @MainActor _, type, event, context in
-                guard let context else { return Unmanaged.passUnretained(event) }
-                let monitor = Unmanaged<NotchcastKeyMonitor>.fromOpaque(context).takeUnretainedValue()
-                if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-                    if let tap = monitor.tap { CGEvent.tapEnable(tap: tap, enable: true) }
-                    return Unmanaged.passUnretained(event)
-                }
-                return monitor.handle(event) ? nil : Unmanaged.passUnretained(event)
-            }, userInfo: Unmanaged.passUnretained(self).toOpaque())
-        guard let tap, let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0) else { return }
-        self.source = source
-        CFRunLoopAddSource(CFRunLoopGetMain(), source, .commonModes)
-    }
-
-    private func stopTap() {
-        if let source { CFRunLoopRemoveSource(CFRunLoopGetMain(), source, .commonModes) }
-        source = nil
-        if let tap { CFMachPortInvalidate(tap) }
-        tap = nil
-    }
-
-    func handle(_ event: CGEvent) -> Bool {
-        guard let event = NSEvent(cgEvent: event), event.subtype.rawValue == 8 else { return false }
-        let key = (event.data1 >> 16) & 0xffff
-        let down = (event.data1 >> 8) & 0xff == 0x0a
-        let command: PlayerCommand
-        let mediaKey: MusicLaunchPolicy.MediaKey
-        switch key {
-        case 16: command = .togglePlayPause; mediaKey = .playPause
-        case 17: command = .next; mediaKey = .next
-        case 18: command = .previous; mediaKey = .previous
-        default: return false
-        }
+            || preferences.isEnabled(.spotifyConnect)
         let replacing = preferences.isEnabled(.musicLastPlayer) && music.model.nowPlaying == nil
             && music.model.canResume
         let soloist = preferences.isEnabled(.spotifyConnect)
             && (music.model.nowPlaying?.origin == .soloist || music.soloist.authState?.loggedIn == true)
-        if down {
-            blocker.noteMediaKey(mediaKey)
-            if replacing || soloist { music.send(command) }
+        routing.value.withLock { $0 = Routing(mute: mute, media: media, replace: replacing || soloist) }
+        microphone.model.hotKeyStatus = mute && !AXIsProcessTrusted() ? Int32(AXError.apiDisabled.rawValue) : nil
+        if mute || media {
+            if registration == nil {
+                registration = hub.registerSynchronous(mask: (1 << NSEvent.EventType.systemDefined.rawValue)
+                    | EventTapPolicy.mask(for: .keyDown) | EventTapPolicy.mask(for: .keyUp)) { [weak self, routing] type, event in
+                    guard let key = Self.decode(type, event) else { return .pass }
+                    let state = routing.value.withLock { $0 }
+                    let enabled: Bool
+                    let swallow: Bool
+                    switch key {
+                    case .mute: enabled = state.mute; swallow = state.mute
+                    case .media: enabled = state.media; swallow = state.media && state.replace
+                    }
+                    if enabled {
+                        DispatchQueue.main.async { [weak self] in self?.perform(key) }
+                    }
+                    return swallow ? .swallow : .pass
+                }
+            }
+            hub.refreshPermission()
+        } else if let registration {
+            hub.remove(registration)
+            self.registration = nil
         }
-        return replacing || soloist
+    }
+
+    private nonisolated static func decode(_ type: CGEventType, _ event: CGEvent) -> Key? {
+        if type == .keyDown || type == .keyUp {
+            guard event.getIntegerValueField(.keyboardEventKeycode) == kVK_F5,
+                event.flags.isDisjoint(with: [.maskCommand, .maskControl, .maskAlternate, .maskShift])
+            else { return nil }
+            return .mute(type == .keyDown && event.getIntegerValueField(.keyboardEventAutorepeat) == 0)
+        }
+        guard type.rawValue == NSEvent.EventType.systemDefined.rawValue,
+            let event = NSEvent(cgEvent: event), event.subtype.rawValue == 8 else { return nil }
+        let key = (event.data1 >> 16) & 0xffff
+        guard [16, 17, 18].contains(key) else { return nil }
+        return .media(key, (event.data1 >> 8) & 0xff == 0x0a)
+    }
+
+    private func perform(_ key: Key) {
+        switch key {
+        case let .mute(down):
+            if down, preferences.isEnabled(.microphoneMute) { microphone.toggle() }
+        case let .media(code, down):
+            guard preferences.isEnabled(.musicLastPlayer) || preferences.isEnabled(.musicBlockAppleMusic)
+                || preferences.isEnabled(.spotifyConnect) else { return }
+            let command: PlayerCommand = code == 16 ? .togglePlayPause : code == 17 ? .next : .previous
+            let mediaKey: MusicLaunchPolicy.MediaKey = code == 16 ? .playPause : code == 17 ? .next : .previous
+            if down {
+                blocker.noteMediaKey(mediaKey)
+                if routing.value.withLock({ $0.replace }) { music.send(command) }
+            }
+        }
     }
 }
