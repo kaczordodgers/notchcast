@@ -2,6 +2,7 @@ import Foundation
 
 struct MediaDownloadRunner: DownloadRunner {
     let format: MediaArguments.Format
+    var networkInterfaces: @MainActor @Sendable () -> [NetMergePolicy.Interface] = { [] }
     var kind: String { format == .video ? "video" : "audio" }
     var tools: [DownloadTool] { [.ytDlp, .ffmpeg] }
 
@@ -15,13 +16,28 @@ struct MediaDownloadRunner: DownloadRunner {
         }
         try FileManager.default.createDirectory(at: context.destination, withIntermediateDirectories: true)
         let aria2 = job.options["aria2Enabled"] != "false" ? context.tools.find(.aria2c)?.path : nil
+        let interfaces = aria2 != nil ? await networkInterfaces() : []
+        var size: Int64?
+        if interfaces.contains(where: { $0.kind == .wifi && $0.hasIPv4 })
+            && interfaces.contains(where: { $0.kind == .iPhoneUSB && $0.hasIPv4 }) {
+            let arguments = MediaArguments.probe(source: job.source,
+                cookies: job.options["cookiesFromBrowser"], format: format)
+            if let metadata = try? await context.spawn(executable: executable, arguments: arguments) {
+                size = MediaNetwork.expectedSize(metadata.output)
+            }
+        }
+        let decision = NetMergePolicy.evaluate(interfaces: interfaces, kind: .download,
+                                               sizeBytes: size, enabled: true)
+        try Task.checkCancellation()
         func attempt(aria2Path: String?, restart: Bool = false) async throws -> ChildProcess.Result {
+            await context.reportNetwork(aria2Path != nil && decision.usesIPhone)
             let (stream, continuation) = AsyncStream<MediaOutput.Progress>.makeStream()
             async let reporting: Void = Self.report(stream, context: context)
             defer { continuation.finish() }
             let result = try await context.spawn(executable: executable, arguments: MediaArguments.download(
                 source: job.source, destination: context.destination, format: format,
-                aria2Path: aria2Path, cookies: job.options["cookiesFromBrowser"], restart: restart), onLine: { line in
+                aria2Path: aria2Path, cookies: job.options["cookiesFromBrowser"], restart: restart,
+                networkArguments: decision.aria2Arguments), onLine: { line in
                     guard let value = MediaOutput.progress(line) else { return }
                     continuation.yield(value)
                 })
