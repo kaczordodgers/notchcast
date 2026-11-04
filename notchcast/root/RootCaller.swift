@@ -11,9 +11,9 @@ enum RootCaller {
         let sudoPID = getppid()
         guard let sudo = snapshot(sudoPID),
               matches(sudoPID, requirement: "anchor apple and identifier com.apple.sudo"),
-              let app = snapshot(pid_t(sudo.pbi_ppid)), !CallerRequirement.team.isEmpty,
+              let app = snapshot(pid_t(sudo.pbi_ppid)), let requirement = appRequirement(),
               matches(pid_t(sudo.pbi_ppid), requirement:
-                "anchor apple generic and identifier app.notchcast and certificate leaf[subject.OU] = \"\(CallerRequirement.team)\"",
+                requirement,
                 hardened: true),
               let sudoAfter = snapshot(sudoPID), let appAfter = snapshot(pid_t(sudo.pbi_ppid))
         else { return false }
@@ -33,7 +33,14 @@ enum RootCaller {
         return info
     }
 
-    private static func matches(_ pid: pid_t, requirement: String, hardened: Bool = false) -> Bool {
+    static func appRequirement(pin: String? = CallerRequirement.leafSHA1) -> String? {
+        guard let pin, pin.count == 40, pin.utf8.allSatisfy({
+            (48...57).contains($0) || (65...70).contains($0) || (97...102).contains($0)
+        }) else { return nil }
+        return "identifier app.notchcast and certificate leaf = H\"\(pin)\""
+    }
+
+    static func matches(_ pid: pid_t, requirement: String, hardened: Bool = false) -> Bool {
         var port: mach_port_t = 0
         guard task_name_for_pid(mach_task_self_, pid, &port) == KERN_SUCCESS else { return false }
         defer { mach_port_deallocate(mach_task_self_, port) }
@@ -53,15 +60,16 @@ enum RootCaller {
               SecRequirementCreateWithString(requirement as CFString, [], &rule) == errSecSuccess,
               let rule, SecCodeCheckValidity(code, [], rule) == errSecSuccess else { return false }
         guard hardened else { return true }
-        var staticCode: SecStaticCode?
-        guard SecCodeCopyStaticCode(code, [], &staticCode) == errSecSuccess,
-              let staticCode else { return false }
         var information: CFDictionary?
-        guard SecCodeCopySigningInformation(staticCode, SecCSFlags(rawValue: kSecCSSigningInformation),
+        // Security accepts dynamic guests here despite the imported static-code parameter type.
+        let guest = unsafeBitCast(code, to: SecStaticCode.self)
+        guard SecCodeCopySigningInformation(guest,
+                                           SecCSFlags(rawValue: kSecCSDynamicInformation | kSecCSSigningInformation),
                                            &information) == errSecSuccess,
               let values = information as? [String: Any],
-              let flags = values[kSecCodeInfoFlags as String] as? UInt32,
-              flags & 0x10000 != 0 else { return false }
+              let flags = values[kSecCodeInfoStatus as String] as? UInt32,
+              flags & 0x10001 == 0x10001,
+              flags & 0x10000004 == 0 else { return false }
         let entitlements = values[kSecCodeInfoEntitlementsDict as String] as? [String: Any] ?? [:]
         return !["com.apple.security.get-task-allow", "com.apple.security.cs.disable-library-validation",
                  "com.apple.security.cs.allow-dyld-environment-variables"].contains {

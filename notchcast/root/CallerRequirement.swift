@@ -1,3 +1,3 @@
 enum CallerRequirement {
-    static let team = ""
+    static let leafSHA1 = ""
 }

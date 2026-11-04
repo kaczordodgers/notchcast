@@ -5,19 +5,21 @@
 Every verb except `version` and `ping` first authenticates its caller. Failure exits silently
 with `RootContract.unauthorizedCallerExit` (78), before opening hardware or reading/changing policy.
 The immediate parent must satisfy Apple's sudo code requirement. Its parent must satisfy
-`anchor apple generic`, identifier `app.notchcast`, and the signing team baked into the helper
-from the verified `/Applications/Notchcast.app` during installation. Unsigned installations fail closed.
+identifier `app.notchcast` and the leaf certificate SHA-1 from committed `notchcast/config.env`.
+Installation verifies `/Applications/Notchcast.app` against that pin before baking it into the helper.
 Security.framework checks dynamic code using kernel audit tokens obtained through task name ports;
 parent relationships and process start times are rechecked to reject PID reuse during traversal.
-The app must use hardened runtime without debugger, disabled library validation or DYLD environment
-entitlements. The source-tree helper has no signing team and cannot authorize protected verbs.
+The running app must have valid hardened runtime status, without get-task-allow or debugged status,
+disabled library validation or DYLD environment entitlements. The source-tree helper has no pin
+and cannot authorize protected verbs.
 
 This blocks arbitrary user processes from using the NOPASSWD grant, including signed apps from
-other teams. It does not establish per-action user consent: compromised authorized app code,
+other certificates. It does not establish per-action user consent: compromised authorized app code,
 an unsafe app command/deeplink, or another app signed with this identity can still invoke verbs.
 Root and the signing authority remain trusted. Existing installations must reinstall the helper;
 updating the app alone does not repair an old helper. Development/ad-hoc builds cannot use it.
-The non-root caller harness injects accepted/rejected identities and exercises the live rejection path.
+The non-root harness checks its parent shell against Apple and Notchcast requirements and rejects
+empty or missing pins, alongside injected identities and the live rejection path.
 
 `charge-limit-60`, `charge-limit-70`, `charge-limit-80`, and `charge-limit-90` set
 `mclLimitValue` and `MCLFeatureState = 1` in `com.apple.smartcharging.topoffprotection`
@@ -63,7 +65,9 @@ with `swiftc -O`, installs `/Library/PrivilegedHelperTools/app.notchcast.root` a
 grants the signed-in console user one NOPASSWD rule in `/etc/sudoers.d/notchcast`. The rule names only
 the fixed helper path; the helper itself validates all arguments. The installer refuses unsafe
 parent directories and symlink destinations and validates the rule with `visudo -cf` before moving
-it into place. Re-running replaces the same helper and rule. `--uninstall` removes the rule first,
+it into place. Installation removes the old rule and helper before pin lookup or verification;
+any subsequent failure leaves the old grant revoked. Re-running replaces the helper and rule.
+`--uninstall` removes the rule first,
 then the helper; it also accepts `--dry-run`.
 The rule names the console user at install time; another user re-runs the installer.
 
