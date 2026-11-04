@@ -96,9 +96,9 @@ extension NotchcastCommandCatalog {
             legacyID: "command:toggle-island",
             isEnabled: { CommandFixture.shared.commandsAvailable },
             run: { CommandFixture.shared.toggle() }),
-        NotchcastCommand(slug: "open-remote-mac-terminal", name: "Open Remote Mac Terminal", sfSymbol: "terminal", isEnabled: { CommandFixture.shared.commandsAvailable }, run: { CommandFixture.shared.toggle() }),
-        NotchcastCommand(slug: "send-to-remote-mac", name: "Send to Remote Mac", sfSymbol: "paperplane", isEnabled: { CommandFixture.shared.commandsAvailable }, run: { CommandFixture.shared.toggle() }),
-        NotchcastCommand(slug: "update-remote-mac", name: "Update Remote Mac", sfSymbol: "arrow.clockwise", isEnabled: { CommandFixture.shared.commandsAvailable }, run: { CommandFixture.shared.toggle() }),
+        NotchcastCommand(slug: "open-remote-mac-terminal", name: "Terminal", sfSymbol: "terminal", run: {}),
+        NotchcastCommand(slug: "send-to-remote-mac", name: "Send", sfSymbol: "paperplane", run: {}),
+        NotchcastCommand(slug: "update-remote-mac", name: "Update", sfSymbol: "arrow.clockwise", run: {}),
     ]
 }
 
