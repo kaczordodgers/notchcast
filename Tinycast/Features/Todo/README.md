@@ -36,3 +36,12 @@ The state callback runs before delivery so the owner can checkpoint consumed IDs
 does no file IO or presentation. Durable delivery across a crash requires the integrating owner to
 coordinate that checkpoint with its delivery policy; this engine promises once per restored state.
 No task store, island, notification permission or UserNotifications dependency is required.
+
+## Launcher commands
+
+Add Task from Clipboard parses one task with the quick-add parser, resolving existing projects,
+sections and labels and parsing English or Polish dates. Complete Next Task uses the default Today
+view ordering, including overdue tasks. Undo Last Task Change uses the store's persisted undo log.
+Each action reports its result through command feedback and checks the Tasks switch before reading
+the clipboard or accessing the store. The switch also refreshes launcher availability. Command deep
+links use the command hook's standard consent gate.
