@@ -11,6 +11,7 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let macLink = AIUsageLinkModule()
     static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
+    static let remoteMacScreen = RemoteMacScreenModule.live()
     static let machRemote = MachRemoteModule()
     static let shelf = ShelfModule()
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
@@ -74,6 +75,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
+            .init(requires: [.remoteMacScreen], module: remoteMacScreen),
             .init(requires: [.machRemote], module: machRemote),
             .init(requires: [.machRemote, .sendFiles], module: sendFiles),
             .init(requires: [.machRemote, .updateRemote], module: updateRemote),

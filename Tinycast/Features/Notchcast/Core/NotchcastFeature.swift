@@ -24,6 +24,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case aiUsageOtherMac
     case machLink
     case machRemote
+    case remoteMacScreen
     case backupStatus
     case linkHealth
     case shelfBetweenMacs
@@ -68,6 +69,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: .activities
         case .aiUsageOtherMac: .activities
         case .machLink: .system
+        case .remoteMacScreen: .system
         case .machRemote: .system
         case .backupStatus: .system
         case .linkHealth: .system
@@ -101,6 +103,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: String(localized: "AI Usage")
         case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
         case .machLink: String(localized: "Mac Link")
+        case .remoteMacScreen: String(localized: "Open Remote Mac Screen")
         case .machRemote: String(localized: "Remote Mac")
         case .backupStatus: String(localized: "Backup Status")
         case .linkHealth: String(localized: "Link Health")
@@ -141,6 +144,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .aiUsage: String(localized: "Read local AI usage on demand.")
         case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
         case .machLink: String(localized: "Connect to a paired Mac on the local network.")
+        case .remoteMacScreen: String(localized: "Open the remote Mac in Screen Sharing.")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
         case .backupStatus: String(localized: "Warns when backups fail or become stale.")
         case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
@@ -185,6 +189,7 @@ extension NotchcastFeature {
         case .aiUsage: true
         case .aiUsageOtherMac: true
         case .machLink: true
+        case .remoteMacScreen: true
         case .machRemote: true
         case .backupStatus: true
         case .linkHealth: true
