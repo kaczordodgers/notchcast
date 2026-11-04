@@ -16,7 +16,7 @@ step xcodegen
 source "$TOOLS/notchcast/ci-xcodegen.sh"
 "$XCODEGEN" generate --quiet
 step upstream
-git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
+git fetch -q --no-tags https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
 export UPSTREAM=$(git merge-base HEAD refs/remotes/upstream/main)
 step bundle-readme
 bash notchcast/check-bundle-readme.sh
