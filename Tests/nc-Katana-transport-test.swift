@@ -82,22 +82,61 @@ struct KatanaTransportTests {
         var source: MIDIEndpointRef = 0
         precondition(MIDISourceCreateWithProtocol(client, "KATANA Probe" as CFString, ._1_0, &source) == noErr)
         let replySource = source
+        let largeReply = try KatanaSysEx.write(KatanaSysEx.selectChannel, (0..<128).map { UInt8($0) })
+        let payload = Array(largeReply.dropFirst().dropLast())
+        var encoded: [UInt32] = []
+        for offset in stride(from: 0, to: payload.count, by: 6) {
+            let chunk = Array(payload[offset..<min(offset + 6, payload.count)])
+            let status: UInt32 = offset == 0 ? 1 : offset + chunk.count == payload.count ? 3 : 2
+            let padded = chunk + Array(repeating: UInt8(0), count: 6 - chunk.count)
+            encoded += [0x30000000 | status << 20 | UInt32(chunk.count) << 16 | UInt32(padded[0]) << 8 | UInt32(padded[1]),
+                UInt32(padded[2]) << 24 | UInt32(padded[3]) << 16 | UInt32(padded[4]) << 8 | UInt32(padded[5])]
+        }
+        let largeWords = encoded
         var destination: MIDIEndpointRef = 0
         precondition(MIDIDestinationCreateWithProtocol(client, "KATANA Probe" as CFString, ._1_0,
             &destination, { @Sendable list, _ in
-                precondition(list.pointee.packet.wordCount > 2)
-                precondition(MIDIReceivedEventList(replySource, list) == noErr)
+                let capacity = 8192
+                let storage = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: 8)
+                defer { storage.deallocate() }
+                let reply = storage.bindMemory(to: MIDIEventList.self, capacity: 1)
+                var tail = MIDIEventListInit(reply, ._1_0)
+                let first = UnsafeRawPointer(list).advanced(by: MemoryLayout<MIDIEventList>.offset(of: \.packet)!)
+                    .assumingMemoryBound(to: MIDIEventPacket.self)
+                var incoming = first
+                for _ in 0..<list.pointee.numPackets {
+                    let words = UnsafeRawPointer(incoming).advanced(by: MemoryLayout<MIDIEventPacket>.offset(of: \.words)!)
+                        .assumingMemoryBound(to: UInt32.self)
+                    let response = incoming.pointee.wordCount == 6 ? largeWords
+                        : Array(UnsafeBufferPointer(start: words, count: Int(incoming.pointee.wordCount)))
+                    for index in stride(from: 0, to: response.count, by: 2) {
+                        tail = MIDIEventListAdd(reply, capacity, tail, UInt64(index + 1), 2, Array(response[index..<index + 2]))
+                    }
+                    incoming = UnsafePointer(MIDIEventPacketNext(incoming))
+                }
+                precondition(reply.pointee.numPackets > 1)
+                precondition(MIDIReceivedEventList(replySource, reply) == noErr)
             }) == noErr)
         let midi = KatanaCoreMIDI()
         let transport = KatanaMIDITransport(midi: midi)
         transport.start()
         defer { transport.stop() }
         precondition(transport.connectionID != nil)
+        for count in [2, 128, 225] {
+            let data = (0..<count).map { UInt8($0 % 128) }
+            let body = try KatanaSysEx.bytes(KatanaSysEx.selectChannel) + data
+            let packet = KatanaSysEx.header + [0x12] + body + [KatanaSysEx.checksum(body), 0xF7]
+            let reply = try await transport.exchange(packet)
+            precondition(reply == (count == 2 ? largeReply : packet))
+            let decoded = try KatanaSysEx.decode(reply)
+            precondition(decoded.data == (count == 2 ? Array(0..<128).map { UInt8($0) } : data))
+            print("Katana CoreMIDI: \(count)-byte write and separate-packet reply byte-exact")
+        }
+        transport.stop()
+        transport.start()
         let packet = try KatanaSysEx.write(KatanaSysEx.selectChannel, [0, 5])
         let reply = try await transport.exchange(packet)
-        precondition(reply == packet)
-        let decoded = try KatanaSysEx.decode(reply)
-        precondition(decoded.data == [0, 5])
-        print("Katana CoreMIDI: virtual source/destination multi-UMP SysEx reply reassembled")
+        precondition(reply == largeReply)
+        print("Katana CoreMIDI: off → on → send passed")
     }
 }

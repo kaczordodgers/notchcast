@@ -24,18 +24,25 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
     }
 
     func start() throws {
-        guard client == 0 else { return }
-        guard MIDIClientCreateWithBlock("Notchcast Katana" as CFString, &client, { @Sendable [weak self] _ in
-            Task { @MainActor in self?.changed?() }
-        }) == noErr else { throw KatanaError.unavailable }
+        guard input == 0 else { return }
+        if client == 0 {
+            guard MIDIClientCreateWithBlock("Notchcast Katana" as CFString, &client, { @Sendable [weak self] _ in
+                Task { @MainActor in self?.changed?() }
+            }) == noErr else { throw KatanaError.unavailable }
+        }
         guard MIDIOutputPortCreate(client, "Katana Output" as CFString, &output) == noErr,
               MIDIInputPortCreateWithProtocol(client, "Katana Input" as CFString, ._1_0, &input,
                 { @Sendable [weak self] list, _ in
                     var bytes: [UInt8] = []
-                    withUnsafePointer(to: list.pointee.packet) { first in
+                    do {
+                        let first = UnsafeRawPointer(list)
+                            .advanced(by: MemoryLayout<MIDIEventList>.offset(of: \.packet)!)
+                            .assumingMemoryBound(to: MIDIEventPacket.self)
                         var packet = first
                         for _ in 0..<list.pointee.numPackets {
-                            let words = withUnsafeBytes(of: packet.pointee.words) { Array($0.bindMemory(to: UInt32.self)) }
+                            let words = UnsafeRawPointer(packet)
+                                .advanced(by: MemoryLayout<MIDIEventPacket>.offset(of: \.words)!)
+                                .assumingMemoryBound(to: UInt32.self)
                             var index = 0
                             while index < Int(packet.pointee.wordCount) {
                                 let word = words[index]
@@ -73,8 +80,11 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
     func send(_ bytes: [UInt8]) throws {
         guard destination != 0, bytes.first == 0xF0, bytes.last == 0xF7 else { throw KatanaError.unavailable }
         let payload = Array(bytes.dropFirst().dropLast())
-        var list = MIDIEventList()
-        var packet = MIDIEventListInit(&list, ._1_0)
+        let capacity = MemoryLayout<MIDIEventList>.size + ((payload.count + 5) / 6) * 8
+        let storage = UnsafeMutableRawPointer.allocate(byteCount: capacity, alignment: MemoryLayout<MIDIEventList>.alignment)
+        defer { storage.deallocate() }
+        let list = storage.bindMemory(to: MIDIEventList.self, capacity: 1)
+        var packet = MIDIEventListInit(list, ._1_0)
         for offset in stride(from: 0, to: payload.count, by: 6) {
             let chunk = Array(payload[offset..<min(offset + 6, payload.count)])
             let last = offset + chunk.count == payload.count
@@ -84,14 +94,17 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
                 | (UInt32(padded[0]) << 8) | UInt32(padded[1]),
                 (UInt32(padded[2]) << 24) | (UInt32(padded[3]) << 16)
                 | (UInt32(padded[4]) << 8) | UInt32(padded[5])]
-            packet = MIDIEventListAdd(&list, MemoryLayout<MIDIEventList>.size, packet, 0, 2, words)
+            let added: UnsafeMutablePointer<MIDIEventPacket>? = MIDIEventListAdd(list, capacity, packet, 0, 2, words)
+            guard let added else { throw POSIXError(.EMSGSIZE) }
+            packet = added
         }
-        guard MIDISendEventList(output, destination, &list) == noErr else { throw KatanaError.unavailable }
+        guard MIDISendEventList(output, destination, list) == noErr else { throw KatanaError.unavailable }
     }
 
     func stop() {
-        if client != 0 { MIDIClientDispose(client) }
-        client = 0
+        if source != 0 { MIDIPortDisconnectSource(input, source) }
+        if input != 0 { MIDIPortDispose(input) }
+        if output != 0 { MIDIPortDispose(output) }
         input = 0
         output = 0
         source = 0
