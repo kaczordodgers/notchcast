@@ -40,6 +40,7 @@ final class AgentBridgeModule: NotchcastModule {
             }
             try AgentBuiltInActions.register(in: index, core: core)
             NotchcastCore.katana.configure(index: index)
+            NotchcastCore.treadmill.configure(index: index)
             try index.register(.init(id: "notchcast.features", title: String(localized: "Notchcast"), read: {
                 .object(Dictionary(uniqueKeysWithValues: NotchcastFeature.allCases.map {
                     ($0.rawValue, AgentJSON.bool(NotchcastPreferences.shared.isOn($0)))
