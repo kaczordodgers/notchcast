@@ -10,6 +10,7 @@ enum NotchcastCLI {
             }
             let app = executable.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
             guard let bundleID = Bundle(url: app)?.bundleIdentifier else { throw AgentReply.Code.notRunning }
+            if parsed.request.verb == .mcp { AgentCLIMCP.run(bundleID: bundleID); return }
             let reply = AgentSocketClient.send(parsed.request, to: AgentSocketClient.socketURL(
                 home: FileManager.default.homeDirectoryForCurrentUser, bundleID: bundleID))
             let encoder = JSONEncoder()
