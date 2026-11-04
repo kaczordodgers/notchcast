@@ -4,10 +4,14 @@ import Observation
 @MainActor
 @Observable
 final class AgentSessionsModule: NotchcastModule {
+    static let pollInterval: Duration = .seconds(30)
     private(set) var snapshot = AgentSessionIndex.Snapshot()
     private(set) var pricingReport: AgentPricingEngine.Report?
     private let preferences: NotchcastPreferences
     private let availabilityChanged: () -> Void
+    private let price: ([AgentSession], Calendar) -> AgentPricingEngine.Report?
+    private var pricingEnabled = false
+    private var lifetime = UUID()
     @ObservationIgnored private var index = AgentSessionIndex()
     @ObservationIgnored private var task: Task<Void, Never>?
     private let roots: [AgentSessionIndex.Root]
@@ -18,27 +22,33 @@ final class AgentSessionsModule: NotchcastModule {
     init(roots: [AgentSessionIndex.Root] = AgentSessionIndex.Root.defaults(
         home: FileManager.default.homeDirectoryForCurrentUser),
          preferences: NotchcastPreferences = .shared,
-         index: AgentSessionIndex = AgentSessionIndex(), availabilityChanged: @escaping () -> Void = {}) {
+         index: AgentSessionIndex = AgentSessionIndex(), availabilityChanged: @escaping () -> Void = {},
+         price: @escaping ([AgentSession], Calendar) -> AgentPricingEngine.Report? = AgentSessionPricing.report) {
         self.roots = roots
         self.preferences = preferences
         self.index = index
         self.availabilityChanged = availabilityChanged
+        self.price = price
     }
 
     func start() {
+        guard !enabled else { return }
         enabled = true
-        updatePricing()
+        lifetime = UUID()
+        watchPricingSwitch()
         availabilityChanged()
         if demanded { refresh() }
     }
 
     func stop() {
         enabled = false
+        lifetime = UUID()
+        pricingEnabled = false
         pricingReport = nil
         availabilityChanged()
         cancel()
         snapshot = .init()
-        index = .init()
+        index = .init(calendar: index.calendar)
     }
 
     func setDemand(_ demanded: Bool) {
@@ -60,14 +70,17 @@ final class AgentSessionsModule: NotchcastModule {
                     let (updated, snapshot) = try await Self.scan(current, roots: roots)
                     guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
                     self.index = updated
-                    self.snapshot = snapshot
-                    self.updatePricing()
+                    if self.snapshot.sessions != snapshot.sessions || self.snapshot.issues != snapshot.issues {
+                        let usageChanged = self.snapshot.sessions != snapshot.sessions
+                        self.snapshot = snapshot
+                        if usageChanged { self.updatePricing() }
+                    }
                     current = updated
                     guard self.demanded else { self.task = nil; return }
                 } catch {
                     return
                 }
-                do { try await Task.sleep(for: .seconds(2)) } catch { return }
+                do { try await Task.sleep(for: Self.pollInterval) } catch { return }
             } while !Task.isCancelled
         }
     }
@@ -79,13 +92,26 @@ final class AgentSessionsModule: NotchcastModule {
     }
 
     private func updatePricing() {
-        guard enabled else { return }
-        withObservationTracking {
-            pricingReport = preferences.isOn(.agentPricing)
-                ? AgentSessionPricing.report(snapshot.sessions, calendar: .current) : nil
+        pricingReport = enabled && pricingEnabled ? price(snapshot.sessions, index.calendar) : nil
+    }
+
+    private func watchPricingSwitch() {
+        let identity = lifetime
+        let next = withObservationTracking {
+            preferences.isOn(.agentPricing)
         } onChange: { [weak self] in
-            Task { @MainActor [weak self] in self?.updatePricing() }
+            Task { @MainActor [weak self] in
+                guard let self, self.enabled, self.lifetime == identity else { return }
+                self.watchPricingSwitch()
+            }
         }
+        guard pricingEnabled != next else { return }
+        pricingEnabled = next
+        updatePricing()
+    }
+
+    func waitUntilIdle() async {
+        await task?.value
     }
 
     @concurrent

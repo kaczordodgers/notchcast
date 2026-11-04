@@ -10,14 +10,11 @@ long-context, one-hour cache, regional and tool-call premiums. It is not an invo
 The sessions module publishes `pricingReport` from the index's per-model, per-day usage.
 Agent API Value defaults off under Agent Session Logs; disabling its parent stops scanning
 and clears both snapshots. Refresh Agent Session Logs is gated by the parent switch.
-
-
 Adapters conform to `AgentTokenUsage`. Each record represents a disjoint token increment;
-input excludes both cache categories. Exact model identifiers are required. Unknown models
+input excludes both cache categories. A trailing eight-digit model date is normalized. Unknown models
 remain unpriced unless the adapter supplies an OpenCode-reported USD cost. Totals track
 unpriced records so partial estimates cannot be mistaken for complete spend.
-Calendar and current time are injected. Round only the final displayed total, half up to cents.
-Daily budget notifications fire once per local day while enabled; the lead supplies the budget
-and routes the callback through the existing notice presenter. No new commands are required.
+The injected calendar defines usage days during indexing and pricing. Round only the final
+displayed total, half up to cents. The bundled engine is decoded once per process.
 
-Live switch visibility and notifications are not verified (morning).
+Live switch visibility is not verified (morning).

@@ -1,6 +1,7 @@
 import Foundation
 
 enum AgentSessionPricing {
+    private static let engine = try? AgentPricingCatalog.bundled()
     private struct Usage: AgentTokenUsage {
         let sessionID: String
         let projectID: String
@@ -14,7 +15,7 @@ enum AgentSessionPricing {
     }
 
     static func report(_ sessions: [AgentSession], calendar: Calendar) -> AgentPricingEngine.Report? {
-        guard let engine = try? AgentPricingCatalog.bundled() else { return nil }
+        guard let engine else { return nil }
         let usage = sessions.flatMap { session in
             session.usage.map { entry in
                 Usage(sessionID: session.id, projectID: session.project ?? session.id,
