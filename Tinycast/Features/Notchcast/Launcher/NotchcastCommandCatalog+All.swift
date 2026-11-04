@@ -43,6 +43,7 @@ extension NotchcastCommandCatalog {
         MachRemoteModule.sendFilesCommand,
         MachRemoteModule.updateCommand,
         AgentSessionsModule.refreshCommand,
+        OpenBotAgentsModule.refreshCommand,
         MusicCommands.openCurrentPlayerCommand,
         MusicCommands.resumeLastPlayerCommand,
         MusicCommands.speakerOnCommand,
