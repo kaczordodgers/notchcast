@@ -26,9 +26,11 @@ enum NotchcastCore {
         machineBackup.stop()
         await machineBackup.waitUntilIdle()
         battery.stop()
-        await battery.waitUntilIdle()
         monitor?.stop()
-        await monitor?.fans.waitUntilIdle()
+        await RootWait.drainForTermination {
+            await battery.waitUntilIdle()
+            await monitor?.fans.waitUntilIdle()
+        }
     }
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
