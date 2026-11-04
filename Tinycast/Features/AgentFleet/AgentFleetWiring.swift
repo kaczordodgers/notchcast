@@ -52,7 +52,8 @@ final class AgentFleetWiring: NotchcastModule {
             _ = source.module.threads
             _ = source.module.isRunning
             _ = source.module.error
-            if waiting { alerts.start(); watcher.changed?() } else { alerts.stop() }
+            let polling = source.module.isRunning && !source.module.hasSnapshot && source.module.error == nil
+            if waiting && !polling { alerts.start(); watcher.changed?() } else { alerts.stop() }
             refresh?.cancel()
             if fleetEnabled { refresh = Task { [fleet] in await fleet.refresh() } }
             if islandEnabled { island.refresh(now: Date.timeIntervalSinceReferenceDate, pointerInside: false) }

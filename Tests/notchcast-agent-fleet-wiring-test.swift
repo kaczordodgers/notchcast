@@ -68,7 +68,7 @@ import Foundation
         } catch {}
         await settle()
         await wiring.alerts.settle()
-        precondition(!notices.contains("Fixture"))
+        precondition(notices.isEmpty)
         precondition(wiring.alerts.count == 1)
         precondition(fleet.model?.rows.count == 1)
         precondition(fleet.model?.machines.count == 1)

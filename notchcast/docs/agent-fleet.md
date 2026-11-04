@@ -22,3 +22,5 @@ contracts are assumptions requiring verification against the host implementation
 
 `notchcast-agent-fleet-wiring-test` injects a synthetic T3 transport and proves fanout
 and independent switch teardown without reading local agent data.
+
+Host protocol attribution and license: [notice](bot-host-notice.md), [license](bot-host-license.txt).

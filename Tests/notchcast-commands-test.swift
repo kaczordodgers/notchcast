@@ -92,14 +92,14 @@ enum QuicklinkDestination {
 
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
-        AgentFleetCommands.list,
-        AgentFleetCommands.status,
-        AgentFleetCommands.pending,
         NotchcastCommand(
             slug: "toggle-island", name: "Test command", sfSymbol: "test",
             legacyID: "command:toggle-island",
             isEnabled: { CommandFixture.shared.commandsAvailable },
             run: { CommandFixture.shared.toggle() }),
+        AgentFleetCommands.list,
+        AgentFleetCommands.status,
+        AgentFleetCommands.pending,
     ]
 }
 

@@ -46,6 +46,7 @@ final class T3Threads: WaitingThreadSource, FleetThreadSource, AgentIslandSource
     }
 
     var snapshot: AgentIslandState.Snapshot {
+        if module.isRunning, !module.hasSnapshot, module.error == nil { return .init(sourceID: "t3") }
         guard let threads = try? available() else {
             return .init(sourceID: "t3", failureID: "T3 Threads unavailable")
         }

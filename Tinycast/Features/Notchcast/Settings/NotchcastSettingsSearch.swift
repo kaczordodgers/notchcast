@@ -27,6 +27,7 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
@@ -68,5 +69,13 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastActivities, "T3 Threads", keywords: ["agents", "pending", "requests"]),
         .init(.notchcastActivities, "Bot Host", keywords: ["bots", "local", "automation"]),
+        .init(.notchcastSystem, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
+        .init(.notchcastSystem, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
+        .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
+        .init(.notchcastSystem, "Hide with ⌘M", keywords: ["minimize", "command m"]),
+        .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
+        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)",
+              keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
     ]
 }
