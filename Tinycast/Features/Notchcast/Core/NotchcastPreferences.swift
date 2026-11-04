@@ -1,12 +1,57 @@
 import Foundation
 import Observation
 
+/// One stored setting per line and one init assignment per line, so branches that add a setting
+/// merge by union. Types and helpers go in the extension below.
+/// `notchcast/check-feature-shape.py` rejects a setting or an assignment a union merge kept twice.
 @MainActor
 @Observable
 final class NotchcastPreferences {
-    var greenMaximizeExcludedApps: String {
-        didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") }
+    @ObservationIgnored private let defaults: UserDefaults
+    private var off: Set<NotchcastFeature>
+    private var chargePercent: Int
+    private var awakeDuration: Int
+    var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
+    var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
+    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
+    var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
+    var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
+    var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
+    var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
+    var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
+    var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.allowed(newValue, Self.chargeLimits, 80); defaults.set(chargePercent, forKey: "batteryChargePercent") } }
+    var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
+
+    init(suiteName: String) {
+        let defaults = UserDefaults(suiteName: suiteName)!
+        self.defaults = defaults
+        greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
+        monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
+        monitorTemperature = Self.threshold(defaults, "monitorTemperature", 90, 40...110)
+        monitorMemory = Self.threshold(defaults, "monitorMemory", 1, 0...1)
+        monitorDisk = Self.threshold(defaults, "monitorDisk", 10, 1...50)
+        monitorBattery = Self.threshold(defaults, "monitorBattery", 15, 1...50)
+        fanMode = defaults.string(forKey: "fanMode") ?? "auto"
+        chargePercent = Self.allowed(defaults.integer(forKey: "batteryChargePercent"), Self.chargeLimits, 80)
+        awakeDuration = Self.allowed(defaults.integer(forKey: "keepAwakeMinutes"), Self.awakeDurations, 60)
+        islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
+        off = Self.featuresOff(defaults)
     }
+
+    func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
+
+    func set(_ feature: NotchcastFeature, _ enabled: Bool) {
+        guard isOn(feature) != enabled else { return }
+        defaults.set(enabled, forKey: feature.rawValue)
+        if enabled { off.remove(feature) } else { off.insert(feature) }
+    }
+}
+
+extension NotchcastPreferences {
+    static let shared = NotchcastPreferences(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
+    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
+    static let awakeDurations = [15, 30, 60, 120, 240]
+
     enum HoverDelay: Double, CaseIterable, Identifiable {
         case short = 0.1, standard = 0.3, medium = 0.5, long = 1
         var id: Double { rawValue }
@@ -17,70 +62,18 @@ final class NotchcastPreferences {
         }
     }
 
-    var islandHoverDelay: HoverDelay {
-        didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") }
+    private static func threshold(_ defaults: UserDefaults, _ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
+        let value = defaults.object(forKey: key) as? Int ?? fallback
+        return min(range.upperBound, max(range.lowerBound, value))
     }
-    var fanMode: String {
-        didSet { defaults.set(fanMode, forKey: "fanMode") }
-    }
-    var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
-    var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
-    var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
-    var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
-    var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
-    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
-    static let awakeDurations = [15, 30, 60, 120, 240]
-    private var chargePercent: Int
-    var batteryChargePercent: Int {
-        get { chargePercent }
-        set {
-            chargePercent = Self.chargeLimits.contains(newValue) ? newValue : 80
-            defaults.set(chargePercent, forKey: "batteryChargePercent")
-        }
-    }
-    private var awakeDuration: Int
-    var keepAwakeMinutes: Int {
-        get { awakeDuration }
-        set {
-            awakeDuration = Self.awakeDurations.contains(newValue) ? newValue : 60
-            defaults.set(awakeDuration, forKey: "keepAwakeMinutes")
-        }
-    }
-    static let shared = NotchcastPreferences(
-        suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
-    @ObservationIgnored private let defaults: UserDefaults
-    private var off: Set<NotchcastFeature>
+    private static func allowed(_ value: Int, _ choices: [Int], _ fallback: Int) -> Int {
+        choices.contains(value) ? value : fallback
+    }
 
-    init(suiteName: String) {
-        let defaults = UserDefaults(suiteName: suiteName)!
-        self.defaults = defaults
-        greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
-        func threshold(_ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
-            let value = defaults.object(forKey: key) as? Int ?? fallback
-            return min(range.upperBound, max(range.lowerBound, value))
-        }
-        monitorCPU = threshold("monitorCPU", 90, 10...100)
-        monitorTemperature = threshold("monitorTemperature", 90, 40...110)
-        monitorMemory = threshold("monitorMemory", 1, 0...1)
-        monitorDisk = threshold("monitorDisk", 10, 1...50)
-        monitorBattery = threshold("monitorBattery", 15, 1...50)
-        fanMode = defaults.string(forKey: "fanMode") ?? "auto"
-        let percent = defaults.integer(forKey: "batteryChargePercent")
-        chargePercent = Self.chargeLimits.contains(percent) ? percent : 80
-        let minutes = defaults.integer(forKey: "keepAwakeMinutes")
-        awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
-        islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
-        off = Set(NotchcastFeature.allCases.filter {
+    private static func featuresOff(_ defaults: UserDefaults) -> Set<NotchcastFeature> {
+        Set(NotchcastFeature.allCases.filter {
             !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
         })
-    }
-
-    func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
-
-    func set(_ feature: NotchcastFeature, _ enabled: Bool) {
-        guard isOn(feature) != enabled else { return }
-        defaults.set(enabled, forKey: feature.rawValue)
-        if enabled { off.remove(feature) } else { off.insert(feature) }
     }
 }
