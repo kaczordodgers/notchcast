@@ -60,6 +60,10 @@ jobs:
         run: |
           xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO build -quiet
+      - name: Check built app identity
+        run: |
+          source ./tools/notchcast/config.env
+          ./tools/notchcast/check-identity.sh app "$RUNNER_TEMP/DerivedData/Build/Products/Debug/$APP_NAME Dev.app"
       - name: Lint
         working-directory: src
         run: |
