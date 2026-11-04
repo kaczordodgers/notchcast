@@ -68,5 +68,7 @@ extension NotchcastCommandCatalog {
         FinderToolsCoordinator.renameCommand,
         ScreenTextModule.launcherCommand,
         ScrollingCaptureModule.launcherCommand,
+        TweakProfileCommands.ai,
+        TweakProfileCommands.privacy,
     ]
 }

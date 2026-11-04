@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Review a profile disabling all Apple intelligence features." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ein Profil zum Deaktivieren aller Apple-Intelligence-Funktionen prüfen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Revisa un perfil que desactiva todas las funciones de inteligencia de Apple." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Examiner un profil désactivant toutes les fonctions d’intelligence Apple." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Appleのすべてのインテリジェンス機能を無効にするプロファイルを確認します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "모든 Apple 인텔리전스 기능을 비활성화하는 프로파일을 검토합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Revise um perfil que desativa todos os recursos de inteligência da Apple." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Просмотрите профиль для отключения всех интеллектуальных функций Apple." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "检查用于停用所有 Apple 智能功能的描述文件。" } }
+      }
+    },
+    "Review a profile disabling analytics, personalized ads, web results and suggestions." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ein Profil zum Deaktivieren von Analysen, personalisierter Werbung, Webergebnissen und Vorschlägen prüfen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Revisa un perfil que desactiva análisis, anuncios personalizados, resultados web y sugerencias." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Examiner un profil désactivant les analyses, les publicités personnalisées, les résultats web et les suggestions." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "解析、パーソナライズされた広告、Web検索結果と候補を無効にするプロファイルを確認します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "분석, 맞춤형 광고, 웹 결과 및 제안을 비활성화하는 프로파일을 검토합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Revise um perfil que desativa análises, anúncios personalizados, resultados da web e sugestões." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Просмотрите профиль для отключения аналитики, персонализированной рекламы, веб-результатов и предложений." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "检查用于停用分析、个性化广告、网页结果和建议的描述文件。" } }
+      }
+    },
     "AI Chat Tools" : {
       "localizations" : {
         "de" : {
