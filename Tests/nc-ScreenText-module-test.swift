@@ -88,7 +88,7 @@ enum ScreenTextService {
             ("Tinycast/Features/ScreenText/ScreenTextSettingsSection.swift", "preferences.set(.screenText, $0)"),
             ("Tinycast/Features/Notchcast/Settings/CaptureDictationSettingsSection.swift",
              "ScreenTextSettingsSection(module: NotchcastCore.screenText)"),
-            ("Tinycast/Features/Notchcast/Core/NotchcastCore.swift", ".init(requires: [.screenText], module: screenText)"),
+            ("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift", ".init(requires: [.screenText], module: screenText)"),
             ("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift", "ScreenTextModule.launcherCommand")
         ] {
             let source = try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)
