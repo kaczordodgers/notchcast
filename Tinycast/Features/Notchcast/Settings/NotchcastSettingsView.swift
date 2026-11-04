@@ -33,6 +33,7 @@ struct NotchcastSettingsView: View {
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
 
             NotchcastTorrentSettings(module: NotchcastCore.torrents)
+            NotchcastTodoSettings()
             NotchcastMusicSettings()
             NotchcastArchiveSettings()
             if !requiredGrants.isEmpty {
