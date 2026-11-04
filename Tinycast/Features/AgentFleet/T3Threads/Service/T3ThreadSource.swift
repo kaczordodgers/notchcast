@@ -16,8 +16,12 @@ struct T3ThreadSource: Sendable {
 
     static func decode(_ data: Data) throws -> [T3Thread] {
         let decoder = JSONDecoder()
-        if let threads = try? decoder.decode([T3Thread].self, from: data) { return threads }
-        return try decoder.decode(Envelope.self, from: data).threads
+        let threads = try (try? decoder.decode([T3Thread].self, from: data))
+            ?? (try decoder.decode(Envelope.self, from: data).threads)
+        return threads.filter { thread in
+            guard case .details(_, _, let path) = thread.project else { return true }
+            return !AgentFleetExclusion.containsFolder(in: path ?? "")
+        }
     }
 
     private struct Envelope: Decodable { let threads: [T3Thread] }

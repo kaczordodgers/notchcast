@@ -6,8 +6,18 @@ final class BotHostTransport: Sendable {
         let token: String
     }
 
-    enum Failure: Error, Sendable {
+    enum Failure: LocalizedError, Sendable {
         case invalidConnection, unreachable, timedOut, invalidResponse, rejected
+
+        var errorDescription: String? {
+            switch self {
+            case .invalidConnection: String(localized: "Set a loopback URL and token for the bot host.")
+            case .unreachable: String(localized: "Cannot reach the bot host.")
+            case .timedOut: String(localized: "The bot host request timed out.")
+            case .invalidResponse: String(localized: "The bot host returned an invalid response.")
+            case .rejected: String(localized: "The bot host rejected the request.")
+            }
+        }
     }
 
     private final class RedirectPolicy: NSObject, URLSessionTaskDelegate {

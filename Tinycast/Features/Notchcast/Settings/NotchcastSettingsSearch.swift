@@ -27,6 +27,7 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -61,7 +62,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Agent Island", keywords: ["agents", "approval", "question"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Waiting Alerts", keywords: ["agents", "approval", "question", "blocked"]),
-        .init(.notchcastActivities, "Fleet panel", keywords: ["remote environment ID", "agents", "T3"]),
+        .init(.notchcastActivities, "Fleet Panel", keywords: ["remote environment ID", "agents", "T3"]),
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),

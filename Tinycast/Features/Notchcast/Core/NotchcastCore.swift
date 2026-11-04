@@ -3,6 +3,7 @@ enum NotchcastCore {
     static let t3Threads = T3ThreadsModule()
     static let agentIsland = AgentIslandModule()
     static let botHost = BotHostModule()
+    static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -30,12 +31,14 @@ enum NotchcastCore {
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
+        configureBotHost()
         let wiring = AgentFleetWiring(threads: t3Threads, fleet: fleet, island: agentIsland,
-            bots: botHost, preferences: .shared) {
+            bots: botHost, preferences: .shared, settings: fleetSettings) {
                 IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 5)
             }
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island, .agentIsland], module: agentIsland),
+            .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
@@ -52,7 +55,6 @@ enum NotchcastCore {
             .init(requires: [.t3Threads], module: t3Threads),
             .init(requires: [.fleetPanel], module: fleet),
             .init(requires: [.botHost], module: botHost),
-            .init(requires: [.agentIsland], module: agentIsland),
             .init(requires: [], module: wiring),
             .init(requires: [], module: AgentFleetBotCommands(bots: botHost, preferences: .shared,
                 refresh: { core.appIndex.refreshNotchcastCommands() },

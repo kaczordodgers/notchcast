@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/AgentFleet/AgentFleetExclusion.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/T3Threads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/T3Threads/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/T3Threads/T3ThreadsModule.swift
@@ -22,6 +23,11 @@ import Synchronization
         precondition(threads.count == 1 && threads[0].phase == .running)
         precondition(threads[0].model == "example" && threads[0].pendingRequestCount == 2)
         precondition(threads[0].updatedDate != nil && threads[0].settled == false)
+        let excluded = Data("""
+        [{"threadId":"excluded","project":{"path":"/fixture/\(AgentFleetExclusion.folderName)/work"}}]
+        """.utf8)
+        let excludedThreads = try T3ThreadSource.decode(excluded)
+        precondition(excludedThreads.isEmpty)
         let mappings: [(String, T3Thread.Phase)] = [
             ("queued", .starting), ("preparing", .starting), ("starting", .starting),
             ("running", .running), ("waiting", .waiting_for_input),

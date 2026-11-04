@@ -1,13 +1,6 @@
 import Foundation
 
 enum NotchcastCommandCatalog {
-    static let all: [NotchcastCommand] = [
-        IslandController.launcherCommand,
-        AgentFleetCommands.list,
-        AgentFleetCommands.status,
-        AgentFleetCommands.pending,
-    ]
-
     static var entries: [AppEntry] { all.map(\.entry) }
 
     static func command(for id: String) -> NotchcastCommand? {

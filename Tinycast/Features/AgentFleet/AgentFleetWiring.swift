@@ -17,12 +17,13 @@ final class AgentFleetWiring: NotchcastModule {
     private let fleet: FleetModule
     private let island: AgentIslandModule
     private let bots: BotHostModule
+    private let settings: AgentFleetSettings
     private let preferences: NotchcastPreferences
     private var running = false
     private var refresh: Task<Void, Never>?
 
     init(threads: T3ThreadsModule, fleet: FleetModule, island: AgentIslandModule, bots: BotHostModule,
-         preferences: NotchcastPreferences, post: @escaping @MainActor (String) -> Void) {
+         preferences: NotchcastPreferences, settings: AgentFleetSettings, post: @escaping @MainActor (String) -> Void) {
         source = T3Threads(threads)
         watcher = Watcher()
         alerts = WaitingAlerts(source: source, watcher: watcher,
@@ -31,10 +32,8 @@ final class AgentFleetWiring: NotchcastModule {
         self.island = island
         self.bots = bots
         self.preferences = preferences
-        fleet.configure(source: source, destinations: [
-            .init(machine: "Local", environmentID: "", workspacePath: nil, route: .local),
-            .init(machine: "Remote", environmentID: "", workspacePath: nil, route: .linked)
-        ], clock: Date.init)
+        self.settings = settings
+        fleet.configure(source: source, destinations: settings.destinations, clock: Date.init)
         island.sources = [source, bots]
     }
 
@@ -46,7 +45,9 @@ final class AgentFleetWiring: NotchcastModule {
         withObservationTracking {
             let waiting = preferences.isOn(.waitingAlerts)
             let fleetEnabled = preferences.isOn(.fleetPanel)
-            let islandEnabled = preferences.isOn(.agentIsland)
+            let islandEnabled = preferences.isOn(.agentIsland) && preferences.isOn(.island)
+            let destinations = settings.destinations
+            if fleet.model?.destinations != destinations { fleet.model?.destinations = destinations }
             source.module.setDemand(waiting || fleetEnabled || islandEnabled, for: "fleet")
             _ = source.module.threads
             _ = source.module.isRunning

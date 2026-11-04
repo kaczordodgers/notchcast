@@ -22,8 +22,7 @@ struct BotHostPending: Sendable, Equatable {
 
 enum BotHostAccess {
     static func validate(_ id: String) throws {
-        guard !id.isEmpty, !id.components(separatedBy: CharacterSet(charactersIn: "/\\"))
-            .contains("agent-2784f2ac") else { throw BotHostTransport.Failure.rejected }
+        guard !id.isEmpty else { throw BotHostTransport.Failure.rejected }
     }
 
     static func allows(_ id: String) -> Bool { (try? validate(id)) != nil }

@@ -2,7 +2,16 @@ import Foundation
 import Synchronization
 
 enum T3ThreadProcessRunner {
-    enum Failure: Error, Equatable { case missingBinary, exit(Int32) }
+    enum Failure: LocalizedError, Equatable {
+        case missingBinary, exit(Int32)
+
+        var errorDescription: String? {
+            switch self {
+            case .missingBinary: String(localized: "Install the T3 command line tool to read threads.")
+            case .exit: String(localized: "T3 could not read threads.")
+            }
+        }
+    }
 
     @concurrent
     static func run() async throws -> Data {

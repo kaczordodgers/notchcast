@@ -23,7 +23,7 @@ final class FleetModel {
 
         var message: String? {
             switch failure {
-            case .linkExpired: String(localized: "MBP link expired: relink in T3")
+            case .linkExpired: String(localized: "Link expired: relink in T3")
             case .unavailable: String(localized: "Fleet data unavailable.")
             case nil: nil
             }
@@ -99,7 +99,7 @@ final class FleetModel {
         _ snapshot: FleetSnapshot, destination: FleetSnapshot.Destination, now: Date
     ) -> [Row] {
         snapshot.threads.compactMap { thread in
-            guard !(thread.workspacePath ?? "").split(separator: "/").contains("agent-2784f2ac") else { return nil }
+            guard !AgentFleetExclusion.containsFolder(in: thread.workspacePath ?? "") else { return nil }
             if thread.state == .finished {
                 guard let ended = thread.ended, ended <= now, now.timeIntervalSince(ended) <= 1_800 else { return nil }
             }

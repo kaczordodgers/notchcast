@@ -5,6 +5,7 @@ import Observation
 final class T3ThreadsModule: NotchcastModule {
     private(set) var threads: [T3Thread] = []
     private(set) var error: (any Error)?
+    private(set) var hasSnapshot = false
     private(set) var isRunning = false
     @ObservationIgnored private var demand: Set<String> = []
     @ObservationIgnored private var task: Task<Void, Never>?
@@ -39,6 +40,7 @@ final class T3ThreadsModule: NotchcastModule {
     func stop() {
         isRunning = false
         cancelPolling()
+        hasSnapshot = false
         threads = []
         error = nil
     }
@@ -66,6 +68,7 @@ final class T3ThreadsModule: NotchcastModule {
                     let threads = try await source.read()
                     guard let self, self.generation == identity, !Task.isCancelled else { return }
                     self.threads = threads
+                    self.hasSnapshot = true
                     self.error = nil
                 } catch {
                     guard let self, self.generation == identity, !Task.isCancelled else { return }

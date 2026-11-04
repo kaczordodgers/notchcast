@@ -1,14 +1,16 @@
 # Agent fleet wiring
 
-T3 Threads, Waiting Alerts, Fleet panel, Agent Island and Bot Host have independent,
+T3 Threads, Waiting Alerts, Fleet Panel, Agent Island and Bot Host have independent,
 default-off switches in Notchcast Settings. No new island surface is installed.
 T3 polling runs only while T3 Threads is enabled and a consumer requests snapshots.
 `T3Threads` projects that shared snapshot into alerts, local fleet rows and island state.
 Waiting Alerts uses snapshot changes rather than a second filesystem reader and posts
 through `IslandActivityCenter`'s existing status-message seam.
 
-The fleet's remote source remains unconfigured and reports the existing expired-link
-state. Bot Host requires an injected client; read commands report its absence plainly.
+The remote environment ID defaults to empty, yielding local-only data. A configured
+remote destination reports the expired-link state until a remote source is supplied.
+Bot Host reads its loopback URL from feature settings and its token from Keychain
+at request time; settings can save the token without displaying an existing secret.
 List Bots, Bot Status and Bot Pending use the command catalog and follow Bot Host's
 switch. Status and pending read every listed bot; they do not select or act for the user.
 Command deep links retain the shared consent policy.

@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/AgentFleet/BotHost/BotHostModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
 import Synchronization
@@ -166,7 +167,7 @@ private enum BotHostTest {
         let bridge = OpenBotBridge(transport: transport)
         fixture("""
         {"exitCode":0,"bots":[{"id":"synthetic","name":"Fixture"},
-        {"id":"agent-2784f2ac","name":"Excluded fixture"}],"future":1}
+        {"id":"","name":"Excluded fixture"}],"future":1}
         """)
         let bots = try await bridge.list()
         precondition(bots == [.init(id: "synthetic", name: "Fixture")])
@@ -192,11 +193,11 @@ private enum BotHostTest {
         for operation in 0..<6 {
             do {
                 switch operation {
-                case 0: _ = try await bridge.message(botID: "agent-2784f2ac", text: "Fixture")
-                case 1: _ = try await bridge.status(botID: "agent-2784f2ac")
-                case 2: _ = try await bridge.pending(botID: "agent-2784f2ac")
-                case 3: _ = try await bridge.answer(botID: "agent-2784f2ac", requestID: "q", text: "Fixture")
-                default: _ = try await bridge.approve(botID: "agent-2784f2ac", requestID: "q", optionID: "yes")
+                case 0: _ = try await bridge.message(botID: "", text: "Fixture")
+                case 1: _ = try await bridge.status(botID: "")
+                case 2: _ = try await bridge.pending(botID: "")
+                case 3: _ = try await bridge.answer(botID: "", requestID: "q", text: "Fixture")
+                default: _ = try await bridge.approve(botID: "", requestID: "q", optionID: "yes")
                 }
                 fatalError("Excluded fixture was sent")
             } catch BotHostTransport.Failure.rejected {}
@@ -205,7 +206,7 @@ private enum BotHostTest {
         let host = CodyncHostClient(transport: transport)
         let snapshot = """
         {"bots":[{"id":"synthetic","name":"Fixture","status":"needsInput"},
-        {"id":"agent-2784f2ac","name":"Excluded fixture","status":"idle"}],
+        {"id":"","name":"Excluded fixture","status":"idle"}],
         "entries":[{"id":"q","botId":"synthetic","kind":"permission",
         "data":{"text":"Question","status":"pending","options":[{"optionId":"yes"}]}}],"future":1}
         """
@@ -226,7 +227,7 @@ private enum BotHostTest {
         _ = try await host.approve(botID: "synthetic", requestID: "q", optionID: "yes")
         try request("/api/respondPermission", keys: ["entryId", "optionId"])
         do {
-            _ = try await host.status(botID: "agent-2784f2ac")
+            _ = try await host.status(botID: "")
             fatalError("Excluded fixture was queried")
         } catch BotHostTransport.Failure.rejected {}
         for (status, expected): (String, BotHostState) in [
@@ -253,7 +254,7 @@ private enum BotHostTest {
         module.stop()
         do { _ = try await module.list(); fatalError("Stopped module called host") } catch
         BotHostTransport.Failure.rejected {}
-        precondition(NotchcastFeature.botHost.isSystemFeature && !NotchcastFeature.botHost.needsIsland)
+        precondition(!NotchcastFeature.botHost.isSystemFeature && !NotchcastFeature.botHost.needsIsland)
         precondition(NotchcastFeature.botHost.settingsGroup == .activities)
         for (json, expected): (String, CodyncHostEvent?) in [
             ("{\"type\":\"hello\",\"hostId\":\"fixture\",\"rev\":7}", .hello(hostID: "fixture", revision: 7)),
@@ -261,7 +262,7 @@ private enum BotHostTest {
             ("{\"type\":\"bot\",\"bot\":{\"id\":\"b\",\"deleted\":true,\"rev\":8}}", .botDeleted(id: "b", revision: 8)),
             ("{\"type\":\"entry\",\"entry\":{\"id\":\"e\",\"botId\":\"b\"}}", .entry(id: "e", botID: "b")),
             ("{\"type\":\"resync\"}", .resync), ("{\"type\":\"future\"}", .unknown), ("broken", nil),
-            ("{\"type\":\"bot\",\"bot\":{\"id\":\"agent-2784f2ac\",\"status\":\"idle\"}}", nil)
+            ("{\"type\":\"bot\",\"bot\":{\"id\":\"\",\"status\":\"idle\"}}", nil)
         ] {
             precondition(CodyncHostEvent.parse(Data(json.utf8)) == expected)
         }

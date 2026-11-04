@@ -1,8 +1,10 @@
+// notchcast-sources: Tinycast/Features/AgentFleet/AgentFleetExclusion.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/Fleet/FleetSnapshot.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/Fleet/FleetThreadSource.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/Fleet/FleetModel.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/Fleet/FleetModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import Foundation
@@ -61,7 +63,7 @@ struct FleetTests {
         let snapshot = FleetSnapshot(threads: [
             thread("lead", .working), thread("child", .waiting, parent: "lead"),
             thread("boundary", .finished, ended: -1_800), thread("old", .finished, ended: -1_800.001),
-            thread("excluded", .working, path: "/sample/agent-2784f2ac/work")
+            thread("excluded", .working, path: "/sample/\(AgentFleetExclusion.folderName)/work")
         ] + (0..<15).map { thread("worker-\($0)", .working) }, report: report, limits: limits)
         source.snapshots = ["local": snapshot, "remote": .init(threads: [], report: nil, limits: nil)]
         let model = FleetModel(source: source, destinations: [local, remote], clock: { now })
@@ -81,7 +83,7 @@ struct FleetTests {
         precondition(source.calls == count)
         source.failures["remote"] = .linkExpired
         await model.refresh()
-        precondition(model.machines[1].message == "MBP link expired: relink in T3")
+        precondition(model.machines[1].message == "Link expired: relink in T3")
         precondition(model.rows.count == 18)
         source.failures = ["local": .unavailable]
         source.snapshots["remote"] = .init(threads: [thread("remote-worker", .working)], report: nil, limits: nil)
@@ -114,6 +116,6 @@ struct FleetTests {
         precondition(module.model?.rows.count == 1)
         module.stop()
         precondition(module.model?.rows.isEmpty == true)
-        print("Fleet panel tests passed")
+        print("Fleet Panel tests passed")
     }
 }

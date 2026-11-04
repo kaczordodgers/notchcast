@@ -22,7 +22,7 @@ struct NotchcastSettingsView: View {
             NotchcastSystemSettingsSection()
 
             NotchcastExtrasSection()
-            FleetSettingsSection()
+            FleetSettingsSection(settings: NotchcastCore.fleetSettings)
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island) || preferences.isOn(.botHost))
@@ -47,9 +47,7 @@ struct NotchcastSettingsView: View {
 
     private func featureSection(_ anchor: SettingsAnchor, group: NotchcastFeature.SettingsGroup) -> some View {
         Section {
-            ForEach(NotchcastFeature.allCases.filter {
-                $0.settingsGroup == group && !$0.isSystemFeature
-            }, id: \.self) { feature in
+            ForEach(NotchcastFeature.allCases.filter { $0.settingsGroup == group }, id: \.self) { feature in
                 Toggle(isOn: binding(feature)) {
                     SettingsRowTitle(anchor, verbatim: feature.title)
                     Text(feature.subtitle)

@@ -13,6 +13,7 @@ final class T3Threads: WaitingThreadSource, FleetThreadSource, AgentIslandSource
     private func available() throws -> [T3Thread] {
         guard module.isRunning else { throw Unavailable() }
         if let error = module.error { throw error }
+        guard module.hasSnapshot else { throw Unavailable() }
         return module.threads
     }
 

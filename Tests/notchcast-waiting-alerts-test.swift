@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/AgentFleet/AgentFleetExclusion.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/Waiting/WaitingThreadSource.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/Waiting/WaitingFolderWatching.swift
 // notchcast-sources: Tinycast/Features/AgentFleet/Waiting/WaitingAlerts.swift
@@ -74,7 +75,7 @@ struct Test {
             precondition(WaitingThread.leadReport(id: "report", text: text) == nil)
         }
         let excluded = WaitingAlerts(source: source, watcher: Watcher(),
-            folder: folder.appending(path: "agent-2784f2ac")) { _ in preconditionFailure() }
+            folder: folder.appending(path: AgentFleetExclusion.folderName)) { _ in preconditionFailure() }
         excluded.start()
         await excluded.settle()
         precondition(source.reads == reads)

@@ -31,7 +31,7 @@ final class WaitingAlerts {
     }
 
     func start() {
-        guard !running, !folder.pathComponents.contains("agent-2784f2ac") else { return }
+        guard !running, !folder.pathComponents.contains(AgentFleetExclusion.folderName) else { return }
         running = true
         baseline = true
         let generation = generation
