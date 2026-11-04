@@ -9,7 +9,7 @@ protocol MachineSetupProfileExecutor {
 enum MachineSetupProfileRunner {
     static func run<Executor: MachineSetupProfileExecutor>(
         _ profile: MachineSetupProfile, policy: MachineSetupProfileEngine.Policy,
-        enabled: Bool, dryRun: Bool, confirmed: Bool, executor: inout Executor
+        enabled: Bool, dryRun: Bool = true, confirmed: Bool = false, executor: inout Executor
     ) throws -> MachineSetupProfileEngine.Plan {
         guard enabled else { throw MachineSetupProfileEngine.Failure.disabled }
         let plan = try MachineSetupProfileEngine.plan(profile, policy: policy)
