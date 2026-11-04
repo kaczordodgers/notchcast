@@ -16,6 +16,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case settingsBackup
 
     case showDesktop, spacesOrder, hideCommandM, middleClick, greenMaximize
 
@@ -35,6 +36,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .keepAwake, .lidClosedAwake, .showDesktop, .spacesOrder,
              .hideCommandM, .middleClick, .greenMaximize: .system
         case .liveTimers, .dayCalendar, .dayWeather, .dayMarkets: .activities
+        case .settingsBackup: .system
         }
     }
 
@@ -70,6 +72,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .settingsBackup: String(localized: "Settings Backup")
         }
     }
 
@@ -105,6 +108,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
         }
     }
 
@@ -116,6 +120,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
+        case .settingsBackup: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
@@ -130,7 +135,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        ![.displayBrightness, .quitProtection, .showDesktop, .spacesOrder,
+        ![.settingsBackup, .displayBrightness, .quitProtection, .showDesktop, .spacesOrder,
           .hideCommandM, .middleClick, .greenMaximize].contains(self) && !isSystemFeature
     }
 

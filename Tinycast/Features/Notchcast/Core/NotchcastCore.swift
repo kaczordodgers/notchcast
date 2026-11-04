@@ -19,8 +19,10 @@ enum NotchcastCore {
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
+    static let settingsBackup = ForkSettingsBackupModule()
 
     static func stopForTermination() async {
+        settingsBackup.stop()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -55,6 +57,7 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
+            .init(requires: [.settingsBackup], module: settingsBackup),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
