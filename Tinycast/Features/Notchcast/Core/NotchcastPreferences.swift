@@ -39,6 +39,13 @@ final class NotchcastPreferences {
     }
 
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
+    func isEnabled(_ feature: NotchcastFeature) -> Bool {
+        isOn(feature) && feature.dependencies.allSatisfy(isEnabled)
+    }
+
+    var engineDefaults: UserDefaults { defaults }
+
+    var archiveHandlersClaimed: Bool { get { defaults.bool(forKey: "archiveHandlersClaimed") } set { defaults.set(newValue, forKey: "archiveHandlersClaimed") } }
 
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }

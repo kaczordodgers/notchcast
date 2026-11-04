@@ -59,7 +59,10 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | dictationIslandHUD | Bool | Presentation switch |
 | settingsBackup | Bool | Backup preference |
 | showDesktop | Bool | TCC-gated feature preference |
-| spacesOrder | Bool | Spaces preference; original system value excluded |
+| musicNowPlaying | Bool | Read-only now-playing observation |
+| musicLastPlayer | Bool | Remembers player and routes manual media keys |
+| inUseMarks | Bool | Read-only microphone/camera indicators |
+| archivesInPlace | Bool | Manual extraction mode |
 | hideCommandM | Bool | TCC-gated feature preference |
 | middleClick | Bool | TCC-gated feature preference |
 | greenMaximize | Bool | TCC-gated feature preference |
@@ -102,6 +105,20 @@ never read by backup. No inventoried JSON blob mixes a credential field with the
 
 | Key or store | Reason |
 | --- | --- |
+| spacesOrder | Changes the macOS Spaces ordering preference |
+| musicBlockAppleMusic | Terminates Apple Music after a media-key launch; changes OS app state |
+| spotifyConnect | Uses a saved key and starts the speaker process/network service |
+| microphoneMute | Start reapplies mute to system audio devices; stop unmutes |
+| archives | Start observes archivesDefaultApp and can change system-wide handlers |
+| archivesDefaultApp | Changes system-wide file associations |
+| torrents | Enables network transfers through an aria2 daemon |
+| torrentsUseIPhone | Enables use of an additional network interface |
+| torrentsKeepSharing | Enables continued uploads |
+| music.lastPlayer | Runtime remembered player, not configuration |
+| spotify.deviceName | Configuration of a credential-backed network speaker; retained locally |
+| microphone.muted / microphone.muted.restore | OS mute intent and device restoration state |
+| archiveHandlersClaimed | OS association ownership state |
+| archiveRecoveryParents | Runtime archive recovery journal locations |
 | fanControl | Reaches root helper |
 | batteryChargeLimit | Reaches root helper |
 | batterySailing | Reaches root helper |

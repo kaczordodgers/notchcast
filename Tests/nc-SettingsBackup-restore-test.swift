@@ -172,8 +172,9 @@ struct NotchcastCommand: Sendable {
             precondition(written == encoded)
         }
         print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
-        let suite = "test.settings-restore." + UUID().uuidString
+        let suite = "test.settings-restore"
         let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         let store = QuitProtectionStore(defaults: defaults)
@@ -185,6 +186,17 @@ struct NotchcastCommand: Sendable {
             ForkSettingsBackupState.applyQuit($0, to: store)
         })
         let saved = try state.snapshot()
+        for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks, .archivesInPlace] {
+            let original = preferences.isOn(feature)
+            preferences.set(feature, !original)
+            let captured = try state.snapshot()
+            precondition(captured[feature.rawValue] as? Bool == !original)
+            preferences.set(feature, original)
+            try state.apply(captured)
+            precondition(preferences.isOn(feature) == !original)
+            precondition(defaults.bool(forKey: feature.rawValue) == !original)
+            preferences.set(feature, original)
+        }
         precondition(saved["monitorCPU"] as? Int == 90)
         precondition(saved["island"] as? Bool == preferences.isOn(.island))
         precondition(saved["notchcast.quitProtection.quitEnabled"] as? Bool == true)
