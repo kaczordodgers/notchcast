@@ -9,7 +9,7 @@ struct NotchcastTweaksSettingsRows: View {
                 get: { preferences.isOn(feature) },
                 set: { enabled in
                     guard SystemToolsHelperPolicy.available(feature) else { return }
-                    preferences.set(feature, enabled)
+                    Task { await NotchcastCore.systemTools.set(feature, enabled: enabled) }
                 })) {
                 SettingsRowTitle(.notchcastTweaks, verbatim: feature.title)
                 if SystemToolsHelperPolicy.available(feature) {
@@ -19,6 +19,17 @@ struct NotchcastTweaksSettingsRows: View {
                 }
             }
             .settingsEnabled(SystemToolsHelperPolicy.available(feature))
+            if feature == .startupItems, preferences.isOn(feature) {
+                List(NotchcastCore.systemTools.items, id: \.path) { item in
+                    Toggle(item.label, isOn: Binding(
+                        get: { item.disabled == false },
+                        set: { enabled in
+                            Task { await NotchcastCore.systemTools.set(item, enabled: enabled) }
+                        }))
+                        .settingsEnabled(item.kind == .userAgent && !NotchcastCore.systemTools.busy)
+                }
+                .task { await NotchcastCore.systemTools.refresh() }
+            }
         }
     }
 }

@@ -11,7 +11,7 @@ import Foundation
 @main
 struct SystemToolsStoreTests {
     @MainActor
-    static func main() throws {
+    static func main() async throws {
         let suite = "app.notchcast.tests." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -27,12 +27,12 @@ struct SystemToolsStoreTests {
                                     available: SystemToolsHelperPolicy.available) { _, enabled in
             effects.append(enabled)
         }
-        try store.set(.sudoTouchID, enabled: true)
-        try store.set(.spotlightOff, enabled: true)
+        try await store.set(.sudoTouchID, enabled: true)
+        try await store.set(.spotlightOff, enabled: true)
         precondition(effects.isEmpty)
         precondition(!preferences.isOn(.sudoTouchID) && !preferences.isOn(.spotlightOff))
-        try store.set(.notificationCleanup, enabled: true)
-        try store.set(.notificationCleanup, enabled: false)
+        try await store.set(.notificationCleanup, enabled: true)
+        try await store.set(.notificationCleanup, enabled: false)
         precondition(effects == [true, false])
         precondition(!preferences.isOn(.notificationCleanup))
         enum Failure: Error { case refused }
@@ -40,7 +40,7 @@ struct SystemToolsStoreTests {
             throw Failure.refused
         }
         do {
-            try failing.set(.macSetup, enabled: true)
+            try await failing.set(.macSetup, enabled: true)
             preconditionFailure("Expected failure")
         } catch Failure.refused {}
         precondition(!preferences.isOn(.macSetup))

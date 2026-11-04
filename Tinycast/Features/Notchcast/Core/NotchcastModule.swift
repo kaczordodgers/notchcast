@@ -11,7 +11,8 @@ protocol NotchcastModule: AnyObject {
 @MainActor
 final class NotchcastModuleController {
     struct Entry {
-        let requires: [NotchcastFeature]
+        var requires: [NotchcastFeature] = []
+        var anyOf: [NotchcastFeature] = []
         let module: any NotchcastModule
     }
 
@@ -34,7 +35,9 @@ final class NotchcastModuleController {
 
     private func update() {
         for (index, entry) in entries.enumerated() {
-            let enabled = entry.requires.allSatisfy(preferences.isOn)
+            let required = entry.requires.allSatisfy(preferences.isOn)
+            let selected = entry.anyOf.isEmpty || entry.anyOf.contains(where: preferences.isOn)
+            let enabled = required && selected
             if enabled && running.insert(index).inserted {
                 entry.module.start()
             } else if !enabled && running.remove(index) != nil {
