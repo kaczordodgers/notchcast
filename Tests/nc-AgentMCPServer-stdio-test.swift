@@ -85,7 +85,11 @@ struct StdioTest {
         try index.register(.init(action: .init(id: "fixture.safe", title: "Safe", danger: .harmless),
                                  run: { _ in .string("safe") }))
         try index.register(.init(id: "fixture.state", title: "State", read: { .bool(true) }))
-        index.authorize = { _, _ in approvals += 1; return authorized }
+        index.authorize = { _, _ in
+            approvals += 1
+            guard authorized else { return nil }
+            return {}
+        }
         index.didComplete = { request, reply in
             if request.verb == .run { audit.append((request, reply)) }
             if let entry = request.auditEntry(reply: reply, time: Date()) {
@@ -225,7 +229,8 @@ struct StdioTest {
         index.authorize = { action, _ in
             let decision = AgentConsentPolicy.decide(agentID: "fixture", actionID: action.id,
                 danger: action.danger == .dangerous ? .dangerous : .consent, grants: [], now: Date())
-            return decision == .allow
+            guard decision == .allow else { return nil }
+            return {}
         }
         try index.register(.init(action: .init(id: "fixture.dangerous", title: "Dangerous", danger: .dangerous),
                                  run: { _ in preconditionFailure("dangerous action executed") }))
@@ -240,7 +245,7 @@ struct StdioTest {
         index.authorize = { _, _ in
             waiting = true
             do { try await Task.sleep(for: .seconds(10)) } catch {}
-            return true
+            return {}
         }
         let pending = Task { try await transcript([initialize, call], folder: folder, socket: socket) }
         while !waiting { await Task.yield() }
