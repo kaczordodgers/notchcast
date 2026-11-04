@@ -4,6 +4,9 @@ import Observation
 @MainActor
 @Observable
 final class NotchcastPreferences {
+    var greenMaximizeExcludedApps: String {
+        didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") }
+    }
     enum HoverDelay: Double, CaseIterable, Identifiable {
         case short = 0.1, standard = 0.3, medium = 0.5, long = 1
         var id: Double { rawValue }
@@ -27,6 +30,7 @@ final class NotchcastPreferences {
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter { defaults.object(forKey: $0.rawValue) as? Bool == false })
     }

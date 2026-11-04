@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeEngine.swift
+// notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeClick.swift
 import CoreGraphics
 import Foundation
 
@@ -19,6 +20,19 @@ struct GreenMaximizeTest {
         precondition(GreenMaximizeEngine.target(current: original, visible: .zero, memory: nil) == nil)
         let invalid = CGRect(x: CGFloat.infinity, y: 0, width: 100, height: 100)
         precondition(GreenMaximizeEngine.target(current: invalid, visible: visible, memory: nil) == nil)
-        print("green-maximize: 9 assertions passed")
+        let rect = CGRect(x: 20, y: 20, width: 14, height: 14)
+        func hit(_ point: CGPoint = CGPoint(x: 25, y: 25), rect: CGRect? = rect,
+                 age: Double = 0, option: Bool = false, exclusions: Set<String> = []) -> Bool {
+            GreenMaximizeClick.intercept(point: point, rect: rect, age: age, option: option,
+                bundleID: "test.app", exclusions: exclusions)
+        }
+        precondition(hit())
+        precondition(!hit(CGPoint(x: 40, y: 25)))
+        precondition(!hit(rect: nil))
+        precondition(!hit(age: 2))
+        precondition(!hit(age: -1))
+        precondition(!hit(option: true))
+        precondition(!hit(exclusions: ["test.app"]))
+        print("green-maximize: 16 assertions passed")
     }
 }

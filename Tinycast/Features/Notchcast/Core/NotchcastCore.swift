@@ -9,6 +9,7 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
+    static let greenMaximize = GreenMaximizeModule(hub: eventTapHub)
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     private static var controller: NotchcastModuleController?
 
@@ -25,6 +26,7 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
+            .init(requires: [.greenMaximize], module: greenMaximize),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
