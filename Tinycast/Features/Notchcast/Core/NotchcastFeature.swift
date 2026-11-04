@@ -53,7 +53,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
-        case .treadmillWalk: String(localized: "Prepare walking pad controls. Hardware transport is not available yet.")
+        case .treadmillWalk: String(localized: "Walking pad controls are not available yet.")
         case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
         }
     }

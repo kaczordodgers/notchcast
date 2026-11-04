@@ -105,54 +105,54 @@
         }
       }
     },
-    "Prepare walking pad controls. Hardware transport is not available yet." : {
+    "Walking pad controls are not available yet." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bedienelemente für das Walkingpad vorbereiten. Die Geräteverbindung ist noch nicht verfügbar."
+            "value" : "Die Bedienelemente für das Walkingpad sind noch nicht verfügbar."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prepara los controles de la cinta de caminar. La conexión con el dispositivo aún no está disponible."
+            "value" : "Los controles de la cinta de caminar aún no están disponibles."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Préparer les commandes du tapis de marche. La connexion à l’appareil n’est pas encore disponible."
+            "value" : "Les commandes du tapis de marche ne sont pas encore disponibles."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ウォーキングパッドの操作を準備します。機器への接続はまだ利用できません。"
+            "value" : "ウォーキングパッドの操作はまだ利用できません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "워킹 패드 제어를 준비합니다. 기기 연결은 아직 사용할 수 없습니다."
+            "value" : "워킹 패드 제어는 아직 사용할 수 없습니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Preparar os controlos da passadeira de caminhada. A ligação ao dispositivo ainda não está disponível."
+            "value" : "Os controlos da passadeira de caminhada ainda não estão disponíveis."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Подготовить управление дорожкой. Подключение к устройству пока недоступно."
+            "value" : "Управление дорожкой пока недоступно."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "准备走步机控制功能。设备连接暂不可用。"
+            "value" : "走步机控制功能暂不可用。"
           }
         }
       }
