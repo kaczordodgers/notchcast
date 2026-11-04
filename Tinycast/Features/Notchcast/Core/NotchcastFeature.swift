@@ -5,6 +5,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case islandStatusMessages, islandLiveActivities, launcherFromIsland
     case systemMonitor, fanControl
     case monitorAlerts
+    case waitingAlerts
     case lowDiskWarning
     case systemNotices
     case volumeLevels
@@ -23,6 +24,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var settingsGroup: SettingsGroup {
         switch self {
         case .island: .island
+        case .waitingAlerts: .activities
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
@@ -37,6 +39,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var title: String {
         switch self {
         case .island: String(localized: "Island")
+        case .waitingAlerts: String(localized: "Waiting Alerts")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
         case .islandHoverOpen: String(localized: "Open on Hover")
@@ -66,6 +69,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var subtitle: String {
         switch self {
         case .island: String(localized: "Show the island at the top of the screen.")
+        case .waitingAlerts: String(localized: "Notify when an agent needs your answer or approval.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
         case .islandHoverOpen: String(localized: "Open the island when the pointer hovers over it.")
@@ -96,6 +100,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .waitingAlerts: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
@@ -111,7 +116,7 @@ extension NotchcastFeature {
     var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
 
     var isSystemFeature: Bool {
-        [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
+        [.waitingAlerts, .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
     }
 }
