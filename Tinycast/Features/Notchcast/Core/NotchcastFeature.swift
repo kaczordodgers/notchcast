@@ -39,9 +39,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case buildStats
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -85,6 +87,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -128,6 +131,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -190,6 +194,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -209,7 +214,8 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        !isSystemFeature && self != .buildStats && self != .spacesOrder
+            && self != .switcherQuitKey && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
