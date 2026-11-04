@@ -17,6 +17,7 @@ struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
+    let feature: NotchcastFeature?
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }
@@ -85,9 +86,10 @@ enum ScreenTextService {
         precondition(area.starts == 2)
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         for (path, needle) in [
-            ("Tinycast/Features/ScreenText/ScreenTextSettingsSection.swift", "preferences.set(.screenText, $0)"),
-            ("Tinycast/Features/Notchcast/Settings/CaptureDictationSettingsSection.swift",
-             "ScreenTextSettingsSection(module: NotchcastCore.screenText)"),
+            ("Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift",
+             ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"),
+            ("Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift",
+             "Remove line breaks"),
             ("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift", ".init(requires: [.screenText], module: screenText)"),
             ("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift", "ScreenTextModule.launcherCommand")
         ] {

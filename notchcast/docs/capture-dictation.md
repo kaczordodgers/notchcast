@@ -1,6 +1,6 @@
 # Capture and dictation settings
 
-Settings > Notchcast groups capture and dictation controls in one stock Settings section.
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands.
 Its switches use `NotchcastPreferences` and `NotchcastModuleController`, independently of the Island
 switch. Preferences stay in the bundle-scoped `.notchcast` defaults suite, outside upstream settings
 exports and backups. Switches follow the existing Notchcast default of on.
@@ -24,7 +24,7 @@ display requests. Rectangle coordinates stay in global Quartz points with a top-
 Capture Screen (`command:nc-screenshot-display`) captures the display under the pointer to the selected
 destination. Both commands disappear when their switch is off and work with Island off.
 
-Screen Recording appears in the existing Notchcast permissions section while Screenshots or recording is on.
+Screen Recording appears in Capture’s Permissions section while Screenshots or recording is on.
 Its status is read without prompting; Open goes directly to macOS Privacy & Security because upstream's
 Permissions pane has no Screen Recording row. The engine asks for access only when capture is invoked.
 

@@ -30,7 +30,10 @@ struct SettingsDetailView: View {
             case .permissions: PermissionsSettingsView()
             case .backup: BackupSettingsView()
             case .about: AboutView()
-            case .notchcast: NotchcastSettingsView()
+            default:
+                if let module = NotchcastSettingsModule(tab: navigation.tab) {
+                    NotchcastModuleSettingsView(module: module)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
