@@ -42,7 +42,9 @@ class Refuses(unittest.TestCase):
     def test_raw_colours(self):
         for colour in ("Color(red: 0.5, green: 0.2, blue: 1)", ".foregroundStyle(.white)", ".fill(.black)",
                        "Color.gray", "Color.white.opacity(0.1)", "layer.backgroundColor = NSColor.black.cgColor",
-                       "NSColor.windowBackgroundColor"):
+                       "NSColor.windowBackgroundColor", ".foregroundStyle(.orange)", ".fill(.red.opacity(0.4))",
+                       "NSColor(calibratedWhite: 0.2, alpha: 1)", "NSColor(srgbRed: 1, green: 0, blue: 0, alpha: 1)",
+                       "CGColor(gray: 0.5, alpha: 1)"):
             with self.subTest(colour=colour):
                 self.assertIn("colour", {rule for _, rule, _ in rules(colour + "\n")})
 

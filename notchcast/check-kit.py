@@ -40,8 +40,9 @@ COLOURS = r"white|black|gray|grey|red|green|blue|orange|yellow|pink|purple|brown
 RAW_COLOUR = re.compile(
     r"\bColor\s*\(\s*(?:red|white|hue|\.sRGB|\.displayP3)\b"
     r"|\bColor\s*\.\s*(?:%s)\b" % COLOURS
-    + r"|(?<![\w.)\]])\.(?:white|black|gray|grey)\b"
-    r"|\bNSColor\s*\.\s*(?!clear\b)[a-z]\w*")
+    + r"|(?<![\w.)\]])\.(?:%s)\b" % COLOURS
+    + r"|\bNSColor\s*\.\s*(?!clear\b)[a-z]\w*"
+    r"|\b(?:NSColor|CGColor)\s*\(")
 FIXED_FONT = re.compile(r"\.system\s*\(\s*size\s*:|\bNSFont\s*\.\s*(?:monospacedDigitS|s)ystemFont\s*\(\s*ofSize")
 WAIVER = re.compile(r"//\s*kit:\s*ok\s+\S")
 
