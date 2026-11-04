@@ -112,6 +112,7 @@ private final class DictationPanel: NSPanel, AnimatedPanel {
 final class DictationPanelController {
     let state = DictationDisplayState()
     private var panel: DictationPanel?
+    private let islandHUD = DictationIslandHUDService()
     var onAccept: (() -> Void)?
     var onCancel: (() -> Void)?
 
@@ -133,9 +134,11 @@ final class DictationPanelController {
         state.phase = .listening
         state.levels = [Float](repeating: 0, count: DictationSpectrum.barCount)
         panel.makeKeyAndOrderFront(nil)
+        islandHUD.show(panel: panel, state: state)
     }
 
     func close() {
+        islandHUD.close()
         panel?.orderOut(nil)
         panel = nil
     }
