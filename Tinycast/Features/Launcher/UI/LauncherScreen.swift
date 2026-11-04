@@ -413,8 +413,12 @@ struct LauncherScreen: PaletteScreen {
 
     /// ⌘1–⌘9/⌘0 — launch a favorite by position, in either palette size.
     private func launchFavorite(at index: Int) -> Bool {
-        guard pinnedFavorites.indices.contains(index) else { return false }
-        activate(at: index + (leadCard == nil ? 0 : 1))
+        guard let row = LauncherNumberKeys.rowIndex(
+            digit: index + 1, query: vm.query,
+            entryRows: rows.indices.filter { entry(at: $0) != nil },
+            favoriteCount: pinnedFavorites.count, hasLeadCard: leadCard != nil,
+            enabled: NotchcastPreferences.shared.isOn(.launcherNumberKeys)) else { return false }
+        activate(at: row)
         return true
     }
 
