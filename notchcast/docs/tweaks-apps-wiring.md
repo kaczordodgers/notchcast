@@ -15,10 +15,12 @@ handed to macOS for approval; each restriction has a distinct profile identifier
 Installed profiles must be removed in System Settings, independently of the switch.
 The backup folder action reveals the folder without changing backup contents.
 
-Not wired: Apple app Dock filtering and Music launch-service disabling. Their
-engine plans exist, but the current scalar preference reader cannot capture Dock
-arrays, and the Music service has no reader for its existing disabled state.
-Wiring these requires state capture that preserves the user's original values.
+Apple app Dock filtering captures the full persistent-apps array before writing.
+Its receipt lives in the bundle-specific Notchcast defaults suite and survives relaunch.
+Turning Apple Apps off restores removed tiles while preserving user additions.
+An unreadable receipt blocks writes rather than replacing recovery data.
+Music launch-service disabling remains unavailable: no reliable exact prior-state
+capture and restoration exists for both the disabled override and booted-out job.
 Additional Dock preset choices beyond the nine requested toggles are also omitted.
 
 Validation uses fake runners only. No system preference changes, process restarts,

@@ -146,6 +146,11 @@ struct NotchcastTweaksAppsSettingsRows: View {
     private var appleAppsRows: some View {
         Group {
             featureSwitch(.appleAppsTweaks)
+            Toggle(isOn: Binding(get: { NotchcastCore.appleAppsUndo.store?.receipt.dock != nil },
+                set: { NotchcastCore.appleAppsUndo.setDock($0) })) {
+                SettingsRowTitle(.notchcastTweaksApps, "Remove unused Apple apps from the Dock")
+            }
+            .settingsEnabled(preferences.isOn(.appleAppsTweaks) && NotchcastCore.appleAppsUndo.store != nil)
             profile(.gameCenter, title: "Restrict gaming")
             profile(.iPhoneMirroring, title: "Restrict iPhone mirroring")
             profile(.musicService, title: "Restrict music service")
