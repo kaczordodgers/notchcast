@@ -233,6 +233,7 @@ final class HotKeyManager {
             index(entryID, bound: binding != nil, key: boundExtensionCommandKey)
         case .togglePalette, .dictation, .command, .systemAction, .windowCommand:
             break
+        case .notchcastCommand: break
         }
         candidateActionsCache = nil
         // A rebuild walks every candidate; only a modifier-only binding changes this map.
@@ -340,6 +341,7 @@ final class HotKeyManager {
     private var candidateActions: [HotKeyAction] {
         if let candidateActionsCache { return candidateActionsCache }
         var actions = HotKeyAction.builtInActions
+        actions += NotchcastCommandCatalog.entries.map { .notchcastCommand(entryID: $0.id) }
         actions += boundBundleIDs.map { .app(bundleID: $0) }
         actions += boundPaneBundleIDs.map { .settingsPane(bundleID: $0) }
         actions += boundCustomCommandIDs.map { .customCommand(id: $0) }
@@ -359,6 +361,7 @@ final class HotKeyManager {
 
     func displayName(of action: HotKeyAction) -> String {
         switch action {
+        case .notchcastCommand(let id): return NotchcastCommandCatalog.command(for: id)?.name ?? id
         case .togglePalette:
             return String(localized: "App Launcher")
         case .dictation:
@@ -426,6 +429,7 @@ final class HotKeyManager {
         guard allowsAction?(action) ?? true else { return }
         switch action {
         case .togglePalette: onTogglePalette?()
+        case .notchcastCommand(let id): NotchcastCommandCatalog.perform(id)
         case .dictation: onDictationPressed?()
         case .command(let id): onRunCommand?(id)
         case .app(let bundleID): AppLauncher.toggle(bundleID: bundleID)
