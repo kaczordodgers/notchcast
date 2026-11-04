@@ -29,8 +29,8 @@ enum DictationCleanup {
         client: any DictationCleanupClient, timeout: Duration = .seconds(4), systemPrompt: String? = nil,
         onFallback: @Sendable () async -> Void = {}
     ) async -> String {
+        guard !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return raw }
         guard settings.isEnabled, !Task.isCancelled, !key.isEmpty,
-              !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               raw.count <= 32_768, timeout > .zero
         else {
             if !Task.isCancelled { await onFallback() }

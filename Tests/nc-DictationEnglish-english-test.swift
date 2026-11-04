@@ -44,6 +44,14 @@ struct EnglishTests {
             precondition(prompt.contains("technical terms unchanged"))
         }
         let raw = "Wyślij Claude raport."
+        for blank in ["", " \n\t "] {
+            let notices = Mutex(0)
+            let result = await DictationEnglish.process(blank, language: nil, settings: settings,
+                key: "fixture", client: FakeClient(fails: true),
+                onFallback: { notices.withLock { $0 += 1 } })
+            precondition(result == blank)
+            precondition(notices.withLock { $0 } == 0)
+        }
         let result = await DictationEnglish.process(raw, language: "Polish", settings: settings,
                                                     key: "fixture", client: FakeClient(minimumTimeout: 30))
         precondition(result == "Send Claude the report.")
