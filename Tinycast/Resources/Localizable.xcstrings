@@ -1,6 +1,110 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Show Desktop with F3" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schreibtisch mit F3 anzeigen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar el escritorio con F3"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher le bureau avec F3"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "F3でデスクトップを表示"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "F3로 데스크탑 보기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar mesa com F3"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показать рабочий стол клавишей F3"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按 F3 显示桌面"
+          }
+        }
+      }
+    },
+    "Press F3 to show the desktop; press again to restore windows." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drücke F3, um den Schreibtisch anzuzeigen; drücke erneut, um die Fenster wiederherzustellen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pulsa F3 para mostrar el escritorio; vuelve a pulsar para restaurar las ventanas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez sur F3 pour afficher le bureau ; appuyez à nouveau pour rétablir les fenêtres."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "F3を押してデスクトップを表示し、もう一度押してウインドウを戻します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "F3를 눌러 데스크탑을 표시하고 다시 눌러 윈도우를 복원합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pressione F3 para mostrar a mesa; pressione novamente para restaurar as janelas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите F3, чтобы показать рабочий стол; нажмите ещё раз, чтобы вернуть окна."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按 F3 显示桌面，再按一次恢复窗口。"
+          }
+        }
+      }
+    },
     "A webpage is already being saved." : {
       "localizations" : {
         "de" : {
