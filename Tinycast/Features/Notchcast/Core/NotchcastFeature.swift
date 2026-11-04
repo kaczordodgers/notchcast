@@ -28,6 +28,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case systemMonitor
     case fanControl
     case accessoryBatteries
+    case accessoryNotices
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -215,6 +216,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .accessoryBatteries: .systemTools
+        case .accessoryNotices: .system
         case .monitorAlerts: .systemTools
         case .lowDiskWarning: .system
         case .systemNotices: .system
@@ -341,6 +343,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
         case .accessoryBatteries: String(localized: "Accessory batteries")
+        case .accessoryNotices: String(localized: "Accessory notices")
         case .lowDiskWarning: String(localized: "Low Disk Warning")
         case .systemNotices: String(localized: "System Notices")
         case .volumeLevels: String(localized: "Volume in Island")
@@ -484,6 +487,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .monitorAlerts: String(localized: "Sample your Mac in the background while alerts are on.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
         case .accessoryBatteries: String(localized: "Show connected accessory battery levels.")
+        case .accessoryNotices: String(localized: "Show accessory connections and low battery notices.")
         case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.")
         case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.")
         case .volumeLevels: String(localized: "Replaces the macOS volume overlay.")
@@ -587,6 +591,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .accessoryNotices: [.bluetooth]
         case .cleaningMode: [.accessibility]
         case .screenText: [.screenRecording]
         case .scrollingCapture: [.screenRecording]
@@ -813,6 +818,7 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
         return switch self {
         case .tasks: false
+        case .accessoryNotices: false
         case .spotifyConnect: false
         case .captureEditor: false
         case .archivesInPlace: false
@@ -870,4 +876,5 @@ extension NotchcastFeature {
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
     case screenRecording
+    case bluetooth
 }
