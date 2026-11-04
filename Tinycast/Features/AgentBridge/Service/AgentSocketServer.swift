@@ -8,6 +8,7 @@ final class AgentSocketServer: Sendable {
     private struct Connections {
         var stopped = true
         var clients: [UUID: Connection] = [:]
+        var persistent: Set<UUID> = []
     }
 
     private final class Connection: Sendable {
@@ -171,12 +172,12 @@ final class AgentSocketServer: Sendable {
             let connection = Connection(descriptor)
             let id = UUID()
             let accepted = connections.withLock {
-                guard !$0.stopped, $0.clients.count < 8 else { return false }
+                guard !$0.stopped, $0.clients.count - $0.persistent.count < 8 else { return false }
                 $0.clients[id] = connection
                 return true
             }
             guard accepted else { connection.close(); continue }
-            Thread.detachNewThread { [self] in serve(connection, id: id, descriptor: descriptor) }
+            Thread.detachNewThread { @Sendable [self] in serve(connection, id: id, descriptor: descriptor) }
         }
     }
 
@@ -184,7 +185,10 @@ final class AgentSocketServer: Sendable {
         var session: String?
         defer {
             connection.close()
-            connections.withLock { $0.clients[id] = nil }
+            connections.withLock {
+                $0.clients[id] = nil
+                $0.persistent.remove(id)
+            }
             if let session {
                 Task { [handler] in _ = await handler(.init(verb: .mcp, id: session, parameters: .null)) }
             }
@@ -201,7 +205,16 @@ final class AgentSocketServer: Sendable {
                     throw AgentReply.Code.badRequest
                 }
                 keepAlive = request.verb == .mcp && request.keepAlive
-                if keepAlive { session = request.id }
+                if keepAlive {
+                    let admitted = connections.withLock {
+                        if $0.persistent.contains(id) { return true }
+                        guard $0.persistent.count < 64 else { return false }
+                        $0.persistent.insert(id)
+                        return true
+                    }
+                    guard admitted else { throw AgentReply.Code.failed }
+                    session = request.id
+                }
                 let answer = Mutex<AgentReply?>(nil)
                 let done = connection.done
                 let handler = handler
@@ -217,10 +230,10 @@ final class AgentSocketServer: Sendable {
                 try waitForReply(connection, descriptor: descriptor)
                 reply = answer.withLock { $0 } ?? .init(code: .failed)
             } catch let code as AgentReply.Code {
-                if keepAlive { return }
+                keepAlive = false
                 reply = .init(code: code)
             } catch {
-                if keepAlive { return }
+                keepAlive = false
                 reply = .init(code: .failed)
             }
             connection.state.withLock { $0.task?.cancel() }

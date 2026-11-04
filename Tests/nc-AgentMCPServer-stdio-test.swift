@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/AgentSocket*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/UI/AgentRequest+Audit.swift
 // notchcast-sources: Tinycast/Features/AgentConsent/Model/AgentAuditEntry.swift
+// notchcast-sources: Tinycast/Features/AgentConsent/Model/AgentConsentPolicy.swift
 // notchcast-sources: Tinycast/Features/AgentConsent/Service/AgentAuditStore.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import Foundation
@@ -221,6 +222,20 @@ struct StdioTest {
         precondition(error(invalid[3], code: -32700) && executions == 1 && approvals == 2)
         print("PASS per-client initialization, availability filtering, invalid arguments, unknown tools and parse errors")
 
+        index.authorize = { action, _ in
+            let decision = AgentConsentPolicy.decide(agentID: "fixture", actionID: action.id,
+                danger: action.danger == .dangerous ? .dangerous : .consent, grants: [], now: Date())
+            return decision == .allow
+        }
+        try index.register(.init(action: .init(id: "fixture.dangerous", title: "Dangerous", danger: .dangerous),
+                                 run: { _ in preconditionFailure("dangerous action executed") }))
+        let policyRefused = try await transcript([initialize, call,
+            #"{"jsonrpc":"2.0","id":9,"method":"tools/call","params":{"name":"fixture.dangerous"}}"#
+        ], folder: folder, socket: socket)
+        precondition(error(policyRefused[1], code: -32001) && error(policyRefused[2], code: -32001))
+        precondition(executions == 1)
+        print("PASS real consent policy refuses dangerous actions and declines consent without a grant")
+        let auditBeforeCancellation = audit.count
         var waiting = false
         index.authorize = { _, _ in
             waiting = true
@@ -233,7 +248,8 @@ struct StdioTest {
         for _ in 0..<20 { await Task.yield() }
         let cancelled = try await pending.value
         precondition(cancelled[1]["error"] != nil && executions == 1)
-        precondition(audit.last?.1.code != .ok && !module.engine.isRunning)
+        precondition(audit.count == auditBeforeCancellation + 1 && audit.last?.1.code != .ok)
+        precondition(!module.engine.isRunning)
         preferences.enabled = true
         for _ in 0..<20 { await Task.yield() }
         let restarted = try await transcript([list], folder: folder, socket: socket)

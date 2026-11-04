@@ -86,13 +86,13 @@ struct EngineTest {
             let result = await send("tools/call", "{\"name\":\"\(action)\",\"arguments\":{\"text\":\"hello\"}}")
             precondition(result.contains("hello") && result.hasSuffix("\n"))
         }
-        for action in ["agents.approve", "agents.remember", "data.delete", "credentials.change"] {
+        for action in ["agents.approve", "agents.remember"] {
             let result = await send("tools/call", "{\"name\":\"\(action)\"}")
             precondition(result.contains("content"))
         }
-        precondition(backend.calls == 8)
+        precondition(backend.calls == 6)
         let unregistered = await send("tools/call", #"{"name":"unregistered"}"#)
-        precondition(unregistered.contains("Unknown tool") && backend.calls == 8)
+        precondition(unregistered.contains("Unknown tool") && backend.calls == 6)
         let unknown = await send("unknown")
         precondition(unknown.contains("-32601"))
         let notification = await module.engine.receive(line: Data(#"{"jsonrpc":"2.0","method":"unknown"}"#.utf8))
