@@ -42,6 +42,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case backupRunNow
     case backupBrowseRestore
     case quickLookSpace
+    case finderCutPaste
+    case finderRename
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -72,6 +74,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .backupRunNow: .system
         case .backupBrowseRestore: .system
         case .quickLookSpace: .launcher
+        case .finderCutPaste: .system
+        case .finderRename: .system
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -132,6 +136,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .backupRunNow: String(localized: "Back Up Now")
         case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
         case .quickLookSpace: String(localized: "Quick Look on Space")
+        case .finderCutPaste: String(localized: "Finder Cut and Paste")
+        case .finderRename: String(localized: "Finder Rename")
         }
     }
 
@@ -178,6 +184,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .backupRunNow: String(localized: "Allow starting the configured backup job.")
         case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
         case .quickLookSpace: String(localized: "Preview an arrow-selected file with Space.")
+        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
+        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
         }
     }
 
@@ -192,6 +200,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .finderCutPaste: [.accessibility]
+        case .finderRename: [.accessibility]
         default: []
         }
     }
@@ -217,6 +227,8 @@ extension NotchcastFeature {
         case .backupRunNow: false
         case .backupBrowseRestore: false
         case .quickLookSpace: false
+        case .finderCutPaste: false
+        case .finderRename: false
         default: true
         }
     }

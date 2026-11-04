@@ -20,6 +20,7 @@ extension NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackup = ForkSettingsBackupModule()
+    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
@@ -44,6 +45,8 @@ extension NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
+            .init(requires: [.finderCutPaste], module: FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)),
+            .init(requires: [.finderRename], module: FinderToolsModule(coordinator: finderTools, feature: .finderRename)),
             .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
