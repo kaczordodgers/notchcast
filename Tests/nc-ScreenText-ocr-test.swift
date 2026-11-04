@@ -47,6 +47,9 @@ enum ScreenTextTest {
         precondition(ScreenTextResult.removingLineBreaks("rozpozna-\nwanie\r\ntekstu") == "rozpoznawanie tekstu")
         precondition(ScreenTextResult.removingLineBreaks("one-\nTwo\n\n\nthree") == "one- Two\n\nthree")
         precondition(ScreenTextResult.removingLineBreaks(" \n\n") == "")
+        precondition(ScreenTextResult.removingLineBreaks("state-\nof-the-art") == "state- of-the-art")
+        precondition(ScreenTextResult.removingLineBreaks("well-known-\ncompound") == "well-known- compound")
+        precondition(ScreenTextResult.removingLineBreaks("Word-\nfragment") == "Word- fragment")
         let filter = CIFilter(name: "CIQRCodeGenerator")!
         filter.setValue(Data("https://example.com/ocr".utf8), forKey: "inputMessage")
         let code = filter.outputImage!.transformed(by: CGAffineTransform(scaleX: 8, y: 8))
