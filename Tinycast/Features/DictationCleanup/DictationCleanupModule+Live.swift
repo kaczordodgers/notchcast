@@ -6,6 +6,6 @@ extension DictationCleanupModule {
         return DictationCleanupModule(
             store: .live(bundleIdentifier: identifier)!,
             install: { DictationCleanup.install() },
-            uninstall: { DictationCoordinator.transcriptStage = nil })
+            uninstall: { DictationCleanup.uninstall() })
     }
 }
