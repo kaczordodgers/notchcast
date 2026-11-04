@@ -25,7 +25,11 @@ enum ScreenTextService {
         try Task.checkCancellation()
         guard let display = shareable.displays.first(where: { $0.displayID == selection.displayID })
         else { throw Failure.displayUnavailable }
-        let filter = SCContentFilter(display: display, excludingWindows: [])
+        let ownApplications = shareable.applications.filter {
+            $0.processID == ProcessInfo.processInfo.processIdentifier
+                || $0.bundleIdentifier == Bundle.main.bundleIdentifier
+        }
+        let filter = SCContentFilter(display: display, excludingApplications: ownApplications, exceptingWindows: [])
         let configuration = SCStreamConfiguration()
         configuration.sourceRect = selection.sourceRect
         let scale = CGFloat(filter.pointPixelScale)
