@@ -1,7 +1,6 @@
 # Custom appearance
 
-Settings → Notchcast → Appearance owns the custom appearance switch, upstream surface style,
-light and dark theme slots, backdrop opacity and theme-link import. The switch defaults to on.
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands. The switch defaults to on.
 Turning it off restores upstream glass and colours without deleting the saved choices, disables
 the dependent rows and hides the Theme command. It does not depend on the island switch.
 

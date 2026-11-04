@@ -602,9 +602,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
         case .switcherQuitKey: [.accessibility]
-        case .voiceAsk: [.accessibility]
+        case .voiceAsk: [.accessibility, .microphone]
         case .recording: [.screenRecording]
-        case .globeDictation: [.accessibility]
+        case .globeDictation: [.accessibility, .microphone]
+        case .dayCalendar: [.calendars]
+        case .eventReminder: [.calendars]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -825,4 +827,6 @@ extension NotchcastFeature {
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
     case screenRecording
+    case microphone
+    case calendars
 }
