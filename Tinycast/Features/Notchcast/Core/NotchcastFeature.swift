@@ -10,6 +10,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case launcherFromIsland
     case launcherNumberKeys
     case launcherAliasSpace
+    case musicNowPlaying
+    case musicLastPlayer
+    case musicBlockAppleMusic
+    case spotifyConnect
+    case microphoneMute
+    case inUseMarks
     case systemMonitor
     case fanControl
     case accessoryBatteries
@@ -71,7 +77,28 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dockTweaks
     case appleAppsTweaks
     case iPhoneBackupTweaks
+    case archives
+    case archivesInPlace
+    case archivesDefaultApp
+    case torrents
+    case torrentsUseIPhone
+    case torrentsKeepSharing
     case buildStats
+
+    var dependencies: [Self] {
+        switch self {
+        case .archives: []
+        case .archivesInPlace: [.archives]
+        case .archivesDefaultApp: [.archives]
+        case .torrents: []
+        case .torrentsUseIPhone: [.torrents]
+        case .torrentsKeepSharing: [.torrents]
+        case .island: []
+        case .musicLastPlayer: [.island, .musicNowPlaying]
+        case .spotifyConnect: [.island, .musicNowPlaying]
+        default: needsIsland ? [.island] : []
+        }
+    }
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -79,6 +106,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleaningMode: .tools
         case .appUpdates: .tools
         case .macUpdate: .tools
+        case .musicNowPlaying: .music
+        case .musicLastPlayer: .music
+        case .musicBlockAppleMusic: .music
+        case .spotifyConnect: .music
+        case .microphoneMute: .music
+        case .inUseMarks: .music
         case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
@@ -142,6 +175,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: .tweaks
         case .appleAppsTweaks: .tweaks
         case .iPhoneBackupTweaks: .tweaks
+        case .archives: .archives
+        case .archivesInPlace: .archives
+        case .archivesDefaultApp: .archives
+        case .torrents: .torrents
+        case .torrentsUseIPhone: .torrents
+        case .torrentsKeepSharing: .torrents
         case .pastePlain: .clipboard
         case .finderCutPaste: .finder
         case .finderRename: .finder
@@ -155,6 +194,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleaningMode: String(localized: "Cleaning mode")
         case .appUpdates: String(localized: "App updates")
         case .macUpdate: String(localized: "Update this Mac")
+        case .musicNowPlaying: String(localized: "Show what is playing")
+        case .musicLastPlayer: String(localized: "Resume last player")
+        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
+        case .spotifyConnect: String(localized: "Spotify Connect speaker")
+        case .microphoneMute: String(localized: "Microphone mute")
+        case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
@@ -202,6 +247,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: String(localized: "Dock and windows")
         case .appleAppsTweaks: String(localized: "Apple apps")
         case .iPhoneBackupTweaks: String(localized: "iPhone backup")
+        case .archives: String(localized: "Archives")
+        case .archivesInPlace: String(localized: "Extract in place")
+        case .archivesDefaultApp: String(localized: "Open archives with Notchcast")
+        case .torrents: String(localized: "Torrents")
+        case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
+        case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
         case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
@@ -231,6 +282,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .cleaningMode: String(localized: "Press Escape five times to exit; ends after 300 seconds.")
         case .appUpdates: String(localized: "Check installed apps for updates on demand.")
         case .macUpdate: String(localized: "Run maintenance only after confirmation.")
+        case .musicNowPlaying: String(localized: "Show what is playing")
+        case .musicLastPlayer: String(localized: "Resume last player")
+        case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
+        case .spotifyConnect: String(localized: "Spotify Connect speaker")
+        case .microphoneMute: String(localized: "Microphone mute")
+        case .inUseMarks: String(localized: "In-use marks")
         case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
@@ -278,6 +335,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: String(localized: "Enable confirmed system preference changes.")
         case .appleAppsTweaks: String(localized: "Enable confirmed system preference changes.")
         case .iPhoneBackupTweaks: String(localized: "Enable confirmed system preference changes.")
+        case .archives: String(localized: "Extract opened archives beside the original file.")
+        case .archivesInPlace: String(localized: "The archive shrinks while extracting.")
+        case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.")
+        case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
+        case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
+        case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
         case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
@@ -306,6 +369,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         switch self {
         case .cleaningMode: [.accessibility]
         case .screenshot: [.screenRecording]
+        case .musicNowPlaying: []
+        case .musicLastPlayer: [.accessibility]
+        case .musicBlockAppleMusic: [.accessibility]
+        case .spotifyConnect: []
+        case .microphoneMute: [.accessibility]
+        case .inUseMarks: []
         case .showDesktop: [.accessibility]
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
@@ -384,6 +453,12 @@ extension NotchcastFeature {
         case .greenMaximize: false
         case .machineSetupProfile: false
         case .switcherQuitKey: false
+        case .archives: false
+        case .archivesInPlace: false
+        case .archivesDefaultApp: false
+        case .torrents: false
+        case .torrentsUseIPhone: false
+        case .torrentsKeepSharing: false
         case .displayBrightness: false
         case .quitProtection: false
         case .pastePlain: false
@@ -415,7 +490,18 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && !isSystemTweak && settingsGroup != .clean && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && self != .pastePlain && !isLauncherKeysFeature
+        if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
+        return switch self {
+        case .spotifyConnect: false
+        case .archivesInPlace: false
+        case .archivesDefaultApp: false
+        case .torrentsKeepSharing: false
+        case .spacesOrder: false
+        case .switcherQuitKey: false
+        case .buildStats: false
+        case .pastePlain: false
+        default: true
+        }
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools || settingsGroup == .tools }

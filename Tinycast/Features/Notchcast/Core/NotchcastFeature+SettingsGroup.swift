@@ -10,6 +10,9 @@ extension NotchcastFeature {
         case clean
         case tools
         case tweaks
+        case music
+        case torrents
+        case archives
         case clipboard
         case finder
         case captureAndDictation

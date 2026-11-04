@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 enum NotchcastCore {
     private static var controller: NotchcastModuleController?
+    static private(set) var services: NotchcastServices?
     private static var monitor: MonitorModule?
 
     static func setFanMode(_ mode: FanControl.Mode) { monitor?.fans.set(mode) }
@@ -20,7 +21,7 @@ enum NotchcastCore {
         await monitor?.fans.waitUntilIdle()
     }
 
-    static func start(_ core: AppCore) {
+    static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
         battery.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
@@ -44,6 +45,8 @@ enum NotchcastCore {
         for module in [tweaks, typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {
             module.configure(core)
         }
+        let services = NotchcastServices(core: core, preferences: preferences)
+        self.services = services
         let monitor = MonitorModule(preferences: .shared, alertSink: { [weak core] in
             core?.showMessage($0, tone: .danger)
         }, fanFailure: { [weak core] in
@@ -54,8 +57,9 @@ enum NotchcastCore {
             || !NotchcastPreferences.shared.isOn(.fanControl) {
             monitor.fans.restore(preservingPreference: true, silently: true)
         }
-        let controller = NotchcastModuleController(entries(core: core, monitor: monitor), preferences: .shared)
+        let controller = NotchcastModuleController(entries(core: core, monitor: monitor) + services.moduleEntries, preferences: preferences)
         self.controller = controller
         controller.run()
+        services.keys.run()
     }
 }
