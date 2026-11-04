@@ -35,6 +35,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "AI Usage", keywords: ["plan", "limits", "cache"]),
         .init(.notchcastOptions, "Other Mac AI Usage", keywords: ["peer", "remote"]),
         .init(.notchcastOptions, "Mac Link", keywords: ["pair", "network"]),
+        .init(.notchcastOptions, "Shelf between Macs", keywords: ["send", "file", "text", "link"]),
         .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
     ]
 }
