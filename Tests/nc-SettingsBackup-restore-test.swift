@@ -31,8 +31,10 @@ import Foundation
 @MainActor protocol NotchcastModule { func start(); func stop() }
 enum AppPaths { static func applicationSupport() -> URL { FileManager.default.temporaryDirectory } }
 enum DialogTone { case neutral, danger }
+@MainActor final class AppIndexStub { func refreshNotchcastCommands() { } }
 @MainActor final class AppCore {
     static let shared = AppCore()
+    let appIndex = AppIndexStub()
     func showNotice(title: String, message: String, symbol: String, tone: DialogTone) async { }
     func confirm(title: String, message: String?, symbol: String?, confirmTitle: String) async -> Bool { false }
     func showMessage(_ message: String, tone: DialogTone = .neutral) { }
