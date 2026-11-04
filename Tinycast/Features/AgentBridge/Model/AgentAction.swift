@@ -13,7 +13,7 @@ struct AgentAction: Sendable {
         guard case .object(let fields) = values, !fields.isEmpty else { return heading }
         let lines = fields.keys.sorted().map { name in
             if parameters.properties[name]?.secret == true { return "\(name): •••" }
-            let value: String
+            var value: String
             if case .string(let text) = fields[name] {
                 value = text
             } else {
@@ -21,6 +21,7 @@ struct AgentAction: Sendable {
                 encoder.outputFormatting = [.sortedKeys]
                 value = (try? encoder.encode(fields[name])).map { String(decoding: $0, as: UTF8.self) } ?? ""
             }
+            value = value.split(whereSeparator: \.isNewline).joined(separator: " ")
             return "\(name): \(value.prefix(60))\(value.count > 60 ? "…" : "")"
         }
         return ([heading] + lines).joined(separator: "\n")
