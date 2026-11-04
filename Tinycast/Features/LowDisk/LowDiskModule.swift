@@ -9,7 +9,10 @@ final class LowDiskModule: NotchcastModule {
 
     func start() {
         AppCore.shared.appIndex.refreshNotchcastCommands()
-        manager.onNotice = { [weak self] in self?.latest = $0 }
+        manager.onNotice = { [weak self] in
+            self?.latest = $0
+            Self.postNotice($0)
+        }
         manager.start()
     }
 

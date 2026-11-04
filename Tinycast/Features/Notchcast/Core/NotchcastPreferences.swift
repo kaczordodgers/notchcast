@@ -107,7 +107,7 @@ extension NotchcastPreferences {
 
     private static func featuresOff(_ defaults: UserDefaults) -> Set<NotchcastFeature> {
         Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
+            !$0.isWired || !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
         })
     }
 }

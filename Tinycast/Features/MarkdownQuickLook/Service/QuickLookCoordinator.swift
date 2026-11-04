@@ -6,6 +6,8 @@ import Observation
 final class QuickLookCoordinator: NotchcastModule {
     private(set) var request: QuickLookRequest?
     private let preferences: NotchcastPreferences
+    let spaceInput = QuickLookSpaceInput()
+    let systemPreview = QuickLookSystemPresenter()
 
     init(preferences: NotchcastPreferences) {
         self.preferences = preferences
@@ -13,7 +15,10 @@ final class QuickLookCoordinator: NotchcastModule {
 
     func start() {}
 
-    func stop() { request = nil }
+    func stop() {
+        request = nil
+        systemPreview.close()
+    }
 
     func dismissPreview(_ id: UUID) {
         guard request?.id == id else { return }

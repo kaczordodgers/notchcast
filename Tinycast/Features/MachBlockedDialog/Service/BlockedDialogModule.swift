@@ -9,9 +9,10 @@ final class BlockedDialogModule: NotchcastModule {
     private let now: @MainActor () -> Date
     private var engine = BlockedDialogEngine()
     private var operation: Task<Void, Never>?
-    private var generation = UUID()
+    private(set) var generation = UUID()
     private(set) var isRunning = false
     private(set) var failed = false
+    private(set) var detectedOwner: String?
 
     init(transport: @escaping Transport, enabled: @escaping @MainActor () -> Bool,
          now: @escaping @MainActor () -> Date = Date.init,
@@ -33,6 +34,7 @@ final class BlockedDialogModule: NotchcastModule {
         operation = nil
         engine = BlockedDialogEngine()
         failed = false
+        detectedOwner = nil
     }
 
     func check() {
@@ -51,7 +53,9 @@ final class BlockedDialogModule: NotchcastModule {
                 }
                 let windows = try response.value(as: [BlockedDialogWindow].self)
                 failed = false
-                if let window = engine.evaluate(windows, now: now()) { present(window.owner) }
+                let window = engine.evaluate(windows, now: now())
+                detectedOwner = window?.owner
+                if let window { present(window.owner) }
             } catch {
                 guard !Task.isCancelled, generation == token, isRunning, enabled() else { return }
                 failed = true
