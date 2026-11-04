@@ -19,13 +19,26 @@ def catalog(**strings):
 
 class CatalogTests(unittest.TestCase):
     def test_interpolated_references(self):
-        for spec in ('%@', '%lld', '%ld', '%d', '%f', '%.2f', '%1$@'):
+        for spec in ('%@', '%lld', '%ld', '%d', '%f', '%.2f', '%1$@',
+                     '%lf', '%llu', '%lu', '%u'):
             key = 'Updated ' + spec
             swift = r'Text("Updated \(format(value))")'
             self.assertFalse(check({}, {key: {}}, swift, ''))
             self.assertTrue(check({key: {}}, {}, '', swift))
         self.assertFalse(check({}, {'Transcribing %lld of %lld': {}},
                                r'Text("Transcribing \(count) of \(total)")', ''))
+
+    def test_nested_interpolation(self):
+        swift = r'String(localized: "About \(approximate.formatted(.byteCount(style: .file))) on disk")'
+        key = 'About %@ on disk'
+        self.assertFalse(check({}, {key: {}}, swift, ''))
+        self.assertTrue(check({key: {}}, {}, '', swift))
+        self.assertTrue(check({}, {'About %@ elsewhere': {}}, swift, ''))
+
+    def test_allow_list_guidance(self):
+        errors = check({}, {'Intentional': {}}, '', '')
+        self.assertIn('notchcast/xcstrings-allowed-keys.json', errors[0])
+        self.assertFalse(check({}, {'Intentional': {}}, '', '', ['Intentional']))
 
     def test_branch_edit(self):
         base = catalog(Key={'value': 'old'})
