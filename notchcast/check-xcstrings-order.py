@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Check catalog key order and require Swift references or explicit exceptions for key changes."""
+
+# Use notchcast/xcstrings-allowed-keys.json for intentional key changes without Swift references.
 import argparse
 import json
 import re
@@ -20,7 +22,8 @@ def check(base, head, added_swift, remaining_swift, allowed=()):
         errors.append("relative order of existing keys changed")
     for key in sorted(head.keys() - base.keys() - set(allowed)):
         if not referenced(key, added_swift):
-            errors.append("added/restored key needs a changed Swift reference or allow-list entry: " + key)
+            errors.append("added/restored key needs a changed Swift reference or entry in "
+                          "notchcast/xcstrings-allowed-keys.json: " + key)
     for key in sorted(base.keys() - head.keys() - set(allowed)):
         if referenced(key, remaining_swift):
             errors.append("removed key still referenced in Swift: " + key)
@@ -34,10 +37,10 @@ def referenced(key, swift):
     key = key.replace('%%', '%')
     if json.dumps(key, ensure_ascii=False) in swift:
         return True
-    parts = re.split(r'%(?:\d+\$)?(?:\.\d+)?(?:lld|ld|d|f|@)', key)
+    parts = re.split(r'%(?:\d+\$)?(?:\.\d+)?(?:lld|llu|ld|lf|lu|d|f|u|@)', key)
     if len(parts) == 1:
         return False
-    interpolation = r'\\\((?:[^()\n]|\([^()\n]*\))*\)'
+    interpolation = r'\\\(.*?\)'
     pattern = interpolation.join(re.escape(json.dumps(p, ensure_ascii=False)[1:-1]) for p in parts)
     return re.search('"' + pattern + '"', swift) is not None
 
