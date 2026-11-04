@@ -5,6 +5,8 @@
 // notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
 import Foundation
 import PDFKit
+import ImageIO
+import CoreText
 
 @main
 struct ConvertFilesTests {
@@ -20,10 +22,10 @@ struct ConvertFilesTests {
             "-nostore", "-strip", "-output", url("a 'quoted' file.rtf").path, source.path])
         let collision = try ConvertFilesPlan.make(sources: [source], target: "rtf", occupied: [plan.items[0].output])
         precondition(collision.items[0].output.lastPathComponent == "a 'quoted' file (2).rtf")
-        for (input, target, tool) in [("png", "jpg", "swift"), ("png", "webp", "cwebp"),
+        for (input, target, tool) in [("png", "jpg", "native"), ("png", "webp", "cwebp"),
             ("png", "heic", "sips"), ("md", "html", "pandoc"), ("wav", "mp3", "ffmpeg"),
-            ("mov", "mp4", "ffmpeg"), ("srt", "vtt", "ffmpeg"), ("json", "yaml", "swift"),
-            ("pdf", "pdf-split", "swift"), ("zip", "extract", "tar"), ("txt", "zip", "tar")] {
+            ("mov", "mp4", "ffmpeg"), ("srt", "vtt", "ffmpeg"), ("json", "yaml", "native"),
+            ("pdf", "pdf-split", "native"), ("zip", "extract", "tar"), ("txt", "zip", "tar")] {
             let planned = try ConvertFilesPlan.make(sources: [url("input." + input)], target: target)
             precondition(planned.items[0].tool == tool)
         }
@@ -70,13 +72,33 @@ struct ConvertFilesTests {
         document.insert(PDFPage(), at: 0)
         document.insert(PDFPage(), at: 1)
         precondition(document.write(to: url("input.pdf")))
-        let helper = url("helper.swift")
-        try ConvertFilesNative.source.write(to: helper, atomically: true, encoding: .utf8)
+        let native = ConvertFilesRunner(process: { _, _, _ in
+            preconditionFailure("Native conversion launched a child process")
+        })
+        let nativeContext = DownloadRunContext(destination: temporary, tools: DownloadToolLookup(directories: []))
+        let imageURL = url("native.png")
+        let pixels = CGContext(data: nil, width: 2, height: 2, bitsPerComponent: 8, bytesPerRow: 0,
+                               space: CGColorSpaceCreateDeviceRGB(), bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        let image = pixels.makeImage()!
+        let destination = CGImageDestinationCreateWithURL(imageURL as CFURL, "public.png" as CFString, 1, nil)!
+        CGImageDestinationAddImage(destination, image, nil)
+        precondition(CGImageDestinationFinalize(destination))
+        var imageJob = job
+        imageJob.source = imageURL.path
+        imageJob.options = ["target": "jpg"]
+        guard let nativeImage = try await native.run(imageJob, context: nativeContext) else {
+            preconditionFailure("No native image output")
+        }
+        precondition(CGImageSourceCreateWithURL(nativeImage as CFURL, nil) != nil)
         for operation in ["pdf-merge", "pdf-split"] {
-            let output = url(operation)
             let inputs = operation == "pdf-merge" ? [url("input.pdf").path, url("input.pdf").path] : [url("input.pdf").path]
-            _ = try await context.spawn(executable: URL(fileURLWithPath: "/usr/bin/swift"),
-                arguments: [helper.path, operation, ""] + inputs + [output.path])
+            var nativeJob = job
+            nativeJob.source = inputs[0]
+            nativeJob.options = ["target": operation,
+                "sources": String(bytes: try JSONEncoder().encode(inputs), encoding: .utf8)!]
+            guard let output = try await native.run(nativeJob, context: nativeContext) else {
+                preconditionFailure("No native PDF output")
+            }
             if operation == "pdf-merge" {
                 precondition(PDFDocument(url: output)?.pageCount == 4)
             } else {
@@ -91,13 +113,55 @@ struct ConvertFilesTests {
             ("json", "[{\"name\":\"hello, world\",\"count\":2}]", "csv")] {
             let input = url("fixture." + ext)
             try text.write(to: input, atomically: true, encoding: .utf8)
-            let output = url("fixture-output." + target)
-            _ = try await context.spawn(executable: URL(fileURLWithPath: "/usr/bin/swift"),
-                arguments: [helper.path, "data", target, input.path, output.path])
+            var nativeJob = job
+            nativeJob.source = input.path
+            nativeJob.options = ["target": target]
+            guard let output = try await native.run(nativeJob, context: nativeContext) else {
+                preconditionFailure("No native data output")
+            }
             let converted = try String(contentsOf: output, encoding: .utf8)
             precondition(converted.contains("hello"))
             try manager.removeItem(at: output)
         }
+        let textPDF = url("text.pdf")
+        var box = CGRect(x: 0, y: 0, width: 200, height: 200)
+        let pdf = CGContext(textPDF as CFURL, mediaBox: &box, nil)!
+        pdf.beginPDFPage(nil)
+        pdf.textPosition = CGPoint(x: 20, y: 100)
+        let text = NSAttributedString(string: "Generated text", attributes: [
+            NSAttributedString.Key(kCTFontAttributeName as String): CTFontCreateWithName("Helvetica" as CFString, 12, nil)
+        ])
+        CTLineDraw(CTLineCreateWithAttributedString(text), pdf)
+        pdf.endPDFPage()
+        pdf.closePDF()
+        var textJob = job
+        textJob.source = textPDF.path
+        textJob.options = ["target": "txt"]
+        let textOutput = try await native.run(textJob, context: nativeContext)!
+        let extracted = try String(contentsOf: textOutput, encoding: .utf8)
+        precondition(extracted.contains("Generated text"))
+        for (ext, content) in [("yaml", "parent:\n  child: 1"), ("toml", "parent.child = 1"),
+                               ("toml", "parent = {child = 1}")] {
+            let input = url("nested." + ext)
+            try content.write(to: input, atomically: true, encoding: .utf8)
+            var nested = job
+            nested.source = input.path
+            nested.options = ["target": "json"]
+            do {
+                _ = try await native.run(nested, context: nativeContext)
+                preconditionFailure("Nested data accepted")
+            } catch { precondition(error.localizedDescription.contains("flat")) }
+        }
+        let cancelledOutput = url("cancelled.pdf")
+        let nativeTask = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            try await ConvertFilesNative.run(operation: "pdf-merge", format: "", inputs: [textPDF], output: cancelledOutput)
+        }
+        do {
+            try await nativeTask.value
+            preconditionFailure("Native cancellation swallowed")
+        } catch is CancellationError {}
+        precondition(!manager.fileExists(atPath: cancelledOutput.path))
         print("Convert Files tests passed")
     }
 }

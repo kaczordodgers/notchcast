@@ -42,23 +42,14 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
     }
 
     private func execute(_ item: ConvertFilesPlan.Item, context: DownloadRunContext) async throws -> URL {
-        let tool = DownloadTool(name: item.tool, installCommand: "Install \(item.tool)")
-        guard let executable = context.tools.find(tool) else {
-            throw ConvertFilesPlan.Failure(message: tool.missingDetail)
-        }
         let manager = FileManager.default
         let scratch = item.output.deletingLastPathComponent().appending(path: ".convert-" + UUID().uuidString)
         try manager.createDirectory(at: scratch, withIntermediateDirectories: false)
         defer { try? manager.removeItem(at: scratch) }
         let staged = scratch.appending(path: item.output.lastPathComponent)
-        var arguments = item.arguments.map { $0 == item.output.path ? staged.path : $0 }
+        let arguments = item.arguments.map { $0 == item.output.path ? staged.path : $0 }
         if item.tool == "tar", arguments.first == "-x" {
             try manager.createDirectory(at: staged, withIntermediateDirectories: false)
-        }
-        if item.tool == "swift" {
-            let helper = scratch.appending(path: "convert.swift")
-            try ConvertFilesNative.source.write(to: helper, atomically: true, encoding: .utf8)
-            arguments = [helper.path] + arguments + [staged.path]
         }
         if item.tool == "ffmpeg", !["srt", "ass", "ssa", "vtt"].contains(item.sources[0].pathExtension.lowercased()) {
             let probe = DownloadTool(name: "ffprobe", installCommand: "brew install ffmpeg")
@@ -68,7 +59,16 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
             try await process(path, ["-v", "error", "-protocol_whitelist", "file,pipe,crypto,data",
                                      "-show_streams", "-show_format", "-of", "json", item.sources[0].path], context)
         }
-        try await process(executable, arguments, context)
+        if item.tool == "native" {
+            try await ConvertFilesNative.run(operation: arguments[0], format: arguments[1],
+                                             inputs: item.sources, output: staged)
+        } else {
+            let tool = DownloadTool(name: item.tool, installCommand: "Install \(item.tool)")
+            guard let executable = context.tools.find(tool) else {
+                throw ConvertFilesPlan.Failure(message: tool.missingDetail)
+            }
+            try await process(executable, arguments, context)
+        }
         try Task.checkCancellation()
         guard manager.fileExists(atPath: staged.path) else {
             throw ConvertFilesPlan.Failure(message: "\(item.tool) produced no output.")

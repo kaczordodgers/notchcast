@@ -13,16 +13,18 @@ Attach `ConvertFilesModule` to the existing `DownloadQueue` with `attach(to:post
 The module owns no queue or process manager. Its feature switch gates submissions.
 Commands remain unregistered for the command integration lane.
 
-Native image, PDF and data work runs in a Swift child process. This currently requires the
-Swift command-line toolchain. Other conversions resolve tools through `DownloadToolLookup`.
+Native image, PDF and data work runs in process off the main actor through `@concurrent`.
+Cancellation is checked between files, PDF pages and data records, and before publishing.
+No native conversion needs a toolchain or child process. External conversions continue to use
+the injected process runner and resolve tools through `DownloadToolLookup`.
 Outputs stage in unique sibling scratch folders and publish using exclusive rename.
 Existing outputs are never replaced, including when another writer creates the chosen name.
 
-Implemented operations include PDF merge, split and page ranges; ImageIO encoding,
+Implemented operations include PDF merge, split, page ranges and selectable text extraction; ImageIO encoding,
 cwebp and sips images; textutil and sandboxed pandoc documents; ffmpeg media and subtitles;
 bsdtar packing and extraction; JSON, CSV, and flat YAML/TOML tables.
 
-Remaining coverage: nested YAML/TOML, PDF page rendering and text extraction, webarchive output,
+Remaining coverage: nested YAML/TOML (rejected explicitly), PDF page rendering, webarchive output,
 all embedded subtitle tracks, legacy image decoder fallback and richer media encoding options.
 Fonts require Python/fontTools and are intentionally excluded.
 

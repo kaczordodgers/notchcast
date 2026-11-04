@@ -40,7 +40,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
                 throw Failure(message: "PDF merge requires PDF files.")
             }
             let destination = output(sources[0], suffix: " merged.pdf")
-            return Self(items: [Item(sources: sources, output: destination, tool: "swift",
+            return Self(items: [Item(sources: sources, output: destination, tool: "native",
                                      arguments: [format, pages] + sources.map(\.path))])
         }
         if ["zip", "7z", "tar.gz"].contains(format) {
@@ -77,11 +77,11 @@ struct ConvertFilesPlan: Sendable, Equatable {
                 tool = "tar"
                 arguments = ["-x", "--keep-old-files", "--no-same-owner", "--no-same-permissions",
                              "-f", source.path, "-C", destination.path]
-            } else if ext == "pdf", ["pdf-split", "pdf-range"].contains(format) {
-                tool = "swift"
-                arguments = [format, pages, source.path]
+            } else if ext == "pdf", ["pdf-split", "pdf-range", "txt"].contains(format) {
+                tool = "native"
+                arguments = [format == "txt" ? "pdf-text" : format, pages, source.path]
             } else if data.contains(ext), data.contains(format) {
-                tool = "swift"
+                tool = "native"
                 arguments = ["data", format, source.path]
             } else if images.contains(ext), imageOutputs.contains(format) {
                 if format == "webp" {
@@ -91,7 +91,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
                     tool = "sips"
                     arguments = ["-s", "format", format, source.path, "--out", destination.path]
                 } else {
-                    tool = "swift"
+                    tool = "native"
                     arguments = ["image", format, source.path]
                 }
             } else if (ext == "md" || ext == "markdown") && ["docx", "html", "epub"].contains(format)
