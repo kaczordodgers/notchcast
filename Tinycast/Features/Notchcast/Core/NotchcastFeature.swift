@@ -28,6 +28,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -51,6 +52,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case torrents
     case torrentsUseIPhone
     case torrentsKeepSharing
+    case buildStats
 
     var dependencies: [Self] {
         switch self {
@@ -75,6 +77,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .spotifyConnect: .music
         case .microphoneMute: .music
         case .inUseMarks: .music
+        case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -84,6 +87,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherFromIsland: .launcher
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -130,6 +134,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .spotifyConnect: String(localized: "Spotify Connect speaker")
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
+        case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -162,6 +167,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .torrents: String(localized: "Torrents")
         case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
         case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
+        case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -185,6 +191,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .spotifyConnect: String(localized: "Spotify Connect speaker")
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
+        case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -217,6 +224,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
         case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
         case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
+        case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -259,6 +267,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -292,6 +301,7 @@ extension NotchcastFeature {
         case .torrentsKeepSharing: false
         case .spacesOrder: false
         case .switcherQuitKey: false
+        case .buildStats: false
         default: true
         }
     }

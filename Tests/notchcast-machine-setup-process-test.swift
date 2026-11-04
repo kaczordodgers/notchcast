@@ -1,0 +1,152 @@
+// notchcast-sources: Tinycast/Features/MachineSetupProfile/Model/*.swift Tinycast/Features/MachineSetupProfile/Service/*.swift
+// notchcast-sources: Tinycast/Features/MachineSetupProfile/MachineSetupProfileCoordinator+Command.swift
+import Foundation
+
+@main
+struct MachineSetupProcessTests {
+    @MainActor
+    static func main() async throws {
+        if CommandLine.arguments.contains("--timeout-child") {
+            try await Task.sleep(for: .seconds(30))
+            return
+        }
+        let child = Process()
+        child.executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
+        child.arguments = ["--timeout-child"]
+        let started = ContinuousClock.now
+        do {
+            try MachineSetupProfileProcessExecutor.runToExit(child, timeout: 0.05)
+            fatalError("Expected timeout")
+        } catch {}
+        precondition(!child.isRunning && started.duration(to: .now) < .seconds(3))
+        let policy = MachineSetupProfileEngine.Policy(appVersion: "1", fileKeys: [:],
+            moduleKeys: [], tweakIDs: MachineSetupProfileProcessExecutor.tweakIDs)
+        let profile = MachineSetupProfile(format: 1, appVersion: "1", backup: Data(),
+            tweaks: ["dock.autohide", "system.firewall"], files: [:], modules: [:])
+        let plan = try MachineSetupProfileEngine.plan(profile, policy: policy)
+        var calls: [[String]] = []
+        var enabled = false
+        var executor = MachineSetupProfileProcessExecutor(process: { path, arguments in
+            precondition(path == (arguments == ["Dock"] ? "/usr/bin/killall" : "/usr/bin/defaults"))
+            calls.append(arguments)
+            if arguments.first == "write" { enabled = true }
+            return .init(status: enabled ? 0 : 1, output: enabled ? "1\n" : "missing key")
+        }, isRoot: { false })
+        try executor.preview(plan)
+        precondition(calls.count == 1 && !enabled)
+        precondition(executor.report.map(\.status) == [.planned, .needsHelper])
+        try executor.apply(plan)
+        precondition(enabled && calls == [
+            ["read", "com.apple.dock", "autohide"],
+            ["read", "com.apple.dock", "autohide"],
+            ["write", "com.apple.dock", "autohide", "-bool", "true"],
+            ["Dock"],
+            ["read", "com.apple.dock", "autohide"]
+        ])
+        precondition(executor.report.map(\.status) == [.applied, .needsHelper])
+        try executor.apply(plan)
+        precondition(calls.count == 6 && executor.report.first?.status == .satisfied)
+        var restartCalls: [[String]] = []
+        var restartFailed = MachineSetupProfileProcessExecutor(process: { _, arguments in
+            restartCalls.append(arguments)
+            return .init(status: arguments == ["Dock"] ? 1 : 0, output: "0")
+        }, isRoot: { false })
+        do { try restartFailed.apply(plan); fatalError("Expected restart failure") } catch {}
+        precondition(restartCalls == [
+            ["read", "com.apple.dock", "autohide"],
+            ["write", "com.apple.dock", "autohide", "-bool", "true"], ["Dock"]
+        ])
+        precondition(restartFailed.report.map(\.status) == [.failed, .notRun])
+        var failed = MachineSetupProfileProcessExecutor(process: { _, _ in
+            .init(status: 2, output: "private output")
+        }, isRoot: { false })
+        do { try failed.apply(plan); fatalError("Expected failure") } catch {}
+        precondition(failed.report.map(\.status) == [.failed, .notRun])
+        var root = MachineSetupProfileProcessExecutor(process: { _, _ in
+            fatalError("Root must never launch")
+        }, isRoot: { true })
+        do { try root.apply(plan); fatalError("Expected rejection") } catch {}
+        var gated = executor
+        do {
+            _ = try MachineSetupProfileRunner.run(profile, policy: policy, enabled: true,
+                dryRun: false, confirmed: false, executor: &gated)
+            fatalError("Expected consent rejection")
+        } catch {}
+        precondition(calls.count == 6)
+        _ = try MachineSetupProfileRunner.run(profile, policy: policy, enabled: true, executor: &gated)
+        precondition(calls.count == 6)
+        for invalid in [
+            MachineSetupProfile(format: 1, appVersion: "1", backup: Data([1]),
+                tweaks: [], files: [:], modules: [:]),
+            MachineSetupProfile(format: 1, appVersion: "1", backup: Data(),
+                tweaks: [], files: ["config.json": ["theme": "dark"]], modules: [:]),
+            MachineSetupProfile(format: 1, appVersion: "1", backup: Data(),
+                tweaks: [], files: [:], modules: ["hoverDelay": "0.3"]),
+            MachineSetupProfile(format: 1, appVersion: "1", backup: Data(),
+                tweaks: ["unknown"], files: [:], modules: [:])
+        ] {
+            do {
+                try gated.apply(.init(profile: invalid))
+                fatalError("Unsupported payload must be rejected")
+            } catch {}
+        }
+        precondition(calls.count == 6)
+        var applied = 0
+        var confirmed = 0
+        var presented = 0
+        var available = true
+        let preview = MachineSetupProfileCoordinator.Outcome(
+            steps: [.init(id: "dock.autohide", status: .planned)], succeeded: true)
+        await MachineSetupProfileCoordinator.run(enabled: { available }, preview: { preview },
+            confirm: { _ in confirmed += 1; return false },
+            apply: { applied += 1; return preview }, present: { _ in presented += 1 })
+        precondition(confirmed == 1 && applied == 0 && presented == 0)
+        await MachineSetupProfileCoordinator.run(enabled: { available }, preview: { preview },
+            confirm: { _ in available = false; return true },
+            apply: { applied += 1; return preview }, present: { _ in presented += 1 })
+        precondition(applied == 0)
+        available = true
+        await MachineSetupProfileCoordinator.run(enabled: { available }, preview: { preview },
+            confirm: { _ in true }, apply: { applied += 1; return preview },
+            present: { _ in presented += 1 })
+        precondition(applied == 1 && presented == 1)
+        await MachineSetupProfileCoordinator.run(enabled: { true },
+            preview: { .init(steps: [], succeeded: false) },
+            confirm: { _ in fatalError("Failed preview cannot confirm") },
+            apply: { fatalError("Failed preview cannot apply") }, present: { _ in presented += 1 })
+        precondition(presented == 2)
+        print("machine setup process: PASS (timeout, preview, apply, idempotence, helper, failure, root, consent, unsupported)")
+    }
+}
+
+struct NotchcastCommand: Sendable {
+    let slug: String
+    let name: String
+    let sfSymbol: String
+    let isEnabled: @MainActor @Sendable () -> Bool
+    let run: @MainActor @Sendable () -> Void
+}
+
+@MainActor
+final class NotchcastPreferences {
+    enum Feature { case machineSetupProfile }
+    static let shared = NotchcastPreferences()
+    func isOn(_ feature: Feature) -> Bool { false }
+}
+
+@MainActor
+enum BackupActions {
+    static func chooseJSONFile() -> URL? { nil }
+}
+
+@MainActor
+final class AppCore {
+    enum Tone { case success, danger }
+    static let shared = AppCore()
+    func confirm(title: String, message: String?, symbol: String?, confirmTitle: String) async -> Bool {
+        fatalError("Confirmation is injected by the coordinator harness")
+    }
+    func showMessage(_ message: String, tone: Tone) {
+        fatalError("Presentation is injected by the coordinator harness")
+    }
+}

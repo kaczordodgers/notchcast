@@ -4,6 +4,7 @@ import Foundation
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
     static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
+    static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -35,6 +36,7 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastArchives, "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
