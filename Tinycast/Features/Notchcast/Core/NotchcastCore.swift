@@ -1,6 +1,7 @@
 @MainActor
 enum NotchcastCore {
     static let t3Threads = T3ThreadsModule()
+    static let agentIsland = AgentIslandModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -29,6 +30,7 @@ enum NotchcastCore {
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.island, .agentIsland], module: agentIsland),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,

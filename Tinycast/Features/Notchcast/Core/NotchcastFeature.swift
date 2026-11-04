@@ -2,6 +2,7 @@ import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
     case t3Threads
+    case agentIsland
     case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
     case islandStatusMessages, islandLiveActivities, launcherFromIsland
     case systemMonitor, fanControl
@@ -26,6 +27,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var settingsGroup: SettingsGroup {
         switch self {
         case .t3Threads: .activities
+        case .agentIsland: .activities
         case .island: .island
         case .waitingAlerts: .activities
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
@@ -43,6 +45,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var title: String {
         switch self {
         case .t3Threads: String(localized: "T3 Threads")
+        case .agentIsland: String(localized: "Agent Island")
         case .island: String(localized: "Island")
         case .waitingAlerts: String(localized: "Waiting Alerts")
         case .islandExternalDisplays: String(localized: "External Displays")
@@ -75,6 +78,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var subtitle: String {
         switch self {
         case .t3Threads: String(localized: "Read T3 thread activity while requested.")
+        case .agentIsland: String(localized: "Show agent activity in the island.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .waitingAlerts: String(localized: "Notify when an agent needs your answer or approval.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
@@ -108,6 +112,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .t3Threads: []
+        case .agentIsland: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .waitingAlerts: []
         case .fleetPanel: []

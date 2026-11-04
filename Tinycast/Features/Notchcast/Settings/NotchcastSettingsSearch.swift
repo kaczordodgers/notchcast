@@ -58,6 +58,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
         .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
         .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastActivities, "Agent Island", keywords: ["agents", "approval", "question"]),
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Waiting Alerts", keywords: ["agents", "approval", "question", "blocked"]),
         .init(.notchcastActivities, "Fleet panel", keywords: ["remote environment ID", "agents", "T3"]),
