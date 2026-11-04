@@ -42,7 +42,7 @@ extension NotchcastCore {
     static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let openBotAgents = OpenBotAgentsModule(report: OpenBotAgentsModule.report)
+    static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)

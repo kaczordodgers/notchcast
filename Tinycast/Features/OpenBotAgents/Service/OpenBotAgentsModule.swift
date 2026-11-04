@@ -11,13 +11,16 @@ final class OpenBotAgentsModule {
     private let service: OpenBotService
     private let report: (Int?, OpenBotFailure?) -> Void
     private let pollInterval: Duration
+    private let availabilityChanged: () -> Void
     private var enabled = false
     private var active = false
     private var operation = UUID()
     @ObservationIgnored private var task: Task<Void, Never>?
 
     init(service: OpenBotService = .init(), pollInterval: Duration = .seconds(30),
+         availabilityChanged: @escaping () -> Void = {},
          report: @escaping (Int?, OpenBotFailure?) -> Void = { _, _ in }) {
+        self.availabilityChanged = availabilityChanged
         self.pollInterval = pollInterval
         self.service = service
         self.report = report
@@ -26,6 +29,7 @@ final class OpenBotAgentsModule {
     func start() {
         guard !enabled else { return }
         enabled = true
+        availabilityChanged()
         refresh()
     }
 
@@ -39,6 +43,7 @@ final class OpenBotAgentsModule {
         pending = [:]
         pendingFailures = [:]
         failure = nil
+        availabilityChanged()
     }
 
     func setActive(_ value: Bool) {

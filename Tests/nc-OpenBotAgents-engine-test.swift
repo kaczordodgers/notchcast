@@ -232,6 +232,14 @@ struct OpenBotTests {
         precondition(polling.requests.withLock { $0.count } == 4)
         precondition(active.agents.count == 1 && active.pending.count == 1 && reports == 1)
         active.stop()
+        var availability = 0
+        let gated = OpenBotAgentsModule(service: service(FixtureTransport([(bots, 200), (empty, 200)])),
+                                        availabilityChanged: { availability += 1 })
+        gated.start()
+        gated.start()
+        await gated.waitUntilIdle()
+        gated.stop()
+        precondition(availability == 2)
         precondition(!NotchcastFeature.openBotAgents.defaultEnabled)
         precondition(NotchcastFeature.openBotAgents.isWired && !NotchcastFeature.openBotAgents.needsIsland)
         let commands = [OpenBotAgentsModule.refreshCommand]
