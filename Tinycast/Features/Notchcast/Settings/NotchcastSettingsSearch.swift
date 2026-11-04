@@ -61,5 +61,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastLauncher, "Command Runner", keywords: ["catalogue", "shell", "tasks"]),
     ]
 }
