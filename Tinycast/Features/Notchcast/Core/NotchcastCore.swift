@@ -10,6 +10,7 @@ enum NotchcastCore {
     static let macLink = AIUsageLinkModule()
     static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let machRemote = MachRemoteModule()
+    static let shelf = ShelfModule()
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }) { text in
         guard NotchcastPreferences.shared.isOn(.islandStatusMessages) else { return }
         IslandActivityCenter.shared.showMessage(text, tone: .neutral, dwell: Theme.Duration.messageHUD)
@@ -51,6 +52,7 @@ enum NotchcastCore {
             .init(requires: [.machRemote], module: machRemote),
             .init(requires: [.backupStatus], module: BackupStatusModule()),
             .init(requires: [.machLink, .linkHealth], module: linkHealth),
+            .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

@@ -64,6 +64,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastActivities, "AI Usage", keywords: ["plan", "limits", "cache"]),
         .init(.notchcastActivities, "Other Mac AI Usage", keywords: ["peer", "remote"]),
+        .init(.notchcastActivities, "Shelf between Macs", keywords: ["send", "files", "text"]),
         .init(.notchcastSystem, "Mac Link", keywords: ["pair", "network"]),
         .init(.notchcastSystem, "Link Health", keywords: ["connection", "latency", "peer"]),
         .init(.notchcastSystem, "Backup Status", keywords: ["backup", "stale", "failure", "restore"]),
