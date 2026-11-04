@@ -124,9 +124,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        if self == .remoteScreen { return false }
-        return ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink].contains(self)
+        ![.displayBrightness, .quitProtection, .aiUsage, .aiUsageOtherMac, .machLink].contains(self)
             && !isSystemFeature
+            && self != .remoteScreen
     }
 
     var isSystemFeature: Bool {
