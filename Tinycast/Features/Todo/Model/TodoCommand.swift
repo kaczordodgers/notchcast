@@ -26,7 +26,7 @@ indirect enum TodoCommand: Codable, Equatable, Sendable {
     case removeRecord(kind: Entity, id: String)
     case batch([TodoCommand])
 
-    enum Entity: String, Codable, Sendable {
+    enum Entity: String, Codable, Hashable, Sendable {
         case task, project, section, label, filter
     }
 }

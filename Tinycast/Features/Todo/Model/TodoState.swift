@@ -9,6 +9,19 @@ struct TodoState: Codable, Equatable, Sendable {
     private(set) var labels: [String: TodoLabel] = [:]
     private(set) var filters: [String: TodoSavedFilter] = [:]
 
+    static func replicated(tasks: [String: TodoTask], projects: [String: TodoProject],
+                           sections: [String: TodoSection], labels: [String: TodoLabel],
+                           filters: [String: TodoSavedFilter]) throws -> TodoState {
+        var result = TodoState()
+        result.tasks = tasks
+        result.projects = projects
+        result.sections = sections
+        result.labels = labels
+        result.filters = filters
+        try result.validate()
+        return result
+    }
+
     @discardableResult
     mutating func apply(_ command: TodoCommand) throws -> TodoCommand {
         var candidate = self

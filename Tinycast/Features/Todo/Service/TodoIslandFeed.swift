@@ -70,33 +70,11 @@ final class TodoIslandFeed {
     }
 
     func complete(_ id: String) throws {
-        let date = now()
-        if var task = store.state.tasks[id], var due = task.due, let text = due.recurrenceRule {
-            guard let rule = TodoDateParser.parse(text, now: date, calendar: calendar,
-                                                 timeZone: calendar.timeZone,
-                                                 preferredLanguage: .english)?.recurrence else {
-                throw Failure.unsupportedRecurrence
-            }
-            let anchored = rule.anchored(to: due.date, calendar: calendar)
-            due.recurrenceRule = anchored.canonicalString
-            due.date = TodoRecurrence.nextDue(anchored, currentDue: due.date, hasTime: !due.isAllDay,
-                                             completedAt: date, calendar: calendar)
-            task.due = due
-            task.completedAt = nil
-            var commands: [TodoCommand] = [.updateTask(task)]
-            var parents: Set<String> = [id]
-            while true {
-                let children = store.state.tasks.values.filter {
-                    $0.parentID.map { parents.contains($0) } ?? false
-                }
-                guard !children.isEmpty else { break }
-                commands += children.map { .uncompleteTask(id: $0.id) }
-                parents = Set(children.map(\.id))
-            }
-            try store.perform(.batch(commands))
-        } else {
-            try store.perform(.completeTask(id: id, at: date))
+        let command: TodoCommand
+        do { command = try TodoCompletion.command(id: id, state: store.state, now: now(), calendar: calendar) } catch {
+            throw Failure.unsupportedRecurrence
         }
+        try store.perform(command)
         refresh()
     }
 
