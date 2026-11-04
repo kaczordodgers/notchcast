@@ -28,6 +28,8 @@ struct EditorCoordinatorTests {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let preferences = NotchcastPreferences(suiteName: suite)
+        preferences.set(.markdownFiles, true) // hidden switches read off until set
+        preferences.set(.plainTextFiles, true)
         let coordinator = EditorCoordinator(preferences: preferences, editorPreferences: EditorPreferences(defaults: defaults))
         defer { coordinator.stop() }
         let url = directory.appendingPathComponent("document.md")
