@@ -25,6 +25,8 @@ if command.operation != .read {
         default:
             try BatterySMC.run(command)
         }
+    } catch BatterySMC.Failure.unsupported {
+        exit(RootContract.unsupportedExit)
     } catch NativeChargeLimit.Failure.unconfirmed {
         "Charge limit state is unconfirmed after timeout\n".withCString {
             _ = write(2, $0, strlen($0))

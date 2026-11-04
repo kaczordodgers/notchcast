@@ -8,7 +8,7 @@ struct CalibrationSession: Sendable, Equatable, Codable {
     private(set) var step: Step?
     private(set) var completedAt: Date?
 
-    mutating func start() { step = .chargeToFull }
+    mutating func start() { completedAt = nil; step = .chargeToFull }
     mutating func cancel() { step = nil }
 
     mutating func advance(percent: Int?, limit: Int, connected: Bool, now: Date) {
