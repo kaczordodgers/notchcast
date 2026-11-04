@@ -16,7 +16,7 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-MODULES, SEARCH = SHAPE.LISTS
+SCHEMA, MODULES, SEARCH = SHAPE.LISTS
 
 
 def run(root, *args):
@@ -50,6 +50,11 @@ def append_feature(source, name):
 
 
 class FeatureShapeTests(unittest.TestCase):
+    def test_repeated_backup_key(self):
+        source = (ROOT / SCHEMA).read_text()
+        self.rejected(SCHEMA, source.replace('"island": .bool,',
+            '"island": .bool,\n        "island": .string(10),'), "repeated entry island")
+
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
         self.addCleanup(self.temporary.cleanup)

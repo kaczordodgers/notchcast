@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
+// notchcast-sources: -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker Tests/Fixtures/settings-backup-info.plist
 // notchcast-sources: Tinycast/Features/SettingsBackup/Service/*.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupRestore.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupState.swift
@@ -74,8 +75,88 @@ struct NotchcastCommand: Sendable {
 
 @main struct RestoreTest {
     @MainActor static func main() async throws {
+        precondition(Bundle.main.bundleIdentifier == "test.notchcast.settings-backup")
+        let liveDomain = Bundle.main.bundleIdentifier! + ".notchcast"
+        let liveDefaults = UserDefaults(suiteName: liveDomain)!
+        liveDefaults.removePersistentDomain(forName: liveDomain)
+        defer { liveDefaults.removePersistentDomain(forName: liveDomain) }
         let complete = try ForkSettingsBackupState.live.snapshot()
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
+        let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
+            bundleIdentifier: Bundle.main.bundleIdentifier!)
+        var cleanup = DictationCleanupSettings()
+        cleanup.isEnabled = true
+        cleanup.baseURL = "http://localhost:8317"
+        try cleanupStore.save(cleanup)
+        var changed = complete
+        for (key, value) in complete where ForkSettingsBackupSchema.allowed[key].map({
+            if case .bool = $0 { return true }; return false
+        }) == true { changed[key] = !(value as! Bool) }
+        changed["monitorCPU"] = 60
+        changed["monitorTemperature"] = 80
+        changed["monitorMemory"] = 1
+        changed["monitorDisk"] = 20
+        changed["monitorBattery"] = 25
+        changed["buildStatsPath"] = "/tmp/build.json"
+        changed["greenMaximizeExcludedApps"] = "com.example.app"
+        changed["islandHoverDelay"] = 1.0
+        changed["notchcast.liveTimer.defaultDuration"] = 3600.0
+        changed["notchcast.quitProtection.mode"] = "doublePress"
+        changed["notchcast.quitProtection.exceptions"] = ["com.example.app"]
+        changed["notchcast.day.marketSymbols"] = ["MSFT"]
+        changed["notchcast.day.excludedCalendars"] = ["test-calendar"]
+        changed["notchcast.day.weatherPlace"] = "{\"name\":\"Test\",\"country\":\"XX\",\"latitude\":20,\"longitude\":30}"
+        changed["dictationCleanup"] = "{\"effort\":\"high\",\"promptAddition\":\"Use commas\",\"vocabulary\":[]}"
+        changed["notchcast.colorPicker.format"] = "hsl"
+        changed["notchcast.appearance.surface"] = "matte"
+        changed["notchcast.appearance.theme.backgroundOpacity"] = 0.4
+        let theme = "{\"name\":\"Test\",\"author\":\"Test\",\"appearance\":\"dark\",\"colors\":[" + Array(repeating: "\"#112233\"", count: 12).joined(separator: ",") + "]}"
+        changed["notchcast.appearance.theme.dark"] = theme
+        changed["notchcast.appearance.theme.light"] = theme.replacingOccurrences(of: "dark", with: "light")
+        changed["notchcast.appearance.themes.imported"] = "[" + theme + "]"
+        let appearance = AppearanceStore()
+        let revision = appearance.revision
+        _ = try ForkSettingsBackupState.live.snapshot()
+        precondition(appearance.revision == revision)
+        try ForkSettingsBackupState.live.apply(changed)
+        let savedLive = try ForkSettingsBackupState.live.snapshot()
+        for (key, expected) in changed {
+            if case .json = ForkSettingsBackupSchema.allowed[key]! {
+                let actualJSON = try JSONSerialization.jsonObject(with: Data((savedLive[key] as! String).utf8), options: .fragmentsAllowed)
+                let expectedJSON = try JSONSerialization.jsonObject(with: Data((expected as! String).utf8), options: .fragmentsAllowed)
+                precondition((actualJSON as! NSObject).isEqual(expectedJSON), key)
+            } else { precondition(NSDictionary(dictionary: [key: savedLive[key]!]) == NSDictionary(dictionary: [key: expected]), key) }
+        }
+        try ForkSettingsBackupState.live.apply(complete)
+        try ForkSettingsBackupState.live.apply(savedLive)
+        let restoredLive = try ForkSettingsBackupState.live.snapshot()
+        for (key, expected) in savedLive {
+            if case .json = ForkSettingsBackupSchema.allowed[key]! {
+                let actual = try JSONSerialization.jsonObject(
+                    with: Data((restoredLive[key] as? String ?? "").utf8), options: .fragmentsAllowed)
+                let wanted = try JSONSerialization.jsonObject(
+                    with: Data((expected as? String ?? "").utf8), options: .fragmentsAllowed)
+                precondition((actual as? NSObject)?.isEqual(wanted) == true, key)
+            } else {
+                precondition(NSDictionary(dictionary: [key: restoredLive[key]!])
+                    == NSDictionary(dictionary: [key: expected]), key)
+            }
+        }
+        precondition(appearance.imported.count == 1)
+        let preserved = try cleanupStore.read()
+        precondition(preserved.isEnabled && preserved.baseURL == cleanup.baseURL)
+        for field in ["isEnabled", "baseURL"] {
+            let bad = (changed["dictationCleanup"] as! String).dropLast() + ",\"\(field)\":true}"
+            do { try ForkSettingsBackupState.live.apply(["dictationCleanup": String(bad)]); preconditionFailure() } catch { }
+        }
+        for bad in [Data("broken".utf8), try JSONEncoder().encode(DictationCleanupSettings(
+            promptAddition: String(repeating: "x", count: 16_385)))] {
+            liveDefaults.set(bad, forKey: "dictationCleanup")
+            let snapshot = try ForkSettingsBackupState.live.snapshot()
+            precondition(snapshot["dictationCleanup"] == nil && snapshot.count == complete.count - 1)
+            _ = try ForkSettingsBackupEngine.encode(snapshot, created: .now)
+        }
+        print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
         let suite = "test.settings-restore." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
