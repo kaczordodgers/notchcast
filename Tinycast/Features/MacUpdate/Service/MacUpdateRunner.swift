@@ -45,6 +45,7 @@ struct MacUpdateRunner: MacUpdateProcessRunning {
         }
         posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_SETPGROUP | POSIX_SPAWN_CLOEXEC_DEFAULT))
         posix_spawnattr_setpgroup(&attributes, 0)
+        posix_spawn_file_actions_addopen(&actions, STDIN_FILENO, "/dev/null", O_RDONLY, 0)
         for target in [STDOUT_FILENO, STDERR_FILENO] {
             posix_spawn_file_actions_adddup2(&actions, pipe.fileHandleForWriting.fileDescriptor, target)
         }
