@@ -36,3 +36,12 @@ struct DayModulesTest {
         print("PASS weather module respects visibility, switch teardown and re-enable while visible")
     }
 }
+
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    let appIndex = CommandIndexFixture()
+}
+@MainActor final class CommandIndexFixture {
+    private(set) var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
+}
