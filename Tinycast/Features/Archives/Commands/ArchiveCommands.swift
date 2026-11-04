@@ -6,10 +6,10 @@ import UniformTypeIdentifiers
 enum ArchiveCommands {
     nonisolated static let extractCommand = NotchcastCommand(
         slug: "extract-archive", name: String(localized: "Extract Archive…"),
-        sfSymbol: "archivebox", isEnabled: { enabled }, run: { openPanel() })
+        sfSymbol: "archivebox", feature: .archives, isEnabled: { enabled }, run: { openPanel() })
     nonisolated static let cancelCommand = NotchcastCommand(
         slug: "cancel-extractions", name: String(localized: "Cancel All Extractions"),
-        sfSymbol: "xmark.circle", isEnabled: { enabled }, run: { cancelAll() })
+        sfSymbol: "xmark.circle", feature: .archives, isEnabled: { enabled }, run: { cancelAll() })
 
     private static let availability = ArchiveCommandAvailability()
     static var enabled: Bool {
