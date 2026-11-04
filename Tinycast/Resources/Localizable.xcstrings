@@ -1,6 +1,42 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Check Other Mac Dialogs" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dialoge auf anderem Mac prüfen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comprobar diálogos del otro Mac" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vérifier les dialogues de l’autre Mac" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ほかのMacのダイアログを確認" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac 대화상자 확인" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Verificar diálogos do outro Mac" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Проверить диалоги другого Mac" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "检查另一台 Mac 的对话框" } }
+      }
+    },
+    "Could Not Check Other Mac Dialogs" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dialoge auf anderem Mac konnten nicht geprüft werden" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudieron comprobar los diálogos del otro Mac" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible de vérifier les dialogues de l’autre Mac" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ほかのMacのダイアログを確認できませんでした" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac 대화상자를 확인할 수 없음" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível verificar os diálogos do outro Mac" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось проверить диалоги другого Mac" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法检查另一台 Mac 的对话框" } }
+      }
+    },
+    "Other Mac Dialog Check Complete" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Dialogprüfung auf anderem Mac abgeschlossen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comprobación de diálogos del otro Mac completada" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Vérification des dialogues de l’autre Mac terminée" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "ほかのMacのダイアログ確認が完了しました" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "다른 Mac 대화상자 확인 완료" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Verificação de diálogos do outro Mac concluída" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Проверка диалогов другого Mac завершена" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "另一台 Mac 的对话框检查已完成" } }
+      }
+    },
     "AI Chat Tools" : {
       "localizations" : {
         "de" : {
