@@ -46,6 +46,10 @@ final class ArchiveQueue {
         for job in jobs where job.state == .queued || job.id == activeID { cancel(job.id) }
     }
 
+    func waitUntilIdle() async {
+        await worker?.value
+    }
+
     private func startNext() {
         guard activeID == nil, let index = nextQueuedIndex() else { return }
         let job = jobs[index]

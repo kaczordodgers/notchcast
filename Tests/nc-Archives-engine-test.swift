@@ -11,8 +11,7 @@ struct ArchivesEngineTest {
     }
 
     @MainActor static func main() async throws {
-        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
-            .appending(path: ".archive-fixtures/\(UUID().uuidString)")
+        let root = FileManager.default.temporaryDirectory.appending(path: "archives-engine-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? ArchiveFiles.removeStaging(root) }
         try rules()

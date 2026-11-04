@@ -2,7 +2,7 @@ import AppKit
 import UniformTypeIdentifiers
 
 @MainActor
-struct ArchiveDefaultApplicationService {
+struct ArchiveDefaultApplicationService: ArchiveDefaultApplicationSetting {
     func setEnabled(_ enabled: Bool, application: URL) async throws {
         let workspace = NSWorkspace.shared
         let target: URL
