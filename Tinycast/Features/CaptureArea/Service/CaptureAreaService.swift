@@ -8,13 +8,16 @@ final class CaptureAreaService {
     private var completion: ((CaptureAreaSelection?) -> Void)?
     private let hasScreenRecordingAccess: () -> Bool
     private let requestScreenRecordingAccess: () -> Bool
+    private let select: (((CaptureAreaSelection?) -> Void) -> Void)?
 
     init(
         hasScreenRecordingAccess: @escaping () -> Bool = { CGPreflightScreenCaptureAccess() },
-        requestScreenRecordingAccess: @escaping () -> Bool = { CGRequestScreenCaptureAccess() }
+        requestScreenRecordingAccess: @escaping () -> Bool = { CGRequestScreenCaptureAccess() },
+        select: (((CaptureAreaSelection?) -> Void) -> Void)? = nil
     ) {
         self.hasScreenRecordingAccess = hasScreenRecordingAccess
         self.requestScreenRecordingAccess = requestScreenRecordingAccess
+        self.select = select
     }
 
     isolated deinit {
@@ -27,6 +30,10 @@ final class CaptureAreaService {
             throw Failure.screenRecordingDenied
         }
         self.completion = completion
+        if let select {
+            select { [weak self] in self?.finish($0) }
+            return
+        }
         let mainDisplayHeight = CGDisplayBounds(CGMainDisplayID()).height
         for screen in NSScreen.screens {
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
