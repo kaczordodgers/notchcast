@@ -12,6 +12,11 @@ final class MachLinkManager {
     private(set) var peers: Set<NWBrowser.Result> = []
     var port: NWEndpoint.Port? { listener?.port }
     private(set) var serviceName: String?
+    var fanHandler: (@MainActor (RemoteFanRequest) async throws -> RemoteFanReport)?
+    var fanEnabled: @MainActor () -> Bool = {
+        [.machLink, .systemMonitor, .fanControl].allSatisfy { NotchcastPreferences.shared.isOn($0) }
+    }
+    var screenAddress: @MainActor () async throws -> RemoteScreenState.Availability = { try await RemoteScreenAddress.current() }
 
     isolated deinit {
         listener?.cancel()
@@ -36,6 +41,7 @@ final class MachLinkManager {
                 self.requests[id] = Task { [weak self] in
                     defer { self?.requests[id] = nil }
                     do {
+                        guard let manager = self else { throw MachLinkMessage.Failure.disconnected }
                         try await MachLinkTransport.bounded(connection: connection, timeout: .seconds(5)) {
                             try await MachLinkTransport.bounded(
                                 connection: connection, timeout: .seconds(1), cancelOnSuccess: false
@@ -43,7 +49,9 @@ final class MachLinkManager {
                                 try await MachLinkTransport.connected(connection)
                             }
                             let request = try await MachLinkTransport.receive(on: connection)
-                            let response = try await handler(request)
+                            let response: MachLinkMessage
+                            if let reply = try await manager.peerResponse(to: request) { response = reply }
+                            else { response = try await handler(request) }
                             guard response.id == request.id, response.method == request.method else {
                                 throw MachLinkMessage.Failure.invalidMessage
                             }
