@@ -10,7 +10,7 @@ Battery readings reuse BatteryPeripheralService off-main every 30 seconds while 
 Each peripheral reports once at 20% or below and re-arms at 25%, including across temporary
 missing readings. Stopping clears the session state and cancels sampling.
 
-The model maps device names to SF Symbols. The existing message surface only accepts text,
-so displaying these symbols waits on design. No island layout is changed.
+The existing message surface only accepts text; accessory symbols wait on design.
+No island layout is changed.
 
 Validation: Tests/nc-AccessoryNotices-engine-test.swift uses a fake Bluetooth source.

@@ -20,15 +20,5 @@ nonisolated struct AccessoryNoticeEngine {
         }
     }
 
-    static func symbol(for name: String) -> String {
-        let name = name.lowercased()
-        if name.contains("airpods max") { return "airpodsmax" }
-        if name.contains("airpods pro") { return "airpodspro" }
-        if name.contains("airpods") { return "airpods" }
-        if name.contains("keyboard") { return "keyboard" }
-        if name.contains("mouse") { return "magicmouse" }
-        return "dot.radiowaves.left.and.right"
-    }
-
     private static func key(_ value: String) -> String { value.lowercased().filter(\.isHexDigit) }
 }

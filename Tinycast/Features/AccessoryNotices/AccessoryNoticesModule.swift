@@ -14,14 +14,15 @@ final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerD
     }
 
     private func requestAccess() {
-        guard CBManager.authorization == .notDetermined else { return }
+        guard CBManager.authorization != .allowedAlways else { return }
         permission = CBCentralManager(delegate: self, queue: .main,
                                       options: [CBCentralManagerOptionShowPowerAlertKey: false])
     }
 
     nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
         Task { @MainActor [weak self] in
-            guard let self, CBManager.authorization != .notDetermined else { return }
+            guard let self, self.permission != nil,
+                  CBManager.authorization == .allowedAlways else { return }
             self.permission = nil
             if self.running { self.stop(); self.start() }
         }

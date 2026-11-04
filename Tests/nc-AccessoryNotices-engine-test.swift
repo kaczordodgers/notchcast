@@ -42,11 +42,6 @@ private final class FakeBluetooth: AccessoryBluetoothSource {
         assert(engine.batteries(reading(25)).isEmpty)
         assert(engine.batteries(reading(20)).count == 1)
         assert(engine.batteries(reading(.nan)).isEmpty)
-        for (name, symbol) in [("AirPods Pro", "airpodspro"), ("AirPods", "airpods"),
-                               ("Keyboard", "keyboard"), ("Mouse", "magicmouse"),
-                               ("Other", "dot.radiowaves.left.and.right")] {
-            assert(AccessoryNoticeEngine.symbol(for: name) == symbol)
-        }
         print("Accessory notices: all checks passed")
     }
 }
