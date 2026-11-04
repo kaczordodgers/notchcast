@@ -1,6 +1,11 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension NotchcastCore {
+    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
+    static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
+    static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
+    static let pasteImage = PasteImageModule(hub: eventTapHub)
+    static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
@@ -20,9 +25,20 @@ extension NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackup = ForkSettingsBackupModule()
+    static let colorPicker = ColorPickerModule()
+    static let screenshot = ScreenshotModule()
+    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
+    static let archives = ArchiveModule(preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
-        [
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
+        pasteImage.configureFeedback(core)
+        return [
+            .init(requires: [.finderCutPaste], module: finderCut),
+            .init(requires: [.finderRename], module: finderRename),
+            .init(requires: [.pastePlain], module: pastePlain),
+            .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),
@@ -42,6 +58,10 @@ extension NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
+            .init(requires: [.colorPicker], module: colorPicker),
+            .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.torrents], module: torrents),
+            .init(requires: [.archives], module: archives),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }

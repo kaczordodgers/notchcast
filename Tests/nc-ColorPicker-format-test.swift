@@ -38,12 +38,12 @@ struct ColorPickerTests {
             return true
         })
         precondition(service.format == .hex)
-        service.pick(isEnabled: false) { precondition(!$0) }
+        service.pick(isEnabled: false) { precondition($0 == .cancelled) }
         precondition(callback == nil)
-        service.pick(isEnabled: true) { precondition($0) }
+        service.pick(isEnabled: true) { precondition($0 == .copied) }
         var busyCompleted = false
         service.pick(isEnabled: true) {
-            precondition(!$0)
+            precondition($0 == .cancelled)
             busyCompleted = true
         }
         precondition(busyCompleted)
@@ -52,14 +52,14 @@ struct ColorPickerTests {
         service.format = .rgb
         precondition(ColorPickerService(defaults: defaults).format == .rgb)
         var stopCompletions = 0
-        service.pick(isEnabled: true) { precondition(!$0); stopCompletions += 1 }
+        service.pick(isEnabled: true) { precondition($0 == .cancelled); stopCompletions += 1 }
         let stale = callback
         service.stop()
         service.stop()
         precondition(stopCompletions == 1)
         stale?(NSColor.blue)
         precondition(stopCompletions == 1)
-        service.pick(isEnabled: true) { precondition(!$0) }
+        service.pick(isEnabled: true) { precondition($0 == .cancelled) }
         callback?(nil)
         precondition(copied.count == 1)
         print("ColorPicker: all checks passed")

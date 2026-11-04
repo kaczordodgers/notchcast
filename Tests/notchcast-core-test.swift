@@ -44,11 +44,26 @@ struct NotchcastCoreTests {
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
+        precondition(!preferences.isOn(.pastePlain) && preferences.isOn(.pasteImage))
+        precondition(NotchcastFeature.finderCutPaste.settingsGroup == .finder)
+        precondition(NotchcastFeature.finderRename.settingsGroup == .finder)
+        precondition(!NotchcastFeature.finderCutPaste.needsIsland)
+        precondition(NotchcastFeature.finderRename.requiredGrants == [.accessibility])
+        precondition(NotchcastFeature.pastePlain.subtitle.contains("launcher"))
         precondition(NotchcastFeature.dayCalendar.needsIsland)
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)
         precondition(l3.allSatisfy { preferences.isOn($0) })
         precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultEnabled })
+        precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
+        precondition(!preferences.isOn(.torrentsKeepSharing))
+        precondition(NotchcastFeature.torrents.dependencies.isEmpty)
+        for feature: NotchcastFeature in [.torrents, .torrentsUseIPhone, .torrentsKeepSharing] {
+            precondition(!feature.needsIsland && !feature.isSystemFeature)
+            precondition(feature.requiredGrants.isEmpty)
+        }
+        precondition(NotchcastFeature.torrentsUseIPhone.dependencies == [.torrents])
+        precondition(NotchcastFeature.torrentsKeepSharing.dependencies == [.torrents])
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))

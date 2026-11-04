@@ -1,6 +1,7 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
+    case tasks
     case island
     case islandExternalDisplays
     case islandFullScreen
@@ -8,14 +9,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case islandStatusMessages
     case islandLiveActivities
     case launcherFromIsland
+    case launcherNumberKeys
+    case launcherAliasSpace
     case musicNowPlaying
     case musicLastPlayer
     case musicBlockAppleMusic
     case spotifyConnect
     case microphoneMute
     case inUseMarks
-    case launcherNumberKeys
-    case launcherAliasSpace
     case systemMonitor
     case fanControl
     case monitorAlerts
@@ -28,41 +29,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case pastePlain
+    case finderCutPaste
+    case finderRename
+    case pasteImage
+    case colorPicker
+    case screenshot
+    case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
     case batteryCalibration
     case keepAwake
     case lidClosedAwake
-    case tasks
-
-    /// System tools start off; everything else starts on except the exceptions below.
-    var defaultEnabled: Bool {
-        if isSystemFeature || self == .spacesOrder || self == .switcherQuitKey || isLauncherKeysFeature { return false }
-        return switch self {
-        case .spotifyConnect: false
-        case .systemMonitor: false
-        case .fanControl: false
-        case .monitorAlerts: false
-        case .batteryChargeLimit: false
-        case .batterySailing: false
-        case .batteryHeatProtection: false
-        case .batteryCalibration: false
-        case .keepAwake: false
-        case .lidClosedAwake: false
-        case .tasks: false
-        default: true
-        }
-    }
-
-    var dependencies: [Self] {
-        switch self {
-        case .island: []
-        case .musicLastPlayer: [.island, .musicNowPlaying]
-        case .spotifyConnect: [.island, .musicNowPlaying]
-        default: needsIsland ? [.island] : []
-        }
-    }
     case settingsBackup
     case showDesktop
     case spacesOrder
@@ -74,15 +53,39 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case archives
+    case archivesInPlace
+    case archivesDefaultApp
+    case torrents
+    case torrentsUseIPhone
+    case torrentsKeepSharing
+    case buildStats
+
+    var dependencies: [Self] {
+        switch self {
+        case .archives: []
+        case .archivesInPlace: [.archives]
+        case .archivesDefaultApp: [.archives]
+        case .torrents: []
+        case .torrentsUseIPhone: [.torrents]
+        case .torrentsKeepSharing: [.torrents]
+        case .island: []
+        case .musicLastPlayer: [.island, .musicNowPlaying]
+        case .spotifyConnect: [.island, .musicNowPlaying]
+        default: needsIsland ? [.island] : []
+        }
+    }
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .tasks: .tasks
         case .musicNowPlaying: .music
         case .musicLastPlayer: .music
         case .musicBlockAppleMusic: .music
         case .spotifyConnect: .music
         case .microphoneMute: .music
         case .inUseMarks: .music
+        case .buildStats: .buildStats
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -90,8 +93,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: .islandOptions
         case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .colorPicker: .captureAndDictation
+        case .screenshot: .captureAndDictation
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -111,7 +117,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: .activities
         case .dayWeather: .activities
         case .dayMarkets: .activities
-        case .tasks: .tasks
         case .settingsBackup: .system
         case .showDesktop: .system
         case .spacesOrder: .system
@@ -122,17 +127,29 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .archives: .archives
+        case .archivesInPlace: .archives
+        case .archivesDefaultApp: .archives
+        case .torrents: .torrents
+        case .torrentsUseIPhone: .torrents
+        case .torrentsKeepSharing: .torrents
+        case .pastePlain: .clipboard
+        case .finderCutPaste: .finder
+        case .finderRename: .finder
+        case .pasteImage: .clipboard
         }
     }
 
     var title: String {
         switch self {
+        case .tasks: String(localized: "Tasks")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
         case .spotifyConnect: String(localized: "Spotify Connect speaker")
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
+        case .buildStats: String(localized: "Build statistics")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -153,19 +170,31 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .pastePlain: String(localized: "Paste Plain Text")
+        case .finderCutPaste: String(localized: "Finder Cut and Paste")
+        case .finderRename: String(localized: "Finder Rename")
+        case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
+        case .colorPicker: String(localized: "Color Picker")
+        case .screenshot: String(localized: "Screenshots")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .archives: String(localized: "Archives")
+        case .archivesInPlace: String(localized: "Extract in place")
+        case .archivesDefaultApp: String(localized: "Open archives with Notchcast")
+        case .torrents: String(localized: "Torrents")
+        case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
+        case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
+        case .dictationIslandHUD: String(localized: "Dictation in Island")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
-        case .tasks: String(localized: "Tasks")
         case .settingsBackup: String(localized: "Settings Backup")
         case .machineSetupProfile: String(localized: "Machine Setup Profile")
         case .agentConfirmation: String(localized: "Agent Confirmation")
@@ -177,12 +206,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .tasks: String(localized: "Keep tasks on this Mac.")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
         case .spotifyConnect: String(localized: "Spotify Connect speaker")
         case .microphoneMute: String(localized: "Microphone mute")
         case .inUseMarks: String(localized: "In-use marks")
+        case .buildStats: String(localized: "Read a local build snapshot.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -203,19 +234,31 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
+        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
+        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
+        case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
+        case .screenshot: String(localized: "Capture an area, window or display.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .archives: String(localized: "Extract opened archives beside the original file.")
+        case .archivesInPlace: String(localized: "The archive shrinks while extracting.")
+        case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.")
+        case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
+        case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
+        case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
+        case .dictationIslandHUD: String(localized: "Show dictation status in the island.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
-        case .tasks: String(localized: "Keep tasks on this Mac.")
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
@@ -228,6 +271,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .screenshot: [.screenRecording]
         case .musicNowPlaying: []
         case .musicLastPlayer: [.accessibility]
         case .musicBlockAppleMusic: [.accessibility]
@@ -242,6 +286,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .pastePlain: [.accessibility]
+        case .finderCutPaste: [.accessibility]
+        case .finderRename: [.accessibility]
+        case .pasteImage: [.accessibility]
         default: []
         }
     }
@@ -252,6 +300,10 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
+        case .tasks: false
+        case .colorPicker: false
+        case .screenshot: false
+        case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -262,18 +314,44 @@ extension NotchcastFeature {
         case .greenMaximize: false
         case .machineSetupProfile: false
         case .switcherQuitKey: false
+        case .archives: false
+        case .archivesInPlace: false
+        case .archivesDefaultApp: false
+        case .torrents: false
+        case .torrentsUseIPhone: false
+        case .torrentsKeepSharing: false
         case .displayBrightness: false
         case .quitProtection: false
-        case .tasks: false
+        case .pastePlain: false
+        case .finderCutPaste: false
+        case .finderRename: false
+        case .pasteImage: false
         default: true
         }
     }
 
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
+    var defaultEnabled: Bool {
+        if isSystemFeature || isLauncherKeysFeature { return false }
+        return switch self {
+        case .tasks: false
+        case .spotifyConnect: false
+        case .archivesInPlace: false
+        case .archivesDefaultApp: false
+        case .torrentsKeepSharing: false
+        case .spacesOrder: false
+        case .switcherQuitKey: false
+        case .buildStats: false
+        case .pastePlain: false
+        default: true
+        }
+    }
+
     var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
+    case screenRecording
 }
