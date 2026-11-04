@@ -14,28 +14,7 @@ final class NotchcastPreferences {
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
-    var buildStatsPath: String {
-        didSet { defaults.set(buildStatsPath, forKey: "buildStatsPath") }
-    }
-    var greenMaximizeExcludedApps: String {
-        didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") }
-    }
-    enum HoverDelay: Double, CaseIterable, Identifiable {
-        case short = 0.1, standard = 0.3, medium = 0.5, long = 1
-        var id: Double { rawValue }
-        var title: String {
-            Duration.seconds(rawValue).formatted(.units(
-                allowed: [.seconds], width: .abbreviated,
-                fractionalPart: .show(length: rawValue < 1 ? 1 : 0)))
-        }
-    }
-
-    var islandHoverDelay: HoverDelay {
-        didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") }
-    }
-    var fanMode: String {
-        didSet { defaults.set(fanMode, forKey: "fanMode") }
-    }
+    var buildStatsPath: String { didSet { defaults.set(buildStatsPath, forKey: "buildStatsPath") } }
     var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
     var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
     var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
