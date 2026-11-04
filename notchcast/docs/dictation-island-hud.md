@@ -8,6 +8,7 @@ The upstream nonactivating panel remains key while routed, positioned beyond eve
 right edge. Its Return and Escape handlers and the coordinator's session ownership stay intact.
 Changing either switch restores the capsule during the same session. Closing dictation dismisses
 its progress message without dismissing a replacement message from another feature.
+While dictation is active, a foreign message is immediately replaced by the dictation status.
 
 This is text routing only. It adds no island view or audio-level visualization.
 

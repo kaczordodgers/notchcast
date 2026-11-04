@@ -14,5 +14,16 @@ struct DictationIslandHUDTest {
             }
         }
         print("Dictation island routing: both phases and capsule fallback passed")
+        for presentation in [DictationIslandHUDPolicy.Presentation.listening, .transcribing] {
+            precondition(!DictationIslandHUDPolicy.shouldShowProgress(
+                presentation: presentation, ownsMessage: true))
+            precondition(DictationIslandHUDPolicy.shouldShowProgress(
+                presentation: presentation, ownsMessage: false))
+            precondition(!DictationIslandHUDPolicy.shouldShowProgress(
+                presentation: presentation, ownsMessage: true))
+        }
+        precondition(!DictationIslandHUDPolicy.shouldShowProgress(
+            presentation: .capsule, ownsMessage: false))
+        print("Dictation island routing: foreign message immediately restores both active phases passed")
     }
 }
