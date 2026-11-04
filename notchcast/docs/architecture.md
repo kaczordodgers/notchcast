@@ -82,7 +82,6 @@ Windows (from `docs/architecture.md:129-183`, verified for palette): the palette
 
 ### Migrations
 
-- Only folder `Tinycast/Migrations/`, one type per file, called from `AppCore.start()` before readers, deleted after one stable release; `Scripts/check-migrations.sh` enforces it (`docs/migrations.md:9-17`). Live one: `CompactFavoritesMigration` (`Tinycast/Migrations/CompactFavoritesMigration.swift:4-11`), called at `Tinycast/App/AppCore.swift:291`.
 
 ## 6. How a feature registers
 

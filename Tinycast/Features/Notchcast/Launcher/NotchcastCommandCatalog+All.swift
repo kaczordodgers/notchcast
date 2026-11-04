@@ -1,6 +1,7 @@
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
+        LinkQuickFixModule.launcherCommand,
         ClearNotificationsModule.launcherCommand,
         CopyPathModule.launcherCommand,
         SmallCommandsModule.passwordCommand,
@@ -26,6 +27,8 @@ extension NotchcastCommandCatalog {
         KatanaModule.a2Command,
         KatanaModule.b1Command,
         KatanaModule.b2Command,
+        RemoteFanModule.launcherCommand,
+        RemoteScreenModule.launcherCommand,
         NotchcastDownloadLauncherCommands.video,
         NotchcastDownloadLauncherCommands.audio,
         NotchcastDownloadLauncherCommands.transcript,

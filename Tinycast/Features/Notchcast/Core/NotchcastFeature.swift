@@ -28,6 +28,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case systemMonitor
     case fanControl
     case accessoryBatteries
+    case accessoryNotices
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -66,6 +67,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dictationCleanup
     case dictationHistory
     case captureTrimmer
+    case captureEditor
     case agentAnswer
     case voiceAsk
     case recording
@@ -206,6 +208,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationEnglish: .captureAndDictation
         case .dictationHistory: .captureAndDictation
         case .captureTrimmer: .captureAndDictation
+        case .captureEditor: .captureAndDictation
         case .agentAnswer: .captureAndDictation
         case .voiceAsk: .captureAndDictation
         case .recording: .captureAndDictation
@@ -213,6 +216,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .accessoryBatteries: .systemTools
+        case .accessoryNotices: .system
         case .monitorAlerts: .systemTools
         case .lowDiskWarning: .system
         case .systemNotices: .system
@@ -339,6 +343,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
         case .accessoryBatteries: String(localized: "Accessory batteries")
+        case .accessoryNotices: String(localized: "Accessory notices")
         case .lowDiskWarning: String(localized: "Low Disk Warning")
         case .systemNotices: String(localized: "System Notices")
         case .volumeLevels: String(localized: "Volume in Island")
@@ -399,6 +404,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationEnglish: String(localized: "Dictate in English")
         case .dictationHistory: String(localized: "Keep dictation history")
         case .captureTrimmer: String(localized: "Recording Trimmer")
+        case .captureEditor: String(localized: "Capture Editor")
         case .agentAnswer: String(localized: "Agent Answers")
         case .voiceAsk: String(localized: "Voice Ask")
         case .recording: String(localized: "Screen Recording")
@@ -481,6 +487,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .monitorAlerts: String(localized: "Sample your Mac in the background while alerts are on.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
         case .accessoryBatteries: String(localized: "Show connected accessory battery levels.")
+        case .accessoryNotices: String(localized: "Show accessory connections and low battery notices.")
         case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.")
         case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.")
         case .volumeLevels: String(localized: "Replaces the macOS volume overlay.")
@@ -540,6 +547,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
         case .dictationHistory: String(localized: "Keep dictation history")
         case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.")
+        case .captureEditor: String(localized: "Mark up a capture and copy it.")
         case .agentAnswer: String(localized: "Reply to waiting agents.")
         case .voiceAsk: String(localized: "Voice Ask destination")
         case .recording: String(localized: "Record an area, window or display with system audio.")
@@ -583,6 +591,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .accessoryNotices: [.bluetooth]
         case .cleaningMode: [.accessibility]
         case .screenText: [.screenRecording]
         case .scrollingCapture: [.screenRecording]
@@ -669,6 +678,7 @@ extension NotchcastFeature {
         .agentSessions,
         .agentPricing,
         .captureTrimmer,
+        .captureEditor,
         .recording,
         .backupRunNow,
         .backupBrowseRestore,
@@ -679,6 +689,8 @@ extension NotchcastFeature {
         .launcherAnswers,
         .treadmillWalk,
         .agentAnswer,
+        .agentMCPServer,
+        .agentChatTools,
         .voiceAsk,
         .agentMCPServer,
         .agentChatTools,
@@ -740,6 +752,7 @@ extension NotchcastFeature {
         case .dictationEnglish: false
         case .dictationHistory: false
         case .captureTrimmer: false
+        case .captureEditor: false
         case .agentAnswer: false
         case .voiceAsk: false
         case .recording: false
@@ -804,7 +817,9 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
         return switch self {
         case .tasks: false
+        case .accessoryNotices: false
         case .spotifyConnect: false
+        case .captureEditor: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
         case .torrentsKeepSharing: false
@@ -860,4 +875,5 @@ extension NotchcastFeature {
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
     case screenRecording
+    case bluetooth
 }

@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 import Synchronization
 
 struct RootHelperClient: Sendable {
@@ -14,6 +15,59 @@ struct RootHelperClient: Sendable {
 
     var isInstalled: Bool { RootToolPath.verify() == nil }
 
+    @concurrent
+    func clean(_ command: RootContract.Command, input: Data) async throws -> Data {
+        guard [.version, .cleanSystemList, .cleanSystemTrash].contains(command)
+        else { throw Failure.invalidResponse }
+        return try await execute(command, input: input)
+    }
+
+    @concurrent
+    private func execute(_ command: RootContract.Command, input: Data) async throws -> Data {
+        try Task.checkCancellation()
+        try Self.refuseWhileAbandonedRuns()
+        if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
+        guard input.count <= 4096
+        else { throw Failure.invalidResponse }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+        process.arguments = ["-n", RootContract.helperPath] + command.arguments
+        process.environment = [:]
+        process.currentDirectoryURL = URL(fileURLWithPath: "/")
+        process.standardError = FileHandle.nullDevice
+        return try await exchange(process: process, input: input, timeout: command.operation.timeout)
+    }
+
+    @concurrent
+    func exchange(process: Process, input: Data, timeout: Duration) async throws -> Data {
+        let request = Pipe()
+        let output = Pipe()
+        process.standardInput = request
+        process.standardOutput = output
+        guard fcntl(request.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1) == 0
+        else { throw Failure.launchFailed }
+        defer { try? request.fileHandleForWriting.close() }
+        defer { try? output.fileHandleForReading.close() }
+        let exit: ProcessExit
+        do { exit = try process.runObservingExit() }
+        catch { throw Failure.launchFailed }
+        let reader = Task.detached { try output.fileHandleForReading.readToEnd() ?? Data() }
+        do {
+            try request.fileHandleForWriting.write(contentsOf: input)
+            try request.fileHandleForWriting.close()
+            try await Self.wait(for: process, exit: exit, timeout: timeout)
+        } catch {
+            Self.abandoned.withLock { $0.append(process) }
+            throw error
+        }
+        guard process.terminationReason == .exit else {
+            throw Failure.executionFailed(process.terminationStatus)
+        }
+        try Self.validateExitStatus(process.terminationStatus)
+        try Task.checkCancellation()
+        return try await reader.value
+    }
+
     /// Root children we stopped waiting for; root tools must not overlap, so no new one starts while one runs.
     private static let abandoned = Mutex<[Process]>([])
 
@@ -26,27 +80,11 @@ struct RootHelperClient: Sendable {
 
     @concurrent
     func run(_ command: RootContract.Command) async throws -> RootContract.Reply {
-        try Task.checkCancellation()
-        try Self.refuseWhileAbandonedRuns()
-        if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
-        let process = Process()
-        let output = Pipe()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
-        process.arguments = ["-n", RootContract.helperPath] + command.arguments
-        process.environment = [:]
-        process.currentDirectoryURL = URL(fileURLWithPath: "/")
-        process.standardInput = FileHandle.nullDevice
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        let exit: ProcessExit
-        try Task.checkCancellation()
-        do {
-            exit = try process.runObservingExit()
-        } catch {
-            throw Failure.launchFailed
-        }
-        return try await run(command, process: process, exit: exit, output: output,
-                             timeout: command.operation.timeout)
+        let data = try await execute(command, input: Data())
+        guard data.count <= 4096, let text = String(bytes: data, encoding: .utf8),
+              let reply = RootContract.Reply(command: command, output: text)
+        else { throw Failure.invalidResponse }
+        return reply
     }
 
     func run(_ command: RootContract.Command, process: Process, exit: ProcessExit,

@@ -17,6 +17,7 @@ final class AgentBridgeModule: NotchcastModule {
                 case .consent: .consent
                 case .dangerous: .dangerous
                 }
+                // MCP shares the local CLI agent identity and its consent grants.
                 return AgentConsentPolicy.decide(agentID: "local-cli", actionID: action.id,
                     danger: danger, grants: grants.grants, now: Date()) == .allow
             }
@@ -25,15 +26,7 @@ final class AgentBridgeModule: NotchcastModule {
                 return try JSONDecoder().decode(AgentJSON.self, from: JSONEncoder().encode(entries))
             }
             index.didComplete = { request, reply in
-                guard request.verb == .run, !request.dryRun else { return }
-                let parameters: [String: String]
-                if case .object(let fields) = request.parameters {
-                    parameters = fields.mapValues { _ in "redacted" }
-                } else { parameters = [:] }
-                let entry = AgentAuditEntry(time: Date(), agentID: "local-cli", client: "local-cli",
-                    surface: .cli, actionID: request.id ?? "", parameters: parameters,
-                    verdict: reply.code == .ok ? .ran : reply.code == .declined ? .declined : .failed,
-                    succeeded: reply.code == .ok, duration: 0)
+                guard let entry = request.auditEntry(reply: reply, time: Date()) else { return }
                 do { try await audit.append(entry) } catch {
                     Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "AgentBridge")
                         .error("Unable to append agent audit: \(error)")
@@ -47,6 +40,7 @@ final class AgentBridgeModule: NotchcastModule {
                 }))
             }))
             configured = true
+            NotchcastCore.agentMCPServer.configure(index: index)
         } catch {
             index.unregisterAll()
             Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "AgentBridge")

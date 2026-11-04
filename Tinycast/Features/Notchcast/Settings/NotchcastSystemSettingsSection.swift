@@ -98,6 +98,11 @@ struct NotchcastSystemSettingsSection: View {
                     SettingsRowTitle(.notchcastAlertBattery, "Battery threshold")
                     Text(Double(preferences.monitorBattery) / 100, format: .percent)
                 }
+                Stepper(value: $preferences.monitorBatteryTemperature, in: 30...60) {
+                    SettingsRowTitle(.notchcastAlertBatteryTemperature, "Battery temperature threshold")
+                    Text(Measurement(value: Double(preferences.monitorBatteryTemperature), unit: UnitTemperature.celsius),
+                         format: .measurement(width: .abbreviated, usage: .asProvided))
+                }
             }
             .settingsEnabled(preferences.isOn(.systemMonitor) && preferences.isOn(.monitorAlerts))
             NotchcastAccessoriesSettingsRows()
