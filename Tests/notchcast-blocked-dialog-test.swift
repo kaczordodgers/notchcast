@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/MachBlockedDialog/Service/BlockedDialogModule.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
 

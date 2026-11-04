@@ -154,7 +154,10 @@ Avoid deleting `CommandID` cases or `SettingsTab` cases: both feed exhaustive sw
 Minimum seam for a self-contained Notchcast feature (e.g. the notch surface):
 
 - **New folder `Tinycast/Features/<Name>/`** with `Model/ Service/ UI/ Settings/` — zero conflicts, XcodeGen picks it up from `sources: - path: Tinycast` (`project.yml:42-43`) after `xcodegen generate` (PR CI regenerates the project; PRs never commit it).
-- **String catalog conflicts.** Parallel branches that add strings conflict in `Tinycast/Resources/Localizable.xcstrings`; never hand-merge it: during the conflicted merge, rebase or cherry-pick run `python3 notchcast/xcstrings-union.py --git` (union of both sides' strings in Xcode's layout, staged) and continue (PRs carry no `project.pbxproj`; CI regenerates it). Its checks: `python3 notchcast/xcstrings-union-test.py`.
+- **String catalog conflicts.** During a conflicted merge, rebase or cherry-pick, run `python3 notchcast/xcstrings-union.py --git`: three-way reconciliation via the merge base, keeping main's text and order.
+  Branch-only keys are inserted as text; deleted keys stay deleted, and value conflicts are reported for resolution before staging.
+  `.github/workflows/pr.yml` checks catalog keys; `notchcast/xcstrings-allowed-keys.json` is the escape hatch for intentional key changes.
+  Tests: `python3 notchcast/test-xcstrings.py`.
 - **`AppCore` — 2 hunks:** one `lazy var <name>Coordinator` beside the others (`Tinycast/App/AppCore.swift:217-242` is the block), one `applyEnabled()` call in `start` (`:301-356`) plus, if it has a switch, one `track` in `observeFeatureSwitches` (`:674-796`). Optionally a teardown line in `prepareForTermination` (`:600-619`).
 - **Preference — 4 hunks** if it must round-trip through settings.json: `AppSettingsKey`, `AppSettings` (property + init), `SettingsFileKey`, `SettingsFileSchema` (exhaustive, build fails otherwise; `Tinycast/Features/Settings/SettingsFileSchema.swift:3`), plus a `SettingsBackupCoverage` entry. Fork-local preference that need not sync: read/write `UserDefaults` from the feature's own store (as `AliasStore` does, `Tinycast/Features/Launcher/Service/AliasStore.swift:8-16`) — zero shared hunks.
 - **Launcher command + hotkey + deeplink — 3 hunks:** a `CommandID` case (name/icon switches in the same file, `Tinycast/Features/Launcher/Model/CommandID.swift`), one `runCommand` case (`Tinycast/Features/Launcher/UI/LauncherCoordinator.swift:166`), and optionally `ownedCommands` (`Tinycast/Features/Launcher/Model/CommandCatalog.swift:51-71`). Hotkey and deeplink come for free (`Tinycast/Features/HotKeys/Model/HotKeyAction.swift:47-48`, `Tinycast/Features/DeepLinks/Model/DeepLink.swift:76`).
@@ -173,3 +176,15 @@ Patch-queue hygiene implied by the code: keep fork code in fork-only files and l
 - **Coordinator access:** `core.<name>Coordinator` member chains (cross-feature edges; the main coupling signal).
 - **Persistence keys:** string literals passed to `forKey:` and `appendingPathComponent("*.json|*.sqlite3")` (feature → storage edges).
 - **Build graph:** `project.yml` target `sources` lists (helper targets compile specific feature files) and `Tests/*.swift` upstream source lists in `Scripts/run-tests.sh` and fork source headers (which shipped files each harness compiles).
+
+## Ownership
+
+Notchcast deliberately keeps its composition inside `Tinycast/Features/Notchcast/` to minimize upstream rebase conflicts: the sole Notchcast startup hook in `AppCore.start()` is `NotchcastCore.start(self)`. This is a fork-specific exception to upstream's rule that `AppCore` owns all long-lived state, not an instance ownership tree rooted in `AppCore`.
+
+`NotchcastCore` retains the static feature modules, quit-protection store and event-tap hub, plus the monitor module and `NotchcastModuleController` created at startup. The controller retains its module entries and preferences. Existing process-lifetime singletons are `IslandController.shared` (panels, page coordinator, input state and observers), `IslandActivityCenter.shared` (activities, messages and dismissal task, with a weak presenter), and `NotchcastPreferences.shared` (observable preferences persisted in the bundle-specific `.notchcast` UserDefaults suite).
+
+`NotchcastCore.start` is guarded against duplicate startup, configures island pages once, registers modules and runs the controller. `NotchcastModuleController` observes feature switches: every `requires` switch must be on, and a nonempty `requiresAny` group needs at least one switch on; transitions call each module's `start()` or `stop()` once. Disabling a feature stops its resources without releasing its process-lifetime instance. Island shutdown clears its activity presenter, closes panels and the open page, cancels hover work and removes observers and event monitors. Termination separately calls `NotchcastCore.stopForTermination()` from `AppDelegate` to stop and await battery and monitor fan work; there is no controller-wide termination stop.
+
+New features register a module in `NotchcastCore` with their switch requirements and own their resources through `start()`/`stop()`; add no new `AppCore` lines. Add no new singletons unless the module needs a tap-thread or AppKit-global handle; ordinary feature state belongs to the module.
+
+See [command-hook.md](command-hook.md) for the fork's command integration seam.
