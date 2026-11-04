@@ -54,6 +54,8 @@ struct ArchivesEngineTest {
         expect(prepared.lastPathComponent == "Folder", "symlinked parent uses resolved boundary")
         print("PASS: safe relative symlink under symlinked parent")
         try await fakeTool(root)
+        try await fakeTool(aliasParent)
+        print("PASS: archive extraction, cancellation and resume behind a symlinked directory")
         if let tool = ArchiveToolLocator().locate() {
             try await realTool(root, tool: tool)
             print("PASS: installed hatchzip, ZIP/7z/tar/tgz/split ZIP, quarantine, readonly cleanup, exclusive publish")
@@ -102,8 +104,9 @@ struct ArchivesEngineTest {
                                                               "parts": [[archive.path, 15]]])
         try data.write(to: journal)
         let jobs = try ArchiveRecovery.recoverKnown()
-        expect(jobs.contains { $0.archive.path == archive.path && $0.state == .cancelled
-            && $0.recovery?.staging.path == staging.path && $0.mode == .inPlace }, "in-place marked resumable")
+        expect(jobs.contains { $0.archive == ArchiveFiles.resolvedParent(archive) && $0.state == .cancelled
+            && $0.recovery?.staging == ArchiveFiles.resolvedParent(staging)
+            && $0.mode == .inPlace }, "in-place marked resumable")
         expect(try Data(contentsOf: journal) == data, "journal unchanged")
         expect(try String(contentsOf: archive, encoding: .utf8) == "partial archive", "partial archive unchanged")
         expect(ArchiveFiles.exists(staging.appending(path: "partial")), "partial staging preserved")
@@ -501,7 +504,7 @@ struct ArchivesEngineTest {
         try ArchiveProcess.validate(pause.status)
         let parsed = try ArchiveJournal.read(archive)
         expect(parsed?.mode == .inPlace, "real journal parsed")
-        expect(parsed?.recovery.staging.path == staging.path, "real journal destination")
+        expect(parsed?.recovery.staging == ArchiveFiles.resolvedParent(staging), "real journal destination")
         let output = try await runner.extract(archive, mode: .inPlace)
         let file = output.appending(path: "0000.bin")
         expect(try Data(contentsOf: file) == Data(repeating: 120, count: 32768), "real resumed bytes")

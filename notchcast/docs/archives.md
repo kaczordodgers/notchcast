@@ -22,6 +22,8 @@ transitions. Launch checks remembered archive directories; opening the same arch
 sidecar. Finished output is published visibly, with a recovered name on collision. Interrupted keep
 jobs retain their source and discard staging; interrupted in-place journals remain available through
 Try Again. Unclaimed nonempty staging is recovered visibly, while empty staging is removed.
+Engine boundaries resolve parent directories before comparing archive, staging and recovery URLs.
+The final component retains its symlink checks; hatchzip resumes use its saved destination spelling.
 Orderly shutdown cancels the worker and signals the child process group. There is no parent-death
 watchdog: a hard app kill relies on recovery at the next launch.
 
