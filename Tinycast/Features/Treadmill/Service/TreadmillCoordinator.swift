@@ -84,6 +84,12 @@ final class TreadmillCoordinator {
         isReady = true
     }
 
+    func stopForTermination() async {
+        setEnabled(.walk, false)
+        setEnabled(.history, false)
+        do { try await history.flush() } catch { report(error) }
+    }
+
     func startWalk(speed: Double = 4, minutes: Int = 0) throws {
         let now = clock()
         try perform { try $0.start(speed: speed, minutes: minutes, now: now) }

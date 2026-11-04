@@ -3,7 +3,7 @@
 This ports the UREVO frame reference and history semantics from the owner's treadmill repository.
 Only an unavailable transport ships. The recording fake exists in the harnesses, and no code scans,
 connects to or writes to hardware. Commands are synchronous functions on `TreadmillCoordinator`;
-launcher, hotkey and CLI registration wait for the command hook.
+launcher, hotkey and CLI registration remain outside this core-only port.
 
 ## Invariants
 

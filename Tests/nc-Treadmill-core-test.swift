@@ -349,7 +349,8 @@ private struct TreadmillTests {
         reentrantTransport.emit(status(3, speed: 10, steps: 100))
         expect(!reentrant.walkEnabled && reentrantTransport.sent.count == 1,
                "Goal callback disabling Walk prevents queued speed commands")
-        try await reentrantStore.flush()
-        reentrant.setEnabled(.history, false)
+        await reentrant.stopForTermination()
+        let terminated = try await TreadmillRepository(directory: root.appending(path: "reentrant")).load(calendar: calendar)
+        expect(terminated.current?.sample.steps == 100, "Termination flushes the last counters without hardware commands")
     }
 }
