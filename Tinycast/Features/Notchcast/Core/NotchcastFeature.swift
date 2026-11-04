@@ -17,6 +17,25 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case keepAwake, lidClosedAwake
     case downloads, downloadsAria2, distill, distillTimestamps, distillConvert
 
+    enum SettingsGroup: Sendable {
+        case island, islandOptions, launcher, system, activities
+    }
+
+    var settingsGroup: SettingsGroup {
+        switch self {
+        case .island: .island
+        case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
+             .islandStatusMessages, .islandLiveActivities: .islandOptions
+        case .launcherFromIsland: .launcher
+        case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
+             .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
+             .batterySailing, .batteryHeatProtection, .batteryCalibration,
+             .keepAwake, .lidClosedAwake: .system
+        case .liveTimers, .dayWeather, .dayMarkets, .downloads, .downloadsAria2, .distill,
+             .distillTimestamps, .distillConvert: .activities
+        }
+    }
+
     var title: String {
         switch self {
         case .island: String(localized: "Island")
