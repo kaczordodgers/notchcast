@@ -2,6 +2,7 @@
 """Inspect added lines, metadata and bundle strings; never print matched content."""
 import argparse
 import re
+import runpy
 import subprocess
 from pathlib import Path
 
@@ -12,6 +13,7 @@ PATTERNS = {
 }
 ALLOW_FILES = {"notchcast/check-identity.py": "guard pattern definitions"}
 HEAD = "HEAD"
+ALLOWED = runpy.run_path(str(Path(__file__).with_name("check-commit-emails.py")))["ALLOWED"]
 
 
 def git(*args):
@@ -97,7 +99,14 @@ def main():
     if args.mode == "staged":
         failed = diff(base, staged=True)
         for role in ("AUTHOR", "COMMITTER"):
-            failed |= inspect(git("var", f"GIT_{role}_IDENT"), role.lower())
+            identity = git("var", f"GIT_{role}_IDENT")
+            email = identity.rsplit("<", 1)[1].split(">", 1)[0]
+            if email not in ALLOWED:
+                print(f"check-identity: {role.lower()}: non-allowed email; "
+                      "fix with git config user.email "
+                      "336236323+kaczordodgers@users.noreply.github.com")
+                failed = True
+            failed |= inspect(identity, role.lower())
         return failed
     failed = False
     if args.mode in ("history", "diff"):
