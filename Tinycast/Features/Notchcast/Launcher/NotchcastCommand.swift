@@ -14,6 +14,6 @@ struct NotchcastCommand: Sendable {
     var entry: AppEntry {
         AppEntry(id: legacyID ?? id, name: name,
                  url: URL(string: "notchcast://command/nc-" + slug)!, bundleID: nil,
-                 kind: .command, settingsOwner: owner)
+                 kind: .command, symbolName: sfSymbol, settingsOwner: owner)
     }
 }
