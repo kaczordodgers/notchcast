@@ -38,9 +38,15 @@ struct ColorPickerTests {
             return true
         })
         precondition(service.format == .hex)
-        service.pick(isEnabled: false) { _ in fatalError("Disabled") }
+        service.pick(isEnabled: false) { precondition(!$0) }
         precondition(callback == nil)
         service.pick(isEnabled: true) { precondition($0) }
+        var busyCompleted = false
+        service.pick(isEnabled: true) {
+            precondition(!$0)
+            busyCompleted = true
+        }
+        precondition(busyCompleted)
         callback?(NSColor.red)
         precondition(copied == ["#FF0000"])
         service.format = .rgb
@@ -48,8 +54,14 @@ struct ColorPickerTests {
         service.pick(isEnabled: true) { _ in fatalError("Stale result") }
         let stale = callback
         service.stop()
-        service.pick(isEnabled: true) { precondition(!$0) }
+        var stoppedCompleted = false
+        service.pick(isEnabled: true) {
+            precondition(!$0)
+            stoppedCompleted = true
+        }
+        precondition(stoppedCompleted)
         stale?(NSColor.blue)
+        service.pick(isEnabled: true) { precondition(!$0) }
         callback?(nil)
         precondition(copied.count == 1)
         print("ColorPicker: all checks passed")

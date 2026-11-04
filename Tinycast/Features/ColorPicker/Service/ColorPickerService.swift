@@ -6,6 +6,7 @@ final class ColorPickerService {
     private let sample: (@escaping @MainActor (NSColor?) -> Void) -> Void
     private let copy: (String) -> Bool
     private var operation: UUID?
+    private var isStopped = false
     private static let formatKey = "notchcast.colorPicker.format"
 
     var format: ColorPickerFormat {
@@ -16,7 +17,8 @@ final class ColorPickerService {
     }
 
     init(
-        defaults: UserDefaults = .standard,
+        defaults: UserDefaults = UserDefaults(suiteName:
+            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
         sample: @escaping (@escaping @MainActor (NSColor?) -> Void) -> Void = { completion in
             NSColorSampler().show { color in
                 Task { @MainActor in completion(color) }
@@ -33,13 +35,18 @@ final class ColorPickerService {
     }
 
     func pick(isEnabled: Bool, completion: @escaping (Bool) -> Void) {
-        guard isEnabled, operation == nil else { return }
+        guard isEnabled, operation == nil else {
+            completion(false)
+            return
+        }
         let identity = UUID()
         operation = identity
+        isStopped = false
         let selectedFormat = format
         sample { [weak self] color in
             guard let self, self.operation == identity else { return }
             self.operation = nil
+            guard !self.isStopped else { return }
             guard let color, let value = Self.sRGBValue(for: color) else {
                 completion(false)
                 return
@@ -49,7 +56,7 @@ final class ColorPickerService {
     }
 
     func stop() {
-        operation = nil
+        isStopped = true
     }
 
     static func sRGBValue(for color: NSColor) -> ColorValue? {
