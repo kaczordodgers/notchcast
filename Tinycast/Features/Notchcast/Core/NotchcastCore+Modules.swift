@@ -99,8 +99,9 @@ extension NotchcastCore {
         let trigger = makeDictationTrigger(core)
         dictationTrigger = trigger
         let voiceRecording = VoiceAskRecording(core: core)
-        let voiceAskModule = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel)
+        let voiceAskModule = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel, message: { [weak core] in core?.showMessage($0, tone: $1) })
         self.voiceAsk = voiceAskModule
+        voiceAskModule.configure(transport: VoiceAskCLITransport.production())
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)
         let plainPasteModule = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = plainPasteModule

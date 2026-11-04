@@ -6,6 +6,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 import Foundation
 
+enum DialogTone { case success, danger }
+
 @MainActor
 final class FakeTransport: VoiceAskTransport {
     var texts: [String] = []
