@@ -8,6 +8,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 GROUPS = FEATURE.with_name("NotchcastFeature+SettingsGroup.swift")
+# Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
+LISTS = {
+    Path("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift"): r"module: ([\w.]+)",
+    Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
+}
 
 
 def mask_literals(source):
@@ -75,6 +80,36 @@ def case_errors(code):
     return errors
 
 
+def list_errors(source, identity):
+    errors = []
+    code = mask_literals(source).split("\n")
+    names = {}
+    entries = {}
+    depth = 0
+    for number, (line, masked) in enumerate(zip(source.split("\n"), code), 1):
+        declared = re.match(r"\s*(?:private )?static (?:let|var) (\w+)", masked)
+        if declared:
+            name = declared[1]
+            if name in names:
+                errors.append((number, f"repeated static {name} (first declared on line {names[name]})"))
+            names.setdefault(name, number)
+        balance = sum(masked.count(c) for c in "([") - sum(masked.count(c) for c in ")]")
+        if depth and masked.strip() != "]":
+            if balance or not masked.rstrip().endswith(","):
+                errors.append((number, "keep each list entry on one line, ending with a comma"))
+            else:
+                key = re.search(identity, line.strip())
+                key = key[1] if key else line.strip()
+                if key in entries:
+                    errors.append((number, f"repeated entry {key} (first on line {entries[key]})"))
+                entries.setdefault(key, number)
+        if masked.rstrip().endswith("[") and balance == 1:
+            depth = 1
+        elif depth and masked.strip() == "]":
+            depth = 0
+    return errors
+
+
 def check(root):
     errors = []
     declarations = {"NotchcastFeature": [], "SettingsGroup": []}
@@ -89,6 +124,13 @@ def check(root):
             for match in re.finditer(rf"\benum\s+{name}\b", code):
                 declarations[name].append((path, code.count("\n", 0, match.start()) + 1))
         errors.extend(f"{path}:{line}: {message}" for line, message in case_errors(code))
+    for path, identity in LISTS.items():
+        try:
+            source = (root / path).read_text()
+        except OSError as error:
+            errors.append(f"{path}:1: {error}")
+            continue
+        errors.extend(f"{path}:{line}: {message}" for line, message in list_errors(source, identity))
     for name, locations in declarations.items():
         if len(locations) != 1:
             path, number = locations[-1] if locations else (FEATURE, 1)
@@ -104,7 +146,7 @@ def main():
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print("PASS: feature cases and switch arms use one line per feature, with no repeated cases")
+    print("PASS: feature cases, switch arms, modules and search entries use one line each, with no repeats")
     return 0
 
 
