@@ -1,3 +1,5 @@
+import Foundation
+
 @MainActor
 enum NotchcastCore {
     static let lowDisk = LowDiskModule()
@@ -13,8 +15,11 @@ enum NotchcastCore {
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
+    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(
+        defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".editor")!))
 
     static func stopForTermination() async {
+        await editor.flushForTermination()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -29,6 +34,7 @@ enum NotchcastCore {
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
+            .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
                 .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),

@@ -15,6 +15,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case markdownFiles
+    case plainTextFiles
+    case editorSpellChecking
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -26,6 +29,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
              .islandStatusMessages, .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .markdownFiles, .plainTextFiles, .editorSpellChecking: .system
         case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
              .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
@@ -60,6 +64,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .markdownFiles: String(localized: "Markdown Files")
+        case .plainTextFiles: String(localized: "Plain Text Files")
+        case .editorSpellChecking: String(localized: "Editor Spell Checking")
         }
     }
 
@@ -89,12 +96,16 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .markdownFiles: String(localized: "Edit Markdown documents outside the notes folder.")
+        case .plainTextFiles: String(localized: "Edit plain text while preserving its file encoding.")
+        case .editorSpellChecking: String(localized: "Check spelling in the editor.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .markdownFiles, .plainTextFiles, .editorSpellChecking: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
@@ -108,7 +119,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        ![.displayBrightness, .quitProtection, .markdownFiles, .plainTextFiles, .editorSpellChecking].contains(self)
+            && !isSystemFeature
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
