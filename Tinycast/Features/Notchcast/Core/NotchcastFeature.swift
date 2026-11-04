@@ -11,6 +11,24 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case archives
+    case archivesInPlace
+    case archivesDefaultApp
+
+    var defaultOn: Bool {
+        switch self {
+        case .archivesInPlace, .archivesDefaultApp: false
+        default: true
+        }
+    }
+
+    var dependencies: [Self] {
+        switch self {
+        case .island: []
+        case .archivesInPlace, .archivesDefaultApp: [.archives]
+        default: needsIsland ? [.island] : []
+        }
+    }
 
     var title: String {
         switch self {
@@ -29,6 +47,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .archives: String(localized: "Archives")
+        case .archivesInPlace: String(localized: "Extract in place")
+        case .archivesDefaultApp: String(localized: "Open archives with Notchcast")
         }
     }
 
@@ -49,6 +70,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .archives: String(localized: "Extract opened archives beside the original file.")
+        case .archivesInPlace: String(localized: "The archive shrinks while extracting.")
+        case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.")
         }
     }
 
@@ -60,13 +84,20 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
             []
+        case .archives, .archivesInPlace, .archivesDefaultApp: []
         }
     }
 }
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool {
+        switch self {
+        case .displayBrightness, .quitProtection: false
+        case .archives, .archivesInPlace, .archivesDefaultApp: false
+        default: true
+        }
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

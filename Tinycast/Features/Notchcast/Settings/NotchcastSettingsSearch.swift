@@ -9,6 +9,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
 }
 
 extension SettingsSearchCatalog {
@@ -31,5 +32,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastArchives, "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
+        .init(.notchcastArchives, "Extract in place", keywords: ["shrink", "space", "destructive"]),
+        .init(.notchcastArchives, "Open archives with Notchcast", keywords: ["default", "handler", "Archive Utility"]),
     ]
 }

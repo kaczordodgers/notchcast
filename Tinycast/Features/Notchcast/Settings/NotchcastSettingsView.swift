@@ -15,7 +15,7 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter { $0 != .island && !$0.isArchiveSetting }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
@@ -51,6 +51,7 @@ struct NotchcastSettingsView: View {
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
             }
+            NotchcastArchiveSettings()
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.notchcast)
