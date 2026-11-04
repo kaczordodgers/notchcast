@@ -61,5 +61,6 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastActivities, "Media Tools", keywords: ["compress", "gif", "resize", "text"]),
     ]
 }
