@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/DocumentEditor/Service/*.swift
 // notchcast-sources: Tinycast/Features/DocumentEditor/EditorCoordinator.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteDocument.swift
