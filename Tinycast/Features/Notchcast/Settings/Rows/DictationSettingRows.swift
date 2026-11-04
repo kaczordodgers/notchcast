@@ -11,6 +11,7 @@ struct DictationCleanupEndpointSettingRow: View {
         })) {
             SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup endpoint")
         }
+        .textFieldStyle(.roundedBorder)
     }
 }
 
@@ -43,6 +44,7 @@ struct DictationCleanupPromptSettingRow: View {
         }), axis: .vertical) {
             SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup prompt addition")
         }
+        .textFieldStyle(.roundedBorder)
     }
 }
 
@@ -55,6 +57,7 @@ struct DictationCleanupVocabularySettingRow: View {
             SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup vocabulary")
             Text("One spelling per line; separate misheard forms with |.")
         }
+        .textFieldStyle(.roundedBorder)
         .onAppear {
             vocabularyText = module.settings.vocabulary.map {
                 ([$0.spelling] + $0.misheardForms).joined(separator: " | ")

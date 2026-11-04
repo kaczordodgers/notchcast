@@ -423,8 +423,10 @@ struct NotchcastKeyRepeatDelaySettingRow: View {
 struct NotchcastShowLibrarySettingRow: View {
 
     var body: some View {
-        Button {
-            Task { await NotchcastCore.finderTweaks.showLibrary() }
+        LabeledContent {
+            Button("Show") {
+                Task { await NotchcastCore.finderTweaks.showLibrary() }
+            }
         } label: {
             SettingsRowTitle(.notchcastTweaksApps, "Show library")
             Text("Make your Library folder visible in Finder.")

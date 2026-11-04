@@ -41,6 +41,7 @@ struct RemoteMacAddressSettingRow: View {
 
     var body: some View {
         TextField("Remote Mac address", text: $preferences.remoteMacAddress)
+            .textFieldStyle(.roundedBorder)
             .settingsAnchor(.notchcastRemoteMac)
     }
 }
@@ -50,6 +51,7 @@ struct RemoteTerminalDirectorySettingRow: View {
 
     var body: some View {
         TextField("Remote terminal directory", text: $preferences.remoteTerminalDirectory)
+            .textFieldStyle(.roundedBorder)
     }
 }
 
@@ -58,5 +60,6 @@ struct RemoteUpdateScriptSettingRow: View {
 
     var body: some View {
         TextField("Remote update script path", text: $preferences.remoteUpdatePath)
+            .textFieldStyle(.roundedBorder)
     }
 }

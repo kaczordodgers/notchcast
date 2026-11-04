@@ -16,8 +16,10 @@ struct NotchcastAppleRestrictionSettingRow: View {
     let title: LocalizedStringResource
 
     var body: some View {
-        Button {
-            Task { await NotchcastCore.appleAppsTweaks.handOffProfile(restriction) }
+        LabeledContent {
+            Button("Install…") {
+                Task { await NotchcastCore.appleAppsTweaks.handOffProfile(restriction) }
+            }
         } label: {
             SettingsRowTitle(.notchcastTweaksApps, title)
             Text("macOS requires your approval to install this restriction; remove it in System Settings.")
