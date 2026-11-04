@@ -87,6 +87,7 @@ struct DictationHistoryTests {
         preferences.set(.dictationHistory, true)
         controller.run()
         await module.record(raw: "fallback fixture", cleaned: "fallback fixture")
+        await module.waitUntilIdle()
         let fallback = try repository.recent()
         precondition(fallback.count == 1)
         try await module.deleteAll()
