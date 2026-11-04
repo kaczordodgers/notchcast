@@ -33,6 +33,7 @@ extension SettingsAnchor {
     static let notchcastAIUsage = Self(tab: .notchcast, title: "Mac link")
     static let notchcastTorrents = Self(tab: .notchcast, title: "Torrents")
     static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
+    static let notchcastRemoteMac = Self(tab: .notchcast, title: LocalizedStringResource("Remote Mac"))
     static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
     static let notchcastCaptureAndDictation = Self(tab: .notchcast, title: "Capture and dictation")
 }

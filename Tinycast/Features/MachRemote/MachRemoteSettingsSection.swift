@@ -15,7 +15,3 @@ struct MachRemoteSettingsSection: View {
         .settingsEnabled(preferences.isOn(.machRemote))
     }
 }
-
-extension SettingsAnchor {
-    static let notchcastRemoteMac = Self(tab: .notchcast, title: LocalizedStringResource("Remote Mac"))
-}
