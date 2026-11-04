@@ -44,10 +44,12 @@ struct AIUsageWiringTest {
         let accepted = try routed.value(as: Bool.self)
         precondition(accepted)
         var missingNotices: [String] = []
+        preferences.aiUsageCachePath = directory.path
         let unconfigured = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
         unconfigured.start()
         try await unconfigured.refresh()
-        precondition(missingNotices == [String(localized: "AI usage cache directory is not configured.")])
+        precondition(missingNotices.isEmpty)
+        precondition(unconfigured.snapshots.first?.windows.first?.used == 42)
         unconfigured.stop()
         let controller = NotchcastModuleController([
             .init(requires: [.aiUsage], module: module),
