@@ -51,16 +51,14 @@ struct ColorPickerTests {
         precondition(copied == ["#FF0000"])
         service.format = .rgb
         precondition(ColorPickerService(defaults: defaults).format == .rgb)
-        service.pick(isEnabled: true) { _ in fatalError("Stale result") }
+        var stopCompletions = 0
+        service.pick(isEnabled: true) { precondition(!$0); stopCompletions += 1 }
         let stale = callback
         service.stop()
-        var stoppedCompleted = false
-        service.pick(isEnabled: true) {
-            precondition(!$0)
-            stoppedCompleted = true
-        }
-        precondition(stoppedCompleted)
+        service.stop()
+        precondition(stopCompletions == 1)
         stale?(NSColor.blue)
+        precondition(stopCompletions == 1)
         service.pick(isEnabled: true) { precondition(!$0) }
         callback?(nil)
         precondition(copied.count == 1)

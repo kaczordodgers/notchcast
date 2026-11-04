@@ -13,8 +13,8 @@ enum ColorPickerFormat: String, CaseIterable, Sendable {
         case .hex: return ColorFormat.hex.string(for: color)
         case .hexLowercase: return ColorFormat.hex.string(for: color).lowercased()
         case .rgb:
-            return "rgb(\(Int((color.red * 255).rounded())), \(Int((color.green * 255).rounded())), "
-                + "\(Int((color.blue * 255).rounded())))"
+            let rgba = ColorFormat.rgba.string(for: color)
+            return "rgb(" + rgba.dropFirst(5).split(separator: ",").prefix(3).joined(separator: ",") + ")"
         case .hsl: return ColorFormat.hsl.string(for: color)
         case .swiftUIColor:
             return "Color(.sRGB, red: \(Self.decimal(color.red)), green: \(Self.decimal(color.green)), "
