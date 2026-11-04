@@ -55,6 +55,16 @@ struct AgentSessionTests {
         expect(result.sessions.count == 1, "Shared native identity stays one session")
         expect(result.sessions[0].usage.reduce(Int64(0)) { $0 + $1.tokens.input } == 300,
                "Parent and subagent usage must both survive")
+        let copyRoot = root.deletingLastPathComponent().appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: copyRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: copyRoot) }
+        try FileManager.default.copyItem(at: root.appendingPathComponent("session.jsonl"),
+                                         to: copyRoot.appendingPathComponent("session.jsonl"))
+        var copied = AgentSessionIndex(calendar: index.calendar)
+        let bothRoots = try copied.refresh(roots: [.init(provider: .claude, url: root),
+                                                   .init(provider: .claude, url: copyRoot)])
+        expect(bothRoots.sessions[0].usage.reduce(Int64(0)) { $0 + $1.tokens.input } == 300,
+               "A file copied between roots counts once")
         let unchanged = try index.refresh(roots: [.init(provider: .claude, url: root)])
         expect(unchanged.sessions == result.sessions, "Shared usage is stable across refreshes")
     }
