@@ -23,6 +23,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case colorPicker
     case screenshot
     case dictationCleanup
+    case dictationHistory
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -43,6 +44,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .colorPicker: .captureAndDictation
         case .screenshot: .captureAndDictation
         case .dictationCleanup: .captureAndDictation
+        case .dictationHistory: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -89,6 +91,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .colorPicker: String(localized: "Color Picker")
         case .screenshot: String(localized: "Screenshots")
         case .dictationCleanup: String(localized: "AI cleanup")
+        case .dictationHistory: String(localized: "Keep dictation history")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -123,6 +126,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
         case .screenshot: String(localized: "Capture an area, window or display.")
         case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
+        case .dictationHistory: String(localized: "Keep dictation history")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -153,6 +157,7 @@ extension NotchcastFeature {
         case .colorPicker: false
         case .screenshot: false
         case .dictationCleanup: false
+        case .dictationHistory: false
         case .displayBrightness: false
         case .quitProtection: false
         default: true

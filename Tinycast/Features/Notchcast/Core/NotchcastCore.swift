@@ -1,3 +1,5 @@
+import Foundation
+
 @MainActor
 enum NotchcastCore {
     static let linkQuickFixes = LinkQuickFixModule()
@@ -14,6 +16,8 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let dictationHistory = DictationHistoryModule(repository: .init(
+        directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
     static let dictationCleanup = DictationCleanupModule.live()
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
@@ -28,6 +32,14 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        dictationHistory.onFailure = { [weak core] in
+            core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+        }
+        DictationCleanup.transcriptObserver = { raw, cleaned in
+            dictationHistory.enqueue(raw: raw, cleaned: cleaned)
+        }
+        dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
+        Task { await dictationHistory.maintain() }
         dictationCleanup.reportFailure = { [weak core] in
             core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
         }
@@ -55,6 +67,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
