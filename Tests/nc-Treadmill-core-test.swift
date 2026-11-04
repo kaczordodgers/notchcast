@@ -8,6 +8,7 @@
 import Foundation
 
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillCommands.swift
+// notchcast-sources: Tinycast/Features/Treadmill/TreadmillConfirmation.swift Tinycast/Windows/Dialog/DialogRequest.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift Tests/Fixtures/DeviceCommandStubs.swift
 @MainActor enum NotchcastCore {
     static var treadmill: TreadmillCoordinator { fatalError("Inject fake coordinator") }

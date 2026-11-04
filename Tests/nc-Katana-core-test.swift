@@ -11,6 +11,7 @@
 import Foundation
 
 // notchcast-sources: Tinycast/Features/Katana/KatanaCommands.swift
+// notchcast-sources: Tinycast/Features/Katana/KatanaConfirmation.swift Tinycast/Windows/Dialog/DialogRequest.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift Tests/Fixtures/DeviceCommandStubs.swift
 @MainActor enum NotchcastCore {
     static var katana: KatanaModule { fatalError("Inject fake module") }
