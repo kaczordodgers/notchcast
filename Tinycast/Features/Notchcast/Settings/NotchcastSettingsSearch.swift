@@ -140,16 +140,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastTweaks, "Startup Items", keywords: ["launchagents"]),
+        .init(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"]),
+        .init(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"]),
+        .init(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"]),
     ]
-    ] + NotchcastFeature.systemToolsSettingsFeatures.map {
-        switch $0 {
-        case .startupItems:
-            SettingsSearchEntry(.notchcastTweaks, "Startup Items", keywords: ["launchagents"])
-        case .notificationCleanup:
-            SettingsSearchEntry(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"])
-        case .sudoTouchID:
-            SettingsSearchEntry(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"])
-        default: SettingsSearchEntry(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"])
-        }
-    }
 }
