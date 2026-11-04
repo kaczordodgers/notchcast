@@ -24,7 +24,9 @@ struct AgentChatToolsSettingsSection: View {
                 .disabled(!module.isRunning)
             }
         } label: {
-            Text(module.isAdded ? String(localized: "Added") : String(localized: "Not added"))
+            Text(module.isAdded
+                 ? (core.mcpCoordinator.isActive ? String(localized: "Added") : String(localized: "Disabled"))
+                 : String(localized: "Not added"))
         }
     }
 }
