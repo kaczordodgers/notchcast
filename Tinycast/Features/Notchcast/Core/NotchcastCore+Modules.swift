@@ -32,6 +32,7 @@ extension NotchcastCore {
     static let dictationCleanup = DictationCleanupModule.live()
     static let captureTrimmer = CaptureTrimmerModule.live()
     static let agentAnswer = AgentAnswerModule()
+    static let recording = RecordingModule()
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
@@ -73,6 +74,7 @@ extension NotchcastCore {
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.captureTrimmer], module: captureTrimmer),
             .init(requires: [.agentAnswer], module: agentAnswer),
+            .init(requires: [.recording], module: recording),
             .init(requires: [.voiceAsk], module: voiceAsk),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
