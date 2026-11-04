@@ -2,7 +2,7 @@ enum ClearNotificationsScript {
     static let source = """
         on panelOpen()
             tell application "System Events" to tell process "NotificationCenter"
-                return exists window "Notification Center"
+                return (count of windows) > 0
             end tell
         end panelOpen
 
@@ -13,8 +13,7 @@ enum ClearNotificationsScript {
                         click menu bar item 1 of (last group of menu bar 1)
                     end tell
                 on error
-                    tell application "Finder" to set {x0, y0, x1, y1} to bounds of window of desktop
-                    click at {x1 - 40, 12}
+                    error "notification-center-unavailable" number -10001
                 end try
             end tell
         end toggleClock
@@ -60,7 +59,7 @@ enum ClearNotificationsScript {
 
         on clearAllViaMenu()
             tell application "System Events" to tell process "NotificationCenter"
-                set w to window "Notification Center"
+                set w to window 1
                 set mb to my findElement(w, "AXMenuButton", "Clear Notifications…", 0)
                 if mb is missing value then return false
                 perform action "AXPress" of mb
@@ -107,7 +106,7 @@ enum ClearNotificationsScript {
             end if
             set alerts to {}
             tell application "System Events" to tell process "NotificationCenter"
-                if not my collectAlerts(window "Notification Center", 0, alerts) then ¬
+                if not my collectAlerts(window 1, 0, alerts) then ¬
                     error "notification-tree-unreadable" number -10002
             end tell
             return alerts

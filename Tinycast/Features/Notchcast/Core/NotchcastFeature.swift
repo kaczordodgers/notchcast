@@ -58,10 +58,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .githubSearch: String(localized: "Search GitHub repositories and starred projects.")
-        case .clearNotifications: String(localized: "Clear notifications from Notification Center.")
+        case .clearNotifications:
+            String(localized: "Clear notifications from Notification Center. Requires English system language.")
         case .launcherAnswers: String(localized: "Currency answers using rates from NBP.")
         case .copyPath: String(localized: "Copy the frontmost document path or browser link.")
-        case .smallCommands: String(localized: "Passwords, short links, noise control and AirDrop.")
+        case .smallCommands:
+            String(localized:
+                "Passwords, short links, noise control and AirDrop. Noise control requires English system language.")
         }
     }
 

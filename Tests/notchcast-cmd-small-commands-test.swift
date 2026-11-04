@@ -85,6 +85,15 @@ struct SmallCommandsTest {
     }
 
     static func shortening() async throws {
+        for host in ["localhost", "127.0.0.1", "10.0.0.1", "172.16.0.1", "172.31.255.255",
+                     "192.168.1.1", "169.254.1.2", "[::1]", "[fe80::1]", "[fc00::1]",
+                     "[::ffff:192.168.1.1]", "127.1", "2130706433"] {
+            do {
+                _ = try await ShortenLinkService { _ in preconditionFailure("Private host disclosed: \(host)") }
+                    .shorten("http://\(host)/secret")
+                preconditionFailure("Private host accepted: \(host)")
+            } catch ShortenLinkService.Failure.noLink {}
+        }
         precondition(ShortenLinkService.pick(argument: "invalid", frontAddress: "https://example.com", clipboard: nil) == nil)
         precondition(ShortenLinkService.pick(argument: "", frontAddress: nil, clipboard: "Read https://example.com/a") != nil)
         precondition(ShortenLinkService.pick(argument: "example.com", frontAddress: nil, clipboard: nil) != nil)

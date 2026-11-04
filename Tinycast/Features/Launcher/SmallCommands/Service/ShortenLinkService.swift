@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 struct ShortenLinkService: Sendable {
     enum Failure: Error, Equatable { case noLink, unavailable }
@@ -19,7 +20,8 @@ struct ShortenLinkService: Sendable {
     func shorten(_ address: String) async throws -> String {
         try Task.checkCancellation()
         guard let link = CopyPathEngine.cleanLink(address),
-            !link.contains(where: \.isWhitespace) else { throw Failure.noLink }
+            !link.contains(where: \.isWhitespace),
+            let host = URL(string: link)?.host(), !Self.isPrivate(host) else { throw Failure.noLink }
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
         guard let encoded = link.addingPercentEncoding(withAllowedCharacters: allowed),
             let url = URL(string: "https://tinyurl.com/api-create.php?url=" + encoded) else { throw Failure.noLink }
@@ -42,6 +44,30 @@ struct ShortenLinkService: Sendable {
             if let url = match.url, let clean = CopyPathEngine.cleanLink(url.absoluteString) { return clean }
         }
         return nil
+    }
+
+    private static func isPrivate(_ raw: String) -> Bool {
+        let host = raw.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "[]."))
+        if host == "localhost" || host.hasSuffix(".localhost") || host.hasSuffix(".local") { return true }
+        var ipv4 = in_addr()
+        if inet_aton(host, &ipv4) == 1 {
+            let value = UInt32(bigEndian: ipv4.s_addr)
+            let first = value >> 24
+            let second = (value >> 16) & 255
+            return first == 0 || first == 10 || first == 127
+                || (first == 169 && second == 254) || (first == 172 && (16...31).contains(second))
+                || (first == 192 && second == 168)
+        }
+        var ipv6 = in6_addr()
+        if inet_pton(AF_INET6, host, &ipv6) == 1 {
+            let bytes = withUnsafeBytes(of: ipv6) { Array($0) }
+            if bytes.prefix(10).allSatisfy({ $0 == 0 }), bytes[10] == 255, bytes[11] == 255 {
+                return isPrivate(bytes.suffix(4).map(String.init).joined(separator: "."))
+            }
+            return bytes.prefix(15).allSatisfy { $0 == 0 } && bytes[15] <= 1
+                || bytes[0] & 254 == 252 || (bytes[0] == 254 && bytes[1] & 192 == 128)
+        }
+        return false
     }
 
     private static func fetch(_ request: URLRequest) async throws -> (Data, Int) {
