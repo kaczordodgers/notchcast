@@ -6,4 +6,8 @@ enum DictationIslandHUDPolicy {
         guard enabled, islandAvailable else { return .capsule }
         return phase == .listening ? .listening : .transcribing
     }
+
+    static func shouldShowProgress(presentation: Presentation, ownsMessage: Bool) -> Bool {
+        presentation != .capsule && !ownsMessage
+    }
 }

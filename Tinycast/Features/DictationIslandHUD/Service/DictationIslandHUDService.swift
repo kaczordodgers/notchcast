@@ -39,7 +39,8 @@ final class DictationIslandHUDService {
         guard let panel, let state else { return }
         let current = generation
         let presentation = withObservationTracking {
-            DictationIslandHUDPolicy.presentation(
+            _ = IslandActivityCenter.shared.message
+            return DictationIslandHUDPolicy.presentation(
                 phase: state.phase == .listening ? .listening : .transcribing,
                 enabled: NotchcastPreferences.shared.isOn(.dictationIslandHUD),
                 islandAvailable: NotchcastPreferences.shared.isOn(.island)
@@ -58,6 +59,11 @@ final class DictationIslandHUDService {
         }
         let text = presentation == .listening
             ? String(localized: "Dictation listening") : String(localized: "Transcribing dictation")
+        let message = IslandActivityCenter.shared.message
+        guard DictationIslandHUDPolicy.shouldShowProgress(
+            presentation: presentation,
+            ownsMessage: message != nil && message?.id == messageID
+                && message?.text == text && message?.isProgress == true) else { return }
         guard IslandHUDRouter.showProgress(text, onCancel: nil) else {
             dismiss()
             panel.setFrameOrigin(origin)
