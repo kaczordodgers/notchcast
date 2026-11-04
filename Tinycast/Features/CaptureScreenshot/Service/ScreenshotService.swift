@@ -27,16 +27,6 @@ enum ScreenshotService {
         }
         let data = try await png(request)
         try Task.checkCancellation()
-        guard isEnabled() else { throw ScreenshotRequest.Failure.disabled }
-        let file: URL?
-        switch destination {
-        case .clipboard:
-            file = nil
-        case .file(let folder), .both(let folder):
-            file = try await save(data, folder: folder)
-        }
-        try Task.checkCancellation()
-        guard isEnabled() else { throw ScreenshotRequest.Failure.disabled }
         switch destination {
         case .clipboard, .both:
             let item = NSPasteboardItem()
@@ -50,7 +40,12 @@ enum ScreenshotService {
         case .file:
             break
         }
-        return file
+        switch destination {
+        case .clipboard:
+            return nil
+        case .file(let folder), .both(let folder):
+            return try await save(data, folder: folder)
+        }
     }
 
     @concurrent
@@ -61,15 +56,24 @@ enum ScreenshotService {
         configuration.ignoreShadows = true
         configuration.dynamicRange = .sdr
         let output: SCScreenshotOutput
+        let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+        try Task.checkCancellation()
+        let ownApplications = content.applications.filter {
+            $0.processID == ProcessInfo.processInfo.processIdentifier
+                || $0.bundleIdentifier == Bundle.main.bundleIdentifier
+        }
         switch request {
         case .rect(let rect):
             guard ScreenshotFilename.isValid(rect: rect) else {
                 throw ScreenshotRequest.Failure.invalidRect
             }
-            output = try await SCScreenshotManager.captureScreenshot(rect: rect, configuration: configuration)
+            guard let display = content.displays.first(where: { $0.frame.contains(rect) }) else {
+                throw ScreenshotRequest.Failure.targetUnavailable
+            }
+            let filter = SCContentFilter(display: display, excludingApplications: ownApplications, exceptingWindows: [])
+            configuration.sourceRect = rect.offsetBy(dx: -display.frame.minX, dy: -display.frame.minY)
+            output = try await SCScreenshotManager.captureScreenshot(contentFilter: filter, configuration: configuration)
         case .window, .display:
-            let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
-            try Task.checkCancellation()
             let filter: SCContentFilter
             switch request {
             case .window(let id):
@@ -81,7 +85,7 @@ enum ScreenshotService {
                 guard let display = content.displays.first(where: { $0.displayID == id }) else {
                     throw ScreenshotRequest.Failure.targetUnavailable
                 }
-                filter = SCContentFilter(display: display, excludingWindows: [])
+                filter = SCContentFilter(display: display, excludingApplications: ownApplications, exceptingWindows: [])
             case .rect:
                 throw ScreenshotRequest.Failure.invalidRect
             }
