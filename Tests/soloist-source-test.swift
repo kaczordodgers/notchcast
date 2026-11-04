@@ -143,7 +143,7 @@ struct SoloistSourceTest {
             let object = try JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any]
             precondition(object?["volume"] as? Int == (level < 0 ? 0 : 100))
         }
-        for event in ["track_changed", "position_sync", "queue_changed", "playback_changed"] {
+        for event in ["track_changed", "position_sync", "queue_changed", "playback_changed", "options_changed"] {
             let parsed = try SoloistProtocol.parse("{\"type\":\"\(event)\"}", now: now)
             precondition(parsed == .changed)
         }
@@ -177,16 +177,36 @@ struct SoloistSourceTest {
         precondition(loggedOut == nil)
         server.loggedIn = true
         server.sendAuth(server.connections[0])
-        try await wait { changes >= 5 && server.commands.count == 3 }
+        try await wait { changes >= 5 && server.commands.count == 4 }
+        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"])
         let received = try await source.read()
         precondition(received == track)
         precondition(changes >= 2)
         commands.forEach { source.send($0.0) }
-        try await wait { server.commands.count == 10 }
-        precondition(Array(server.commands.dropFirst(3)) == commands.map(\.1))
-        server.send(#"{"type":"queue_changed"}"#, server.connections[0])
         try await wait { server.commands.count == 11 }
-        precondition(server.commands.last == "get_state")
+        precondition(Array(server.commands.dropFirst(4)) == commands.map(\.1))
+        precondition(source.queue == nil)
+        server.send(#"{"type":"queue_changed"}"#, server.connections[0])
+        try await wait { server.commands.count == 13 }
+        try await Task.sleep(for: .milliseconds(200))
+        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"])
+        source.receive(#"{"type":"get_queue","queue":[]}"#)
+        server.send(#"{"type":"queue_changed"}"#, server.connections[0])
+        try await wait { server.commands.count == 15 }
+        try await Task.sleep(for: .milliseconds(200))
+        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"])
+        for payload in [
+            #"{"type":"get_queue","queue":null}"#,
+            #"{"type":"get_queue","tracks":[{"title":"Next"}]}"#,
+            #"{"type":"get_queue","queue":["spotify:track:x"]}"#
+        ] {
+            source.receive(#"{"type":"get_queue","queue":[]}"#)
+            let count = server.commands.count
+            source.receive(payload)
+            precondition(source.queue == nil)
+            try await Task.sleep(for: .milliseconds(200))
+            precondition(server.commands.count == count, "Unreadable queue must not request another queue")
+        }
         let coverServer = try CoverServer()
         defer { coverServer.stop() }
         try await wait { coverServer.listener.port != nil && coverServer.port > 0 }
