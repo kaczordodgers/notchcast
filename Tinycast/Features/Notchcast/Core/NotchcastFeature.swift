@@ -1,9 +1,15 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
-    case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
-    case islandStatusMessages, islandLiveActivities, launcherFromIsland
-    case systemMonitor, fanControl
+    case island
+    case islandExternalDisplays
+    case islandFullScreen
+    case islandHoverOpen
+    case islandStatusMessages
+    case islandLiveActivities
+    case launcherFromIsland
+    case systemMonitor
+    case fanControl
     case monitorAlerts
     case lowDiskWarning
     case systemNotices
@@ -11,30 +17,51 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case displayBrightness
     case quitProtection
     case liveTimers
+    case dayCalendar
     case dayWeather
     case dayMarkets
     case colorPicker
     case screenshot
     case recording
-    case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
-    case keepAwake, lidClosedAwake
-
-    enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities, captureAndDictation
-    }
+    case batteryChargeLimit
+    case batterySailing
+    case batteryHeatProtection
+    case batteryCalibration
+    case keepAwake
+    case lidClosedAwake
+    case linkQuickFixes
 
     var settingsGroup: SettingsGroup {
         switch self {
         case .island: .island
-        case .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-             .islandStatusMessages, .islandLiveActivities: .islandOptions
+        case .islandExternalDisplays: .islandOptions
+        case .islandFullScreen: .islandOptions
+        case .islandHoverOpen: .islandOptions
+        case .islandStatusMessages: .islandOptions
+        case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
-        case .systemMonitor, .fanControl, .monitorAlerts, .lowDiskWarning, .systemNotices,
-             .volumeLevels, .displayBrightness, .quitProtection, .batteryChargeLimit,
-             .batterySailing, .batteryHeatProtection, .batteryCalibration,
-             .keepAwake, .lidClosedAwake: .system
-        case .liveTimers, .dayWeather, .dayMarkets: .activities
-        case .colorPicker, .screenshot, .recording: .captureAndDictation
+        case .colorPicker: .captureAndDictation
+        case .screenshot: .captureAndDictation
+        case .recording: .captureAndDictation
+        case .systemMonitor: .systemTools
+        case .fanControl: .systemTools
+        case .monitorAlerts: .systemTools
+        case .lowDiskWarning: .system
+        case .systemNotices: .system
+        case .volumeLevels: .system
+        case .displayBrightness: .system
+        case .quitProtection: .system
+        case .batteryChargeLimit: .systemTools
+        case .batterySailing: .systemTools
+        case .batteryHeatProtection: .systemTools
+        case .batteryCalibration: .systemTools
+        case .keepAwake: .systemTools
+        case .lidClosedAwake: .systemTools
+        case .linkQuickFixes: .systemTools
+        case .liveTimers: .activities
+        case .dayCalendar: .activities
+        case .dayWeather: .activities
+        case .dayMarkets: .activities
         }
     }
 
@@ -56,6 +83,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Display Brightness")
         case .quitProtection: String(localized: "Quit Protection")
         case .liveTimers: String(localized: "Timers")
+        case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
@@ -67,6 +95,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .linkQuickFixes: String(localized: "Link Quick Fixes")
         }
     }
 
@@ -88,6 +117,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.")
         case .quitProtection: String(localized: "Stops an app from quitting on a single slip.")
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
+        case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
@@ -99,20 +129,19 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
-        case .screenshot, .recording: [.screenRecording]
-        case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
-            .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker,
-            .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
-            []
+        case .screenshot: [.screenRecording]
+        case .recording: [.screenRecording]
+        case .volumeLevels: [.accessibility]
+        case .displayBrightness: [.accessibility]
+        case .quitProtection: [.accessibility]
+        default: []
         }
     }
 }
@@ -120,14 +149,18 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        self != .displayBrightness && self != .quitProtection && !belongsToCaptureAndDictation && !isSystemFeature
+        if isSystemFeature { return false }
+        return switch self {
+        case .colorPicker: false
+        case .screenshot: false
+        case .recording: false
+        case .displayBrightness: false
+        case .quitProtection: false
+        default: true
+        }
     }
 
-    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot || self == .recording }
-    var isSystemFeature: Bool {
-        [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-         .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
-    }
+    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
