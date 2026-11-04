@@ -1,284 +1,106 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-<<<<<<< HEAD
     "AI Features Off" : {
-=======
-    "Agent API Value" : {
->>>>>>> origin/main
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "KI-Funktionen deaktivieren"
-=======
-            "value" : "API-Wert der Agenten"
->>>>>>> origin/main
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Desactivar funciones de IA"
-=======
-            "value" : "Valor API de agentes"
->>>>>>> origin/main
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Désactiver les fonctions IA"
-=======
-            "value" : "Valeur API des agents"
->>>>>>> origin/main
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "AI機能を無効化"
-=======
-            "value" : "エージェント API 価値"
->>>>>>> origin/main
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "AI 기능 끄기"
-=======
-            "value" : "에이전트 API 가치"
->>>>>>> origin/main
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Desativar recursos de IA"
-=======
-            "value" : "Valor API dos agentes"
->>>>>>> origin/main
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Отключение функций ИИ"
-=======
-            "value" : "Стоимость API агентов"
->>>>>>> origin/main
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "关闭 AI 功能"
-=======
-            "value" : "代理 API 价值"
->>>>>>> origin/main
           }
         }
       }
     },
-<<<<<<< HEAD
     "AI data" : {
-=======
-    "Agent Session Logs" : {
->>>>>>> origin/main
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "KI-Daten"
-=======
-            "value" : "Agent-Sitzungsprotokolle"
->>>>>>> origin/main
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Datos de IA"
-=======
-            "value" : "Registros de sesiones de agentes"
->>>>>>> origin/main
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Données d’IA"
-=======
-            "value" : "Journaux de sessions des agents"
->>>>>>> origin/main
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "AIデータ"
-=======
-            "value" : "エージェントのセッションログ"
->>>>>>> origin/main
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "AI 데이터"
-=======
-            "value" : "에이전트 세션 로그"
->>>>>>> origin/main
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Dados de IA"
-=======
-            "value" : "Registros de sessões de agentes"
->>>>>>> origin/main
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Данные ИИ"
-=======
-            "value" : "Журналы сеансов агентов"
->>>>>>> origin/main
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "AI 数据"
-=======
-            "value" : "智能体会话日志"
->>>>>>> origin/main
-          }
-        }
-      }
-    },
-    "API Key Removed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API-Schlüssel entfernt"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clave API eliminada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé API supprimée"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "APIキーを削除しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API 키 제거됨"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chave de API removida"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ключ API удалён"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API 密钥已移除"
-          }
-        }
-      }
-    },
-    "API Key Saved" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API-Schlüssel gespeichert"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clave API guardada"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé API enregistrée"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "APIキーを保存しました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API 키 저장됨"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chave de API salva"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ключ API сохранён"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API 密钥已保存"
           }
         }
       }
@@ -435,6 +257,216 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "添加用于停止进程的命令。"
+          }
+        }
+      }
+    },
+    "Agent API Value" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-Wert der Agenten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valor API de agentes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valeur API des agents"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エージェント API 価値"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에이전트 API 가치"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valor API dos agentes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Стоимость API агентов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理 API 价值"
+          }
+        }
+      }
+    },
+    "Agent Session Logs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agent-Sitzungsprotokolle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registros de sesiones de agentes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Journaux de sessions des agents"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エージェントのセッションログ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에이전트 세션 로그"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registros de sessões de agentes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Журналы сеансов агентов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体会话日志"
+          }
+        }
+      }
+    },
+    "API Key Removed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-Schlüssel entfernt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave API eliminada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé API supprimée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APIキーを削除しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 키 제거됨"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave de API removida"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ API удалён"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥已移除"
+          }
+        }
+      }
+    },
+    "API Key Saved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-Schlüssel gespeichert"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clave API guardada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clé API enregistrée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APIキーを保存しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 키 저장됨"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chave de API salva"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ API сохранён"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥已保存"
           }
         }
       }
@@ -4662,86 +4694,53 @@
         }
       }
     },
-<<<<<<< HEAD
     "Enable confirmed system preference changes." : {
-=======
-    "Estimate API value from local agent token usage." : {
->>>>>>> origin/main
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Bestätigte Änderungen an Systemeinstellungen erlauben."
-=======
-            "value" : "API-Wert anhand lokaler Agenten-Token schätzen."
->>>>>>> origin/main
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Permitir cambios confirmados en preferencias del sistema."
-=======
-            "value" : "Estimar el valor API según los tokens locales del agente."
->>>>>>> origin/main
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Autoriser les changements confirmés des réglages système."
-=======
-            "value" : "Estimer la valeur API à partir des jetons locaux des agents."
->>>>>>> origin/main
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "確認後にシステム設定の変更を許可します。"
-=======
-            "value" : "ローカルエージェントのトークン使用量から API 価値を推定します。"
->>>>>>> origin/main
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "확인 후 시스템 설정 변경을 허용합니다."
-=======
-            "value" : "로컬 에이전트 토큰 사용량으로 API 가치를 추정합니다."
->>>>>>> origin/main
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Permitir alterações confirmadas nas preferências do sistema."
-=======
-            "value" : "Estimar o valor API pelo uso local de tokens dos agentes."
->>>>>>> origin/main
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Разрешить подтверждённые изменения настроек системы."
-=======
-            "value" : "Оценивать стоимость API по локальному расходу токенов агентов."
->>>>>>> origin/main
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "允许经确认的系统偏好设置更改。"
           }
         }
@@ -4795,9 +4794,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "启用按键重复"
-=======
+          }
+        }
+      }
+    },
+    "Estimate API value from local agent token usage." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API-Wert anhand lokaler Agenten-Token schätzen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimar el valor API según los tokens locales del agente."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimer la valeur API à partir des jetons locaux des agents."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ローカルエージェントのトークン使用量から API 価値を推定します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로컬 에이전트 토큰 사용량으로 API 가치를 추정합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimar o valor API pelo uso local de tokens dos agentes."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Оценивать стоимость API по локальному расходу токенов агентов."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "根据本地代理令牌用量估算 API 价值。"
->>>>>>> origin/main
           }
         }
       }
@@ -12324,86 +12372,53 @@
         }
       }
     },
-<<<<<<< HEAD
     "Rebuild open with menu" : {
-=======
-    "Refresh Agent Session Logs" : {
->>>>>>> origin/main
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Menü „Öffnen mit“ neu erstellen"
-=======
-            "value" : "Agenten-Sitzungsprotokolle aktualisieren"
->>>>>>> origin/main
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Reconstruir menú Abrir con"
-=======
-            "value" : "Actualizar registros de sesiones de agentes"
->>>>>>> origin/main
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Reconstruire le menu Ouvrir avec"
-=======
-            "value" : "Actualiser les journaux de sessions des agents"
->>>>>>> origin/main
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "「このアプリケーションで開く」を再構築"
-=======
-            "value" : "エージェントセッションログを更新"
->>>>>>> origin/main
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "다음으로 열기 메뉴 재구성"
-=======
-            "value" : "에이전트 세션 로그 새로 고침"
->>>>>>> origin/main
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Reconstruir menu Abrir com"
-=======
-            "value" : "Atualizar registros de sessões dos agentes"
->>>>>>> origin/main
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "Перестроить меню «Открыть в программе»"
-=======
-            "value" : "Обновить журналы сеансов агентов"
->>>>>>> origin/main
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-<<<<<<< HEAD
             "value" : "重建打开方式菜单"
           }
         }
@@ -12461,6 +12476,58 @@
         }
       }
     },
+    "Refresh Agent Session Logs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agenten-Sitzungsprotokolle aktualisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar registros de sesiones de agentes"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualiser les journaux de sessions des agents"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エージェントセッションログを更新"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "에이전트 세션 로그 새로 고침"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atualizar registros de sessões dos agentes"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обновить журналы сеансов агентов"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刷新代理会话日志"
+          }
+        }
+      }
+    },
     "Refused" : {
       "localizations" : {
         "de" : {
@@ -12509,9 +12576,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已拒绝"
-=======
-            "value" : "刷新代理会话日志"
->>>>>>> origin/main
           }
         }
       }
@@ -166276,7 +166340,7 @@
         }
       }
     },
-"Tasks: %lld" : {
+    "Tasks: %lld" : {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -166328,7 +166392,7 @@
         }
       }
     },
-"Imported tasks: %lld" : {
+    "Imported tasks: %lld" : {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -166380,7 +166444,7 @@
         }
       }
     },
-"Import Todoist JSON export…" : {
+    "Import Todoist JSON export…" : {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -166432,7 +166496,7 @@
         }
       }
     },
-"The file is not a Todoist JSON export." : {
+    "The file is not a Todoist JSON export." : {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -166484,7 +166548,7 @@
         }
       }
     },
-"Accepts a JSON object with Todoist tasks, projects, sections and labels arrays." : {
+    "Accepts a JSON object with Todoist tasks, projects, sections and labels arrays." : {
       "localizations": {
         "de": {
           "stringUnit": {
@@ -166536,7 +166600,7 @@
         }
       }
     },
-"Add Task from Clipboard" : {
+    "Add Task from Clipboard" : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166589,7 +166653,7 @@
         }
       }
     },
-"Complete Next Task" : {
+    "Complete Next Task" : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166642,7 +166706,7 @@
         }
       }
     },
-"Undo Last Task Change" : {
+    "Undo Last Task Change" : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166695,7 +166759,7 @@
         }
       }
     },
-"The clipboard has no task text." : {
+    "The clipboard has no task text." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166748,7 +166812,7 @@
         }
       }
     },
-"Task added from clipboard." : {
+    "Task added from clipboard." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166801,7 +166865,7 @@
         }
       }
     },
-"There are no tasks due today." : {
+    "There are no tasks due today." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166854,7 +166918,7 @@
         }
       }
     },
-"Next task completed." : {
+    "Next task completed." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166907,7 +166971,7 @@
         }
       }
     },
-"There is no task change to undo." : {
+    "There is no task change to undo." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -166960,7 +167024,7 @@
         }
       }
     },
-"Last task change undone." : {
+    "Last task change undone." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -167013,7 +167077,7 @@
         }
       }
     },
-"Tasks are turned off." : {
+    "Tasks are turned off." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -167066,7 +167130,7 @@
         }
       }
     },
-"The task store is unavailable." : {
+    "The task store is unavailable." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
@@ -167119,7 +167183,7 @@
         }
       }
     },
-"The task change could not be saved." : {
+    "The task change could not be saved." : {
       "extractionState": "manual",
       "localizations": {
         "de": {
