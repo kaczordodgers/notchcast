@@ -139,6 +139,20 @@ struct IslandGeometryTests {
         expect(!notch.contains(CGPoint(x: 1, y: 20)), "transparent concave shoulders pass clicks through")
         expect(notch.contains(CGPoint(x: 90, y: 14)), "the notch body accepts mouse events")
         expect(!notch.contains(CGPoint(x: 90, y: -1)), "the canvas below the silhouette passes clicks through")
+        silhouetteCorners()
+    }
+
+    static func silhouetteCorners() {
+        let notch = IslandSilhouette.shoulder(height: 32, cap: 14)
+        let radius = IslandSilhouette.bottomRadius(height: 32, cap: 26)
+        expect(abs(notch - 6.08) < 0.01 && abs(radius - 10.88) < 0.01,
+               "a notch-tall strip keeps the cutout's small corners")
+        expect(IslandSilhouette.shoulder(height: 475, cap: 14) == 14
+               && IslandSilhouette.bottomRadius(height: 475, cap: 26) == 26, "a tall island stops at the caps")
+        expect(IslandSilhouette.shoulder(height: -4, cap: 14) == 0
+               && IslandSilhouette.bottomRadius(height: 32, cap: -1) == 0, "negative input never inverts a corner")
+        expect(IslandMotion.shrinkWidth.bounce == 0 && IslandMotion.shrinkHeight.bounce == 0
+               && IslandMotion.growWidth.bounce > 0, "only growing sides swing")
     }
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
