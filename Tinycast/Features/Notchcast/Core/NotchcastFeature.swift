@@ -201,37 +201,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        switch self {
-        case .island: true
-        case .islandExternalDisplays: true
-        case .islandFullScreen: true
-        case .islandHoverOpen: true
-        case .islandStatusMessages: true
-        case .islandLiveActivities: true
-        case .launcherFromIsland: true
-        case .musicNowPlaying: true
-        case .musicLastPlayer: true
-        case .musicBlockAppleMusic: true
-        case .spotifyConnect: true
-        case .microphoneMute: true
-        case .inUseMarks: true
-        case .systemMonitor: false
-        case .fanControl: false
-        case .monitorAlerts: false
-        case .lowDiskWarning: true
-        case .systemNotices: true
-        case .volumeLevels: true
-        case .displayBrightness: false
-        case .quitProtection: false
-        case .liveTimers: true
-        case .dayWeather: true
-        case .dayMarkets: true
-        case .batteryChargeLimit: false
-        case .batterySailing: false
-        case .batteryHeatProtection: false
-        case .batteryCalibration: false
-        case .keepAwake: false
-        case .lidClosedAwake: false
         if isSystemFeature { return false }
         return switch self {
         case .displayBrightness: false
