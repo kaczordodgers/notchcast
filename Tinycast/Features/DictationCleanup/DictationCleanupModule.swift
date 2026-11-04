@@ -9,12 +9,14 @@ final class DictationCleanupModule: NotchcastModule {
     private let store: DictationCleanupSettingsStore
     private let install: () -> Void
     private let uninstall: () -> Void
+    private let readAPIKey: () throws -> String?
 
     init(store: DictationCleanupSettingsStore, install: @escaping () -> Void,
-         uninstall: @escaping () -> Void) {
+         uninstall: @escaping () -> Void, readAPIKey: (() throws -> String?)? = nil) {
         self.store = store
         self.install = install
         self.uninstall = uninstall
+        self.readAPIKey = readAPIKey ?? store.apiKey
     }
 
     func load() {
@@ -47,7 +49,7 @@ final class DictationCleanupModule: NotchcastModule {
     }
 
     func apiKey() -> String? {
-        do { return try store.apiKey() ?? "" } catch { reportFailure?(); return nil }
+        do { return try readAPIKey() ?? "" } catch { reportFailure?(); return nil }
     }
 
     func saveAPIKey(_ key: String) {
