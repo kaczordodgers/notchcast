@@ -408,8 +408,8 @@ enum Theme {
         }
 
         /// The alpha ramp, inverted: white ink over the dark surface, black ink over the light one.
-        static func ramp(dark: Double, light: Double) -> Color {
-            adaptive(dark: .srgbInk(1, alpha: dark), light: .srgbInk(0, alpha: light))
+        static func ramp(dark: Double, light: Double, role: AppearanceThemeColors.Role = .text) -> Color {
+            AppearanceThemeColors.shared.ramp(dark: dark, light: light, role: role)
         }
 
         static let panelScrim = adaptive(dark: .srgbInk(0, alpha: 0.40), light: .srgbInk(1, alpha: 0.55))
@@ -429,7 +429,7 @@ enum Theme {
             dark: .srgbInk(0, alpha: 0.18), light: .srgbInk(0, alpha: 0.18))
 
         /// Selection fill, shared by every list so they look identical.
-        static let selection = ramp(dark: 0.10, light: 0.09)
+        static let selection = ramp(dark: 0.10, light: 0.09, role: .selection)
         static let rowHover = ramp(dark: 0.05, light: 0.045)
         static let emojiCell = ramp(dark: 0.045, light: 0.04)
         static let emojiHoverBorder = ramp(dark: 0.42, light: 0.34)
@@ -531,6 +531,6 @@ enum Theme {
 
 extension View {
     func frosted(in shape: some Shape) -> some View {
-        glassEffect(.regular.interactive(), in: shape)
+        glassEffect(AppearanceThemeColors.tinted(.regular).interactive(), in: shape)
     }
 }

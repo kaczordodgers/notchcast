@@ -136,6 +136,7 @@ struct RootPaletteView: View {
         case .extensionCommand:
             return ExtensionCommandScreen(
                 screen: extensionScreen, extensions: extensions, vm: vm, openActions: openActions)
+        case .theme: return ThemeCommandScreen(coordinator: core.appearanceCoordinator, vm: vm)
         }
     }
 
@@ -356,6 +357,7 @@ struct RootPaletteView: View {
                 )
                 // The window's frame is the size source, so the glass and clip stay matched.
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .background(AppearanceThemeColors.backdrop(hidden: isCollapsed))
                 // Sideways into the compact margin for a button's overshoot; the top keeps the rim light.
                 .background { Theme.Colors.panelScrim.padding(.horizontal, -renderingOutset) }
                 // Square, as rounded glass feathers its edge; the clip alone cuts a crisp corner.
