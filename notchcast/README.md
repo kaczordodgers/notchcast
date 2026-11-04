@@ -1,5 +1,9 @@
 # Notchcast
 
+Run `notchcast/local-ci.sh <pr>` to build and test the exact PR head through the Mac build queue.
+It posts `build/local` success or failure with the Mac, minutes and last step; logs stay in `~/agents/nc-local-ci/logs/<sha>.log`.
+Success cancels that head’s pending PR Actions runs and supplies build proof to `notchcast/land.sh`.
+
 **Notchcast** is a fork of [Tinycast](https://github.com/abue-ammar/tinycast) (AGPL-3.0): upstream `main` plus a few commits of ours on top, arm64 builds signed with our own identity. Upstream's README is [README.upstream.md](README.upstream.md).
 
 Every ~10 minutes a GitHub Actions workflow replays our commits onto the newest upstream `main`, builds and runs the tests, and moves `main` only when green; each upstream release is rebuilt the same way and published here under the same tag.
