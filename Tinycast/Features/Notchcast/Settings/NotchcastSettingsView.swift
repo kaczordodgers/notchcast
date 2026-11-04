@@ -18,6 +18,7 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastLauncher, group: .launcher)
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            MachRemoteSettingsSection()
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
 

@@ -47,11 +47,15 @@ final class NotchcastPreferences {
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
     @ObservationIgnored private let defaults: UserDefaults
+    var remoteMacAddress: String {
+        didSet { defaults.set(remoteMacAddress, forKey: "remoteMacAddress") }
+    }
     private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        remoteMacAddress = defaults.string(forKey: "remoteMacAddress") ?? "mbp"
         func threshold(_ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
             let value = defaults.object(forKey: key) as? Int ?? fallback
             return min(range.upperBound, max(range.lowerBound, value))
@@ -69,7 +73,7 @@ final class NotchcastPreferences {
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter {
             !(defaults.object(forKey: $0.rawValue) as? Bool
-                ?? !($0.isSystemFeature || [.aiUsage, .aiUsageOtherMac, .machLink].contains($0)))
+                ?? !($0.isSystemFeature || [.aiUsage, .aiUsageOtherMac, .machLink, .machRemote].contains($0)))
         })
     }
 
