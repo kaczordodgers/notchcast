@@ -40,6 +40,7 @@ final class NotchcastPreferences {
             !(defaults.object(forKey: $0.rawValue) as? Bool
                 ?? !($0.isSystemFeature
                     || [.aiUsage, .aiUsageOtherMac, .machLink, .machBlockedDialogAlert].contains($0)))
+                    || [.aiUsage, .aiUsageOtherMac, .machLink, .remoteScreen].contains($0)))
         })
     }
 
