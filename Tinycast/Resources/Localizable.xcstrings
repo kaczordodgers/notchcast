@@ -1,6 +1,110 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Calendar events on the Day page." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalenderereignisse auf der Seite Tag."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos del calendario en la página Día."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements du calendrier sur la page Jour."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「日」ページのカレンダーイベント。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일 페이지의 캘린더 일정."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos do calendário na página Dia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "События календаря на странице «День»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“日”页面上的日历事件。"
+          }
+        }
+      }
+    },
+    "Dictation in Island" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diktat in der Insel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictado en la isla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictée dans l’îlot"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アイランドで音声入力"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아일랜드에서 받아쓰기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditado na ilha"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Диктовка в островке"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在灵动岛中听写"
+          }
+        }
+      }
+    },
     "Monitor Alerts": {
       "localizations": {
         "de": {
@@ -2193,6 +2297,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜索城市"
+          }
+        }
+      }
+    },
+    "Show dictation status in the island." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diktatstatus in der Insel anzeigen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar el estado del dictado en la isla."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher l’état de la dictée dans l’îlot."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "音声入力の状態をアイランドに表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아일랜드에 받아쓰기 상태를 표시합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar o estado do ditado na ilha."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Показывать статус диктовки в островке."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在灵动岛中显示听写状态。"
           }
         }
       }
@@ -50552,30 +50708,6 @@
             "value" : "听写"
           }
         }
-      }
-    },
-    "Dictation in Island" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diktat in der Insel" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dictado en la isla" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dictée dans l’îlot" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アイランドで音声入力" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "아일랜드에서 받아쓰기" } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ditado na ilha" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Диктовка в островке" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在灵动岛中听写" } }
-      }
-    },
-    "Show dictation status in the island." : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Diktatstatus in der Insel anzeigen." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar el estado del dictado en la isla." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Afficher l’état de la dictée dans l’îlot." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "音声入力の状態をアイランドに表示します。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "아일랜드에 받아쓰기 상태를 표시합니다." } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar o estado do ditado na ilha." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показывать статус диктовки в островке." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在灵动岛中显示听写状态。" } }
       }
     },
     "Dictation listening" : {
