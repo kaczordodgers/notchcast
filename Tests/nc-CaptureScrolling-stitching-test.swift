@@ -138,7 +138,7 @@ struct CaptureScrollingTests {
     static func sessionTests() async throws {
         let rect = CGRect(x: 0, y: 0, width: 8, height: 100)
         let fixture = image(Array(0..<100))
-        let session = ScrollingCaptureSession(capture: { _, _, _ in fixture }, requestAccess: { true })
+        let session = ScrollingCaptureSession(prepareCapture: { _, _, _ in { fixture } }, requestAccess: { true })
         try session.start(rect: rect, displayID: 1)
         await waitUntil { session.height == 100 }
         do {
@@ -155,7 +155,7 @@ struct CaptureScrollingTests {
         session.cancel()
         precondition(session.state == .idle && session.result == nil && session.height == 0)
 
-        let denied = ScrollingCaptureSession(capture: { _, _, _ in
+        let denied = ScrollingCaptureSession(prepareCapture: { _, _, _ in
             preconditionFailure("Permission denial must not capture")
         }, requestAccess: { false })
         do {
@@ -167,7 +167,7 @@ struct CaptureScrollingTests {
             preconditionFailure("Empty rect must fail")
         } catch ScrollingCaptureSession.Failure.invalidRect {}
 
-        let failed = ScrollingCaptureSession(capture: { _, _, _ in
+        let failed = ScrollingCaptureSession(prepareCapture: { _, _, _ in
             throw ScrollingCaptureSession.Failure.displayUnavailable
         }, requestAccess: { true })
         try failed.start(rect: rect, displayID: 1)
@@ -178,7 +178,7 @@ struct CaptureScrollingTests {
         } catch ScrollingCaptureSession.Failure.displayUnavailable {}
 
         let tall = image(Array(0..<20_010))
-        let capped = ScrollingCaptureSession(capture: { _, _, _ in tall }, requestAccess: { true })
+        let capped = ScrollingCaptureSession(prepareCapture: { _, _, _ in { tall } }, requestAccess: { true })
         try capped.start(rect: rect, displayID: 1)
         await waitUntil { capped.result != nil }
         precondition(capped.state == .limitReached && capped.height == 20_000)
@@ -191,6 +191,12 @@ struct CaptureScrollingTests {
     final class PendingFrames {
         var pending: [CheckedContinuation<CGImage, Never>] = []
         var returned = 0
+        var preparations = 0
+
+        func prepare() -> ScrollingCaptureSession.CaptureFrame {
+            preparations += 1
+            return { await self.next() }
+        }
 
         func next() async -> CGImage {
             let image = await withCheckedContinuation { pending.append($0) }
@@ -202,7 +208,9 @@ struct CaptureScrollingTests {
     @MainActor
     static func replacementTests(rect: CGRect) async throws {
         let frames = PendingFrames()
-        let session = ScrollingCaptureSession(capture: { _, _, _ in await frames.next() }, requestAccess: { true })
+        let session = ScrollingCaptureSession(prepareCapture: { _, _, _ in
+            await frames.prepare()
+        }, requestAccess: { true })
         try session.start(rect: rect, displayID: 1)
         await waitUntil { frames.pending.count == 1 }
         let obsolete = frames.pending.removeFirst()
@@ -212,10 +220,14 @@ struct CaptureScrollingTests {
         let latest = image(Array(1000..<1100))
         frames.pending.removeFirst().resume(returning: latest)
         await waitUntil { session.height == 100 }
+        await waitUntil { frames.pending.count == 1 }
+        precondition(frames.preparations == 2, "Each session must prepare once across multiple frames")
+        frames.pending.removeFirst().resume(returning: latest)
+        await waitUntil { frames.returned == 2 }
         let output = try await session.stop()
         precondition(output.map(hashes) == hashes(latest))
         obsolete.resume(returning: image(Array(0..<100)))
-        await waitUntil { frames.returned == 2 }
+        await waitUntil { frames.returned == 3 }
         precondition(session.state == .stopped && session.result.map(hashes) == hashes(latest),
                      "A cancelled capture must not replace the next session's result")
     }

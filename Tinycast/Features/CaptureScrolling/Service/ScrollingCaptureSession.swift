@@ -15,7 +15,8 @@ final class ScrollingCaptureSession {
         case imageCreationFailed, pngEncodingFailed
     }
 
-    typealias Capture = @Sendable (CGRect, CGDirectDisplayID, Set<CGWindowID>) async throws -> CGImage
+    typealias CaptureFrame = @MainActor @Sendable () async throws -> CGImage
+    typealias PrepareCapture = @Sendable (CGRect, CGDirectDisplayID, Set<CGWindowID>) async throws -> CaptureFrame
 
     private(set) var state = State.idle
     private(set) var height = 0
@@ -24,14 +25,14 @@ final class ScrollingCaptureSession {
     private(set) var failure: (any Error)?
     @ObservationIgnored private var task: Task<CGImage?, any Error>?
     @ObservationIgnored private var operationID = UUID()
-    @ObservationIgnored private let capture: Capture
+    @ObservationIgnored private let prepareCapture: PrepareCapture
     @ObservationIgnored private let requestAccess: () -> Bool
 
     init(
-        capture: @escaping Capture = ScrollingScreenSource.image,
+        prepareCapture: @escaping PrepareCapture = ScrollingScreenSource.prepare,
         requestAccess: @escaping () -> Bool = { CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess() }
     ) {
-        self.capture = capture
+        self.prepareCapture = prepareCapture
         self.requestAccess = requestAccess
     }
 
@@ -51,11 +52,11 @@ final class ScrollingCaptureSession {
         lastUpdate = .unchanged
         result = nil
         failure = nil
-        let capture = capture
+        let prepareCapture = prepareCapture
         task = Task { [weak self] in
             do {
                 let image = try await Self.collect(rect: rect, displayID: displayID, excludingWindows: excludingWindows,
-                                                   capture: capture) { [weak self] height, update in
+                                                   prepareCapture: prepareCapture) { [weak self] height, update in
                     guard let self, self.operationID == id else { return }
                     self.height = height
                     self.lastUpdate = update
@@ -109,7 +110,7 @@ final class ScrollingCaptureSession {
 
     @concurrent
     private static func collect(
-        rect: CGRect, displayID: CGDirectDisplayID, excludingWindows: Set<CGWindowID>, capture: Capture,
+        rect: CGRect, displayID: CGDirectDisplayID, excludingWindows: Set<CGWindowID>, prepareCapture: PrepareCapture,
         progress: @MainActor @Sendable (Int, ScrollingStitcher.Update) -> Void
     ) async throws -> CGImage? {
         let clock = ContinuousClock()
@@ -117,9 +118,11 @@ final class ScrollingCaptureSession {
         var previous: [UInt64] = []
         var stitcher: ScrollingStitcher?
         do {
+            let capture = try await prepareCapture(rect, displayID, excludingWindows)
+            try Task.checkCancellation()
             while !Task.isCancelled {
                 let started = clock.now
-                let image = try await capture(rect, displayID, excludingWindows)
+                let image = try await capture()
                 try Task.checkCancellation()
                 guard let hashes = ScrollingRowHashes.make(image) else { throw Failure.invalidFrame }
                 let update: ScrollingStitcher.Update
