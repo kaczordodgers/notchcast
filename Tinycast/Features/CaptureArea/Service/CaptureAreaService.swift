@@ -2,16 +2,32 @@ import AppKit
 
 @MainActor
 final class CaptureAreaService {
+    enum Failure: Error { case screenRecordingDenied }
+
     private var windows: [NSWindow] = []
     private var completion: ((CaptureAreaSelection?) -> Void)?
+    private let hasScreenRecordingAccess: () -> Bool
+    private let requestScreenRecordingAccess: () -> Bool
+
+    init(
+        hasScreenRecordingAccess: @escaping () -> Bool = { CGPreflightScreenCaptureAccess() },
+        requestScreenRecordingAccess: @escaping () -> Bool = { CGRequestScreenCaptureAccess() }
+    ) {
+        self.hasScreenRecordingAccess = hasScreenRecordingAccess
+        self.requestScreenRecordingAccess = requestScreenRecordingAccess
+    }
 
     isolated deinit {
         for window in windows { window.close() }
     }
 
-    func start(completion: @escaping (CaptureAreaSelection?) -> Void) {
+    func start(completion: @escaping (CaptureAreaSelection?) -> Void) throws {
         stop()
+        guard hasScreenRecordingAccess() || requestScreenRecordingAccess() else {
+            throw Failure.screenRecordingDenied
+        }
         self.completion = completion
+        let mainDisplayHeight = CGDisplayBounds(CGMainDisplayID()).height
         for screen in NSScreen.screens {
             guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
             else { continue }
@@ -25,6 +41,7 @@ final class CaptureAreaService {
             let view = SelectionView(frame: CGRect(origin: .zero, size: screen.frame.size))
             view.displayID = number.uint32Value
             view.displayFrame = screen.frame
+            view.mainDisplayHeight = mainDisplayHeight
             view.finish = { [weak self] selection in self?.finish(selection) }
             window.contentView = view
             windows.append(window)
@@ -53,6 +70,7 @@ final class CaptureAreaService {
     private final class SelectionView: NSView {
         var displayID: UInt32 = 0
         var displayFrame: CGRect = .zero
+        var mainDisplayHeight: CGFloat = 0
         var finish: ((CaptureAreaSelection?) -> Void)?
         private var start: CGPoint?
         private var end: CGPoint?
@@ -78,17 +96,17 @@ final class CaptureAreaService {
             guard let start else { return }
             finish?(CaptureAreaSelection.make(
                 from: start, to: NSEvent.mouseLocation,
-                displayID: displayID, displayFrame: displayFrame))
+                displayID: displayID, displayFrame: displayFrame, mainDisplayHeight: mainDisplayHeight))
         }
         override func draw(_ dirtyRect: NSRect) {
             NSColor.black.withAlphaComponent(0.01).setFill()
             bounds.fill()
             guard let start, let end,
-                let selection = CaptureAreaSelection.make(
-                    from: start, to: end, displayID: displayID, displayFrame: displayFrame)
+                let rect = CaptureAreaSelection.appKitRect(
+                    from: start, to: end, displayFrame: displayFrame)
             else { return }
             NSColor.selectedControlColor.setStroke()
-            NSBezierPath(rect: selection.rect.offsetBy(
+            NSBezierPath(rect: rect.offsetBy(
                 dx: -displayFrame.minX, dy: -displayFrame.minY)).stroke()
         }
     }
