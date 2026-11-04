@@ -44,6 +44,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case linkQuickFixes
     case machBlockedDialogAlert
     case remoteScreen
+    case machMBPFans
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -58,6 +59,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherAliasSpace: .launcher
         case .machBlockedDialogAlert: .system
         case .remoteScreen: .system
+        case .machMBPFans: .system
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -138,6 +140,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
         case .machBlockedDialogAlert: String(localized: "Other Mac Dialog Alerts")
         case .remoteScreen: String(localized: "Remote Screen")
+        case .machMBPFans: String(localized: "Other Mac Fans")
         }
     }
 
@@ -186,6 +189,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         case .machBlockedDialogAlert: String(localized: "Check for system dialogs on the paired Mac on demand.")
         case .remoteScreen: String(localized: "Request screen sharing with the paired Mac.")
+        case .machMBPFans: String(localized: "Control fans on the paired Mac.")
         }
     }
 
@@ -226,6 +230,7 @@ extension NotchcastFeature {
         case .aiUsageOtherMac: false
         case .machLink: false
         case .remoteScreen: false
+        case .machMBPFans: false
         default: true
         }
     }
