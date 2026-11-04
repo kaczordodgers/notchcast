@@ -15,6 +15,7 @@ enum NotchcastCore {
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
+    static let remoteScreen = RemoteScreenModule(channel: macLink.channel)
 
     static func stopForTermination() async {
         battery.stop()
@@ -43,6 +44,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
+            .init(requires: [.machLink, .remoteScreen], module: remoteScreen),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
