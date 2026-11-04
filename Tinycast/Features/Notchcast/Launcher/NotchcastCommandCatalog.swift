@@ -3,6 +3,7 @@ import Foundation
 enum NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
+        AgentSessionsModule.refreshCommand,
     ]
 
     static var entries: [AppEntry] { all.map(\.entry) }
