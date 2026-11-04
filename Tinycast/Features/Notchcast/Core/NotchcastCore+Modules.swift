@@ -27,6 +27,7 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let dictationCleanup = DictationCleanupModule.live()
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
@@ -58,6 +59,7 @@ extension NotchcastCore {
             .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }

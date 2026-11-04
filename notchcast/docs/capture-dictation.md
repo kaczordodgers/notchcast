@@ -30,6 +30,13 @@ Permissions pane has no Screen Recording row. The engine asks for access only wh
 
 ## Verification
 
+AI cleanup is off by default and independent of Island. Its switch installs the engine's final
+transcript stage; switching off removes it so raw transcripts flow through. Endpoint, effort,
+prompt addition and multiline vocabulary use the engine's fork-local settings store. Each vocabulary
+line contains a spelling followed by optional misheard forms separated by `|`. The API key is saved
+explicitly with Save or Return through the engine's bundle-scoped Keychain store. Neither credentials
+nor capability flags enter settings.json or upstream backups. No launcher command is added.
+
 `./Scripts/run-tests.sh nc-ColorPicker-lifecycle-test` checks disabled sampling, switch teardown,
 re-enabling, format persistence and Island independence with injected sampling and clipboard effects.
 `./Scripts/run-tests.sh nc-CaptureScreenshot-lifecycle-test` checks switch teardown, caller and destination
