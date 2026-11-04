@@ -4,6 +4,10 @@ import Observation
 
 @MainActor @Observable
 final class BrightnessController {
+    enum StepResult: Sendable {
+        case applied(BrightnessLevel), unavailable, cancelled
+    }
+
     private(set) var currentDisplays: [BrightnessDisplay] = []
 
     @ObservationIgnored private let service = BrightnessDisplayService()
@@ -66,8 +70,14 @@ final class BrightnessController {
     }
 
     @discardableResult
-    func step(up: Bool, fine: Bool, for display: BrightnessDisplay.ID) async -> BrightnessLevel? {
-        await perform(.step(up: up, fine: fine, display))?.first(where: { $0.id == display })?.level
+    func step(up: Bool, fine: Bool, for display: BrightnessDisplay.ID) async -> StepResult {
+        let epoch = generation
+        let request = revision + 1
+        let result = await perform(.step(up: up, fine: fine, display))
+        guard !Task.isCancelled, running, generation == epoch, request >= appliedRevision
+        else { return .cancelled }
+        guard let level = result?.first(where: { $0.id == display })?.level else { return .unavailable }
+        return .applied(level)
     }
 
     func stop() async {
