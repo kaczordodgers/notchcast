@@ -1,3 +1,5 @@
+// notchcast-sources: Tinycast/Features/Appearance/Model/*.swift
+// notchcast-sources: Tinycast/Features/Appearance/Service/*.swift
 // Compiles the real engine sources against JavaScriptCore; pass a directory to run one.
 
 import AppKit
