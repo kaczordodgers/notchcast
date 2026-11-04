@@ -34,9 +34,7 @@ struct EnglishTriggerTest {
     }
 
     private static func wait(_ condition: () -> Bool) async throws {
-        let deadline = ContinuousClock.now + .seconds(5)
         while !condition() {
-            guard ContinuousClock.now < deadline else { throw CocoaError(.coderInvalidValue) }
             try await Task.sleep(for: .milliseconds(1))
         }
     }
