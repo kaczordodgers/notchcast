@@ -332,7 +332,7 @@ struct RootClientTest {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
         precondition(RootContract.version == "2")
-        precondition(RootContract.Reply(command: .version, output: "1\n") == nil)
+        precondition(RootContract.Reply(command: .version, output: "2\n") == .version("2"))
         precondition(RootContract.Reply(command: .ping, output: "pong") == nil)
         precondition(RootContract.Command.chargeLimitRead.operation == .read)
         precondition(RootContract.Reply(command: .chargeLimitRead, output: "80\n") == .chargeLimit(80))

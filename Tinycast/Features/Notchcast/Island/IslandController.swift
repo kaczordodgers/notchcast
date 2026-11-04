@@ -15,6 +15,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
     private var input = IslandInputState()
     var isOpen: Bool { input.isOpen }
     var isPinned: Bool { input.isPinned }
+    private(set) var commandsAvailable = false
     private(set) var hasKeyboardFocus = false
     var hasLiveActivities = false
     private(set) var page = IslandPage.home
@@ -43,7 +44,10 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
         let pages = IslandPagesCoordinator(core: core, island: self)
         self.pages = pages
         openContent = AnyView(IslandPagesView().environment(self).environment(pages).environment(core.palette))
-        setCommandAvailable = { [weak core] in core?.appIndex.setCommandsVisible([.toggleIsland], $0) }
+        setCommandAvailable = { [weak self, weak core] available in
+            self?.commandsAvailable = available
+            core?.appIndex.refreshNotchcastCommands()
+        }
         setCommandAvailable(false)
     }
 
@@ -215,13 +219,21 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
 
     private func observePreferences(identity: UUID) {
         withObservationTracking {
-            applyPreferences()
+            let preferences = NotchcastPreferences.shared
+            _ = preferences.isOn(.islandExternalDisplays)
+            _ = preferences.isOn(.islandFullScreen)
+            _ = preferences.isOn(.islandHoverOpen)
+            _ = preferences.isOn(.islandLiveActivities)
+            _ = preferences.isOn(.islandStatusMessages)
+            _ = IslandActivityCenter.shared.activities
+            _ = IslandActivityCenter.shared.message
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, observationID == identity else { return }
                 observePreferences(identity: identity)
             }
         }
+        applyPreferences()
     }
 
     private func watchPointer() {

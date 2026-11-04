@@ -15,7 +15,7 @@ struct NotchcastSettingsView: View {
             .settingsAnchor(.notchcastIsland)
 
             Section {
-                ForEach(NotchcastFeature.allCases.filter { $0 != .island }, id: \.self) { feature in
+                ForEach(NotchcastFeature.allCases.filter { $0 != .island && !$0.isSystemFeature }, id: \.self) { feature in
                     Toggle(isOn: binding(feature)) {
                         SettingsRowTitle(.notchcastOptions, verbatim: feature.title)
                         Text(feature.subtitle)
@@ -31,6 +31,8 @@ struct NotchcastSettingsView: View {
             TimerSettingsSection(store: NotchcastCore.timers.store)
             DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
+            NotchcastSystemSettingsSection()
+
             Section {
                 Picker(selection: Binding(
                     get: { preferences.islandHoverDelay },
@@ -39,11 +41,10 @@ struct NotchcastSettingsView: View {
                         Text(delay.title).tag(delay)
                     }
                 } label: {
-                    SettingsRowTitle(.notchcastHover, "Hover delay")
+                    Text("Hover delay")
                 }
                 .settingsEnabled(preferences.isOn(.islandHoverOpen))
             }
-            .settingsAnchor(.notchcastHover)
             .settingsEnabled(preferences.isOn(.island))
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
