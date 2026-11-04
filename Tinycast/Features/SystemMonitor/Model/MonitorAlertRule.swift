@@ -30,6 +30,8 @@ nonisolated struct MonitorAlertRule: Sendable, Equatable {
         self.cooldown = cooldown
     }
 
+    mutating func resetBreaches() { consecutiveBreaches = 0 }
+
     mutating func evaluate(_ value: Double, at now: Date) -> Result {
         guard value.isFinite else {
             consecutiveBreaches = 0
