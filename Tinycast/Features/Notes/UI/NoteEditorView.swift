@@ -4,6 +4,7 @@ import SwiftUI
 struct NoteEditorView: NSViewRepresentable {
     let input: NoteEditorInput
     let rendersMarkdown: Bool
+    var spellCheckingEnabled: Bool = false
     let onSourceChange: (String) -> Void
     let onCharacterCountChange: (NoteEditorInput, Int) -> Void
     let onFormattingChange: (NoteEditorInput, NoteFormatting) -> Void
@@ -24,7 +25,7 @@ struct NoteEditorView: NSViewRepresentable {
         scrollView.automaticallyAdjustsContentInsets = false
 
         let textView = NoteTextView(usingTextLayoutManager: true)
-        Self.configure(textView)
+        Self.configure(textView, spellCheckingEnabled: spellCheckingEnabled)
         textView.delegate = context.coordinator
         textView.editorUndoManager = context.coordinator.editorUndoManager
         scrollView.documentView = textView
@@ -198,7 +199,7 @@ struct NoteEditorView: NSViewRepresentable {
         }
     }
 
-    static func configure(_ textView: NSTextView) {
+    static func configure(_ textView: NSTextView, spellCheckingEnabled: Bool = false) {
         textView.isRichText = false
         textView.importsGraphics = false
         textView.drawsBackground = false
@@ -225,7 +226,7 @@ struct NoteEditorView: NSViewRepresentable {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.isContinuousSpellCheckingEnabled = false
+        textView.isContinuousSpellCheckingEnabled = spellCheckingEnabled
         textView.smartInsertDeleteEnabled = false
         textView.usesFindBar = true
         textView.allowsUndo = true
