@@ -18,6 +18,8 @@ struct PasteToolsFinderTest {
         precondition(FinderImageService.selectEvent(.null(), to: finder).eventID == event.select)
         precondition(FinderImageService.result(for: -48) == .nameTaken)
         precondition(FinderImageService.result(for: -1743) == .failed)
+        precondition(FinderImageService.insertionLocation.descriptorType == event.objectSpecifier)
+        precondition(FinderImageService.Event.insertionLocation == 0x70696e73)
         precondition(FinderImageService.timeout == 30)
         print("✓ PasteTools: Finder event construction and error mapping passed; no events sent")
     }

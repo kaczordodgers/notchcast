@@ -3,6 +3,11 @@
 import Foundation
 
 extension NotchcastCore {
+    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
+    static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
+    static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
+    static let pasteImage = PasteImageModule(hub: eventTapHub)
+    static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
@@ -22,17 +27,19 @@ extension NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackup = ForkSettingsBackupModule()
-    static let pasteImage = PasteImageModule(hub: eventTapHub)
-    static var pastePlain: PlainPasteModule?
     static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".editor")!))
-    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
-    static let finderCutPaste = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
-    static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
     static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
-        [
+        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
+        self.pastePlain = pastePlain
+        pasteImage.configureFeedback(core)
+        return [
+            .init(requires: [.finderCutPaste], module: finderCut),
+            .init(requires: [.finderRename], module: finderRename),
+            .init(requires: [.pastePlain], module: pastePlain),
+            .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),
@@ -52,20 +59,10 @@ extension NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
-            .init(requires: [.pastePlain], module: plainPaste(core)),
-            .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
-            .init(requires: [.finderCutPaste], module: finderCutPaste),
-            .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
-    }
-
-    private static func plainPaste(_ core: AppCore) -> PlainPasteModule {
-        let module = PlainPasteModule(clipboard: core.clipboardManager)
-        pastePlain = module
-        return module
     }
 }

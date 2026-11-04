@@ -19,5 +19,9 @@ extension NotchcastCommandCatalog {
         SystemLevelsCommands.presets[2],
         SystemLevelsCommands.presets[3],
         SystemLevelsCommands.presets[4],
+        PlainPasteModule.launcherCommand,
+        FinderToolsCoordinator.cutCommand,
+        FinderToolsCoordinator.pasteCommand,
+        FinderToolsCoordinator.renameCommand,
     ]
 }

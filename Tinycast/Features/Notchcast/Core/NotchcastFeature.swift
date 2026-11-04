@@ -23,6 +23,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayWeather
     case dayMarkets
     case pastePlain
+    case finderCutPaste
+    case finderRename
     case pasteImage
     case dictationIslandHUD
     case batteryChargeLimit
@@ -45,8 +47,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case backupRunNow
     case backupBrowseRestore
     case quickLookSpace
-    case finderCutPaste
-    case finderRename
     case markdownFiles
     case plainTextFiles
     case editorSpellChecking
@@ -83,8 +83,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .backupRunNow: .system
         case .backupBrowseRestore: .system
         case .quickLookSpace: .launcher
-        case .finderCutPaste: .system
-        case .finderRename: .system
         case .markdownFiles: .system
         case .plainTextFiles: .system
         case .editorSpellChecking: .system
@@ -103,6 +101,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
         case .pastePlain: .clipboard
+        case .finderCutPaste: .finder
+        case .finderRename: .finder
         case .pasteImage: .clipboard
         }
     }
@@ -131,6 +131,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
         case .pastePlain: String(localized: "Paste Plain Text")
+        case .finderCutPaste: String(localized: "Finder Cut and Paste")
+        case .finderRename: String(localized: "Finder Rename")
         case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
         case .greenMaximize: String(localized: "Green Button Maximizes")
@@ -154,8 +156,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .backupRunNow: String(localized: "Back Up Now")
         case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
         case .quickLookSpace: String(localized: "Quick Look on Space")
-        case .finderCutPaste: String(localized: "Finder Cut and Paste")
-        case .finderRename: String(localized: "Finder Rename")
         case .markdownFiles: String(localized: "Markdown Files")
         case .plainTextFiles: String(localized: "Plain Text Files")
         case .editorSpellChecking: String(localized: "Editor Spell Checking")
@@ -185,7 +185,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
-        case .pastePlain: String(localized: "Hyper+V pastes text without formatting.")
+        case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
+        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
+        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
@@ -209,8 +211,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .backupRunNow: String(localized: "Allow starting the configured backup job.")
         case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
         case .quickLookSpace: String(localized: "Preview an arrow-selected file with Space.")
-        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
-        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
         case .markdownFiles: String(localized: "Edit Markdown documents outside the notes folder.")
         case .plainTextFiles: String(localized: "Edit plain text while preserving its file encoding.")
         case .editorSpellChecking: String(localized: "Check spelling in the editor.")
@@ -228,9 +228,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .pastePlain: [.accessibility]
         case .finderCutPaste: [.accessibility]
         case .finderRename: [.accessibility]
-        case .pastePlain: [.accessibility]
         case .pasteImage: [.accessibility]
         default: []
         }
@@ -258,12 +258,12 @@ extension NotchcastFeature {
         case .backupRunNow: false
         case .backupBrowseRestore: false
         case .quickLookSpace: false
-        case .finderCutPaste: false
-        case .finderRename: false
         case .markdownFiles: false
         case .plainTextFiles: false
         case .editorSpellChecking: false
         case .pastePlain: false
+        case .finderCutPaste: false
+        case .finderRename: false
         case .pasteImage: false
         default: true
         }
@@ -272,8 +272,10 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .buildStats && self != .spacesOrder
-            && self != .switcherQuitKey && self != .pastePlain && !isLauncherKeysFeature
+        switch self {
+        case .pastePlain: false
+        default: !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        }
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
