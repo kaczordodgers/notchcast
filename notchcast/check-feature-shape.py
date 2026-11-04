@@ -3,6 +3,7 @@
 
 import re
 import sys
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -196,6 +197,9 @@ def main():
         print(f"usage: {sys.argv[0]} [repository-root]", file=sys.stderr)
         return 2
     errors = check(Path(sys.argv[1]) if len(sys.argv) == 2 else ROOT)
+    if subprocess.run([sys.executable, str(ROOT / "notchcast/check-switch-paths.py"),
+                       str(Path(sys.argv[1]) if len(sys.argv) == 2 else ROOT)]).returncode:
+        errors.append("switch user paths failed")
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1

@@ -3,6 +3,11 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
+// notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelIslandPresenter.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityPresenter.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
 // notchcast-sources: Tinycast/Features/DisplayBrightness/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
@@ -123,7 +128,14 @@ struct SystemLevelRoutingTests {
         let hardware = RoutingAudioHardware()
         let levels = SystemLevelsModule(service: .init(hardware: hardware, observeHardware: false))
         let brightness = DisplayBrightnessModule()
-        let keys = SystemLevelKeysModule(hub: hub, levels: levels, brightness: brightness, preferences: preferences)
+        let center = IslandActivityCenter()
+        let presenter = SystemLevelIslandPresenter(center: center)
+        var notices = 0
+        let keys = SystemLevelKeysModule(hub: hub, levels: levels, brightness: brightness,
+                                        preferences: preferences, present: {
+            if $0 != nil { notices += 1 }
+            presenter.present($0)
+        })
         let controller = NotchcastModuleController([
             .init(requires: [.island, .volumeLevels], module: levels),
             .init(requires: [], module: keys),
@@ -136,9 +148,16 @@ struct SystemLevelRoutingTests {
         check(hub.handlers.count == 1, "One hub consumer handles both features")
         hub.send(.volumeUp)
         await eventually { keys.latest?.percent == 56 }
+        check(notices == 1, "Published notice reaches the presenter once")
+        check(center.activities.count == 1 && center.current?.progress == 0.56,
+              "First notice reaches the existing island progress activity")
+        let activityID = center.current?.id
         check(hardware.state.withLock { $0.volume } == 9.0 / 16, "Standard key reaches the shipped audio service")
         hub.send(.volumeDown, fine: true)
         await eventually { keys.latest?.percent == 55 }
+        check(notices == 2 && center.activities.count == 1 && center.current?.id == activityID,
+              "Second notice replaces the first without stacking")
+        check(center.current?.progress == 0.55, "Replacement carries the new progress")
         check(hardware.state.withLock { $0.volume } == 35.0 / 64, "Fine key reaches the shipped audio policy")
         hub.send(.mute)
         await eventually { keys.latest?.muted == true }
@@ -184,6 +203,7 @@ struct SystemLevelRoutingTests {
         check(keys.latest != nil, "Brightness works with the island off")
         keys.hudPresenterAvailable = false
         check(hub.handlers.isEmpty, "Removing the presenter restores native passthrough")
+        check(center.activities.isEmpty, "Removing the presenter clears its activity")
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")
     }
 }
