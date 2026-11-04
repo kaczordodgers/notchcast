@@ -45,12 +45,12 @@ struct AIUsageWiringTest {
         precondition(accepted)
         var missingNotices: [String] = []
         preferences.aiUsageCachePath = directory.path
-        let unconfigured = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
-        unconfigured.start()
-        try await unconfigured.refresh()
+        let defaultCacheModule = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
+        defaultCacheModule.start()
+        try await defaultCacheModule.refresh()
         precondition(missingNotices.isEmpty)
-        precondition(unconfigured.snapshots.first?.windows.first?.used == 42)
-        unconfigured.stop()
+        precondition(defaultCacheModule.snapshots.first?.windows.first?.used == 42)
+        defaultCacheModule.stop()
         let controller = NotchcastModuleController([
             .init(requires: [.aiUsage], module: module),
             .init(requires: [.machLink], module: link),

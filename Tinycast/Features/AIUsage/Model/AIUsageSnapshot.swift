@@ -27,5 +27,5 @@ nonisolated struct AIUsageSnapshot: Sendable, Equatable {
     let checkedAt: Date?
     let status: Status
     let windows: [Window]
-    var resetCredits: ResetCredits? = nil
+    var resetCredits: ResetCredits?
 }
