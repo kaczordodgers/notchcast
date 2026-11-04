@@ -43,6 +43,7 @@ final class VoiceAskModule: NotchcastModule {
         guard enabled, transport != nil, !destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               hold.state == .idle else { return }
         cancel()
+        failure = nil
         hold.press(alone: alone)
         let current = identity
         task = Task { [weak self] in
@@ -60,6 +61,7 @@ final class VoiceAskModule: NotchcastModule {
     }
 
     func chord() {
+        guard hold.state != .idle else { return }
         let action = hold.chord()
         if action == .cancel { cancelRecording() }
         task?.cancel()
