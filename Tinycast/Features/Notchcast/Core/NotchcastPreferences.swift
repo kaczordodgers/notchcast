@@ -23,6 +23,7 @@ final class NotchcastPreferences {
     var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
     var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
+    var monitorBatteryTemperature: Int { didSet { defaults.set(monitorBatteryTemperature, forKey: "monitorBatteryTemperature") } }
     var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.chargeLimits.last(where: { $0 <= newValue }) ?? 60; defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
     @ObservationIgnored private var versions: [NotchcastFeature: Int] = [:]
@@ -53,6 +54,7 @@ final class NotchcastPreferences {
         monitorMemory = Self.threshold(defaults, "monitorMemory", 1, 0...1)
         monitorDisk = Self.threshold(defaults, "monitorDisk", 10, 1...50)
         monitorBattery = Self.threshold(defaults, "monitorBattery", 15, 1...50)
+        monitorBatteryTemperature = Self.threshold(defaults, "monitorBatteryTemperature", 40, 30...60)
         fanMode = defaults.string(forKey: "fanMode") ?? "auto"
         chargePercent = Self.chargeLimits.last(where: { $0 <= (defaults.object(forKey: "batteryChargePercent") as? Int ?? 80) }) ?? 60
         awakeDuration = Self.allowed(defaults.integer(forKey: "keepAwakeMinutes"), Self.awakeDurations, 60)

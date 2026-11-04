@@ -2,12 +2,13 @@ import Foundation
 import Synchronization
 
 nonisolated struct SpeedTestRunner: Sendable {
-    func run() async throws -> SpeedTestResult {
+    @concurrent
+    func run(_ phase: SpeedTestPhase) async throws -> SpeedTestResult.Measurement {
         let job = Job()
         return try await withTaskCancellationHandler {
-            let data = try await job.run()
+            let data = try await job.run(phase)
             try Task.checkCancellation()
-            return try SpeedTestResult.parse(data)
+            return try SpeedTestResult.parse(data, phase: phase)
         } onCancel: { job.cancel() }
     }
 
@@ -29,10 +30,10 @@ nonisolated struct SpeedTestRunner: Sendable {
             }
         }
 
-        func run() async throws -> Data {
+        func run(_ phase: SpeedTestPhase) async throws -> Data {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/networkQuality")
-            process.arguments = ["-c", "-M", "30"]
+            process.arguments = ["-c", "-M", "30", phase == .download ? "-u" : "-d"]
             let pipe = Pipe()
             process.standardOutput = pipe
             process.standardError = FileHandle.nullDevice
