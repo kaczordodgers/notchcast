@@ -10,8 +10,8 @@ enum GallerySettingsTiming {
         let source: String
         let openMilliseconds: [Double]
         let switchMilliseconds: [Double]
-        var openMedian: Double { openMilliseconds.sorted()[2] }
-        var switchMedian: Double { switchMilliseconds.sorted()[2] }
+        var openMedian: Double { openMilliseconds.sorted()[openMilliseconds.count / 2] }
+        var switchMedian: Double { switchMilliseconds.sorted()[switchMilliseconds.count / 2] }
 
         enum CodingKeys: String, CodingKey {
             case slug, appearance, source, openMilliseconds, switchMilliseconds, openMedian, switchMedian
@@ -40,6 +40,7 @@ enum GallerySettingsTiming {
                 guard !tabs.isEmpty, tabs.count == slugs.count, Set(slugs).count == slugs.count else {
                     throw GalleryFailure.invalidRegistry
                 }
+                let trials = max(1, Int(environment["NOTCHCAST_SETTINGS_TRIALS"] ?? "") ?? 5)
                 let output = URL(filePath: directory, directoryHint: .isDirectory)
                 try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
                 var results: [Measurement] = []
@@ -48,7 +49,8 @@ enum GallerySettingsTiming {
                         let source: SettingsTab = tab == .general ? .about : .general
                         var opens: [Double] = []
                         var switches: [Double] = []
-                        for trial in 0..<5 {
+                        for trial in 0..<trials {
+                            FileHandle.standardError.write(Data("start \(tab.slug) \(dark) \(trial)\n".utf8))
                             let navigation = SettingsNavigationState(tab: tab)
                             let presenter = SettingsEditorPresenter(core: core, navigation: navigation)
                             let start = CACurrentMediaTime()
@@ -64,7 +66,10 @@ enum GallerySettingsTiming {
                             navigation.select(tab)
                             try await display(window)
                             switches.append((CACurrentMediaTime() - switchStart) * 1000)
-                            if trial == 4 {
+                            let line = String(format: "trial %@ %@ %d open %.1f switch %.1f\n", tab.slug,
+                                              dark ? "dark" : "light", trial, opens[trial], switches[trial])
+                            FileHandle.standardError.write(Data(line.utf8))
+                            if trial == trials - 1 {
                                 try await fitContent(window)
                                 let page = GalleryPage(name: "\(tab.slug)-\(dark ? "dark" : "light")",
                                                        types: ["SettingsDetailView"], makeWindow: { window })
@@ -82,7 +87,7 @@ enum GallerySettingsTiming {
                 try encoder.encode(results).write(to: output.appending(path: "timings.json"))
                 try results.map { "\($0.slug)-\($0.appearance).png" }.joined(separator: "\n")
                     .write(to: output.appending(path: "manifest.txt"), atomically: false, encoding: .utf8)
-                print("Tab Appearance Open median (ms) Switch median (ms); n=5")
+                print("Tab Appearance Open median (ms) Switch median (ms); n=\(trials)")
                 for result in results {
                     print(String(format: "%@ %@ %.2f %.2f", result.slug, result.appearance,
                                  result.openMedian, result.switchMedian))
