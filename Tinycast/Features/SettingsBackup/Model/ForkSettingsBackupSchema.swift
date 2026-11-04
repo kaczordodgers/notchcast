@@ -67,7 +67,7 @@ enum ForkSettingsBackupSchema {
         "latitude": .number(-90...90), "longitude": .number(-180...180),
     ])
     static let cleanup: Value = .object([
-        "isEnabled": .bool, "baseURL": .string(2048), "effort": .string(6, ["low", "medium", "high"]),
+        "effort": .string(6, ["low", "medium", "high"]),
         "promptAddition": .string(16_384), "vocabulary": .array(500, .object([
             "spelling": .string(256), "misheardForms": .strings(50, 256),
         ])),
@@ -83,7 +83,10 @@ enum ForkSettingsBackupSchema {
         "launcherFromIsland": .bool,
         "launcherNumberKeys": .bool,
         "launcherAliasSpace": .bool,
-        "systemMonitor": .bool,
+        "pastePlain": .bool,
+        "finderCutPaste": .bool,
+        "finderRename": .bool,
+        "pasteImage": .bool,
         "monitorAlerts": .bool,
         "lowDiskWarning": .bool,
         "systemNotices": .bool,
@@ -95,7 +98,6 @@ enum ForkSettingsBackupSchema {
         "dayWeather": .bool,
         "dayMarkets": .bool,
         "dictationIslandHUD": .bool,
-        "keepAwake": .bool,
         "settingsBackup": .bool,
         "showDesktop": .bool,
         "spacesOrder": .bool,
@@ -114,7 +116,7 @@ enum ForkSettingsBackupSchema {
         "monitorMemory": .integer(0...1),
         "monitorDisk": .integer(1...50),
         "monitorBattery": .integer(1...50),
-        "keepAwakeMinutes": .choices([15, 30, 60, 120, 240]),
+        "notchcast.colorPicker.format": .string(14, ["hex", "hexLowercase", "rgb", "hsl", "swiftUIColor", "nsColorLiteral"]),
         "islandHoverDelay": .choices([0.1, 0.3, 0.5, 1]),
         "notchcast.liveTimer.defaultDuration": .choices([300, 600, 900, 1500, 1800, 3600]),
         "notchcast.liveTimer.playSound": .bool,
@@ -134,6 +136,9 @@ enum ForkSettingsBackupSchema {
     ]
 
     static let excluded: Set<String> = [
+        "systemMonitor",
+        "keepAwake",
+        "keepAwakeMinutes",
         "fanControl",
         "batteryChargeLimit",
         "batterySailing",

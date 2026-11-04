@@ -8,7 +8,6 @@ enum ForkSettingsBackupRestore {
          "monitorMemory": preferences.monitorMemory,
          "monitorDisk": preferences.monitorDisk,
          "monitorBattery": preferences.monitorBattery,
-         "keepAwakeMinutes": preferences.keepAwakeMinutes,
          "islandHoverDelay": preferences.islandHoverDelay.rawValue,
          "greenMaximizeExcludedApps": preferences.greenMaximizeExcludedApps,
          "buildStatsPath": preferences.buildStatsPath]
@@ -30,7 +29,6 @@ enum ForkSettingsBackupRestore {
         if let number = values["monitorMemory"] as? NSNumber { preferences.monitorMemory = number.intValue }
         if let number = values["monitorDisk"] as? NSNumber { preferences.monitorDisk = number.intValue }
         if let number = values["monitorBattery"] as? NSNumber { preferences.monitorBattery = number.intValue }
-        if let number = values["keepAwakeMinutes"] as? NSNumber { preferences.keepAwakeMinutes = number.intValue }
         if let number = values["islandHoverDelay"] as? NSNumber,
            let delay = NotchcastPreferences.HoverDelay(rawValue: number.doubleValue) {
             preferences.islandHoverDelay = delay

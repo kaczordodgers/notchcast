@@ -16,7 +16,9 @@ extension ForkSettingsBackupState {
             values["notchcast.appearance.theme.light"] = try json(appearance.light)
             values["notchcast.appearance.theme.dark"] = try json(appearance.dark)
             values["notchcast.appearance.themes.imported"] = try json(appearance.imported)
-            values["dictationCleanup"] = try json(cleanupStore.read())
+            let cleanup = try cleanupStore.read()
+            values["dictationCleanup"] = try json(Cleanup(effort: cleanup.effort,
+                promptAddition: cleanup.promptAddition, vocabulary: cleanup.vocabulary))
             try validateLive(values)
             return values
         }, validate: validateLive, apply: { values in
@@ -51,7 +53,12 @@ extension ForkSettingsBackupState {
                 try appearance.select(decode(RaycastTheme?.self, value), for: .dark)
             }
             if let value = values["dictationCleanup"] as? String {
-                try cleanupStore.save(decode(DictationCleanupSettings.self, value))
+                let restored = try decode(Cleanup.self, value)
+                var current = try cleanupStore.read()
+                current.effort = restored.effort
+                current.promptAddition = restored.promptAddition
+                current.vocabulary = restored.vocabulary
+                try cleanupStore.save(current)
             }
             try ForkSettingsBackupRestore.apply(values, to: .shared)
         })
@@ -60,6 +67,12 @@ extension ForkSettingsBackupState {
     private static var cleanupStore: DictationCleanupSettingsStore {
         let identifier = Bundle.main.bundleIdentifier ?? "app.notchcast.dev"
         return DictationCleanupSettingsStore(defaults: DayStorage.defaults, bundleIdentifier: identifier)
+    }
+
+    private struct Cleanup: Codable {
+        var effort: DictationCleanupSettings.Effort
+        var promptAddition: String
+        var vocabulary: [DictationCleanupSettings.VocabularyTerm]
     }
 
     private static func json(_ value: some Encodable) throws -> String {
@@ -82,6 +95,6 @@ extension ForkSettingsBackupState {
         }
         if let value = values["notchcast.appearance.themes.imported"] as? String { _ = try decode([RaycastTheme].self, value) }
         if let value = values["notchcast.day.weatherPlace"] as? String { _ = try decode(DayWeatherPlace?.self, value) }
-        if let value = values["dictationCleanup"] as? String { _ = try decode(DictationCleanupSettings.self, value) }
+        if let value = values["dictationCleanup"] as? String { _ = try decode(Cleanup.self, value) }
     }
 }
