@@ -11,6 +11,7 @@ final class MachLinkManager {
     private var requests: [UUID: Task<Void, Never>] = [:]
     private(set) var peers: Set<NWBrowser.Result> = []
     var port: NWEndpoint.Port? { listener?.port }
+    private(set) var serviceName: String?
 
     isolated deinit {
         listener?.cancel()
@@ -22,7 +23,9 @@ final class MachLinkManager {
         stop()
         let listener = try NWListener(using: MachLinkTransport.parameters(pairing: pairing))
         self.listener = listener
-        listener.service = NWListener.Service(name: name, type: Self.serviceType)
+        serviceName = name
+        listener.service = NWListener.Service(name: name, type: Self.serviceType,
+            txtRecord: NWTXTRecord(["pairing": pairing.discoveryHash]))
         listener.newConnectionHandler = { [weak self, weak listener] connection in
             Task { @MainActor [weak self, weak listener] in
                 guard let self, let listener, self.listener === listener, self.requests.count < 8 else {
@@ -34,7 +37,11 @@ final class MachLinkManager {
                     defer { self?.requests[id] = nil }
                     do {
                         try await MachLinkTransport.bounded(connection: connection, timeout: .seconds(5)) {
-                            try await MachLinkTransport.connected(connection)
+                            try await MachLinkTransport.bounded(
+                                connection: connection, timeout: .seconds(1), cancelOnSuccess: false
+                            ) {
+                                try await MachLinkTransport.connected(connection)
+                            }
                             let request = try await MachLinkTransport.receive(on: connection)
                             let response = try await handler(request)
                             guard response.id == request.id, response.method == request.method else {

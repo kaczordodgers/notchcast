@@ -10,7 +10,7 @@ there is no refresh timer. The provider accepts an injected directory and clock 
 the wire representation intentionally carries no provider-specific display or reset metadata.
 
 `AIUsageLinkModule` owns the listener and browser. Switching Mac link off stops both and cancels
-incoming work. Incoming requests require AI usage to remain enabled before returning a fresh local
+incoming work. Incoming requests require both AI usage switches to remain enabled before returning a local
 snapshot. Outbound peer requests retain the engine's one-minute minimum interval.
 
 Enable Mac link on both Macs. Pair with an empty code on one Mac, then enter that code and Pair on
@@ -21,3 +21,8 @@ Unpair removes that secret. Pairing codes are never included in settings backups
 `Tests/notchcast-l5-ai-usage-wire-test.swift` covers default-off lifecycle, a fixture read, a missing
 peer, a real loopback peer response, child dependency changes and teardown. Physical two-Mac pairing
 and Settings rendering require integration verification.
+
+## Local network validation
+
+Local-network privacy may require `NSLocalNetworkUsageDescription` and `NSBonjourServices`.
+Verify discovery and pairing on two Macs before shipping; Info.plist changes are deferred.

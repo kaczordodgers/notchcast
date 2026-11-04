@@ -10,16 +10,25 @@ final class MachLinkUsagePeerChannel: OtherMacUsagePeerChannel {
     func requestUsageSnapshot(
         providers: Set<String>, timeout: Duration
     ) async throws -> OtherMacUsageSnapshot {
-        let remote = manager.peers.first {
+        guard let pairing else { throw MachLinkMessage.Failure.disconnected }
+        let remotes = manager.peers.filter {
             guard case let .service(name, _, _, _) = $0.endpoint else { return false }
-            return name != ProcessInfo.processInfo.hostName
-        }?.endpoint
-        guard let pairing, let endpoint = endpoint ?? remote else {
-            throw MachLinkMessage.Failure.disconnected
+            guard name != manager.serviceName, case let .bonjour(record) = $0.metadata else { return false }
+            return record["pairing"] == pairing.discoveryHash
         }
-        return try await MachLinkManager.request(
-            providers, method: "ai-usage", from: endpoint, pairing: pairing,
-            timeout: timeout, as: OtherMacUsageSnapshot.self)
+        let endpoints = endpoint.map { [$0] } ?? remotes.map(\.endpoint)
+        let deadline = ContinuousClock.now.advanced(by: timeout)
+        for endpoint in endpoints {
+            try Task.checkCancellation()
+            let remaining = ContinuousClock.now.duration(to: deadline)
+            guard remaining > .zero else { throw MachLinkMessage.Failure.timedOut }
+            do {
+                return try await MachLinkManager.request(
+                    providers, method: "ai-usage", from: endpoint, pairing: pairing,
+                    timeout: min(remaining, .seconds(2)), as: OtherMacUsageSnapshot.self)
+            } catch is CancellationError { throw CancellationError() } catch { continue }
+        }
+        throw MachLinkMessage.Failure.disconnected
     }
 
     static func response(to request: MachLinkMessage, provider: AIUsageProvider) async throws -> MachLinkMessage {

@@ -22,7 +22,8 @@ nonisolated enum OtherMacUsageEngine {
                 guard !value.providerID.isEmpty, !value.planID.isEmpty, !value.windowID.isEmpty,
                       value.usedFraction.isFinite, (0...1).contains(value.usedFraction) else { continue }
                 let age = now.timeIntervalSince(value.observedAt)
-                let reading = Reading(value: value, isStale: failed || age < 0 || age > maximumAge)
+                let reading = Reading(value: value,
+                    isStale: value.isStale == true || failed || age < 0 || age >= maximumAge)
                 let key = Key(provider: value.providerID, plan: value.planID, window: value.windowID)
                 if let existing = result[key] {
                     if existing.isStale != reading.isStale {

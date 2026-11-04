@@ -20,6 +20,21 @@ struct MachLinkTest {
         } catch MachLinkMessage.Failure.tooLarge { print("PASS size limit") }
 
         let pairing = try MachLinkPairing.create()
+        precondition(pairing.discoveryHash.count == 24)
+        let sameID = try MachLinkPairing(id: pairing.id, secret: Data(count: 32))
+        let differentID = try MachLinkPairing.create()
+        precondition(pairing.discoveryHash == sameID.discoveryHash)
+        precondition(pairing.discoveryHash != differentID.discoveryHash)
+        let cancelledConnection = NWConnection(
+            to: .hostPort(host: "127.0.0.1", port: 1), using: .tcp)
+        let beforeStart = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            try await MachLinkTransport.connected(cancelledConnection)
+        }
+        do {
+            try await beforeStart.value
+            fatalError("Pre-cancelled connection started")
+        } catch is CancellationError { print("PASS cancel before start") }
         let server = MachLinkManager()
         try server.start(pairing: pairing, name: "Harness") { request in
             try MachLinkMessage(id: request.id, method: request.method, value: ["remaining": 42])

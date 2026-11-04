@@ -89,3 +89,4 @@ struct AIUsageTests {
         let windowDurationMins: Double?
     }
 }
+// notchcast-sources: Tinycast/Features/AIUsage/OtherMac/Model/OtherMacUsageSnapshot.swift

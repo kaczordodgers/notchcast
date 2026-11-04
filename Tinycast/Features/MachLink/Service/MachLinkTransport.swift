@@ -1,6 +1,7 @@
 import Foundation
 import Network
 import Security
+import Synchronization
 
 enum MachLinkTransport {
     static func parameters(pairing: MachLinkPairing) -> NWParameters {
@@ -18,25 +19,46 @@ enum MachLinkTransport {
     }
 
     static func connected(_ connection: NWConnection) async throws {
+        let completion = Mutex<(CheckedContinuation<Void, Error>?, Result<Void, Error>?)>((nil, nil))
+        @Sendable func finish(_ result: Result<Void, Error>) {
+            let continuation = completion.withLock { state -> CheckedContinuation<Void, Error>? in
+                guard state.1 == nil else { return nil }
+                state.1 = result
+                defer { state.0 = nil }
+                return state.0
+            }
+            continuation?.resume(with: result)
+        }
         try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                let result = completion.withLock { state -> Result<Void, Error>? in
+                    if let result = state.1 { return result }
+                    state.0 = continuation
+                    return nil
+                }
+                if let result {
+                    continuation.resume(with: result)
+                    return
+                }
                 connection.stateUpdateHandler = { state in
                     switch state {
                     case .ready:
                         connection.stateUpdateHandler = nil
-                        continuation.resume()
+                        finish(.success(()))
                     case let .failed(error):
                         connection.stateUpdateHandler = nil
-                        continuation.resume(throwing: error)
+                        connection.cancel()
+                        finish(.failure(error))
                     case .cancelled:
                         connection.stateUpdateHandler = nil
-                        continuation.resume(throwing: CancellationError())
+                        finish(.failure(CancellationError()))
                     default: break
                     }
                 }
                 connection.start(queue: .global(qos: .utility))
             }
         } onCancel: {
+            finish(.failure(CancellationError()))
             connection.cancel()
         }
     }
@@ -76,7 +98,7 @@ enum MachLinkTransport {
     }
 
     static func bounded<Value: Sendable>(
-        connection: NWConnection, timeout: Duration,
+        connection: NWConnection, timeout: Duration, cancelOnSuccess: Bool = true,
         operation: @escaping @Sendable () async throws -> Value
     ) async throws -> Value {
         try await withThrowingTaskGroup(of: Value.self) { group in
@@ -87,7 +109,7 @@ enum MachLinkTransport {
                 try await Task.sleep(for: timeout)
                 throw MachLinkMessage.Failure.timedOut
             }
-            defer { group.cancelAll(); connection.cancel() }
+            defer { group.cancelAll(); if cancelOnSuccess { connection.cancel() } }
             return try await group.next()!
         }
     }
