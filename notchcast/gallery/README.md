@@ -56,6 +56,12 @@ It cannot observe a
 window shorter than its 100 ms sample interval; absence of WindowServer is an
 error, never a pass. No sleep-prevention or user-activity assertion is made.
 
+The gallery harness compiles a generic-password query probe and launches it through
+the same `isolate.py` profile. It requires service-denial status (`errSecParam` or
+`errSecNotAvailable`); success and `errSecItemNotFound` fail the harness. The probe
+queries a random, nonexistent service and never writes a Keychain item. This checks
+generic-password query isolation, not every Security framework operation.
+
 Layout coordinates are AppKit bottom-left points within the canvas. The JSON
 records raw accessibility frames and roles/labels, the silhouette bounding
 rectangle, hardware notch and canvas. Accessibility-hidden decoration is absent
