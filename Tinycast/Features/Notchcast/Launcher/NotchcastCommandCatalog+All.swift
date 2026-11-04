@@ -11,6 +11,7 @@ extension NotchcastCommandCatalog {
         MachineSetupProfileCoordinator.launcherCommand,
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
+        AppearanceCoordinator.launcherCommand,
         BatteryModule.launcherCommand,
         FanControl.maxCommand,
         FanControl.autoCommand,

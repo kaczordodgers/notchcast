@@ -20,6 +20,7 @@ final class AppearanceStore {
     private(set) var imported: [RaycastTheme]
     private(set) var previewTarget: RaycastThemeLink.Target?
     private(set) var pendingImport: AppearanceThemeImport?
+    private(set) var isEnabled: Bool
     private(set) var revision = 0
     let invalidPreferenceKeys: [String]
 
@@ -45,8 +46,11 @@ final class AppearanceStore {
         }
     }
 
-    init(defaults: UserDefaults = AppearanceStore.preferences) {
+    var effectiveSurfaceStyle: AppearanceSurfaceStyle { isEnabled ? surfaceStyle : .glass }
+
+    init(defaults: UserDefaults = AppearanceStore.preferences, enabled: Bool = true) {
         self.defaults = defaults
+        isEnabled = enabled
         var invalidKeys: [String] = []
         func decode<T: Decodable>(_ type: T.Type, key: String) -> T? {
             guard let raw = defaults.object(forKey: key) else { return nil }
@@ -70,8 +74,17 @@ final class AppearanceStore {
         let savedOpacity = defaults.object(forKey: Self.opacityKey) as? Double
         opacity = savedOpacity.flatMap { $0.isFinite ? min(1, max(0.2, $0)) : nil } ?? Self.defaultOpacity
         invalidPreferenceKeys = invalidKeys
+        for key in invalidKeys { defaults.removeObject(forKey: key) }
         refreshColors()
         Self.current = self
+    }
+
+    func setEnabled(_ enabled: Bool) {
+        guard isEnabled != enabled else { return }
+        isEnabled = enabled
+        previewTarget = nil
+        pendingImport = nil
+        refreshColors()
     }
 
     func theme(for slot: RaycastTheme.Appearance) -> RaycastTheme? {
@@ -124,13 +137,13 @@ final class AppearanceStore {
     }
 
     func preview(_ target: RaycastThemeLink.Target?) {
-        guard target != previewTarget, target?.theme?.isValid != false else { return }
+        guard isEnabled, target != previewTarget, target?.theme?.isValid != false else { return }
         previewTarget = target
         refreshColors()
     }
 
     func requestImport(url: URL, applicationScheme: String) -> AppearanceThemeImport? {
-        guard pendingImport == nil,
+        guard isEnabled, pendingImport == nil,
             let link = RaycastThemeLink(url: url, applicationScheme: applicationScheme)
         else { return nil }
         // A URL's apply flag is untrusted; only a native command action may apply without a dialog.
@@ -157,7 +170,9 @@ final class AppearanceStore {
     }
 
     private func refreshColors() {
-        colors.update(light: light, dark: dark, preview: previewTarget, opacity: opacity)
+        colors.update(
+            light: isEnabled ? light : nil, dark: isEnabled ? dark : nil,
+            preview: isEnabled ? previewTarget : nil, opacity: opacity)
         revision &+= 1
     }
 }

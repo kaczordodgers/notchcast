@@ -5,6 +5,7 @@
 // notchcast-sources: Tinycast/Features/TextInjection/Service/*.swift Tinycast/Features/Snippets/Model/*.swift
 // notchcast-sources: Tinycast/Platform/AccessibilityText.swift Tinycast/Platform/PasteboardFiles.swift
 // notchcast-sources: Tinycast/Platform/Appearance.swift Tinycast/DesignSystem/Theme.swift
+// notchcast-sources: Tinycast/Features/Appearance/Model/*.swift Tinycast/Features/Appearance/Service/*.swift
 import AppKit
 import SwiftUI
 

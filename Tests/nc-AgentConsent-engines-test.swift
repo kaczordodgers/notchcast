@@ -52,6 +52,16 @@ struct AgentConsentTests {
             let text = try String(contentsOf: url, encoding: .utf8)
             assert(!text.contains("secret") && !text.contains("private note"))
         }
-        print("PASS: consent isolation, expiry, persistence, revoke; audit redaction, rotation, 0600")
+        let current = directory.appendingPathComponent("audit.jsonl")
+        var damaged = try Data(contentsOf: current)
+        damaged.append(contentsOf: "{broken}\n".utf8)
+        damaged.append(try JSONEncoder().encode(entry))
+        damaged.append(0x0A)
+        damaged.append(contentsOf: [0xFF, 0x0A])
+        try damaged.write(to: current)
+        let recovered = try await audit.entries()
+        assert(recovered == entries + [entry])
+        assert(audit.skippedLineCount == 2)
+        print("PASS: consent, audit redaction/rotation/0600; two bad lines skipped, valid tail retained")
     }
 }
