@@ -9,6 +9,11 @@ final class NotchcastPreferences {
     private var off: Set<NotchcastFeature>
     private var chargePercent: Int
     private var awakeDuration: Int
+    var remoteMacAddress: String { didSet { defaults.set(remoteMacAddress, forKey: "remoteMacAddress") } }
+    var remoteTerminalDirectory: String { didSet { defaults.set(remoteTerminalDirectory, forKey: "remoteTerminalDirectory") } }
+    var remoteUpdatePath: String { didSet { defaults.set(remoteUpdatePath, forKey: "remoteUpdatePath") } }
+    var backupStatusPath: String { didSet { defaults.set(backupStatusPath, forKey: "backupStatusPath") } }
+    var aiUsageCachePath: String { didSet { defaults.set(aiUsageCachePath, forKey: "aiUsageCachePath") } }
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
@@ -20,10 +25,16 @@ final class NotchcastPreferences {
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
     var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.allowed(newValue, Self.chargeLimits, 80); defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
+    @ObservationIgnored private var versions: [NotchcastFeature: Int] = [:]
 
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        remoteMacAddress = defaults.string(forKey: "remoteMacAddress") ?? ""
+        remoteTerminalDirectory = defaults.string(forKey: "remoteTerminalDirectory") ?? ""
+        remoteUpdatePath = defaults.string(forKey: "remoteUpdatePath") ?? ""
+        backupStatusPath = defaults.string(forKey: "backupStatusPath") ?? ""
+        aiUsageCachePath = defaults.string(forKey: "aiUsageCachePath") ?? ""
         buildStatsPath = defaults.string(forKey: "buildStatsPath") ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
@@ -38,6 +49,8 @@ final class NotchcastPreferences {
         off = Self.featuresOff(defaults)
     }
 
+    func revision(_ feature: NotchcastFeature) -> Int { versions[feature, default: 0] }
+
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
     func isEnabled(_ feature: NotchcastFeature) -> Bool {
         isOn(feature) && feature.dependencies.allSatisfy(isEnabled)
@@ -50,6 +63,7 @@ final class NotchcastPreferences {
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
+        versions[feature, default: 0] += 1
         if enabled { off.remove(feature) } else { off.insert(feature) }
         if feature == .colorPicker || feature == .screenshot { onCommandsChanged?() }
     }
