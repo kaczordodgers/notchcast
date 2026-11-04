@@ -30,7 +30,13 @@ struct NotchcastCoreTests {
         ]
         precondition(m0.isSubset(of: NotchcastFeature.allCases.map(\.rawValue)))
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
-        precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
+        // A fresh install: switches that take over system input or behaviour start off, everything else on.
+        let startsOff: Set<NotchcastFeature> = [.volumeLevels, .displayBrightness, .quitProtection, .fanControl,
+            .batteryChargeLimit, .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake]
+        for feature in NotchcastFeature.allCases {
+            precondition(preferences.isOn(feature) == !startsOff.contains(feature), "fresh default of \(feature)")
+        }
+        print("fresh defaults off: \(NotchcastFeature.allCases.filter { !preferences.isOn($0) }.map(\.rawValue))")
         let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
             .displayBrightness, .quitProtection, .liveTimers, .dayWeather, .dayMarkets]
         for feature in l3 {
@@ -38,7 +44,6 @@ struct NotchcastCoreTests {
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
-        precondition(l3.allSatisfy { preferences.isOn($0) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))

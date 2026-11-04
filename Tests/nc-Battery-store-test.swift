@@ -15,7 +15,7 @@ struct BatteryStoreTests {
         let suite = "battery-store-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        for feature in NotchcastFeature.allCases where feature.isSystemFeature {
+        for feature in NotchcastFeature.allCases where feature.isSystemFeature && feature != .systemMonitor && feature != .monitorAlerts {
             precondition(!preferences.isOn(feature))
         }
         preferences.batteryChargePercent = 45
