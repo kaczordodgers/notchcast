@@ -11,7 +11,7 @@ struct NotchcastSettingsView: View {
                         anchor: .notchcastIsland, title: "Island",
                         subtitle: "Show the island at the top of the screen.")
                 }
-            }
+            } header: { SettingsSectionHeader(.notchcastIsland) }
             .settingsAnchor(.notchcastIsland)
 
             featureSection(.notchcastOptions, group: .islandOptions)
@@ -29,14 +29,20 @@ struct NotchcastSettingsView: View {
             BackupStatusSettingsSection()
             BuildStatsSettingsSection()
 
+            CaptureDictationSettingsSection()
+
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
 
+            NotchcastTorrentSettings(module: NotchcastCore.torrents)
+            NotchcastMusicSettings()
+            NotchcastArchiveSettings()
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
             }
         }
         .formStyle(.grouped)
         .settingsScrollTarget(.notchcast)
+        .notchcastEnvironment()
     }
 
     /// Grants needed by the switches that are on, in a stable order.
@@ -84,7 +90,6 @@ struct NotchcastSettingsView: View {
     }
 }
 
-/// Read-only: grants are given on upstream's Permissions page, so this never prompts.
 private struct NotchcastGrantsSection: View {
     let grants: [NotchcastGrant]
     @Environment(SettingsNavigationState.self) private var navigation
@@ -103,11 +108,11 @@ private struct NotchcastGrantsSection: View {
                             }
                             .foregroundStyle(grant.isGranted ? .green : .orange)
                             Button("Open…") {
-                                navigation.select(.permissions, revealing: .section(grant.anchor))
+                                grant.open(navigation)
                             }
                         }
                     } label: {
-                        Text(grant.anchor.title)
+                        Text(grant.title)
                     }
                 }
             }
@@ -117,16 +122,3 @@ private struct NotchcastGrantsSection: View {
     }
 }
 
-private extension NotchcastGrant {
-    var anchor: SettingsAnchor {
-        switch self {
-        case .accessibility: .permissionsAccessibility
-        }
-    }
-
-    var isGranted: Bool {
-        switch self {
-        case .accessibility: Permissions.isAccessibilityTrusted()
-        }
-    }
-}
