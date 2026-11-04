@@ -10,7 +10,7 @@ final class NotchcastServices {
     let marks: InUseMarksModule
     let settings: SpotifySettingsCoordinator
     let keys: NotchcastKeyMonitor
-    let eventTapHub = EventTapHub()
+    let eventTapHub = NotchcastCore.eventTapHub
     private let commandFeedback: MusicCommandFeedback
 
     init(core: AppCore, preferences: NotchcastPreferences) {
