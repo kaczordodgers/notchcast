@@ -24,6 +24,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case agentSessions
     case agentPricing
+    case pastePlain
+    case finderCutPaste
+    case finderRename
+    case pasteImage
     case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
@@ -88,6 +92,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .pastePlain: .clipboard
+        case .finderCutPaste: .finder
+        case .finderRename: .finder
+        case .pasteImage: .clipboard
         }
     }
 
@@ -116,6 +124,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Weather")
         case .agentSessions: String(localized: "Agent Session Logs")
         case .agentPricing: String(localized: "Agent API Value")
+        case .pastePlain: String(localized: "Paste Plain Text")
+        case .finderCutPaste: String(localized: "Finder Cut and Paste")
+        case .finderRename: String(localized: "Finder Rename")
+        case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
@@ -163,6 +175,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
         case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
+        case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
+        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
+        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
+        case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
@@ -196,6 +212,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .pastePlain: [.accessibility]
+        case .finderCutPaste: [.accessibility]
+        case .finderRename: [.accessibility]
+        case .pasteImage: [.accessibility]
         default: []
         }
     }
@@ -220,6 +240,10 @@ extension NotchcastFeature {
         case .agentSessions: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .pastePlain: false
+        case .finderCutPaste: false
+        case .finderRename: false
+        case .pasteImage: false
         default: true
         }
     }
@@ -227,8 +251,11 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .buildStats && self != .spacesOrder
-            && self != .switcherQuitKey && !isLauncherKeysFeature && self != .agentSessions
+        switch self {
+        case .pastePlain: false
+        case .agentSessions: false
+        default: !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        }
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }

@@ -5,5 +5,9 @@ extension NotchcastCommandCatalog {
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
         AgentSessionsModule.refreshCommand,
+        PlainPasteModule.launcherCommand,
+        FinderToolsCoordinator.cutCommand,
+        FinderToolsCoordinator.pasteCommand,
+        FinderToolsCoordinator.renameCommand,
     ]
 }
