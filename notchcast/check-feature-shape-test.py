@@ -55,7 +55,7 @@ class FeatureShapeTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS, SHAPE.PREFERENCES):
+        for path in (SHAPE.FEATURE, SHAPE.GROUPS, SHAPE.LOGIC, *SHAPE.LISTS, SHAPE.PREFERENCES):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text((ROOT / path).read_text())
 
@@ -208,8 +208,43 @@ class FeatureShapeTests(unittest.TestCase):
         run(self.root, "git", "config", "merge.gpgSign", "false")
         for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS, SHAPE.PREFERENCES):
             self.assertTrue(run(self.root, "git", "check-attr", "merge", "--", str(path)).endswith(": union"))
+        self.assertFalse(run(self.root, "git", "check-attr", "merge", "--", str(SHAPE.LOGIC)).endswith(": union"))
         run(self.root, "git", "add", ".")
         run(self.root, "git", "commit", "-qm", "Base feature shape")
+
+    # The three corruptions L2a saw union merges leave in NotchcastFeature.swift; each typechecks with a warning at most.
+    def test_appended_multi_line_body(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        body = ("    var probe: Bool {\n        self != .island\n            && self != .liveTimers\n"
+                "        self != .island\n            && self != .dayMarkets\n    }\n")
+        self.rejected(SHAPE.FEATURE, source.replace("    var needsIslandArm:", body + "\n    var needsIslandArm:"),
+                      "probe: a body over several lines must be one `switch self`")
+
+    def test_body_inside_a_switch(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        self.rejected(SHAPE.FEATURE, source.replace(
+            "        default: true\n", "        !isSystemFeature && self != .island\n        default: true\n", 1),
+            "needsIslandArm: only one-line `case .x: value` arms belong in its switch")
+
+    def test_second_property_header_inside_its_switch(self):
+        source = (self.root / SHAPE.FEATURE).read_text()
+        header = "    var settingsGroup: SettingsGroup {\n        switch self {\n"
+        self.rejected(SHAPE.FEATURE, source.replace(header, header + header, 1),
+                      "settingsGroup: only one-line `case .x: value` arms belong in its switch")
+
+    def test_logic_edits_conflict_instead_of_appending(self):
+        self.init_repository()
+        logic = self.root / SHAPE.LOGIC
+        original = "!isSystemFeature && self != .buildStats && self != .spacesOrder"
+        for branch, edit in (("one", "!isSystemFeature && self != .spacesOrder"),
+                             ("two", "!isSystemFeature && self != .buildStats")):
+            run(self.root, "git", "switch", "-qc", branch, "base")
+            logic.write_text(logic.read_text().replace(original, edit))
+            run(self.root, "git", "commit", "-qam", f"defaultEnabled edit {branch}")
+        result = subprocess.run(["git", "merge", "--no-edit", "one"], cwd=self.root, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), str(SHAPE.LOGIC))
+        print("PASS: two defaultEnabled edits conflict in NotchcastFeature+Logic.swift instead of being appended", flush=True)
 
     def test_union_append_beside_edited_arm(self):
         self.init_repository()
@@ -260,7 +295,7 @@ class FeatureShapeTests(unittest.TestCase):
             self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
             self.assertEqual(SHAPE.check(self.root), [])
             run(self.root, "swiftc", "-swift-version", "6", "-strict-concurrency=complete",
-                "-warnings-as-errors", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS))
+                "-warnings-as-errors", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS), str(SHAPE.LOGIC))
             print(f"PASS: {name} merge clean; feature, group and all switch appends typecheck", flush=True)
         features = (self.root / SHAPE.FEATURE).read_text()
         groups = (self.root / SHAPE.GROUPS).read_text()
@@ -319,7 +354,7 @@ class FeatureShapeTests(unittest.TestCase):
             run(self.root, "git", "merge", "--no-ff", "--no-edit", name)
             self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
         self.assertEqual(SHAPE.check(self.root), [])
-        run(self.root, "swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS), str(PREFS))
+        run(self.root, "swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS), str(SHAPE.LOGIC), str(PREFS))
         run(self.root, "git", "switch", "-qc", "edit", "base~2")
         prefs.write_text(base.replace('?? "auto"', '?? "quiet"'))
         run(self.root, "git", "commit", "-qam", "Change fan mode default")

@@ -194,10 +194,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
-    /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool {
-        if isSystemFeature { return false }
-        return switch self {
+    /// Island-only unless a system feature (NotchcastFeature+Logic.swift); one arm per feature that works without it.
+    var needsIslandArm: Bool {
+        switch self {
         case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
@@ -214,15 +213,6 @@ extension NotchcastFeature {
         default: true
         }
     }
-
-    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
-
-    var defaultEnabled: Bool {
-        !isSystemFeature && self != .buildStats && self != .spacesOrder
-            && self != .switcherQuitKey && !isLauncherKeysFeature
-    }
-
-    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

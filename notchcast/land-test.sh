@@ -12,13 +12,15 @@ base=$(git rev-parse HEAD)
 git switch --quiet -c fixture-a
 python3 - <<'PY'
 from pathlib import Path
+import re
 p = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift')
-s = p.read_text().replace('    case island,', '    case landingFixture\n    case island,', 1)
-values = iter(['.system', '"Fixture"', '"Fixture."', '[]'])
-s = s.replace('switch self {', 'switch self {\n        case .landingFixture: PLACEHOLDER')
-for value in values:
-    s = s.replace('PLACEHOLDER', value, 1)
-assert 'PLACEHOLDER' not in s
+s = p.read_text().replace('    case island\n', '    case landingFixture\n    case island\n', 1)
+values = {'settingsGroup': '.activities', 'title': '"Fixture"', 'subtitle': '"Fixture."',
+          'requiredGrants': '[]', 'needsIslandArm': 'false'}
+for name, value in values.items():
+    s, count = re.subn(rf'(var {name}: [^\n]+ {{\n        switch self {{\n)',
+                       rf'\g<1>        case .landingFixture: {value}\n', s)
+    assert count == 1, name
 p.write_text(s)
 PY
 git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
@@ -33,9 +35,8 @@ git switch --quiet -c fixture-b "$base"
 python3 - <<'PY'
 from pathlib import Path
 import re
-s = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift').read_text().split('    enum SettingsGroup:')[0]
-cases = [name.strip() for line in s.splitlines() if line.strip().startswith('case ')
-         for name in line.strip().removeprefix('case ').split(',')]
+s = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift').read_text().split('    var settingsGroup:')[0]
+cases = re.findall(r'^    case (\w+)$', s, re.M)
 p = Path('Tinycast/Features/Notchcast/Core/LandingFixture.swift')
 p.write_text('func landingFixture(_ feature: NotchcastFeature) -> Bool {\n    switch feature {\n' +
              ''.join(f'    case .{name}: true\n' for name in cases) + '    }\n}\n')
@@ -54,16 +55,36 @@ status=0
 "$root/notchcast/land.sh" --check "$b" "$a" > "$scratch/combined.log" 2>&1 || status=$?
 [ "$status" -eq 1 ]
 grep 'REFUSED: notchcast-core-test failed' "$scratch/combined.log"
-git switch --quiet -c fixture-conflict "$base"
-python3 - <<'PY'
+logic=Tinycast/Features/Notchcast/Core/NotchcastFeature+Logic.swift
+edit_default() {
+    python3 - "$logic" "$1" <<'PY'
+import sys
 from pathlib import Path
-p = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift')
-p.write_text(p.read_text().replace('    case island,', '    case conflictingFixture,', 1))
+p = Path(sys.argv[1])
+s = p.read_text()
+assert '!isSystemFeature && self != .buildStats' in s
+p.write_text(s.replace('!isSystemFeature && self != .buildStats', f'!isSystemFeature && self != .{sys.argv[2]} && self != .buildStats', 1))
 PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-git commit --quiet -m 'Fixture: conflicting edit'
+    git add "$logic"
+    git commit --quiet -m "Fixture: default edit $1"
+}
+git switch --quiet -c fixture-ours "$base"
+edit_default island
+ours=$(git rev-parse HEAD)
+git switch --quiet -c fixture-conflict "$base"
+edit_default systemMonitor
 status=0
-"$root/notchcast/land.sh" --check "$a" HEAD > "$scratch/conflict.log" 2>&1 || status=$?
+"$root/notchcast/land.sh" --check "$ours" HEAD > "$scratch/conflict.log" 2>&1 || status=$?
 [ "$status" -eq 1 ]
 grep 'REFUSED: merge conflict' "$scratch/conflict.log"
+echo 'PASS: logic edits conflict instead of being appended'
+git switch --quiet -c fixture-warning "$base"
+printf 'extension NotchcastFeature {\n    var warningFixture: Bool {\n        let unused = 1\n        return true\n    }\n}\n' >> "$logic"
+git add "$logic"
+git commit --quiet -m 'Fixture: a warning'
+status=0
+"$root/notchcast/land.sh" --check "$base" HEAD > "$scratch/warning.log" 2>&1 || status=$?
+[ "$status" -eq 1 ]
+grep 'REFUSED: NotchcastFeature\*.swift does not typecheck without warnings' "$scratch/warning.log"
+echo 'PASS: a warning in the feature files refuses the landing'
 echo 'PASS: land-test.sh'

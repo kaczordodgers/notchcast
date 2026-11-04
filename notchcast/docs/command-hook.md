@@ -8,7 +8,7 @@ switch arms. `settingsGroup` stays exhaustive; `requiredGrants` lists only excep
 `default: true`; add exceptions as separate arms rather than extending a Boolean expression.
 New groups append one case line in `Core/NotchcastFeature+SettingsGroup.swift`, inside the
 separator comments. Keep separators between cases and members and between switches.
-Both files use `merge=union`; run `python3 notchcast/check-feature-shape.py` and
+Both files use `merge=union`, so they hold only cases and one-line switch arms; logic over several lines goes in `Core/NotchcastFeature+Logic.swift`, which is not union, so git reports a real conflict there. `Tests/notchcast-feature-defaults-test.swift` pins each feature's default; changing one means editing its table in the same PR. Run `python3 notchcast/check-feature-shape.py` and
 `python3 notchcast/check-feature-shape-test.py` after merging.
 The checker rejects repeated enum cases and repeated feature cases within a switch: union
 can retain both the old and edited arm when another branch appends nearby.
