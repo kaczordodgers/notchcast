@@ -6,6 +6,7 @@ enum NotchcastCore {
     private static var monitor: MonitorModule?
 
     static func stopForTermination() async {
+        dictationTrigger?.stop()
         settingsBackup.stop()
         captureTrimmer.stop()
         voiceAsk?.stop()

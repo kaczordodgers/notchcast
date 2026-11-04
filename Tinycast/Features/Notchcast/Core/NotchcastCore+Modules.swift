@@ -30,6 +30,7 @@ extension NotchcastCore {
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
     static let screenText = ScreenTextModule()
+    static var dictationTrigger: DictationTriggerModule?
     static let scrollingCapture = ScrollingCaptureModule()
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
@@ -42,6 +43,8 @@ extension NotchcastCore {
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        let trigger = makeDictationTrigger(core)
+        dictationTrigger = trigger
         let voiceRecording = VoiceAskRecording(core: core)
         let voiceAsk = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel)
         self.voiceAsk = voiceAsk
@@ -76,6 +79,7 @@ extension NotchcastCore {
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.screenText], module: screenText),
+            .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.scrollingCapture], module: scrollingCapture),
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),

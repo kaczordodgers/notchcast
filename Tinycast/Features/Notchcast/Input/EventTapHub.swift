@@ -38,8 +38,10 @@ final class EventTapHub {
     private var synchronousHandlers: [UUID: SynchronousHandler] = [:]
     private var order: [UUID] = []
     private var session: EventTapThread?
+    private var permissionRetry: Task<Void, Never>?
 
     isolated deinit {
+        permissionRetry?.cancel()
         session?.stop()
     }
 
@@ -93,9 +95,17 @@ final class EventTapHub {
     }
 
     private func reconcile() {
+        permissionRetry?.cancel()
+        permissionRetry = nil
         guard policy.needsTap, AXIsProcessTrusted() else {
             session?.stop()
             session = nil
+            if policy.needsTap {
+                permissionRetry = Task { [weak self] in
+                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                    self?.refreshPermission()
+                }
+            }
             return
         }
         let consumers = order.compactMap { id -> EventTapThread.Consumer? in

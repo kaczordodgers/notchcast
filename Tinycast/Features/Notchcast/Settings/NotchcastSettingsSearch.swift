@@ -79,6 +79,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastCaptureAndDictation, "Capture Text", keywords: ["ocr", "recognize", "barcode", "qr"]),
         .init(.notchcastCaptureAndDictation, "Remove line breaks"),
         .init(.notchcastCaptureAndDictation, "Scrolling Capture", keywords: ["stitch", "screenshot"]),
+        .init(.notchcastCaptureAndDictation, "Globe Dictation", keywords: ["fn", "microphone", "hold to talk"]),
         .init(.notchcastCaptureAndDictation, "Screenshot destination", keywords: ["clipboard", "file", "save"]),
         .init(.notchcastCaptureAndDictation, "Screenshot folder", keywords: ["directory", "desktop"]),
         .init(.notchcastCaptureAndDictation, "AI cleanup"),
