@@ -36,6 +36,19 @@ struct AIUsageWiringTest {
         let channel = MachLinkUsagePeerChannel()
         let module = AIUsageModule(provider: provider, preferences: preferences, channel: channel)
         let link = AIUsageLinkModule(preferences: preferences, provider: provider, defaults: defaults)
+        link.listenerRoute = { request in
+            guard request.method == "fixture-route" else { return nil }
+            return try MachLinkMessage(id: request.id, method: request.method, value: true)
+        }
+        let routed = try await link.respond(to: MachLinkMessage(method: "fixture-route", value: true))
+        let accepted = try routed.value(as: Bool.self)
+        precondition(accepted)
+        var missingNotices: [String] = []
+        let unconfigured = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
+        unconfigured.start()
+        try await unconfigured.refresh()
+        precondition(missingNotices == [String(localized: "AI usage cache directory is not configured.")])
+        unconfigured.stop()
         let controller = NotchcastModuleController([
             .init(requires: [.aiUsage], module: module),
             .init(requires: [.machLink], module: link),
