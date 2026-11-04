@@ -4,7 +4,6 @@ import Foundation
 
 extension NotchcastCore {
     static let macLink = AIUsageLinkModule()
-    static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let github = GitHubModule()
     static let clearNotifications = ClearNotificationsModule()
     static let answers = LauncherAnswersModule()
@@ -13,6 +12,16 @@ extension NotchcastCore {
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast") + ".urlCleaner"))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
+    static let remoteFans = RemoteFanModule(transport: MachLinkFanTransport(channel: macLink.channel))
+    static let remoteScreen = RemoteScreenModule(channel: macLink.channel)
+    static let blockedDialogs = BlockedDialogModule.linked(to: macLink.channel)
+    static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
+    static let machRemote = MachRemoteModule()
+    static let shelf = ShelfModule()
+    static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
+    static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
@@ -67,6 +76,15 @@ extension NotchcastCore {
             .init(requires: [], module: NotchcastToolsCommands(core: core)),
             .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
             .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
+            .init(requires: [.machRemote], module: machRemote),
+            .init(requires: [.machRemote, .sendFiles], module: sendFiles),
+            .init(requires: [.machRemote, .updateRemote], module: updateRemote),
+            .init(requires: [.backupStatus], module: backupStatus),
+            .init(requires: [.machLink, .linkHealth], module: linkHealth),
+            .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
+            .init(requires: [.machLink, .machMBPFans], module: remoteFans),
+            .init(requires: [.machLink, .remoteScreen], module: remoteScreen),
+            .init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: blockedDialogs),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: pastePlain),

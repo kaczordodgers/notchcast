@@ -113,6 +113,9 @@ extension NotchcastCommandCatalog {
         NotchcastCommand(slug: "extract-text", name: "extract-text", sfSymbol: "test", run: {}),
         NotchcastCommand(slug: "run-host-command", name: "run-host-command", sfSymbol: "test", run: {}),
         NotchcastCommand(slug: "list-commands", name: "list-commands", sfSymbol: "test", run: {}),
+        NotchcastCommand(slug: "open-remote-mac-terminal", name: "Terminal", sfSymbol: "terminal", run: {}),
+        NotchcastCommand(slug: "send-to-remote-mac", name: "Send", sfSymbol: "paperplane", run: {}),
+        NotchcastCommand(slug: "update-remote-mac", name: "Update", sfSymbol: "arrow.clockwise", run: {}),
     ]
 }
 

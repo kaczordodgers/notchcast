@@ -1,0 +1,238 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Select files in Finder and configure the remote Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select files in Finder and configure the remote Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle Dateien im Finder und konfiguriere den entfernten Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecciona archivos en Finder y configura el Mac remoto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sélectionnez des fichiers dans le Finder et configurez le Mac distant."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finderでファイルを選択し、リモートMacを設定してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finder에서 파일을 선택하고 원격 Mac을 설정하세요."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selecione arquivos no Finder e configure o Mac remoto."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите файлы в Finder и настройте удалённый Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在访达中选择文件并配置远程 Mac。"
+          }
+        }
+      }
+    },
+    "Files sent to the remote Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Files sent to the remote Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dateien an den entfernten Mac gesendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivos enviados al Mac remoto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fichiers envoyés au Mac distant."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リモートMacにファイルを送信しました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "원격 Mac으로 파일을 보냈습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arquivos enviados ao Mac remoto."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Файлы отправлены на удалённый Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文件已发送到远程 Mac。"
+          }
+        }
+      }
+    },
+    "Unable to send all files. Nothing from the failed folder was kept on the remote Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unable to send all files. Nothing from the failed folder was kept on the remote Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht alle Dateien konnten gesendet werden. Vom fehlgeschlagenen Ordner blieb nichts auf dem entfernten Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudieron enviar todos los archivos. No se conservó nada de la carpeta fallida en el Mac remoto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’envoyer tous les fichiers. Aucun contenu du dossier en échec n’a été conservé sur le Mac distant."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのファイルを送信できませんでした。失敗したフォルダの内容はリモートMacに保存されていません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모든 파일을 보내지 못했습니다. 실패한 폴더의 내용은 원격 Mac에 남지 않았습니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível enviar todos os arquivos. Nada da pasta com falha foi mantido no Mac remoto."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось отправить все файлы. Содержимое папки со сбоем не сохранено на удалённом Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法发送所有文件。失败文件夹中的内容未保留在远程 Mac 上。"
+          }
+        }
+      }
+    },
+    "Send cancelled. Completed files were kept on the remote Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send cancelled. Completed files were kept on the remote Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Senden abgebrochen. Fertige Dateien bleiben auf dem entfernten Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envío cancelado. Los archivos completados se conservaron en el Mac remoto."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envoi annulé. Les fichiers terminés ont été conservés sur le Mac distant."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信をキャンセルしました。送信済みのファイルはリモートMacに保存されています。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전송을 취소했습니다. 완료된 파일은 원격 Mac에 보관됩니다."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Envio cancelado. Os arquivos concluídos foram mantidos no Mac remoto."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отправка отменена. Завершённые файлы сохранены на удалённом Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送已取消。已完成的文件保留在远程 Mac 上。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

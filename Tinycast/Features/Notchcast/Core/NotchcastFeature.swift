@@ -36,6 +36,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case machRemote
+    case backupStatus
+    case linkHealth
+    case shelfBetweenMacs
+    case sendFiles
+    case updateRemote
     case pastePlain
     case finderCutPaste
     case finderRename
@@ -73,6 +79,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case mediaTools
 
     case commandRunner
+    case machBlockedDialogAlert
+    case remoteScreen
+    case machMBPFans
     case archives
     case archivesInPlace
     case archivesDefaultApp
@@ -134,6 +143,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .screenshot: .captureAndDictation
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .machBlockedDialogAlert: .system
+        case .remoteScreen: .system
+        case .machMBPFans: .system
         case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
@@ -175,6 +187,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .distill: .activities
         case .distillTimestamps: .activities
         case .distillConvert: .activities
+        case .machRemote: .system
+        case .backupStatus: .system
+        case .linkHealth: .system
+        case .shelfBetweenMacs: .activities
+        case .sendFiles: .system
+        case .updateRemote: .system
         case .archives: .archives
         case .archivesInPlace: .archives
         case .archivesDefaultApp: .archives
@@ -241,6 +259,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .machRemote: String(localized: "Remote Mac")
+        case .backupStatus: String(localized: "Backup Status")
+        case .linkHealth: String(localized: "Link Health")
+        case .shelfBetweenMacs: String(localized: "Shelf between Macs")
+        case .sendFiles: String(localized: "Send to Remote Mac")
+        case .updateRemote: String(localized: "Update Remote Mac")
         case .archives: String(localized: "Archives")
         case .archivesInPlace: String(localized: "Extract in place")
         case .archivesDefaultApp: String(localized: "Open archives with Notchcast")
@@ -265,6 +289,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .distill: String(localized: "Distill")
         case .distillTimestamps: String(localized: "Distill Timestamps")
         case .distillConvert: String(localized: "Convert Distill Folder")
+        case .machBlockedDialogAlert: String(localized: "Other Mac Dialog Alerts")
+        case .remoteScreen: String(localized: "Remote Screen")
+        case .machMBPFans: String(localized: "Other Mac Fans")
         case .backupRunNow: String(localized: "Back Up Now")
         case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
         case .quickLookSpace: String(localized: "Quick Look on Space")
@@ -327,6 +354,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
+        case .backupStatus: String(localized: "Warns when backups fail or become stale.")
+        case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
+        case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.")
+        case .sendFiles: String(localized: "Send selected files to the remote Mac.")
+        case .updateRemote: String(localized: "Run the update on the remote Mac.")
         case .archives: String(localized: "Extract opened archives beside the original file.")
         case .archivesInPlace: String(localized: "The archive shrinks while extracting.")
         case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.")
@@ -351,6 +384,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .distill: String(localized: "Save links and transcribe media into your Distill folder.")
         case .distillTimestamps: String(localized: "Include approximate chunk timestamps in Distill transcripts.")
         case .distillConvert: String(localized: "Convert files in your Distill folder to Markdown or text.")
+        case .machBlockedDialogAlert: String(localized: "Check for system dialogs on the paired Mac on demand.")
+        case .remoteScreen: String(localized: "Request screen sharing with the paired Mac.")
+        case .machMBPFans: String(localized: "Control fans on the paired Mac.")
         case .backupRunNow: String(localized: "Allow starting the configured backup job.")
         case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
         case .quickLookSpace: String(localized: "Preview an arrow-selected file with Space.")
@@ -433,6 +469,14 @@ extension NotchcastFeature {
         case .distill: false
         case .distillTimestamps: false
         case .distillConvert: false
+        case .remoteScreen: false
+        case .machMBPFans: false
+        case .machRemote: false
+        case .backupStatus: false
+        case .linkHealth: false
+        case .shelfBetweenMacs: false
+        case .sendFiles: false
+        case .updateRemote: false
         case .backupRunNow: false
         case .backupBrowseRestore: false
         case .quickLookSpace: false
@@ -477,6 +521,15 @@ extension NotchcastFeature {
         case .distill: false
         case .distillTimestamps: false
         case .distillConvert: false
+        case .machRemote: false
+        case .backupStatus: false
+        case .linkHealth: false
+        case .shelfBetweenMacs: false
+        case .sendFiles: false
+        case .updateRemote: false
+        case .machBlockedDialogAlert: false
+        case .remoteScreen: false
+        case .machMBPFans: false
         default: true
         }
     }

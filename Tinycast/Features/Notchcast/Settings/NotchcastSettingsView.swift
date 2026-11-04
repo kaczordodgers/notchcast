@@ -29,6 +29,8 @@ struct NotchcastSettingsView: View {
             NotchcastExtrasSection()
             DownloadsSettingsSection()
             AIUsageSettingsSection(link: NotchcastCore.macLink)
+            MachRemoteSettingsSection()
+            BackupStatusSettingsSection()
             BuildStatsSettingsSection()
 
             CaptureDictationSettingsSection()

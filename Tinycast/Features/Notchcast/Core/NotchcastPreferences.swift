@@ -9,6 +9,11 @@ final class NotchcastPreferences {
     private var off: Set<NotchcastFeature>
     private var chargePercent: Int
     private var awakeDuration: Int
+    var remoteMacAddress: String { didSet { defaults.set(remoteMacAddress, forKey: "remoteMacAddress") } }
+    var remoteTerminalDirectory: String { didSet { defaults.set(remoteTerminalDirectory, forKey: "remoteTerminalDirectory") } }
+    var remoteUpdatePath: String { didSet { defaults.set(remoteUpdatePath, forKey: "remoteUpdatePath") } }
+    var backupStatusPath: String { didSet { defaults.set(backupStatusPath, forKey: "backupStatusPath") } }
+    var aiUsageCachePath: String { didSet { defaults.set(aiUsageCachePath, forKey: "aiUsageCachePath") } }
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
@@ -25,6 +30,11 @@ final class NotchcastPreferences {
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        remoteMacAddress = defaults.string(forKey: "remoteMacAddress") ?? ""
+        remoteTerminalDirectory = defaults.string(forKey: "remoteTerminalDirectory") ?? ""
+        remoteUpdatePath = defaults.string(forKey: "remoteUpdatePath") ?? ""
+        backupStatusPath = defaults.string(forKey: "backupStatusPath") ?? ""
+        aiUsageCachePath = defaults.string(forKey: "aiUsageCachePath") ?? ""
         buildStatsPath = defaults.string(forKey: "buildStatsPath") ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
