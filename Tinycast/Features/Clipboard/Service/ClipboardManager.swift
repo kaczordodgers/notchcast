@@ -142,6 +142,7 @@ final class ClipboardManager {
 
         // Never record secrets: skip copies tagged sensitive by any of the marker owners.
         if let types = pb.types, !Set(types).isDisjoint(with: Self.sensitiveTypes) { return }
+        defer { NotchcastCore.urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard(pb)) }
 
         // The pasteboard carries no source, so attribute it to the frontmost app.
         let sourceBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
