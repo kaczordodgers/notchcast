@@ -48,7 +48,9 @@ struct ArchiveRoutingTests {
         let features: [NotchcastFeature] = [.archives, .archivesInPlace, .archivesDefaultApp]
         for feature in features {
             precondition(feature.settingsGroup == .archives)
-            let entries = SettingsSearchCatalog.notchcast.filter { $0.title == feature.title }
+            let entries = SettingsSearchCatalog.notchcast.filter {
+                $0.title == feature.title && $0.anchor == .notchcastArchives
+            }
             precondition(entries.count == 1 && entries[0].anchor == .notchcastArchives)
             precondition(entries[0].target == .row(.notchcastArchives, feature.title))
         }
