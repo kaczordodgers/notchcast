@@ -8,6 +8,8 @@ enum NotchcastCore {
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
+    static let github = GitHubModule()
+    static let clearNotifications = ClearNotificationsModule()
     private static var controller: NotchcastModuleController?
 
     static func start(_ core: AppCore) {
@@ -22,6 +24,8 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
+            .init(requires: [.githubSearch], module: github),
+            .init(requires: [.clearNotifications], module: clearNotifications),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
