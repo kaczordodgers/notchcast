@@ -1,0 +1,58 @@
+name: Main harnesses
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - Tinycast.xcodeproj/project.pbxproj
+      - Tinycast/Resources/RaycastRuntime.generated.js
+      - README.md
+      - README.upstream.md
+
+permissions:
+  contents: read
+
+jobs:
+  harnesses:
+    runs-on: xcode-27
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: tools
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          path: src
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./tools/notchcast/actions/xcode
+      - name: Changed harnesses
+        working-directory: src
+        env:
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [[ "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}"; then
+            # A Sync rewrite: Sync tested this tree before pushing it.
+            echo notchcast-core-test > "$RUNNER_TEMP/selected"
+          else
+            ./notchcast/changed-harnesses.sh "$BEFORE" "$GITHUB_SHA" > "$RUNNER_TEMP/selected"
+          fi
+          cat "$RUNNER_TEMP/selected"
+      - name: Run harnesses, retry failures alone
+        working-directory: src
+        run: |
+          export TMPDIR="$RUNNER_TEMP/main-harnesses"
+          mkdir -p "$TMPDIR"
+          status=0
+          while IFS= read -r name; do
+            [ -n "$name" ] || continue
+            if ! ./Scripts/run-tests.sh "$name"; then
+              echo "::warning::retrying $name alone"
+              if ! ./Scripts/run-tests.sh "$name"; then
+                echo "::error::$name failed twice on $GITHUB_SHA"
+                status=1
+              fi
+            fi
+          done < "$RUNNER_TEMP/selected"
+          exit "$status"
