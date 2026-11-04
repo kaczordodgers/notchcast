@@ -14,6 +14,7 @@ final class MusicNowPlayingModule: NotchcastModule {
         soloist = SoloistSource()
         model.setSystemSource(system)
         model.setSoloistSource(soloist)
+        system.onCommandFailure = { [weak model] in model?.reportCommandFailure() }
     }
 
     func start() { model.setEnabled(true) }

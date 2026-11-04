@@ -19,7 +19,12 @@ final class MusicCommandFeedback {
             if availability != current { AppCore.shared.appIndex.refreshNotchcastCommands() }
             availability = current
             let failure = music.model.failure
-            if music.model.isEnabled, failure != nil, failure != lastFailure { MusicCommands.report() }
+            if music.model.isEnabled, let failure, failure != lastFailure {
+                switch failure {
+                case .noReplacement, .launchFailed, .playbackFailed: MusicCommands.report()
+                case .unreadable: break
+                }
+            }
             lastFailure = failure
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observe() }

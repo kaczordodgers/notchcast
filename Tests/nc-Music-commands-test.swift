@@ -4,7 +4,6 @@
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
-// notchcast-sources: Tinycast/Features/Microphone/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
@@ -86,6 +85,14 @@ struct AppEntry: Sendable {
  let apps = PlayerApps(isInstalled: { _ in false }, isRunning: { _ in false },
  open: { _ in }, play: { _ in }, watchLaunches: { _ in [] }, quit: { _ in true })
  let music = MusicNowPlayingModule(defaults: defaults, apps: apps)
+ defaults.set(LastPlayer.spotify, forKey: LastPlayer.key)
+ let resumable = MusicModel(defaults: defaults, apps: PlayerApps(
+ isInstalled: { _ in true }, isRunning: { _ in false }, open: { _ in }, play: { _ in },
+ watchLaunches: { _ in [] }, quit: { _ in true }))
+ resumable.lastPlayer.setEnabled(true)
+ precondition(resumable.canResume)
+ resumable.lastPlayer.setEnabled(false)
+ precondition(!resumable.canResume, "saved installed player requires Resume last player enabled")
  let observer = MusicCommandFeedback(music: music, preferences: preferences)
  defer { withExtendedLifetime(observer) {} }
  let source = CommandSource()
@@ -99,28 +106,41 @@ struct AppEntry: Sendable {
  NotchcastCore.services = .init(music: music, microphone: microphone)
  defer { music.stop(); microphone.stop(); NotchcastCore.services = nil }
  let commands = MusicCommands.launcherCommands
- precondition(commands.map(\.id) == ["command:nc-play-pause", "command:nc-next-track",
- "command:nc-previous-track", "command:nc-open-current-player", "command:nc-toggle-microphone-mute"])
+ precondition(commands.map(\.id) == ["command:nc-open-current-player"])
  precondition(commands.allSatisfy { $0.isEnabled() })
- for command in commands.prefix(3) { command.run() }
+ for command: PlayerCommand in [.togglePlayPause, .next, .previous] { MusicCommands.send(command) }
  precondition(source.commands == [.togglePlayPause, .next, .previous])
- commands[4].run()
- precondition(mute.isMuted)
+ music.model.reportCommandFailure()
+ precondition(music.model.failure == .playbackFailed("fixture"), "playing track retains command rejection")
+ MusicCommands.send(.pause)
  let before = AppCore.shared.appIndex.refreshes
  preferences.set(.musicNowPlaying, false)
  for _ in 0..<100 { await Task.yield() }
  precondition(AppCore.shared.appIndex.refreshes > before)
  precondition(commands.prefix(4).allSatisfy { !$0.isEnabled() })
- precondition(commands[4].isEnabled())
  let musicRefresh = AppCore.shared.appIndex.refreshes
  preferences.set(.microphoneMute, false)
  for _ in 0..<100 { await Task.yield() }
  precondition(AppCore.shared.appIndex.refreshes > musicRefresh)
- precondition(!commands[4].isEnabled())
  preferences.set(.musicNowPlaying, true)
  music.model.setSystemSource(nil)
+ music.model.lastPlayer.setEnabled(false)
+ precondition(!music.model.canResume)
+ let messages = AppCore.shared.messages.count
+ MusicCommands.send(.togglePlayPause)
+ precondition(AppCore.shared.messages.count == messages + 1)
+ let adapter = SystemNowPlayingSource()
+ music.model.setSystemSource(adapter)
+ adapter.onCommandFailure = { [weak model = music.model] in model?.reportCommandFailure() }
+ for _ in 0..<100 { await Task.yield() }
+ precondition(music.model.failure == .unreadable(.system))
+ precondition(AppCore.shared.messages.count == messages + 1, "background unreadable never shows a HUD")
+ adapter.receiveCommand(sent: false)
+ for _ in 0..<100 { await Task.yield() }
+ precondition(music.model.failure == .playbackFailed(""))
+ precondition(AppCore.shared.messages.count == messages + 2, "rejected command shows a HUD")
  MusicCommands.openCurrentPlayer()
  precondition(!AppCore.shared.messages.isEmpty)
- print("PASS: five IDs, switch gating, index refresh, production service routing and unavailable player HUD")
+ print("PASS: one unique command, switch gating, disabled resume HUD, silent background failure, rejection HUD")
  }
 }
