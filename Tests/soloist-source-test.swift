@@ -219,9 +219,9 @@ struct SoloistSourceTest {
         precondition(coverServer.requests.filter { $0 == "/failed" }.count == 1)
         server.connections[0].cancel()
         try await wait { !source.isConnected }
-        let retained = try await source.read()
-        precondition(retained?.title == received?.title && retained?.isPlaying == false)
-        precondition(retained?.position(at: now) == retained?.position(at: now.addingTimeInterval(60)))
+        let lost = try await source.read()
+        precondition(lost == nil && source.authState == nil)
+        guard case .connection = source.failure else { preconditionFailure("Expected connection failure") }
         try await wait { server.connections.count == 2 && source.isConnected }
         source.connect(port: nil)
         let disconnected = try await source.read()
