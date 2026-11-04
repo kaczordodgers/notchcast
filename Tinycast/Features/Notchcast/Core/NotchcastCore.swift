@@ -17,6 +17,7 @@ enum NotchcastCore {
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
+        configureBotHost()
         let controller = NotchcastModuleController(entries(core: core, monitor: monitor), preferences: .shared)
         self.controller = controller
         controller.run()

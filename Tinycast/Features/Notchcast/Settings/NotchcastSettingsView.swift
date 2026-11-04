@@ -23,9 +23,10 @@ struct NotchcastSettingsView: View {
 
             NotchcastExtrasSection()
             AgentPricingSettingsSection()
+            FleetSettingsSection(settings: NotchcastCore.fleetSettings)
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
-                .settingsEnabled(preferences.isOn(.island))
+                .settingsEnabled(preferences.isOn(.island) || preferences.isOn(.botHost))
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)

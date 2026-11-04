@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-sources: Tinycast/Features/AgentFleet/AgentFleetCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
@@ -89,6 +90,10 @@ enum QuicklinkDestination {
     func toggle() { runs += 1 }
 }
 
+enum AgentSessionsModule {
+    static let refreshCommand = NotchcastCommand(slug: "refresh-agent-session-logs", name: "Refresh Agent Session Logs", sfSymbol: "arrow.clockwise", run: {})
+}
+
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         NotchcastCommand(
@@ -96,6 +101,10 @@ extension NotchcastCommandCatalog {
             legacyID: "command:toggle-island",
             isEnabled: { CommandFixture.shared.commandsAvailable },
             run: { CommandFixture.shared.toggle() }),
+        AgentFleetCommands.list,
+        AgentFleetCommands.status,
+        AgentFleetCommands.pending,
+        AgentSessionsModule.refreshCommand,
     ]
 }
 

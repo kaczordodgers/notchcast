@@ -1,6 +1,11 @@
 import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
+    case t3Threads
+    case waitingAlerts
+    case fleetPanel
+    case agentIsland
+    case botHost
     case island
     case islandExternalDisplays
     case islandFullScreen
@@ -44,6 +49,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
+        case .t3Threads: .activities
+        case .waitingAlerts: .activities
+        case .fleetPanel: .activities
+        case .agentIsland: .activities
+        case .botHost: .activities
         case .island: .island
         case .islandExternalDisplays: .islandOptions
         case .islandFullScreen: .islandOptions
@@ -89,6 +99,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
+        case .t3Threads: String(localized: "T3 Threads")
+        case .waitingAlerts: String(localized: "Waiting Alerts")
+        case .fleetPanel: String(localized: "Fleet Panel")
+        case .agentIsland: String(localized: "Agent Island")
+        case .botHost: String(localized: "Bot Host")
         case .island: String(localized: "Island")
         case .islandExternalDisplays: String(localized: "External Displays")
         case .islandFullScreen: String(localized: "Full-Screen Apps")
@@ -134,6 +149,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var subtitle: String {
         switch self {
+        case .t3Threads: String(localized: "Read T3 thread activity while requested.")
+        case .waitingAlerts: String(localized: "Notify when an agent needs your answer or approval.")
+        case .fleetPanel: String(localized: "Show T3 leads and workers across your Macs.")
+        case .agentIsland: String(localized: "Show agent activity in the island.")
+        case .botHost: String(localized: "Connect to local bots on demand.")
         case .island: String(localized: "Show the island at the top of the screen.")
         case .islandExternalDisplays: String(localized: "Show the island on external displays.")
         case .islandFullScreen: String(localized: "Show the island over full-screen apps.")
@@ -194,12 +214,33 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
+    var defaultEnabled: Bool {
+        switch self {
+        case .spacesOrder: false
+        case .switcherQuitKey: false
+        case .t3Threads: false
+        case .waitingAlerts: false
+        case .fleetPanel: false
+        case .agentIsland: false
+        case .botHost: false
+        case .agentSessions: false
+        case .launcherNumberKeys: false
+        case .launcherAliasSpace: false
+        default: !isSystemFeature
+        }
+    }
+
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
+        case .t3Threads: false
+        case .waitingAlerts: false
+        case .fleetPanel: false
+        case .agentIsland: false
+        case .botHost: false
         case .settingsBackup: false
         case .showDesktop: false
         case .spacesOrder: false
@@ -216,10 +257,6 @@ extension NotchcastFeature {
     }
 
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
-
-    var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
-    }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
 }

@@ -1,6 +1,13 @@
+import Foundation
+
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension NotchcastCore {
+    static let t3Threads = T3ThreadsModule()
+    static let agentIsland = AgentIslandModule()
+    static let botHost = BotHostModule()
+    static let fleet = FleetModule()
+    static let fleetSettings = AgentFleetSettings(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast.fleet")!)
     static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
@@ -24,6 +31,12 @@ extension NotchcastCore {
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         [
+            .init(requires: [.island, .agentIsland], module: agentIsland),
+            .init(requires: [.t3Threads], module: t3Threads),
+            .init(requires: [.fleetPanel], module: fleet),
+            .init(requires: [.botHost], module: botHost),
+            .init(requires: [], module: AgentFleetWiring(threads: t3Threads, fleet: fleet, island: agentIsland, bots: botHost, preferences: .shared, settings: fleetSettings) { IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 5) }),
+            .init(requires: [], module: AgentFleetBotCommands(bots: botHost, preferences: .shared, refresh: { core.appIndex.refreshNotchcastCommands() }, post: { IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 5) })),
             .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),

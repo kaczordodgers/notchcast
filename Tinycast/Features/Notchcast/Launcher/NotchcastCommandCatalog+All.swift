@@ -4,5 +4,8 @@ extension NotchcastCommandCatalog {
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
         AgentSessionsModule.refreshCommand,
+        AgentFleetCommands.list,
+        AgentFleetCommands.status,
+        AgentFleetCommands.pending,
     ]
 }
