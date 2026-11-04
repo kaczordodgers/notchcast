@@ -1,14 +1,23 @@
 import Foundation
 
 struct AgentRequest: Codable, Equatable, Sendable {
-    enum Verb: String, Codable, Sendable { case list, get, run, audit, status }
+    enum Verb: String, Codable, Sendable {
+        case list
+        case get
+        case run
+        case audit
+        case status
+        case mcp
+    }
 
     let verb: Verb
     var id: String?
     var parameters: AgentJSON = .object([:])
     var dryRun = false
+    var isMCP = false
+    var keepAlive = false
 
-    private enum CodingKeys: String, CodingKey { case verb, id, parameters, dryRun }
+    private enum CodingKeys: String, CodingKey { case verb, id, parameters, dryRun, keepAlive }
 
     init(verb: Verb, id: String? = nil, parameters: AgentJSON = .object([:]), dryRun: Bool = false) {
         self.verb = verb
@@ -23,6 +32,7 @@ struct AgentRequest: Codable, Equatable, Sendable {
         id = try container.decodeIfPresent(String.self, forKey: .id)
         parameters = try container.contains(.parameters) ? container.decode(AgentJSON.self, forKey: .parameters) : .object([:])
         dryRun = try container.contains(.dryRun) ? container.decode(Bool.self, forKey: .dryRun) : false
+        keepAlive = try container.decodeIfPresent(Bool.self, forKey: .keepAlive) ?? false
     }
 
     static func parse(_ arguments: [String]) throws -> (request: Self, json: Bool) {
@@ -40,6 +50,7 @@ struct AgentRequest: Codable, Equatable, Sendable {
         switch verb {
         case .list, .audit, .status:
             guard values.isEmpty else { throw AgentReply.Code.badRequest }
+        case .mcp: guard values.isEmpty else { throw AgentReply.Code.badRequest }
         case .get:
             guard values.count == 1, !values[0].isEmpty else { throw AgentReply.Code.badRequest }
             request.id = values[0]
@@ -60,6 +71,7 @@ struct AgentRequest: Codable, Equatable, Sendable {
         case .list, .audit, .status: return id == nil && parameters == .object([:])
         case .get: return id?.isEmpty == false && parameters == .object([:])
         case .run: return id?.isEmpty == false
+        case .mcp: return isValidMCP
         }
     }
 }
