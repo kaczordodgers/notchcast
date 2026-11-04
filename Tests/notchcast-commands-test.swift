@@ -162,11 +162,16 @@ enum QuicklinkDestination {
         assert(!NotchcastCommandCatalog.dispatch("command:unknown", dismiss: {}))
         island.commandsAvailable = true
         let palette = AppCore.shared.paletteCoordinator
-        NotchcastCommandCatalog.perform("command:toggle-island")
+        NotchcastCommandCatalog.perform(commands[0].entry.id)
         assert(palette.hideCalls == 0 && island.runs == 2)
         palette.isVisible = true
-        NotchcastCommandCatalog.perform("command:toggle-island")
+        assert(NotchcastCommandCatalog.dispatch(commands[0].id, dismiss: {
+            palette.hidePalette(restoreFocus: false)
+        }))
         assert(palette.hideCalls == 1 && !palette.restoredFocus && island.runs == 3)
+        palette.isVisible = true
+        NotchcastCommandCatalog.perform(commands[0].entry.id)
+        assert(palette.hideCalls == 2 && !palette.restoredFocus && island.runs == 4)
         let preferences = NotchcastPreferences.shared
         let switches: [NotchcastFeature] = [.downloads, .distill, .distillConvert]
         let previous = switches.map { preferences.isOn($0) }
