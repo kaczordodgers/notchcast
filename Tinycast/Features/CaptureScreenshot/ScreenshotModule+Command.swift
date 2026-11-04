@@ -21,7 +21,11 @@ extension ScreenshotModule {
     }
 
     static func failureMessage(_ error: any Error) -> String {
-        switch error as? ScreenshotRequest.Failure {
+        let failure = error as NSError
+        if failure.domain == NSCocoaErrorDomain && (512..<1024).contains(failure.code) {
+            return String(localized: "Could not save the screenshot.")
+        }
+        return switch error as? ScreenshotRequest.Failure {
         case .permissionDenied: String(localized: "Screen Recording access is required.")
         case .clipboardFailed: String(localized: "Could not copy to clipboard.")
         case .disabled: String(localized: "Capture is disabled.")
