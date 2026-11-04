@@ -39,10 +39,6 @@ def append_feature(source, name):
     }
     if "var startsOff:" in source:
         values["startsOff"] = "true"
-    if "var defaultOn:" in source:
-        values["defaultOn"] = "true"
-    if "var needsIsland:" in source:
-        values["needsIsland"] = "true"
     for member, value in values.items():
         start = source.index(f"    var {member}:")
         end = source.index("\n        }", start)
@@ -198,7 +194,6 @@ class FeatureShapeTests(unittest.TestCase):
             self.assertEqual(features.count(f"    case {name}\n"), 1)
             self.assertEqual(groups.count(f"        case {name}Group\n"), 1)
             expected_arms = 5 if "var startsOff:" in features else 4
-            expected_arms += sum(f"var {member}:" in features for member in ("defaultOn", "needsIsland"))
             self.assertEqual(features.count(f"case .{name}:"), expected_arms)
 
 
