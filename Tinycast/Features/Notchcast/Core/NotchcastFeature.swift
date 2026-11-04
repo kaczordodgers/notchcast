@@ -2,6 +2,14 @@ import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
     case tasks
+    case githubSearch
+    case clearNotifications
+    case launcherAnswers
+    case copyPath
+    case smallCommands
+    case aiUsage
+    case aiUsageOtherMac
+    case machLink
     case island
     case islandExternalDisplays
     case islandFullScreen
@@ -29,6 +37,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case machRemote
+    case backupStatus
+    case linkHealth
+    case shelfBetweenMacs
+    case sendFiles
+    case updateRemote
     case agentSessions
     case agentPricing
     case pastePlain
@@ -55,6 +69,22 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case downloads
+    case downloadsAria2
+    case distill
+    case distillTimestamps
+    case distillConvert
+
+    case urlCleaner
+
+    case convertFiles
+
+    case mediaTools
+
+    case commandRunner
+    case machBlockedDialogAlert
+    case remoteScreen
+    case machMBPFans
     case archives
     case archivesInPlace
     case archivesDefaultApp
@@ -87,6 +117,18 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var settingsGroup: SettingsGroup {
         switch self {
         case .tasks: .tasks
+        case .githubSearch: .launcher
+        case .clearNotifications: .launcher
+        case .launcherAnswers: .launcher
+        case .copyPath: .launcher
+        case .smallCommands: .launcher
+        case .aiUsage: .activities
+        case .aiUsageOtherMac: .activities
+        case .machLink: .system
+        case .commandRunner: .launcher
+        case .mediaTools: .activities
+        case .convertFiles: .activities
+        case .urlCleaner: .system
         case .musicNowPlaying: .music
         case .musicLastPlayer: .music
         case .musicBlockAppleMusic: .music
@@ -105,6 +147,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .screenshot: .captureAndDictation
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .machBlockedDialogAlert: .system
+        case .remoteScreen: .system
+        case .machMBPFans: .system
         case .dictationIslandHUD: .activities
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
@@ -143,6 +188,17 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .downloads: .activities
+        case .downloadsAria2: .activities
+        case .distill: .activities
+        case .distillTimestamps: .activities
+        case .distillConvert: .activities
+        case .machRemote: .system
+        case .backupStatus: .system
+        case .linkHealth: .system
+        case .shelfBetweenMacs: .activities
+        case .sendFiles: .system
+        case .updateRemote: .system
         case .archives: .archives
         case .archivesInPlace: .archives
         case .archivesDefaultApp: .archives
@@ -159,6 +215,18 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var title: String {
         switch self {
         case .tasks: String(localized: "Tasks")
+        case .githubSearch: String(localized: "GitHub Search")
+        case .clearNotifications: String(localized: "Clear Notifications")
+        case .launcherAnswers: String(localized: "Currency Answers")
+        case .copyPath: String(localized: "Copy Path")
+        case .smallCommands: String(localized: "Small Commands")
+        case .aiUsage: String(localized: "AI Usage")
+        case .aiUsageOtherMac: String(localized: "Other Mac AI Usage")
+        case .machLink: String(localized: "Mac Link")
+        case .commandRunner: String(localized: "Command Runner")
+        case .mediaTools: String(localized: "Media Tools")
+        case .convertFiles: String(localized: "Convert Files")
+        case .urlCleaner: String(localized: "URL cleaner")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
@@ -200,6 +268,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .machRemote: String(localized: "Remote Mac")
+        case .backupStatus: String(localized: "Backup Status")
+        case .linkHealth: String(localized: "Link Health")
+        case .shelfBetweenMacs: String(localized: "Shelf between Macs")
+        case .sendFiles: String(localized: "Send to Remote Mac")
+        case .updateRemote: String(localized: "Update Remote Mac")
         case .archives: String(localized: "Archives")
         case .archivesInPlace: String(localized: "Extract in place")
         case .archivesDefaultApp: String(localized: "Open archives with Notchcast")
@@ -219,6 +293,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Event Reminders")
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
+        case .downloads: String(localized: "Downloads")
+        case .downloadsAria2: String(localized: "Fast Downloads with aria2c")
+        case .distill: String(localized: "Distill")
+        case .distillTimestamps: String(localized: "Distill Timestamps")
+        case .distillConvert: String(localized: "Convert Distill Folder")
+        case .machBlockedDialogAlert: String(localized: "Other Mac Dialog Alerts")
+        case .remoteScreen: String(localized: "Remote Screen")
+        case .machMBPFans: String(localized: "Other Mac Fans")
         case .backupRunNow: String(localized: "Back Up Now")
         case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
         case .quickLookSpace: String(localized: "Quick Look on Space")
@@ -231,6 +313,18 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var subtitle: String {
         switch self {
         case .tasks: String(localized: "Keep tasks on this Mac.")
+        case .githubSearch: String(localized: "Search GitHub repositories and starred projects.")
+        case .clearNotifications: String(localized: "Clear notifications from Notification Center. Requires English system language.")
+        case .launcherAnswers: String(localized: "Currency answers using rates from NBP.")
+        case .copyPath: String(localized: "Copy the frontmost document path or browser link.")
+        case .smallCommands: String(localized: "Passwords, short links, noise control and AirDrop. Noise control requires English system language.")
+        case .aiUsage: String(localized: "Read local AI usage on demand.")
+        case .aiUsageOtherMac: String(localized: "Include usage from the other Mac.")
+        case .machLink: String(localized: "Connect to a paired Mac on the local network.")
+        case .commandRunner: String(localized: "Run commands from a host profile.")
+        case .mediaTools: String(localized: "Compress media, make GIFs and extract text locally.")
+        case .convertFiles: String(localized: "Convert local files beside the originals.")
+        case .urlCleaner: String(localized: "Remove tracking parameters from copied links.")
         case .musicNowPlaying: String(localized: "Show what is playing")
         case .musicLastPlayer: String(localized: "Resume last player")
         case .musicBlockAppleMusic: String(localized: "Stop Apple Music opening on media keys")
@@ -272,6 +366,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .machRemote: String(localized: "Connect to the remote Mac using SSH.")
+        case .backupStatus: String(localized: "Warns when backups fail or become stale.")
+        case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.")
+        case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.")
+        case .sendFiles: String(localized: "Send selected files to the remote Mac.")
+        case .updateRemote: String(localized: "Run the update on the remote Mac.")
         case .archives: String(localized: "Extract opened archives beside the original file.")
         case .archivesInPlace: String(localized: "The archive shrinks while extracting.")
         case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.")
@@ -291,6 +391,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
+        case .downloads: String(localized: "Download video, audio, transcripts and webpages from clipboard links.")
+        case .downloadsAria2: String(localized: "Use aria2c for faster media downloads when it is installed.")
+        case .distill: String(localized: "Save links and transcribe media into your Distill folder.")
+        case .distillTimestamps: String(localized: "Include approximate chunk timestamps in Distill transcripts.")
+        case .distillConvert: String(localized: "Convert files in your Distill folder to Markdown or text.")
+        case .machBlockedDialogAlert: String(localized: "Check for system dialogs on the paired Mac on demand.")
+        case .remoteScreen: String(localized: "Request screen sharing with the paired Mac.")
+        case .machMBPFans: String(localized: "Control fans on the paired Mac.")
         case .backupRunNow: String(localized: "Allow starting the configured backup job.")
         case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
         case .quickLookSpace: String(localized: "Preview an arrow-selected file with Space.")
@@ -303,6 +411,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .clearNotifications: [.accessibility]
+        case .copyPath: [.accessibility]
+        case .smallCommands: [.accessibility]
         case .screenshot: [.screenRecording]
         case .musicNowPlaying: []
         case .musicLastPlayer: [.accessibility]
@@ -333,12 +444,24 @@ extension NotchcastFeature {
         if isSystemFeature { return false }
         return switch self {
         case .tasks: false
+        case .githubSearch: false
+        case .clearNotifications: false
+        case .launcherAnswers: false
+        case .copyPath: false
+        case .smallCommands: false
+        case .aiUsage: false
+        case .aiUsageOtherMac: false
+        case .machLink: false
         case .colorPicker: false
         case .screenshot: false
         case .buildStats: false
         case .agentPricing: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
+        case .urlCleaner: false
+        case .convertFiles: false
+        case .mediaTools: false
+        case .commandRunner: false
         case .settingsBackup: false
         case .showDesktop: false
         case .spacesOrder: false
@@ -356,6 +479,19 @@ extension NotchcastFeature {
         case .torrentsKeepSharing: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .downloads: false
+        case .downloadsAria2: false
+        case .distill: false
+        case .distillTimestamps: false
+        case .distillConvert: false
+        case .remoteScreen: false
+        case .machMBPFans: false
+        case .machRemote: false
+        case .backupStatus: false
+        case .linkHealth: false
+        case .shelfBetweenMacs: false
+        case .sendFiles: false
+        case .updateRemote: false
         case .backupRunNow: false
         case .backupBrowseRestore: false
         case .quickLookSpace: false
@@ -384,6 +520,32 @@ extension NotchcastFeature {
         case .switcherQuitKey: false
         case .buildStats: false
         case .pastePlain: false
+        case .githubSearch: false
+        case .clearNotifications: false
+        case .launcherAnswers: false
+        case .copyPath: false
+        case .smallCommands: false
+        case .aiUsage: false
+        case .aiUsageOtherMac: false
+        case .machLink: false
+        case .urlCleaner: false
+        case .convertFiles: false
+        case .mediaTools: false
+        case .commandRunner: false
+        case .downloads: false
+        case .downloadsAria2: false
+        case .distill: false
+        case .distillTimestamps: false
+        case .distillConvert: false
+        case .machRemote: false
+        case .backupStatus: false
+        case .linkHealth: false
+        case .shelfBetweenMacs: false
+        case .sendFiles: false
+        case .updateRemote: false
+        case .machBlockedDialogAlert: false
+        case .remoteScreen: false
+        case .machMBPFans: false
         case .agentSessions: false
         case .agentPricing: false
         default: true
