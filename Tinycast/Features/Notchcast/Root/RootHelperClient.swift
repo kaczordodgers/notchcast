@@ -5,6 +5,7 @@ struct RootHelperClient: Sendable {
         case unsafePath(RootToolPath.Problem)
         case launchFailed
         case authorizationRequired
+        case reinstallRequired
         case executionFailed(Int32)
         case timedOut
         case invalidResponse
@@ -36,10 +37,7 @@ struct RootHelperClient: Sendable {
         guard process.terminationReason == .exit else {
             throw Failure.executionFailed(process.terminationStatus)
         }
-        guard process.terminationStatus != 1 else { throw Failure.authorizationRequired }
-        guard process.terminationStatus == 0 else {
-            throw Failure.executionFailed(process.terminationStatus)
-        }
+        try Self.validateExitStatus(process.terminationStatus)
         let data: Data
         do {
             data = try output.fileHandleForReading.read(upToCount: 4_097) ?? Data()
@@ -52,6 +50,15 @@ struct RootHelperClient: Sendable {
         else { throw Failure.invalidResponse }
         try Task.checkCancellation()
         return reply
+    }
+
+    static func validateExitStatus(_ status: Int32) throws {
+        switch status {
+        case 0: return
+        case 1: throw Failure.authorizationRequired
+        case RootContract.unauthorizedCallerExit: throw Failure.reinstallRequired
+        default: throw Failure.executionFailed(status)
+        }
     }
 
     static func wait(for process: Process, exit: ProcessExit, timeout: Duration) async throws {
