@@ -82,6 +82,11 @@ def output(**values):
             print(f"{key}={value}")
 
 
+def release_tags(repo):
+    pages = json.loads(run("gh", "api", "--paginate", "--slurp", f"repos/{repo}/releases?per_page=100"))
+    return {r["tag_name"] for page in pages for r in page}
+
+
 def plan():
     """Run in a checkout of our main with history (fetch-depth 0)."""
     cfg = config()
@@ -119,8 +124,7 @@ def plan():
             finally:
                 run("git", "worktree", "remove", "--force", tree)
 
-    ours = {r["tagName"] for r in json.loads(run(
-        "gh", "release", "list", "-R", cfg["FORK_REPO"], "-L", "100", "--json", "tagName"))}
+    ours = release_tags(cfg["FORK_REPO"])
     theirs = json.loads(run("gh", "release", "list", "-R", cfg["UPSTREAM_REPO"], "-L", "30",
                             "--json", "tagName,name,isDraft,isPrerelease"))
     baseline = version_key(cfg["BASELINE_TAG"])
