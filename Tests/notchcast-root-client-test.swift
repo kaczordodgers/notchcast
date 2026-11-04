@@ -59,6 +59,7 @@ struct FanSMCTest {
         try validateSequence()
         try validateRecovery()
         try validateBattery()
+        try validateChargeLimit()
         try validateTools()
         print("PASS: fan targets, codecs, write order, shared 5s retry window and Auto recovery (fake SMC only)")
     }
@@ -106,6 +107,40 @@ struct FanSMCTest {
             _ = try TouchIDPolicy.replacement(sudo: sudo, local: "auth required pam_tid.so\n", enabled: true)
         }
         print("PASS: power and Spotlight arguments and pure PAM transforms")
+    }
+
+    private static func validateChargeLimit() throws {
+        let fixture = """
+        Battery level limits:
+        (
+                {
+                Terminated = 0;
+                chargeSocLimitDrain = 1;
+                chargeSocLimitIsEOC = 1;
+                chargeSocLimitNoChargeToFull = 0;
+                chargeSocLimitOwner = 236;
+                chargeSocLimitReason = manualChargeLimit;
+                chargeSocLimitSoc = 80;
+            },
+                {
+                Terminated = 0;
+                chargeSocLimitDrain = 1;
+                chargeSocLimitIsEOC = 1;
+                chargeSocLimitNoChargeToFull = 0;
+                chargeSocLimitOwner = 0;
+                chargeSocLimitReason = manualChargeLimit;
+                chargeSocLimitSoc = 80;
+            }
+        )
+        """
+        let current = try NativeChargeLimit.parse(fixture)
+        let empty = try NativeChargeLimit.parse("Battery level limits:\n(\n)\n")
+        let terminated = try NativeChargeLimit.parse(fixture.replacingOccurrences(of: "Terminated = 0",
+            with: "Terminated = 1"))
+        precondition(current == 80 && empty == nil && terminated == nil)
+        rejects { _ = try NativeChargeLimit.parse("unavailable") }
+        rejects { _ = try NativeChargeLimit.parse(fixture.replacingOccurrences(of: "Soc = 80", with: "Soc = 101")) }
+        print("PASS: native charge limit parser, duplicate limits, off, terminated and invalid output")
     }
 
     private static func validateBattery() throws {
@@ -273,7 +308,7 @@ struct RootClientTest {
     private static func validateCommands() {
         for command in RootContract.Command.allCases {
             precondition(RootContract.Command(arguments: command.arguments) == command)
-            let read = command == .version || command == .ping
+            let read = command.operation == .read
             let spotlight = command == .spotlightOn || command == .spotlightOff
             precondition(command.operation == (read ? .read : spotlight ? .spotlight : .change))
             precondition(command.operation.timeout == .seconds(read ? 3 : spotlight ? 60 : 12))
@@ -299,6 +334,12 @@ struct RootClientTest {
         precondition(RootContract.version == "2")
         precondition(RootContract.Reply(command: .version, output: "1\n") == nil)
         precondition(RootContract.Reply(command: .ping, output: "pong") == nil)
+        precondition(RootContract.Command.chargeLimitRead.operation == .read)
+        precondition(RootContract.Reply(command: .chargeLimitRead, output: "80\n") == .chargeLimit(80))
+        precondition(RootContract.Reply(command: .chargeLimitRead, output: "off\n") == .chargeLimit(nil))
+        for invalid in ["0\n", "101\n", "080\n", "80", "80\nextra"] {
+            precondition(RootContract.Reply(command: .chargeLimitRead, output: invalid) == nil)
+        }
         precondition(RootContract.Operation.change.timeout == .seconds(12))
     }
 
@@ -321,6 +362,9 @@ struct RootClientTest {
 
         let cases: [([String], Int32, String)] = [
             (["version"], 0, "2\n"), (["ping"], 0, "pong\n"),
+            (["charge-limit-60"], 77, ""), (["charge-limit-70"], 77, ""),
+            (["charge-limit-80"], 77, ""), (["charge-limit-90"], 77, ""),
+            (["charge-limit-off"], 77, ""), (["charge-limit-read", "extra"], 64, ""),
             ([], 64, ""), (["unknown"], 64, ""), (["version", "extra"], 64, ""),
             (["ping", "extra"], 64, ""),
             (["spotlight-off"], 77, ""), (["spotlight-on"], 77, ""),
@@ -361,6 +405,7 @@ struct RootClientTest {
                                  "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
                                  "notchcast/root/RootContract.swift", "notchcast/root/FanSMC.swift",
                                  "notchcast/root/BatterySMC.swift",
+                                 "notchcast/root/NativeChargeLimit.swift",
                                  "notchcast/root/Power.swift",
                                  "notchcast/root/Spotlight.swift", "notchcast/root/TouchIDPolicy.swift",
                                  "Tests/notchcast-root-client-test.swift", "-o", fanTests.path]

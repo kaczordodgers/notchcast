@@ -1,5 +1,19 @@
 # Root helper
 
+`charge-limit-60`, `charge-limit-70`, `charge-limit-80`, and `charge-limit-90` set
+`mclLimitValue` and `MCLFeatureState = 1` in `com.apple.smartcharging.topoffprotection`
+for the signed-in console user/current host. They synchronize and post the Darwin notification
+`com.apple.smartcharging.defaultschanged`; on AC, when MCL is disabled, they call PowerUI's
+`enableMCL:` and notify again. `charge-limit-off` deletes both keys, synchronizes and notifies.
+All five require root, take no arguments and return `ok\n` with the change timeout.
+`charge-limit-read` needs no root and parses `/usr/bin/pmset -g battlimit`, returning a percentage
+or `off`, followed by a newline, with the read timeout. Malformed or conflicting limits fail.
+The harness checks a fixed duplicate-entry output fixture and unprivileged write refusal.
+No privileged operation is exercised by these tests.
+
+The MCL preferences and PowerUI mechanism is ported from Damian Tools' BatteryHelper,
+which credits BatFi bbe0197, Copyright (c) 2023 Adam Różyński, under the MIT license.
+
 `spotlight-off` and `spotlight-on` run `/usr/bin/mdutil -a -i off` and
 `/usr/bin/mdutil -a -i on` respectively, with an empty environment.
 `sudo-touchid-on` adds `auth       sufficient     pam_tid.so` to `/etc/pam.d/sudo_local`;
@@ -11,7 +25,7 @@ require root (exit 77 otherwise) and return `ok` on success. Spotlight uses a 60
 Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never written.
 The harness verifies their unprivileged refusal and pure PAM transforms without changing the system.
 
-The fixed program and app client share nineteen argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root. Change verbs require root and print exactly `ok
+The fixed program and app client share twenty-five argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
 ` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and operation failures exit 70, always without output. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
 
 `standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings and unprivileged refusal without invoking pmset.

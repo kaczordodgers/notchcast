@@ -8,6 +8,8 @@ if command.operation != .read {
     guard geteuid() == 0 else { exit(77) }
     do {
         switch command {
+        case .chargeLimit60, .chargeLimit70, .chargeLimit80, .chargeLimit90, .chargeLimitOff:
+            try NativeChargeLimit.run(command)
         case .fansAuto, .fansMedium, .fansMax:
             try FanSMC.Controller(smc: FanSMC.Connection()).run(command)
         case .spotlightOff, .spotlightOn:
@@ -24,6 +26,12 @@ if command.operation != .read {
     }
 }
 
-command.output.withCString { output in
+let reply: String
+do {
+    reply = command == .chargeLimitRead ? try NativeChargeLimit.read() : command.output
+} catch {
+    exit(70)
+}
+reply.withCString { output in
     _ = write(1, output, strlen(output))
 }
