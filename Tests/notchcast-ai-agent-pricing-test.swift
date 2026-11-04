@@ -24,6 +24,8 @@ struct PricingTests {
         precondition(engine.cost(usage) == 10)
         usage.modelID = "gpt-4.1-20260102"
         precondition(engine.cost(usage) == 10, "Dated model identifiers retain their base price")
+        usage.modelID = "gpt-4.1-2025-04-14"
+        precondition(engine.cost(usage) == 10, "Dashed dates retain their base price")
         usage.modelID = "gpt-4.1"
         usage.cacheReadTokens = 1_000_000
         usage.cacheWriteTokens = 1_000_000

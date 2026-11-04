@@ -10,6 +10,7 @@ extension NotchcastFeature {
         case clipboard
         case finder
         case buildStats
+        case agentPricing
         // Keep group appends away from the closing braces during union merges.
     }
 }

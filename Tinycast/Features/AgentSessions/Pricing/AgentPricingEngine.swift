@@ -43,7 +43,7 @@ struct AgentPricingEngine: Sendable {
         let counts = [usage.inputTokens, usage.outputTokens, usage.cacheReadTokens, usage.cacheWriteTokens]
         guard counts.allSatisfy({ $0 >= 0 }) else { return nil }
         let models = table.claude.models + table.codex.models
-        let modelID = usage.modelID.replacingOccurrences(of: "-[0-9]{8}$", with: "", options: .regularExpression)
+        let modelID = usage.modelID.replacingOccurrences(of: "-([0-9]{8}|[0-9]{4}-[0-9]{2}-[0-9]{2})$", with: "", options: .regularExpression)
         guard let price = models.first(where: { $0.id == usage.modelID })
             ?? models.first(where: { $0.id == modelID }) else {
             guard let reported = usage.reportedCostUSD, !reported.isNaN, reported >= 0 else { return nil }

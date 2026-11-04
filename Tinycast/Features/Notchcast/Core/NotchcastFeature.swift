@@ -80,7 +80,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: .activities
         case .dayWeather: .activities
         case .agentSessions: .activities
-        case .agentPricing: .systemTools
+        case .agentPricing: .agentPricing
         case .dayMarkets: .activities
         case .settingsBackup: .system
         case .showDesktop: .system
@@ -227,6 +227,7 @@ extension NotchcastFeature {
         if isSystemFeature { return false }
         return switch self {
         case .buildStats: false
+        case .agentPricing: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
         case .settingsBackup: false
@@ -254,6 +255,7 @@ extension NotchcastFeature {
         switch self {
         case .pastePlain: false
         case .agentSessions: false
+        case .agentPricing: false
         default: !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
         }
     }

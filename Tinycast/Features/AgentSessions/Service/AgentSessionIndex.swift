@@ -75,9 +75,20 @@ struct AgentSessionIndex: Sendable {
         cursors = cursors.filter { seen.contains($0.key) }
         databases = databases.filter { seen.contains($0.key) }
         var sessions: [String: AgentSession] = [:]
-        let all = cursors.keys.sorted().compactMap { cursors[$0]?.accumulator.session }
-            + databases.keys.sorted().flatMap { databases[$0]?.sessions ?? [] }
-        for session in all where session.startedAt != nil {
+        let files = cursors.keys.sorted().compactMap { path in
+            cursors[path].map { (URL(fileURLWithPath: path).lastPathComponent, $0.accumulator.session) }
+        } + databases.keys.sorted().flatMap { path in
+            (databases[path]?.sessions ?? []).map { (URL(fileURLWithPath: path).lastPathComponent, $0) }
+        }
+        // A file copied between roots is one record; only differently named files add up.
+        var copies: [String: AgentSession] = [:]
+        for (name, session) in files {
+            let key = session.id + "/" + name
+            if (copies[key]?.lastActivityAt ?? .distantPast) <= (session.lastActivityAt ?? .distantPast) {
+                copies[key] = session
+            }
+        }
+        for session in copies.keys.sorted().compactMap({ copies[$0] }) where session.startedAt != nil {
             guard let existing = sessions[session.id] else {
                 sessions[session.id] = session
                 continue
