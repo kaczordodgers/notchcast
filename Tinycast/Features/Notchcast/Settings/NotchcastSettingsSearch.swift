@@ -12,7 +12,10 @@ extension SettingsAnchor {
     static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor"))
     static let notchcastFanMode = Self(tab: .notchcast, title: "Fan mode")
     static let notchcastIsland = Self(tab: .notchcast, title: "Island")
-    static let notchcastOptions = Self(tab: .notchcast, title: "Options")
+    static let notchcastOptions = Self(tab: .notchcast, title: LocalizedStringResource("Island Options"))
+    static let notchcastLauncher = Self(tab: .notchcast, title: "Launcher")
+    static let notchcastSystem = Self(tab: .notchcast, title: "System")
+    static let notchcastActivities = Self(tab: .notchcast, title: "Activities")
     static let notchcastMusic = Self(tab: .notchcast, title: "Music")
     // ai-design-check-ignore-next-line sentence-case -- Spotify Connect is a product name.
     static let notchcastSpotify = Self(tab: .notchcast, title: "Spotify Connect")
@@ -20,7 +23,7 @@ extension SettingsAnchor {
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
     static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
-    static let notchcastQuitProtection = Self(tab: .notchcast, title: "Quit protection")
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
     static let notchcastTorrents = Self(tab: .notchcast, title: "Torrents")
@@ -36,13 +39,13 @@ extension SettingsSearchCatalog {
         .init(.notchcastAlertDisk, "Disk free threshold"),
         .init(.notchcastAlertBattery, "Battery threshold"),
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
-        .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island", "hover delay"]),
-        .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display"]),
+        .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
+        .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display", "hover delay"]),
         .init(.notchcastOptions, "Full-Screen Apps", keywords: ["fullscreen", "full screen", "video"]),
         .init(.notchcastOptions, "Open on Hover", keywords: ["pointer", "mouse", "hover"]),
         .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
         .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
-        .init(.notchcastOptions, "Launcher from Island", keywords: ["palette", "search", "open"]),
+        .init(.notchcastLauncher, "Launcher from Island", keywords: ["palette", "search", "open"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
         .init(.notchcastFanMode, "Fan mode"),
@@ -55,14 +58,14 @@ extension SettingsSearchCatalog {
         .init(.notchcastChargePercent, "Charge limit percent"),
         .init(.notchcastAwakeDuration, "Keep-awake duration"),
         .init(group: .notchcastShortcuts, "Toggle Island"),
-        .init(.notchcastOptions, "Display Brightness", keywords: ["display", "dimming", "slider"]),
-        .init(.notchcastOptions, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
-        .init(.notchcastOptions, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
-        .init(.notchcastOptions, "Low Disk Warning", keywords: ["storage", "warning"]),
-        .init(.notchcastOptions, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
-        .init(.notchcastOptions, "Timers", keywords: ["duration", "alarm", "sound"]),
-        .init(.notchcastOptions, "Weather", keywords: ["city", "forecast"]),
-        .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastSystem, "Display Brightness", keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastSystem, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
+        .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
+        .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
+        .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
+        .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),
