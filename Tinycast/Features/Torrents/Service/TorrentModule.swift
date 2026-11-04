@@ -43,7 +43,7 @@ final class TorrentModule: NotchcastModule {
         pending.removeAll()
         guard shutdown == nil else { return }
         let manager = manager
-        for job in manager.jobs where job.state.isRunning { manager.cancel(job.id) }
+        cancelAll()
         shutdown = Task { [weak self] in
             await manager.stop()
             guard let self else { return }
@@ -62,6 +62,10 @@ final class TorrentModule: NotchcastModule {
             manager.enqueue([url], keepSharing: preferences.isOn(.torrentsKeepSharing))
         }
         return true
+    }
+
+    func cancelAll() {
+        for job in manager.jobs where job.state.isRunning { manager.cancel(job.id) }
     }
 
     func tryAgain(_ id: UUID) {
