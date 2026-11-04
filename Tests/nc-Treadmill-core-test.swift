@@ -318,6 +318,10 @@ private struct TreadmillTests {
         try coordinator.stopWalk()
         expect(transport.opens == 1 && transport.sent == [TreadmillProtocol.stop],
                "Stop connects even with no known walk")
+        coordinator.setEnabled(.walk, false)
+        expect(transport.sent == [TreadmillProtocol.stop, TreadmillProtocol.stop],
+               "Connected idle disable sends Stop")
+        coordinator.setEnabled(.walk, true)
         coordinator.disconnect()
         transport.sent = []
         try coordinator.toggleWalk()
@@ -374,7 +378,11 @@ private struct TreadmillTests {
         transport.failSend = false
         transport.onDisconnect?()
         expect(!coordinator.connected, "Disconnect clears connection")
-        coordinator.setEnabled(.walk, false)
+        let opensBeforeTermination = transport.opens
+        await coordinator.stopForTermination()
+        expect(transport.opens == opensBeforeTermination + 1 && transport.sent.last == TreadmillProtocol.stop
+               && transport.sentAtClose == transport.sent,
+               "Termination reconnects a known walk and sends Stop before closing")
         try await store.flush()
         module.stop()
         let reentrantTransport = FakeTreadmillTransport()
