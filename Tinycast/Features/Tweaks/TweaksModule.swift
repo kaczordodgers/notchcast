@@ -4,7 +4,6 @@ import AppKit
 @MainActor
 final class TweaksModule: NotchcastModule {
     private(set) var running = false
-    private let runner = SystemToolsProcessRunner()
     private let setupProfileRunner: TweakProfileRunner
     let store: TweaksStore
     private weak var core: AppCore?
@@ -12,10 +11,18 @@ final class TweaksModule: NotchcastModule {
     private var wantsEnabled = false
     private let profileRunner: (Data, String) async throws -> Void
     private let journalFailure: String?
+    private var setupBusy = false
+    private let setupService: MacSetupService
 
     init(key: String = "macSetupPlans", setupProfileRunner: TweakProfileRunner = .system,
          profileRunner: @escaping (Data, String) async throws -> Void = TweaksModule.openProfile) {
         self.setupProfileRunner = setupProfileRunner
+        setupService = MacSetupService(store: .init(url: URL.applicationSupportDirectory
+            .appendingPathComponent(Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
+            .appendingPathComponent("mac-setup-rollback-\(key).json")), write: { preference, value in
+                let command = TweakCommand.preference(preference, value: value)
+                _ = try SystemToolsProcessRunner().run(command.executable, arguments: command.arguments)
+            })
         self.profileRunner = profileRunner
         let defaults = UserDefaults(suiteName:
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
@@ -95,8 +102,17 @@ final class TweaksModule: NotchcastModule {
     }
 
     func apply(_ plan: MacSetupPlan) async -> TweakPlanRunner.Receipt? {
-        guard running else { return nil }
-        return await runner.apply(plan)
+        guard running, !setupBusy else { return nil }
+        setupBusy = true
+        defer { setupBusy = false }
+        return await setupService.apply(plan)
+    }
+
+    func rollback() async throws {
+        guard !setupBusy else { throw MacSetupPlan.Failure.drift }
+        setupBusy = true
+        defer { setupBusy = false }
+        try await setupService.rollback()
     }
 
     func showLibrary() async {

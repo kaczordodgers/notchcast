@@ -339,6 +339,12 @@ struct RootClientTest {
         }
         try validatePaths()
         try await validateProcessLifetime()
+        let echo = Process()
+        echo.executableURL = URL(fileURLWithPath: "/bin/cat")
+        let payload = Data(repeating: 42, count: 4096)
+        let reply = try await RootHelperClient().exchange(process: echo, input: payload, timeout: .seconds(3))
+        precondition(reply == payload)
+        print("PASS: request/reply round-trip over pipes without transport files")
         print("PASS: root commands, replies, path ownership and permissions, timeouts and cancellation")
     }
 
@@ -346,7 +352,7 @@ struct RootClientTest {
         for command in RootContract.Command.allCases {
             precondition(RootContract.Command(arguments: command.arguments) == command)
             let read = command.operation == .read
-            let spotlight = command == .spotlightOn || command == .spotlightOff
+            let spotlight = [.spotlightOn, .spotlightOff, .cleanSystemList, .cleanSystemTrash].contains(command)
             precondition(command.operation == (read ? .read : spotlight ? .spotlight : .change))
             precondition(command.operation.timeout == .seconds(read ? 3 : spotlight ? 60 : 12))
             precondition(RootContract.Reply(command: command, output: command.output) != nil)
@@ -368,8 +374,8 @@ struct RootClientTest {
         for arguments in invalid {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
-        precondition(RootContract.version == "3")
-        precondition(RootContract.Reply(command: .version, output: "3\n") == .version("3"))
+        precondition(RootContract.version == "4")
+        precondition(RootContract.Reply(command: .version, output: "4\n") == .version("4"))
         do {
             try RootHelperClient.validateExitStatus(78)
             preconditionFailure("Caller rejection must require reinstall")
@@ -402,7 +408,10 @@ struct RootClientTest {
         let compiler = Process()
         compiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         compiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
-                              "-warnings-as-errors", "-O"] + sources + ["-o", helper.path]
+                              "-warnings-as-errors", "-O"] + sources + [
+                                "Tinycast/Features/Clean/Model/CleanSystemEntry.swift",
+                                "Tinycast/Features/Clean/Model/CleanSystemPlan.swift",
+                                "Tinycast/Features/Clean/Model/CleanSystemPolicy.swift", "-o", helper.path]
         try compiler.run()
         compiler.waitUntilExit()
         precondition(compiler.terminationStatus == 0, "Helper compilation failed")

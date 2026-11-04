@@ -12,7 +12,6 @@
   "agentAnswer": "T3/bot transport, waiting-item source, reply UI",
   "voiceAsk": "concrete transport + configure call; destination setting exists",
   "recording": "launcher command or hotkey, target picker, stop/pause control",
-  "cleanSystem": "root helper commands clean-system-list / clean-system-trash in Tinycast/Features/Notchcast/Root/RootContract.swift and the real scan/trash body in CleanModule.swift:182",
   "agentConfirmation": "transport/actions implementations (island prompt), constructing the coordinator in the agent request path (AgentActionIndex.handle) and reading the switch there",
   "killProcess": "a process-list launcher command calling stopProcesses, then unhide",
   "macSetup": "preset picker UI calling apply, then unhide",
