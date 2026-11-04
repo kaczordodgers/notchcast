@@ -1,9 +1,9 @@
 # Machine backups
 
 `MachineBackupCoordinator` exposes `runNow()`, `refreshSnapshots()`, `browse(snapshot:path:)`
-and `restore(snapshot:path:target:)`. It is owned by `NotchcastCore.machineBackup` and gated by
-the two backup switches in the Notchcast System section. These are automatic settings rows;
-there is no extras section on the base revision. Neither switch depends on the island.
+and `restore(snapshot:path:target:)`. It is owned by `NotchcastCore.machineBackup`.
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands. These are automatic settings rows;
+neither switch depends on the island.
 
 Call `configure(_:)` with local `MachineBackupConfiguration` before using the actions. No repository,
 host, launchd label or credential-command defaults are compiled in. Configuration is supplied by the

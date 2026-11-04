@@ -12,13 +12,13 @@ enum TodoCommands {
         context: @escaping @MainActor @Sendable () -> TodoCommandContext
     ) -> [NotchcastCommand] {
         [NotchcastCommand(slug: "add-task-from-clipboard", name: String(localized: "Add Task from Clipboard"),
-                         sfSymbol: "clipboard",
+                         sfSymbol: "clipboard", feature: .tasks,
                          isEnabled: { context().isEnabled() }, run: { context().add() }),
          NotchcastCommand(slug: "complete-next-task", name: String(localized: "Complete Next Task"),
-                         sfSymbol: "checkmark.circle",
+                         sfSymbol: "checkmark.circle", feature: .tasks,
                          isEnabled: { context().isEnabled() }, run: { context().complete() }),
          NotchcastCommand(slug: "undo-last-task-change", name: String(localized: "Undo Last Task Change"),
-                         sfSymbol: "arrow.uturn.backward",
+                         sfSymbol: "arrow.uturn.backward", feature: .tasks,
                          isEnabled: { context().isEnabled() }, run: { context().undo() })]
     }
 

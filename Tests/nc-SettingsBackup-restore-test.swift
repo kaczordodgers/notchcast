@@ -70,6 +70,7 @@ struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
+    let feature: NotchcastFeature?
     let run: @MainActor @Sendable () -> Void
 }
 
