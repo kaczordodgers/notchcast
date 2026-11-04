@@ -8,6 +8,13 @@
 import Foundation
 
 @MainActor
+final class IslandActivityCenter {
+    enum Tone { case neutral }
+    static let shared = IslandActivityCenter()
+    func showMessage(_ text: String, tone: Tone, dwell: Double) { fatalError("Real sink in harness") }
+}
+
+@MainActor
 private final class FakeTreadmillTransport: TreadmillTransport {
     var onBytes: ((Data) -> Void)?
     var onDisconnect: (() -> Void)?
