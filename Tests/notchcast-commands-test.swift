@@ -1,10 +1,10 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadLauncherCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands+Action.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Island/IslandController+Command.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction+EntryID.swift
@@ -86,11 +86,30 @@ enum QuicklinkDestination {
     static func detect(_ query: String) -> Self? { nil }
 }
 
-@MainActor final class IslandController {
-    static let shared = IslandController()
+@MainActor final class CommandFixture {
+    static let shared = CommandFixture()
     var commandsAvailable = true
     var runs = 0
     func toggle() { runs += 1 }
+}
+
+extension NotchcastCommandCatalog {
+    static let all: [NotchcastCommand] = [
+        NotchcastCommand(
+            slug: "toggle-island", name: "Test command", sfSymbol: "test",
+            legacyID: "command:toggle-island",
+            isEnabled: { CommandFixture.shared.commandsAvailable },
+            run: { CommandFixture.shared.toggle() }),
+        NotchcastDownloadLauncherCommands.video,
+        NotchcastDownloadLauncherCommands.audio,
+        NotchcastDownloadLauncherCommands.transcript,
+        NotchcastDownloadLauncherCommands.webpage,
+        NotchcastDownloadLauncherCommands.addDistill,
+        NotchcastDownloadLauncherCommands.runDistill,
+        NotchcastDownloadLauncherCommands.convert,
+        NotchcastDownloadLauncherCommands.openDownloads,
+        NotchcastDownloadLauncherCommands.openDistill,
+    ]
 }
 
 @MainActor final class AppCore {
@@ -150,7 +169,7 @@ enum QuicklinkDestination {
         assert(action.defaultsKey == "hotkey.command:toggle-island")
         assert(HotKeyAction(entryID: commands[0].entry.id) == action)
         assert(action.entryID == commands[0].entry.id)
-        let island = IslandController.shared
+        let island = CommandFixture.shared
         var dismissed = 0
         assert(NotchcastCommandCatalog.dispatch("command:toggle-island", dismiss: { dismissed += 1 }))
         assert(island.runs == 1 && dismissed == 1)
