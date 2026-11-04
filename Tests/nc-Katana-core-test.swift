@@ -137,6 +137,11 @@ struct KatanaTests {
 
     static func imports() throws {
         let tone = try tone()
+        let partial = try KatanaTone(regions: tone.regions.filter { KatanaPatchRegion.essential.contains($0.region) },
+                                     knob: tone.knob, knobSolo: tone.knobSolo)
+        expect(partial.regions.count == KatanaPatchRegion.all.count, "Omitted regions initialize before load")
+        expect(partial.regions.first { $0.region == 0x28 }?.bytes == KatanaGen3Defaults.image()[0x28],
+               "Partial tones cannot inherit a previous channel's effects")
         var image = [UInt8](repeating: 0, count: 73728)
         for region in tone.regions {
             image.replaceSubrange((Int(region.region) << 7)..<((Int(region.region) << 7) + region.bytes.count),

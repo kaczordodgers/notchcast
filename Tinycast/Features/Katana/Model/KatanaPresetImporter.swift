@@ -13,6 +13,9 @@ enum KatanaPresetImporter {
         guard let object = try JSONSerialization.jsonObject(with: data) as? [String: Any],
               let name = object["name"] as? String, !name.isEmpty,
               let raw = object["raw"] as? [String: [String]], !raw.isEmpty else { throw KatanaError.invalidData }
+        if let steps = object["extra_steps"] {
+            guard let steps = steps as? [String: String], steps.isEmpty else { throw KatanaError.unsupportedFormat }
+        }
         var image: [UInt8: [UInt8]] = [:]
         for (key, values) in raw {
             guard key.count == 2, let region = UInt8(key, radix: 16) else { throw KatanaError.invalidData }

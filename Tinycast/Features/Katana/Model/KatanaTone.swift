@@ -27,7 +27,9 @@ struct KatanaTone: Codable, Equatable, Sendable {
         guard !name.isEmpty else { throw KatanaError.invalidData }
         self.name = name
         self.comment = comment
-        self.regions = regions.sorted { $0.region < $1.region }
+        var image = KatanaGen3Defaults.image()
+        for region in regions { image[region.region] = region.bytes }
+        self.regions = KatanaPatchRegion.all.map { Region(region: $0.region, bytes: image[$0.region]!) }
         self.knob = knob
         self.knobSolo = knobSolo
         self.converted = converted
