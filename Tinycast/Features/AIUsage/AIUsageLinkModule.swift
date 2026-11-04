@@ -76,6 +76,15 @@ final class AIUsageLinkModule: NotchcastModule {
         let preferences = preferences
         let name = SCDynamicStoreCopyLocalHostName(nil) as String? ?? UUID().uuidString
         try channel.manager.start(pairing: pairing, name: name) { request in
+            if request.method == "dialogs" {
+                return try await MainActor.run {
+                    guard preferences.isOn(.machBlockedDialogAlert) else {
+                        throw MachLinkMessage.Failure.disconnected
+                    }
+                    return try MachLinkMessage(id: request.id, method: request.method,
+                        value: BlockedDialogWindows.current())
+                }
+            }
             guard await preferences.isOn(.aiUsage), await preferences.isOn(.aiUsageOtherMac) else {
                 throw MachLinkMessage.Failure.disconnected
             }

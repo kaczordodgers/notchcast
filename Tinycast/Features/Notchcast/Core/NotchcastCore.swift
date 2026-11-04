@@ -8,6 +8,7 @@ enum NotchcastCore {
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let macLink = AIUsageLinkModule()
+    static let blockedDialogs = BlockedDialogModule.linked(to: macLink.channel)
     static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
@@ -43,6 +44,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
+            .init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: blockedDialogs),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
