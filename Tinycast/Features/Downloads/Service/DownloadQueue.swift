@@ -159,6 +159,11 @@ final class DownloadQueue {
                   let index = jobs.firstIndex(where: { $0.id == job.id }),
                   jobs[index].state == .running else { return }
             jobs[index].detail = detail
+        }, reportNetwork: { [weak self] usesIPhone in
+            guard !Task.isCancelled, let self, operations[job.id] == operation,
+                  let index = jobs.firstIndex(where: { $0.id == job.id }),
+                  jobs[index].state == .running else { return }
+            jobs[index].options["usesIPhone"] = usesIPhone ? "true" : "false"
         })
         let runningJob = jobs[index]
         tasks[job.id] = Task { [weak self, tools] in
