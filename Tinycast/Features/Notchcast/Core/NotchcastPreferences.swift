@@ -21,14 +21,19 @@ final class NotchcastPreferences {
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
     @ObservationIgnored private let defaults: UserDefaults
+    var remoteMacAddress: String {
+        didSet { defaults.set(remoteMacAddress, forKey: "remoteMacAddress") }
+    }
     /// Every switch defaults to on, so only the ones turned off are stored.
     private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        remoteMacAddress = defaults.string(forKey: "remoteMacAddress") ?? "mbp"
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Set(NotchcastFeature.allCases.filter { defaults.object(forKey: $0.rawValue) as? Bool == false })
+        if defaults.object(forKey: "machRemote") == nil { off.insert(.machRemote) }
     }
 
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }
