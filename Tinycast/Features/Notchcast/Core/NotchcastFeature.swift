@@ -60,6 +60,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case torrents
     case torrentsUseIPhone
     case torrentsKeepSharing
+    case backupRunNow
+    case backupBrowseRestore
+    case quickLookSpace
+    case markdownFiles
+    case plainTextFiles
+    case editorSpellChecking
     case buildStats
 
     var dependencies: [Self] {
@@ -113,6 +119,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
         case .linkQuickFixes: .systemTools
+        case .backupRunNow: .system
+        case .backupBrowseRestore: .system
+        case .quickLookSpace: .launcher
+        case .markdownFiles: .system
+        case .plainTextFiles: .system
+        case .editorSpellChecking: .system
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -204,6 +216,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Event Reminders")
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
+        case .backupRunNow: String(localized: "Back Up Now")
+        case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
+        case .quickLookSpace: String(localized: "Quick Look on Space")
+        case .markdownFiles: String(localized: "Markdown Files")
+        case .plainTextFiles: String(localized: "Plain Text Files")
+        case .editorSpellChecking: String(localized: "Editor Spell Checking")
         }
     }
 
@@ -269,6 +287,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
+        case .backupRunNow: String(localized: "Allow starting the configured backup job.")
+        case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
+        case .quickLookSpace: String(localized: "Preview an arrow-selected file with Space.")
+        case .markdownFiles: String(localized: "Edit Markdown documents outside the notes folder.")
+        case .plainTextFiles: String(localized: "Edit plain text while preserving its file encoding.")
+        case .editorSpellChecking: String(localized: "Check spelling in the editor.")
         }
     }
 
@@ -327,6 +351,12 @@ extension NotchcastFeature {
         case .torrentsKeepSharing: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .backupRunNow: false
+        case .backupBrowseRestore: false
+        case .quickLookSpace: false
+        case .markdownFiles: false
+        case .plainTextFiles: false
+        case .editorSpellChecking: false
         case .pastePlain: false
         case .finderCutPaste: false
         case .finderRename: false
