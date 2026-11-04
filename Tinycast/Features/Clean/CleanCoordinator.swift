@@ -54,9 +54,11 @@ final class CleanCoordinator {
     }
 
     var rootAvailable: Bool {
-        transport.supportsRootCommand(Self.rootScanCommand)
+        helperCurrent && transport.supportsRootCommand(Self.rootScanCommand)
             && transport.supportsRootCommand(Self.rootTrashCommand)
     }
+
+    var helperCurrent = true
 
     func setEnabled(_ feature: NotchcastFeature, _ value: Bool) {
         if value {

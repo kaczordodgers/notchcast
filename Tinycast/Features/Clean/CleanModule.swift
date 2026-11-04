@@ -11,6 +11,7 @@ final class CleanModule: NotchcastModule {
     nonisolated private static let history = CleanHistoryStore(
         logPath: AppPaths.applicationSupport().appendingPathComponent("clean-history.jsonl"))
     private var running = false
+    private var helperCheck: Task<Void, Never>?
     private weak var core: AppCore?
     private let preferences = NotchcastPreferences.shared
     lazy var coordinator = CleanCoordinator(
@@ -35,11 +36,19 @@ final class CleanModule: NotchcastModule {
 
     func start() {
         running = true
+        coordinator.helperCurrent = false
+        helperCheck = Task { [weak self] in
+            let reply = try? await RootHelperClient().run(.version)
+            guard !Task.isCancelled, let self, running else { return }
+            coordinator.helperCurrent = reply == .version(RootContract.version)
+        }
         observeSwitches()
     }
 
     func stop() {
         running = false
+        helperCheck?.cancel()
+        helperCheck = nil
         coordinator.stop()
     }
 
@@ -180,11 +189,20 @@ final class CleanModule: NotchcastModule {
                 }) else { throw Failure.toolFailed }
             }
         case .cleanSystem:
-            guard RootContract.Command(rawValue: CleanCoordinator.rootScanCommand) != nil,
-                  RootContract.Command(rawValue: CleanCoordinator.rootTrashCommand) != nil else {
-                throw Failure.helperUpdate
+            let client = CleanSystemRootClient(run: { try await RootHelperClient().clean($0, input: $1) },
+                policy: .init(roots: CleanSystemPolicy.allowedRoots, now: .now,
+                              cacheAge: 30 * 86_400, logAge: 30 * 86_400))
+            let entries = try await client.list()
+            return .init(items: entries.map {
+                .init(id: URL(fileURLWithPath: $0.path), size: $0.size)
+            }) { paths in
+                for path in paths {
+                    try Task.checkCancellation()
+                    guard let entry = entries.first(where: { $0.path == path.path })
+                    else { throw Failure.itemsChanged }
+                    try await client.trash(entry)
+                }
             }
-            throw Failure.helperUpdate
         default: throw Failure.itemsChanged
         }
     }

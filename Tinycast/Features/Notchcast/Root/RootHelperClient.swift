@@ -14,6 +14,45 @@ struct RootHelperClient: Sendable {
 
     var isInstalled: Bool { RootToolPath.verify() == nil }
 
+    @concurrent
+    func clean(_ command: RootContract.Command, input: Data) async throws -> Data {
+        try Task.checkCancellation()
+        try Self.refuseWhileAbandonedRuns()
+        if let problem = RootToolPath.verify() { throw Failure.unsafePath(problem) }
+        guard [.version, .cleanSystemList, .cleanSystemTrash].contains(command), input.count <= 4096
+        else { throw Failure.invalidResponse }
+        let directory = FileManager().temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager().createDirectory(at: directory, withIntermediateDirectories: false,
+                                         attributes: [.posixPermissions: 0o700])
+        defer { try? FileManager().removeItem(at: directory) }
+        let destination = directory.appendingPathComponent("reply")
+        FileManager().createFile(atPath: destination.path, contents: nil)
+        let output = try FileHandle(forWritingTo: destination)
+        defer { try? output.close() }
+        let source = directory.appendingPathComponent("request")
+        try input.write(to: source)
+        let request = try FileHandle(forReadingFrom: source)
+        defer { try? request.close() }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/sudo")
+        process.arguments = ["-n", RootContract.helperPath] + command.arguments
+        process.environment = [:]
+        process.currentDirectoryURL = URL(fileURLWithPath: "/")
+        process.standardInput = request
+        process.standardOutput = output
+        process.standardError = FileHandle.nullDevice
+        let exit = try process.runObservingExit()
+        do {
+            try await Self.wait(for: process, exit: exit, timeout: command.operation.timeout)
+        } catch {
+            Self.abandoned.withLock { $0.append(process) }
+            throw error
+        }
+        try Self.validateExitStatus(process.terminationStatus)
+        try Task.checkCancellation()
+        return try Data(contentsOf: destination)
+    }
+
     /// Root children we stopped waiting for; root tools must not overlap, so no new one starts while one runs.
     private static let abandoned = Mutex<[Process]>([])
 
