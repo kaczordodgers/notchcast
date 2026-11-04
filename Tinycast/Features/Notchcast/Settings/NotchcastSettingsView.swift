@@ -22,6 +22,7 @@ struct NotchcastSettingsView: View {
             NotchcastSystemSettingsSection()
 
             NotchcastExtrasSection()
+            AgentPricingSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
