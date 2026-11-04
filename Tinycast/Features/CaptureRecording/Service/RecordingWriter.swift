@@ -134,9 +134,12 @@ final class RecordingWriter: RecordingWriting {
             let completed = await withTaskCancellationHandler {
                 await withCheckedContinuation { continuation in
                     finishingWriter.withLock { handle in
-                        guard let current = handle, !current.cancelled,
-                            current.writer.status == .writing else {
+                        guard let current = handle, !current.cancelled else {
                             continuation.resume(returning: false)
+                            return
+                        }
+                        guard current.writer.status == .writing else {
+                            continuation.resume(returning: true)
                             return
                         }
                         handle?.continuation = continuation
