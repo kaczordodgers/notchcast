@@ -4084,6 +4084,42 @@
         }
       }
     },
+    "Notifications cleared: %lld" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Mitteilungen gelöscht: %lld" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Notificaciones borradas: %lld" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Notifications effacées : %lld" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "消去した通知：%lld" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "지운 알림: %lld" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Notificações apagadas: %lld" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Удалено уведомлений: %lld" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已清除通知：%lld" } }
+      }
+    },
+    "Low battery: %lld%%" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Batterie schwach: %lld%%" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Batería baja: %lld%%" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Batterie faible : %lld%%" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "バッテリー残量低下：%lld%%" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "배터리 부족: %lld%%" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Bateria fraca: %lld%%" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Низкий заряд: %lld%%" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "电量低：%lld%%" } }
+      }
+    },
+    "Could not clear notifications. Check Accessibility and Automation access." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Mitteilungen konnten nicht gelöscht werden. Prüfe den Zugriff auf Bedienungshilfen und Automation." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudieron borrar las notificaciones. Comprueba los permisos de Accesibilidad y Automatización." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible d’effacer les notifications. Vérifiez les autorisations Accessibilité et Automatisation." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "通知を消去できませんでした。アクセシビリティとオートメーションのアクセス権を確認してください。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "알림을 지울 수 없습니다. 손쉬운 사용 및 자동화 접근 권한을 확인하세요." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível apagar as notificações. Verifique as permissões de Acessibilidade e Automação." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось удалить уведомления. Проверьте разрешения универсального доступа и автоматизации." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法清除通知。请检查辅助功能和自动化访问权限。" } }
+      }
+    },
     "Clear download history" : {
       "localizations" : {
         "de" : {
