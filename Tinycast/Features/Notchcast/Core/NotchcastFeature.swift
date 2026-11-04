@@ -15,6 +15,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case colorPicker
     case screenshot
+    case globeDictation
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -40,6 +41,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
         case .screenshot: String(localized: "Screenshots")
+        case .globeDictation: String(localized: "Globe Dictation")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -71,6 +73,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
         case .screenshot: String(localized: "Capture an area, window or display.")
+        case .globeDictation: String(localized: "Tap Globe to start or finish dictation, or hold it to talk.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -83,7 +86,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .volumeLevels, .displayBrightness, .quitProtection, .globeDictation: [.accessibility]
         case .screenshot: [.screenRecording]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
@@ -101,7 +104,7 @@ extension NotchcastFeature {
         self != .displayBrightness && self != .quitProtection && !belongsToCaptureAndDictation && !isSystemFeature
     }
 
-    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot }
+    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot || self == .globeDictation }
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)

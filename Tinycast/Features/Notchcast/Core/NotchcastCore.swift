@@ -12,11 +12,13 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    private static var dictationTrigger: DictationTriggerModule?
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
 
     static func stopForTermination() async {
+        dictationTrigger?.stop()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -31,6 +33,8 @@ enum NotchcastCore {
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
+        let trigger = makeDictationTrigger(core)
+        dictationTrigger = trigger
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
@@ -46,6 +50,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.globeDictation], module: trigger),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

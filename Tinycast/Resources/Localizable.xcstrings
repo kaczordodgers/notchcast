@@ -143794,6 +143794,64 @@
       },
       "shouldTranslate" : false
     },
+    "Globe Dictation" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Globe Dictation"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Globus-Diktat"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictado con Globo"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictée avec Globe"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地球儀キーで音声入力"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지구본 키 받아쓰기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ditado com Globo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Диктовка клавишей глобуса"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地球键听写"
+          }
+        }
+      }
+    },
     "Hover delay" : {
       "localizations" : {
         "de" : {
@@ -146582,6 +146640,64 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这里还没有内容。"
+          }
+        }
+      }
+    },
+    "Tap Globe to start or finish dictation, or hold it to talk." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap Globe to start or finish dictation, or hold it to talk."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Globus antippen, um das Diktat zu starten oder zu beenden, oder zum Sprechen gedrückt halten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pulsa Globo para iniciar o finalizar el dictado, o mantenlo pulsado para hablar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez sur Globe pour démarrer ou terminer la dictée, ou maintenez la touche pour parler."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地球儀キーを押すと音声入力を開始・終了し、長押しすると話せます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지구본 키를 눌러 받아쓰기를 시작하거나 끝내고, 길게 눌러 말하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque em Globo para iniciar ou encerrar o ditado, ou mantenha pressionado para falar."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите клавишу глобуса, чтобы начать или закончить диктовку, или удерживайте её, пока говорите."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轻按地球键以开始或结束听写，或按住说话。"
           }
         }
       }
