@@ -1,3 +1,5 @@
+import Foundation
+
 @MainActor
 enum NotchcastCore {
     static let lowDisk = LowDiskModule()
@@ -13,11 +15,14 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static private(set) var voiceAsk: VoiceAskModule?
+    private static var voiceAskInput: VoiceAskInput?
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
 
     static func stopForTermination() async {
+        voiceAsk?.stop()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -26,6 +31,12 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        let recording = VoiceAskRecording(core: core)
+        let voiceAsk = VoiceAskModule(defaults: UserDefaults(suiteName:
+            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+            begin: recording.begin, finish: recording.finish, cancel: recording.cancel)
+        self.voiceAsk = voiceAsk
+        voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAsk)
         NotchcastPreferences.shared.onCommandsChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
         }
@@ -48,6 +59,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.voiceAsk], module: voiceAsk),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
