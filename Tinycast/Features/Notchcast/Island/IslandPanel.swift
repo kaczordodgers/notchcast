@@ -75,6 +75,7 @@ final class IslandPanel: NSPanel {
         if event.type == .keyDown, onKey?(event) == true { return }
         if event.type == .leftMouseDown, containsPointer {
             if !open, message?.onCancel == nil { onOpen?(); return }
+            if open { makeKey() }
         }
         super.sendEvent(event)
     }
