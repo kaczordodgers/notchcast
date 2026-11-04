@@ -1,4 +1,11 @@
-// notchcast-sources: Tinycast/Features/Torrents/*/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
+// notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 import CryptoKit
 import Darwin
 import Foundation
@@ -82,7 +89,7 @@ import Foundation
     }
 
     @MainActor static func main() async throws {
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(".torrent-engine-tests-\(UUID())")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }

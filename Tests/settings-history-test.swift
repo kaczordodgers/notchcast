@@ -28,6 +28,7 @@ struct SettingsHistoryTests {
         catalogCoversEveryPane()
         catalogIdentitiesAreUnique()
         catalogFindsKnownRows()
+        catalogFindsTorrentRows()
         catalogRanksTitlesFirst()
         catalogAnchorsMatchTheirPane()
         revealingRecordsANewRequestEachTime()
@@ -160,6 +161,13 @@ struct SettingsHistoryTests {
         for (query, tab) in cases {
             let found = SettingsSearchCatalog.results(for: query).first
             expect(found?.tab == tab, "“\(query)” lands on \(tab.title)")
+        }
+    }
+
+    static func catalogFindsTorrentRows() {
+        for query in ["magnet", "plugged-in iphone", "keep sharing", "aria2c"] {
+            let found = SettingsSearchCatalog.results(for: query).contains { $0.anchor == .notchcastTorrents }
+            expect(found, "“\(query)” reveals the Torrents section")
         }
     }
 

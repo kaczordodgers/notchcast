@@ -495,6 +495,7 @@ final class AppCore {
             pendingURLs?.append(url)
             return
         }
+        if NotchcastCore.torrents.open(url) { return }
         if deepLinkCoordinator.handles(url) {
             deepLinkCoordinator.open(url)
             return

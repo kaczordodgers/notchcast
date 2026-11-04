@@ -23,6 +23,7 @@ struct TorrentJob: Identifiable, Equatable, Sendable {
     var state: State = .findingPeers
     var error: TorrentFailure?
     var files: [URL] = []
+    var usesIPhone = false
 
     var timeLeft: TimeInterval? {
         guard speed > 0, bytesTotal > bytesDone else { return nil }

@@ -11,6 +11,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case liveTimers
     case dayWeather
     case dayMarkets
+    case torrents
+    case torrentsUseIPhone
+    case torrentsKeepSharing
 
     var title: String {
         switch self {
@@ -29,6 +32,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
+        case .torrents: String(localized: "Torrents")
+        case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
+        case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
         }
     }
 
@@ -49,6 +55,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
+        case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
+        case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
         }
     }
 
@@ -58,7 +67,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets:
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
+            .torrents, .torrentsUseIPhone, .torrentsKeepSharing:
             []
         }
     }
@@ -66,7 +76,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection }
+    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isTorrentFeature }
+
+    var isTorrentFeature: Bool { [.torrents, .torrentsUseIPhone, .torrentsKeepSharing].contains(self) }
+
+    var defaultEnabled: Bool { self != .torrentsKeepSharing }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {

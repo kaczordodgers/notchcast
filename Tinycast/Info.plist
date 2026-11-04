@@ -34,10 +34,18 @@
 				<string>com.raycast</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>BitTorrent Magnet</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>magnet</string>
+			</array>
+		</dict>
 	</array>
-	<!-- Exported, but deliberately no CFBundleDocumentTypes: claiming the type would make a
-	     double-clicked .tinycast launch straight into writing over someone's data. The identifier
-	     is fixed rather than per-channel so Dev and stable can read each other's exports. -->
+	<!-- Backup types are exported without a document handler to prevent accidental imports. -->
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>
@@ -79,5 +87,40 @@
 	<string>Tinycast uses Bluetooth access only when you run the Toggle Bluetooth action.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Tinycast</string>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>BitTorrent</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Alternate</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>org.bittorrent.torrent</string>
+			</array>
+		</dict>
+	</array>
+	<key>UTImportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>org.bittorrent.torrent</string>
+			<key>UTTypeDescription</key>
+			<string>BitTorrent</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<string>torrent</string>
+				<key>public.mime-type</key>
+				<string>application/x-bittorrent</string>
+			</dict>
+		</dict>
+	</array>
 </dict>
 </plist>
