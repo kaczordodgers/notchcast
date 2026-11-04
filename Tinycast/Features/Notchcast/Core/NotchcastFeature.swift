@@ -253,7 +253,6 @@ extension NotchcastFeature {
         !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
     }
 
-    var isSystemFeature: Bool { settingsGroup == .systemTools }
     var isSystemFeature: Bool {
         switch self {
         case .katana: true
