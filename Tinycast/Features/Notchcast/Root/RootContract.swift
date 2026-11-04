@@ -1,3 +1,5 @@
+import Foundation
+
 enum RootContract {
     static let helperPath = "/Library/PrivilegedHelperTools/app.notchcast.root"
     static let version = "1"
@@ -53,6 +55,12 @@ enum RootContract {
         case ok
 
         init?(command: Command, output: String) {
+            if command == .version {
+                let version = output.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard Int(version) != nil else { return nil }
+                self = .version(version)
+                return
+            }
             guard output == command.output else { return nil }
             switch command {
             case .version: self = .version(RootContract.version)
