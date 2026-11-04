@@ -2,11 +2,13 @@ import AppKit
 
 @MainActor
 final class ColorPickerService {
+    enum Outcome { case copied, cancelled, copyFailed }
+
     private let defaults: UserDefaults
     private let sample: (@escaping @MainActor (NSColor?) -> Void) -> Void
     private let copy: (String) -> Bool
     private var operation: UUID?
-    private var completion: ((Bool) -> Void)?
+    private var completion: ((Outcome) -> Void)?
     private static let formatKey = "notchcast.colorPicker.format"
 
     var format: ColorPickerFormat {
@@ -34,9 +36,9 @@ final class ColorPickerService {
         self.copy = copy
     }
 
-    func pick(isEnabled: Bool, completion: @escaping (Bool) -> Void) {
+    func pick(isEnabled: Bool, completion: @escaping (Outcome) -> Void) {
         guard isEnabled, operation == nil else {
-            completion(false)
+            completion(.cancelled)
             return
         }
         let identity = UUID()
@@ -48,10 +50,10 @@ final class ColorPickerService {
             self.operation = nil
             self.completion = nil
             guard let color, let value = Self.sRGBValue(for: color) else {
-                completion(false)
+                completion(.cancelled)
                 return
             }
-            completion(self.copy(selectedFormat.string(for: value)))
+            completion(self.copy(selectedFormat.string(for: value)) ? .copied : .copyFailed)
         }
     }
 
@@ -59,7 +61,7 @@ final class ColorPickerService {
         operation = nil
         let pending = completion
         completion = nil
-        pending?(false)
+        pending?(.cancelled)
     }
 
     static func sRGBValue(for color: NSColor) -> ColorValue? {
