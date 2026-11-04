@@ -22,6 +22,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayCalendar
     case dayWeather
     case dayMarkets
+    case pastePlain
+    case finderCutPaste
+    case finderRename
+    case pasteImage
+    case colorPicker
+    case screenshot
     case dictationIslandHUD
     case batteryChargeLimit
     case batterySailing
@@ -52,6 +58,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: .islandOptions
         case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .colorPicker: .captureAndDictation
+        case .screenshot: .captureAndDictation
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
         case .dictationIslandHUD: .activities
@@ -84,6 +92,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .pastePlain: .clipboard
+        case .finderCutPaste: .finder
+        case .finderRename: .finder
+        case .pasteImage: .clipboard
         }
     }
 
@@ -110,7 +122,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Timers")
         case .dayCalendar: String(localized: "Calendar")
         case .dayWeather: String(localized: "Weather")
+        case .pastePlain: String(localized: "Paste Plain Text")
+        case .finderCutPaste: String(localized: "Finder Cut and Paste")
+        case .finderRename: String(localized: "Finder Rename")
+        case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
+        case .colorPicker: String(localized: "Color Picker")
+        case .screenshot: String(localized: "Screenshots")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
         case .hideCommandM: String(localized: "Hide with ⌘M")
@@ -155,7 +173,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers: String(localized: "Countdowns and alarms in the island.")
         case .dayCalendar: String(localized: "Calendar events on the Day page.")
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
+        case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
+        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
+        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.")
+        case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
+        case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
+        case .screenshot: String(localized: "Capture an area, window or display.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
@@ -180,6 +204,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .screenshot: [.screenRecording]
         case .showDesktop: [.accessibility]
         case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
@@ -188,6 +213,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
+        case .pastePlain: [.accessibility]
+        case .finderCutPaste: [.accessibility]
+        case .finderRename: [.accessibility]
+        case .pasteImage: [.accessibility]
         default: []
         }
     }
@@ -197,6 +226,12 @@ extension NotchcastFeature {
     /// Island-only unless a system feature (NotchcastFeature+Logic.swift); one arm per feature that works without it.
     var needsIslandArm: Bool {
         switch self {
+    /// Shows only in the island, so its switch follows the island switch in Settings.
+    var needsIsland: Bool {
+        if isSystemFeature { return false }
+        return switch self {
+        case .colorPicker: false
+        case .screenshot: false
         case .buildStats: false
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
@@ -210,11 +245,27 @@ extension NotchcastFeature {
         case .switcherQuitKey: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .pastePlain: false
+        case .finderCutPaste: false
+        case .finderRename: false
+        case .pasteImage: false
         default: true
         }
     }
+
+    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
+
+    var defaultEnabled: Bool {
+        switch self {
+        case .pastePlain: false
+        default: !isSystemFeature && self != .buildStats && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        }
+    }
+
+    var isSystemFeature: Bool { settingsGroup == .systemTools }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
+    case screenRecording
 }
