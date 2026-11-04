@@ -30,6 +30,7 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(.notchcastSystem, "URL cleaner", keywords: ["tracking", "clipboard", "parameters"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
@@ -69,6 +70,9 @@ extension SettingsSearchCatalog {
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
         .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastActivities, "Convert Files", keywords: ["convert", "pdf", "formats"]),
+        .init(.notchcastActivities, "Media Tools", keywords: ["compress", "gif", "resize", "text"]),
+        .init(.notchcastLauncher, "Command Runner", keywords: ["catalogue", "shell", "tasks"]),
         .init(.notchcastSystem, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
         .init(.notchcastSystem, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
         .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),

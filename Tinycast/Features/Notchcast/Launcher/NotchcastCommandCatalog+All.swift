@@ -12,5 +12,13 @@ extension NotchcastCommandCatalog {
         NotchcastDownloadLauncherCommands.convert,
         NotchcastDownloadLauncherCommands.openDownloads,
         NotchcastDownloadLauncherCommands.openDistill,
+        NotchcastToolsLauncherCommands.convertFiles,
+        NotchcastToolsLauncherCommands.compressVideo,
+        NotchcastToolsLauncherCommands.makeGIF,
+        NotchcastToolsLauncherCommands.compressImage,
+        NotchcastToolsLauncherCommands.resizeImage,
+        NotchcastToolsLauncherCommands.extractText,
+        NotchcastToolsLauncherCommands.runHostCommand,
+        NotchcastToolsLauncherCommands.listCommands,
     ]
 }
