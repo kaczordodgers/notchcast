@@ -1,262 +1,54 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Extract Archive…": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Archiv entpacken…"
+    "Calendar events on the Day page." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalenderereignisse auf der Seite Tag."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extraer archivo…"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos del calendario en la página Día."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extraire une archive…"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements du calendrier sur la page Jour."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アーカイブを展開…"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「日」ページのカレンダーイベント。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "압축 파일 풀기…"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일 페이지의 캘린더 일정."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extrair arquivo…"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos do calendário na página Dia."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Распаковать архив…"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "События календаря на странице «День»."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "解压归档…"
-          }
-        }
-      }
-    },
-    "Cancel All Extractions": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Alle Entpackvorgänge abbrechen"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancelar todas las extracciones"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Annuler toutes les extractions"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "すべての展開をキャンセル"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모든 압축 풀기 취소"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cancelar todas as extrações"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Отменить все распаковки"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "取消所有解压"
-          }
-        }
-      }
-    },
-    "The archive engine is not running.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Archiv-Engine läuft nicht."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El motor de archivos no está en ejecución."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le moteur d’archives est arrêté."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アーカイブエンジンが停止しています。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "압축 엔진이 실행 중이 아닙니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O mecanismo de arquivos não está em execução."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Модуль архивов не запущен."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "归档引擎未运行。"
-          }
-        }
-      }
-    },
-    "No archive was selected.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Es wurde kein Archiv ausgewählt."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No se seleccionó ningún archivo."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aucune archive sélectionnée."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アーカイブが選択されていません。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 압축 파일이 없습니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nenhum arquivo foi selecionado."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Архив не выбран."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未选择归档。"
-          }
-        }
-      }
-    },
-    "The selected file is not a supported archive.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die ausgewählte Datei ist kein unterstütztes Archiv."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El archivo seleccionado no es un archivo comprimido compatible."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le fichier sélectionné n’est pas une archive prise en charge."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "選択したファイルは対応するアーカイブではありません。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "선택한 파일은 지원되는 압축 파일이 아닙니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O arquivo selecionado não é um arquivo compactado compatível."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Выбранный файл не является поддерживаемым архивом."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "所选文件不是受支持的归档。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“日”页面上的日历事件。"
           }
         }
       }
@@ -148588,112 +148380,6 @@
         }
       }
     },
-"Expires tomorrow": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Läuft morgen ab"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Caduca mañana"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expire demain"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "明日期限切れ"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "내일 만료"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expira amanhã"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Истекает завтра"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "明天到期"
-          }
-        }
-      }
-    },
-"F5 mutes every microphone. Press it again to unmute.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5 schaltet alle Mikrofone stumm. Erneutes Drücken hebt die Stummschaltung auf."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5 silencia todos los micrófonos. Púlsala de nuevo para activarlos."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5 coupe tous les microphones. Appuyez à nouveau pour les réactiver."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5ですべてのマイクをミュートします。もう一度押すと解除します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5로 모든 마이크를 음소거합니다. 다시 누르면 해제됩니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5 silencia todos os microfones. Pressione novamente para ativá-los."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5 выключает все микрофоны. Нажмите ещё раз, чтобы включить."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "F5 可将所有麦克风静音。再次按下可取消静音。"
-          }
-        }
-      }
-    },
 "How this Mac appears in Spotify.": {
       "extractionState": "manual",
       "localizations": {
@@ -149012,59 +148698,6 @@
         }
       }
     },
-"Now Playing": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktuelle Wiedergabe"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "En reproducción"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "À l’écoute"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再生中"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "지금 재생 중"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Em reprodução"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Сейчас играет"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在播放"
-          }
-        }
-      }
-    },
 "Open Current Player" : {
       "extractionState": "manual",
       "localizations": {
@@ -149114,218 +148747,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "打开当前播放器"
-          }
-        }
-      }
-    },
-"Pause": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausieren"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mettre en pause"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "一時停止"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일시 정지"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pausar"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Приостановить"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "暂停"
-          }
-        }
-      }
-    },
-"Play": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wiedergeben"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reproducir"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lire"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再生"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "재생"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reproduzir"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Воспроизвести"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放"
-          }
-        }
-      }
-    },
-"Play Spotify on this Mac from your phone, without the Spotify app.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spiele Spotify von deinem Telefon auf diesem Mac ab, ohne die Spotify-App."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reproduce Spotify en este Mac desde tu teléfono, sin la app de Spotify."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Écoutez Spotify sur ce Mac depuis votre téléphone, sans l’app Spotify."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spotifyアプリなしで、スマートフォンからこのMacでSpotifyを再生できます。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Spotify 앱 없이 휴대폰에서 이 Mac으로 Spotify를 재생합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reproduza Spotify neste Mac pelo celular, sem o app do Spotify."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Слушайте Spotify на этом Mac с телефона без приложения Spotify."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无需 Spotify App，即可通过手机在此 Mac 上播放 Spotify。"
-          }
-        }
-      }
-    },
-"Quits Apple Music when a media key opens it.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beendet Apple Music, wenn eine Medientaste es öffnet."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Cierra Apple Music cuando una tecla multimedia lo abre."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quitte Apple Music lorsqu’une touche multimédia l’ouvre."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メディアキーでApple Musicが開いた場合に終了します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "미디어 키로 Apple Music이 열리면 종료합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Encerra o Apple Music quando uma tecla de mídia o abre."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Закрывает Apple Music, если его открыла медиаклавиша."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "当媒体键打开 Apple Music 时将其退出。"
           }
         }
       }
@@ -149538,112 +148959,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "恢复上次使用的播放器"
-          }
-        }
-      }
-    },
-"Show a mark in the island while the camera or a microphone is on.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zeige eine Markierung in der Insel, wenn die Kamera oder ein Mikrofon aktiv ist."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Muestra un indicador en la isla mientras la cámara o un micrófono están activos."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Affiche un indicateur dans l’îlot lorsque la caméra ou un microphone est actif."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "カメラやマイクがオンの間、アイランドにマークを表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "카메라나 마이크가 켜져 있는 동안 아일랜드에 표시합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostra um indicador na ilha enquanto a câmera ou um microfone está ativo."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать индикатор в островке, когда работает камера или микрофон."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "摄像头或麦克风开启时，在灵动岛中显示标记。"
-          }
-        }
-      }
-    },
-"Show the track and its controls in the island.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Zeige den Titel und seine Steuerung in der Insel."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Muestra la pista y sus controles en la isla."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Affiche la piste et ses commandes dans l’îlot."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アイランドに曲と再生コントロールを表示します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아일랜드에 트랙과 재생 컨트롤을 표시합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mostra a faixa e seus controles na ilha."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Показывать композицию и элементы управления в островке."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在灵动岛中显示曲目及其控制项。"
           }
         }
       }
@@ -150650,59 +149965,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "下载的内容不是可用的 Soloist 构建版本。"
-          }
-        }
-      }
-    },
-"The play key resumes your last app instead of opening Apple Music.": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die Wiedergabetaste setzt die letzte App fort, statt Apple Music zu öffnen."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La tecla de reproducción reanuda la última app en vez de abrir Apple Music."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La touche de lecture reprend la dernière app au lieu d’ouvrir Apple Music."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再生キーでApple Musicを開く代わりに、最後に使ったアプリの再生を再開します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "재생 키로 Apple Music을 여는 대신 마지막 앱의 재생을 재개합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A tecla de reprodução retoma o último app em vez de abrir o Apple Music."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Клавиша воспроизведения возобновляет последнюю программу вместо открытия Apple Music."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "播放键会恢复上次使用的 App，而不是打开 Apple Music。"
           }
         }
       }
@@ -152501,6 +151763,16 @@
     "aria2c" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"aria2c"}},"es":{"stringUnit":{"state":"translated","value":"aria2c"}},"fr":{"stringUnit":{"state":"translated","value":"aria2c"}},"ja":{"stringUnit":{"state":"translated","value":"aria2c"}},"ko":{"stringUnit":{"state":"translated","value":"aria2c"}},"pt":{"stringUnit":{"state":"translated","value":"aria2c"}},"ru":{"stringUnit":{"state":"translated","value":"aria2c"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"aria2c"}}}},
     "aria2c could not start." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"aria2c konnte nicht gestartet werden."}},"es":{"stringUnit":{"state":"translated","value":"No se pudo iniciar aria2c."}},"fr":{"stringUnit":{"state":"translated","value":"Impossible de démarrer aria2c."}},"ja":{"stringUnit":{"state":"translated","value":"aria2cを起動できませんでした。"}},"ko":{"stringUnit":{"state":"translated","value":"aria2c를 시작할 수 없습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Não foi possível iniciar o aria2c."}},"ru":{"stringUnit":{"state":"translated","value":"Не удалось запустить aria2c."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"无法启动 aria2c。"}}}},
     "aria2c not found" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"aria2c nicht gefunden"}},"es":{"stringUnit":{"state":"translated","value":"No se encontró aria2c"}},"fr":{"stringUnit":{"state":"translated","value":"aria2c introuvable"}},"ja":{"stringUnit":{"state":"translated","value":"aria2cが見つかりません"}},"ko":{"stringUnit":{"state":"translated","value":"aria2c를 찾을 수 없음"}},"pt":{"stringUnit":{"state":"translated","value":"aria2c não encontrado"}},"ru":{"stringUnit":{"state":"translated","value":"aria2c не найден"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"未找到 aria2c"}}}}
+    ,
+    "Extract Archive…" : {"localizations": {"de": {"stringUnit": {"state": "translated", "value": "Archiv entpacken…"}}, "es": {"stringUnit": {"state": "translated", "value": "Extraer archivo…"}}, "fr": {"stringUnit": {"state": "translated", "value": "Extraire une archive…"}}, "ja": {"stringUnit": {"state": "translated", "value": "アーカイブを展開…"}}, "ko": {"stringUnit": {"state": "translated", "value": "압축 파일 풀기…"}}, "pt": {"stringUnit": {"state": "translated", "value": "Extrair arquivo…"}}, "ru": {"stringUnit": {"state": "translated", "value": "Распаковать архив…"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "解压归档…"}}}}
+    ,
+    "Cancel All Extractions" : {"localizations": {"de": {"stringUnit": {"state": "translated", "value": "Alle Entpackvorgänge abbrechen"}}, "es": {"stringUnit": {"state": "translated", "value": "Cancelar todas las extracciones"}}, "fr": {"stringUnit": {"state": "translated", "value": "Annuler toutes les extractions"}}, "ja": {"stringUnit": {"state": "translated", "value": "すべての展開をキャンセル"}}, "ko": {"stringUnit": {"state": "translated", "value": "모든 압축 풀기 취소"}}, "pt": {"stringUnit": {"state": "translated", "value": "Cancelar todas as extrações"}}, "ru": {"stringUnit": {"state": "translated", "value": "Отменить все распаковки"}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "取消所有解压"}}}}
+    ,
+    "The archive engine is not running." : {"localizations": {"de": {"stringUnit": {"state": "translated", "value": "Die Archiv-Engine läuft nicht."}}, "es": {"stringUnit": {"state": "translated", "value": "El motor de archivos no está en ejecución."}}, "fr": {"stringUnit": {"state": "translated", "value": "Le moteur d’archives est arrêté."}}, "ja": {"stringUnit": {"state": "translated", "value": "アーカイブエンジンが停止しています。"}}, "ko": {"stringUnit": {"state": "translated", "value": "압축 엔진이 실행 중이 아닙니다."}}, "pt": {"stringUnit": {"state": "translated", "value": "O mecanismo de arquivos não está em execução."}}, "ru": {"stringUnit": {"state": "translated", "value": "Модуль архивов не запущен."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "归档引擎未运行。"}}}}
+    ,
+    "No archive was selected." : {"localizations": {"de": {"stringUnit": {"state": "translated", "value": "Es wurde kein Archiv ausgewählt."}}, "es": {"stringUnit": {"state": "translated", "value": "No se seleccionó ningún archivo."}}, "fr": {"stringUnit": {"state": "translated", "value": "Aucune archive sélectionnée."}}, "ja": {"stringUnit": {"state": "translated", "value": "アーカイブが選択されていません。"}}, "ko": {"stringUnit": {"state": "translated", "value": "선택한 압축 파일이 없습니다."}}, "pt": {"stringUnit": {"state": "translated", "value": "Nenhum arquivo foi selecionado."}}, "ru": {"stringUnit": {"state": "translated", "value": "Архив не выбран."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "未选择归档。"}}}}
+    ,
+    "The selected file is not a supported archive." : {"localizations": {"de": {"stringUnit": {"state": "translated", "value": "Die ausgewählte Datei ist kein unterstütztes Archiv."}}, "es": {"stringUnit": {"state": "translated", "value": "El archivo seleccionado no es un archivo comprimido compatible."}}, "fr": {"stringUnit": {"state": "translated", "value": "Le fichier sélectionné n’est pas une archive prise en charge."}}, "ja": {"stringUnit": {"state": "translated", "value": "選択したファイルは対応するアーカイブではありません。"}}, "ko": {"stringUnit": {"state": "translated", "value": "선택한 파일은 지원되는 압축 파일이 아닙니다."}}, "pt": {"stringUnit": {"state": "translated", "value": "O arquivo selecionado não é um arquivo compactado compatível."}}, "ru": {"stringUnit": {"state": "translated", "value": "Выбранный файл не является поддерживаемым архивом."}}, "zh-Hans": {"stringUnit": {"state": "translated", "value": "所选文件不是受支持的归档。"}}}}
   },
   "version" : "1.0"
 }
