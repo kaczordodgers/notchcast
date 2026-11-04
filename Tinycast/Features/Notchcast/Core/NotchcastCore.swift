@@ -31,8 +31,7 @@ enum NotchcastCore {
     static func stopForTermination() async {
         cleaning.stop()
         appUpdates.stop()
-        macUpdate.stop()
-        await macUpdate.waitUntilIdle()
+        await macUpdate.stopForTermination()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()

@@ -15,6 +15,10 @@ final class MacUpdateModule: NotchcastModule {
     func start() { enabled = true }
     func stop() { enabled = false; cancel(); progress = [] }
     func waitUntilIdle() async { await service.stop() }
+    func stopForTermination() async {
+        stop()
+        await waitUntilIdle()
+    }
     func cancel() {
         generation = UUID()
         service.cancel()

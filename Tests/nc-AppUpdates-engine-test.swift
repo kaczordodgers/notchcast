@@ -5,6 +5,29 @@ import Foundation
 @main
 struct AppUpdatesTest {
     static func main() async throws {
+        let system = OperatingSystemVersion(majorVersion: 26, minorVersion: 1, patchVersion: 0)
+        for (metadata, fits) in [
+            ("<sparkle:minimumSystemVersion>26.1</sparkle:minimumSystemVersion>", true),
+            ("<sparkle:minimumSystemVersion>26.2</sparkle:minimumSystemVersion>", false),
+            ("<sparkle:maximumSystemVersion>26.1</sparkle:maximumSystemVersion>", true),
+            ("<sparkle:maximumSystemVersion>26.0</sparkle:maximumSystemVersion>", false),
+            ("<sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>", true),
+            ("<sparkle:hardwareRequirements>x86_64</sparkle:hardwareRequirements>", false),
+            ("<sparkle:hardwareRequirements>x86_64, arm64</sparkle:hardwareRequirements>", true)
+        ] {
+            let fixture = Data("""
+            <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle"><channel><item>
+            <sparkle:version>20</sparkle:version><sparkle:shortVersionString>2.0</sparkle:shortVersionString>
+            \(metadata)
+            <enclosure url="https://fixture.invalid/App.zip" length="12345" type="application/octet-stream"/>
+            <sparkle:deltas><enclosure url="https://fixture.invalid/App.delta" sparkle:deltaFrom="19"
+            sparkle:version="20" length="123" type="application/octet-stream"/></sparkle:deltas>
+            </item></channel></rss>
+            """.utf8)
+            let releases = try AppUpdateFeed.releases(fixture, systemVersion: system, architecture: "arm64")
+            precondition(releases.count == (fits ? 1 : 0))
+            if fits { precondition(releases.first?.build == "20" && releases.first?.version == "2.0") }
+        }
         for body in [
             "<enclosure sparkle:version=\"20\"/><sparkle:minimumSystemVersion>26</sparkle:minimumSystemVersion>",
             "<enclosure/><sparkle:version>20</sparkle:version>",

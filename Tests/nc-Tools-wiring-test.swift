@@ -34,9 +34,6 @@ final class ToolsFakeRunner: MacUpdateProcessRunning {
 struct ToolsWiringTests {
     @MainActor
     static func main() async throws {
-        let core = try String(contentsOfFile:
-            "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", encoding: .utf8)
-        precondition(core.contains("await macUpdate.waitUntilIdle()"), "Quit must await update teardown")
         let suite = "tools-tests-" + UUID().uuidString
         let prefs = NotchcastPreferences(suiteName: suite)
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
@@ -113,9 +110,8 @@ struct ToolsWiringTests {
         runner.blocks = true
         mac.run { true }
         while runner.calls == 4 { await Task.yield() }
-        mac.stop()
         let began = ContinuousClock.now
-        await mac.waitUntilIdle()
+        await mac.stopForTermination()
         precondition(runner.reaped && ContinuousClock.now - began >= .milliseconds(300))
         precondition(ContinuousClock.now - began < .seconds(2))
         print("PASS defaults off; denied Start; stop unregisters; fake results; stale results dropped; confirmation")

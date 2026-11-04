@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/MacUpdate/Model/*.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift Tinycast/Platform/ProcessExit.swift
 import Foundation
+import Darwin
 
 @MainActor
 final class FakeRunner: MacUpdateProcessRunning {
@@ -24,6 +25,16 @@ final class FakeRunner: MacUpdateProcessRunning {
 struct MacUpdateTests {
     @MainActor
     static func main() async throws {
+        let privatePipe = Pipe()
+        let privateDescriptor = privatePipe.fileHandleForWriting.fileDescriptor
+        precondition(fcntl(privateDescriptor, F_SETFD, 0) == 0)
+        let inherited = try await MacUpdateRunner().run(.init(path: "/bin/sh", arguments: [
+            "-c", "if /bin/test -e /dev/fd/\(privateDescriptor); then exit 1; else exit 0; fi"
+        ]))
+        precondition(inherited.status == 0, "App pipe leaked into child")
+        privatePipe.fileHandleForWriting.closeFile()
+        precondition(privatePipe.fileHandleForReading.readDataToEndOfFile().isEmpty)
+        privatePipe.fileHandleForReading.closeFile()
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
