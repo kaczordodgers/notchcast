@@ -24,6 +24,7 @@ struct NotchcastSettingsView: View {
             FinderSettingsSection()
 
             NotchcastExtrasSection()
+            BuildStatsSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))

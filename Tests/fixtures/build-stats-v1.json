@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "tokens": [
+    {"model": "model-a", "effort": "standard", "inputTokens": 1200, "outputTokens": 300},
+    {"model": "model-b", "effort": "high", "inputTokens": 800, "outputTokens": 200}
+  ],
+  "timeline": [
+    {"date": "2026-01-01", "summary": "Initial prototype"},
+    {"date": "2026-01-02", "summary": "Validation complete"}
+  ],
+  "changelog": [{"date": "2026-01-02", "summary": "Added snapshot validation"}],
+  "qualityMetrics": {"checksPassed": 12, "coveragePercent": 85.5}
+}
