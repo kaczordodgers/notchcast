@@ -497,6 +497,8 @@ final class AppCore {
             return
         }
         if appearanceCoordinator.handle(url) { return }
+        if handleTorrentURL(url) { return }
+        if NotchcastCore.archives.open(url) { return }
         if deepLinkCoordinator.handles(url) {
             deepLinkCoordinator.open(url)
             return
@@ -564,6 +566,7 @@ final class AppCore {
         dictationAudioDucker.restoreImmediately()
         await dictationAudioDucker.waitForTransition()
         await dictationModels.stop()
+        await NotchcastCore.archives.prepareForTermination()
     }
 
     /// Idempotent: both switches are tracked, and either one flipping re-runs the whole decision.
@@ -755,7 +758,10 @@ final class AppCore {
         track(
             { _ = $0.quickActionsEnabled },
             reproject: { $0.quickActionCoordinator.applyEnabled() })
-        track({ _ = $0.calendarEnabled }, reproject: { $0.calendarCoordinator.applyEnabled() })
+        track({ _ = $0.calendarEnabled }, reproject: {
+            $0.calendarCoordinator.applyEnabled()
+            $0.appIndex.refreshNotchcastCommands()
+        })
         track(
             {
                 _ = $0.calendarShowInLauncher

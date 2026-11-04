@@ -1,5 +1,7 @@
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
+import Foundation
+
 extension NotchcastCore {
     static let katana = KatanaModule()
     static let treadmillWalk = TreadmillModule(treadmill, capability: .walk)
@@ -33,6 +35,11 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
+    static let archives = ArchiveModule(preferences: .shared)
+    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".editor")!))
+    static let quickLook = QuickLookCoordinator(preferences: .shared)
+    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         agents.configure(core)
@@ -72,6 +79,11 @@ extension NotchcastCore {
             .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.torrents], module: torrents),
+            .init(requires: [.archives], module: archives),
+            .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
+            .init(requires: [.quickLookSpace], module: quickLook),
+            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }
