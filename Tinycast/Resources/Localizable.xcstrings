@@ -1,6 +1,110 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Stop Apple Music opening on media keys": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Music beim Drücken von Medientasten nicht öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evitar que Apple Music se abra con las teclas multimedia"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empêcher Apple Music de s’ouvrir avec les touches multimédias"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メディアキーでApple Musicが開かないようにする"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "미디어 키로 Apple Music이 열리지 않도록 하기"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impedir que o Apple Music abra com teclas de mídia"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не открывать Apple Music по медиаклавишам"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止媒体键打开 Apple Music"
+          }
+        }
+      }
+    },
+    "Allow Accessibility access to mute microphones with F5.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlaube den Zugriff auf Bedienungshilfen, um Mikrofone mit F5 stummzuschalten."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite el acceso a Accesibilidad para silenciar los micrófonos con F5."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisez l’accès à Accessibilité pour couper les microphones avec F5."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F5でマイクを消音するには、アクセシビリティへのアクセスを許可してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "F5로 마이크를 음소거하려면 손쉬운 사용 접근을 허용하세요."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permita o acesso à Acessibilidade para silenciar microfones com F5."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешите доступ к Универсальному доступу, чтобы отключать микрофоны клавишей F5."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请允许辅助功能访问权限，以使用 F5 将麦克风静音。"
+          }
+        }
+      }
+    },
     "A webpage is already being saved." : {
       "localizations" : {
         "de" : {
@@ -260,59 +364,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "API 密钥已保存"
-          }
-        }
-      }
-    },
-"Block Apple Music from media keys": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Music bei Medientasten blockieren"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloquear Apple Music con las teclas multimedia"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloquer Apple Music via les touches multimédias"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メディアキーによるApple Musicの起動を防止"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "미디어 키로 Apple Music 실행 차단"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Bloquear Apple Music pelas teclas de mídia"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Блокировать запуск Apple Music медиаклавишами"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "阻止媒体键打开 Apple Music"
           }
         }
       }

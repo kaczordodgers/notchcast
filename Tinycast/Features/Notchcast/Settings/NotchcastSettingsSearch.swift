@@ -37,7 +37,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
-        .init(.notchcastMusic, "Block Apple Music from media keys", keywords: ["music app", "itunes", "media key", "play key"]),
+        .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),
         .init(.notchcastSpotify, "Spotify Connect speaker", keywords: ["soloist", "spotify", "speaker", "connect", "phone"]),
         .init(.notchcastSpotify, "API key", keywords: ["soloist", "key", "developer"]),
         .init(.notchcastSpotify, "Device name", keywords: ["soloist", "speaker name"]),

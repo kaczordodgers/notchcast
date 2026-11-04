@@ -48,10 +48,8 @@ struct SettingsSearchEntry: Identifiable, Hashable, Sendable {
 enum SettingsSearchCatalog {
     struct Query: Sendable {
         let terms: [FuzzyMatch.Query]
-        let phrase: String
 
         init(_ raw: String) {
-            phrase = FuzzyMatch.normalized(raw)
             terms = raw.split(whereSeparator: \Character.isWhitespace).map {
                 FuzzyMatch.Query(String($0))
             }
@@ -76,6 +74,7 @@ enum SettingsSearchCatalog {
             .map(\.entry)
     }
 
+    /// Every term must land somewhere; a term matched in the title outranks one found off it.
     private static func score(_ query: Query, _ entry: SettingsSearchEntry) -> Int? {
         var titleScore = 0
         var titleMatches = 0
