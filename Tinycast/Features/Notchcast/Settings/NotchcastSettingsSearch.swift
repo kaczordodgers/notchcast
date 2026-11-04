@@ -25,6 +25,7 @@ extension SettingsAnchor {
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
     static let notchcastFinder = Self(tab: .notchcast, title: "Finder")
+    static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
 }
 
 extension SettingsSearchCatalog {
@@ -86,5 +87,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Finder Rename", keywords: ["hyper", "shortcut", "return"]),
         .init(.notchcastFinder, "Cut and move files", keywords: ["copy", "escape", "cancel"]),
         .init(.notchcastFinder, "Rename selection", keywords: ["hyper", "shortcut", "return"]),
+        .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
+        .init(.notchcastPaste, "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
     ]
 }

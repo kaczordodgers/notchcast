@@ -44,6 +44,7 @@ struct NotchcastCoreTests {
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
+        precondition(!preferences.isOn(.pastePlain) && preferences.isOn(.pasteImage))
         precondition(NotchcastFeature.dayCalendar.needsIsland)
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)
