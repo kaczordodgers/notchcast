@@ -8,6 +8,7 @@ extension NotchcastFeature {
         case activities
         case systemTools
         case music
+        case tasks
         case torrents
         case archives
         case clipboard
