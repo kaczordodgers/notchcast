@@ -108,7 +108,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
-        case .remoteScreen: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
@@ -117,6 +116,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake,
             .aiUsage, .aiUsageOtherMac, .machLink:
             []
+        case .remoteScreen: []
         }
     }
 }
