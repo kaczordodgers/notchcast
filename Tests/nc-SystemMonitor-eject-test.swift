@@ -44,7 +44,7 @@ struct DiskEjectTests {
         let fake: @Sendable (URL) async -> DiskEjectResult = { await probe.eject($0) }
         let disabled = await store.ejectVolume(at: external, using: fake)
         precondition(awaitResultIsNil(disabled))
-        store.acquire()
+        var demand = store.beginDemand()
         store.start()
         while store.latest.volumes.isEmpty { await Task.yield() }
         let protected = await store.ejectVolume(at: URL(filePath: "/"), using: fake)
@@ -71,12 +71,12 @@ struct DiskEjectTests {
         guard case .idle = store.ejectState(at: external) else { fatalError("idle state") }
         let closed = Task { await store.ejectVolume(at: external, using: fake) }
         while probe.gate == nil { await Task.yield() }
-        store.release()
+        demand.cancel()
         probe.gate?.resume(returning: .busy(error))
         probe.gate = nil
         guard case .busy = await closed.value else { fatalError("closed page result") }
         guard case .failed = store.ejectState(at: external) else { fatalError("closed page state") }
-        store.acquire()
+        demand = store.beginDemand()
         let cancelled = Task { await store.ejectVolume(at: external, using: fake) }
         while probe.gate == nil { await Task.yield() }
         cancelled.cancel()
@@ -97,14 +97,14 @@ struct DiskEjectTests {
             DiskVolume(name: "Fake", mountPath: external.path, total: 100,
                        available: 50, isEjectable: true)
         ])
-        sampled.acquire()
+        var sampledDemand = sampled.beginDemand()
         sampled.start()
         while sampled.latest.volumes.isEmpty { await Task.yield() }
         _ = await sampled.ejectVolume(at: external, using: { _ in .busy(error) })
         guard case .failed = sampled.ejectState(at: external) else { fatalError("sampled failure") }
-        sampled.release()
+        sampledDemand.cancel()
         probe.snapshot = MonitorSnapshot()
-        sampled.acquire()
+        sampledDemand = sampled.beginDemand()
         while !sampled.latest.volumes.isEmpty { await Task.yield() }
         guard case .idle = sampled.ejectState(at: external) else { fatalError("removed volume state") }
         sampled.stop()
