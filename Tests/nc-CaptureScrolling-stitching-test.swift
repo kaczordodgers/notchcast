@@ -39,11 +39,20 @@ struct CaptureScrollingTests {
 
     static func expectImage(_ stitcher: ScrollingStitcher, rows: [Int]) {
         guard let output = stitcher.image() else { fatalError("Missing stitched image") }
-        precondition(output.height == rows.count)
+        precondition(output.height == rows.count, "Expected \(rows.count) rows, got \(output.height)")
         precondition(hashes(output) == hashes(image(rows)), "Stitched pixels or row order differ")
     }
 
     static func overlapTests() {
+        for (header, footer) in [(24, 0), (0, 20), (24, 20)] {
+            let prefix = Array(1000..<1000 + header)
+            let suffix = Array(2000..<2000 + footer)
+            let count = 200 - header - footer
+            var sticky = stitcher(prefix + Array(0..<count) + suffix)
+            precondition(add(prefix + Array(40..<count + 40) + suffix, to: &sticky) == .added(40))
+            precondition(add(prefix + Array(80..<count + 80) + suffix, to: &sticky) == .added(40))
+            expectImage(sticky, rows: Array(0..<count + 80))
+        }
         var joined = stitcher(Array(0..<100))
         precondition(add(Array(40..<140), to: &joined) == .added(40))
         precondition(add(Array(80..<180), to: &joined) == .added(40))

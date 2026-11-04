@@ -16,8 +16,11 @@ struct ScreenTextResult: Sendable, Equatable {
                 if !paragraph.isEmpty { paragraphs.append(paragraph); paragraph = "" }
                 continue
             }
-            if paragraph.hasSuffix("-"), paragraph.dropLast().last?.isLetter == true,
-                line.first?.isLowercase == true {
+            let previousWord = paragraph.split(whereSeparator: { $0.isWhitespace }).last ?? ""
+            let nextWord = line.split(whereSeparator: { $0.isWhitespace }).first ?? ""
+            if paragraph.hasSuffix("-"), !previousWord.dropLast().isEmpty,
+                previousWord.dropLast().allSatisfy({ $0.isLetter && $0.isLowercase }),
+                !nextWord.isEmpty, nextWord.allSatisfy({ $0.isLetter && $0.isLowercase }) {
                 paragraph.removeLast()
                 paragraph += line
             } else {
