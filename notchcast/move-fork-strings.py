@@ -93,7 +93,7 @@ def rewrite(source, keys):
         elif re.search(r'\bTextField\(\s*$', before):
             edits.append((start, end, 'String(localized: ' + literal + ', table: "Notchcast")'))
         elif re.search(r'\.accessibility(?:Label|Hint|Value)\(\s*$', before):
-            edits.append((start, end, 'Text(' + literal + ', tableName: "Notchcast")'))
+            edits.append((start, end, 'String(localized: ' + literal + ', table: "Notchcast")'))
         elif (re.search(r'(?:SettingsRowTitle|\.init)\([^\n"]*,\s*$', before)
               or re.search(r'(?:title|subtitle):\s*$', before)
               or (re.search(r'case [^\n]+:\s*$', before)
