@@ -25,7 +25,9 @@ enum CaptureEditorRender {
 
     static func flatten(_ image: CaptureEditorImage, marks: [CaptureEditorMark]) throws -> CGImage {
         let width = image.pixels.width, height = image.pixels.height
-        guard let context = bitmap(width: width, height: height) else { throw Failure.rendering }
+        guard let context = bitmap(width: width, height: height, space: image.pixels.colorSpace) else {
+            throw Failure.rendering
+        }
         context.draw(image.pixels, in: CGRect(x: 0, y: 0, width: width, height: height))
         context.translateBy(x: 0, y: CGFloat(height))
         context.scaleBy(x: image.scale.width, y: -image.scale.height)
@@ -43,8 +45,13 @@ enum CaptureEditorRender {
         return CGSize(width: ceil(size.width), height: ceil(size.height))
     }
 
-    private static func bitmap(width: Int, height: Int) -> CGContext? {
-        CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+    private static func bitmap(width: Int, height: Int, space: CGColorSpace?) -> CGContext? {
+        if let space, space.model == .rgb,
+           let context = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8,
+               bytesPerRow: 0, space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) {
+            return context
+        }
+        return CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
                   space: CGColorSpace(name: CGColorSpace.sRGB)!,
                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
     }
@@ -109,7 +116,9 @@ enum CaptureEditorRender {
         guard let crop = image.pixels.cropping(to: pixels) else { throw Failure.rendering }
         let columns = max(1, Int(ceil(pixels.width / (10 * scale.width))))
         let rows = max(1, Int(ceil(pixels.height / (10 * scale.height))))
-        guard let small = bitmap(width: columns, height: rows) else { throw Failure.rendering }
+        guard let small = bitmap(width: columns, height: rows, space: image.pixels.colorSpace) else {
+            throw Failure.rendering
+        }
         small.interpolationQuality = .high
         small.draw(crop, in: CGRect(x: 0, y: 0, width: columns, height: rows))
         guard let mosaic = small.makeImage() else { throw Failure.rendering }

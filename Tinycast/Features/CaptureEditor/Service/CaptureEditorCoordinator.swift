@@ -32,6 +32,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     weak var host: (any Host)?
     private(set) var enabled = false
     private(set) var isOpen = false
+    private(set) var copyFailure: (any Error)?
     var document: CaptureEditorDocument? { session?.document }
     var lastCapture: NSImage? {
         didSet {
@@ -44,15 +45,21 @@ final class CaptureEditorCoordinator: NotchcastModule {
     private let render: @MainActor (CaptureEditorImage, [CaptureEditorMark]) async throws -> Data
     private var session: Session?
     private var operation: UUID?
+    private var copyTask: Task<Void, Never>?
+    private let reportFailure: (@MainActor (any Error) -> Void)?
 
     init(pasteboard: NSPasteboard = .general, host: (any Host)? = nil,
          render: @escaping @MainActor (CaptureEditorImage, [CaptureEditorMark]) async throws -> Data = {
              try await CaptureEditorRender.png($0, marks: $1)
-         }) {
+         },
+         reportFailure: (@MainActor (any Error) -> Void)? = nil) {
         self.pasteboard = pasteboard
         self.host = host
         self.render = render
+        self.reportFailure = reportFailure
     }
+
+    deinit { copyTask?.cancel() }
 
     func start() { enabled = true }
 
@@ -87,6 +94,8 @@ final class CaptureEditorCoordinator: NotchcastModule {
     }
 
     func close() {
+        copyTask?.cancel()
+        copyTask = nil
         operation = nil
         guard isOpen else { return }
         session?.document.released()
@@ -119,7 +128,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
         self.session = nil
     }
 
-    func handle(_ event: NSEvent) async throws -> Bool {
+    func handle(_ event: NSEvent) -> Bool {
         guard enabled, isOpen, let document else { return false }
         if document.textEdit != nil {
             guard event.keyCode == 53 else { return false }
@@ -135,7 +144,20 @@ final class CaptureEditorCoordinator: NotchcastModule {
         guard let action = CaptureEditorKeyAction.action(keyCode: event.keyCode,
             characters: event.charactersIgnoringModifiers, modifiers: modifiers) else { return false }
         switch action {
-        case .copy: try await copy()
+        case .copy:
+            copyTask?.cancel()
+            copyFailure = nil
+            copyTask = Task { [weak self] in
+                guard let self else { return }
+                do {
+                    try await copy()
+                } catch is CancellationError {
+                } catch {
+                    guard !Task.isCancelled else { return }
+                    copyFailure = error
+                    reportFailure?(error)
+                }
+            }
         case .close: close()
         default: document.apply(action)
         }
@@ -149,6 +171,8 @@ final class CaptureEditorCoordinator: NotchcastModule {
     }
 
     private func present(_ session: Session) {
+        copyTask?.cancel()
+        copyTask = nil
         operation = nil
         self.session = session
         isOpen = true

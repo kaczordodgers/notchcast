@@ -36,6 +36,7 @@ struct CaptureEditorEngineTest {
         try await rendering()
         try await sessions()
         try await staleCopies()
+        try await keyboardCopies()
         print("PASS: capture editor tools, selection/move/resize, text, undo/redo, keys, full-res PNG/pixelate, sources, switch")
     }
 
@@ -159,7 +160,7 @@ struct CaptureEditorEngineTest {
         precondition(CaptureEditorKeyAction.action(keyCode: 0, characters: "q", modifiers: []) == nil)
     }
 
-    static func image() -> CaptureEditorImage {
+    static func image(space: CGColorSpace = CGColorSpace(name: CGColorSpace.sRGB)!) -> CaptureEditorImage {
         var bytes = [UInt8](repeating: 255, count: 200 * 160 * 4)
         for y in 0..<160 {
             for x in 0..<200 {
@@ -171,7 +172,7 @@ struct CaptureEditorEngineTest {
         }
         let provider = CGDataProvider(data: Data(bytes) as CFData)!
         let pixels = CGImage(width: 200, height: 160, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: 800,
-            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
+            space: space, bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.last.rawValue),
             provider: provider, decode: nil, shouldInterpolate: false, intent: .defaultIntent)!
         return CaptureEditorImage(pixels: pixels, points: CGSize(width: 100, height: 80))!
     }
@@ -187,6 +188,9 @@ struct CaptureEditorEngineTest {
     @MainActor
     static func rendering() async throws {
         let source = image()
+        let p3 = image(space: CGColorSpace(name: CGColorSpace.displayP3)!)
+        let p3Flat = try CaptureEditorRender.flatten(p3, marks: [])
+        precondition(p3Flat.colorSpace?.name == CGColorSpace.displayP3)
         let baseline = try CaptureEditorRender.flatten(source, marks: [])
         let region = CGRect(x: 10, y: 10, width: 40, height: 30)
         let flat = try CaptureEditorRender.flatten(source, marks: [.init(shape: .blur(region))])
@@ -220,7 +224,8 @@ struct CaptureEditorEngineTest {
         let board = NSPasteboard(name: .init("capture-editor-test-\(UUID())"))
         defer { board.releaseGlobally() }
         let host = Host()
-        let editor = CaptureEditorCoordinator(pasteboard: board, host: host)
+        let editor = CaptureEditorCoordinator(pasteboard: board, host: host,
+            reportFailure: { _ in preconditionFailure("Unexpected copy failure") })
         let suite = "capture-editor-preferences-\(UUID())"
         defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -307,7 +312,7 @@ struct CaptureEditorEngineTest {
 
     @MainActor
     static func handle(_ editor: CaptureEditorCoordinator, _ event: NSEvent, expected: Bool = true) async throws {
-        let handled = try await editor.handle(event)
+        let handled: Bool = editor.handle(event)
         precondition(handled == expected)
     }
 
@@ -326,7 +331,8 @@ struct CaptureEditorEngineTest {
         let image = NSImage(cgImage: source.pixels, size: source.points)
         for mutation in 0..<5 {
             let gate = RenderGate()
-            let editor = CaptureEditorCoordinator(pasteboard: board, render: { _, _ in await gate.render() })
+            let editor = CaptureEditorCoordinator(pasteboard: board, render: { _, _ in await gate.render() },
+                reportFailure: { _ in preconditionFailure("Unexpected copy failure") })
             editor.start()
             try editor.open(image: image)
             let task = Task { try await editor.copy() }
@@ -349,5 +355,38 @@ struct CaptureEditorEngineTest {
             } catch is CancellationError {}
             precondition(board.changeCount == count)
         }
+    }
+
+    @MainActor
+    static func keyboardCopies() async throws {
+        let board = NSPasteboard(name: .init("capture-editor-keys-\(UUID())"))
+        defer { board.releaseGlobally() }
+        let source = image()
+        let image = NSImage(cgImage: source.pixels, size: source.points)
+        let gate = RenderGate()
+        var failures = 0
+        let editor = CaptureEditorCoordinator(pasteboard: board, render: { _, _ in await gate.render() },
+            reportFailure: { _ in failures += 1 })
+        precondition(!editor.handle(event("a", code: 0)))
+        editor.start()
+        try editor.open(image: image)
+        precondition(!editor.handle(event("q", code: 12)))
+        precondition(editor.handle(event("r", code: 15)))
+        precondition(editor.handle(event("c", code: 8, modifiers: .command)))
+        precondition(editor.isOpen && board.data(forType: .png) == nil)
+        for _ in 0..<1000 where gate.continuation == nil { await Task.yield() }
+        precondition(gate.continuation != nil)
+        let png = try await CaptureEditorRender.png(source, marks: [])
+        gate.finish(png)
+        for _ in 0..<1000 where editor.isOpen { await Task.yield() }
+        precondition(!editor.isOpen && board.data(forType: .png) == png && failures == 0)
+        let failing = CaptureEditorCoordinator(pasteboard: board,
+            render: { _, _ in throw CaptureEditorRender.Failure.encoding }, reportFailure: { _ in failures += 1 })
+        failing.start()
+        try failing.open(image: image)
+        precondition(failing.handle(event("", code: 36)))
+        for _ in 0..<1000 where failures == 0 { await Task.yield() }
+        precondition(failures == 1 && failing.isOpen)
+        failing.stop()
     }
 }
