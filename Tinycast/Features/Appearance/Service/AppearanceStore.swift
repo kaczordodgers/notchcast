@@ -76,6 +76,7 @@ final class AppearanceStore {
         invalidPreferenceKeys = invalidKeys
         for key in invalidKeys { defaults.removeObject(forKey: key) }
         refreshColors()
+        Self.current = self
     }
 
     func setEnabled(_ enabled: Bool) {
@@ -84,7 +85,6 @@ final class AppearanceStore {
         previewTarget = nil
         pendingImport = nil
         refreshColors()
-        Self.current = self
     }
 
     func theme(for slot: RaycastTheme.Appearance) -> RaycastTheme? {
