@@ -59,6 +59,8 @@ struct NotchcastCoreTests {
         precondition(NotchcastFeature.finderRename.settingsGroup == .finder)
         precondition(!NotchcastFeature.finderCutPaste.needsIsland)
         precondition(NotchcastFeature.finderRename.requiredGrants == [.accessibility])
+        precondition(NotchcastFeature.accessoryNotices.requiredGrants == [.bluetooth])
+        precondition(NotchcastGrant.allCases.contains(.bluetooth))
         precondition(NotchcastFeature.pastePlain.subtitle.contains("launcher"))
         precondition(NotchcastFeature.dayCalendar.needsIsland)
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
