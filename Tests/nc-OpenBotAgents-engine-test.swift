@@ -28,13 +28,15 @@ struct NotchcastCommand: Sendable {
 
 @MainActor
 enum NotchcastCore {
-    static let openBotAgents = OpenBotAgentsModule()
+    static let openBotAgents = OpenBotAgentsModule(
+        availabilityChanged: { AppCore.shared.refreshCommands() }, report: OpenBotAgentsModule.report)
 }
 
 @MainActor
 final class AppCore {
     enum Tone { case neutral }
     static let shared = AppCore()
+    func refreshCommands() {}
     func showMessage(_ text: String, tone: Tone) {}
 }
 
@@ -108,6 +110,17 @@ struct OpenBotTests {
         precondition(decoded.prompts[0].questions.isEmpty && decoded.prompts[1].questions.isEmpty)
         precondition(decoded.prompts[2].questions.count == 2)
         precondition(decoded.prompts[2].questions.allSatisfy { $0.question == nil })
+        let lossy = """
+            {"prompts":[null,{"questions":[null,{"question":42},{"question":"Keep"}]}],
+            "approvals":[null,{}],"browserTakeovers":[null,{}]}
+            """
+        let kept = try JSONDecoder().decode(OpenBotPending.self, from: Data(lossy.utf8))
+        precondition(kept.isWaiting && kept.prompts.count == 1)
+        precondition(kept.prompts[0].questions.map(\.question) == ["Keep"])
+        precondition(kept.approvals.count == 1 && kept.browserTakeovers.count == 1)
+        let routines = #"{"routines":[null,{"id":42},{"id":"paper","name":"Keep","active":true}]}"#
+        let keptAgent = try JSONDecoder().decode(OpenBotAgent.self, from: Data(routines.utf8))
+        precondition(keptAgent.routines.count == 1 && keptAgent.routines[0].name == "Keep")
         for answer in ["null", "{}", "[]", "42", "true", #""Paper answer""#] {
             let fixture = "{\"id\":\"fixture-delivery\",\"status\":\"completed\",\"answer\":\(answer)}"
             let delivery = try await service(FixtureTransport([(fixture, 200)]))
@@ -255,5 +268,6 @@ struct OpenBotTests {
         print("PASS: double start; isolated 403/404 pending failures, both agents listed, waiting count 1")
         print("PASS: active command refresh reports exactly once across two polling passes")
         print("PASS: URL cancellation and cancelled task transport failure surface as CancellationError")
+        print("PASS: hook-shaped MainActor callbacks compile; lossy arrays retain valid neighbors in all five fields")
     }
 }

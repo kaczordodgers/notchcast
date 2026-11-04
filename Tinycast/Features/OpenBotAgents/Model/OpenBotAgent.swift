@@ -11,7 +11,7 @@ struct OpenBotAgent: Decodable, Sendable, Equatable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = (try? values.decode(String.self, forKey: .id)) ?? ""
         name = (try? values.decode(String.self, forKey: .name)) ?? ""
-        routines = (try? values.decode([Routine].self, forKey: .routines)) ?? []
+        routines = (try? values.decode(OpenBotLossyArray<Routine>.self, forKey: .routines))?.elements ?? []
     }
 
     struct Routine: Decodable, Sendable, Equatable {
@@ -32,10 +32,16 @@ struct OpenBotPending: Decodable, Sendable, Equatable {
 
         init(from decoder: any Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
-            questions = (try? values.decode([Question].self, forKey: .questions)) ?? []
+            questions = (try? values.decode(OpenBotLossyArray<Question>.self, forKey: .questions))?.elements ?? []
         }
     }
-    struct Item: Decodable, Sendable, Equatable {}
+    struct Item: Decodable, Sendable, Equatable {
+        private enum CodingKeys: CodingKey {}
+
+        init(from decoder: any Decoder) throws {
+            _ = try decoder.container(keyedBy: CodingKeys.self)
+        }
+    }
     let prompts: [Prompt]
     let approvals: [Item]
     let browserTakeovers: [Item]
@@ -44,9 +50,9 @@ struct OpenBotPending: Decodable, Sendable, Equatable {
 
     init(from decoder: any Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        prompts = (try? values.decode([Prompt].self, forKey: .prompts)) ?? []
-        approvals = (try? values.decode([Item].self, forKey: .approvals)) ?? []
-        browserTakeovers = (try? values.decode([Item].self, forKey: .browserTakeovers)) ?? []
+        prompts = (try? values.decode(OpenBotLossyArray<Prompt>.self, forKey: .prompts))?.elements ?? []
+        approvals = (try? values.decode(OpenBotLossyArray<Item>.self, forKey: .approvals))?.elements ?? []
+        browserTakeovers = (try? values.decode(OpenBotLossyArray<Item>.self, forKey: .browserTakeovers))?.elements ?? []
     }
     var isWaiting: Bool { !prompts.isEmpty || !approvals.isEmpty || !browserTakeovers.isEmpty }
 }

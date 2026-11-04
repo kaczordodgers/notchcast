@@ -159,54 +159,44 @@
   },
   "OpenBot agents waiting: %lld": {
     "localizations": {
-      "de": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Wartende OpenBot-Agenten: %lld"
-        }
-      },
-      "es": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Agentes OpenBot en espera: %lld"
-        }
-      },
-      "fr": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Agents OpenBot en attente : %lld"
-        }
-      },
-      "ja": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "待機中の OpenBot エージェント：%lld"
-        }
-      },
-      "ko": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "대기 중인 OpenBot 에이전트: %lld"
-        }
-      },
-      "pt": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Agentes OpenBot aguardando: %lld"
-        }
-      },
-      "ru": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "Ожидающие агенты OpenBot: %lld"
-        }
-      },
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "等待中的 OpenBot 代理：%lld"
-        }
-      }
+      "en": { "variations": { "plural": {
+        "one": { "stringUnit": { "state": "translated", "value": "OpenBot agent waiting: %lld" } },
+        "other": { "stringUnit": { "state": "translated", "value": "OpenBot agents waiting: %lld" } }
+      } } },
+      "de": { "variations": { "plural": {
+        "one": { "stringUnit": { "state": "translated", "value": "Wartender OpenBot-Agent: %lld" } },
+        "other": { "stringUnit": { "state": "translated", "value": "Wartende OpenBot-Agenten: %lld" } }
+      } } },
+      "es": { "variations": { "plural": {
+        "one": { "stringUnit": { "state": "translated", "value": "Agente OpenBot en espera: %lld" } },
+        "many": { "stringUnit": { "state": "translated", "value": "Agentes OpenBot en espera: %lld" } },
+        "other": { "stringUnit": { "state": "translated", "value": "Agentes OpenBot en espera: %lld" } }
+      } } },
+      "fr": { "variations": { "plural": {
+        "one": { "stringUnit": { "state": "translated", "value": "Agent OpenBot en attente : %lld" } },
+        "many": { "stringUnit": { "state": "translated", "value": "Agents OpenBot en attente : %lld" } },
+        "other": { "stringUnit": { "state": "translated", "value": "Agents OpenBot en attente : %lld" } }
+      } } },
+      "ja": { "variations": { "plural": {
+        "other": { "stringUnit": { "state": "translated", "value": "待機中の OpenBot エージェント：%lld" } }
+      } } },
+      "ko": { "variations": { "plural": {
+        "other": { "stringUnit": { "state": "translated", "value": "대기 중인 OpenBot 에이전트: %lld" } }
+      } } },
+      "pt": { "variations": { "plural": {
+        "one": { "stringUnit": { "state": "translated", "value": "Agente OpenBot aguardando: %lld" } },
+        "many": { "stringUnit": { "state": "translated", "value": "Agentes OpenBot aguardando: %lld" } },
+        "other": { "stringUnit": { "state": "translated", "value": "Agentes OpenBot aguardando: %lld" } }
+      } } },
+      "ru": { "variations": { "plural": {
+        "one": { "stringUnit": { "state": "translated", "value": "Ожидающий агент OpenBot: %lld" } },
+        "few": { "stringUnit": { "state": "translated", "value": "Ожидающие агенты OpenBot: %lld" } },
+        "many": { "stringUnit": { "state": "translated", "value": "Ожидающих агентов OpenBot: %lld" } },
+        "other": { "stringUnit": { "state": "translated", "value": "Ожидающего агента OpenBot: %lld" } }
+      } } },
+      "zh-Hans": { "variations": { "plural": {
+        "other": { "stringUnit": { "state": "translated", "value": "等待中的 OpenBot 代理：%lld" } }
+      } } }
     }
   },
   "OpenBot off or Local scripts off.": {

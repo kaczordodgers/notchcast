@@ -9,7 +9,7 @@ final class OpenBotAgentsModule {
     private(set) var pendingFailures: [String: OpenBotFailure] = [:]
     private(set) var failure: OpenBotFailure?
     private let service: OpenBotService
-    private let report: (Int?, OpenBotFailure?) -> Void
+    private let report: @MainActor (Int?, OpenBotFailure?) -> Void
     private let pollInterval: Duration
     private let availabilityChanged: () -> Void
     private var enabled = false
@@ -19,7 +19,7 @@ final class OpenBotAgentsModule {
 
     init(service: OpenBotService = .init(), pollInterval: Duration = .seconds(30),
          availabilityChanged: @escaping () -> Void = {},
-         report: @escaping (Int?, OpenBotFailure?) -> Void = { _, _ in }) {
+         report: @escaping @MainActor (Int?, OpenBotFailure?) -> Void = { _, _ in }) {
         self.availabilityChanged = availabilityChanged
         self.pollInterval = pollInterval
         self.service = service
