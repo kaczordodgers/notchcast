@@ -74,7 +74,8 @@ final class NotchcastPreferences {
         off = Set(NotchcastFeature.allCases.filter {
             !(defaults.object(forKey: $0.rawValue) as? Bool
                 ?? !($0.isSystemFeature || [.aiUsage, .aiUsageOtherMac, .machLink,
-                                          .machRemote, .shelfBetweenMacs].contains($0)))
+                                          .machRemote, .shelfBetweenMacs, .backupStatus,
+                                          .linkHealth, .sendFiles, .updateRemote].contains($0)))
         })
     }
 
