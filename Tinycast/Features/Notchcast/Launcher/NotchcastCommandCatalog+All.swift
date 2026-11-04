@@ -3,5 +3,6 @@ extension NotchcastCommandCatalog {
         IslandController.launcherCommand,
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
+        AgentSessionsModule.refreshCommand,
     ]
 }
