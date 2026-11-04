@@ -5,11 +5,13 @@ import Observation
 final class MonitorModule: NotchcastModule {
     let store = MonitorStore()
     let fans = FanControl()
+    let alerts: MonitorAlerts
     private let preferences: NotchcastPreferences
     private var running = false
     private var observationID: UUID?
 
-    init(preferences: NotchcastPreferences) {
+    init(preferences: NotchcastPreferences, alertSink: @escaping (String) -> Void = { _ in }) {
+        alerts = MonitorAlerts(sink: alertSink)
         self.preferences = preferences
     }
 
@@ -20,6 +22,7 @@ final class MonitorModule: NotchcastModule {
         let identity = UUID()
         observationID = identity
         observe(identity)
+        observeAlerts(identity)
     }
 
     func stop() {
@@ -35,6 +38,17 @@ final class MonitorModule: NotchcastModule {
             fans.set(preferences.isOn(.fanControl) ? FanControl.Mode(rawValue: preferences.fanMode) ?? .auto : .auto)
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observe(identity) }
+        }
+    }
+
+    private func observeAlerts(_ identity: UUID) {
+        guard running, observationID == identity else { return }
+        withObservationTracking {
+            alerts.evaluate(store.latest, rules: preferences.monitorAlertRules,
+                            enabled: preferences.isOn(.systemMonitor) && preferences.isOn(.monitorAlerts),
+                            demand: store.demand, at: Date())
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in self?.observeAlerts(identity) }
         }
     }
 }
