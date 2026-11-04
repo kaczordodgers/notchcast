@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/Music/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
+// notchcast-sources: Tinycast/Features/Microphone/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
@@ -112,6 +113,23 @@ struct AppEntry: Sendable {
  let microphone = MicrophoneMuteModule(model: mute, showMessage: { _ in }, showFailure: { _ in })
  microphone.start()
  NotchcastCore.services = .init(music: music, microphone: microphone)
+ let muteCommands = [MicrophoneMuteCommands.muteLauncherCommand, MicrophoneMuteCommands.unmuteLauncherCommand]
+ precondition(muteCommands.allSatisfy { $0.isEnabled() })
+ muteCommands[0].run()
+ precondition(mute.isMuted)
+ muteCommands[1].run()
+ precondition(!mute.isMuted)
+ for feature: NotchcastFeature in [.microphoneMute, .island] {
+     preferences.set(feature, false)
+     precondition(muteCommands.allSatisfy { !$0.isEnabled() })
+     muteCommands[0].run()
+     precondition(!mute.isMuted)
+     microphone.setMuted(true)
+     muteCommands[1].run()
+     precondition(mute.isMuted)
+     microphone.setMuted(false)
+     preferences.set(feature, true)
+ }
  defer { music.stop(); microphone.stop(); NotchcastCore.services = nil }
  let commands = MusicCommands.launcherCommands
  precondition(commands.map(\.id) == ["command:nc-open-current-player"])
@@ -172,6 +190,6 @@ struct AppEntry: Sendable {
  precondition(AppCore.shared.messages.count == messages + 2, "rejected command shows a HUD")
  MusicCommands.openCurrentPlayer()
  precondition(!AppCore.shared.messages.isEmpty)
- print("PASS: one unique command, switch gating, disabled resume HUD, silent background failure, rejection HUD")
+ print("PASS: music and microphone commands, feature/island gating, speaker Settings consent, resume and failure HUDs")
  }
 }
