@@ -7,7 +7,9 @@ apps pass through. Exclusions are comma-separated bundle identifiers in the same
 
 The shared EventTapHub reads only a mutex-protected geometry snapshot. Workspace activation,
 AX focused-window/move/resize notifications and a one-second refresh update that snapshot outside
-the tap. Snapshots expire after two seconds. A consumed mouse down owns its matching mouse up,
+the tap on a serial background queue, including observer registration. Refresh requests coalesce;
+results are discarded after stop or a front-app change. AX handles transfer to main only after the
+worker finishes. Snapshots expire two seconds after the read starts. A consumed mouse down owns its matching mouse up,
 even if maximizing moves the button. Queued actions validate the focused window and generation.
 Stopping clears the cache, removes the tap consumer and observer, and invalidates the timer.
 

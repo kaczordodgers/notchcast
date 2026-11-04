@@ -4,6 +4,10 @@ guard let command = RootContract.Command(arguments: Array(CommandLine.arguments.
     exit(RootContract.usageExit)
 }
 
+guard RootCaller.permits(command, identity: RootCaller.authorized) else {
+    exit(RootContract.unauthorizedCallerExit)
+}
+
 if command.operation != .read {
     guard geteuid() == 0 else { exit(77) }
     do {
