@@ -82,5 +82,51 @@ extension NotchcastPreferences {
         Set(NotchcastFeature.allCases.filter {
             !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
         })
+
+    init(suiteName: String) {
+        let defaults = UserDefaults(suiteName: suiteName)!
+        self.defaults = defaults
+        greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
+        monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
+        monitorTemperature = Self.threshold(defaults, "monitorTemperature", 90, 40...110)
+        monitorMemory = Self.threshold(defaults, "monitorMemory", 1, 0...1)
+        monitorDisk = Self.threshold(defaults, "monitorDisk", 10, 1...50)
+        monitorBattery = Self.threshold(defaults, "monitorBattery", 15, 1...50)
+        fanMode = defaults.string(forKey: "fanMode") ?? "auto"
+        chargePercent = Self.allowed(defaults.integer(forKey: "batteryChargePercent"), Self.chargeLimits, 80)
+        awakeDuration = Self.allowed(defaults.integer(forKey: "keepAwakeMinutes"), Self.awakeDurations, 60)
+        islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
+        off = Self.featuresOff(defaults)
+    }
+}
+
+extension NotchcastPreferences {
+    static let shared = NotchcastPreferences(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
+    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
+    static let awakeDurations = [15, 30, 60, 120, 240]
+
+    enum HoverDelay: Double, CaseIterable, Identifiable {
+        case short = 0.1, standard = 0.3, medium = 0.5, long = 1
+        var id: Double { rawValue }
+        var title: String {
+            Duration.seconds(rawValue).formatted(.units(
+                allowed: [.seconds], width: .abbreviated,
+                fractionalPart: .show(length: rawValue < 1 ? 1 : 0)))
+        }
+    }
+
+    private static func threshold(_ defaults: UserDefaults, _ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
+        let value = defaults.object(forKey: key) as? Int ?? fallback
+        return min(range.upperBound, max(range.lowerBound, value))
+    }
+
+    private static func allowed(_ value: Int, _ choices: [Int], _ fallback: Int) -> Int {
+        choices.contains(value) ? value : fallback
+    }
+
+    private static func featuresOff(_ defaults: UserDefaults) -> Set<NotchcastFeature> {
+        Set(NotchcastFeature.allCases.filter {
+            !(defaults.object(forKey: $0.rawValue) as? Bool ?? $0.defaultEnabled)
+        })
     }
 }
