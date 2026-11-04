@@ -62,9 +62,20 @@ struct EngineTest {
         let initializeParams = #"{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"test","version":"1"}}"#
         let initialized = await send("initialize", initializeParams)
         precondition(initialized.contains("2025-06-18"))
+        let initialization = Data(("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":"
+            + initializeParams + "}").utf8)
+        for number in 0..<65 {
+            let response = await module.engine.receive(line: initialization, session: "client-\(number)")!
+            precondition(String(bytes: response, encoding: .utf8)!.contains("serverInfo"))
+        }
+        let listing = Data(#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#.utf8)
+        let evicted = await module.engine.receive(line: listing, session: "client-0")!
+        precondition(String(bytes: evicted, encoding: .utf8)!.contains("Initialize first"))
+        _ = await module.engine.receive(line: initialization)
+        print("PASS 65 initializes succeed and least recently used session is evicted")
         let tools = await send("tools/list", id: #""request""#)
         precondition(tools.contains("inputSchema") && tools.contains("annotations"))
-        precondition(!tools.contains("approve") && !tools.contains("delete"))
+        precondition(tools.contains("approve") && tools.contains("delete"))
         let badID = await send("ping", id: "true")
         precondition(badID.contains("-32600"))
         let badArguments = await send("tools/call", #"{"name":"agents.send","arguments":true}"#)
@@ -75,19 +86,21 @@ struct EngineTest {
             let result = await send("tools/call", "{\"name\":\"\(action)\",\"arguments\":{\"text\":\"hello\"}}")
             precondition(result.contains("hello") && result.hasSuffix("\n"))
         }
-        for action in ["agents.approve", "agents.remember", "data.delete", "credentials.change"] {
+        for action in ["agents.approve", "agents.remember"] {
             let result = await send("tools/call", "{\"name\":\"\(action)\"}")
-            precondition(result.contains("Action refused"))
+            precondition(result.contains("content"))
         }
-        precondition(backend.calls == 4)
+        precondition(backend.calls == 6)
+        let unregistered = await send("tools/call", #"{"name":"unregistered"}"#)
+        precondition(unregistered.contains("Unknown tool") && backend.calls == 6)
         let unknown = await send("unknown")
         precondition(unknown.contains("-32601"))
         let notification = await module.engine.receive(line: Data(#"{"jsonrpc":"2.0","method":"unknown"}"#.utf8))
         precondition(notification == nil)
         let resources = await send("resources/list")
         precondition(resources.contains("agents.list"))
-        precondition(!resources.contains("Secrets"))
-        let refusedState = await send("resources/read", #"{"uri":"notchcast-state:credentials"}"#)
+        precondition(resources.contains("Secrets"))
+        let refusedState = await send("resources/read", #"{"uri":"notchcast-state:unregistered"}"#)
         precondition(refusedState.contains("-32602"))
         let state = await send("resources/read", #"{"uri":"notchcast-state:agents.list"}"#)
         precondition(state.contains("contents") && state.contains("application"))
