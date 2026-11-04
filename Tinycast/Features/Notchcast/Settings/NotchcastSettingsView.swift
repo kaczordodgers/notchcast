@@ -21,11 +21,21 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
             AppearanceSettingsSection().environment(core.appearanceCoordinator)
+            Section("Tweaks") {
+                NotchcastTweaksSettingsRows()
+                NotchcastTweaksAppsSettingsRows()
+            }
             PasteToolsSettingsSection()
             featureSection(.notchcastFinder, group: .finder)
             FinderSettingsSection()
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
+            Section { NotchcastAudioPrioritySettingsRows() }
+            Section("Clean") {
+                NotchcastCleanSettingsRows().environment(NotchcastCore.clean.coordinator)
+            }
+            .settingsAnchor(.notchcastClean)
+            Section("Tools") { NotchcastToolsWiringSettingsRows() }
             URLCleanerSettingsSection(module: NotchcastCore.urlCleaner)
 
             NotchcastExtrasSection()
