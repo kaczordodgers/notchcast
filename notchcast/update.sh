@@ -106,6 +106,12 @@ if [ "$CMP" = older ] || { [ "$CMP" = same ] && [ "$OURS" = 1 ]; }; then
     log "nothing to install: newest release $WANT, installed $INSTALLED ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
     exit 0
 fi
+# A release that failed its stay-alive check is not retried on a timer; only --install tries it again.
+REFUSED="$HOME/Library/Application Support/notchcast/refused-release"
+if [ "$INSTALL" = 0 ] && [ "$(cat "$REFUSED" 2>/dev/null)" = "$WANT" ]; then
+    log "$WANT did not stay alive at its last install; run update.sh --install to try it again"
+    exit 0
+fi
 log "installing $TAG over ${INSTALLED:-nothing} ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
 [ "$DRY" = 1 ] && exit 0
 
@@ -122,4 +128,9 @@ codesign --verify --deep --strict "$NEW"
 [ "$(plist "$NEW" CFBundleShortVersionString)" = "$WANT" ] || { log "version mismatch; refusing"; exit 1; }
 [ "$(leaf_sha1 "$NEW")" = "$SIGN_SHA1" ] || { log "not signed by $SIGN_IDENTITY; refusing"; exit 1; }
 
-"$HERE/install-app.sh" "$NEW"
+if ! "$HERE/install-app.sh" "$NEW"; then
+    mkdir -p "$(dirname "$REFUSED")"
+    echo "$WANT" > "$REFUSED"
+    exit 1
+fi
+rm -f "$REFUSED"

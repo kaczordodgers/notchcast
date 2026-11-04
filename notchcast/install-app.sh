@@ -17,7 +17,8 @@ trap 'log "left running: $FINAL"' EXIT
 [ "$#" = 1 ] && [ -d "$1/Contents" ] || { FINAL='nothing (usage: install-app.sh <new.app>)'; exit 2; }
 NEW_VERSION="$(version "$1")"
 trash() {
-    local target="$TRASH/$APP_NAME $2 $(date +%Y%m%d-%H%M%S)-$$.app"
+    local target
+    target="$TRASH/$APP_NAME $2 $(date +%Y%m%d-%H%M%S)-$$.app"
     mkdir -p "$TRASH"
     mv "$1" "$target"
 }
