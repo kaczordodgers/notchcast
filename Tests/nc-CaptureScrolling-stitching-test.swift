@@ -63,6 +63,12 @@ struct CaptureScrollingTests {
         var rejected = stitcher(Array(0..<100))
         frame[45] += 1000
         precondition(add(frame, to: &rejected) == .unmatched, "Below 9/10 must be rejected")
+        var changedAnchors = stitcher(Array(0..<100))
+        var changed = Array(50..<150)
+        for index in [0, 12, 24, 36, 48] { changed[index] += 1000 }
+        precondition(add(changed, to: &changedAnchors) == .added(50),
+                     "Changed rows must not hide a valid 9/10 overlap from anchor selection")
+        expectImage(changedAnchors, rows: Array(0..<150))
 
         var tooLittle = stitcher(Array(0..<100))
         precondition(add(Array(90..<190), to: &tooLittle) == .unmatched)

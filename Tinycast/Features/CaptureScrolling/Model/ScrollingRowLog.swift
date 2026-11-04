@@ -17,8 +17,7 @@ struct ScrollingRowLog: Sendable {
         guard !anchors.isEmpty else { return nil }
         var tried = Set<Int>()
         var best: (start: Int, matches: Int)?
-        for anchor in stride(from: 0, to: anchors.count, by: max(1, anchors.count / 8)) {
-            let index = anchors[anchor]
+        for index in anchors {
             for position in (positions[frame[index]] ?? []).suffix(400) {
                 let start = position - index
                 guard tried.insert(start).inserted else { continue }
