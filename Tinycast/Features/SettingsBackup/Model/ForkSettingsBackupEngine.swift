@@ -21,8 +21,21 @@ enum ForkSettingsBackupEngine {
               let version = root["format"] as? NSNumber,
               CFGetTypeID(version) != CFBooleanGetTypeID(), version.doubleValue == 2,
               root["created"] is Date,
-              let values = root["preferences"] as? [String: Any], !values.isEmpty else {
+              var values = root["preferences"] as? [String: Any], !values.isEmpty else {
             throw Failure.invalidArchive
+        }
+        if let cleanup = values["dictationCleanup"] as? String {
+            guard values["notchcast.dictationCleanup.settings"] == nil else {
+                throw Failure.invalidArchive
+            }
+            values.removeValue(forKey: "dictationCleanup")
+            values["notchcast.dictationCleanup.settings"] = cleanup
+        }
+        // Switches archives held before they left the backup (#199) are skipped, not restored.
+        for key in ["archivesInPlace", "machineSetupProfile"] {
+            if let value = values[key] as? NSNumber, CFGetTypeID(value) == CFBooleanGetTypeID() {
+                values.removeValue(forKey: key)
+            }
         }
         try validate(values)
         return values
