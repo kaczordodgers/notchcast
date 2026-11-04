@@ -32,7 +32,7 @@ struct ColorPickerLifecycleTest {
             .init(requires: [.colorPicker], module: module)
         ], preferences: preferences)
         controller.run()
-        module.pick { precondition(!$0) }
+        module.pick { precondition($0 == .cancelled) }
         precondition(samples == 0)
         precondition(!NotchcastFeature.colorPicker.needsIsland)
         precondition(NotchcastFeature.colorPicker.requiredGrants.isEmpty)
@@ -41,15 +41,15 @@ struct ColorPickerLifecycleTest {
         await settle()
         preferences.set(.island, false)
         await settle()
-        module.pick { precondition($0) }
+        module.pick { precondition($0 == .copied) }
         callback?(.red)
         precondition(samples == 1 && copied == ["#FF0000"])
 
-        module.pick { precondition(!$0) }
+        module.pick { precondition($0 == .cancelled) }
         let stale = callback
         preferences.set(.colorPicker, false)
         await settle()
-        module.pick { precondition(!$0) }
+        module.pick { precondition($0 == .cancelled) }
         precondition(samples == 2)
         preferences.set(.colorPicker, true)
         await settle()
@@ -58,7 +58,7 @@ struct ColorPickerLifecycleTest {
 
         module.format = .rgb
         precondition(ColorPickerModule(service: ColorPickerService(defaults: defaults)).format == .rgb)
-        module.pick { precondition($0) }
+        module.pick { precondition($0 == .copied) }
         preferences.set(.islandStatusMessages, false)
         await settle()
         callback?(.green)
@@ -66,7 +66,7 @@ struct ColorPickerLifecycleTest {
 
         preferences.set(.colorPicker, false)
         await settle()
-        module.pick { precondition(!$0) }
+        module.pick { precondition($0 == .cancelled) }
         precondition(samples == 3)
         precondition(!NotchcastPreferences(suiteName: suite).isOn(.colorPicker))
         print("PASS: color picker switch gates sampling, stops stale copies and preserves format")

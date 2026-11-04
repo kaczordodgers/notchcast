@@ -21,7 +21,7 @@ final class ColorPickerModule: NotchcastModule {
         service.stop()
     }
 
-    func pick(completion: @escaping (Bool) -> Void) {
+    func pick(completion: @escaping (ColorPickerService.Outcome) -> Void) {
         service.pick(isEnabled: enabled, completion: completion)
     }
 }

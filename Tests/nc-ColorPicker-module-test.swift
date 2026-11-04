@@ -54,11 +54,17 @@ struct ColorPickerModuleTest {
         precondition(command.slug == "pick-color")
         command.run()
         precondition(samples == 0)
+        precondition(AppCore.shared.messages.isEmpty)
         preferences.set(.colorPicker, true)
         await settle()
         command.run()
         callback?(.red)
         precondition(samples == 1 && copied == ["#FF0000"])
+        command.run()
+        command.run()
+        precondition(AppCore.shared.messages.isEmpty)
+        callback?(nil)
+        precondition(AppCore.shared.messages.isEmpty)
         AppCore.shared.messages.removeAll()
         copySucceeds = false
         command.run()
@@ -70,7 +76,8 @@ struct ColorPickerModuleTest {
         await settle()
         stale?(.green)
         command.run()
-        precondition(samples == 3 && copied == ["#FF0000", "#0000FF"])
+        precondition(samples == 4 && copied == ["#FF0000", "#0000FF"])
+        precondition(AppCore.shared.messages == [String(localized: "Pick Color")])
         NotchcastCore.instance = nil
         print("PASS: color module command, switch lifecycle, copy failure and stale callback")
     }
