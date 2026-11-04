@@ -4,4 +4,4 @@ runs:
   using: composite
   steps:
     - shell: bash
-      run: source ./tools/notchcast/ci-xcode.sh
+      run: source "$GITHUB_ACTION_PATH/../../ci-xcode.sh"

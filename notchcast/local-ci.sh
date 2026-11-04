@@ -37,9 +37,15 @@ trap finish EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM HUP
 exec > >(tee "$log") 2>&1
-git fetch origin "refs/pull/$1/head" "$BASE_SHA"
+git fetch origin "refs/pull/$1/head" "$BASE_SHA" "+refs/heads/main:refs/remotes/origin/main"
+# A tree left by a killed run would make every rerun fail here.
+[ ! -e "$tree" ] || git worktree remove --force "$tree"
+git worktree prune
 git worktree add --detach "$tree" "$head"
 owned=1
+# Build the PR merged into current main, as Actions does (union drivers apply); the status stays on the head.
+echo merge > "$scratch/step"
+git -C "$tree" -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com merge -q --no-edit origin/main
 export RUNNER_TEMP="$scratch" TMPDIR="$scratch/tmp"
 mkdir "$TMPDIR"
 cd "$tree"

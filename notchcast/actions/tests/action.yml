@@ -13,7 +13,7 @@ runs:
         UPSTREAM: ${{ inputs.upstream }}
         LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
         NOTCHCAST_TEST_HELPER_EXECUTABLE: '1'
-      run: bash ../tools/notchcast/ci-tests.sh
+      run: bash "$GITHUB_ACTION_PATH/../../ci-tests.sh"
     - name: Failed harness logs
       if: failure()
       shell: bash
