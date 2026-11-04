@@ -10,6 +10,7 @@ FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 GROUPS = FEATURE.with_name("NotchcastFeature+SettingsGroup.swift")
 # Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
 LISTS = {
+    Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift"): r'^"([^"]+)"',
     Path("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift"): r"module: ([\w.]+)",
     Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
 }
@@ -130,6 +131,8 @@ def check(root):
         except OSError as error:
             errors.append(f"{path}:1: {error}")
             continue
+        if path.name == "ForkSettingsBackupSchema.swift":
+            source = re.sub(r"(?s)^.*?(?=    static let allowed:)", lambda m: "\n" * m[0].count("\n"), source)
         errors.extend(f"{path}:{line}: {message}" for line, message in list_errors(source, identity))
     for name, locations in declarations.items():
         if len(locations) != 1:

@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 
 extension ForkSettingsBackupState {
     static var live: Self {
@@ -9,17 +10,30 @@ extension ForkSettingsBackupState {
             values["notchcast.liveTimer.playSound"] = NotchcastCore.timers.store.playSoundWhenTimeIsUp
             values["notchcast.day.marketSymbols"] = NotchcastCore.markets.store.symbols
             values["notchcast.day.excludedCalendars"] = NotchcastCore.eventReminder.calendar.excludedCalendarIDs.sorted()
-            values["notchcast.day.weatherPlace"] = try json(NotchcastCore.weather.store.place)
-            let appearance = AppearanceStore()
-            values["notchcast.appearance.surface"] = appearance.surfaceStyle.rawValue
-            values["notchcast.appearance.theme.backgroundOpacity"] = appearance.backgroundOpacity
-            values["notchcast.appearance.theme.light"] = try json(appearance.light)
-            values["notchcast.appearance.theme.dark"] = try json(appearance.dark)
-            values["notchcast.appearance.themes.imported"] = try json(appearance.imported)
-            let cleanup = try cleanupStore.read()
-            values["dictationCleanup"] = try json(Cleanup(effort: cleanup.effort,
-                promptAddition: cleanup.promptAddition, vocabulary: cleanup.vocabulary))
-            try validateLive(values)
+            capture("notchcast.day.weatherPlace", into: &values) { try json(NotchcastCore.weather.store.place) }
+            let defaults = AppearanceStore.preferences
+            values["notchcast.colorPicker.format"] = defaults.string(forKey: "notchcast.colorPicker.format") ?? "hex"
+            values["notchcast.appearance.surface"] = defaults.string(forKey: AppearanceSurfaceStyle.defaultsKey) ?? "glass"
+            values["notchcast.appearance.theme.backgroundOpacity"] = defaults.object(forKey: AppearanceStore.opacityKey) ?? AppearanceStore.defaultOpacity
+            for (key, fallback) in [(AppearanceStore.lightKey, "null"), (AppearanceStore.darkKey, "null"),
+                                    (AppearanceStore.importedKey, "[]")] {
+                capture(key, into: &values) {
+                    guard let raw = defaults.object(forKey: key) else { return fallback }
+                    guard let data = raw as? Data, let string = String(data: data, encoding: .utf8) else {
+                        throw ForkSettingsBackupEngine.Failure.invalidArchive
+                    }
+                    return string
+                }
+            }
+            capture("dictationCleanup", into: &values) {
+                let cleanup = try cleanupStore.read()
+                return try json(Cleanup(effort: cleanup.effort,
+                    promptAddition: cleanup.promptAddition, vocabulary: cleanup.vocabulary))
+            }
+            for key in Array(values.keys) {
+                do { try validateLive([key: values[key]!]) }
+                catch { values.removeValue(forKey: key); logSkipped(key) }
+            }
             return values
         }, validate: validateLive, apply: { values in
             try validateLive(values)
@@ -37,7 +51,10 @@ extension ForkSettingsBackupState {
             if let value = values["notchcast.day.weatherPlace"] as? String {
                 NotchcastCore.weather.store.select(try decode(DayWeatherPlace?.self, value))
             }
-            let appearance = AppearanceStore()
+            if let value = values["notchcast.colorPicker.format"] as? String {
+                AppearanceStore.preferences.set(value, forKey: "notchcast.colorPicker.format")
+            }
+            let appearance = AppearanceStore.current ?? AppearanceStore()
             if let value = values["notchcast.appearance.surface"] as? String,
                let style = AppearanceSurfaceStyle(rawValue: value) { appearance.surfaceStyle = style }
             if let value = values["notchcast.appearance.theme.backgroundOpacity"] as? Double {
@@ -75,8 +92,20 @@ extension ForkSettingsBackupState {
         var vocabulary: [DictationCleanupSettings.VocabularyTerm]
     }
 
+    private static func capture(_ key: String, into values: inout [String: Any], read: () throws -> String) {
+        do { values[key] = try read() }
+        catch { logSkipped(key) }
+    }
+
+    private static func logSkipped(_ key: String) {
+        Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "SettingsBackup")
+            .error("Skipping invalid backup key: \(key, privacy: .public)")
+    }
+
     private static func json(_ value: some Encodable) throws -> String {
-        guard let string = String(bytes: try JSONEncoder().encode(value), encoding: .utf8) else {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        guard let string = String(bytes: try encoder.encode(value), encoding: .utf8) else {
             throw ForkSettingsBackupEngine.Failure.invalidArchive
         }
         return string

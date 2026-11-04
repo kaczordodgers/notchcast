@@ -24,7 +24,8 @@ Switches apply through `NotchcastPreferences.set`; other values use setters and 
 Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
 opening the folder has its own task. Missing backups show a notice.
 Open Settings Backup Folder creates and opens the folder. Both commands work with the switch off.
-No network or other application's data is involved. Automatic retention is not applied.
+Restoring weather or markets can refetch from their fixed hosts when running or visible,
+without credentials. Automatic retention is not applied.
 
 ## Explicit allowlist
 
@@ -45,7 +46,6 @@ values and validates its complete snapshot. It never copies the raw defaults dom
 | launcherFromIsland | Bool | Launcher preference |
 | launcherNumberKeys | Bool | Launcher preference |
 | launcherAliasSpace | Bool | Launcher preference |
-| systemMonitor | Bool | Local monitor switch |
 | monitorAlerts | Bool | Local monitor switch |
 | lowDiskWarning | Bool | Warning preference |
 | systemNotices | Bool | Notice preference |
@@ -57,7 +57,6 @@ values and validates its complete snapshot. It never copies the raw defaults dom
 | dayWeather | Bool | Weather feature preference |
 | dayMarkets | Bool | Markets feature preference |
 | dictationIslandHUD | Bool | Presentation switch |
-| keepAwake | Bool | Power assertions only; no root-helper call |
 | settingsBackup | Bool | Backup preference |
 | showDesktop | Bool | TCC-gated feature preference |
 | spacesOrder | Bool | Spaces preference; original system value excluded |
@@ -76,7 +75,6 @@ values and validates its complete snapshot. It never copies the raw defaults dom
 | monitorMemory | Int, 0...1 | Threshold mode |
 | monitorDisk | Int, 1...50 | Threshold |
 | monitorBattery | Int, 1...50 | Threshold |
-| keepAwakeMinutes | 15, 30, 60, 120, 240 | Known durations |
 | islandHoverDelay | 0.1, 0.3, 0.5, 1 | Known delays |
 | notchcast.liveTimer.defaultDuration | 300, 600, 900, 1500, 1800, 3600 | Default duration |
 | notchcast.liveTimer.playSound | Bool | Sound preference |
@@ -95,7 +93,7 @@ values and validates its complete snapshot. It never copies the raw defaults dom
 | notchcast.appearance.themes.imported | JSON String ≤262144 bytes | Up to 100 themes |
 
 Theme JSON contains only name/author (256 characters each), appearance (light/dark) and 12 hex colors.
-Cleanup JSON contains only isEnabled (Bool), baseURL (2048 characters), effort (low/medium/high),
+Cleanup JSON contains only effort (low/medium/high),
 promptAddition (16384 characters), and up to 500 vocabulary terms: spelling (256 characters) and
 misheardForms (50 strings of 256 characters). Its API key uses a separate Keychain service and is
 never read by backup. No inventoried JSON blob mixes a credential field with these plain fields.
@@ -123,7 +121,21 @@ never read by backup. No inventoried JSON blob mixes a credential field with the
 | Upstream preferences and stores | Upstream hidden Backup owns them |
 
 The root-helper inventory found only BatteryModule and FanControl callers outside RootHelperClient
-itself. Keep Awake uses power assertions, so its switch and duration stay included.
+itself. System Monitor gates fan control; Keep Awake starts BatteryModule and can send
+battery-sleep-off. `systemMonitor`, `keepAwake` and `keepAwakeMinutes` are excluded.
+Cleanup enablement and baseURL are excluded nested fields and are refused on import.
+Restored promptAddition changes cleanup instructions sent to the current endpoint. It can affect
+punctuation, wording and formatting within DictationCleanupGuard's lexical checks; those checks
+limit changes but do not guarantee semantic equivalence.
+
+Snapshots skip individual invalid keys and log only their names. Appearance snapshots read defaults
+without constructing AppearanceStore. Apply updates a running store if one exists. No store is
+owned at launch today: restore constructs a temporary store to persist selections and refresh colors;
+surface style uses AppStorage, and a later store reads the restored values.
+
+Additional included keys: `pastePlain`, `finderCutPaste`, `finderRename`, `pasteImage` (Bool;
+Accessibility still gates their actions), and `notchcast.colorPicker.format` (hex, hexLowercase,
+rgb, hsl, swiftUIColor, nsColorLiteral).
 
 ## Adding switches
 

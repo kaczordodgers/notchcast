@@ -3,6 +3,7 @@ import Observation
 
 @MainActor @Observable
 final class AppearanceStore {
+    private(set) static weak var current: AppearanceStore?
     static let preferences = UserDefaults(
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
     static let lightKey = "notchcast.appearance.theme.light"
@@ -70,6 +71,7 @@ final class AppearanceStore {
         opacity = savedOpacity.flatMap { $0.isFinite ? min(1, max(0.2, $0)) : nil } ?? Self.defaultOpacity
         invalidPreferenceKeys = invalidKeys
         refreshColors()
+        Self.current = self
     }
 
     func theme(for slot: RaycastTheme.Appearance) -> RaycastTheme? {
