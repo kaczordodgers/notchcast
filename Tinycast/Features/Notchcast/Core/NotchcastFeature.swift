@@ -42,6 +42,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case machBlockedDialogAlert
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -54,6 +55,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .launcherFromIsland: .launcher
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
+        case .machBlockedDialogAlert: .system
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -132,6 +134,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Event Reminders")
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
+        case .machBlockedDialogAlert: String(localized: "Other Mac Dialog Alerts")
         }
     }
 
@@ -178,6 +181,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
+        case .machBlockedDialogAlert: String(localized: "Check for system dialogs on the paired Mac on demand.")
         }
     }
 
