@@ -9,7 +9,7 @@ final class MonitorModule: NotchcastModule {
     private let preferences: NotchcastPreferences
     private var running = false
     private var observationID: UUID?
-    private var holdsAlertDemand = false
+    private var alertDemand: MonitorStore.DemandToken?
 
     init(preferences: NotchcastPreferences, store: MonitorStore = MonitorStore(), alertSink: @escaping (String) -> Void = { _ in },
          fanFailure: @escaping () -> Void = {}) {
@@ -35,10 +35,8 @@ final class MonitorModule: NotchcastModule {
         running = false
         observationID = nil
         alerts.resetBreaches()
-        if holdsAlertDemand {
-            holdsAlertDemand = false
-            store.release()
-        }
+        alertDemand?.cancel()
+        alertDemand = nil
         store.stop()
         fans.restore(preservingPreference: true)
     }
@@ -56,9 +54,11 @@ final class MonitorModule: NotchcastModule {
         guard running, observationID == identity else { return }
         withObservationTracking {
             let enabled = preferences.isOn(.systemMonitor) && preferences.isOn(.monitorAlerts)
-            if enabled != holdsAlertDemand {
-                holdsAlertDemand = enabled
-                if enabled { store.acquire() } else { store.release() }
+            if enabled != (alertDemand != nil) {
+                if enabled { alertDemand = store.beginDemand() } else {
+                    alertDemand?.cancel()
+                    alertDemand = nil
+                }
             }
             alerts.evaluate(store.latest, rules: preferences.monitorAlertRules,
                             enabled: enabled,

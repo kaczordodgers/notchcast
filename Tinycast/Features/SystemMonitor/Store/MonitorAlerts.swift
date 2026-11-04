@@ -28,7 +28,8 @@ final class MonitorAlerts {
         let values: [MonitorAlertRule.Metric: Double?] = [
             .cpu: snapshot.cpu?.usage?.totalPercent,
             .cpuTemperature: snapshot.sensors?.cpuTemperature,
-            .memoryPressure: pressure, .diskFree: diskFree, .battery: snapshot.battery?.percent
+            .memoryPressure: pressure, .diskFree: diskFree, .battery: snapshot.battery?.percent,
+            .batteryTemperature: snapshot.battery?.temperatureCelsius
         ]
         for metric in MonitorAlertRule.Metric.allCases {
             guard let rule = configured[metric], let value = values[metric] else { continue }
@@ -49,7 +50,8 @@ final class MonitorAlerts {
         case .cpuTemperature: String(localized: "CPU temperature threshold")
         case .memoryPressure: String(localized: "Memory pressure threshold")
         case .diskFree: String(localized: "Disk free threshold")
-        case .battery, .batteryTemperature: String(localized: "Battery threshold")
+        case .battery: String(localized: "Battery threshold")
+        case .batteryTemperature: String(localized: "Battery temperature threshold")
         }
     }
 }
