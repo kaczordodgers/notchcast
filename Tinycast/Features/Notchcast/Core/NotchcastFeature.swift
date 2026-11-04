@@ -43,6 +43,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: .islandOptions
         case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
+        case .colorPicker: .captureAndDictation
+        case .screenshot: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
