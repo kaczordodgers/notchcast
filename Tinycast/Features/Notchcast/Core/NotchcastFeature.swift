@@ -30,6 +30,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case batteryCalibration
     case keepAwake
     case lidClosedAwake
+    case cleanJunk
+    case cleanHistory
+    case cleanAIData
+    case cleanDisk
+    case cleanPurge
+    case cleanOptimize
+    case cleanSystem
     case settingsBackup
     case showDesktop
     case spacesOrder
@@ -74,6 +81,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: .activities
         case .dayWeather: .activities
         case .dayMarkets: .activities
+        case .cleanJunk: .clean
+        case .cleanHistory: .clean
+        case .cleanAIData: .clean
+        case .cleanDisk: .clean
+        case .cleanPurge: .clean
+        case .cleanOptimize: .clean
+        case .cleanSystem: .clean
         case .settingsBackup: .system
         case .showDesktop: .system
         case .spacesOrder: .system
@@ -123,6 +137,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .cleanJunk: String(localized: "Junk")
+        case .cleanHistory: String(localized: "Clean history")
+        case .cleanAIData: String(localized: "AI data")
+        case .cleanDisk: String(localized: "Disk analyzer")
+        case .cleanPurge: String(localized: "Project purge")
+        case .cleanOptimize: String(localized: "Optimize")
+        case .cleanSystem: String(localized: "System root")
         case .settingsBackup: String(localized: "Settings Backup")
         case .machineSetupProfile: String(localized: "Machine Setup Profile")
         case .agentConfirmation: String(localized: "Agent Confirmation")
@@ -168,6 +189,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .cleanJunk: String(localized: "Runs only when you click an action.")
+        case .cleanHistory: String(localized: "Runs only when you click an action.")
+        case .cleanAIData: String(localized: "Runs only when you click an action.")
+        case .cleanDisk: String(localized: "Runs only when you click an action.")
+        case .cleanPurge: String(localized: "Runs only when you click an action.")
+        case .cleanOptimize: String(localized: "Runs only when you click an action.")
+        case .cleanSystem: String(localized: "Runs only when you click an action.")
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
@@ -196,7 +224,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        if isSystemFeature { return false }
+        if isSystemFeature || settingsGroup == .clean { return false }
         return switch self {
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false

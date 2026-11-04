@@ -21,6 +21,10 @@ struct NotchcastSettingsView: View {
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
             Section { NotchcastAudioPrioritySettingsRows() }
+            Section("Clean") {
+                NotchcastCleanSettingsRows().environment(NotchcastCore.clean.coordinator)
+            }
+            .settingsAnchor(.notchcastClean)
 
             NotchcastExtrasSection()
 

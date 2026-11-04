@@ -3,6 +3,7 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastClean = Self(tab: .notchcast, title: "Clean")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -31,6 +32,13 @@ extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
         .init(.notchcastSystem, "Audio device priority", keywords: ["sound", "outputs", "microphones"]),
+        .init(.notchcastClean, "Junk", keywords: ["trash", "cache"]),
+        .init(.notchcastClean, "Clean history", keywords: ["restore", "runs"]),
+        .init(.notchcastClean, "AI data", keywords: ["claude", "codex", "opencode"]),
+        .init(.notchcastClean, "Disk analyzer", keywords: ["folder", "size"]),
+        .init(.notchcastClean, "Project purge", keywords: ["projects", "build", "artifacts"]),
+        .init(.notchcastClean, "Optimize", keywords: ["quick look", "download history", "open with"]),
+        .init(.notchcastClean, "System root", keywords: ["helper", "system cache"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
