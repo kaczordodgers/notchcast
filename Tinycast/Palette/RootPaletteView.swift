@@ -636,6 +636,7 @@ struct RootPaletteView: View {
                 advanceTabFocus(backwards: press.modifiers.contains(.shift))
                 return .handled
             }
+            .onKeyPress(keys: [.space], phases: .down) { launcherAliasSpace($0) }
             .modifier(
                 ExtensionShortcutKeys(
                     screen: { menuOpen ? nil : screen as? ExtensionCommandScreen }, selection: sel)
@@ -1488,6 +1489,27 @@ struct RootPaletteView: View {
     private func returnFocusToSearchField() {
         argumentFocused = nil
         searchFocused = true
+    }
+
+    private func launcherAliasSpace(_ press: KeyPress) -> KeyPress.Result {
+        guard NotchcastPreferences.shared.isOn(.launcherAliasSpace),
+              vm.mode == .launcher, searchFocused, argumentFocused == nil, !menuOpen,
+              !vm.isComposing, !vm.isControlListOpen, !isCollapsed,
+              let editor = NSApp.keyWindow?.firstResponder as? NSTextView, editor.isFieldEditor,
+              !editor.hasMarkedText(), let launcher = screen as? LauncherScreen
+        else { return .ignored }
+        let range = editor.selectedRange()
+        let decision = launcher.aliasSpace(
+            caretUTF16: range.location, selectionLength: range.length,
+            hasModifiers: !press.modifiers.isEmpty)
+        guard decision != .ignore else { return .ignored }
+        if case .focusFirstArgument = decision,
+           let field = headerAccessory?.firstIncompleteField ?? headerAccessory?.fieldNames.first {
+            argumentFocused = field
+            searchFocused = false
+        }
+        scroll = ScrollIntent(kind: .follow)
+        return .handled
     }
 
     /// The palette was opened to fill one row's fields, so the caret starts in the first empty one.
