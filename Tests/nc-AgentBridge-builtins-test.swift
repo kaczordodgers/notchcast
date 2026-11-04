@@ -64,7 +64,7 @@ struct AgentBuiltInTests {
         let preview = await index.handle(dangerous)
         guard case .object(let fields) = preview.result else { preconditionFailure("missing preview") }
         check(fields["danger"] == .string("dangerous"))
-        index.authorize = { _, _ in true }
+        index.authorize = { _, _ in {} }
         check((await index.handle(volume)).code == .ok)
         check(core.systemActionCoordinator.levels == [0.75])
         let window = AgentRequest(verb: .run, id: "window-command:left-half")
