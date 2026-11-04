@@ -27,7 +27,15 @@ final class EditorCoordinator: NotchcastModule {
     }
 
     func openFile() {
-        guard isEnabled, openTask == nil, let url = selectFile(), isEnabled else { return }
+        guard isEnabled else {
+            reportOpenFailure(EditorFailure.disabled)
+            return
+        }
+        guard openTask == nil, let url = selectFile() else { return }
+        guard isEnabled else {
+            reportOpenFailure(EditorFailure.disabled)
+            return
+        }
         openTask = Task { [weak self] in
             guard let self else { return }
             defer { openTask = nil }

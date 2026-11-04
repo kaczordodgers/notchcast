@@ -52,12 +52,15 @@ struct EditorOpenTests {
                 return selection
             })
         coordinator.refreshCommands = { refreshes += 1 }
-        coordinator.reportOpenFailure = { _ in failures += 1 }
+        coordinator.reportOpenFailure = {
+            precondition($0 as? EditorFailure == .disabled)
+            failures += 1
+        }
         NotchcastCore.editor = coordinator
         let command = EditorCoordinator.openCommand
         precondition(command.slug == "open-file-in-editor" && !command.isEnabled())
         command.run()
-        precondition(panels == 0)
+        precondition(panels == 0 && failures == 1)
         coordinator.start()
         precondition(command.isEnabled())
         coordinator.openFile()
@@ -74,7 +77,7 @@ struct EditorOpenTests {
         precondition(refreshes > previous && !coordinator.isEnabled)
         let previousPanels = panels
         coordinator.openFile()
-        precondition(panels == previousPanels && failures == 0)
+        precondition(panels == previousPanels && failures == 2)
         coordinator.stop()
         print("Editor open: injected picker, cancellation, loading, gating and refresh passed")
     }
