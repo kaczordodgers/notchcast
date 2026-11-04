@@ -3,6 +3,7 @@ extension NotchcastCommandCatalog {
         IslandController.launcherCommand,
         ForkSettingsBackupCoordinator.restoreCommand,
         ForkSettingsBackupCoordinator.openCommand,
+        MachineSetupProfileCoordinator.launcherCommand,
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
     ]

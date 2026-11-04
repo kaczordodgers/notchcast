@@ -68,6 +68,8 @@ values and validates its complete snapshot. It never copies the raw defaults dom
 | eventReminder | Bool | TCC-gated calendar preference |
 | switcherQuitKey | Bool | TCC-gated feature preference |
 | linkQuickFixes | Bool | Manual feature preference |
+| buildStats | Bool | Local snapshot feature preference |
+| buildStatsPath | String, 4096 characters | Local snapshot path |
 | greenMaximizeExcludedApps | String, 16384 characters | App exceptions |
 | monitorCPU | Int, 10...100 | Threshold |
 | monitorTemperature | Int, 40...110 | Threshold |

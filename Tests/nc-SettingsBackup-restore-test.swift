@@ -118,6 +118,17 @@ struct NotchcastCommand: Sendable {
             do { try state.apply(values); preconditionFailure("Accepted invalid value") } catch { }
             precondition(defaults.persistentDomain(forName: suite)! as NSDictionary == before)
         }
+        let future = try PropertyListSerialization.data(fromPropertyList:
+            ["format": 3, "created": Date.now, "preferences": ["monitorCPU": 70]], format: .binary, options: 0)
+        for invalid in [Data(), Data("broken".utf8), future] {
+            do {
+                try state.apply(ForkSettingsBackupEngine.decode(invalid))
+                preconditionFailure("Accepted corrupt or future archive")
+            } catch { }
+            precondition(defaults.persistentDomain(forName: suite)! as NSDictionary == before)
+            let after = try state.snapshot() as NSDictionary
+            precondition(after == current)
+        }
         try state.apply(["monitorCPU": 75])
         precondition(preferences.greenMaximizeExcludedApps == "com.example.app" && preferences.fanMode == "manual")
         precondition(preferences.batteryChargePercent == 95)
