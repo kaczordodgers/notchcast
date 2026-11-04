@@ -7,8 +7,13 @@ enum NotchcastCore {
 
     static func stopForTermination() async {
         katana.stop()
+        dictationTrigger?.stop()
         await treadmill.stopForTermination()
         settingsBackup.stop()
+        captureTrimmer.stop()
+        voiceAsk?.stop()
+        recording.stop()
+        await recording.waitUntilIdle()
         await editor.flushForTermination()
         machineBackup.stop()
         await machineBackup.waitUntilIdle()
@@ -20,6 +25,18 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
+        dictationHistory.onFailure = { [weak core] in
+            core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+        }
+        DictationCleanup.transcriptObserver = { raw, cleaned in
+            dictationHistory.enqueue(raw: raw, cleaned: cleaned)
+        }
+        dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
+        Task { await dictationHistory.maintain() }
+        dictationCleanup.reportFailure = { [weak core] in
+            core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
+        }
+        dictationCleanup.load()
         macLink.listenerRoute = { request in
             if request.method == "shelf-item" {
                 guard await NotchcastPreferences.shared.isOn(.machLink),

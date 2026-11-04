@@ -12,31 +12,38 @@ import Synchronization
 struct DictationTriggerTest {
     static func main() async throws {
         testEngine()
-        testEvents()
+        try await testEvents()
         try await testCaptureStart()
-        print("ALL PASSED: Globe tap/hold, pre-roll, cancellation, bounded capture start")
+        print("ALL PASSED: Globe tap/hold, chord isolation, preserved text, bounded capture start")
     }
 
     private static func testEngine() {
         var engine = DictationTriggerEngine()
-        expect(engine.handle(.down(isRecording: false), at: 0) == .start, "Capture starts before hold decision")
-        expect(engine.handle(.up, at: 0.1) == nil, "One tap leaves recording on")
+        expect(engine.handle(.down(isRecording: false), at: 0) == nil, "Provisional Globe does not capture")
+        expect(engine.handle(.up, at: 0.1) == .start, "One solo tap starts recording")
         expect(engine.handle(.down(isRecording: true), at: 0.2) == nil, "Next tap reuses the recording")
         expect(engine.handle(.up, at: 0.3) == .finish, "Second tap finishes")
 
-        expect(engine.handle(.down(isRecording: false), at: 1) == .start, "Hold records pre-roll immediately")
+        expect(engine.handle(.down(isRecording: false), at: 1) == nil, "Hold awaits confirmation")
+        expect(engine.handle(.confirm, at: 1.35) == .start, "Confirmed hold begins capture")
         expect(engine.handle(.up, at: 1.4) == .finish, "Hold past 350 ms finishes on release")
-        expect(engine.handle(.down(isRecording: false), at: 2) == .start, "Tap after hold starts a new session")
-        expect(engine.handle(.up, at: 2.1) == nil, "Hold then tap toggles on")
+        expect(engine.handle(.down(isRecording: false), at: 2) == nil, "Tap after hold waits for release")
+        expect(engine.handle(.up, at: 2.1) == .start, "Hold then tap toggles on")
+        expect(engine.handle(.reset, at: 0) == .finish, "Switch-off finishes a toggled recording")
 
         _ = engine.handle(.down(isRecording: false), at: 0)
         expect(engine.handle(.down(isRecording: false), at: 0.3) == nil, "Repeated down cannot restart the clock")
+        expect(engine.handle(.confirm, at: 0.35) == .start, "Exactly 350 ms confirms a hold")
         expect(engine.handle(.up, at: 0.35) == .finish, "Exactly 350 ms is a hold")
         _ = engine.handle(.down(isRecording: false), at: 0)
-        expect(engine.handle(.up, at: 0.349) == nil, "Below 350 ms is a tap")
+        expect(engine.handle(.up, at: 0.349) == .start, "Below 350 ms is a tap")
+        _ = engine.handle(.reset, at: 0)
         _ = engine.handle(.down(isRecording: false), at: 0)
-        expect(engine.handle(.otherInput, at: 0.4) == .cancel, "A chord cancels the provisional hold")
+        expect(engine.handle(.otherInput, at: 0.1) == nil, "A chord never begins capture")
         expect(engine.handle(.up, at: 0.5) == nil, "Cancelled release cannot toggle")
+        _ = engine.handle(.down(isRecording: false), at: 0)
+        _ = engine.handle(.confirm, at: 0.35)
+        expect(engine.handle(.otherInput, at: 5) == .finish, "A click after talking preserves dictation")
 
         _ = engine.handle(.down(isRecording: true), at: 1)
         expect(engine.handle(.otherInput, at: 1.1) == nil, "A chord preserves a prior toggled recording")
@@ -44,11 +51,11 @@ struct DictationTriggerTest {
         expect(engine.handle(.finish, at: 2.2) == .finish, "Escape finishes instead of discarding")
         expect(engine.handle(.up, at: 2.3) == nil, "Escape consumes the pending release")
         _ = engine.handle(.down(isRecording: false), at: 3)
-        expect(engine.handle(.reset, at: 0) == .finish, "Pausing preserves provisional audio")
+        expect(engine.handle(.reset, at: 0) == nil, "Pausing a provisional press has no capture effects")
         expect(engine.handle(.up, at: 4) == nil, "Pause drops a stale release")
     }
 
-    private static func testEvents() {
+    private static func testEvents() async throws {
         let hub = EventTapHub()
         var recording = false
         var actions: [DictationTriggerEngine.Action] = []
@@ -69,16 +76,21 @@ struct DictationTriggerTest {
 
         actions = []
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 2)
-        hub.send(.keyDown, key: kVK_ANSI_A, flags: .maskSecondaryFn, at: 2.4)
+        hub.send(.keyDown, key: kVK_ForwardDelete, flags: .maskSecondaryFn, at: 2.1)
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 2.5)
         hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 2.6)
-        expect(actions == [.start, .cancel], "Other input cancels without rearming a held Globe")
+        expect(actions.isEmpty, "Fn Delete never captures or rearms a held Globe")
+        hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 2.7)
+        hub.send(.keyDown, key: kVK_LeftArrow, flags: .maskSecondaryFn, at: 2.8)
+        hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 2.9)
+        expect(actions.isEmpty, "Fn arrow never captures")
 
         actions = []
         hub.send(.keyDown, key: kVK_F1, flags: .maskSecondaryFn, at: 3)
         hub.send(.flagsChanged, key: kVK_Shift, flags: .maskAlphaShift, at: 3.1)
         expect(actions.isEmpty, "Function-key fn residue and Caps Lock cannot start dictation")
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 4)
+        try await wait { actions == [.start] }
         hub.send(.keyDown, key: kVK_ANSI_A, at: 4.1, isRepeat: true)
         hub.send(.keyDown, key: kVK_ANSI_A, at: 4.2, isSynthetic: true)
         hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 4.5)
@@ -87,20 +99,24 @@ struct DictationTriggerTest {
         for key in [kVK_Escape, kVK_Return, kVK_ANSI_KeypadEnter] {
             actions = []
             hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 5)
+            try await wait { actions == [.start] }
             hub.send(.keyDown, key: key, at: 5.1)
             hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 5.2)
             expect(actions == [.start, .finish], "Finish keys preserve audio and suppress release toggling")
         }
         actions = []
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 6)
+        try await wait { actions == [.start] }
         hub.send(.flagsChanged, key: kVK_Shift, flags: [.maskSecondaryFn, .maskShift], at: 6.4)
         hub.send(.flagsChanged, key: kVK_Shift, flags: .maskSecondaryFn, at: 6.5)
         hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 6.6)
-        expect(actions == [.start, .cancel], "Another modifier cancels the hold")
+        expect(actions == [.start, .finish], "Another modifier finishes a confirmed hold")
         actions = []
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 7)
+        hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 7.1)
         manager.setEnabled(true, isPaused: true)
-        expect(actions == [.start, .finish] && hub.handlers.isEmpty, "Pausing removes its hub consumer")
+        expect(actions == [.start, .finish] && hub.handlers.isEmpty,
+               "Pausing finishes a toggled recording and removes its consumer")
         hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 7.5)
         expect(actions == [.start, .finish], "An unregistered consumer receives no stale release")
         actions = []
@@ -109,6 +125,7 @@ struct DictationTriggerTest {
         }
         temporary?.setEnabled(true)
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 8)
+        try await wait { actions == [.start] }
         temporary = nil
         expect(actions == [.start, .finish] && hub.handlers.isEmpty, "Owner teardown preserves provisional audio")
     }
