@@ -15,6 +15,7 @@ final class TreadmillCoordinator {
     private(set) var isReady = false
     private(set) var lastError: (any Error)?
     @ObservationIgnored var onGoalReached: (() -> Void)?
+    @ObservationIgnored var commandTask: Task<Void, Never>?
     @ObservationIgnored private let transport: any TreadmillTransport
     @ObservationIgnored private let clock: () -> Date
     @ObservationIgnored private let calendar: () -> Calendar
@@ -39,6 +40,7 @@ final class TreadmillCoordinator {
     }
 
     isolated deinit {
+        commandTask?.cancel()
         loading?.cancel()
         persistence?.cancel()
         timeout?.cancel()
@@ -50,6 +52,7 @@ final class TreadmillCoordinator {
     func setEnabled(_ capability: Capability, _ enabled: Bool) {
         switch capability {
         case .walk:
+            if !enabled { commandTask?.cancel() }
             if !enabled, walkEnabled, connected || engine.walk != nil || engine.isStarting {
                 do { try stopWalk() } catch { report(error) }
             }

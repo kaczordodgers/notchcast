@@ -19,15 +19,21 @@ extension TreadmillCoordinator {
                         AppCore.shared.showMessage($0, tone: $1)
                     }) -> Task<Void, Never>? {
         guard enabled() else { return nil }
-        return Task {
+        if start, commandTask != nil { return nil }
+        if !start { commandTask?.cancel() }
+        let task = Task { [weak self] in
+            guard let self else { return }
+            defer { if start { self.commandTask = nil } }
             if start, !(await confirm()) { return }
             guard !Task.isCancelled, enabled() else { return }
             do {
-                if start { try startWalk() } else { try stopWalk() }
+                if start { try self.startWalk() } else { try self.stopWalk() }
                 message(String(localized: "Treadmill command sent."), .success)
             } catch {
                 message(error.localizedDescription, .danger)
             }
         }
+        if start { commandTask = task }
+        return task
     }
 }

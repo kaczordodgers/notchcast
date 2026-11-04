@@ -324,6 +324,18 @@ private struct TreadmillTests {
         coordinator.setEnabled(.walk, true)
         coordinator.setEnabled(.history, true)
         var reports = 0
+        var question: CheckedContinuation<Bool, Never>?
+        let pending = coordinator.runCommand(start: true, enabled: { true }, confirm: {
+            await withCheckedContinuation { question = $0 }
+        }, message: { _, _ in fatalError("Cancelled pending start") })
+        while question == nil { await Task.yield() }
+        let duplicate = coordinator.runCommand(start: true, enabled: { true }, confirm: {
+            fatalError("Duplicate question")
+        })
+        expect(duplicate == nil, "Concurrent start never asks twice")
+        question?.resume(returning: false)
+        await pending?.value
+        expect(coordinator.commandTask == nil, "Cancelled question releases start gate")
         await coordinator.runCommand(start: true, enabled: { true }, confirm: { false }, message: { _, _ in reports += 1 })?.value
         expect(transport.sent.isEmpty && reports == 0, "Cancelled start sends nothing")
         coordinator.runCommand(start: true, enabled: { false }, confirm: { fatalError("Disabled") }, message: { _, _ in })
