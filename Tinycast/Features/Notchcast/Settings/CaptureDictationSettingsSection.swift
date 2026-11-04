@@ -5,6 +5,7 @@ struct CaptureDictationSettingsSection: View {
         Section {
             ColorPickerSettingsSection(module: NotchcastCore.colorPicker)
             ScreenshotSettingsSection(module: NotchcastCore.screenshot)
+            if let module = NotchcastCore.agentChatTools { AgentChatToolsSettingsSection(module: module) }
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }

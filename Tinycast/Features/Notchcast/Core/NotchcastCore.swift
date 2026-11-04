@@ -1,3 +1,5 @@
+import Foundation
+
 @MainActor
 enum NotchcastCore {
     static let lowDisk = LowDiskModule()
@@ -13,6 +15,7 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    private(set) static var agentChatTools: AgentChatToolsModule?
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
@@ -30,6 +33,11 @@ enum NotchcastCore {
             core?.appIndex.refreshNotchcastCommands()
         }
         IslandController.shared.configurePages(core)
+        let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
+        let agentChatTools = AgentChatToolsModule(store: core.mcpSettings, binaryPath: binaryPath,
+            isBinaryInstalled: { FileManager.default.isExecutableFile(atPath: binaryPath) },
+            onChange: { [weak core] in core?.mcpCoordinator.applyEnabled() })
+        self.agentChatTools = agentChatTools
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
@@ -48,6 +56,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.agentChatTools], module: agentChatTools),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
