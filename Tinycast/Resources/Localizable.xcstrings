@@ -1,6 +1,34 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Agent Confirmation": {
+      "localizations": {
+        "pt": {"stringUnit": {"state": "translated", "value": "Confirmação de agentes"}},
+        "ru": {"stringUnit": {"state": "translated", "value": "Подтверждение запросов агентов"}},
+        "de": {"stringUnit": {"state": "translated", "value": "Agentenbestätigung"}},
+        "es": {"stringUnit": {"state": "translated", "value": "Confirmación de agentes"}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Confirmation des agents"}},
+        "ja": {"stringUnit": {"state": "translated", "value": "エージェントの確認"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "에이전트 확인"}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Confirmação de agentes"}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "代理确认"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "代理程式確認"}}
+      }
+    },
+    "Ask before allowing agent requests.": {
+      "localizations": {
+        "pt": {"stringUnit": {"state": "translated", "value": "Perguntar antes de permitir solicitações de agentes."}},
+        "ru": {"stringUnit": {"state": "translated", "value": "Спрашивать перед разрешением запросов агентов."}},
+        "de": {"stringUnit": {"state": "translated", "value": "Vor dem Zulassen von Agentenanfragen nachfragen."}},
+        "es": {"stringUnit": {"state": "translated", "value": "Preguntar antes de permitir solicitudes de agentes."}},
+        "fr": {"stringUnit": {"state": "translated", "value": "Demander avant d’autoriser les requêtes des agents."}},
+        "ja": {"stringUnit": {"state": "translated", "value": "エージェントのリクエストを許可する前に確認します。"}},
+        "ko": {"stringUnit": {"state": "translated", "value": "에이전트 요청을 허용하기 전에 확인합니다."}},
+        "pt-BR": {"stringUnit": {"state": "translated", "value": "Perguntar antes de permitir solicitações de agentes."}},
+        "zh-Hans": {"stringUnit": {"state": "translated", "value": "允许代理请求前询问。"}},
+        "zh-Hant": {"stringUnit": {"state": "translated", "value": "允許代理程式請求前先詢問。"}}
+      }
+    },
     "Monitor Alerts": {
       "localizations": {
         "de": {
