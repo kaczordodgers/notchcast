@@ -51,6 +51,11 @@ struct CleanPurgeTest {
                 Date(timeIntervalSince1970: project.lastPathComponent == "active" ? 999 : 0)
             })
         let items = try await service.scan()
+        let timeoutService = CleanPurgeService(policy: policy,
+            transport: PurgeFakeTrash(root: root, receipts: receipts),
+            activity: { _, _ in throw POSIXError(.ETIMEDOUT) }, lastActivity: { _ in .distantPast })
+        let unknown = try await timeoutService.scan()
+        precondition(unknown.count == items.count && unknown.allSatisfy { $0.activity == .unknown })
         precondition(items.count == 4, "Found: \(items.map(\.path))")
         precondition(items.allSatisfy { $0.path.lastPathComponent == "node_modules" })
         precondition(items.first { $0.project.lastPathComponent == "active" }?.selectedByDefault == false)

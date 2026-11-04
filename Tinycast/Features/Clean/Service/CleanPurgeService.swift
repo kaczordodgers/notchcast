@@ -8,7 +8,7 @@ struct CleanPurgeService: Sendable {
 
     let policy: CleanPurgePolicy
     let transport: any CleanTrashTransport
-    let activity: @Sendable (URL, URL) throws -> CleanPurgeItem.Activity
+    let activity: @Sendable (URL, URL) async throws -> CleanPurgeItem.Activity
     let lastActivity: @Sendable (URL) throws -> Date
     private let authority = UUID()
 
@@ -33,7 +33,10 @@ struct CleanPurgeService: Sendable {
                     if let rule = CleanPurgeRule.allCases.first(where: { $0.folder == child.lastPathComponent }) {
                         guard confirmed(rule, project: project, manager: manager),
                               let measured = try measure(child, manager: manager) else { continue }
-                        let state = try activity(project, child)
+                        let state: CleanPurgeItem.Activity
+                        do { state = try await activity(project, child) }
+                        catch is CancellationError { throw CancellationError() }
+                        catch { state = .unknown }
                         let recent = policy.now.timeIntervalSince(try lastActivity(project))
                             <= max(0, policy.recentActivityThreshold)
                         found.append(CleanPurgeItem(project: project, path: child, rule: rule,
@@ -67,7 +70,7 @@ struct CleanPurgeService: Sendable {
                 guard safe(item.path, manager: manager),
                       repositoryBoundary(item.project, manager: manager),
                       confirmed(item.rule, project: item.project, manager: manager),
-                      try activity(item.project, item.path) == .idle,
+                      try await activity(item.project, item.path) == .idle,
                       let current = try measure(item.path, manager: manager),
                       current.snapshot == item.snapshot else {
                     outcomes.append(Outcome(item: item, status: .changedOrMissing))

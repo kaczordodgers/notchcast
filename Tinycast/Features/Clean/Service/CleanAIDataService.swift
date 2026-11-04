@@ -5,7 +5,7 @@ struct CleanAIDataService: Sendable {
     let transport: any CleanTrashTransport
     let git: any CleanAIDataGitReader
     let now: @Sendable () -> Date
-    let chatIdle: @Sendable (URL) -> Bool?
+    let chatIdle: @Sendable (URL) async -> Bool?
     let copy: @Sendable (URL, URL) throws -> Void
 
     @concurrent func scan() async throws -> [CleanAIDataItem] {
@@ -24,7 +24,7 @@ struct CleanAIDataService: Sendable {
                 if policy.permits(path, kind: kind),
                    let snapshot = try? measure(path), old(snapshot.newest, kind: kind) {
                     result.append(CleanAIDataItem(path: path, kind: kind,
-                        selectable: try eligible(path, kind: kind), snapshot: snapshot.values))
+                        selectable: try await eligible(path, kind: kind), snapshot: snapshot.values))
                 } else if attributes[.type] as? FileAttributeType == .typeDirectory,
                           kind != .worktree || path.lastPathComponent == URL(fileURLWithPath: root).lastPathComponent {
                     pending += (try? FileManager().contentsOfDirectory(at: path,
@@ -45,7 +45,7 @@ struct CleanAIDataService: Sendable {
                 guard item.selectable, policy.permits(item.path, kind: item.kind) else {
                     results.append(.init(path: item.path, status: .refused, recovery: nil)); continue
                 }
-                guard try current(item) else {
+                guard try await current(item) else {
                     results.append(.init(path: item.path, status: .changed, recovery: nil)); continue
                 }
                 if item.kind != .worktree {
@@ -63,7 +63,7 @@ struct CleanAIDataService: Sendable {
                     }
                     recovery = destination
                 }
-                guard try current(item) else {
+                guard try await current(item) else {
                     results.append(.init(path: item.path, status: .changed, recovery: recovery)); continue
                 }
                 try Task.checkCancellation()
@@ -79,16 +79,17 @@ struct CleanAIDataService: Sendable {
         return results
     }
 
-    private func current(_ item: CleanAIDataItem) throws -> Bool {
+    private func current(_ item: CleanAIDataItem) async throws -> Bool {
         guard safe(item.path), policy.permits(item.path, kind: item.kind) else { return false }
         let snapshot = try measure(item.path)
-        let permitted = try eligible(item.path, kind: item.kind)
+        let permitted = try await eligible(item.path, kind: item.kind)
         return snapshot.values == item.snapshot && old(snapshot.newest, kind: item.kind) && permitted
     }
 
-    private func eligible(_ path: URL, kind: CleanAIDataItem.Kind) throws -> Bool {
-        if kind == .worktree { return try git.inspect(path)?.eligible == true }
-        return kind == .claude && chatIdle(path) == true
+    private func eligible(_ path: URL, kind: CleanAIDataItem.Kind) async throws -> Bool {
+        if kind == .worktree { return try await git.inspect(path)?.eligible == true }
+        guard kind == .claude else { return false }
+        return await chatIdle(path) == true
     }
 
     private func old(_ date: Date, kind: CleanAIDataItem.Kind) -> Bool {

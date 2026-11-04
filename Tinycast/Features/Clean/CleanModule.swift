@@ -9,6 +9,8 @@ extension NotchcastCore {
 
 @MainActor
 final class CleanModule: NotchcastModule {
+    nonisolated private static let history = CleanHistoryStore(
+        logPath: AppPaths.applicationSupport().appendingPathComponent("clean-history.jsonl"))
     private var running = false
     private weak var core: AppCore?
     private let preferences = NotchcastPreferences.shared
@@ -70,7 +72,6 @@ final class CleanModule: NotchcastModule {
         -> CleanCoordinator.Review {
         try Task.checkCancellation()
         let home = FileManager().homeDirectoryForCurrentUser
-        let history = CleanHistoryStore(logPath: AppPaths.applicationSupport().appendingPathComponent("clean-history.jsonl"))
         let trash = RecordedTrash(history: history, mode: feature.rawValue)
         switch feature {
         case .cleanJunk:
@@ -92,7 +93,7 @@ final class CleanModule: NotchcastModule {
             let service = CleanAIDataService(policy: .init(home: home, age: CleanAIDataPolicy.defaultAge),
                 transport: trash, git: GitReader(), now: { .now },
                 chatIdle: {
-                    do { return try Tools.idle($0) } catch { return nil }
+                    do { return try await Tools.idle($0) } catch { return nil }
                 }, copy: { try FileManager().copyItem(at: $0, to: $1) })
             let items = try await service.scan()
             trash.recordSizes(Dictionary(uniqueKeysWithValues: items.map { ($0.path, snapshotSize($0.snapshot)) }))
@@ -125,7 +126,7 @@ final class CleanModule: NotchcastModule {
                 recentActivityThreshold: 7 * 86_400, maximumDepth: 32, maximumEntries: 100_000,
                 protectedNames: []), transport: trash,
                 activity: { project, _ in
-                    switch try Tools.idle(project, recursive: true) {
+                    switch try await Tools.idle(project, recursive: true) {
                     case true: .idle
                     case false: .active
                     case nil: .unknown
@@ -247,15 +248,18 @@ final class CleanModule: NotchcastModule {
             try FileManager().createDirectory(at: history.logPath.deletingLastPathComponent(),
                 withIntermediateDirectories: true)
             try FileManager().trashItem(at: url, resultingItemURL: &destination)
-            try history.append(.init(time: .now, mode: mode, size: size, status: .trashed,
-                originalPath: url.path, trashPath: (destination as URL?)?.path ?? ""))
+            try history.recordTrash(.init(time: .now, mode: mode, size: size, status: .trashed,
+                originalPath: url.path, trashPath: (destination as URL?)?.path ?? "")) {
+                guard let destination = destination as URL? else { throw Failure.itemsChanged }
+                try FileManager().moveItem(at: destination, to: url)
+            }
         }
     }
 
     private struct GitReader: CleanAIDataGitReader {
-        func inspect(_ path: URL) throws -> CleanAIDataGitState? {
+        func inspect(_ path: URL) async throws -> CleanAIDataGitState? {
             do {
-                return try read(path)
+                return try await read(path)
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
@@ -263,25 +267,25 @@ final class CleanModule: NotchcastModule {
             }
         }
 
-        private func read(_ path: URL) throws -> CleanAIDataGitState? {
-            func git(_ arguments: [String]) throws -> String {
-                let result = try Tools.execute(URL(fileURLWithPath: "/usr/bin/git"),
+        private func read(_ path: URL) async throws -> CleanAIDataGitState? {
+            func git(_ arguments: [String]) async throws -> String {
+                let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/usr/bin/git"),
                     ["--no-optional-locks", "-c", "core.fsmonitor=false", "-C", path.path] + arguments, timeout: 5)
                 guard result.code == 0, result.error.isEmpty else { throw Failure.toolFailed }
                 return result.output.trimmingCharacters(in: .whitespacesAndNewlines)
             }
             guard try path.appendingPathComponent(".git").resourceValues(forKeys: [.isRegularFileKey])
                 .isRegularFile == true else { return nil }
-            let branch = try git(["symbolic-ref", "--short", "HEAD"])
+            let branch = try await git(["symbolic-ref", "--short", "HEAD"])
             guard !branch.isEmpty else { return nil }
-            let common = try git(["rev-parse", "--path-format=absolute", "--git-common-dir"])
-            let gitDirectory = try git(["rev-parse", "--absolute-git-dir"])
+            let common = try await git(["rev-parse", "--path-format=absolute", "--git-common-dir"])
+            let gitDirectory = try await git(["rev-parse", "--absolute-git-dir"])
             guard common != gitDirectory else { return nil }
-            let status = try git(["status", "--porcelain=v1", "--untracked-files=all", "--ignored"])
-            let ahead = try git(["rev-list", "--count", "@{upstream}..HEAD"])
-            let unmerged = try git(["rev-list", "--count", "main..HEAD"])
-            let flags = try git(["ls-files", "-v"])
-            let submodules = try git(["submodule", "status", "--recursive"])
+            let status = try await git(["status", "--porcelain=v1", "--untracked-files=all", "--ignored"])
+            let ahead = try await git(["rev-list", "--count", "@{upstream}..HEAD"])
+            let unmerged = try await git(["rev-list", "--count", "main..HEAD"])
+            let flags = try await git(["ls-files", "-v"])
+            let submodules = try await git(["submodule", "status", "--recursive"])
             let locked = FileManager().fileExists(atPath: gitDirectory + "/locked")
             let operation = ["index.lock", "HEAD.lock", "MERGE_HEAD", "CHERRY_PICK_HEAD", "rebase-merge", "rebase-apply"]
                 .contains { FileManager().fileExists(atPath: gitDirectory + "/" + $0) }
@@ -289,19 +293,13 @@ final class CleanModule: NotchcastModule {
                 mergedIntoMain: unmerged == "0", hiddenIndexFlags: flags.split(separator: "\n").contains {
                     $0.first.map { $0 == "S" || $0.isLowercase } ?? true
                 }, submodules: !submodules.isEmpty, operationInProgress: operation,
-                idle: try Tools.idle(path, recursive: true) == true)
+                idle: try await Tools.idle(path, recursive: true) == true)
         }
     }
 
     private struct Tools: CleanOptimizeProcessTransport, CleanOptimizeDatabaseTransport {
-        struct Result {
-            let code: Int32
-            let output: String
-            let error: String
-        }
-
         @concurrent func run(_ request: CleanOptimizeRequest) async throws -> CleanOptimizeRequest.Result {
-            .exited(try Self.execute(request.executable, request.arguments, timeout: request.timeout).code)
+            .exited(try await CleanProcessRunner.execute(request.executable, request.arguments, timeout: request.timeout).code)
         }
 
         @concurrent func count(at database: URL, timeout: TimeInterval) async throws -> Int {
@@ -312,56 +310,12 @@ final class CleanModule: NotchcastModule {
             try Self.database(database, timeout: timeout, clear: true)
         }
 
-        static func idle(_ path: URL, recursive: Bool = false) throws -> Bool? {
-            let result = try execute(URL(fileURLWithPath: "/usr/sbin/lsof"),
+        static func idle(_ path: URL, recursive: Bool = false) async throws -> Bool? {
+            let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/usr/sbin/lsof"),
                 ["-nP", "-t"] + (recursive ? ["+D", path.path] : ["--", path.path]), timeout: 5)
             guard result.error.isEmpty else { return nil }
             if result.code == 0 { return false }
             return result.code == 1 && result.output.isEmpty ? true : nil
-        }
-
-        static func execute(_ executable: URL, _ arguments: [String], timeout: TimeInterval) throws -> Result {
-            try Task.checkCancellation()
-            let directory = FileManager().temporaryDirectory.appendingPathComponent(UUID().uuidString)
-            try FileManager().createDirectory(at: directory, withIntermediateDirectories: false)
-            defer { try? FileManager().removeItem(at: directory) }
-            let output = directory.appendingPathComponent("output")
-            let errors = directory.appendingPathComponent("errors")
-            try Data().write(to: output)
-            try Data().write(to: errors)
-            let outputHandle = try FileHandle(forWritingTo: output)
-            let errorHandle = try FileHandle(forWritingTo: errors)
-            defer { try? outputHandle.close(); try? errorHandle.close() }
-            let process = Process()
-            process.executableURL = executable
-            process.arguments = arguments
-            process.environment = ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin", "GIT_TERMINAL_PROMPT": "0"]
-            process.currentDirectoryURL = URL(fileURLWithPath: "/")
-            process.standardInput = FileHandle.nullDevice
-            process.standardOutput = outputHandle
-            process.standardError = errorHandle
-            let exit = try process.runObservingExit()
-            let deadline = ContinuousClock.now.advanced(by: .seconds(timeout))
-            while process.isRunning {
-                if Task.isCancelled || ContinuousClock.now >= deadline {
-                    if process.isRunning { kill(process.processIdentifier, SIGKILL) }
-                    exit.wait()
-                    try Task.checkCancellation()
-                    throw Failure.toolFailed
-                }
-                Thread.sleep(forTimeInterval: 0.05)
-            }
-            exit.wait()
-            try Task.checkCancellation()
-            func text(_ url: URL) throws -> String {
-                let handle = try FileHandle(forReadingFrom: url)
-                defer { try? handle.close() }
-                let data = try handle.read(upToCount: 1_048_577) ?? Data()
-                guard data.count <= 1_048_576, let value = String(data: data, encoding: .utf8)
-                else { throw Failure.toolFailed }
-                return value
-            }
-            return try Result(code: process.terminationStatus, output: text(output), error: text(errors))
         }
 
         static func database(_ url: URL, timeout: TimeInterval, clear: Bool) throws -> Int {

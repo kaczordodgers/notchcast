@@ -4,6 +4,27 @@ import Foundation
 @main
 struct CleanHistoryTests {
     static func main() throws {
+        try fixture { home, trash, log, _ in
+            DispatchQueue.concurrentPerform(iterations: 100) { index in
+                let store = CleanHistoryStore(logPath: log.logPath)
+                do { try store.append(record("item-\(index)", "trash-\(index)")) } catch {
+                    preconditionFailure("Concurrent append failed: \(error)")
+                }
+            }
+            try check(log.read().count == 100)
+            let original = home.appendingPathComponent("rollback")
+            let moved = trash.appendingPathComponent("rollback")
+            try Data("sentinel".utf8).write(to: moved)
+            let failing = CleanHistoryStore(logPath: log.logPath, maximumBytes: 1)
+            do {
+                try failing.recordTrash(record(original.path, moved.path)) {
+                    try FileManager().moveItem(at: moved, to: original)
+                }
+                preconditionFailure("Expected history failure")
+            } catch CleanHistoryError.recordTooLarge {}
+            try check(Data(contentsOf: original) == Data("sentinel".utf8))
+            print("PASS concurrent independent stores retain all lines; failed audit restores fake trash")
+        }
         try fixture { home, trash, log, restore in
             let source = trash.appendingPathComponent("item")
             let target = home.appendingPathComponent("item")
