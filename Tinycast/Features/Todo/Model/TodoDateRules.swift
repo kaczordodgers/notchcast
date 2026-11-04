@@ -33,19 +33,26 @@ enum TodoDateRules {
         + #"|days?|weeks?|months?|years?)(?:\s+on\s+(last day|day\s+[0-9]+|"#
         + weekday + #"(?:\s*,\s*"# + weekday + #")*))?$"#)
 
+    static let abbreviationContext = #"(?=\s*$|\s+(?:(?:at|o)\s+)?[0-9]|\s+(?:on|next|today|tomorrow)\b)"#
+
     static let englishNormalisations: [Normalisation] = normalisations([
+        (#"every other"#, "every second"),
         (#"tod(?:ay)?"#, "today"), (#"tom(?:orrow)?"#, "tomorrow"),
         (#"daily"#, "every day"), (#"weekly"#, "every week"), (#"monthly"#, "every month"),
-        (#"mon(?:day)?"#, "monday"), (#"tue(?:s|sday)?"#, "tuesday"),
-        (#"wed(?:nesday)?"#, "wednesday"), (#"thu(?:rs|rsday)?"#, "thursday"),
-        (#"fri(?:day)?"#, "friday"), (#"sat(?:urday)?"#, "saturday"), (#"sun(?:day)?"#, "sunday")
+        (#"mon"# + abbreviationContext, "monday"), (#"tue(?:s)?"# + abbreviationContext, "tuesday"),
+        (#"wed"# + abbreviationContext, "wednesday"), (#"thu(?:rs)?"# + abbreviationContext, "thursday"),
+        (#"fri"# + abbreviationContext, "friday"),
+        (#"sat"# + abbreviationContext, "saturday"),
+        (#"sun"# + abbreviationContext, "sunday")
     ] + zip(["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep(?:t)?", "oct", "nov", "dec"],
             months).map { ($0.0, $0.1) })
 
     static let polishNormalisations: [Normalisation] = normalisations([
+        (#"every other"#, "every second"),
+        (#"co ostatni dzień miesiąca"#, "every last day"),
         (#"dziś|dzis|dzisiaj"#, "today"), (#"jutro"#, "tomorrow"), (#"pojutrze"#, "dayaftertomorrow"),
         (#"wczoraj"#, "yesterday"), (#"codziennie"#, "every day"),
-        (#"co"#, "every"), (#"drugi|drugą|druga"#, "second"), (#"za"#, "in"),
+        (#"(?:w\s+)?każdy|kazdy|co"#, "every"), (#"drugi|drugą|druga"#, "second"), (#"za"#, "in"),
         (#"następny|nastepny|następną|nastepna|przyszły|przyszly|przyszłą|przyszla"#, "next"),
         (#"poniedzia[łl](?:ek|ku|ki|ka|kiem|kom|kami|kach|ków|kow)|pon"#, "monday"),
         (#"wtorek|wtork(?:u|i|a|iem|om|ami|ach|ów|ow)|wt"#, "tuesday"),

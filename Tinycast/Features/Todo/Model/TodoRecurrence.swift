@@ -13,6 +13,7 @@ struct TodoRecurrenceOutcome: Equatable, Sendable {
     let due: Date
     // Every occurrence starts with all subtasks reset, regardless of their previous state.
     let subtaskIDsToReset: [UUID]
+    let rule: TodoRecurrenceRule
     let undoSnapshot: TodoRecurringSnapshot
 }
 
@@ -23,7 +24,8 @@ struct TodoRecurrence: Sendable {
         TodoRecurrenceOutcome(id: task.id,
                               due: Self.nextDue(task.rule, currentDue: task.due, hasTime: task.hasTime,
                                                 completedAt: completedAt, calendar: calendar),
-                              subtaskIDsToReset: task.subtaskIDs, undoSnapshot: task)
+                              subtaskIDsToReset: task.subtaskIDs,
+                              rule: task.rule.anchored(to: task.due, calendar: calendar), undoSnapshot: task)
     }
 
     static func nextDue(_ rule: TodoRecurrenceRule, currentDue: Date, hasTime: Bool,

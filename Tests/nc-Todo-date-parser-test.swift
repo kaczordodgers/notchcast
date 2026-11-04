@@ -80,6 +80,10 @@ struct TodoDateParserTests {
         }
         precondition(parse("11/5", .polish)?.normalised == "2026-05-11")
         let recurrences: [(String, String, String)] = [
+            ("w każdy poniedziałek", "2026-11-09", "every 1 weeks on monday"),
+            ("każdy poniedziałek", "2026-11-09", "every 1 weeks on monday"),
+            ("every other monday", "2026-11-09", "every 2 weeks on monday"),
+            ("co ostatni dzień miesiąca", "2026-11-30", "every 1 months on last day"),
             ("every monday at 9", "2026-11-09", "every 1 weeks on monday at 09:00"),
             ("every 2 weeks", "2026-11-17", "every 2 weeks"),
             ("every! day", "2026-11-03", "every! 1 days"),
@@ -127,6 +131,7 @@ struct TodoDateParserTests {
                        "2026-00-05", "2026-13-01", "2026-11-00", "29 lutego 2027", "April 31 at 9",
                        "25:00", "9:60", "0am", "13pm", "24", "tomorrow 25:00", "jutro o 9:60",
                        "every 0 days", "every 10001 days", "after 0 days", "in 999999999999999 days",
+                       "Buy sun cream", "sat dish", "suncream", "satin",
                        "buy milk", "tomorrowland", "yesterdays", "p1", "buy 3 apples", "3-5pm"]
         for phrase in invalid {
             precondition(parse(phrase) == nil, "Invalid input accepted: \(phrase)")
