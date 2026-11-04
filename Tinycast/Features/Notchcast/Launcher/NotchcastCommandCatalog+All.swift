@@ -6,5 +6,9 @@ extension NotchcastCommandCatalog {
         MachineSetupProfileCoordinator.launcherCommand,
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
+        PlainPasteModule.launcherCommand,
+        FinderToolsCoordinator.cutCommand,
+        FinderToolsCoordinator.pasteCommand,
+        FinderToolsCoordinator.renameCommand,
     ]
 }
