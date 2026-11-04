@@ -22,7 +22,8 @@ enum SudoTouchID {
             original = text
         }
         let sudo = try String(contentsOfFile: "/etc/pam.d/sudo", encoding: .utf8)
-        let replacement = try TouchIDPolicy.replacement(sudo: sudo, local: original, enabled: enabled)
+        guard let replacement = try TouchIDPolicy.replacement(
+            sudo: sudo, local: original, enabled: enabled) else { return }
         var template = Array("/etc/pam.d/.sudo_local.XXXXXX".utf8CString)
         let temporary = mkstemp(&template)
         guard temporary >= 0 else { throw Failure.io }

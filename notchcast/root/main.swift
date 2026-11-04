@@ -4,7 +4,7 @@ guard let command = RootContract.Command(arguments: Array(CommandLine.arguments.
     exit(RootContract.usageExit)
 }
 
-if command.operation == .change {
+if command.operation != .read {
     guard geteuid() == 0 else { exit(77) }
     do {
         switch command {

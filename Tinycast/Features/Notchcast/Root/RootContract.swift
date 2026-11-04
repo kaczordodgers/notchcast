@@ -1,16 +1,18 @@
 enum RootContract {
     static let helperPath = "/Library/PrivilegedHelperTools/app.notchcast.root"
-    static let version = "1"
+    static let version = "2"
     static let usageExit: Int32 = 64
 
     enum Operation: Sendable {
         case read
         case change
+        case spotlight
 
         var timeout: Duration {
             switch self {
             case .read: .seconds(3)
             case .change: .seconds(12)
+            case .spotlight: .seconds(60)
             }
         }
     }
@@ -55,7 +57,8 @@ enum RootContract {
         var operation: Operation {
             switch self {
             case .version, .ping: .read
-            case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: .change
+            case .spotlightOff, .spotlightOn: .spotlight
+            case .sudoTouchIDOn, .sudoTouchIDOff: .change
             case .fansAuto, .fansMedium, .fansMax: .change
             case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
                  .batterySleepOn, .batterySleepOff: .change
