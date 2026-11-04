@@ -52,7 +52,11 @@ private struct NotchcastModuleFeatureRows: View {
     var body: some View {
         Toggle(isOn: Binding(get: { preferences.isOn(feature) }, set: { feature.setFromSettings($0) })) {
             SettingsRowTitle(anchor, verbatim: feature.title)
-            Text(feature.subtitle)
+            if feature.helperLocked {
+                Text("Needs the Notchcast helper update")
+            } else {
+                Text(feature.subtitle)
+            }
         }
         .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
         .settingsEnabled(feature.dependencies.allSatisfy(preferences.isEnabled))
@@ -63,7 +67,7 @@ private struct NotchcastModuleFeatureRows: View {
         if feature == .microphoneMute {
             MicrophoneHotKeyFailureSettingRow()
         }
-        if preferences.isEnabled(feature) {
+        if preferences.isEnabled(feature) && feature.settingsAvailable {
             ForEach(commands, id: \.id) { command in
                 FeatureCommandRow(entry: command.entry)
             }

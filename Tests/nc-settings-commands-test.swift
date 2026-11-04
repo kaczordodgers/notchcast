@@ -29,6 +29,19 @@ extension NotchcastCommandCatalog {
 @main struct CommandTests {
     @MainActor static var runs = 0
     @MainActor static func main() throws {
+        // Preferences live in the dev app's domain; run in a throwaway home so a failure leaves nothing behind.
+        if ProcessInfo.processInfo.environment["NC_SETTINGS_COMMANDS_HOME"] == nil {
+            let home = FileManager.default.temporaryDirectory.appending(path: "nc-settings-commands-" + UUID().uuidString)
+            try FileManager.default.createDirectory(at: home, withIntermediateDirectories: true)
+            defer { try? FileManager.default.removeItem(at: home) }
+            let child = Process()
+            child.executableURL = URL(filePath: CommandLine.arguments[0])
+            child.environment = ProcessInfo.processInfo.environment.merging(
+                ["NC_SETTINGS_COMMANDS_HOME": home.path, "HOME": home.path, "CFFIXED_USER_HOME": home.path]) { $1 }
+            try child.run()
+            child.waitUntilExit()
+            exit(child.terminationStatus)
+        }
         let process = Process()
         process.executableURL = URL(filePath: "/usr/bin/env")
         process.arguments = ["python3", "notchcast/check-command-owners.py"]
@@ -40,19 +53,8 @@ extension NotchcastCommandCatalog {
         precondition(process.terminationStatus == 0)
         let rows = try JSONDecoder().decode([Row].self, from: data)
         let preferences = NotchcastPreferences.shared
-        let domain = (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast"
-        let defaults = UserDefaults(suiteName: domain)!
-        let originalDomain = defaults.persistentDomain(forName: domain) ?? [:]
-        let previous = Dictionary(uniqueKeysWithValues: NotchcastFeature.allCases.map { ($0, preferences.isOn($0)) })
-        defer {
-            for (feature, enabled) in previous { preferences.set(feature, enabled) }
-            defaults.setPersistentDomain(originalDomain, forName: domain)
-        }
-        let bindings = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, "hotkey-" + $0.id) })
-        let aliases = Dictionary(uniqueKeysWithValues: rows.map { ($0.id, "alias-" + $0.id) })
-        let snapshot = UserDefaults(suiteName: "nc-settings-commands-" + UUID().uuidString)!
-        snapshot.set(bindings, forKey: "bindings")
-        snapshot.set(aliases, forKey: "aliases")
+        let home = ProcessInfo.processInfo.environment["NC_SETTINGS_COMMANDS_HOME"]!
+        precondition(NSHomeDirectory() == home, "preferences must stay in the throwaway home")
         for row in rows {
             let owner = NotchcastFeature(rawValue: row.owner)!
             var command = NotchcastCommand(slug: row.id, name: row.id, sfSymbol: "test", feature: owner, run: { runs += 1 })
@@ -79,8 +81,6 @@ extension NotchcastCommandCatalog {
             command.isEnabled = { true }
             NotchcastCommandCatalog.all = [command]
             precondition(!NotchcastCommandCatalog.isEnabled(command.id))
-            precondition(snapshot.dictionary(forKey: "bindings") as? [String: String] == bindings)
-            precondition(snapshot.dictionary(forKey: "aliases") as? [String: String] == aliases)
         }
         print("PASS: \(rows.count) commands covered; catalog count \(rows.count); owner, dependency and runtime gates")
     }

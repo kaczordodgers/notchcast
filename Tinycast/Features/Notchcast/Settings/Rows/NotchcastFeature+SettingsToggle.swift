@@ -37,11 +37,20 @@ extension NotchcastFeature {
         switch self {
         case .batterySailing, .batteryHeatProtection, .batteryCalibration:
             NotchcastPreferences.shared.isOn(self) || !NotchcastCore.battery.chargingUnsupported
+        case .fanControl, .monitorAlerts, .accessoryBatteries:
+            NotchcastPreferences.shared.isOn(.systemMonitor)
+        default:
+            !helperLocked
+        }
+    }
+
+    @MainActor var helperLocked: Bool {
+        switch self {
         case .startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
              .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices:
-            SystemToolsHelperPolicy.available(self)
+            !SystemToolsHelperPolicy.available(self)
         default:
-            true
+            false
         }
     }
 }
