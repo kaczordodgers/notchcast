@@ -1,9 +1,13 @@
 // notchcast-sources: Tinycast/Features/BackupStatus/Model/*.swift
+// notchcast-sources: Tinycast/Features/BackupStatus/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
 
 @main
 enum BackupStatusTest {
-    static func main() throws {
+    @MainActor static func main() async throws {
         func check(_ condition: Bool) { precondition(condition) }
         let now = Date(timeIntervalSince1970: 1_793_750_400)
         let stamp = ISO8601DateFormatter().string(from: now)
@@ -57,6 +61,49 @@ enum BackupStatusTest {
         rejected(try fixture(changes: ["lastAttempt": "invalid"]))
         rejected(try fixture("unknown"))
         rejected(Data("{".utf8))
-        print("Backup status: all synthetic parser and health fixtures passed")
+        var data = try fixture()
+        var clock = now
+        var changed: (@MainActor () -> Void)?
+        var deadline: (@MainActor () -> Void)?
+        var notices: [String] = []
+        var stopped = false
+        let module = BackupStatusModule(read: { data }, watch: { action in
+            changed = action
+            return { stopped = true }
+        }, schedule: { _, action in
+            deadline = action
+            return { deadline = nil }
+        }, now: { clock }, post: { notices.append($0) })
+        let suite = "backup-test-\(UUID().uuidString)"
+        defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        check(!preferences.isOn(.backupStatus))
+        let controller = NotchcastModuleController([
+            .init(requires: [.backupStatus], module: module),
+        ], preferences: preferences)
+        preferences.set(.backupStatus, true)
+        controller.run()
+        for _ in 0..<100 { await Task.yield() }
+        check(notices.isEmpty && deadline != nil)
+        clock = now.addingTimeInterval(7200)
+        deadline?()
+        check(notices.count == 1)
+        deadline?()
+        check(notices.count == 1)
+        clock = now
+        data = try fixture("failed")
+        changed?()
+        for _ in 0..<100 { await Task.yield() }
+        check(notices.count == 2)
+        changed?()
+        for _ in 0..<100 { await Task.yield() }
+        check(notices.count == 2)
+        preferences.set(.backupStatus, false)
+        for _ in 0..<100 { await Task.yield() }
+        check(stopped && deadline == nil)
+        changed?()
+        for _ in 0..<100 { await Task.yield() }
+        check(notices.count == 2)
+        print("Backup status: parser, monitoring, deadlines and switch lifecycle passed")
     }
 }
