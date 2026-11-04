@@ -50,6 +50,7 @@ extension NotchcastCore {
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
+    static let accessoryNotices = AccessoryNoticesModule(optedIn: { NotchcastPreferences.shared.engineDefaults.bool(forKey: "accessoryNoticesOptedIn") })
     static let systemLevels = SystemLevelsModule()
     static let brightness = DisplayBrightnessModule()
     static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)
@@ -163,6 +164,7 @@ extension NotchcastCore {
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
+            .init(requires: [.island, .accessoryNotices], module: accessoryNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
             .init(requires: [], module: levelKeys),
