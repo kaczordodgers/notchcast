@@ -27,8 +27,10 @@ jobs:
         env:
           COMMIT_RANGE: ${{ github.event_name == 'pull_request' && format('{0}..{1}', github.event.pull_request.base.sha, github.event.pull_request.head.sha) || 'refs/remotes/upstream/main..HEAD' }}
         run: python3 notchcast/check-commit-emails.py "$COMMIT_RANGE"
-      - name: Forbidden names in files, messages and identities
-        run: notchcast/check-identity.sh history "$BASE"
+      - name: Forbidden names and IDs in added lines
+        run: notchcast/check-identity.sh diff "$BASE"
+      - name: Forbidden names and IDs in commit metadata
+        run: notchcast/check-identity.sh metadata "$BASE"
       - name: Secrets (gitleaks)
         env:
           VERSION: 8.30.1
