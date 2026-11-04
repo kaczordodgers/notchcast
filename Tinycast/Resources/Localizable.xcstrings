@@ -1,138 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-<<<<<<< HEAD
-    "English translation failed; using the original transcript" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Englische Übersetzung fehlgeschlagen; das ursprüngliche Transkript wird verwendet" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Falló la traducción al inglés; se usará la transcripción original" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "La traduction en anglais a échoué ; utilisation de la transcription originale" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "英語への翻訳に失敗したため、元の文字起こしを使用します" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영어 번역에 실패하여 원본 텍스트를 사용합니다" } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "A tradução para inglês falhou; será usada a transcrição original" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось перевести на английский; используется исходная расшифровка" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "英语翻译失败，将使用原始转录文本" } }
-      }
-    },
-    "Dictate in English" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Auf Englisch diktieren" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dictar en inglés" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dicter en anglais" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "英語で音声入力" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영어로 받아쓰기" } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Ditar em inglês" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Диктовать на английском" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "用英语听写" } }
-      }
-    },
-    "Monitor Alerts" : {
-=======
-    "AI cleanup" : {
->>>>>>> origin/nc/l9-dictation-history-3
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "KI-Bereinigung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpieza con IA"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nettoyage IA"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AIクリーンアップ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 정리"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpeza com IA"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очистка ИИ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 清理"
-          }
-        }
-      }
-    },
-    "Calendar events on the Day page." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kalenderereignisse auf der Seite Tag."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eventos del calendario en la página Día."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Événements du calendrier sur la page Jour."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「日」ページのカレンダーイベント。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "일 페이지의 캘린더 일정."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eventos do calendário na página Dia."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "События календаря на странице «День»."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“日”页面上的日历事件。"
-          }
-        }
-      }
-    },
     "Capture Screen" : {
       "localizations" : {
         "de" : {
@@ -285,318 +153,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "截取与听写"
-          }
-        }
-      }
-    },
-    "Clean up final dictation transcripts." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Endgültige Diktattexte bereinigen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpiar las transcripciones finales del dictado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nettoyer les transcriptions finales de dictée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "確定した音声入力テキストを整えます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최종 받아쓰기 텍스트를 정리합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Limpar as transcrições finais do ditado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Очищать итоговый текст диктовки."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清理最终听写文本。"
-          }
-        }
-      }
-    },
-    "Cleanup API key" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "API-Schlüssel für Bereinigung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clave API de limpieza"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Clé API de nettoyage"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリーンアップAPIキー"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정리 API 키"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chave API de limpeza"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ключ API очистки"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清理 API 密钥"
-          }
-        }
-      }
-    },
-    "Cleanup effort" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bereinigungsaufwand"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esfuerzo de limpieza"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Effort de nettoyage"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリーンアップの処理レベル"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정리 노력 수준"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esforço de limpeza"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Уровень обработки"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清理强度"
-          }
-        }
-      }
-    },
-    "Cleanup endpoint" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bereinigungs-Endpunkt"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Servidor de limpieza"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Point de terminaison du nettoyage"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリーンアップの接続先"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정리 엔드포인트"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Endpoint de limpeza"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Адрес очистки"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清理端点"
-          }
-        }
-      }
-    },
-    "Cleanup prompt addition" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zusätzliche Bereinigungsanweisung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instrucción adicional de limpieza"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instruction supplémentaire de nettoyage"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "追加のクリーンアップ指示"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정리 추가 지침"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Instrução adicional de limpeza"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дополнение к инструкции очистки"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清理附加提示"
-          }
-        }
-      }
-    },
-    "Cleanup vocabulary" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bereinigungswortschatz"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vocabulario de limpieza"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vocabulaire de nettoyage"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリーンアップ用語彙"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "정리 어휘"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vocabulário de limpeza"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Словарь очистки"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清理词汇"
           }
         }
       }
@@ -809,162 +365,6 @@
         }
       }
     },
-    "Could not save dictation cleanup settings." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Die Diktatbereinigungseinstellungen konnten nicht gespeichert werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo guardar la configuración de limpieza del dictado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible d’enregistrer les réglages de nettoyage de dictée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声入力のクリーンアップ設定を保存できませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "받아쓰기 정리 설정을 저장할 수 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível salvar os ajustes de limpeza do ditado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось сохранить настройки очистки диктовки."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法保存听写清理设置。"
-          }
-        }
-      }
-    },
-    "Couldn’t update dictation history." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Diktierverlauf konnte nicht aktualisiert werden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No se pudo actualizar el historial de dictado."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de mettre à jour l’historique de dictée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "音声入力の履歴を更新できませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "받아쓰기 기록을 업데이트할 수 없습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não foi possível atualizar o histórico de ditado."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Не удалось обновить историю диктовки."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法更新听写历史记录。"
-          }
-        }
-      }
-    },
-    "Delete history" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verlauf löschen"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eliminar historial"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Supprimer l’historique"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "履歴を削除"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기록 삭제"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apagar histórico"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Удалить историю"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "删除历史记录"
-          }
-        }
-      }
-    },
     "Desktop" : {
       "localizations" : {
         "de" : {
@@ -1017,106 +417,106 @@
         }
       }
     },
-    "Keep dictation history" : {
+    "Dictate in English" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Diktierverlauf speichern"
+            "value" : "Auf Englisch diktieren"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Guardar historial de dictado"
+            "value" : "Dictar en inglés"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conserver l’historique de dictée"
+            "value" : "Dicter en anglais"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "音声入力の履歴を保存"
+            "value" : "英語で音声入力"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "받아쓰기 기록 보관"
+            "value" : "영어로 받아쓰기"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manter histórico de ditado"
+            "value" : "Ditar em inglês"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сохранять историю диктовки"
+            "value" : "Диктовать на английском"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保留听写历史记录"
+            "value" : "用英语听写"
           }
         }
       }
     },
-    "Link Quick Fixes" : {
+    "English translation failed; using the original transcript" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Schnellkorrekturen für Verbindungen"
+            "value" : "Englische Übersetzung fehlgeschlagen; das ursprüngliche Transkript wird verwendet"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Soluciones rápidas de conexión"
+            "value" : "Falló la traducción al inglés; se usará la transcripción original"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Corrections rapides de connexion"
+            "value" : "La traduction en anglais a échoué ; utilisation de la transcription originale"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接続のクイック修復"
+            "value" : "英語への翻訳に失敗したため、元の文字起こしを使用します"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "연결 빠른 수정"
+            "value" : "영어 번역에 실패하여 원본 텍스트를 사용합니다"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Correções rápidas de ligação"
+            "value" : "A tradução para inglês falhou; será usada a transcrição original"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Быстрое исправление подключения"
+            "value" : "Не удалось перевести на английский; используется исходная расшифровка"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "连接快速修复"
+            "value" : "英语翻译失败，将使用原始转录文本"
           }
         }
       }
@@ -2845,110 +2245,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "通知"
-          }
-        }
-      }
-    },
-    "Offer manual fixes for connection problems." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Manuelle Lösungen für Verbindungsprobleme anbieten."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ofrecer soluciones manuales para problemas de conexión."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Proposer des corrections manuelles des problèmes de connexion."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "接続の問題に対する手動の修復方法を表示します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "연결 문제에 대한 수동 수정 방법을 제공합니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oferecer correções manuais para problemas de ligação."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Предлагать ручное исправление проблем подключения."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "提供连接问题的手动修复方法。"
-          }
-        }
-      }
-    },
-    "One spelling per line; separate misheard forms with |." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eine Schreibweise pro Zeile; falsch erkannte Formen mit | trennen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Una palabra por línea; separa las formas mal reconocidas con |."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Une orthographe par ligne ; séparez les formes mal reconnues par |."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "1行に1つの表記を入力し、誤認識された表記は | で区切ります。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "한 줄에 표기 하나를 입력하고 잘못 인식된 형태는 |로 구분하세요."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Uma grafia por linha; separe as formas mal reconhecidas com |."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Одно написание на строку; ошибочные формы разделяйте знаком |."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每行一个拼写；用 | 分隔误识别形式。"
           }
         }
       }
