@@ -24,6 +24,7 @@ extension SettingsAnchor {
     static let notchcastAlertMemory = Self.notchcast(feature: .monitorAlerts)
     static let notchcastAlertDisk = Self.notchcast(feature: .monitorAlerts)
     static let notchcastAlertBattery = Self.notchcast(feature: .monitorAlerts)
+    static let notchcastAlertBatteryTemperature = Self.notchcast(feature: .monitorAlerts)
     static let notchcastAccessories = Self.notchcast(feature: .accessoryBatteries)
     static let notchcastChargePercent = Self.notchcast(feature: .batteryChargeLimit)
     static let notchcastAwakeDuration = Self.notchcast(feature: .keepAwake)
@@ -99,6 +100,7 @@ extension SettingsSearchCatalog {
         .init(group: .notchcastAlertMemory, "Memory pressure threshold"),
         .init(group: .notchcastAlertDisk, "Disk free threshold"),
         .init(group: .notchcastAlertBattery, "Battery threshold"),
+        .init(group: .notchcastAlertBatteryTemperature, "Battery temperature threshold"),
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
         .init(group: .notchcastTweaksApps, "Disable autocorrect"),
         .init(group: .notchcastTweaksApps, "Disable smart punctuation"),

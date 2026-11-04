@@ -133,6 +133,7 @@ enum ForkSettingsBackupSchema {
         "monitorMemory": .integer(0...1),
         "monitorDisk": .integer(1...50),
         "monitorBattery": .integer(1...50),
+        "monitorBatteryTemperature": .integer(30...60),
         "notchcast.colorPicker.format": .string(14, ["hex", "hexLowercase", "rgb", "hsl", "swiftUIColor", "nsColorLiteral"]),
         "islandHoverDelay": .choices([0.1, 0.3, 0.5, 1]),
         "notchcast.liveTimer.defaultDuration": .choices([300, 600, 900, 1500, 1800, 3600]),
