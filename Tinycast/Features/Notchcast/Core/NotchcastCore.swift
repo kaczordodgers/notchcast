@@ -11,7 +11,6 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let katana = KatanaModule()
     static let treadmill = TreadmillCoordinator.live()
-    static let calendar = DayCalendarModule()
     static let quitProtection = QuitProtectionStore()
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
@@ -58,7 +57,6 @@ enum NotchcastCore {
             .init(requires: [.katana], module: katana),
             .init(requires: [.treadmillWalk], module: TreadmillModule(treadmill, capability: .walk)),
             .init(requires: [.treadmillHistory], module: TreadmillModule(treadmill, capability: .history)),
-            .init(requires: [.island, .dayCalendar], module: calendar),
             .init(requires: [.agentActions], module: agents),
             .init(requires: [.agentActions, .agentCLI], module: agentCLI),
             .init(requires: [.pastePlain], module: pastePlain),
