@@ -34,6 +34,11 @@ runs:
           if [ -n "$still" ]; then
             git worktree add -q --detach "$RUNNER_TEMP/pristine" "$UPSTREAM"
             for name in $still; do
+              # A harness upstream does not have is ours, and "No harness named" must not excuse it.
+              if [ ! -e "$RUNNER_TEMP/pristine/Tests/$name.swift" ]; then
+                echo "::error::$name fails with our commits and does not exist on upstream"; status=1
+                continue
+              fi
               # Its own TMPDIR, so our failed harness's logs stay for the step below.
               if (cd "$RUNNER_TEMP/pristine" && TMPDIR="$RUNNER_TEMP/pristine-tmp" && mkdir -p "$TMPDIR" && export TMPDIR \
                   && ./Scripts/run-tests.sh "$name" >/dev/null 2>&1); then
