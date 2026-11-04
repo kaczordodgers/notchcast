@@ -145,7 +145,6 @@ struct NotchcastTapHubTests {
         expect(hub.consumerCount == 1 && !hub.isRunning, "No grant means no worker")
         expect(fixture.withLock { $0.records.isEmpty }, "Permission is checked before creating a tap")
         fixture.withLock { $0.trusted = true }
-        hub.refreshPermission()
         await eventually { fixture.withLock { $0.records.count == 1 && $0.enabledCount == 1 } }
         expect(fixture.withLock { $0.records[0].options == .listenOnly }, "Observer installs listen-only tap")
         let second = hub.register(mask: key) { received.append($0.type) }
