@@ -16,6 +16,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case colorPicker
     case screenshot
     case dictationHistory
+    case dictationCleanup
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
 
@@ -34,7 +35,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
              .batterySailing, .batteryHeatProtection, .batteryCalibration,
              .keepAwake, .lidClosedAwake: .system
         case .liveTimers, .dayWeather, .dayMarkets: .activities
-        case .colorPicker, .screenshot, .dictationHistory: .captureAndDictation
+        case .colorPicker, .screenshot, .dictationHistory, .dictationCleanup: .captureAndDictation
         }
     }
 
@@ -61,6 +62,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .colorPicker: String(localized: "Color Picker")
         case .screenshot: String(localized: "Screenshots")
         case .dictationHistory: String(localized: "Keep dictation history")
+        case .dictationCleanup: String(localized: "AI cleanup")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -93,6 +95,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
         case .screenshot: String(localized: "Capture an area, window or display.")
         case .dictationHistory: String(localized: "Keep dictation history")
+        case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -110,7 +113,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationHistory: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
-            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker,
+            .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker, .dictationCleanup,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
             []

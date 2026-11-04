@@ -16,6 +16,7 @@ enum NotchcastCore {
     static let screenshot = ScreenshotModule()
     static let dictationHistory = DictationHistoryModule(repository: .init(
         directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
+    static let dictationCleanup = DictationCleanupModule.live()
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
@@ -36,6 +37,10 @@ enum NotchcastCore {
             await dictationHistory.record(raw: raw, cleaned: cleaned)
         }
         Task { await dictationHistory.maintain() }
+        dictationCleanup.reportFailure = { [weak core] in
+            core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
+        }
+        dictationCleanup.load()
         NotchcastPreferences.shared.onCommandsChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
         }
@@ -58,6 +63,7 @@ enum NotchcastCore {
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.dictationHistory], module: dictationHistory),
+            .init(requires: [.dictationCleanup], module: dictationCleanup),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
