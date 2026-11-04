@@ -1,4 +1,5 @@
 import Foundation
+import Darwin
 
 @MainActor
 final class RemoteMacScreenModule: NotchcastModule {
@@ -30,8 +31,12 @@ final class RemoteMacScreenModule: NotchcastModule {
     static func url(address: String) -> URL? {
         guard MachSSH.isValid(address) else { return nil }
         let parts = address.split(separator: "@", omittingEmptySubsequences: false)
-        guard parts.count <= 2, parts.allSatisfy({ !$0.isEmpty }) else { return nil }
-        let host = String(parts.last!)
+        guard parts.count <= 2, parts.allSatisfy({ !$0.isEmpty }), let last = parts.last else { return nil }
+        let host = String(last)
+        if host.contains(":") {
+            var bytes = in6_addr()
+            guard inet_pton(AF_INET6, host, &bytes) == 1 else { return nil }
+        }
         var components = URLComponents()
         components.scheme = "vnc"
         components.host = host.contains(":") ? "[\(host)]" : host
