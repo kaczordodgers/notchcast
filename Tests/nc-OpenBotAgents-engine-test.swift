@@ -42,15 +42,18 @@ final class FixtureTransport: OpenBotTransport {
     let responses: Mutex<[(String, Int)]>
     let requests = Mutex<[URLRequest]>([])
     let delay: Bool
+    let error: URLError?
 
-    init(_ responses: [(String, Int)], delay: Bool = false) {
+    init(_ responses: [(String, Int)], delay: Bool = false, error: URLError? = nil) {
         self.responses = Mutex(responses)
         self.delay = delay
+        self.error = error
     }
 
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.withLock { $0.append(request) }
         if delay { try? await Task.sleep(for: .milliseconds(100)) }
+        if let error { throw error }
         let response = responses.withLock { $0.removeFirst() }
         return (Data(response.0.utf8), response.1)
     }
@@ -192,6 +195,43 @@ struct OpenBotTests {
         precondition(partial.pendingFailures == ["disabled": .missing])
         partial.stop()
         precondition(partial.pendingFailures.isEmpty)
+        for cancelTask in [false, true] {
+            let cancelled = FixtureTransport([], delay: cancelTask,
+                error: URLError(cancelTask ? .timedOut : .cancelled))
+            let request = Task { try await service(cancelled).agents() }
+            if cancelTask {
+                while cancelled.requests.withLock({ $0.isEmpty }) { await Task.yield() }
+                request.cancel()
+            }
+            do {
+                _ = try await request.value
+                fatalError("Expected cancellation")
+            } catch is CancellationError {} catch {
+                fatalError("Cancellation became \(error)")
+            }
+        }
+        let polling = FixtureTransport([(bots, 200), (empty, 200), (bots, 200), (empty, 200)])
+        var reports = 0
+        let active = OpenBotAgentsModule(service: service(polling), report: { count, failure in
+            reports += 1
+            precondition(count == 0 && failure == nil)
+        })
+        active.start()
+        await active.waitUntilIdle()
+        active.setActive(true)
+        while polling.requests.withLock({ $0.count < 4 }) { await Task.yield() }
+        try await Task.sleep(for: .milliseconds(100))
+        polling.requests.withLock { $0 = [] }
+        polling.responses.withLock { $0 = [(bots, 200), (empty, 200), (bots, 200), (empty, 200)] }
+        active.refresh(reportResult: true)
+        let deadline = ContinuousClock.now + .seconds(40)
+        while polling.requests.withLock({ $0.count < 4 }), ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        try await Task.sleep(for: .milliseconds(100))
+        precondition(polling.requests.withLock { $0.count } == 4)
+        precondition(active.agents.count == 1 && active.pending.count == 1 && reports == 1)
+        active.stop()
         precondition(!NotchcastFeature.openBotAgents.defaultEnabled)
         precondition(NotchcastFeature.openBotAgents.isWired && !NotchcastFeature.openBotAgents.needsIsland)
         let commands = [OpenBotAgentsModule.refreshCommand]
@@ -205,5 +245,7 @@ struct OpenBotTests {
         print("PASS: switch defaults off, independent of island; shipped command gate removes command when off")
         print("PASS: tolerant optional fields and non-string answers; wrong top-level types rejected")
         print("PASS: double start; isolated 403/404 pending failures, both agents listed, waiting count 1")
+        print("PASS: active command refresh reports exactly once across two polling passes")
+        print("PASS: URL cancellation and cancelled task transport failure surface as CancellationError")
     }
 }

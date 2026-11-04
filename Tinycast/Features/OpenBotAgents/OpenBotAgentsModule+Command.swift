@@ -12,7 +12,7 @@ extension OpenBotAgentsModule: NotchcastModule {
             text = String(localized: "OpenBot agents waiting: \(count)")
         } else {
             switch failure {
-            case .off: text = String(localized: "OpenBot off or Local scripts off")
+            case .off: text = String(localized: "OpenBot off or Local scripts off.")
             case .invalidURL: text = String(localized: "OpenBot requires a loopback URL.")
             case .unauthorized: text = String(localized: "OpenBot authentication failed.")
             case .forbidden: text = String(localized: "OpenBot access refused.")

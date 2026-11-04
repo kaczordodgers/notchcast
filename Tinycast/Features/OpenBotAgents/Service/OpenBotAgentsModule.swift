@@ -51,6 +51,7 @@ final class OpenBotAgentsModule {
         let identity = operation
         let service = service
         task = Task { [weak self] in
+            var reportResult = reportResult
             repeat {
                 do {
                     let agents = try await service.agents()
@@ -80,6 +81,7 @@ final class OpenBotAgentsModule {
                     self.failure = (error as? OpenBotFailure) ?? .unreachable
                     if reportResult { self.report(nil, self.failure) }
                 }
+                reportResult = false
                 guard let self, self.active else { return }
                 do { try await Task.sleep(for: .seconds(30)) } catch { return }
             } while !Task.isCancelled

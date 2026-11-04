@@ -126,6 +126,8 @@ struct OpenBotService: Sendable {
         } catch let failure as OpenBotFailure {
             throw failure
         } catch {
+            try Task.checkCancellation()
+            if (error as? URLError)?.code == .cancelled { throw CancellationError() }
             throw OpenBotFailure.unreachable
         }
     }

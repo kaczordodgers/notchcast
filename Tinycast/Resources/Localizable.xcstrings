@@ -209,54 +209,54 @@
       }
     }
   },
-  "OpenBot off or Local scripts off": {
+  "OpenBot off or Local scripts off.": {
     "localizations": {
       "de": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot oder lokale Skripte deaktiviert"
+          "value": "OpenBot oder lokale Skripte deaktiviert."
         }
       },
       "es": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot o scripts locales desactivados"
+          "value": "OpenBot o scripts locales desactivados."
         }
       },
       "fr": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot ou scripts locaux désactivés"
+          "value": "OpenBot ou scripts locaux désactivés."
         }
       },
       "ja": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot またはローカルスクリプトが無効です"
+          "value": "OpenBot またはローカルスクリプトが無効です。"
         }
       },
       "ko": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot 또는 로컬 스크립트가 꺼져 있음"
+          "value": "OpenBot 또는 로컬 스크립트가 꺼져 있음."
         }
       },
       "pt": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot ou scripts locais desativados"
+          "value": "OpenBot ou scripts locais desativados."
         }
       },
       "ru": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot или локальные скрипты выключены"
+          "value": "OpenBot или локальные скрипты выключены."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "OpenBot 或本地脚本已关闭"
+          "value": "OpenBot 或本地脚本已关闭。"
         }
       }
     }
