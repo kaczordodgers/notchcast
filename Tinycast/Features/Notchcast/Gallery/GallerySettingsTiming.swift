@@ -65,6 +65,7 @@ enum GallerySettingsTiming {
                             try await display(window)
                             switches.append((CACurrentMediaTime() - switchStart) * 1000)
                             if trial == 4 {
+                                try await fitContent(window)
                                 let page = GalleryPage(name: "\(tab.slug)-\(dark ? "dark" : "light")",
                                                        types: ["SettingsDetailView"], makeWindow: { window })
                                 try GalleryCapture.write(page: page, window: window, output: output)
@@ -79,6 +80,8 @@ enum GallerySettingsTiming {
                 let encoder = JSONEncoder()
                 encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
                 try encoder.encode(results).write(to: output.appending(path: "timings.json"))
+                try results.map { "\($0.slug)-\($0.appearance).png" }.joined(separator: "\n")
+                    .write(to: output.appending(path: "manifest.txt"), atomically: false, encoding: .utf8)
                 print("Tab Appearance Open median (ms) Switch median (ms); n=5")
                 for result in results {
                     print(String(format: "%@ %@ %.2f %.2f", result.slug, result.appearance,
@@ -96,13 +99,33 @@ enum GallerySettingsTiming {
     static func display(_ window: NSWindow) async throws {
         await Task.yield()
         try Task.checkCancellation()
-        guard !window.isVisible, let view = window.contentView,
-              let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds) else {
+        guard !window.isVisible, let content = window.contentView else {
             throw GalleryFailure.capture("timing display")
+        }
+        let view = content.superview ?? content
+        view.layoutSubtreeIfNeeded()
+        view.displayIfNeeded()
+        guard let bitmap = view.bitmapImageRepForCachingDisplay(in: content.bounds) else {
+            throw GalleryFailure.capture("timing bitmap")
         }
         window.appearance?.performAsCurrentDrawingAppearance {
             view.layoutSubtreeIfNeeded()
-            view.cacheDisplay(in: view.bounds, to: bitmap)
+            view.cacheDisplay(in: content.bounds, to: bitmap)
+        }
+    }
+
+    static func fitContent(_ window: NSWindow) async throws {
+        try await Task.sleep(for: .milliseconds(160))
+        func height(_ view: NSView) -> CGFloat {
+            let documentHeight = (view as? NSScrollView)?.documentView?.frame.height ?? 0
+            return max(documentHeight, view.subviews.map(height).max() ?? 0)
+        }
+        for _ in 0..<4 {
+            guard let view = window.contentView else { throw GalleryFailure.capture("missing host") }
+            let required = max(800, ceil(height(view)))
+            if abs(required - view.bounds.height) < 1 { break }
+            window.setContentSize(CGSize(width: 800, height: required))
+            try await display(window)
         }
     }
 }

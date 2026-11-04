@@ -17,3 +17,4 @@ export NOTCHCAST_GALLERY_SETTINGS=1
 export NOTCHCAST_SETTINGS_TABS=${3:-notchcast}
 "$here/gallery/offscreen-check.sh" -- python3 "$here/gallery/isolate.py" "$scratch" "$out" "$bundle" "$executable"
 [[ -s $out/timings.json ]] || { echo 'Missing timings.json'; exit 1; }
+swift "$here/gallery/check-pixels.swift" "$out"
