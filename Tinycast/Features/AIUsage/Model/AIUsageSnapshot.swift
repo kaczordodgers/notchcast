@@ -18,9 +18,14 @@ nonisolated struct AIUsageSnapshot: Sendable, Equatable {
         }
     }
 
+    struct ResetCredits: Decodable, Sendable, Equatable {
+        let availableCount: Int
+    }
+
     let providerID: String
     let plan: String?
     let checkedAt: Date?
     let status: Status
     let windows: [Window]
+    var resetCredits: ResetCredits?
 }
