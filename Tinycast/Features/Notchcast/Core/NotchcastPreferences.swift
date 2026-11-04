@@ -79,6 +79,11 @@ final class NotchcastPreferences {
 
     var engineDefaults: UserDefaults { defaults }
 
+    var archiveHandlersClaimed: Bool {
+        get { defaults.bool(forKey: "archiveHandlersClaimed") }
+        set { defaults.set(newValue, forKey: "archiveHandlersClaimed") }
+    }
+
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
