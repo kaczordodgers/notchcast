@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct NotchcastSettingsView: View {
+    @Environment(AppCore.self) private var core
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
@@ -18,6 +19,8 @@ struct NotchcastSettingsView: View {
             featureSection(.notchcastLauncher, group: .launcher)
             featureSection(.notchcastSystem, group: .system)
             BrightnessSettingsSection(controller: NotchcastCore.brightness.controller)
+            AppearanceSettingsSection().environment(core.appearanceCoordinator)
+            PasteToolsSettingsSection()
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
 

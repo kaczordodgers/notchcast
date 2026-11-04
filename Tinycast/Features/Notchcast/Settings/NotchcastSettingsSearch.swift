@@ -3,6 +3,7 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastAppearance = Self(tab: .notchcast, title: "Appearance")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -24,6 +25,7 @@ extension SettingsAnchor {
     static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
     static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
     static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastPaste = Self(tab: .notchcast, title: "Clipboard")
 }
 
 extension SettingsSearchCatalog {
@@ -31,6 +33,12 @@ extension SettingsSearchCatalog {
     static let notchcast: [SettingsSearchEntry] = [
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
+        .init(.notchcastAppearance, "Custom appearance", keywords: ["enable", "colours", "colors", "theme"]),
+        .init(.notchcastAppearance, "Surface", keywords: ["glass", "black", "matte", "material"]),
+        .init(.notchcastAppearance, "Light theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Dark theme", keywords: ["palette", "raycast", "ray.so"]),
+        .init(.notchcastAppearance, "Theme backdrop", keywords: ["opacity", "background", "transparency"]),
+        .init(.notchcastAppearance, "Import from link", keywords: ["theme", "raycast", "ray.so", "url"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -75,5 +83,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
         .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastPaste, "Paste Plain Text", keywords: ["hyper", "clipboard", "formatting"]),
+        .init(.notchcastPaste, "Paste Image in Finder", keywords: ["png", "clipboard", "file"]),
     ]
 }
