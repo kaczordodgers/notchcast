@@ -24,7 +24,9 @@ enum NotchcastCore {
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
         IslandController.shared.configurePages(core)
-        let monitor = MonitorModule(preferences: .shared)
+        let monitor = MonitorModule(preferences: .shared) { [weak core] in
+            core?.showMessage($0, tone: .danger)
+        }
         self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),

@@ -36,9 +36,31 @@ struct MonitorAlertsTests {
         precondition(calls.count == 2)
         evaluate(95, 134)
         precondition(calls.count == 3)
+        evaluate(70, 135)
+        evaluate(95, 136, demand: 0)
+        evaluate(95, 137)
+        precondition(calls.count == 3)
+        evaluate(95, 1035)
+        precondition(calls.count == 4)
         evaluate(95, 200, enabled: false)
         evaluate(95, 300, demand: 0)
-        precondition(calls.count == 3)
+        precondition(calls.count == 4)
+
+        var diskCalls = 0
+        let diskAlerts = MonitorAlerts { _ in diskCalls += 1 }
+        let diskRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [
+            .diskFree: .init(direction: .below, threshold: 10, recoverValue: 15, sustainCount: 1)
+        ]
+        let writable = DiskVolume(name: "Data", mountPath: "/", total: 100, available: 50)
+        let image = DiskVolume(name: "Image", mountPath: "/Volumes/Image", total: 100,
+                               available: 0, isReadOnly: true)
+        diskAlerts.evaluate(MonitorSnapshot(volumes: [writable, image]), rules: diskRules,
+                            enabled: true, demand: 1, at: Date())
+        precondition(diskCalls == 0)
+        let full = DiskVolume(name: "Data", mountPath: "/", total: 100, available: 1)
+        diskAlerts.evaluate(MonitorSnapshot(volumes: [full, image]), rules: diskRules,
+                            enabled: true, demand: 1, at: Date())
+        precondition(diskCalls == 1)
         print("PASS: threshold crossing, hysteresis, cooldown, disabled and no-demand gating")
     }
 }

@@ -12,15 +12,11 @@ final class MonitorAlerts {
         _ snapshot: MonitorSnapshot, rules configured: [MonitorAlertRule.Metric: MonitorAlertRule],
         enabled: Bool, demand: Int, at now: Date
     ) {
-        guard enabled, demand > 0 else {
-            rules = [:]
-            configuration = [:]
-            return
-        }
+        guard enabled, demand > 0 else { return }
         let pressure = snapshot.memory?.pressure.map { pressure in
             switch pressure { case .normal: 0.0; case .warning: 1.0; case .critical: 2.0 }
         }
-        let diskFree = snapshot.volumes.filter { $0.total > 0 }
+        let diskFree = snapshot.volumes.filter { $0.total > 0 && !$0.isReadOnly }
             .map { Double($0.available) / Double($0.total) * 100 }.min()
         let values: [MonitorAlertRule.Metric: Double?] = [
             .cpu: snapshot.cpu?.usage?.totalPercent,
