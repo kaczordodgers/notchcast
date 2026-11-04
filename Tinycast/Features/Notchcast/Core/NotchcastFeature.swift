@@ -25,6 +25,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dictationCleanup
     case dictationHistory
     case dictationEnglish
+    case globeDictation
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -47,6 +48,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationCleanup: .captureAndDictation
         case .dictationEnglish: .captureAndDictation
         case .dictationHistory: .captureAndDictation
+        case .globeDictation: .captureAndDictation
         case .systemMonitor: .systemTools
         case .fanControl: .systemTools
         case .monitorAlerts: .systemTools
@@ -95,6 +97,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dictationCleanup: String(localized: "AI cleanup")
         case .dictationEnglish: String(localized: "Dictate in English")
         case .dictationHistory: String(localized: "Keep dictation history")
+        case .globeDictation: String(localized: "Globe Dictation")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -130,6 +133,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .screenshot: String(localized: "Capture an area, window or display.")
         case .dictationCleanup: String(localized: "Clean up final dictation transcripts.")
         case .dictationHistory: String(localized: "Keep dictation history")
+        case .globeDictation: String(localized: "Tap Globe to start or finish dictation, or hold it to talk.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -145,6 +149,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         switch self {
         case .dictationEnglish: [.accessibility]
         case .screenshot: [.screenRecording]
+        case .globeDictation: [.accessibility]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -163,6 +168,7 @@ extension NotchcastFeature {
         case .dictationCleanup: false
         case .dictationEnglish: false
         case .dictationHistory: false
+        case .globeDictation: false
         case .displayBrightness: false
         case .quitProtection: false
         default: true
