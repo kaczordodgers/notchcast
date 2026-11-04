@@ -1,6 +1,7 @@
 @MainActor
 enum NotchcastCore {
     static let mediaTools = MediaToolsModule()
+    static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -32,6 +33,7 @@ enum NotchcastCore {
         let downloadServices = NotchcastDownloadServices(core: core)
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.urlCleaner], module: urlCleaner),
+            .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,

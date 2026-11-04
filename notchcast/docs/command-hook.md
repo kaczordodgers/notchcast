@@ -1,11 +1,32 @@
 # Launcher commands
 
+Features append one case per line in `Core/NotchcastFeature.swift`, one line per feature in
+each switch, and one group line in `settingsGroup`. Never extend an existing line or combine
+switch arms. `settingsGroup` stays exhaustive; `requiredGrants` lists only exceptions before
+`default: []`. If `startsOff` is present, its arms follow the same rule.
+`needsIsland` first excludes system features, then uses one exception arm per line and
+`default: true`; add exceptions as separate arms rather than extending a Boolean expression.
+New groups append one case line in `Core/NotchcastFeature+SettingsGroup.swift`, inside the
+separator comments. Keep separators between cases and members and between switches.
+Both files use `merge=union`; run `python3 notchcast/check-feature-shape.py` and
+`python3 notchcast/check-feature-shape-test.py` after merging.
+The checker rejects repeated enum cases and repeated feature cases within a switch: union
+can retain both the old and edited arm when another branch appends nearby.
+
 Define a `NotchcastCommand` beside its feature, then add one array element in
-`NotchcastCommandCatalog.all`:
+`Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift`:
 
 ```swift
 IslandController.launcherCommand,
 ```
+
+Register each feature on one line with a trailing comma and no other content on that line.
+Registration requires no changes in Tests. Git uses `merge=union` for this file so
+concurrent registrations merge cleanly. After every merge, check the file by hand:
+union merging can keep the same registration twice, and it keeps both the old and the
+new line when one branch removes or edits a registration while another adds one, so a
+removed command can come back. Change the legacy ID of Toggle Island only with a
+migration: no harness guards it.
 
 The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
 `.notchcast`), an `isEnabled` main-actor closure and a main-actor `run` closure.
@@ -31,7 +52,9 @@ dependency in the pure deep-link parser. Toggle Island's legacy link still works
 `NotchcastLauncher.open()` intentionally remains without a caller. Global shortcuts
 already use upstream `togglePalette`; any new island action needs a design decision.
 
-`notchcast-commands-test` compiles the shipped catalog, registration and hotkey mapping.
+`notchcast-commands-test` compiles the shipped catalog logic and hotkey mapping with
+its own test commands in an extension. It excludes `NotchcastCommandCatalog+All.swift`
+and feature command sources, so new registrations require no test changes.
 The three upstream index/settings/hotkey harnesses use empty fork-catalog fixtures through
 one compiler-source hook; no harness registration is added to the upstream runner.
 `Scripts/run-tests.sh` sources `notchcast/command-harness-sources.sh` because upstream
