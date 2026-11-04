@@ -8,6 +8,7 @@ extension SettingsAnchor {
     static let notchcastAppUpdates = Self(tab: .notchcast, title: "App updates")
     static let notchcastMacUpdate = Self(tab: .notchcast, title: "Update this Mac")
     static let notchcastTweaksApps = Self(tab: .notchcast, title: "System preferences")
+    static let notchcastTasks = Self(tab: .notchcast, title: "Tasks")
     static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
     static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
@@ -57,6 +58,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastCleaning, "Cleaning mode"),
         .init(.notchcastAppUpdates, "App updates"),
         .init(.notchcastMacUpdate, "Update this Mac"),
+        .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
+        .init(group: .notchcastTasks, "Import Todoist JSON export…", keywords: ["json", "local file", "import"]),
         .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
@@ -167,6 +170,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastTweaks, "Notification Cleanup", keywords: ["disk", "ejection"]),
         .init(.notchcastTweaks, "Touch ID for sudo", keywords: ["authentication"]),
         .init(.notchcastTweaks, "Spotlight Indexing Off", keywords: ["search"]),
+        .init(.notchcastActivities, "Agent Session Logs", keywords: ["claude", "codex", "tokens"]),
+        .init(.notchcastSystem, "Agent API Value", keywords: ["pricing", "cost", "tokens"]),
         .init(.notchcastMusic, "Show what is playing", keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(.notchcastMusic, "Resume last player", keywords: ["play key", "spotify", "media key"]),
         .init(.notchcastMusic, "Stop Apple Music opening on media keys", keywords: ["music app", "itunes", "media key", "play key"]),

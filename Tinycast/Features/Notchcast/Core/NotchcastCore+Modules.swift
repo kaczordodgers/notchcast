@@ -16,6 +16,7 @@ extension NotchcastCore {
     static let appUpdates = AppUpdatesModule.live()
     static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
     static let clean = CleanModule()
+    static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
@@ -67,6 +68,7 @@ extension NotchcastCore {
             .init(requires: [.macUpdate], module: macUpdate),
             .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
             .init(requires: [.audioPriority], module: AudioPriorityModule()),
+            .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: pastePlain),

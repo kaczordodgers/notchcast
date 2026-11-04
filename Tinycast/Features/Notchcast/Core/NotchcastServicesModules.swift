@@ -7,7 +7,8 @@ extension NotchcastServices {
             .init(requires: [.island, .musicBlockAppleMusic], module: appleMusic),
             .init(requires: [.island, .musicNowPlaying, .spotifyConnect], module: spotify),
             .init(requires: [.island, .microphoneMute], module: microphone),
-            .init(requires: [.island, .inUseMarks], module: marks)
+            .init(requires: [.island, .inUseMarks], module: marks),
+            .init(requires: [.tasks], module: tasks)
         ]
     }
 }
