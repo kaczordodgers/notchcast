@@ -103,8 +103,6 @@ extension NotchcastCore {
         let plainPasteModule = PlainPasteModule(clipboard: core.clipboardManager)
         self.pastePlain = plainPasteModule
         let downloadServices = NotchcastDownloadServices(core: core)
-        let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
-        self.pastePlain = pastePlain
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
