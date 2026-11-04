@@ -10,6 +10,7 @@ enum NotchcastCore {
     static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
+    static let hideCommandM = HideCommandMModule(hub: eventTapHub)
     private static var controller: NotchcastModuleController?
 
     static func start(_ core: AppCore) {
@@ -25,6 +26,7 @@ enum NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
+            .init(requires: [.hideCommandM], module: hideCommandM),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
