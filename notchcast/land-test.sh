@@ -22,8 +22,13 @@ for name, value in values.items():
                        rf'\g<1>        case .landingFixture: {value}\n', s)
     assert count == 1, name
 p.write_text(s)
+p = Path('Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift')
+s = p.read_text()
+head = 'static let allowed: [String: Value] = [\n'
+assert head in s
+p.write_text(s.replace(head, head + '        "landingFixture": .bool,\n', 1))
 PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift
 git commit --quiet -m 'Fixture: add enum case'
 a=$(git rev-parse HEAD)
 "$root/notchcast/changed-harnesses.sh" "$base" "$a" > "$scratch/selected"

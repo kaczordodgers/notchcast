@@ -359,7 +359,7 @@ class FeatureShapeTests(unittest.TestCase):
             run(self.root, "git", "merge", "--no-ff", "--no-edit", name)
             self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
         self.assertEqual(SHAPE.check(self.root), [])
-        run(self.root, "swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS), str(PREFS))
+        run(self.root, "swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.LOGIC), str(SHAPE.GROUPS), str(PREFS))
         run(self.root, "git", "switch", "-qc", "edit", "base~2")
         prefs.write_text(base.replace('?? "auto"', '?? "quiet"'))
         run(self.root, "git", "commit", "-qam", "Change fan mode default")
