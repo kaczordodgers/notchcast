@@ -1,9 +1,11 @@
 @MainActor
 enum NotchcastCore {
+    static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
     static let brightness = DisplayBrightnessModule()
+    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: systemLevels, brightness: brightness)
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
@@ -14,8 +16,11 @@ enum NotchcastCore {
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
+    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func stopForTermination() async {
+        machineBackup.stop()
+        await machineBackup.waitUntilIdle()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -28,14 +33,17 @@ enum NotchcastCore {
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
+            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
                 .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
             .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
+            .init(requires: [], module: levelKeys),
             .init(requires: [.quitProtection], module: quitProtectionModule),
             .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [.island, .liveTimers], module: timers),
