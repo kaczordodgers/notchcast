@@ -14,7 +14,7 @@ CATALOG = "Tinycast/Resources/Localizable.xcstrings"
 
 
 def git(*args):
-    return subprocess.check_output(["git", *args], text=True)
+    return subprocess.check_output(["git", "-C", str(Path.cwd()), *args], text=True)
 
 
 def check(base, head, added_swift, remaining_swift, allowed=()):
