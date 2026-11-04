@@ -263,7 +263,7 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
-        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && !isLauncherKeysFeature
+        !isSystemFeature && self != .spacesOrder && self != .switcherQuitKey && self != .pastePlain && !isLauncherKeysFeature
     }
 
     var isSystemFeature: Bool { settingsGroup == .systemTools }
