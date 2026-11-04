@@ -36,3 +36,12 @@ struct TimerModuleTest {
         print("PASS timer module owns ringing, switch teardown and resuming persisted timers")
     }
 }
+
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    let appIndex = CommandIndexFixture()
+}
+@MainActor final class CommandIndexFixture {
+    private(set) var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
+}
