@@ -11,6 +11,7 @@ final class DayCalendarService {
     @ObservationIgnored private var observer: NotificationToken?
     private let defaults: UserDefaults
     private var excludedIDs: Set<String>
+    var excludedCalendarIDs: Set<String> { excludedIDs }
     private let excludedKey = "notchcast.day.excludedCalendars"
 
     init(store: CalendarStore, defaults: UserDefaults = DayStorage.defaults) {
