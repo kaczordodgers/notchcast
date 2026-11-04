@@ -19,9 +19,20 @@ struct BatteryStoreTests {
             precondition(!preferences.isOn(feature))
         }
         preferences.batteryChargePercent = 45
-        precondition(preferences.batteryChargePercent == 80)
+        precondition(preferences.batteryChargePercent == 60)
         preferences.batteryChargePercent = 100
-        precondition(preferences.batteryChargePercent == 80)
+        precondition(preferences.batteryChargePercent == 90)
+        let defaults = UserDefaults(suiteName: suite)!
+        for enabled in [false, true] {
+            defaults.set(enabled, forKey: NotchcastFeature.batteryChargeLimit.rawValue)
+            for (stored, expected) in [(100, 90), (85, 80), (65, 60), (50, 60)] {
+                defaults.set(stored, forKey: "batteryChargePercent")
+                let restored = NotchcastPreferences(suiteName: suite)
+                precondition(restored.isOn(.batteryChargeLimit) == enabled)
+                precondition(restored.batteryChargePercent == expected)
+            }
+        }
+        defaults.set(false, forKey: NotchcastFeature.batteryChargeLimit.rawValue)
         preferences.keepAwakeMinutes = -1
         precondition(preferences.keepAwakeMinutes == 60)
         precondition(NotchcastPreferences(suiteName: suite).keepAwakeMinutes == 60)
@@ -34,7 +45,9 @@ struct BatteryStoreTests {
             root: { _ in rootCalls += 1 }, installed: { true }, version: { "1" }, create: { _ in
             created += 1
             return UInt32(created)
-        }, release: { released.append($0) }))
+        }, release: { released.append($0) }, readLimit: {
+            preconditionFailure("Old helper must never read the native limit")
+        }))
         preferences.set(.keepAwake, true)
         preferences.set(.batteryChargeLimit, true)
         module.start()
@@ -109,6 +122,23 @@ struct BatteryStoreTests {
         precondition(unsupported.chargingUnsupported && attempts == 1)
         unsupported.stop()
         await unsupported.waitUntilIdle()
+        for feature in NotchcastFeature.allCases where feature.isSystemFeature {
+            preferences.set(feature, false)
+        }
+        var cleanupCalls: [BatteryRootVerbs] = []
+        let leftover = BatteryModule(preferences: preferences, runner: .init(read: { nil },
+            root: { cleanupCalls.append($0) }, installed: { true }, version: { "2" },
+            create: { _ in preconditionFailure("No assertions expected") }, release: { _ in },
+            supports: { _ in true }, readLimit: { 85 }))
+        leftover.start()
+        for _ in 0..<100 { await Task.yield() }
+        await leftover.evaluate(now: .now)
+        precondition(cleanupCalls == [.chargeLimitOff] && leftover.nativeLimit == nil)
+        await leftover.evaluate(now: .now)
+        precondition(cleanupCalls == [.chargeLimitOff])
+        leftover.stop()
+        await leftover.waitUntilIdle()
+        precondition(cleanupCalls == [.chargeLimitOff])
         var missingCalls = 0
         preferences.set(.batteryChargeLimit, true)
         let missing = BatteryModule(preferences: preferences, runner: .init(read: { nil },
@@ -121,6 +151,6 @@ struct BatteryStoreTests {
         precondition(!missing.nativeLimitAvailable && missingCalls == 0)
         missing.stop()
         await missing.waitUntilIdle()
-        print("PASS: default-off switches, option bounds, missing verbs no-op, switch-off and quit release")
+        print("PASS: stored limit rounding, startup cleanup once, missing verbs, switch-off and quit release")
     }
 }

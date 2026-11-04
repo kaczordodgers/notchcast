@@ -31,7 +31,7 @@ final class NotchcastPreferences {
     var batteryChargePercent: Int {
         get { chargePercent }
         set {
-            chargePercent = Self.chargeLimits.contains(newValue) ? newValue : 80
+            chargePercent = Self.chargeLimits.last(where: { $0 <= newValue }) ?? 60
             defaults.set(chargePercent, forKey: "batteryChargePercent")
         }
     }
@@ -62,8 +62,8 @@ final class NotchcastPreferences {
         monitorDisk = threshold("monitorDisk", 10, 1...50)
         monitorBattery = threshold("monitorBattery", 15, 1...50)
         fanMode = defaults.string(forKey: "fanMode") ?? "auto"
-        let percent = defaults.integer(forKey: "batteryChargePercent")
-        chargePercent = Self.chargeLimits.contains(percent) ? percent : 80
+        let percent = defaults.object(forKey: "batteryChargePercent") as? Int ?? 80
+        chargePercent = Self.chargeLimits.last(where: { $0 <= percent }) ?? 60
         let minutes = defaults.integer(forKey: "keepAwakeMinutes")
         awakeDuration = Self.awakeDurations.contains(minutes) ? minutes : 60
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard

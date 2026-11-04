@@ -56,7 +56,7 @@ final class BatteryModule: NotchcastModule {
             && runner.supports("charge-limit-off")
             && NotchcastPreferences.chargeLimits.allSatisfy { runner.supports("charge-limit-\($0)") }
     }
-    @ObservationIgnored private var appliedLimit: BatteryRootVerbs?
+    @ObservationIgnored private var appliedLimit: String?
     @ObservationIgnored private var observationID: UUID?
     @ObservationIgnored private var refreshTask: Task<Void, Never>?
     @ObservationIgnored private var applied: [String: BatteryRootVerbs] = [
@@ -83,6 +83,7 @@ final class BatteryModule: NotchcastModule {
     func start() {
         guard !running else { return }
         running = true
+        appliedLimit = nil
         let identity = UUID()
         observationID = identity
         refreshHelper()
@@ -112,6 +113,9 @@ final class BatteryModule: NotchcastModule {
                     let limit = try await self.runner.readLimit()
                     try Task.checkCancellation()
                     self.nativeLimit = limit
+                    if self.appliedLimit == nil {
+                        self.appliedLimit = limit.map { "charge-limit-\($0)" }
+                    }
                 }
                 if self.running { self.schedule() }
             } catch {
@@ -169,10 +173,10 @@ final class BatteryModule: NotchcastModule {
                 guard let verb = on(.batteryChargeLimit)
                     ? BatteryRootVerbs(rawValue: "charge-limit-\(preferences.batteryChargePercent)")
                     : .chargeLimitOff else { return }
-                if appliedLimit != verb && (on(.batteryChargeLimit) || appliedLimit != nil) {
+                if appliedLimit != verb.rawValue && (on(.batteryChargeLimit) || appliedLimit != nil) {
                     try await runner.root(verb)
                     try Task.checkCancellation()
-                    appliedLimit = verb
+                    appliedLimit = verb.rawValue
                     nativeLimit = Int(verb.rawValue.components(separatedBy: "-").last ?? "")
                 }
             }

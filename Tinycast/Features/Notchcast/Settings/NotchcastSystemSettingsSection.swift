@@ -23,7 +23,7 @@ struct NotchcastSystemSettingsSection: View {
                 }
                 .settingsEnabled(feature != .fanControl || preferences.isOn(.systemMonitor))
                 .settingsEnabled(!(feature == .batterySailing || feature == .batteryHeatProtection)
-                                 || !NotchcastCore.battery.chargingUnsupported)
+                                 || preferences.isOn(feature) || !NotchcastCore.battery.chargingUnsupported)
             }
             Picker(selection: $preferences.fanMode) {
                 Text("Auto").tag("auto")
