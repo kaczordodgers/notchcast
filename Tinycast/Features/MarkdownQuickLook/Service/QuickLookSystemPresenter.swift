@@ -19,9 +19,9 @@ final class QuickLookSystemPresenter: NSObject, @MainActor QLPreviewPanelDataSou
         panel.makeKeyAndOrderFront(nil)
     }
 
-    func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int { item == nil ? 0 : 1 }
+    func numberOfPreviewItems(in panel: QLPreviewPanel?) -> Int { item == nil ? 0 : 1 }
 
-    func previewPanel(_ panel: QLPreviewPanel!, previewItemAt index: Int) -> (any QLPreviewItem)! {
+    func previewPanel(_ panel: QLPreviewPanel?, previewItemAt index: Int) -> (any QLPreviewItem)? {
         item as NSURL?
     }
 }
