@@ -25,6 +25,28 @@ struct CleanHistoryTests {
             try check(Data(contentsOf: original) == Data("sentinel".utf8))
             print("PASS concurrent independent stores retain all lines; failed audit restores fake trash")
         }
+        try fixture { home, trash, log, _ in
+            let original = home.appendingPathComponent("collision")
+            let moved = trash.appendingPathComponent("collision")
+            try Data("replacement".utf8).write(to: original)
+            try Data("saved".utf8).write(to: moved)
+            let failing = CleanHistoryStore(logPath: log.logPath, maximumBytes: 1)
+            do {
+                try failing.recordTrash(record(original.path, moved.path)) {
+                    try FileManager().moveItem(at: moved, to: original)
+                }
+                preconditionFailure("Expected recovery failure")
+            } catch let error as CleanHistoryStore.RecoveryFailure {
+                precondition(error.historyError as? CleanHistoryError == .recordTooLarge)
+                precondition(error.entry.trashPath == moved.path)
+                precondition(error.localizedDescription.contains(original.path))
+                precondition(error.localizedDescription.contains(moved.path))
+                precondition(!error.restoreError.localizedDescription.isEmpty)
+            }
+            try check(Data(contentsOf: original) == Data("replacement".utf8))
+            try check(Data(contentsOf: moved) == Data("saved".utf8))
+            print("PASS failed rollback reports both errors and recovery paths")
+        }
         try fixture { home, trash, log, restore in
             let source = trash.appendingPathComponent("item")
             let target = home.appendingPathComponent("item")

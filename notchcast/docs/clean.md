@@ -6,7 +6,7 @@ The Settings rows use native controls inside the Notchcast pane's Clean section.
 
 AI data lists only the engine's Claude, Codex, OpenCode and worktree sources. Codex and OpenCode are report-only. Claude chats require verified idle state and a verified recovery copy; worktrees require the engine's Git eligibility checks and verified idle state. Unknown Git or process state never grants deletion.
 
-History records trash destinations returned by FileManager and uses the history engine's exclusive restore. Restore roots are each record's exact original and trash parent directories. Existing destinations are never overwritten, and the engine rejects unsafe paths and symbolic links. Actions on records without a trash destination remain unavailable.
+History records trash destinations returned by FileManager and uses the history engine's exclusive restore. Restore roots are each record's exact original and trash parent directories. Existing destinations are never overwritten, and the engine rejects unsafe paths and symbolic links. Actions on records without a trash destination remain unavailable. If both the History write and rollback fail, the error reports both failures and the original and Trash paths for recovery.
 
 System root lists the engine's allowed roots. Both Clean helper verbs are checked through `RootContract.Command(rawValue:)`; the current contract has neither, so the row shows “Needs the Notchcast helper update” and starts no work. The helper and its contract are unchanged.
 

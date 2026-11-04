@@ -1,11 +1,30 @@
 // notchcast-sources: Tinycast/Features/Clean/*/*.swift
 // notchcast-sources: Tinycast/Features/Clean/CleanCoordinator.swift
+// notchcast-sources: Tinycast/Features/Clean/CleanModule.swift
+// notchcast-sources: Tinycast/Features/Clean/CleanOptimizeTask+Presentation.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 import Foundation
 import Synchronization
+
+@MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
+@MainActor enum NotchcastCore {}
+enum AppPaths {
+    static func applicationSupport() -> URL { FileManager().temporaryDirectory }
+}
+struct DialogAction {
+    enum Role { case destructive, cancel }
+    let title: String
+    let role: Role
+}
+enum Tone { case danger }
+@MainActor final class AppCore {
+    func showMessage(_ message: String, tone: Tone) {}
+    func choose(title: String, message: String, symbol: String, options: [DialogAction],
+                defaultIndex: Int, tone: Tone) async -> Int? { nil }
+}
 
 final class WiringFake: Sendable {
     struct State {
@@ -70,6 +89,12 @@ struct CleanWiringTest {
         let suite = "clean-wiring-" + UUID().uuidString
         let preferences = NotchcastPreferences(suiteName: suite)
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let module = CleanModule(preferences: preferences)
+        module.start()
+        module.set(.cleanJunk, true)
+        module.set(.cleanJunk, false)
+        module.stop()
+        precondition(module.coordinator.reviews.isEmpty)
         precondition(CleanCoordinator.features.allSatisfy { !preferences.isOn($0) && !$0.needsIsland })
         var listeners = 0
         var accept = false

@@ -31,8 +31,23 @@ final class CleanHistoryStore: Sendable {
     func recordTrash(_ entry: CleanHistoryEntry, restore: () throws -> Void) throws {
         do { try append(entry) }
         catch {
-            try restore()
+            let historyError = error
+            do { try restore() }
+            catch {
+                throw RecoveryFailure(entry: entry, historyError: historyError, restoreError: error)
+            }
             throw error
+        }
+    }
+
+    struct RecoveryFailure: LocalizedError {
+        let entry: CleanHistoryEntry
+        let historyError: Error
+        let restoreError: Error
+
+        var errorDescription: String? {
+            "\(entry.originalPath) → \(entry.trashPath): "
+                + "\(historyError.localizedDescription); \(restoreError.localizedDescription)"
         }
     }
 

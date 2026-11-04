@@ -13,7 +13,11 @@ final class CleanModule: NotchcastModule {
         logPath: AppPaths.applicationSupport().appendingPathComponent("clean-history.jsonl"))
     private var running = false
     private weak var core: AppCore?
-    private let preferences = NotchcastPreferences.shared
+    private let preferences: NotchcastPreferences
+
+    init(preferences: NotchcastPreferences = .shared) {
+        self.preferences = preferences
+    }
     lazy var coordinator = CleanCoordinator(
         transport: .init(scan: Self.scan, supportsRootCommand: { RootContract.Command(rawValue: $0) != nil }),
         isOn: { [preferences] in preferences.isOn($0) },
