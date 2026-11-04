@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeEngine.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeClick.swift
+// notchcast-sources: Tinycast/Features/GreenMaximize/Service/GreenMaximizeRefresh.swift
 import CoreGraphics
 import Foundation
 
