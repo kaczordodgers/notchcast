@@ -506,6 +506,8 @@ final class AppCore {
             pendingURLs?.append(url)
             return
         }
+        if handleTorrentURL(url) { return }
+        if NotchcastCore.archives.open(url) { return }
         if deepLinkCoordinator.handles(url) {
             deepLinkCoordinator.open(url)
             return
@@ -573,6 +575,7 @@ final class AppCore {
         dictationAudioDucker.restoreImmediately()
         await dictationAudioDucker.waitForTransition()
         await dictationModels.stop()
+        await NotchcastCore.archives.prepareForTermination()
     }
 
     /// Idempotent: both switches are tracked, and either one flipping re-runs the whole decision.
