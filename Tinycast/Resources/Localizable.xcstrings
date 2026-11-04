@@ -1,30 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Recording Trimmer" : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufnahmen kürzen" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Recortador de grabaciones" } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Découpage des enregistrements" } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "録画のトリミング" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "녹화 자르기" } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Recortar gravações" } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обрезка записей" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "录制剪辑" } }
-      }
-    },
-    "Trim recordings and export MP4 or GIF files." : {
-      "localizations" : {
-        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufnahmen kürzen und als MP4 oder GIF exportieren." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Recorta grabaciones y exporta archivos MP4 o GIF." } },
-        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Découpez les enregistrements et exportez des fichiers MP4 ou GIF." } },
-        "ja" : { "stringUnit" : { "state" : "translated", "value" : "録画をトリミングしてMP4またはGIFファイルに書き出します。" } },
-        "ko" : { "stringUnit" : { "state" : "translated", "value" : "녹화를 자르고 MP4 또는 GIF 파일로 내보냅니다." } },
-        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Recorte gravações e exporte arquivos MP4 ou GIF." } },
-        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обрезайте записи и экспортируйте файлы MP4 или GIF." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "剪辑录制内容并导出MP4或GIF文件。" } }
-      }
-    },
     "Monitor Alerts" : {
       "localizations" : {
         "de" : {
@@ -141589,6 +141565,58 @@
         }
       }
     },
+    "Activities" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktivitäten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actividades"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activités"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクティビティ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "활동"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atividades"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Активности"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "活动"
+          }
+        }
+      }
+    },
     "ai-installed-tools" : {
       "localizations" : {
         "de" : {
@@ -142980,6 +143008,58 @@
         }
       }
     },
+    "Core Audio isn't responding (coreaudiod); restart it or your Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio reagiert nicht (coreaudiod); starte den Dienst oder deinen Mac neu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio no responde (coreaudiod); reinicia el servicio o el Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio ne répond pas (coreaudiod) ; redémarrez le service ou votre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio（coreaudiod）が応答していません。サービスまたはMacを再起動してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio(coreaudiod)가 응답하지 않습니다. 서비스 또는 Mac을 재시동하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Core Audio não está respondendo (coreaudiod); reinicie o serviço ou o Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio не отвечает (coreaudiod); перезапустите службу или Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio（coreaudiod）无响应；请重新启动该服务或 Mac。"
+          }
+        }
+      }
+    },
     "couldn't be read" : {
       "localizations" : {
         "de" : {
@@ -143870,6 +143950,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@后"
+          }
+        }
+      }
+    },
+    "Island Options" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inseloptionen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opciones de la isla"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Options de l’îlot"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アイランドのオプション"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아일랜드 옵션"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opções da ilha"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Настройки острова"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "灵动岛选项"
           }
         }
       }
@@ -145736,6 +145868,58 @@
         }
       }
     },
+    "Recording Trimmer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahmen kürzen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recortador de grabaciones"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Découpage des enregistrements"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録画のトリミング"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화 자르기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recortar gravações"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обрезка записей"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录制剪辑"
+          }
+        }
+      }
+    },
     "Refreshing" : {
       "localizations" : {
         "de" : {
@@ -146763,6 +146947,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "切换灵动岛显示"
+          }
+        }
+      }
+    },
+    "Trim recordings and export MP4 or GIF files." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufnahmen kürzen und als MP4 oder GIF exportieren."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorta grabaciones y exporta archivos MP4 o GIF."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Découpez les enregistrements et exportez des fichiers MP4 ou GIF."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "録画をトリミングしてMP4またはGIFファイルに書き出します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "녹화를 자르고 MP4 또는 GIF 파일로 내보냅니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recorte gravações e exporte arquivos MP4 ou GIF."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обрезайте записи и экспортируйте файлы MP4 или GIF."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪辑录制内容并导出MP4或GIF文件。"
           }
         }
       }
