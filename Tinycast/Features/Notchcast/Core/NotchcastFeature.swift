@@ -222,8 +222,6 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature { return false }
         return switch self {
-        case .spacesOrder: false
-        case .switcherQuitKey: false
         case .urlCleaner: false
         case .convertFiles: false
         case .mediaTools: false
