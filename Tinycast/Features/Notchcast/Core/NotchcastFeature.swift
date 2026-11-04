@@ -4,6 +4,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case island, islandExternalDisplays, islandFullScreen, islandHoverOpen
     case islandStatusMessages, islandLiveActivities, launcherFromIsland
     case systemMonitor, fanControl
+    case monitorAlerts
     case lowDiskWarning
     case systemNotices
     case volumeLevels
@@ -25,6 +26,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandLiveActivities: String(localized: "Live Activities")
         case .launcherFromIsland: String(localized: "Launcher from Island")
         case .systemMonitor: String(localized: "System Monitor")
+        case .monitorAlerts: String(localized: "Monitor Alerts")
         case .fanControl: String(localized: "Fan Control")
         case .lowDiskWarning: String(localized: "Low Disk Warning")
         case .systemNotices: String(localized: "System Notices")
@@ -53,6 +55,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandLiveActivities: String(localized: "Show live activities in the island.")
         case .launcherFromIsland: String(localized: "Open the launcher from the island.")
         case .systemMonitor: String(localized: "Monitor system performance.")
+        case .monitorAlerts: String(localized: "Evaluate alerts while the Monitor page is open.")
         case .fanControl: String(localized: "Control fans with the privileged helper.")
         case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.")
         case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.")
@@ -78,7 +81,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
-            .systemMonitor, .fanControl, .batteryChargeLimit, .batterySailing,
+            .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
             .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
             []
         }
@@ -90,7 +93,7 @@ extension NotchcastFeature {
     var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
 
     var isSystemFeature: Bool {
-        [.systemMonitor, .fanControl, .batteryChargeLimit, .batterySailing,
+        [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
          .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake].contains(self)
     }
 }
