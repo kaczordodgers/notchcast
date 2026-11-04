@@ -29,6 +29,7 @@ final class ScreenshotModule: NotchcastModule {
     private var enabled = false
     private var operation: UUID?
     private var captureTask: Task<URL?, Error>?
+    var commandTask: Task<Void, Never>?
     private static let destinationKey = "notchcast.screenshot.destination"
     private static let folderKey = "notchcast.screenshot.folder"
 
@@ -49,6 +50,8 @@ final class ScreenshotModule: NotchcastModule {
 
     func stop() {
         enabled = false
+        commandTask?.cancel()
+        commandTask = nil
         cancelCapture()
     }
 
@@ -92,5 +95,5 @@ final class ScreenshotModule: NotchcastModule {
         captureTask = nil
     }
 
-    isolated deinit { captureTask?.cancel() }
+    isolated deinit { captureTask?.cancel(); commandTask?.cancel() }
 }

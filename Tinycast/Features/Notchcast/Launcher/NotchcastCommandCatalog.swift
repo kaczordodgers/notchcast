@@ -3,6 +3,8 @@ import Foundation
 enum NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
+        ColorPickerModule.launcherCommand,
+        ScreenshotModule.launcherCommand,
     ]
 
     static var entries: [AppEntry] { all.map(\.entry) }

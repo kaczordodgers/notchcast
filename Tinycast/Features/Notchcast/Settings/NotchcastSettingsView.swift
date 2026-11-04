@@ -49,7 +49,6 @@ struct NotchcastSettingsView: View {
             .settingsEnabled(preferences.isOn(.island))
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
-                .settingsEnabled(preferences.isOn(.island))
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)

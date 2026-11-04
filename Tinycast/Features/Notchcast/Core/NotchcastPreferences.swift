@@ -21,6 +21,7 @@ final class NotchcastPreferences {
         suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
 
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored var onCommandsChanged: (() -> Void)?
     /// Every switch defaults to on, so only the ones turned off are stored.
     private var off: Set<NotchcastFeature>
 
@@ -37,5 +38,6 @@ final class NotchcastPreferences {
         guard isOn(feature) != enabled else { return }
         defaults.set(enabled, forKey: feature.rawValue)
         if enabled { off.remove(feature) } else { off.insert(feature) }
+        if feature == .colorPicker || feature == .screenshot { onCommandsChanged?() }
     }
 }

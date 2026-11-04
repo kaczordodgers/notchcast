@@ -16,6 +16,9 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        NotchcastPreferences.shared.onCommandsChanged = { [weak core] in
+            core?.appIndex.refreshNotchcastCommands()
+        }
         IslandController.shared.configurePages(core)
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.island], module: IslandController.shared),
