@@ -691,6 +691,7 @@ extension NotchcastFeature {
         .agentMCPServer,
         .agentChatTools,
         .cleanSystem,
+        .linkQuickFixes,
         .remoteScreen,
         .machMBPFans,
         .macSetup,
