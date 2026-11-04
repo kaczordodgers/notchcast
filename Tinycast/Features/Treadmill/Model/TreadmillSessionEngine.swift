@@ -51,8 +51,7 @@ struct TreadmillSessionEngine: Sendable {
         return [TreadmillProtocol.resume]
     }
 
-    mutating func stop() throws -> [Data] {
-        guard walk != nil || startFrame != nil else { throw TreadmillFailure.noWalk }
+    mutating func stop() -> [Data] {
         stopping = true
         startFrame = nil
         startDeadline = nil

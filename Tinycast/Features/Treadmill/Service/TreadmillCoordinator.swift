@@ -19,6 +19,7 @@ final class TreadmillCoordinator {
     @ObservationIgnored private let clock: () -> Date
     @ObservationIgnored private let calendar: () -> Calendar
     @ObservationIgnored private var stream = TreadmillStream()
+    @ObservationIgnored private var togglePending = false
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var loadGeneration = UUID()
     @ObservationIgnored private var loading: Task<Void, Never>?
@@ -49,6 +50,9 @@ final class TreadmillCoordinator {
     func setEnabled(_ capability: Capability, _ enabled: Bool) {
         switch capability {
         case .walk:
+            if !enabled, walkEnabled {
+                do { try stopWalk() } catch { report(error) }
+            }
             walkEnabled = enabled
             if !enabled { disconnect() }
         case .history: historyEnabled = enabled
@@ -102,7 +106,10 @@ final class TreadmillCoordinator {
         }
     }
 
-    func stopWalk() throws { try perform { try $0.stop() } }
+    func stopWalk() throws {
+        togglePending = false
+        try perform { $0.stop() }
+    }
     func pauseWalk() throws { try perform { try $0.pause() } }
     func resumeWalk() throws { try perform { try $0.resume() } }
     func setSpeed(_ kmh: Double) throws { try perform { try $0.setSpeed(kmh) } }
@@ -110,7 +117,16 @@ final class TreadmillCoordinator {
     func slower() throws { try perform { try $0.nudgeSpeed(-0.5) } }
 
     func toggleWalk() throws {
-        if engine.walk == nil && !engine.isStarting { try startWalk() } else { try stopWalk() }
+        guard walkEnabled else { throw TreadmillFailure.disabled }
+        guard isReady else { throw TreadmillFailure.notReady }
+        if engine.walk != nil || engine.isStarting { try stopWalk(); return }
+        if !connected { try connect() }
+        togglePending = true
+        do { try transport.send(TreadmillProtocol.queryStatus) } catch {
+            togglePending = false
+            report(error)
+            throw error
+        }
     }
 
     func togglePause() throws {
@@ -130,6 +146,7 @@ final class TreadmillCoordinator {
     }
 
     func disconnect() {
+        togglePending = false
         generation = UUID()
         timeout?.cancel()
         timeout = nil
@@ -205,6 +222,13 @@ final class TreadmillCoordinator {
             guard generation == token, walkEnabled else { return }
             do {
                 for command in update.commands { try transport.send(command) }
+                if togglePending, case .status(let status) = message {
+                    togglePending = false
+                    switch status.phase {
+                    case .standby, .ready, .asleep, .ended: try startWalk()
+                    default: try stopWalk()
+                    }
+                }
             } catch {
                 report(error)
                 disconnect()

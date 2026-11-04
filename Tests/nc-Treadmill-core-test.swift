@@ -13,6 +13,7 @@ private final class FakeTreadmillTransport: TreadmillTransport {
     var sent: [Data] = []
     var opens = 0
     var closes = 0
+    var sentAtClose: [Data] = []
     var failSend = false
     var onOpen: (() -> Void)?
 
@@ -21,7 +22,7 @@ private final class FakeTreadmillTransport: TreadmillTransport {
         if failSend { throw TreadmillFailure.unavailable }
         sent.append(data)
     }
-    func close() { closes += 1 }
+    func close() { closes += 1; sentAtClose = sent }
     func emit(_ data: Data) { onBytes?(data) }
 }
 
@@ -147,13 +148,13 @@ private struct TreadmillTests {
         _ = try recovered.resume()
         expect(recovered.receive(message(status(3, speed: 10, seconds: 120)), now: now.addingTimeInterval(126)).commands
                == [try TreadmillProtocol.speed(5.5)], "Recovery preserves paused speed")
-        _ = try engine.stop()
+        _ = engine.stop()
         expect(engine.walk != nil, "Stop request keeps final counters pending")
         let finished = engine.receive(message(status(1, seconds: 180, meters: 200, steps: 270)),
                                       now: now.addingTimeInterval(180))
         expect(finished.finished.first?.seconds == 180 && finished.finished.first?.meters == 200, "Final counters saved")
         expect(engine.receive(message(short(0)), now: now).finished.isEmpty, "Final record exactly once")
-        refuses(.noWalk) { _ = try engine.stop() }
+        expect(engine.stop() == [TreadmillProtocol.stop], "Stop accepts unknown belt state")
         _ = try engine.start(speed: 4, minutes: 0, now: now)
         expect(engine.checkTimeout(now: now.addingTimeInterval(14)) == nil, "No early timeout")
         expect(engine.checkTimeout(now: now.addingTimeInterval(15)) == .timedOut, "Silent start times out")
@@ -305,8 +306,32 @@ private struct TreadmillTests {
                "Treadmill switches work without island")
         coordinator.setEnabled(.history, true)
         expect(transport.opens == 0 && transport.sent.isEmpty, "Enabling never opens transport")
+        try coordinator.stopWalk()
+        expect(transport.opens == 1 && transport.sent == [TreadmillProtocol.stop],
+               "Stop connects even with no known walk")
+        coordinator.disconnect()
+        transport.sent = []
+        try coordinator.toggleWalk()
+        expect(transport.sent == [TreadmillProtocol.queryStatus], "Unknown toggle queries before starting")
+        transport.emit(status(3))
+        expect(transport.sent == [TreadmillProtocol.queryStatus, TreadmillProtocol.stop],
+               "Remote walk toggle stops without START")
+        transport.emit(short(0))
+        coordinator.disconnect()
+        transport.sent = []
+        try coordinator.toggleWalk()
+        expect(transport.sent == [TreadmillProtocol.queryStatus], "Idle toggle waits for reply")
+        transport.emit(short(0))
+        expect(transport.sent.last == (try TreadmillProtocol.start(minutes: 0)), "Confirmed idle toggle starts")
+        coordinator.disconnect()
+        transport.sent = []
+        coordinator.setEnabled(.walk, false)
+        expect(transport.sent == [TreadmillProtocol.stop] && !coordinator.connected,
+               "Disabling unknown state sends Stop before closing")
+        coordinator.setEnabled(.walk, true)
+        transport.sent = []
         try coordinator.startWalk()
-        expect(transport.opens == 1 && transport.sent.count == 1, "Start opens injected transport once")
+        expect(transport.sent.count == 1, "Start opens injected transport once")
         transport.emit(short(2, 3))
         transport.emit(status(3, steps: 100))
         try coordinator.faster()
@@ -316,8 +341,9 @@ private struct TreadmillTests {
         let count = transport.sent.count
         coordinator.setEnabled(.walk, false)
         stale?(status(1, seconds: 500))
-        expect(transport.sent.count == count && coordinator.engine.walk?.sample.seconds == 60,
-               "Disable invalidates callbacks without sending hardware Stop")
+        expect(transport.sent.count == count + 1 && transport.sent.last == TreadmillProtocol.stop
+               && transport.sentAtClose == transport.sent && coordinator.engine.walk?.sample.seconds == 60,
+               "Disable sends Stop and invalidates callbacks")
         refuses(.disabled) { try coordinator.faster() }
         coordinator.setEnabled(.history, false)
         refuses(.disabled) { _ = try coordinator.stats() }
@@ -347,10 +373,11 @@ private struct TreadmillTests {
         try reentrant.startWalk()
         reentrantTransport.emit(short(2, 3))
         reentrantTransport.emit(status(3, speed: 10, steps: 100))
-        expect(!reentrant.walkEnabled && reentrantTransport.sent.count == 1,
+        expect(!reentrant.walkEnabled && reentrantTransport.sent.count == 2
+               && reentrantTransport.sent.last == TreadmillProtocol.stop,
                "Goal callback disabling Walk prevents queued speed commands")
         await reentrant.stopForTermination()
         let terminated = try await TreadmillRepository(directory: root.appending(path: "reentrant")).load(calendar: calendar)
-        expect(terminated.current?.sample.steps == 100, "Termination flushes the last counters without hardware commands")
+        expect(terminated.current?.sample.steps == 100, "Termination flushes the last counters")
     }
 }
