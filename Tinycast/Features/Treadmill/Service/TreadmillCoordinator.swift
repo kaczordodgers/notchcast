@@ -18,6 +18,7 @@ final class TreadmillCoordinator {
     @ObservationIgnored private let transport: any TreadmillTransport
     @ObservationIgnored private let clock: () -> Date
     @ObservationIgnored private let calendar: () -> Calendar
+    @ObservationIgnored private let reminders: TreadmillReminders?
     @ObservationIgnored private var stream = TreadmillStream()
     @ObservationIgnored private var togglePending = false
     @ObservationIgnored private var generation = UUID()
@@ -30,7 +31,9 @@ final class TreadmillCoordinator {
                                        category: "Treadmill")
 
     init(transport: any TreadmillTransport, history: TreadmillHistoryStore, preferences: TreadmillPreferences,
-         clock: @escaping () -> Date = Date.init, calendar: @escaping () -> Calendar = { .autoupdatingCurrent }) {
+         clock: @escaping () -> Date = Date.init, calendar: @escaping () -> Calendar = { .autoupdatingCurrent },
+         reminders: TreadmillReminders? = nil) {
+        self.reminders = reminders
         self.transport = transport
         self.history = history
         self.preferences = preferences
@@ -218,7 +221,9 @@ final class TreadmillCoordinator {
             if reachedGoal {
                 onGoalReached?()
             }
-            persist(force: previousPhase != engine.walk?.phase || !update.finished.isEmpty || reachedGoal)
+            let reminded = historyEnabled && (reminders?.post(history: history, reachedGoal: reachedGoal,
+                                                               now: clock(), calendar: calendar()) ?? false)
+            persist(force: previousPhase != engine.walk?.phase || !update.finished.isEmpty || reachedGoal || reminded)
             guard generation == token, walkEnabled else { return }
             do {
                 for command in update.commands { try transport.send(command) }
