@@ -12,13 +12,20 @@ struct NotchcastSystemSettingsSection: View {
                     get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
                     SettingsRowTitle(.notchcastMonitor, verbatim: feature.title)
                     Text(feature.subtitle)
+                    if (feature == .batterySailing || feature == .batteryHeatProtection),
+                       NotchcastCore.battery.chargingUnsupported {
+                        Text("Not supported on this Mac").foregroundStyle(.secondary)
+                    }
                     if feature != .systemMonitor && feature != .fanControl && feature != .keepAwake,
-                       NotchcastCore.battery.needsHelperUpdate {
+                       NotchcastCore.battery.needsHelperUpdate
+                        || (feature == .batteryChargeLimit && !NotchcastCore.battery.nativeLimitAvailable) {
                         Text("Needs the Notchcast helper update")
                             .foregroundStyle(.secondary)
                     }
                 }
                 .settingsEnabled(feature != .fanControl || preferences.isOn(.systemMonitor))
+                .settingsEnabled(!(feature == .batterySailing || feature == .batteryHeatProtection)
+                                 || preferences.isOn(feature) || !NotchcastCore.battery.chargingUnsupported)
             }
             Picker(selection: $preferences.fanMode) {
                 Text("Auto").tag("auto")
@@ -34,6 +41,11 @@ struct NotchcastSystemSettingsSection: View {
                 }
             } label: {
                 SettingsRowTitle(.notchcastChargePercent, "Charge limit percent")
+                if let limit = NotchcastCore.battery.nativeLimit {
+                    Text(Double(limit) / 100, format: .percent)
+                } else if NotchcastCore.battery.nativeLimitAvailable {
+                    Text("Off")
+                }
             }
             .settingsEnabled(preferences.isOn(.batteryChargeLimit))
             Picker(selection: $preferences.keepAwakeMinutes) {
