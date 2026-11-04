@@ -83,8 +83,9 @@ final class EventReminderModule: NotchcastModule {
         }
         let target = ([midnight] + [result.next].compactMap { $0 } + active.map(\.end)).min()!
         wake = Task { [weak self] in
-            do { try await Task.sleep(for: .seconds(max(0, target.timeIntervalSinceNow))) }
-            catch { return }
+            do {
+                try await Task.sleep(for: .seconds(max(0, target.timeIntervalSinceNow)))
+            } catch { return }
             guard !Task.isCancelled else { return }
             self?.refresh()
         }
