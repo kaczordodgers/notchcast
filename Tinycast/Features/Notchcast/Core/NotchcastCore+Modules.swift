@@ -3,6 +3,7 @@
 import Foundation
 
 extension NotchcastCore {
+    static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
@@ -42,6 +43,7 @@ extension NotchcastCore {
         self.pastePlain = pastePlain
         pasteImage.configureFeedback(core)
         return [
+            .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: pastePlain),
