@@ -48,7 +48,7 @@ struct NotchcastCoreTests {
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
         precondition(!NotchcastFeature.quitProtection.needsIsland)
         precondition(l3.allSatisfy { preferences.isOn($0) })
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultOn })
+        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == $0.defaultEnabled })
         precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
         precondition(!preferences.isOn(.torrentsKeepSharing))
         precondition(NotchcastFeature.torrents.dependencies.isEmpty)

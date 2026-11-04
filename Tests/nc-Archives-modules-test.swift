@@ -62,7 +62,7 @@ struct ArchiveModulesTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         precondition(preferences.isOn(.archives))
         for feature: NotchcastFeature in [.archivesInPlace, .archivesDefaultApp] {
-            precondition(!preferences.isOn(feature) && !feature.defaultOn)
+            precondition(!preferences.isOn(feature) && !feature.defaultEnabled)
             precondition(feature.dependencies == [.archives])
         }
         for feature: NotchcastFeature in [.archives, .archivesInPlace, .archivesDefaultApp] {

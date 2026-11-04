@@ -17,7 +17,9 @@
 import Foundation
 
 // notchcast-sources: Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift
-@MainActor enum NotchcastCore {}
+@MainActor enum NotchcastCore {
+    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
+}
 enum AppPaths {
     static func applicationSupport() -> URL { URL(fileURLWithPath: "/unused") }
 }
