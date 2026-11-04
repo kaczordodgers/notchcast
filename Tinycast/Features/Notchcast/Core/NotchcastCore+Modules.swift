@@ -28,6 +28,8 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
+    static let archives = ArchiveModule(preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         let pastePlain = PlainPasteModule(clipboard: core.clipboardManager)
@@ -60,6 +62,8 @@ extension NotchcastCore {
             .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.colorPicker], module: colorPicker),
             .init(requires: [.screenshot], module: screenshot),
+            .init(requires: [.torrents], module: torrents),
+            .init(requires: [.archives], module: archives),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }
