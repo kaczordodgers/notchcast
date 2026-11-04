@@ -84,7 +84,7 @@ struct EngineTest {
         let notification = await module.engine.receive(line: Data(#"{"jsonrpc":"2.0","method":"unknown"}"#.utf8))
         precondition(notification == nil)
         let resources = await send("resources/list")
-        precondition(resources.contains("sessions"))
+        precondition(resources.contains("agents.list"))
         precondition(!resources.contains("Secrets"))
         let refusedState = await send("resources/read", #"{"uri":"notchcast-state:credentials"}"#)
         precondition(refusedState.contains("-32602"))
