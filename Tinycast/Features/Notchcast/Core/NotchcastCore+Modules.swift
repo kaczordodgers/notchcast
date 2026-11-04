@@ -5,7 +5,13 @@ extension NotchcastCore {
     static let remoteScreen = RemoteScreenModule(channel: macLink.channel)
     static let blockedDialogs = BlockedDialogModule.linked(to: macLink.channel)
     static let macLink = AIUsageLinkModule()
-    static let aiUsage = AIUsageModule(channel: macLink.channel)
+    static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
+    static let machRemote = MachRemoteModule()
+    static let shelf = ShelfModule()
+    static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
+    static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteNotice, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteNotice, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
@@ -28,6 +34,12 @@ extension NotchcastCore {
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         [
+            .init(requires: [.machRemote], module: machRemote),
+            .init(requires: [.machRemote, .sendFiles], module: sendFiles),
+            .init(requires: [.machRemote, .updateRemote], module: updateRemote),
+            .init(requires: [.backupStatus], module: backupStatus),
+            .init(requires: [.machLink, .linkHealth], module: linkHealth),
+            .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
             .init(requires: [.machLink, .machMBPFans], module: remoteFans),
             .init(requires: [.machLink, .remoteScreen], module: remoteScreen),
             .init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: blockedDialogs),

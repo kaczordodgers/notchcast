@@ -11,6 +11,11 @@ final class NotchcastPreferences {
     private var off: Set<NotchcastFeature>
     private var chargePercent: Int
     private var awakeDuration: Int
+    var remoteMacAddress: String { didSet { defaults.set(remoteMacAddress, forKey: "remoteMacAddress") } }
+    var remoteTerminalDirectory: String { didSet { defaults.set(remoteTerminalDirectory, forKey: "remoteTerminalDirectory") } }
+    var remoteUpdatePath: String { didSet { defaults.set(remoteUpdatePath, forKey: "remoteUpdatePath") } }
+    var backupStatusPath: String { didSet { defaults.set(backupStatusPath, forKey: "backupStatusPath") } }
+    var aiUsageCachePath: String { didSet { defaults.set(aiUsageCachePath, forKey: "aiUsageCachePath") } }
     var greenMaximizeExcludedApps: String { didSet { defaults.set(greenMaximizeExcludedApps, forKey: "greenMaximizeExcludedApps") } }
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
@@ -25,6 +30,11 @@ final class NotchcastPreferences {
     init(suiteName: String) {
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
+        remoteMacAddress = defaults.string(forKey: "remoteMacAddress") ?? ""
+        remoteTerminalDirectory = defaults.string(forKey: "remoteTerminalDirectory") ?? ""
+        remoteUpdatePath = defaults.string(forKey: "remoteUpdatePath") ?? ""
+        backupStatusPath = defaults.string(forKey: "backupStatusPath") ?? ""
+        aiUsageCachePath = defaults.string(forKey: "aiUsageCachePath") ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
         monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
         monitorTemperature = Self.threshold(defaults, "monitorTemperature", 90, 40...110)
@@ -36,14 +46,6 @@ final class NotchcastPreferences {
         awakeDuration = Self.allowed(defaults.integer(forKey: "keepAwakeMinutes"), Self.awakeDurations, 60)
         islandHoverDelay = HoverDelay(rawValue: defaults.double(forKey: "islandHoverDelay")) ?? .standard
         off = Self.featuresOff(defaults)
-        off = Set(NotchcastFeature.allCases.filter {
-            !(defaults.object(forKey: $0.rawValue) as? Bool
-                ?? !($0.isSystemFeature
-                    || [.aiUsage, .aiUsageOtherMac, .machLink, .machBlockedDialogAlert].contains($0)))
-                    || [.aiUsage, .aiUsageOtherMac, .machLink, .remoteScreen].contains($0)))
-                ?? !($0.isSystemFeature || [.aiUsage, .aiUsageOtherMac, .machLink].contains($0)))
-                || ($0 == .machMBPFans && defaults.object(forKey: $0.rawValue) == nil)
-        })
     }
 
     func isOn(_ feature: NotchcastFeature) -> Bool { !off.contains(feature) }

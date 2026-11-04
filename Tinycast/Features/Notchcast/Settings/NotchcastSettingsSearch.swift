@@ -78,7 +78,18 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
         .init(.notchcastActivities, "AI Usage", keywords: ["plan", "limits", "cache"]),
         .init(.notchcastActivities, "Other Mac AI Usage", keywords: ["peer", "remote"]),
+        .init(.notchcastActivities, "Shelf between Macs", keywords: ["send", "files", "text"]),
         .init(.notchcastSystem, "Mac Link", keywords: ["pair", "network"]),
+        .init(.notchcastSystem, "Link Health", keywords: ["connection", "latency", "peer"]),
+        .init(.notchcastSystem, "Backup Status", keywords: ["backup", "stale", "failure", "restore"]),
+        .init(.notchcastSystem, "Remote Mac", keywords: ["ssh", "terminal", "Remote Mac address"]),
+        .init(.notchcastSystem, "Send to Remote Mac", keywords: ["files", "Finder"]),
+        .init(.notchcastSystem, "Update Remote Mac", keywords: ["update", "ssh"]),
+        .init(.notchcastRemoteMac, "Remote Mac address", keywords: ["ssh", "host", "alias"]),
+        .init(.notchcastRemoteMac, "Remote terminal directory"),
+        .init(.notchcastRemoteMac, "Remote update script path"),
+        .init(.notchcastSystem, "Backup status file path"),
+        .init(.notchcastActivities, "AI usage cache directory"),
         .init(group: .notchcastAIUsage, "Pairing code", keywords: ["pair", "unpair"]),
     ]
 }

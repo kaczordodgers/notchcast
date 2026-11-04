@@ -22,7 +22,8 @@ struct NotchcastSettingsView: View {
             NotchcastSystemSettingsSection()
 
             NotchcastExtrasSection()
-            AIUsageSettingsSection(link: NotchcastCore.macLink)
+            MachRemoteSettingsSection()
+            BackupStatusSettingsSection()
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
                 .settingsEnabled(preferences.isOn(.island))
