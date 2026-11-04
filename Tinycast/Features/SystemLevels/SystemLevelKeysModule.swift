@@ -6,12 +6,15 @@ final class SystemLevelKeysModule: NotchcastModule {
     private(set) var latest: LevelNotice?
     private(set) var revision = 0
     var hudPresenterAvailable = false {
-        didSet { observeSwitches() }
+        didSet {
+            if oldValue != hudPresenterAvailable { observeSwitches() }
+        }
     }
     @ObservationIgnored private let levels: SystemLevelsModule
     @ObservationIgnored private let brightness: DisplayBrightnessModule
     @ObservationIgnored private let preferences: NotchcastPreferences
     @ObservationIgnored private let hub: EventTapHub
+    @ObservationIgnored private let present: (LevelNotice?) -> Void
     @ObservationIgnored private var running = false
     @ObservationIgnored private lazy var monitor = MediaLevelKeyMonitor(
         hub: hub, prepare: { [weak self] press in
@@ -19,11 +22,13 @@ final class SystemLevelKeysModule: NotchcastModule {
         }, applied: { [weak self] notice in self?.publish(notice) })
 
     init(hub: EventTapHub, levels: SystemLevelsModule, brightness: DisplayBrightnessModule,
-         preferences: NotchcastPreferences = .shared) {
+         preferences: NotchcastPreferences = .shared,
+         present: @escaping (LevelNotice?) -> Void = { _ in }) {
         self.hub = hub
         self.levels = levels
         self.brightness = brightness
         self.preferences = preferences
+        self.present = present
     }
 
     func start() {
@@ -36,11 +41,13 @@ final class SystemLevelKeysModule: NotchcastModule {
         running = false
         monitor.stop()
         latest = nil
+        present(nil)
     }
 
     private func publish(_ notice: LevelNotice) {
         latest = notice
         revision += 1
+        present(notice)
     }
 
     private func observeSwitches() {
@@ -54,6 +61,7 @@ final class SystemLevelKeysModule: NotchcastModule {
             })
             monitor.setEnabled(keys)
             latest = nil
+            if !hudPresenterAvailable { present(nil) }
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observeSwitches() }
         }

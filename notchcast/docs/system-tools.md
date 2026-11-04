@@ -24,6 +24,12 @@ macOS using /usr/bin/open through an injected closure. This requests user approv
 install a profile or prove approval. Local harnesses replace the closure and never apply changes
 to the host.
 
-Preset Apply/Undo controls and AI/privacy selectors remain deferred. MacSetupPlan receipts cover
+Hidden AI Features Off and Privacy Choices launcher commands offer confirmed profile handoff
+presets: disable all AI features, or disable every catalogued privacy restriction and suggestion.
+They call TweaksModule.requestProfile and leave installation approval to macOS. Turning a switch
+off does not remove an installed profile; remove it in System Settings. Per-item selectors remain
+deferred. Fake-backed command harnesses generate profile bytes without opening or writing files.
+
+Preset Apply/Undo controls remain deferred. MacSetupPlan receipts cover
 preference changes only; the broader preset catalog also contains service, power, Dock and profile
 actions that have no reversible runner in this wiring.
