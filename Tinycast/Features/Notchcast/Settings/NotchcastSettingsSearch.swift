@@ -3,77 +3,77 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
-    static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
-    static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
-    static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
-    static let notchcastAlertMemory = Self(tab: .notchcast, title: "Memory pressure threshold")
-    static let notchcastAlertDisk = Self(tab: .notchcast, title: "Disk free threshold")
-    static let notchcastAlertBattery = Self(tab: .notchcast, title: "Battery threshold")
-    static let notchcastChargePercent = Self(tab: .notchcast, title: "Charge limit percent")
-    static let notchcastAwakeDuration = Self(tab: .notchcast, title: "Keep-awake duration")
-    static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor"))
-    static let notchcastFanMode = Self(tab: .notchcast, title: "Fan mode")
-    static let notchcastIsland = Self(tab: .notchcast, title: "Island")
-    static let notchcastOptions = Self(tab: .notchcast, title: LocalizedStringResource("Island Options"))
+    static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts", table: "Notchcast"))
+    static let notchcastAlertCPU = Self(tab: .notchcast, title: LocalizedStringResource("CPU usage threshold", table: "Notchcast"))
+    static let notchcastAlertTemperature = Self(tab: .notchcast, title: LocalizedStringResource("CPU temperature threshold", table: "Notchcast"))
+    static let notchcastAlertMemory = Self(tab: .notchcast, title: LocalizedStringResource("Memory pressure threshold", table: "Notchcast"))
+    static let notchcastAlertDisk = Self(tab: .notchcast, title: LocalizedStringResource("Disk free threshold", table: "Notchcast"))
+    static let notchcastAlertBattery = Self(tab: .notchcast, title: LocalizedStringResource("Battery threshold", table: "Notchcast"))
+    static let notchcastChargePercent = Self(tab: .notchcast, title: LocalizedStringResource("Charge limit percent", table: "Notchcast"))
+    static let notchcastAwakeDuration = Self(tab: .notchcast, title: LocalizedStringResource("Keep-awake duration", table: "Notchcast"))
+    static let notchcastMonitor = Self(tab: .notchcast, title: LocalizedStringResource("System Monitor", table: "Notchcast"))
+    static let notchcastFanMode = Self(tab: .notchcast, title: LocalizedStringResource("Fan mode", table: "Notchcast"))
+    static let notchcastIsland = Self(tab: .notchcast, title: LocalizedStringResource("Island", table: "Notchcast"))
+    static let notchcastOptions = Self(tab: .notchcast, title: LocalizedStringResource("Island Options", table: "Notchcast"))
     static let notchcastLauncher = Self(tab: .notchcast, title: "Launcher")
     static let notchcastSystem = Self(tab: .notchcast, title: "System")
-    static let notchcastActivities = Self(tab: .notchcast, title: "Activities")
+    static let notchcastActivities = Self(tab: .notchcast, title: LocalizedStringResource("Activities", table: "Notchcast"))
     static let notchcastPermissions = Self(tab: .notchcast, title: "Permissions")
     static let notchcastShortcuts = Self(tab: .notchcast, title: LocalizedStringResource("Global Shortcuts"))
-    static let notchcastBrightness = Self(tab: .notchcast, title: "Brightness")
-    static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection"))
-    static let notchcastTimers = Self(tab: .notchcast, title: "Timers")
-    static let notchcastDay = Self(tab: .notchcast, title: "Day")
+    static let notchcastBrightness = Self(tab: .notchcast, title: LocalizedStringResource("Brightness", table: "Notchcast"))
+    static let notchcastQuitProtection = Self(tab: .notchcast, title: LocalizedStringResource("Quit Protection", table: "Notchcast"))
+    static let notchcastTimers = Self(tab: .notchcast, title: LocalizedStringResource("Timers", table: "Notchcast"))
+    static let notchcastDay = Self(tab: .notchcast, title: LocalizedStringResource("Day", table: "Notchcast"))
 }
 
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
-        .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
-        .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
-        .init(.notchcastAlerts, "Monitor Alerts"),
-        .init(.notchcastAlertCPU, "CPU usage threshold"),
-        .init(.notchcastAlertTemperature, "CPU temperature threshold"),
-        .init(.notchcastAlertMemory, "Memory pressure threshold"),
-        .init(.notchcastAlertDisk, "Disk free threshold"),
-        .init(.notchcastAlertBattery, "Battery threshold"),
+        .init(.notchcastSystem, LocalizedStringResource("Machine Setup Profile", table: "Notchcast"), keywords: ["backup", "import", "export"]),
+        .init(.notchcastMonitor, LocalizedStringResource("Link Quick Fixes", table: "Notchcast"), keywords: ["connection", "dns", "repair"]),
+        .init(.notchcastAlerts, LocalizedStringResource("Monitor Alerts", table: "Notchcast")),
+        .init(.notchcastAlertCPU, LocalizedStringResource("CPU usage threshold", table: "Notchcast")),
+        .init(.notchcastAlertTemperature, LocalizedStringResource("CPU temperature threshold", table: "Notchcast")),
+        .init(.notchcastAlertMemory, LocalizedStringResource("Memory pressure threshold", table: "Notchcast")),
+        .init(.notchcastAlertDisk, LocalizedStringResource("Disk free threshold", table: "Notchcast")),
+        .init(.notchcastAlertBattery, LocalizedStringResource("Battery threshold", table: "Notchcast")),
         .init(pane: .notchcast, keywords: ["notch", "island", "dynamic island"]),
-        .init(.notchcastIsland, "Island", keywords: ["notch", "enable", "dynamic island"]),
-        .init(.notchcastOptions, "External Displays", keywords: ["monitor", "screen", "display", "hover delay"]),
-        .init(.notchcastOptions, "Full-Screen Apps", keywords: ["fullscreen", "full screen", "video"]),
-        .init(.notchcastOptions, "Open on Hover", keywords: ["pointer", "mouse", "hover"]),
-        .init(.notchcastOptions, "Status Messages", keywords: ["hud", "toast", "message"]),
-        .init(.notchcastOptions, "Live Activities", keywords: ["now playing", "timer", "activity"]),
-        .init(.notchcastLauncher, "Launcher from Island", keywords: ["palette", "search", "open"]),
-        .init(.notchcastLauncher, "Launcher Number Keys", keywords: ["command", "results", "1", "9"]),
-        .init(.notchcastLauncher, "Alias and Space", keywords: ["alias", "space", "arguments"]),
-        .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
-        .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
-        .init(.notchcastFanMode, "Fan mode"),
-        .init(.notchcastMonitor, "Charge Limit"),
-        .init(.notchcastMonitor, "Battery Sailing"),
-        .init(.notchcastMonitor, "Battery Heat Protection"),
-        .init(.notchcastMonitor, "Battery Calibration"),
-        .init(.notchcastMonitor, "Keep Awake"),
-        .init(.notchcastMonitor, "Keep Awake with Lid Closed"),
-        .init(.notchcastChargePercent, "Charge limit percent"),
-        .init(.notchcastAwakeDuration, "Keep-awake duration"),
-        .init(group: .notchcastShortcuts, "Toggle Island"),
-        .init(.notchcastSystem, "Display Brightness", keywords: ["display", "dimming", "slider"]),
-        .init(.notchcastSystem, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
-        .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),
-        .init(.notchcastSystem, "Low Disk Warning", keywords: ["storage", "warning"]),
-        .init(.notchcastSystem, "Quit Protection", keywords: ["quit", "hold", "double press", "exceptions"]),
-        .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),
+        .init(.notchcastIsland, LocalizedStringResource("Island", table: "Notchcast"), keywords: ["notch", "enable", "dynamic island"]),
+        .init(.notchcastOptions, LocalizedStringResource("External Displays", table: "Notchcast"), keywords: ["monitor", "screen", "display", "hover delay"]),
+        .init(.notchcastOptions, LocalizedStringResource("Full-Screen Apps", table: "Notchcast"), keywords: ["fullscreen", "full screen", "video"]),
+        .init(.notchcastOptions, LocalizedStringResource("Open on Hover", table: "Notchcast"), keywords: ["pointer", "mouse", "hover"]),
+        .init(.notchcastOptions, LocalizedStringResource("Status Messages", table: "Notchcast"), keywords: ["hud", "toast", "message"]),
+        .init(.notchcastOptions, LocalizedStringResource("Live Activities", table: "Notchcast"), keywords: ["now playing", "timer", "activity"]),
+        .init(.notchcastLauncher, LocalizedStringResource("Launcher from Island", table: "Notchcast"), keywords: ["palette", "search", "open"]),
+        .init(.notchcastLauncher, LocalizedStringResource("Launcher Number Keys", table: "Notchcast"), keywords: ["command", "results", "1", "9"]),
+        .init(.notchcastLauncher, LocalizedStringResource("Alias and Space", table: "Notchcast"), keywords: ["alias", "space", "arguments"]),
+        .init(.notchcastMonitor, LocalizedStringResource("System Monitor", table: "Notchcast"), keywords: ["cpu", "memory", "temperature"]),
+        .init(.notchcastMonitor, LocalizedStringResource("Fan Control", table: "Notchcast"), keywords: ["cooling", "rpm"]),
+        .init(.notchcastFanMode, LocalizedStringResource("Fan mode", table: "Notchcast")),
+        .init(.notchcastMonitor, LocalizedStringResource("Charge Limit", table: "Notchcast")),
+        .init(.notchcastMonitor, LocalizedStringResource("Battery Sailing", table: "Notchcast")),
+        .init(.notchcastMonitor, LocalizedStringResource("Battery Heat Protection", table: "Notchcast")),
+        .init(.notchcastMonitor, LocalizedStringResource("Battery Calibration", table: "Notchcast")),
+        .init(.notchcastMonitor, LocalizedStringResource("Keep Awake", table: "Notchcast")),
+        .init(.notchcastMonitor, LocalizedStringResource("Keep Awake with Lid Closed", table: "Notchcast")),
+        .init(.notchcastChargePercent, LocalizedStringResource("Charge limit percent", table: "Notchcast")),
+        .init(.notchcastAwakeDuration, LocalizedStringResource("Keep-awake duration", table: "Notchcast")),
+        .init(group: .notchcastShortcuts, LocalizedStringResource("Toggle Island", table: "Notchcast")),
+        .init(.notchcastSystem, LocalizedStringResource("Display Brightness", table: "Notchcast"), keywords: ["display", "dimming", "slider"]),
+        .init(.notchcastSystem, LocalizedStringResource("Volume in Island", table: "Notchcast"), keywords: ["sound", "microphone", "mute"]),
+        .init(.notchcastSystem, LocalizedStringResource("System Notices", table: "Notchcast"), keywords: ["wifi", "tailscale", "battery"]),
+        .init(.notchcastSystem, LocalizedStringResource("Low Disk Warning", table: "Notchcast"), keywords: ["storage", "warning"]),
+        .init(.notchcastSystem, LocalizedStringResource("Quit Protection", table: "Notchcast"), keywords: ["quit", "hold", "double press", "exceptions"]),
+        .init(.notchcastActivities, LocalizedStringResource("Timers", table: "Notchcast"), keywords: ["duration", "alarm", "sound"]),
         .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),
         .init(.notchcastActivities, "Weather", keywords: ["city", "forecast"]),
-        .init(.notchcastActivities, "Markets", keywords: ["symbols", "stocks", "prices"]),
-        .init(.notchcastSystem, "Green Button Maximizes", keywords: ["window", "maximize", "restore"]),
-        .init(.notchcastSystem, "Trackpad Middle Click", keywords: ["three finger", "mouse", "trackpad"]),
-        .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
-        .init(.notchcastSystem, "Hide with ⌘M", keywords: ["minimize", "command m"]),
-        .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
-        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
-        .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
+        .init(.notchcastActivities, LocalizedStringResource("Markets", table: "Notchcast"), keywords: ["symbols", "stocks", "prices"]),
+        .init(.notchcastSystem, LocalizedStringResource("Green Button Maximizes", table: "Notchcast"), keywords: ["window", "maximize", "restore"]),
+        .init(.notchcastSystem, LocalizedStringResource("Trackpad Middle Click", table: "Notchcast"), keywords: ["three finger", "mouse", "trackpad"]),
+        .init(.notchcastSystem, LocalizedStringResource("Show Desktop with F3", table: "Notchcast"), keywords: ["mission control", "windows"]),
+        .init(.notchcastSystem, LocalizedStringResource("Hide with ⌘M", table: "Notchcast"), keywords: ["minimize", "command m"]),
+        .init(.notchcastSystem, LocalizedStringResource("Keep Spaces in a fixed order", table: "Notchcast"), keywords: ["desktop", "reorder"]),
+        .init(.notchcastSystem, LocalizedStringResource("Excluded app bundle IDs (comma-separated)", table: "Notchcast"), keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, LocalizedStringResource("Settings Backup", table: "Notchcast"), keywords: ["backup", "preferences", "daily"]),
     ]
 }

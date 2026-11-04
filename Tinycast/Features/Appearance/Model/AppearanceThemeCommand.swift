@@ -7,10 +7,10 @@ enum AppearanceThemeCommand {
 
         var id: String { target.theme?.id ?? "\(target.appearance.rawValue):tinycast" }
         var title: String { target.theme?.name ?? "Tinycast" }
-        var subtitle: String { target.theme?.author ?? String(localized: "No theme") }
+        var subtitle: String { target.theme?.author ?? String(localized: "No theme", table: "Notchcast") }
     }
 
-    static var title: String { String(localized: "Theme") }
+    static var title: String { String(localized: "Theme", table: "Notchcast") }
 
     static func rows(
         currentAppearance: RaycastTheme.Appearance, light: RaycastTheme?, dark: RaycastTheme?,

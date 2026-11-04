@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct QuitProtectionSettingsSection: View {
-    private let addApp: LocalizedStringResource = "Add App…"
+    private let addApp: LocalizedStringResource = LocalizedStringResource("Add App…", table: "Notchcast")
     @Bindable var store: QuitProtectionStore
     private let preferences = NotchcastPreferences.shared
 
@@ -10,14 +10,14 @@ struct QuitProtectionSettingsSection: View {
         if preferences.isOn(.quitProtection) {
             Section {
                 Picker(selection: $store.configuration.mode) {
-                    Text("Holding ⌘Q").tag(QuitProtectionEngine.Mode.hold)
-                    Text("Pressing ⌘Q twice").tag(QuitProtectionEngine.Mode.doublePress)
+                    Text("Holding ⌘Q", tableName: "Notchcast").tag(QuitProtectionEngine.Mode.hold)
+                    Text("Pressing ⌘Q twice", tableName: "Notchcast").tag(QuitProtectionEngine.Mode.doublePress)
                 } label: {
-                    SettingsRowTitle(.notchcastQuitProtection, "Confirm by")
+                    SettingsRowTitle(.notchcastQuitProtection, LocalizedStringResource("Confirm by", table: "Notchcast"))
                 }
                 Toggle(isOn: $store.configuration.closeEnabled) {
-                    SettingsRowTitle(.notchcastQuitProtection, "Protect ⌘W")
-                    Text("Same confirmation before closing a window.")
+                    SettingsRowTitle(.notchcastQuitProtection, LocalizedStringResource("Protect ⌘W", table: "Notchcast"))
+                    Text("Same confirmation before closing a window.", tableName: "Notchcast")
                 }
                 if store.configuration.exceptions.isEmpty {
                     Text("Nothing here yet.").foregroundStyle(.secondary)
@@ -31,7 +31,7 @@ struct QuitProtectionSettingsSection: View {
             } header: {
                 SettingsSectionHeader(.notchcastQuitProtection)
             } footer: {
-                Text("These apps quit and close without asking.")
+                Text("These apps quit and close without asking.", tableName: "Notchcast")
             }
         }
     }

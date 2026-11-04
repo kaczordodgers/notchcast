@@ -8,7 +8,7 @@ struct TimerSettingsSection: View {
         if preferences.isOn(.liveTimers) {
             Section {
                 Toggle(isOn: $store.playSoundWhenTimeIsUp) {
-                    SettingsRowTitle(.notchcastTimers, "Play sound when time is up")
+                    SettingsRowTitle(.notchcastTimers, LocalizedStringResource("Play sound when time is up", table: "Notchcast"))
                 }
                 Picker(selection: $store.defaultDuration) {
                     ForEach(LiveTimerStore.defaultDurations, id: \.self) { duration in
@@ -16,7 +16,7 @@ struct TimerSettingsSection: View {
                             .tag(duration)
                     }
                 } label: {
-                    SettingsRowTitle(.notchcastTimers, "Default timer")
+                    SettingsRowTitle(.notchcastTimers, LocalizedStringResource("Default timer", table: "Notchcast"))
                 }
             } header: {
                 SettingsSectionHeader(.notchcastTimers)

@@ -13,7 +13,7 @@ struct DaySettingsSection: View {
                 if preferences.isOn(.dayMarkets) {
                     TextField(text: $symbols) {
                         SettingsRowTitle(.notchcastDay, "Symbols")
-                        Text("Yahoo Finance symbols, separated by commas.")
+                        Text("Yahoo Finance symbols, separated by commas.", tableName: "Notchcast")
                     }
                     .onAppear { symbols = markets.symbols.joined(separator: ", ") }
                     .onSubmit(saveSymbols)

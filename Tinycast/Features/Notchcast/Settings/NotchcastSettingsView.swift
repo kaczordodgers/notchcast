@@ -8,8 +8,8 @@ struct NotchcastSettingsView: View {
             Section {
                 Toggle(isOn: binding(.island)) {
                     SettingsFeatureToggleLabel(
-                        anchor: .notchcastIsland, title: "Island",
-                        subtitle: "Show the island at the top of the screen.")
+                        anchor: .notchcastIsland, title: LocalizedStringResource("Island", table: "Notchcast"),
+                        subtitle: LocalizedStringResource("Show the island at the top of the screen.", table: "Notchcast"))
                 }
             }
             .settingsAnchor(.notchcastIsland)
@@ -57,7 +57,7 @@ struct NotchcastSettingsView: View {
                 TextField(text: Binding(
                     get: { preferences.greenMaximizeExcludedApps },
                     set: { preferences.greenMaximizeExcludedApps = $0 })) {
-                    SettingsRowTitle(.notchcastSystem, "Excluded app bundle IDs (comma-separated)")
+                    SettingsRowTitle(.notchcastSystem, LocalizedStringResource("Excluded app bundle IDs (comma-separated)", table: "Notchcast"))
                 }
                 .settingsEnabled(preferences.isOn(.greenMaximize))
             }
@@ -69,7 +69,7 @@ struct NotchcastSettingsView: View {
                         Text(delay.title).tag(delay)
                     }
                 } label: {
-                    Text("Hover delay")
+                    Text("Hover delay", tableName: "Notchcast")
                 }
                 .settingsEnabled(preferences.isOn(.island) && preferences.isOn(.islandHoverOpen))
             }

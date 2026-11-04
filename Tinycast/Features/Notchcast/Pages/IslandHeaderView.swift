@@ -37,7 +37,7 @@ struct IslandHeaderView: View {
                     SymbolImage(name: "progress.indicator", size: NotchcastTheme.headerGlyph)
                         .symbolEffect(.variableColor.iterative)
                         .foregroundStyle(Theme.Colors.progress)
-                        .accessibilityLabel("Refreshing")
+                        .accessibilityLabel(String(localized: "Refreshing", table: "Notchcast"))
                 }
                 BarButton(chrome: .rounded, isSelected: island.isPinned, isCompact: true) {
                     island.togglePin()
@@ -47,14 +47,14 @@ struct IslandHeaderView: View {
                 .overlay { focusOutline(pages.pages.count) }
                 .tooltip(keyCaps: ["⌘", "P"])
                 .accessibilityLabel(island.isPinned
-                                    ? String(localized: "Unpin Island") : String(localized: "Pin Island"))
+                                    ? String(localized: "Unpin Island", table: "Notchcast") : String(localized: "Pin Island", table: "Notchcast"))
                 .accessibilityAddTraits(island.isPinned ? .isSelected : [])
                 BarButton(chrome: .rounded, isCompact: true, action: pages.showSettings) {
                     SymbolImage(name: "gearshape", size: NotchcastTheme.headerGlyph)
                 }
                 .overlay { focusOutline(pages.pages.count + 1) }
-                .tooltip(String(localized: "Notchcast Settings"), edge: .bottom)
-                .accessibilityLabel("Notchcast Settings")
+                .tooltip(String(localized: "Notchcast Settings", table: "Notchcast"), edge: .bottom)
+                .accessibilityLabel(String(localized: "Notchcast Settings", table: "Notchcast"))
             }
             .frame(maxWidth: .infinity)
         }

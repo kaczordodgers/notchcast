@@ -8,7 +8,7 @@ struct BrightnessSettingsSection: View {
         if preferences.isOn(.displayBrightness) {
             Section {
                 if controller.currentDisplays.isEmpty {
-                    Text("No display can be controlled.").foregroundStyle(.secondary)
+                    Text("No display can be controlled.", tableName: "Notchcast").foregroundStyle(.secondary)
                 }
                 ForEach(controller.currentDisplays) { display in
                     BrightnessDisplayRow(display: display, controller: controller)

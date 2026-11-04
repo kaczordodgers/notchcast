@@ -9,9 +9,9 @@ enum AppearanceSurfaceStyle: String, CaseIterable, Identifiable, Sendable {
 
     var title: String {
         switch self {
-        case .glass: String(localized: "Tinycast Glass")
-        case .black: String(localized: "Solid Black")
-        case .matte: String(localized: "Matte")
+        case .glass: String(localized: "Tinycast Glass", table: "Notchcast")
+        case .black: String(localized: "Solid Black", table: "Notchcast")
+        case .matte: String(localized: "Matte", table: "Notchcast")
         }
     }
 }

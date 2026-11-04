@@ -12,7 +12,7 @@ struct NotchcastSystemSettingsSection: View {
                     Text(feature.subtitle)
                     if feature != .systemMonitor && feature != .fanControl && feature != .keepAwake,
                        NotchcastCore.battery.needsHelperUpdate {
-                        Text("Needs the Notchcast helper update")
+                        Text("Needs the Notchcast helper update", tableName: "Notchcast")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -23,7 +23,7 @@ struct NotchcastSystemSettingsSection: View {
                 Text("Medium").tag("medium")
                 Text("Max").tag("max")
             } label: {
-                SettingsRowTitle(.notchcastFanMode, "Fan mode")
+                SettingsRowTitle(.notchcastFanMode, LocalizedStringResource("Fan mode", table: "Notchcast"))
             }
             .settingsEnabled(preferences.isOn(.systemMonitor) && preferences.isOn(.fanControl))
             Picker(selection: $preferences.batteryChargePercent) {
@@ -31,7 +31,7 @@ struct NotchcastSystemSettingsSection: View {
                     Text(Double(percent) / 100, format: .percent).tag(percent)
                 }
             } label: {
-                SettingsRowTitle(.notchcastChargePercent, "Charge limit percent")
+                SettingsRowTitle(.notchcastChargePercent, LocalizedStringResource("Charge limit percent", table: "Notchcast"))
             }
             .settingsEnabled(preferences.isOn(.batteryChargeLimit))
             Picker(selection: $preferences.keepAwakeMinutes) {
@@ -40,45 +40,45 @@ struct NotchcastSystemSettingsSection: View {
                         .tag(minutes)
                 }
             } label: {
-                SettingsRowTitle(.notchcastAwakeDuration, "Keep-awake duration")
+                SettingsRowTitle(.notchcastAwakeDuration, LocalizedStringResource("Keep-awake duration", table: "Notchcast"))
             }
             .settingsEnabled(preferences.isOn(.keepAwake))
             if let failure = NotchcastCore.battery.failure {
                 if failure as? RootHelperClient.Failure == .reinstallRequired {
-                    Text("Needs the Notchcast helper update").foregroundStyle(.secondary)
+                    Text("Needs the Notchcast helper update", tableName: "Notchcast").foregroundStyle(.secondary)
                 } else {
                     Text(failure.localizedDescription).foregroundStyle(.secondary)
                 }
             }
             if !NotchcastCore.battery.helperInstalled {
-                Text("The privileged helper is not installed.").foregroundStyle(.secondary)
+                Text("The privileged helper is not installed.", tableName: "Notchcast").foregroundStyle(.secondary)
             }
             Toggle(isOn: Binding(get: { preferences.isOn(.monitorAlerts) },
                                  set: { preferences.set(.monitorAlerts, $0) })) {
-                SettingsRowTitle(.notchcastAlerts, "Monitor Alerts")
+                SettingsRowTitle(.notchcastAlerts, LocalizedStringResource("Monitor Alerts", table: "Notchcast"))
                 Text(NotchcastFeature.monitorAlerts.subtitle)
             }
             .settingsEnabled(preferences.isOn(.systemMonitor))
             Group {
                 Stepper(value: $preferences.monitorCPU, in: 10...100, step: 5) {
-                    SettingsRowTitle(.notchcastAlertCPU, "CPU usage threshold")
+                    SettingsRowTitle(.notchcastAlertCPU, LocalizedStringResource("CPU usage threshold", table: "Notchcast"))
                     Text(Double(preferences.monitorCPU) / 100, format: .percent)
                 }
                 Stepper(value: $preferences.monitorTemperature, in: 40...110, step: 5) {
-                    SettingsRowTitle(.notchcastAlertTemperature, "CPU temperature threshold")
+                    SettingsRowTitle(.notchcastAlertTemperature, LocalizedStringResource("CPU temperature threshold", table: "Notchcast"))
                     Text(Measurement(value: Double(preferences.monitorTemperature), unit: UnitTemperature.celsius),
                          format: .measurement(width: .abbreviated, usage: .asProvided))
                 }
                 Picker(selection: $preferences.monitorMemory) {
                     Text("Warning").tag(0)
                     Text("Critical").tag(1)
-                } label: { SettingsRowTitle(.notchcastAlertMemory, "Memory pressure threshold") }
+                } label: { SettingsRowTitle(.notchcastAlertMemory, LocalizedStringResource("Memory pressure threshold", table: "Notchcast")) }
                 Stepper(value: $preferences.monitorDisk, in: 1...50) {
-                    SettingsRowTitle(.notchcastAlertDisk, "Disk free threshold")
+                    SettingsRowTitle(.notchcastAlertDisk, LocalizedStringResource("Disk free threshold", table: "Notchcast"))
                     Text(Double(preferences.monitorDisk) / 100, format: .percent)
                 }
                 Stepper(value: $preferences.monitorBattery, in: 1...50) {
-                    SettingsRowTitle(.notchcastAlertBattery, "Battery threshold")
+                    SettingsRowTitle(.notchcastAlertBattery, LocalizedStringResource("Battery threshold", table: "Notchcast"))
                     Text(Double(preferences.monitorBattery) / 100, format: .percent)
                 }
             }

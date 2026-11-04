@@ -66,7 +66,7 @@ enum SettingsTab: CaseIterable, Identifiable {
         case .permissions: return String(localized: "Permissions")
         case .backup: return String(localized: "Backup")
         case .about: return String(localized: "About")
-        case .notchcast: return String(localized: "Notchcast")
+        case .notchcast: return String(localized: "Notchcast", table: "Notchcast")
         }
     }
 
