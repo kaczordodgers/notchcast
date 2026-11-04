@@ -45,6 +45,11 @@ jobs:
         run: |
           git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
           echo "sha=$(git merge-base HEAD refs/remotes/upstream/main)" >> "$GITHUB_OUTPUT"
+      - name: Feature append shape and union merge proof
+        working-directory: src
+        run: |
+          python3 notchcast/check-feature-shape.py
+          python3 notchcast/check-feature-shape-test.py
       - name: Build (Debug, unsigned)
         working-directory: src
         run: |
