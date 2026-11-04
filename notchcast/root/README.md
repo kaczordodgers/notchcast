@@ -4,12 +4,9 @@
 `mclLimitValue` and `MCLFeatureState = 1` in `com.apple.smartcharging.topoffprotection`
 for root/current host, after pinning `HOME=/var/root` and removing `CFFIXED_USER_HOME`. They synchronize and post the Darwin notification
 `com.apple.smartcharging.defaultschanged`; on AC, when MCL is disabled, they call PowerUI's
-`enableMCL:` as the final step. `charge-limit-off` deletes both keys, synchronizes and notifies.
+`enableMCL:`, then post the same notification without synchronizing again. `charge-limit-off` deletes both keys, synchronizes and notifies.
 All five require root, take no arguments and return `ok\n` after confirming the preferences.
-Adoption follows asynchronously; change verbs never invoke `pmset`. On battery they skip PowerUI;
-the policy is adopted at the next plug-in. PowerUI queries and enablement each have a four-second
-deadline, below the client's twelve-second timeout. Failures restore both prior preference values,
-synchronize and notify again. There is no fallible step after successful enablement.
+Adoption follows asynchronously; change verbs never invoke `pmset`. On battery they still check PowerUI support, but skip querying enabled state and enabling MCL. The preferences remain for powerd to adopt at plug-in; when MCL is off, this helper does not enable it at plug-in or confirm adoption. PowerUI calls and preference synchronization share a seven-second deadline, with restoration allowed until nine seconds, below the client's twelve-second timeout. Definite failures restore both prior preference values, synchronize and notify again. A timeout leaves the keys untouched and fails with the state unconfirmed, since an in-flight enable cannot be cancelled. There is no fallible step after successful enablement.
 `charge-limit-read` needs no root and parses `/usr/bin/pmset -g battlimit`, returning a percentage
 or `off`, followed by a newline, with the read timeout. Malformed or conflicting limits fail.
 The harness checks fixed parser fixtures, transaction ordering and a simulated enablement timeout.
@@ -30,7 +27,7 @@ Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never 
 The harness verifies pure PAM transforms without changing the system.
 
 The fixed program and app client share twenty-five argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
-` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and operation failures exit 70, always without output. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
+` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and operation failures exit 70, without stdout. Charge-limit timeouts report unconfirmed state on stderr. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
 
 `standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings without invoking pmset.
 

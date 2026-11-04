@@ -4,6 +4,10 @@ import IOKit.ps
 import Synchronization
 
 enum NativeChargeLimit {
+    enum Failure: Error, LocalizedError {
+        case unconfirmed
+        var errorDescription: String? { "Charge limit state is unconfirmed after timeout" }
+    }
     static func parse(_ output: String) throws -> Int? {
         if output == "No battery level limits set\n" { return nil }
         guard output.hasPrefix("Battery level limits:"), let start = output.firstIndex(of: "(") else {
@@ -62,30 +66,34 @@ enum NativeChargeLimit {
         guard setenv("HOME", "/var/root", 1) == 0, unsetenv("CFFIXED_USER_HOME") == 0 else {
             throw FanSMC.Failure.refused
         }
-        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
-              let source = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() else {
-            throw FanSMC.Failure.refused
-        }
-        let ui = limit == nil || source as String != kIOPMACPowerKey ? nil : try PowerUI()
-        if let ui, !ui.supported { throw FanSMC.Failure.refused }
-        let enabled = try ui.map { ui in
-            guard let enabled = ui.invoke("isMCLCurrentlyEnabled:") else { throw FanSMC.Failure.refused }
-            return enabled
+        let deadline = DispatchTime.now() + .seconds(7)
+        let restoreDeadline = deadline + .seconds(2)
+        let ui = limit == nil ? nil : try PowerUI()
+        if let ui {
+            guard try bounded(deadline: deadline, { ui.supported }) == true else {
+                throw FanSMC.Failure.refused
+            }
         }
         let domain = "com.apple.smartcharging.topoffprotection" as CFString
         let user = kCFPreferencesCurrentUser
         let host = kCFPreferencesCurrentHost
         let keys = ["mclLimitValue", "MCLFeatureState"] as [CFString]
         let prior = keys.map { CFPreferencesCopyValue($0, domain, user, host) }
-        func notify() throws {
-            guard CFPreferencesSynchronize(domain, user, host) else { throw FanSMC.Failure.refused }
+        func notify() {
             CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
                 CFNotificationName("com.apple.smartcharging.defaultschanged" as CFString), nil, nil, true)
+        }
+        func synchronize(until deadline: DispatchTime) throws {
+            guard try bounded(deadline: deadline, {
+                CFPreferencesSynchronize("com.apple.smartcharging.topoffprotection" as CFString,
+                    kCFPreferencesCurrentUser, kCFPreferencesCurrentHost)
+            }) == true else { throw FanSMC.Failure.refused }
         }
         try apply(write: {
             CFPreferencesSetValue(keys[0], limit.map { $0 as CFNumber }, domain, user, host)
             CFPreferencesSetValue(keys[1], limit.map { _ in 1 as CFNumber }, domain, user, host)
-            try notify()
+            try synchronize(until: deadline)
+            notify()
             for (key, expected) in zip(keys, [limit, limit.map { _ in 1 }]) {
                 let actual = CFPreferencesCopyValue(key, domain, user, host)
                 if let expected {
@@ -95,14 +103,29 @@ enum NativeChargeLimit {
                 } else if actual != nil { throw FanSMC.Failure.refused }
             }
         }, enable: {
-            if let ui, enabled == false {
-                guard ui.invoke("enableMCL:") == true else { throw FanSMC.Failure.refused }
+            if let ui {
+                guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue(),
+                      let source = IOPSGetProvidingPowerSourceType(info)?.takeUnretainedValue() else {
+                    throw FanSMC.Failure.refused
+                }
+                if source as String == kIOPMACPowerKey {
+                    guard let enabled = try ui.invoke("isMCLCurrentlyEnabled:", deadline: deadline) else {
+                        throw FanSMC.Failure.refused
+                    }
+                    if !enabled {
+                        guard try ui.invoke("enableMCL:", deadline: deadline) == true else {
+                            throw FanSMC.Failure.refused
+                        }
+                        notify()
+                    }
+                }
             }
         }, restore: {
             for (key, value) in zip(keys, prior) {
                 CFPreferencesSetValue(key, value, domain, user, host)
             }
-            try notify()
+            try synchronize(until: restoreDeadline)
+            notify()
         })
     }
 
@@ -111,6 +134,8 @@ enum NativeChargeLimit {
         do {
             try write()
             try enable()
+        } catch Failure.unconfirmed {
+            throw Failure.unconfirmed
         } catch {
             try restore()
             throw error
@@ -118,14 +143,21 @@ enum NativeChargeLimit {
     }
 
     static func bounded(timeout: DispatchTimeInterval = .seconds(4),
-                        _ operation: @escaping @Sendable () -> Bool?) -> Bool? {
+                        _ operation: @escaping @Sendable () -> Bool?) throws -> Bool? {
+        try bounded(deadline: .now() + timeout, operation)
+    }
+
+    static func bounded(deadline: DispatchTime,
+                        _ operation: @escaping @Sendable () -> Bool?) throws -> Bool? {
+        guard DispatchTime.now() < deadline else { throw Failure.unconfirmed }
         let result = Mutex<Bool?>(nil)
         let finished = DispatchSemaphore(value: 0)
         DispatchQueue.global().async {
-            result.withLock { $0 = operation() }
+            let value = operation()
+            result.withLock { $0 = value }
             finished.signal()
         }
-        guard finished.wait(timeout: .now() + timeout) == .success else { return nil }
+        guard finished.wait(timeout: deadline) == .success else { throw Failure.unconfirmed }
         return result.withLock { $0 }
     }
 
@@ -148,8 +180,8 @@ enum NativeChargeLimit {
             return unsafeBitCast(method_getImplementation(method), to: Query.self)(client, selector).boolValue
         }
 
-        func invoke(_ name: String) -> Bool? {
-            NativeChargeLimit.bounded { self.invokeSynchronously(name) }
+        func invoke(_ name: String, deadline: DispatchTime) throws -> Bool? {
+            try NativeChargeLimit.bounded(deadline: deadline) { self.invokeSynchronously(name) }
         }
 
         private func invokeSynchronously(_ name: String) -> Bool? {
