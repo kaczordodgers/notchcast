@@ -22,7 +22,10 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
-        [
+        let downloadServices = NotchcastDownloadServices(core: core)
+        return [
+            .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
+            .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),

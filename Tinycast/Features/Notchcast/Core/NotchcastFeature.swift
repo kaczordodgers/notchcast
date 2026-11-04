@@ -39,6 +39,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case downloads
+    case downloadsAria2
+    case distill
+    case distillTimestamps
+    case distillConvert
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -80,6 +85,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .downloads: .activities
+        case .downloadsAria2: .activities
+        case .distill: .activities
+        case .distillTimestamps: .activities
+        case .distillConvert: .activities
         }
     }
 
@@ -123,6 +133,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Event Reminders")
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
+        case .downloads: String(localized: "Downloads")
+        case .downloadsAria2: String(localized: "Fast Downloads with aria2c")
+        case .distill: String(localized: "Distill")
+        case .distillTimestamps: String(localized: "Distill Timestamps")
+        case .distillConvert: String(localized: "Convert Distill Folder")
         }
     }
 
@@ -166,6 +181,11 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
+        case .downloads: String(localized: "Download video, audio, transcripts and webpages from clipboard links.")
+        case .downloadsAria2: String(localized: "Use aria2c for faster media downloads when it is installed.")
+        case .distill: String(localized: "Save links and transcribe media into your Distill folder.")
+        case .distillTimestamps: String(localized: "Include approximate chunk timestamps in Distill transcripts.")
+        case .distillConvert: String(localized: "Convert files in your Distill folder to Markdown or text.")
         }
     }
 
@@ -202,6 +222,11 @@ extension NotchcastFeature {
         case .switcherQuitKey: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .downloads: false
+        case .downloadsAria2: false
+        case .distill: false
+        case .distillTimestamps: false
+        case .distillConvert: false
         default: true
         }
     }
