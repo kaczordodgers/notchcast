@@ -56,8 +56,9 @@ struct MachineSetupProfileProcessExecutor: MachineSetupProfileExecutor {
             }
             do {
                 let current = try process("/usr/bin/defaults", ["read", "com.apple.dock", "autohide"])
-                guard current.status == 0 else { throw Failure.stepFailed }
-                let value = current.output.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard [0, 1].contains(current.status) else { throw Failure.stepFailed }
+                let value = current.status == 1 ? "0"
+                    : current.output.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard ["0", "1"].contains(value) else { throw Failure.stepFailed }
                 if value == "1" {
                     report.append(Step(id: id, status: .satisfied))
@@ -68,6 +69,8 @@ struct MachineSetupProfileProcessExecutor: MachineSetupProfileExecutor {
                     let result = try process("/usr/bin/defaults",
                                              ["write", "com.apple.dock", "autohide", "-bool", "true"])
                     guard result.status == 0 else { throw Failure.stepFailed }
+                    let restarted = try process("/usr/bin/killall", ["Dock"])
+                    guard restarted.status == 0 else { throw Failure.stepFailed }
                     let verified = try process("/usr/bin/defaults", ["read", "com.apple.dock", "autohide"])
                     guard verified.status == 0,
                           verified.output.trimmingCharacters(in: .whitespacesAndNewlines) == "1"

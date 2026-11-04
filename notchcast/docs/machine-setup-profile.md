@@ -18,7 +18,9 @@ The Machine Setup Profile launcher command chooses a JSON profile and previews i
 using the existing destructive confirmation dialog. Turning off its switch prevents application.
 The production executor currently accepts only empty backup, file and module payloads and the
 fixed tweak IDs `dock.autohide` and `system.firewall`. Dock autohide is set to true using
-`/usr/bin/defaults` with an argument array; already satisfied steps are skipped. Firewall is
+`/usr/bin/defaults` with an argument array; a missing key is treated as false. A successful write
+runs the fixed `/usr/bin/killall Dock` command before verification; restart failure fails the step.
+Already satisfied steps are skipped. Firewall is
 reported as needing a helper and skipped. No root verbs, shell execution or sudo paths are added.
 Each process has a five-second deadline, followed by termination and forced termination if needed.
 The first failure stops the run and reports remaining steps as not run. Process output is never
