@@ -10,7 +10,6 @@
   "agentPricing": "same sessions view showing pricingReport",
   "captureTrimmer": "trimmer UI (opened after a recording) calling save",
   "agentAnswer": "T3/bot transport, waiting-item source, reply UI",
-  "voiceAsk": "concrete transport + configure call; destination setting exists",
   "recording": "launcher command or hotkey, target picker, stop/pause control",
   "agentMCPServer": "engine n: JSON-RPC handler done and harness-tested (nc-AgentMCPServer-engine/module), but missing a real backend over AgentActionIndex and a stdio transport (CLI `mcp` verb → app socket → engine.receive)",
   "agentChatTools": "the CLI `mcp` subcommand and the agentMCPServer wiring above",

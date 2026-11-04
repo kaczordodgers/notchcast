@@ -680,7 +680,6 @@ extension NotchcastFeature {
         .treadmillWalk,
         .katana,
         .agentAnswer,
-        .voiceAsk,
         .agentMCPServer,
         .agentChatTools,
         .cleanSystem,
