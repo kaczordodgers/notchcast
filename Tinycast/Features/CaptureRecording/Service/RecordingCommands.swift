@@ -32,7 +32,7 @@ extension RecordingModule {
     func recordScreen() {
         guard let number = NSScreen.underCursor?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")]
             as? NSNumber else {
-            AppCore.shared.showMessage(RecordingTarget.Failure.targetUnavailable.localizedDescription, tone: .danger)
+            AppCore.shared.showMessage(Self.failureMessage(RecordingTarget.Failure.targetUnavailable), tone: .danger)
             return
         }
         performRecordingCommand(.record(.display(number.uint32Value)))
@@ -46,7 +46,7 @@ extension RecordingModule {
                 guard let self, self.enabled, let selection else { return }
                 self.performRecordingCommand(.record(.area(selection.rect)))
             }
-        } catch { AppCore.shared.showMessage(error.localizedDescription, tone: .danger) }
+        } catch { AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger) }
     }
 
     func performRecordingCommand(_ command: Command) {
@@ -57,7 +57,7 @@ extension RecordingModule {
 
     func executeRecordingCommand(
         _ command: Command,
-        report: (String, Bool) -> Void = { AppCore.shared.showMessage($0, tone: $1 ? .danger : .neutral) },
+        report: (String, Bool) -> Void = { AppCore.shared.showMessage($0, tone: $1 ? .danger : .success) },
         reveal: (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
     ) async {
         do {
@@ -71,6 +71,21 @@ extension RecordingModule {
                 reveal(url)
             }
         } catch is CancellationError {
-        } catch { report(error.localizedDescription, true) }
+        } catch { report(Self.failureMessage(error), true) }
+    }
+
+    static func failureMessage(_ error: any Error) -> String {
+        if error is CaptureAreaService.Failure {
+            return String(localized: "Screen Recording access is required.")
+        }
+        return switch error as? RecordingTarget.Failure {
+        case .permissionDenied: String(localized: "Screen Recording access is required.")
+        case .disabled: String(localized: "Capture is disabled.")
+        case .invalidTarget, .targetUnavailable: String(localized: "Capture area is unavailable.")
+        case .busy: String(localized: "A recording is already in progress.")
+        case .notRecording: String(localized: "No recording is in progress.")
+        case .noFrames: String(localized: "The recording contains no frames.")
+        case .invalidFolder, .writerFailed, nil: String(localized: "Could not save the recording.")
+        }
     }
 }

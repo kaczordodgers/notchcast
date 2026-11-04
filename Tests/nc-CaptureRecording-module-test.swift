@@ -10,6 +10,12 @@
 import CoreMedia
 import Foundation
 
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    var appIndex: AppCore { self }
+    func refreshNotchcastCommands() {}
+}
+
 @main
 struct RecordingModuleTests {
     @MainActor static func main() async throws {

@@ -12,6 +12,12 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import AVFoundation
 import Foundation
+
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    var appIndex: AppCore { self }
+    func refreshNotchcastCommands() {}
+}
 import Synchronization
 
 @main

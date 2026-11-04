@@ -26,8 +26,10 @@ struct NotchcastCommand: Sendable {
 enum SettingsTab { case notchcast }
 
 @MainActor final class AppCore {
-    enum Tone { case danger, neutral }
+    enum Tone { case danger, neutral, success }
     static let shared = AppCore()
+    var appIndex: AppCore { self }
+    func refreshNotchcastCommands() {}
     var messages: [(String, Tone)] = []
     func showMessage(_ text: String, tone: Tone) { messages.append((text, tone)) }
 }
@@ -47,7 +49,9 @@ enum SettingsTab { case notchcast }
         let source = ScreenRecordingSource()
         var selection: CaptureAreaSelection?
         let area = CaptureAreaService(hasScreenRecordingAccess: { true }, select: { $0(selection) })
+        var refreshes = 0
         let module = RecordingModule(defaults: defaults, defaultFolder: root, commandArea: area,
+                                     refreshCommands: { refreshes += 1 },
                                      makeSource: { source }, sleep: {})
         NotchcastCore.recording = module
         let preferences = NotchcastPreferences.shared
@@ -60,29 +64,32 @@ enum SettingsTab { case notchcast }
         precondition(!RecordingCommands.pause.isEnabled() && !RecordingCommands.stop.isEnabled())
         var failures: [String] = []
         await module.executeRecordingCommand(.record(.display(1)), report: { if $1 { failures.append($0) } })
-        precondition(failures == [RecordingTarget.Failure.disabled.localizedDescription])
+        precondition(failures == ["Capture is disabled."])
         module.start()
         RecordingCommands.screen.run()
         await module.commandTask?.value
         guard case .display = source.target else { preconditionFailure("screen target") }
         precondition(RecordingCommands.pause.isEnabled() && RecordingCommands.stop.isEnabled())
+        precondition(refreshes == 1)
         await module.executeRecordingCommand(.record(.display(2)), report: { if $1 { failures.append($0) } })
-        precondition(failures.last == RecordingTarget.Failure.busy.localizedDescription)
+        precondition(failures.last == "A recording is already in progress.")
         RecordingCommands.pause.run()
         await module.commandTask?.value
         precondition(module.phase == .paused)
         RecordingCommands.pause.run()
         await module.commandTask?.value
         precondition(module.phase == .recording)
+        precondition(refreshes == 3)
         var revealed: URL?
         var success = false
         await module.executeRecordingCommand(.finish,
             report: { success = $0 == "Recording saved" && !$1 }, reveal: { revealed = $0 })
         precondition(success && revealed != nil && FileManager.default.fileExists(atPath: revealed!.path))
         precondition(module.phase == .idle && !RecordingCommands.stop.isEnabled())
+        precondition(refreshes == 4)
         RecordingCommands.stop.run()
         await module.commandTask?.value
-        precondition(AppCore.shared.messages.last?.0 == RecordingTarget.Failure.notRecording.localizedDescription)
+        precondition(AppCore.shared.messages.last?.0 == "No recording is in progress.")
         precondition(AppCore.shared.messages.last?.1 == .danger)
         let count = source.starts
         RecordingCommands.area.run()
@@ -91,12 +98,40 @@ enum SettingsTab { case notchcast }
         RecordingCommands.area.run()
         await module.commandTask?.value
         precondition(source.target == .area(selection!.rect))
+        let publishedBefore = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "mp4" }.count
+        try module.setPaused(true)
         module.stop()
         await module.waitUntilIdle()
+        let publishedAfter = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "mp4" }.count
+        precondition(publishedAfter == publishedBefore + 1 && !module.enabled)
+        precondition(!RecordingCommands.stop.isEnabled())
         module.start()
         source.denied = true
         await module.executeRecordingCommand(.record(.display(1)), report: { if $1 { failures.append($0) } })
-        precondition(failures.last == RecordingTarget.Failure.permissionDenied.localizedDescription)
+        precondition(failures.last == "Screen Recording access is required.")
+        precondition(RecordingModule.failureMessage(CaptureAreaService.Failure.screenRecordingDenied)
+            == "Screen Recording access is required.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.invalidTarget) == "Capture area is unavailable.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.targetUnavailable) == "Capture area is unavailable.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.noFrames) == "The recording contains no frames.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.writerFailed) == "Could not save the recording.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.invalidFolder) == "Could not save the recording.")
+        let countdown = RecordingModule(defaults: defaults, defaultFolder: root,
+            makeSource: { source }, sleep: { try await Task.sleep(for: .seconds(60)) })
+        countdown.start()
+        let pending = Task { try await countdown.record(.display(1)) }
+        while countdown.phase == .idle { await Task.yield() }
+        precondition(countdown.phase == .countdown(3))
+        countdown.stop()
+        _ = await pending.result
+        await countdown.waitUntilIdle()
+        let afterCountdown = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "mp4" }.count
+        precondition(afterCountdown == publishedAfter && countdown.phase == .idle)
+        print("PASS countdown switch-off writes nothing; paused switch-off publishes")
+        print("PASS phase refresh hook, readable failures, switch-off publishes active take")
         print("PASS screen/area targets, cancelled selection, pause/resume, published URL reveal")
         print("PASS disabled/busy/permission danger failures, switch and idle availability")
     }

@@ -28,11 +28,20 @@ final class RecordingModule: NotchcastModule {
     var folder: URL {
         didSet { defaults.set(folder.path, forKey: Self.folderKey) }
     }
-    private(set) var phase = Phase.idle
+    private(set) var phase = Phase.idle {
+        didSet {
+            if oldValue != phase,
+                oldValue == .recording || oldValue == .paused || phase == .recording || phase == .paused {
+                refreshCommands()
+            }
+        }
+    }
     private(set) var lastError: (any Error)?
     private(set) var enabled = false
-    let commandArea: CaptureAreaService
-    var commandTask: Task<Void, Never>?
+    @ObservationIgnored let commandArea: CaptureAreaService
+    @ObservationIgnored var commandTask: Task<Void, Never>?
+    @ObservationIgnored private let refreshCommands: () -> Void
+    @ObservationIgnored private var shutdownTask: Task<Void, Never>?
     private var storedFrameRate: Int
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let makeSource: @MainActor () -> any RecordingSource
@@ -55,6 +64,7 @@ final class RecordingModule: NotchcastModule {
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
         defaultFolder: URL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0],
         commandArea: CaptureAreaService = CaptureAreaService(),
+        refreshCommands: @escaping () -> Void = { AppCore.shared.appIndex.refreshNotchcastCommands() },
         makeSource: @escaping @MainActor () -> any RecordingSource = { ScreenRecordingSource() },
         makeWriter: @escaping WriterFactory = { try await RecordingWriter.create(url: $0, format: $1) },
         sleep: @escaping @Sendable () async throws -> Void = { try await Task.sleep(for: .seconds(1)) },
@@ -64,6 +74,7 @@ final class RecordingModule: NotchcastModule {
     ) {
         self.defaults = defaults
         self.commandArea = commandArea
+        self.refreshCommands = refreshCommands
         self.makeSource = makeSource
         self.makeWriter = makeWriter
         self.sleep = sleep
@@ -78,10 +89,25 @@ final class RecordingModule: NotchcastModule {
     func start() { enabled = true }
 
     func stop() {
-        enabled = false
         commandArea.stop()
+        guard shutdownTask == nil else { return }
+        if phase == .recording || phase == .paused || phase == .stopping {
+            shutdownTask = Task { [self] in
+                defer { shutdownTask = nil }
+                if phase == .recording || phase == .paused {
+                    do { _ = try await finish() } catch { lastError = error }
+                } else {
+                    _ = await finishTask?.result
+                }
+                enabled = false
+                refreshCommands()
+            }
+            return
+        }
+        enabled = false
         commandTask?.cancel()
         cancel()
+        refreshCommands()
     }
 
     func record(_ target: RecordingTarget) async throws {
@@ -200,6 +226,7 @@ final class RecordingModule: NotchcastModule {
     }
 
     func waitUntilIdle() async {
+        await shutdownTask?.value
         _ = await startTask?.result
         await recoveryTask?.value
         _ = await finishTask?.result
