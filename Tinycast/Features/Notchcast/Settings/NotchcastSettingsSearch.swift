@@ -77,6 +77,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastCaptureAndDictation, "Cleanup prompt addition"),
         .init(.notchcastCaptureAndDictation, "Cleanup vocabulary"),
         .init(.notchcastCaptureAndDictation, "Cleanup API key"),
+        .init(.notchcastCaptureAndDictation, "Screen Recording", keywords: ["record", "video", "pause"]),
+        .init(.notchcastCaptureAndDictation, "Recording folder", keywords: ["directory", "downloads", "fps"]),
         .init(.notchcastSystem, "Display Brightness", keywords: ["display", "dimming", "slider"]),
         .init(.notchcastSystem, "Volume in Island", keywords: ["sound", "microphone", "mute"]),
         .init(.notchcastSystem, "System Notices", keywords: ["wifi", "tailscale", "battery"]),

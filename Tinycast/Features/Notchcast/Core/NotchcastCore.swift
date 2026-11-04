@@ -8,6 +8,8 @@ enum NotchcastCore {
         settingsBackup.stop()
         captureTrimmer.stop()
         voiceAsk?.stop()
+        recording.stop()
+        await recording.waitUntilIdle()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()

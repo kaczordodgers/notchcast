@@ -10,6 +10,7 @@ struct CaptureDictationSettingsSection: View {
             CaptureTrimmerSettingsSection()
             AgentAnswerSettingsSection()
             if let module = NotchcastCore.voiceAsk { VoiceAskSettingsSection(module: module) }
+            RecordingSettingsSection(module: NotchcastCore.recording)
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }
