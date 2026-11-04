@@ -6,15 +6,14 @@ enum AgentThreadParser {
         let title: String?
         let project: String?
         let model: String?
-        let status: String
+        let status: String?
         let link: URL
         let updatedAt: String
         let settled: Bool?
     }
 
-    private struct List: Decodable { let threads: [Row] }
     private struct Show: Decodable {
-        struct Detail: Decodable { let status: String; let pendingRequestCount: Int }
+        struct Detail: Decodable { let status: String?; let pendingRequestCount: Int }
         let thread: Detail
     }
 
@@ -22,18 +21,25 @@ enum AgentThreadParser {
 
     static func list(_ data: Data) throws -> [AgentThread] {
         let decoder = JSONDecoder()
-        let rows: [Row]
-        if let array = try? decoder.decode([Row].self, from: data) {
+        let value = try JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed])
+        let rows: [Any]
+        if let array = value as? [Any] {
+            rows = array
+        } else if let envelope = value as? [String: Any], let array = envelope["threads"] as? [Any] {
             rows = array
         } else {
-            rows = try decoder.decode(List.self, from: data).threads
+            throw Failure.invalidData
         }
         var ids = Set<String>()
-        return try rows.map { row in
-            guard !row.threadId.isEmpty, ids.insert(row.threadId).inserted,
-                  ["t3", "https"].contains(row.link.scheme?.lowercased() ?? ""),
+        return rows.compactMap { value in
+            guard JSONSerialization.isValidJSONObject(value),
+                  let data = try? JSONSerialization.data(withJSONObject: value),
+                  let row = try? decoder.decode(Row.self, from: data),
+                  !row.threadId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  validLink(row.link),
                   let date = ISO8601DateFormatter().date(from: row.updatedAt)
-                    ?? fractionalDate(row.updatedAt) else { throw Failure.invalidData }
+                    ?? fractionalDate(row.updatedAt),
+                  ids.insert(row.threadId).inserted else { return nil }
             return AgentThread(id: row.threadId, title: row.title ?? "", project: row.project ?? "",
                                model: row.model ?? "", phase: phase(row.status), pendingCount: 0,
                                link: row.link, updatedAt: date, settled: row.settled ?? false)
@@ -45,8 +51,7 @@ enum AgentThreadParser {
         guard detail.pendingRequestCount >= 0 else { throw Failure.invalidData }
         var updated = thread
         updated.pendingCount = detail.pendingRequestCount
-        updated.phase = phase(detail.status)
-        if updated.pendingCount > 0, !updated.phase.waiting { updated.phase = .waitingForApproval }
+        updated.phase = phase(detail.status, pendingCount: updated.pendingCount)
         return updated
     }
 
@@ -61,8 +66,24 @@ enum AgentThreadParser {
         }
     }
 
-    static func phase(_ status: String) -> AgentThread.Phase {
-        AgentThread.Phase(rawValue: status) ?? .stale
+    static func phase(_ status: String?, pendingCount: Int = 0) -> AgentThread.Phase {
+        switch status ?? "idle" {
+        case "preparing", "queued", "starting": .starting
+        case "running": .running
+        case "waiting": pendingCount > 0 ? .waitingForApproval : .waitingForInput
+        case "completed": .completed
+        case "failed", "interrupted", "cancelled", "rolled_back": .failed
+        default: .stale
+        }
+    }
+
+    private static func validLink(_ link: URL) -> Bool {
+        switch link.scheme?.lowercased() {
+        case "https": link.host?.isEmpty == false
+        case "t3-thread": true
+        case "http": ["127.0.0.1", "localhost"].contains(link.host?.lowercased() ?? "")
+        default: false
+        }
     }
 
     private static func fractionalDate(_ value: String) -> Date? {

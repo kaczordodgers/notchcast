@@ -9,11 +9,11 @@
 
 ## Model
 
-`AgentThreadParser` decodes list arrays or a threads envelope, plus show envelopes. Unknown statuses become stale. Invalid JSON fails the refresh. The clock is injected into selection. Pending counts come from show for non-settled threads; a positive count indicates approval waiting unless the status explicitly indicates input waiting.
+`AgentThreadParser` decodes list arrays or a threads envelope, plus show envelopes. Preparing, queued and starting map to starting; running stays running; waiting maps to approval waiting when its pending count is positive, otherwise input waiting. Completed stays completed; failed, interrupted, cancelled and rolled_back map to failed. Missing or null status means idle; idle and unknown statuses become stale. Invalid JSON or an unsupported top-level shape fails the refresh; unusable rows are dropped individually. Links accept HTTPS, t3-thread, and HTTP only on localhost or 127.0.0.1. The clock is injected into selection. Only starting, running and waiting list rows fetch show details, one process each; idle and finished rows require no show calls.
 
 ## Service
 
-`AgentThreadsState` refreshes on start and command invocation. `setActive` enables 15-second polling for a future page; inactive has no timer. Stop cancels work and invalidates its operation identity. The injected runner permits synthetic harnesses. Production resolves executable absolute paths and enforces a ten-second timeout.
+`AgentThreadsState` refreshes on start and command invocation. `setActive` enables 15-second polling for a future page; inactive has no timer. Cancelling a refresh restores ready when a snapshot exists, otherwise idle. Stop cancels work and invalidates its operation identity. The injected runner permits synthetic harnesses. Production resolves executable absolute paths and enforces a ten-second timeout.
 
 ## Commands
 

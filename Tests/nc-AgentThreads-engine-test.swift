@@ -1,14 +1,21 @@
 import Foundation
 
+@MainActor
+private final class CallCounter { var show = 0 }
+
 private struct FakeRunner: AgentThreadRunning {
     var failure: AgentThreadFailure?
     var delay = false
+    var listData: Data?
+    var counter: CallCounter?
     func run(arguments: [String]) async throws -> Data {
         if delay { try? await Task.sleep(for: .milliseconds(80)) }
         if let failure { throw failure }
         if arguments.contains("show") {
-            return Data(#"{"thread":{"status":"running","pendingRequestCount":2}}"#.utf8)
+            await MainActor.run { counter?.show += 1 }
+            return Data(#"{"thread":{"status":"waiting","pendingRequestCount":2}}"#.utf8)
         }
+        if let listData { return listData }
         return Data("""
         [{"threadId":"sample","title":"Example","project":"Demo","model":"Example Model",
         "status":"running","link":"https://example.com/thread","updatedAt":"2026-01-01T12:00:00Z"}]
@@ -27,15 +34,41 @@ struct AgentThreadsTest {
         let envelope = Data("{\"threads\":".utf8) + data + Data("}".utf8)
         let enveloped = try AgentThreadParser.list(envelope)
         precondition(enveloped == rows)
-        for phase in AgentThread.Phase.allCases {
-            precondition(AgentThreadParser.phase(phase.rawValue) == phase)
+        let statuses: [(String?, AgentThread.Phase)] = [
+            ("idle", .stale), (nil, .stale), ("preparing", .starting), ("queued", .starting),
+            ("starting", .starting), ("running", .running), ("waiting", .waitingForInput),
+            ("completed", .completed), ("failed", .failed), ("interrupted", .failed),
+            ("cancelled", .failed), ("rolled_back", .failed), ("unknown", .stale)
+        ]
+        for (status, expected) in statuses {
+            let statusJSON = status.map { "\"\($0)\"" } ?? "null"
+            let fixture = Data("""
+            [{"threadId":"sample","status":\(statusJSON),
+            "link":"http://127.0.0.1:3773/demo/sample","updatedAt":"2026-01-01T12:00:00Z"}]
+            """.utf8)
+            let parsed = try AgentThreadParser.list(fixture)
+            precondition(parsed.count == 1 && parsed[0].phase == expected)
+        }
+        let threadLink = "t3-thread:" + "//demo/sample"
+        let missing = Data("""
+        [{"threadId":"sample","link":"\(threadLink)","updatedAt":"2026-01-01T12:00:00Z"}]
+        """.utf8)
+        let missingRows = try AgentThreadParser.list(missing)
+        precondition(missingRows.first?.phase == .stale)
+        for bad in [#"{"threadId":"","link":"https://example.com","updatedAt":"2026-01-01T12:00:00Z"}"#,
+                    #"{"threadId":"bad","link":"http://example.com","updatedAt":"2026-01-01T12:00:00Z"}"#,
+                    #"{"threadId":"bad","link":"https://example.com","updatedAt":"invalid"}"#,
+                    #"{"threadId":42}"#] {
+            let mixed = Data("[\(bad),".utf8) + data.dropFirst()
+            let parsed = try AgentThreadParser.list(mixed)
+            precondition(parsed == rows)
         }
         precondition(AgentThreadParser.phase("future-status") == .stale)
         let detail = try await runner.run(arguments: ["show"])
         let waiting = try AgentThreadParser.show(detail, updating: rows[0])
         precondition(waiting.pendingCount == 2 && waiting.phase == .waitingForApproval)
         let input = try AgentThreadParser.show(
-            Data(#"{"thread":{"status":"waitingForInput","pendingRequestCount":1}}"#.utf8), updating: rows[0])
+            Data(#"{"thread":{"status":"waiting","pendingRequestCount":0}}"#.utf8), updating: rows[0])
         precondition(input.phase == .waitingForInput)
         let now = rows[0].updatedAt
         let finished = AgentThread(id: "finished", title: "", project: "", model: "", phase: .completed,
@@ -60,6 +93,9 @@ struct AgentThreadsTest {
         state.start()
         await state.waitUntilIdle()
         precondition(state.status == .ready && state.threads.first?.pendingCount == 2)
+        state.refresh()
+        state.setActive(false)
+        precondition(state.status == .ready)
         state.stop()
         state.refresh()
         precondition(state.status == .idle && state.threads.isEmpty)
@@ -74,13 +110,27 @@ struct AgentThreadsTest {
         let late = AgentThreadsState(runner: FakeRunner(delay: true))
         late.start()
         await Task.yield()
-        late.stop()
+        late.setActive(false)
+        precondition(late.status == .idle)
         try await Task.sleep(for: .milliseconds(150))
         precondition(late.status == .idle && late.threads.isEmpty)
+        let counter = CallCounter()
+        let list = Data("""
+        [{"threadId":"idle-example","status":"idle","link":"https://example.com/idle","updatedAt":"2026-01-01T12:00:00Z"},
+        {"threadId":"done-example","status":"completed","link":"https://example.com/done","updatedAt":"2026-01-01T12:00:00Z"},
+        {"threadId":"active-example","status":"starting","link":"https://example.com/active","updatedAt":"2026-01-01T12:00:00Z"},
+        {"threadId":"running-example","status":"running","link":"https://example.com/running","updatedAt":"2026-01-01T12:00:00Z"},
+        {"threadId":"waiting-example","status":"waiting","link":"https://example.com/waiting","updatedAt":"2026-01-01T12:00:00Z"}]
+        """.utf8)
+        let counted = AgentThreadsState(runner: FakeRunner(listData: list, counter: counter), now: { now })
+        counted.start()
+        await counted.waitUntilIdle()
+        precondition(counted.status == .ready && counter.show == 3)
         let catalog = try String(contentsOfFile:
             "Tinycast/Features/AgentThreads/AgentThreadsModule.swift", encoding: .utf8)
         precondition(catalog.components(separatedBy: "isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }")
             .count == 3)
-        print("PASS: parsing, all phases, waiting order, finished window, missing CLI, bad JSON, timeout, stop, command gates")
+        print("PASS: real statuses including null, loopback link, dropped bad rows, show calls = 3, cancellation idle/ready")
+        print("PASS: waiting order, finished window, missing CLI, bad JSON, timeout, command gates")
     }
 }

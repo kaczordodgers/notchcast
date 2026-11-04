@@ -48,7 +48,8 @@ final class AgentThreadsState {
                 do {
                     let data = try await runner.run(arguments: ["thread", "list", "--json"])
                     var rows = try AgentThreadParser.list(data)
-                    for index in rows.indices where !rows[index].settled {
+                    for index in rows.indices where rows[index].phase == .starting
+                        || rows[index].phase == .running || rows[index].phase.waiting {
                         try Task.checkCancellation()
                         let detail = try await runner.run(arguments: ["thread", "show", rows[index].id, "--json"])
                         rows[index] = try AgentThreadParser.show(detail, updating: rows[index])
@@ -72,5 +73,6 @@ final class AgentThreadsState {
         operation = UUID()
         task?.cancel()
         task = nil
+        if status == .loading { status = threads.isEmpty ? .idle : .ready }
     }
 }
