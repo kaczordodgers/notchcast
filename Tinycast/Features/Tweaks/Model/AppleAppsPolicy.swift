@@ -46,6 +46,41 @@ nonisolated enum AppleAppsPolicy {
         let replacement: Data
     }
 
+    static func restoreDock(previous: Data, current: Data) throws -> Data {
+        func tiles(_ data: Data) throws -> [[String: Any]] {
+            guard let tiles = try PropertyListSerialization.propertyList(from: data, format: nil)
+                as? [[String: Any]] else { throw Failure.invalidDockData }
+            return tiles
+        }
+        func equal(_ left: [String: Any], _ right: [String: Any]) -> Bool {
+            NSDictionary(dictionary: left).isEqual(to: right)
+        }
+        let original = try tiles(previous)
+        let replacement = try tiles(dockPlan(previous: previous).replacement)
+        var result = try tiles(current)
+        if NSArray(array: result).isEqual(to: replacement) { return previous }
+        for (index, tile) in original.enumerated() {
+            guard let data = tile["tile-data"] as? [String: Any],
+                  let identifier = data["bundle-identifier"] as? String,
+                  removedDockIdentifiers.contains(identifier) else { continue }
+            let alreadyPresent = result.contains { candidate in
+                if let guid = tile["GUID"] as? NSNumber, let other = candidate["GUID"] as? NSNumber {
+                    return guid == other
+                }
+                return equal(tile, candidate)
+            }
+            guard !alreadyPresent else { continue }
+            let next = original.dropFirst(index + 1).compactMap { anchor in
+                result.firstIndex { equal(anchor, $0) }
+            }.first
+            let prior = original.prefix(index).reversed().compactMap { anchor in
+                result.firstIndex { equal(anchor, $0) }
+            }.first
+            result.insert(tile, at: next ?? prior.map { $0 + 1 } ?? result.count)
+        }
+        return try PropertyListSerialization.data(fromPropertyList: result, format: .binary, options: 0)
+    }
+
     enum Failure: Error { case invalidDockData, invalidMusicLabel }
 
     static func musicLabel(bundleInode: UInt64, executableInode: UInt64) -> String {
