@@ -237,7 +237,6 @@ extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
         if isSystemFeature { return false }
-        if startsOff { return false }
         return switch self {
         case .launcherNumberKeys: false
         case .launcherAliasSpace: false
@@ -256,6 +255,12 @@ extension NotchcastFeature {
         case .machLink: false
         case .remoteScreen: false
         case .machMBPFans: false
+        case .machRemote: false
+        case .backupStatus: false
+        case .linkHealth: false
+        case .shelfBetweenMacs: false
+        case .sendFiles: false
+        case .updateRemote: false
         default: true
         }
     }
