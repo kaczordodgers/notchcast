@@ -87,7 +87,12 @@ final class KatanaClient {
     private func perform(_ action: @MainActor (Context) async throws -> Void) async throws {
         guard isEnabled else { throw KatanaError.disabled }
         guard operation == nil else { throw KatanaError.busy }
-        guard let transport, let connection = transport.connectionID else { throw KatanaError.unavailable }
+        guard let transport, let connection = transport.connectionID else {
+            channel = nil
+            toneName = nil
+            audioSettings = nil
+            throw KatanaError.unavailable
+        }
         let id = UUID()
         operation = id
         defer { if operation == id { operation = nil } }

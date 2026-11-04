@@ -244,6 +244,11 @@ struct KatanaTests {
         do { try await refresh.value; fatalError("Disconnected refresh succeeded") } catch is CancellationError {}
         expect(client.channel == nil && !client.isConnected, "Disconnect clears prior channel")
         fake.connectionID = UUID()
+        try await client.refresh()
+        fake.connectionID = nil
+        await rejects(.unavailable) { try await client.refresh() }
+        expect(client.channel == nil, "Already disconnected refresh clears prior channel")
+        fake.connectionID = UUID()
         fake.packets = []
         fake.pauseAddress = KatanaSysEx.export
         let load = Task { try await client.loadTone(tone(), to: .a1) }
@@ -282,6 +287,10 @@ struct KatanaTests {
                && destination.dryCodec == .appleLossless, "Recording codecs")
         let take = try await audio.finishRecording()
         expect(take.duration == 2 && audio.activity == .idle, "Recording completion")
+        try await audio.startRecording(destination)
+        fake.connectionID = nil
+        await rejects(.unavailable) { _ = try await audio.finishRecording() }
+        expect(audio.activity == .idle && audio.lastRecording == nil, "Lost USB connection tears down recording")
         audio.stop()
         expect(fake.stops > 0 && audio.reading == nil, "Stop tears down audio")
     }

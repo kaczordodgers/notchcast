@@ -88,7 +88,13 @@ final class KatanaAudioService {
     private func perform(_ action: @MainActor (any KatanaAudioTransport, UUID, UUID) async throws -> Void) async throws {
         guard isEnabled else { throw KatanaError.disabled }
         guard operation == nil else { throw KatanaError.busy }
-        guard let transport, let connection = transport.connectionID else { throw KatanaError.unavailable }
+        guard let transport, let connection = transport.connectionID else {
+            self.transport?.stop()
+            activity = .idle
+            reading = nil
+            destination = nil
+            throw KatanaError.unavailable
+        }
         guard transport.isUSB else { throw KatanaError.usbRequired }
         let id = UUID(), generation = generation
         operation = id
