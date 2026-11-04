@@ -1,5 +1,6 @@
 import AppKit
 import AVFoundation
+import CoreBluetooth
 import EventKit
 
 extension NotchcastGrant {
@@ -9,6 +10,7 @@ extension NotchcastGrant {
         case .screenRecording: String(localized: "Screen Recording")
         case .microphone: SettingsAnchor.permissionsMicrophone.title
         case .calendars: SettingsAnchor.permissionsCalendars.title
+        case .bluetooth: String(localized: "Bluetooth")
         }
     }
 
@@ -18,6 +20,7 @@ extension NotchcastGrant {
         case .screenRecording: ScreenshotService.hasScreenRecordingAccess()
         case .microphone: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
         case .calendars: EKEventStore.authorizationStatus(for: .event) == .fullAccess
+        case .bluetooth: CBManager.authorization == .allowedAlways
         }
     }
 
@@ -33,6 +36,10 @@ extension NotchcastGrant {
         case .screenRecording:
             guard let url = URL(string:
                 "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture") else { return }
+            NSWorkspace.shared.open(url)
+        case .bluetooth:
+            guard let url = URL(string:
+                "x-apple.systempreferences:com.apple.preference.security?Privacy_Bluetooth") else { return }
             NSWorkspace.shared.open(url)
         }
     }

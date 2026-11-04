@@ -108,6 +108,7 @@ extension NotchcastSettingsModule {
             ]),
             .init(title: "Accessories", items: [
                 .feature(.accessoryBatteries, settings: [.batteryAccessoryReadings]),
+                .feature(.accessoryNotices, settings: []),
             ]),
         ]
         case .windowsAndDisplay: [

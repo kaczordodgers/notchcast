@@ -75,7 +75,7 @@ private struct NotchcastModuleFeatureRows: View {
         .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
         .settingsEnabled(feature.dependencies.allSatisfy(preferences.isEnabled))
         .settingsEnabled(feature.settingsAvailable)
-        if NotchcastSettingsModule.module(of: feature) == .battery && feature != .accessoryBatteries {
+        if NotchcastSettingsModule.module(of: feature) == .battery && ![.accessoryBatteries, .accessoryNotices].contains(feature) {
             NotchcastBatteryStatusSettingRow(feature: feature)
         }
         if feature == .microphoneMute, servicesReady {
