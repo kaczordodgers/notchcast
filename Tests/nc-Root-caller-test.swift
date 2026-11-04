@@ -6,6 +6,15 @@ import Darwin
 struct RootCallerTest {
     static func main() {
         precondition(geteuid() != 0)
+        precondition(RootCaller.matches(getppid(), requirement: "anchor apple"))
+        let pin = "95280FD4EC25303CCC1FE2AA2A5E8B0A1A757DCC"
+        guard let requirement = RootCaller.appRequirement(pin: pin) else {
+            preconditionFailure("Valid certificate pin rejected")
+        }
+        precondition(!RootCaller.matches(getppid(), requirement: requirement))
+        precondition(RootCaller.appRequirement(pin: "") == nil)
+        precondition(RootCaller.appRequirement(pin: nil) == nil)
+        precondition(RootCaller.appRequirement() == nil)
         for command in RootContract.Command.allCases {
             var checks = 0
             let publicRead = command == .version || command == .ping

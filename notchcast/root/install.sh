@@ -38,6 +38,9 @@ if [ "$uninstall" -eq 1 ]; then
     exit 0
 fi
 
+step /bin/rm -f "$rule"
+step /bin/rm -f "$helper"
+
 console_user=$(/usr/bin/stat -f '%Su' /dev/console)
 if [[ ! "$console_user" =~ ^[a-z_][a-z0-9_.-]{0,30}$ ]] || [ "$console_user" = root ]; then
     printf 'A signed-in console user with a plain account name is required.\n' >&2
@@ -52,17 +55,12 @@ if [ -n "$(/usr/bin/git -C "$source_directory" status --porcelain -- .)" ]; then
 fi
 printf 'Installing the helper from commit %s.\n' "$(/usr/bin/git -C "$source_directory" rev-parse HEAD)"
 app=/Applications/Notchcast.app
-if [ "$dry_run" -eq 1 ]; then
-    team=INSTALL_SIGNING_TEAM
-    printf 'Would verify %s and bake its Apple signing team into the helper.\n' "$app"
-else
-    /usr/bin/codesign --verify --strict -R 'anchor apple generic and identifier app.notchcast' "$app"
-    team=$(/usr/bin/codesign -dv "$app" 2>&1 | /usr/bin/sed -n 's/^TeamIdentifier=//p')
-    if [[ ! "$team" =~ ^[A-Z0-9]{10}$ ]]; then
-        printf 'A signed Notchcast app with an Apple signing team is required.\n' >&2
-        exit 65
-    fi
+leaf_sha1=$(/usr/bin/git -C "$source_directory" show HEAD:notchcast/config.env | /usr/bin/sed -n 's/^SIGN_SHA1=//p')
+if [[ ! "$leaf_sha1" =~ ^[A-Fa-f0-9]{40}$ ]]; then
+    printf 'A committed signing certificate pin is required.\n' >&2
+    exit 65
 fi
+step /usr/bin/codesign --verify --strict -R "identifier app.notchcast and certificate leaf = H\"$leaf_sha1\"" "$app"
 if [ "$dry_run" -eq 1 ]; then
     stage='<private temporary directory>'
     step /usr/bin/mktemp -d /private/tmp/notchcast-root.XXXXXX
@@ -75,9 +73,9 @@ step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/Root
 step /usr/bin/shasum -a 256 "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift"
 step /bin/cp "$source_directory/RootCaller.swift" "$stage/RootCaller.swift"
 if [ "$dry_run" -eq 1 ]; then
-    printf 'Would generate CallerRequirement.swift with the verified signing team.\n'
+    printf 'Would generate CallerRequirement.swift with committed leaf SHA-1 %s.\n' "$leaf_sha1"
 else
-    printf 'enum CallerRequirement { static let team = "%s" }\n' "$team" > "$stage/CallerRequirement.swift"
+    printf 'enum CallerRequirement { static let leafSHA1 = "%s" }\n' "$leaf_sha1" > "$stage/CallerRequirement.swift"
 fi
 step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/CallerRequirement.swift" "$stage/RootCaller.swift" "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" \
     "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift" -o "$stage/helper"
