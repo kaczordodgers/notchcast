@@ -9,6 +9,7 @@ struct CaptureDictationSettingsSection: View {
             DictationCleanupSettingsSection(module: NotchcastCore.dictationCleanup)
             CaptureTrimmerSettingsSection()
             AgentAnswerSettingsSection()
+            if let module = NotchcastCore.voiceAsk { VoiceAskSettingsSection(module: module) }
         } header: {
             SettingsSectionHeader(.notchcastCaptureAndDictation)
         }
