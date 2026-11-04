@@ -45,6 +45,16 @@ jobs:
         run: |
           git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
           echo "sha=$(git merge-base HEAD refs/remotes/upstream/main)" >> "$GITHUB_OUTPUT"
+      - name: At most one README.md in the app bundle
+        working-directory: src
+        run: |
+          notchcast/check-bundle-readme.sh
+      - name: New modules have a harness (warning only)
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        working-directory: src
+        run: |
+          python3 notchcast/check-module-harness.py "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}"
       - name: Feature append shape and union merge proof
         working-directory: src
         run: |
