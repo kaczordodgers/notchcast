@@ -27,6 +27,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case batteryCalibration
     case keepAwake
     case lidClosedAwake
+    case linkQuickFixes
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -52,6 +53,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: .systemTools
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
+        case .linkQuickFixes: .systemTools
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -87,6 +89,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .linkQuickFixes: String(localized: "Link Quick Fixes")
         }
     }
 
@@ -118,6 +121,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
         }
     }
 
