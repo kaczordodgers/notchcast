@@ -8,6 +8,7 @@ final class AgentSocketServer: Sendable {
     private struct Connections {
         var stopped = true
         var clients: [UUID: Connection] = [:]
+        var persistent: Set<UUID> = []
     }
 
     private final class Connection: Sendable {
@@ -171,52 +172,75 @@ final class AgentSocketServer: Sendable {
             let connection = Connection(descriptor)
             let id = UUID()
             let accepted = connections.withLock {
-                guard !$0.stopped, $0.clients.count < 8 else { return false }
+                guard !$0.stopped, $0.clients.count - $0.persistent.count < 8 else { return false }
                 $0.clients[id] = connection
                 return true
             }
             guard accepted else { connection.close(); continue }
-            Thread.detachNewThread { [self] in serve(connection, id: id, descriptor: descriptor) }
+            Thread.detachNewThread { @Sendable [self] in serve(connection, id: id, descriptor: descriptor) }
         }
     }
 
     private func serve(_ connection: Connection, id: UUID, descriptor: Int32) {
+        var session: String?
         defer {
             connection.close()
-            connections.withLock { $0.clients[id] = nil }
+            connections.withLock {
+                $0.clients[id] = nil
+                $0.persistent.remove(id)
+            }
+            if let session {
+                Task { [handler] in _ = await handler(.init(verb: .mcp, id: session, parameters: .null)) }
+            }
         }
-        let reply: AgentReply
-        do {
-            let line = try AgentSocketIO.readLine(descriptor, timeout: readTimeout)
-            let request: AgentRequest
+        var keepAlive = false
+        repeat {
+            let reply: AgentReply
             do {
-                request = try JSONDecoder().decode(AgentRequest.self, from: line)
-            } catch {
-                throw AgentReply.Code.badRequest
-            }
-            let answer = Mutex<AgentReply?>(nil)
-            let done = connection.done
-            let handler = handler
-            connection.state.withLock { state in
-                guard !state.cancelled else { return }
-                state.task = Task {
-                    let reply = await handler(request)
-                    answer.withLock { $0 = reply }
-                    done.signal()
+                let line = try AgentSocketIO.readLine(descriptor, timeout: keepAlive ? .seconds(86400) : readTimeout)
+                let request: AgentRequest
+                do {
+                    request = try JSONDecoder().decode(AgentRequest.self, from: line)
+                } catch {
+                    throw AgentReply.Code.badRequest
                 }
+                keepAlive = request.verb == .mcp && request.keepAlive
+                if keepAlive {
+                    let admitted = connections.withLock {
+                        if $0.persistent.contains(id) { return true }
+                        guard $0.persistent.count < 64 else { return false }
+                        $0.persistent.insert(id)
+                        return true
+                    }
+                    guard admitted else { throw AgentReply.Code.failed }
+                    session = request.id
+                }
+                let answer = Mutex<AgentReply?>(nil)
+                let done = connection.done
+                let handler = handler
+                connection.state.withLock { state in
+                    guard !state.cancelled else { return }
+                    state.task = Task {
+                        let reply = await handler(request)
+                        answer.withLock { $0 = reply }
+                        done.signal()
+                    }
+                }
+                guard !connection.state.withLock({ $0.cancelled }) else { return }
+                try waitForReply(connection, descriptor: descriptor)
+                reply = answer.withLock { $0 } ?? .init(code: .failed)
+            } catch let code as AgentReply.Code {
+                keepAlive = false
+                reply = .init(code: code)
+            } catch {
+                keepAlive = false
+                reply = .init(code: .failed)
             }
-            guard !connection.state.withLock({ $0.cancelled }) else { return }
-            try waitForReply(connection, descriptor: descriptor)
-            reply = answer.withLock { $0 } ?? .init(code: .failed)
-        } catch let code as AgentReply.Code {
-            reply = .init(code: code)
-        } catch {
-            reply = .init(code: .failed)
-        }
-        connection.state.withLock { $0.task?.cancel() }
-        do {
-            try AgentSocketIO.write(AgentSocketIO.frame(reply), to: descriptor, timeout: .seconds(5))
-        } catch { return }
+            connection.state.withLock { $0.task?.cancel() }
+            do {
+                try AgentSocketIO.write(AgentSocketIO.frame(reply), to: descriptor, timeout: .seconds(5))
+            } catch { return }
+        } while keepAlive
     }
 
     private func waitForReply(_ connection: Connection, descriptor: Int32) throws {
