@@ -1,6 +1,7 @@
 {
   "tasks": "launcher commands Add Task from Clipboard / Complete Next / Undo (Tinycast/Features/Todo/Commands/TodoCommands.swift:16, :19, :22; catalog NotchcastCommandCatalog+All.swift:4-6)",
   "machLink": "settings Pair/Unpair (Tinycast/Features/AIUsage/UI/AIUsageSettingsSection.swift:15) + automatic listener (Tinycast/Features/AIUsage/AIUsageLinkModule.swift:80) serving link-health, dialogs and shelf requests",
+  "linkQuickFixes": "launcher command Fix Mac Link (Tinycast/Features/LinkQuickFixes/Commands/LinkQuickFixCommands.swift:4; catalog NotchcastCommandCatalog+All.swift:4): when Mac Link is down or unpaired, offers fixes in upstream's dialog (copy Tailscale command, Network Settings, Mac Link settings) and runs the chosen one",
   "islandExternalDisplays": "automatic: panels shown on displays without a notch (Tinycast/Features/Notchcast/Island/IslandController.swift:185)",
   "islandFullScreen": "automatic: panel full-screen behaviour (Tinycast/Features/Notchcast/Island/IslandController.swift:184)",
   "islandHoverOpen": "automatic: hover-open input + delay picker (Tinycast/Features/Notchcast/Island/IslandController.swift:263, :275)",
