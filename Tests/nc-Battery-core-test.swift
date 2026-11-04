@@ -33,6 +33,14 @@ struct BatteryCoreTests {
         engine.calibration.start()
         check(engine.evaluate(policy: policy, percent: 90, charging: false, connected: true,
                               celsius: 20, now: now).charging, "calibration overrides limit")
+        engine.calibration.cancel()
+        let held = engine.evaluate(policy: policy, percent: 95, charging: true, connected: true,
+                                   celsius: 20, now: now)
+        check(!held.charging, "above limit pauses charging")
+        check(engine.evaluate(policy: policy, percent: nil, charging: true, connected: true,
+                              celsius: nil, now: now) == held, "missing reading holds state")
+        check(engine.evaluate(policy: policy, percent: 95, charging: true, connected: false,
+                              celsius: 20, now: now) == held, "unplugging holds state")
         var awake = KeepAwakePolicy(enabled: true)
         check(awake.evaluate(now: now, onBattery: true, percent: 20, locked: false) == .batteryFloor,
               "battery floor boundary")
