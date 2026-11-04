@@ -62,7 +62,6 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | musicNowPlaying | Bool | Read-only now-playing observation |
 | musicLastPlayer | Bool | Remembers player and routes manual media keys |
 | inUseMarks | Bool | Read-only microphone/camera indicators |
-| archivesInPlace | Bool | Manual extraction mode |
 | quickLookSpace | Bool | Launcher Quick Look on Space |
 | markdownFiles | Bool | Editor handling of Markdown files |
 | plainTextFiles | Bool | Editor handling of plain text files |
@@ -70,7 +69,6 @@ values and skips invalid keys individually. It never copies the raw defaults dom
 | hideCommandM | Bool | TCC-gated feature preference |
 | middleClick | Bool | TCC-gated feature preference |
 | greenMaximize | Bool | TCC-gated feature preference |
-| machineSetupProfile | Bool | Planning feature preference |
 | eventReminder | Bool | TCC-gated calendar preference |
 | switcherQuitKey | Bool | TCC-gated feature preference |
 | linkQuickFixes | Bool | Manual feature preference |
@@ -161,7 +159,13 @@ rgb, hsl, swiftUIColor, nsColorLiteral).
 `notchcast.screenshot.destination` and `notchcast.screenshot.folder` are excluded as
 screen-recording capability and capture-output policy. `backupRunNow` and `backupBrowseRestore` are
 excluded: they run the machine backup tool with its repository password command.
-The document editor's font, theme and pairing preferences are not carried yet.
+`archivesInPlace` is excluded because it consumes the source archive, and `machineSetupProfile`
+because it gates a command that changes the Dock default. Backups written before these left the
+list are refused; the next daily file restores normally.
+The document editor carries `notchcast.editor.font` (system/jetBrainsMono),
+`notchcast.editor.theme` (system/githubDark), and `notchcast.editor.pairsAutomatically` (Bool).
+Restore updates `NotchcastCore.editor.editorPreferences`; its setters retain the bare keys
+`font`, `theme`, and `pairsAutomatically` in the channel's `.editor` defaults suite.
 
 ## Adding switches
 
