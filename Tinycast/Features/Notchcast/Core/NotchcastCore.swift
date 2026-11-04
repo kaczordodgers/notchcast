@@ -35,6 +35,8 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        editor.refreshCommands = { [weak core] in core?.appIndex.refreshNotchcastCommands() }
+        editor.reportOpenFailure = { [weak core] error in core?.showMessage(error.localizedDescription, tone: .danger) }
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor

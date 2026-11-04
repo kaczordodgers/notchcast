@@ -2,7 +2,15 @@
 
 The fork document mode edits `.md`/`.markdown` and `.txt`/`.text` files independently of
 the Notes folder. This phase supplies the engine and three automatic Notchcast settings rows;
-it adds no document window, launcher command, file association or default-handler change.
+it adds no document window, file association or default-handler change.
+
+The Notchcast command “Open File in Editor” opens a plain AppKit text/Markdown picker and
+loads its selection through the coordinator. Availability follows the Markdown Files and Plain
+Text Files switches, including launcher refreshes when they change. Cancellation does nothing;
+open failures use the existing message HUD.
+
+TODO: present the loaded session in a document window. Until that surface exists, the command
+loads the document into memory but does not display an editable window.
 
 ## Invariants
 
@@ -44,7 +52,7 @@ are persisted in a bundle-scoped fork store. This phase does not apply font or c
 
 ## Left for the look
 
-The document window using `NoteEditorView`/`NoteTextView`, Open/Save panels, conflict/deletion dialogs,
+The document window using `NoteEditorView`/`NoteTextView`, Save panels, conflict/deletion dialogs,
 live application of preferences, font/theme controls, statistics, centered columns, Stay on Top and
 Brain Dump controls remain for the visual phase. OS document registration/open events belong with
 that window. Mermaid, a preview pane, rich text and printing remain outside this scope.

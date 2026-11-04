@@ -10,10 +10,35 @@ final class EditorCoordinator: NotchcastModule {
     private let preferences: NotchcastPreferences
     private var isRunning = false
     private var generation = 0
+    var refreshCommands: () -> Void = {}
+    var reportOpenFailure: (Error) -> Void = { _ in }
+    private let selectFile: @MainActor () -> URL?
+    private var openTask: Task<Void, Never>?
 
-    init(preferences: NotchcastPreferences, editorPreferences: EditorPreferences) {
+    var isEnabled: Bool {
+        isRunning && (preferences.isOn(.markdownFiles) || preferences.isOn(.plainTextFiles))
+    }
+
+    init(preferences: NotchcastPreferences, editorPreferences: EditorPreferences,
+         selectFile: @escaping @MainActor () -> URL? = EditorOpenPanel.selectFile) {
         self.preferences = preferences
         self.editorPreferences = editorPreferences
+        self.selectFile = selectFile
+    }
+
+    func openFile() {
+        guard isEnabled, openTask == nil, let url = selectFile(), isEnabled else { return }
+        openTask = Task { [weak self] in
+            guard let self else { return }
+            defer { openTask = nil }
+            do {
+                _ = try await open(url)
+            } catch is CancellationError {
+            } catch {
+                guard !Task.isCancelled else { return }
+                reportOpenFailure(error)
+            }
+        }
     }
 
     func start() {
@@ -26,6 +51,8 @@ final class EditorCoordinator: NotchcastModule {
     func stop() {
         generation += 1
         isRunning = false
+        openTask?.cancel()
+        refreshCommands()
         for document in documents { document.setEnabled(false) }
     }
 
@@ -98,6 +125,7 @@ final class EditorCoordinator: NotchcastModule {
 
     private func observeAvailability() {
         guard isRunning else { return }
+        refreshCommands()
         withObservationTracking {
             for document in documents {
                 let markdown = (try? EditorDocumentRepository.kind(of: document.url)) ?? false
