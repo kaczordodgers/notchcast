@@ -35,7 +35,7 @@ import Foundation
         let space = LowDiskEngine.Space(free: 1_000_000, total: 100_000_000)
         disk.manager.onNotice?(space)
         precondition(disk.latest == space)
-        precondition(IslandActivityCenter.shared.messages.last?.hasPrefix("Low Disk Warning:") == true)
+        precondition(IslandActivityCenter.shared.messages.last?.hasPrefix("Low disk space:") == true)
         disk.stop()
         precondition(disk.manager.onNotice == nil)
         let system = SystemNoticesModule()
