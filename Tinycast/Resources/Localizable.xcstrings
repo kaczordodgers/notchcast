@@ -1,6 +1,199 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "T3 CLI not found." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "T3-CLI nicht gefunden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se encontró la CLI de T3." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "CLI T3 introuvable." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "T3 CLIが見つかりません。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "T3 CLI를 찾을 수 없습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "CLI do T3 não encontrada." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "CLI T3 не найден." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未找到 T3 CLI。" } }
+      }
+    },
+    "Could not refresh agent threads." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Agent-Threads konnten nicht aktualisiert werden." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudieron actualizar los hilos de agentes." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Impossible d’actualiser les fils des agents." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "エージェントのスレッドを更新できませんでした。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "에이전트 스레드를 새로 고칠 수 없습니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Não foi possível atualizar as conversas de agentes." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Не удалось обновить ветки агентов." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "无法刷新代理线程。" } }
+      }
+    },
+    "%lld waiting agent threads." : {
+      "localizations": {
+        "de": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld wartender Agent-Thread."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld wartende Agent-Threads."
+                }
+              }
+            }
+          }
+        },
+        "es": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hilo de agente en espera."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld hilos de agentes en espera."
+                }
+              },
+              "many": {
+                "stringUnit": { "state": "translated", "value": "%lld hilos de agentes en espera." }
+              }
+            }
+          }
+        },
+        "fr": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld fil d’agent en attente."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld fils d’agents en attente."
+                }
+              },
+              "many": {
+                "stringUnit": { "state": "translated", "value": "%lld fils d’agents en attente." }
+              }
+            }
+          }
+        },
+        "ja": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld件の待機中のエージェントスレッド。"
+                }
+              }
+            }
+          }
+        },
+        "ko": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "대기 중인 에이전트 스레드 %lld개."
+                }
+              }
+            }
+          }
+        },
+        "pt": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld conversa de agente em espera."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld conversas de agentes em espera."
+                }
+              },
+              "many": {
+                "stringUnit": { "state": "translated", "value": "%lld conversas de agentes em espera." }
+              }
+            }
+          }
+        },
+        "ru": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ожидающая ветка агента."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ожидающих веток агентов."
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ожидающие ветки агентов."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld ожидающих веток агентов."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans": {
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld 个等待中的代理线程。"
+                }
+              }
+            }
+          }
+        },
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld waiting agent thread."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld waiting agent threads."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "Agent Threads" : {
       "localizations" : {
         "de" : { "stringUnit" : { "state" : "translated", "value" : "Agent-Threads" } },

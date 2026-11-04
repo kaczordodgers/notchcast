@@ -1,7 +1,12 @@
+// notchcast-sources: Tinycast/Features/AgentThreads/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift Tinycast/Platform/ProcessExit.swift
 import Foundation
 
 @MainActor
-private final class CallCounter { var show = 0 }
+private final class CallCounter {
+    var show = 0
+    var replacement: Data?
+}
 
 private struct FakeRunner: AgentThreadRunning {
     var failure: AgentThreadFailure?
@@ -15,6 +20,7 @@ private struct FakeRunner: AgentThreadRunning {
             await MainActor.run { counter?.show += 1 }
             return Data(#"{"thread":{"status":"waiting","pendingRequestCount":2}}"#.utf8)
         }
+        if let replacement = await counter?.replacement { return replacement }
         if let listData { return listData }
         return Data("""
         [{"threadId":"sample","title":"Example","project":"Demo","model":"Example Model",
@@ -28,6 +34,8 @@ struct AgentThreadsTest {
     @MainActor
     static func main() async throws {
         let runner = FakeRunner()
+        let environment = AgentThreadRunner.environment(for: "/opt/homebrew/bin/t3", inheriting: ["KEEP": "yes"])
+        precondition(environment == ["PATH": "/opt/homebrew/bin:/usr/bin:/bin", "KEEP": "yes"])
         let data = try await runner.run(arguments: [])
         let rows = try AgentThreadParser.list(data)
         precondition(rows.count == 1 && rows[0].title == "Example" && rows[0].project == "Demo")
@@ -103,10 +111,12 @@ struct AgentThreadsTest {
         unavailable.start()
         await unavailable.waitUntilIdle()
         precondition(unavailable.status == .unavailable)
+        precondition(unavailable.waitingMessage == String(localized: "T3 CLI not found."))
         let timeout = AgentThreadsState(runner: FakeRunner(failure: .timeout))
         timeout.start()
         await timeout.waitUntilIdle()
         precondition(timeout.status == .failed)
+        precondition(timeout.waitingMessage == String(localized: "Could not refresh agent threads."))
         let late = AgentThreadsState(runner: FakeRunner(delay: true))
         late.start()
         await Task.yield()
@@ -126,6 +136,17 @@ struct AgentThreadsTest {
         counted.start()
         await counted.waitUntilIdle()
         precondition(counted.status == .ready && counter.show == 3)
+        counter.replacement = Data("""
+        [{"threadId":"new","status":"waiting","link":"https://example.com/new","updatedAt":"2026-01-01T12:00:00Z"}]
+        """.utf8)
+        var opened: URL?
+        counted.refresh { refreshed in
+            precondition(refreshed.waitingMessage == nil)
+            opened = refreshed.threads.first(where: { $0.phase.waiting })?.link
+        }
+        await counted.waitUntilIdle()
+        precondition(opened == URL(string: "https://example.com/new"))
+        print("PASS: child PATH preserves environment; refresh completion selects waiting link; failure messages")
         let catalog = try String(contentsOfFile:
             "Tinycast/Features/AgentThreads/AgentThreadsModule.swift", encoding: .utf8)
         precondition(catalog.components(separatedBy: "isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }")

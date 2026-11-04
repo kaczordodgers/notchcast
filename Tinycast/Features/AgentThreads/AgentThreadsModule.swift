@@ -11,7 +11,9 @@ final class AgentThreadsModule: NotchcastModule {
         slug: "refresh-agent-threads", name: String(localized: "Refresh Agent Threads"),
         sfSymbol: "arrow.clockwise", feature: .agentThreads,
         isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) },
-        run: { NotchcastCore.agentThreads.state.refresh() })
+        run: { NotchcastCore.agentThreads.state.refresh { state in
+            AppCore.shared.showMessage(state.refreshMessage, tone: .neutral)
+        } })
     nonisolated static let waitingCommand = NotchcastCommand(
         slug: "open-waiting-agent-thread", name: String(localized: "Open Waiting Agent Thread"),
         sfSymbol: "bubble.left", feature: .agentThreads,
@@ -19,10 +21,12 @@ final class AgentThreadsModule: NotchcastModule {
         run: { NotchcastCore.agentThreads.openWaiting() })
 
     private func openWaiting() {
-        guard let thread = state.threads.first(where: { $0.phase.waiting }) else {
-            AppCore.shared.showMessage(String(localized: "No waiting agent threads."), tone: .neutral)
-            return
+        state.refresh { state in
+            if let message = state.waitingMessage {
+                AppCore.shared.showMessage(message, tone: .neutral)
+            } else if let thread = state.threads.first(where: { $0.phase.waiting }) {
+                NSWorkspace.shared.open(thread.link)
+            }
         }
-        NSWorkspace.shared.open(thread.link)
     }
 }

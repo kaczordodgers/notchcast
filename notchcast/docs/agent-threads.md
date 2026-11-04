@@ -17,7 +17,7 @@
 
 ## Commands
 
-Refresh Agent Threads updates the snapshot. Open Waiting Agent Thread opens the first waiting link or reports a neutral message. Both commands require the Agent Threads switch in Activities.
+Refresh Agent Threads updates the snapshot and reports the waiting count or CLI failure. Automatic refreshes stay silent. Open Waiting Agent Thread refreshes before opening the first waiting link, and reports CLI failures separately from an empty waiting list. Both commands require the Agent Threads switch in Activities.
 
 ## Verification
 

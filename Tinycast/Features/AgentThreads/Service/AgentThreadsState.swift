@@ -38,12 +38,28 @@ final class AgentThreadsState {
         if active { refresh() } else { cancel() }
     }
 
-    func refresh() {
+    var refreshMessage: String {
+        switch status {
+        case .unavailable: String(localized: "T3 CLI not found.")
+        case .failed: String(localized: "Could not refresh agent threads.")
+        default: String(localized: "\(threads.filter { $0.phase.waiting }.count) waiting agent threads.")
+        }
+    }
+
+    var waitingMessage: String? {
+        switch status {
+        case .unavailable, .failed: refreshMessage
+        default: threads.contains(where: { $0.phase.waiting }) ? nil : String(localized: "No waiting agent threads.")
+        }
+    }
+
+    func refresh(completion: (@MainActor (AgentThreadsState) -> Void)? = nil) {
         guard enabled else { return }
         cancel()
         let identity = operation
         status = .loading
         task = Task { [weak self, runner, now] in
+            var completion = completion
             repeat {
                 do {
                     let data = try await runner.run(arguments: ["thread", "list", "--json"])
@@ -61,6 +77,8 @@ final class AgentThreadsState {
                     guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
                     self.status = (error as? AgentThreadFailure) == .unavailable ? .unavailable : .failed
                 }
+                if let self { completion?(self) }
+                completion = nil
                 guard self?.active == true else { return }
                 do { try await Task.sleep(for: .seconds(15)) } catch { return }
             } while !Task.isCancelled
