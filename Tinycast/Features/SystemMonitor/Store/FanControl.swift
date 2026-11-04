@@ -19,8 +19,13 @@ final class FanControl {
     private(set) var mode: Mode = .auto
     private(set) var unavailable = false
     @ObservationIgnored private let runner: @Sendable (RootContract.Command) async throws -> Void
-    @ObservationIgnored private var pending: Mode?
-    @ObservationIgnored private var applying: Mode?
+    private struct Request {
+        var mode: Mode
+        var preservePreference = false
+        var silent = false
+    }
+    @ObservationIgnored private var pending: Request?
+    @ObservationIgnored private var applying: Request?
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private let confirmed: (Mode) -> Void
     @ObservationIgnored private let failed: () -> Void
@@ -37,22 +42,27 @@ final class FanControl {
     }
 
     func set(_ requested: Mode) {
-        guard requested != (pending ?? applying ?? mode) else { return }
-        pending = requested
+        enqueue(Request(mode: requested))
+    }
+
+    private func enqueue(_ request: Request) {
+        guard request.mode != (pending?.mode ?? applying?.mode ?? mode) else { return }
+        pending = request
         guard worker == nil else { return }
         worker = Task { [self] in
             while let next = pending {
                 pending = nil
                 applying = next
                 do {
-                    try await runner(next.command)
-                    mode = next
-                    confirmed(next)
+                    try await runner(next.mode.command)
+                    mode = next.mode
+                    if !next.preservePreference { confirmed(next.mode) }
                     unavailable = false
                 } catch {
                     unavailable = true
-                    failed()
-                    if next != .auto {
+                    if !next.silent { failed() }
+                    if next.silent { confirmed(.auto) }
+                    if next.mode != .auto {
                         // Restore before accepting another manual request after an uncertain result.
                         do {
                             try await runner(.fansAuto)
@@ -67,9 +77,9 @@ final class FanControl {
         }
     }
 
-    func restore() {
+    func restore(preservingPreference: Bool = false, silently: Bool = false) {
         guard mode != .auto || pending != nil || worker != nil else { return }
-        set(.auto)
+        enqueue(Request(mode: .auto, preservePreference: preservingPreference, silent: silently))
     }
 
     func waitUntilIdle() async { await worker?.value }

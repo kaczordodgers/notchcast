@@ -33,7 +33,7 @@ final class MonitorModule: NotchcastModule {
         running = false
         observationID = nil
         store.stop()
-        fans.restore()
+        fans.restore(preservingPreference: true)
     }
 
     private func observe(_ identity: UUID) {

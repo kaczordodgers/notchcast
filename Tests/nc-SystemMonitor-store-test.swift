@@ -123,6 +123,17 @@ struct MonitorStoreTests {
         fans.restore()
         await fans.waitUntilIdle()
         precondition(restored.calls == [.fansMax, .fansAuto])
+        var saved = FanControl.Mode.max
+        let shutdown = FanControl(mode: .max, confirmed: { saved = $0 }, runner: { _ in })
+        shutdown.restore(preservingPreference: true)
+        await shutdown.waitUntilIdle()
+        precondition(saved == .max && shutdown.mode == .auto)
+        var recoveryFailures = 0
+        let missing = FanControl(mode: .max, confirmed: { saved = $0 }, failed: { recoveryFailures += 1 },
+                                 runner: { _ in throw RootHelperClient.Failure.launchFailed })
+        missing.restore(silently: true)
+        await missing.waitUntilIdle()
+        precondition(saved == .auto && recoveryFailures == 0)
         print("PASS: demand counts, serialized latest request, restore after timeout/failure/cancellation and shutdown")
     }
 }
