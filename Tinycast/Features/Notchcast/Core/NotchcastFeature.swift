@@ -39,6 +39,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case linkQuickFixes
+    case backupRunNow
+    case backupBrowseRestore
 
     var settingsGroup: SettingsGroup {
         switch self {
@@ -66,6 +69,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
         case .linkQuickFixes: .systemTools
+        case .backupRunNow: .system
+        case .backupBrowseRestore: .system
         case .liveTimers: .activities
         case .dayCalendar: .activities
         case .dayWeather: .activities
@@ -123,6 +128,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Event Reminders")
         case .switcherQuitKey: String(localized: "Switcher Quit Key")
         case .linkQuickFixes: String(localized: "Link Quick Fixes")
+        case .linkQuickFixes: String(localized: "Link Quick Fixes")
+        case .backupRunNow: String(localized: "Back Up Now")
+        case .backupBrowseRestore: String(localized: "Browse and Restore Backups")
         }
     }
 
@@ -166,6 +174,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .eventReminder: String(localized: "Show calendar alerts in the island.")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.")
         case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
+        case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.")
+        case .backupRunNow: String(localized: "Allow starting the configured backup job.")
+        case .backupBrowseRestore: String(localized: "Browse snapshots and restore into a new Downloads folder.")
         }
     }
 
@@ -202,6 +213,8 @@ extension NotchcastFeature {
         case .switcherQuitKey: false
         case .displayBrightness: false
         case .quitProtection: false
+        case .backupRunNow: false
+        case .backupBrowseRestore: false
         default: true
         }
     }
