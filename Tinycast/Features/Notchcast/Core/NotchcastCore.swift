@@ -43,6 +43,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.t3Threads], module: t3Threads),
+            .init(requires: [.fleetPanel], module: fleet),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
