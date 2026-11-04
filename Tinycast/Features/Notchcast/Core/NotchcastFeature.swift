@@ -652,19 +652,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 }
 
 extension NotchcastFeature {
-    var isWired: Bool {
-        ![Self.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices].contains(self)
-    }
-
-    static var systemToolsSettingsFeatures: [Self] {
-        [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
-         .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
-    }
-
-    /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool {
-        if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
-        return switch self {
+    /// One arm per exception; NotchcastFeature+Logic.swift excludes system features.
+    var needsIslandArm: Bool {
+        switch self {
         case .tasks: false
         case .githubSearch: false
         case .clearNotifications: false
@@ -763,11 +753,9 @@ extension NotchcastFeature {
         default: false
         }
     }
-    var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
-
-    var defaultEnabled: Bool {
-        if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
-        return switch self {
+    /// Default unless a system or launcher keys feature (NotchcastFeature+Logic.swift).
+    var defaultEnabledArm: Bool {
+        switch self {
         case .tasks: false
         case .spotifyConnect: false
         case .archivesInPlace: false
@@ -811,13 +799,6 @@ extension NotchcastFeature {
         case .agentSessions: false
         case .agentPricing: false
         default: true
-        }
-    }
-
-    var isSystemFeature: Bool {
-        switch self {
-        case .katana: true
-        default: settingsGroup == .systemTools || settingsGroup == .tools
         }
     }
 }

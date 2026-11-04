@@ -240,9 +240,9 @@ class FeatureShapeTests(unittest.TestCase):
     def test_logic_edits_conflict_instead_of_appending(self):
         self.init_repository()
         logic = self.root / SHAPE.LOGIC
-        original = "!isSystemFeature && !isLauncherKeysFeature"
-        for branch, edit in (("one", "!isSystemFeature && self != .island && !isLauncherKeysFeature"),
-                             ("two", "!isSystemFeature && self != .fanControl && !isLauncherKeysFeature")):
+        original = "!isLauncherKeysFeature && defaultEnabledArm"
+        for branch, edit in (("one", "self != .island && !isLauncherKeysFeature && defaultEnabledArm"),
+                             ("two", "self != .fanControl && !isLauncherKeysFeature && defaultEnabledArm")):
             run(self.root, "git", "switch", "-qc", branch, "base")
             logic.write_text(logic.read_text().replace(original, edit))
             run(self.root, "git", "commit", "-qam", f"defaultEnabled edit {branch}")
