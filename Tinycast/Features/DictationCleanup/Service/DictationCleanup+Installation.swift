@@ -31,7 +31,10 @@ extension DictationCleanup {
         }
         DictationCoordinator.transcriptStage = { @MainActor raw, language in
             let cleaned = cleanupEnabled ? await process(raw, language: language) : raw
-            if !Task.isCancelled, historyEnabled { transcriptObserver?(raw, cleaned) }
+            if !Task.isCancelled, historyEnabled,
+               !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                transcriptObserver?(raw, cleaned)
+            }
             return cleaned
         }
     }
