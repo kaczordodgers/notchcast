@@ -6,6 +6,8 @@ final class RecordingWriter: RecordingWriting {
     // AVAssetWriter cancellation must be callable while its asynchronous finish is pending.
     private struct FinishingWriter: @unchecked Sendable {
         let writer: AVAssetWriter
+        var continuation: CheckedContinuation<Bool, Never>?
+        var cancelled = false
     }
 
     private struct State {
@@ -22,8 +24,10 @@ final class RecordingWriter: RecordingWriting {
 
     private let state: Mutex<State?>
     private let finishingWriter = Mutex<FinishingWriter?>(nil)
+    private let onFinalizing: (@Sendable () -> Void)?
 
-    init(url: URL, format: RecordingFormat) throws {
+    init(url: URL, format: RecordingFormat, onFinalizing: (@Sendable () -> Void)? = nil) throws {
+        self.onFinalizing = onFinalizing
         guard (2...16_384).contains(format.width), (2...16_384).contains(format.height),
             format.width.isMultiple(of: 2), format.height.isMultiple(of: 2),
             format.frameRate == 30 || format.frameRate == 60 else { throw RecordingTarget.Failure.invalidTarget }
@@ -127,22 +131,33 @@ final class RecordingWriter: RecordingWriting {
             }
             try Task.checkCancellation()
             finishing.lastVideo = nil
-            await withTaskCancellationHandler {
+            let completed = await withTaskCancellationHandler {
                 await withCheckedContinuation { continuation in
                     finishingWriter.withLock { handle in
-                        guard let handle, handle.writer.status == .writing else {
-                            continuation.resume()
+                        guard let current = handle, !current.cancelled,
+                            current.writer.status == .writing else {
+                            continuation.resume(returning: false)
                             return
                         }
-                        handle.writer.endSession(atSourceTime: end)
+                        handle?.continuation = continuation
+                        current.writer.endSession(atSourceTime: end)
                         finishing.video.finish()
                         finishing.audio.finish()
-                        handle.writer.finishWriting { continuation.resume() }
+                        current.writer.finishWriting {
+                            let pending = self.finishingWriter.withLock { handle in
+                                let pending = handle?.continuation
+                                handle?.continuation = nil
+                                return pending
+                            }
+                            pending?.resume(returning: true)
+                        }
                     }
+                    onFinalizing?()
                 }
             } onCancel: {
                 self.cancelFinishing()
             }
+            guard completed else { throw CancellationError() }
             try Task.checkCancellation()
             guard finishing.writer.status == .completed else {
                 throw finishing.writer.error ?? RecordingTarget.Failure.writerFailed
@@ -160,7 +175,14 @@ final class RecordingWriter: RecordingWriting {
     }
 
     private func cancelFinishing() {
-        finishingWriter.withLock { $0?.writer.cancelWriting() }
+        let cancelled = finishingWriter.withLock { handle in
+            handle?.cancelled = true
+            let cancelled = handle
+            handle?.continuation = nil
+            return cancelled
+        }
+        cancelled?.continuation?.resume(returning: false)
+        cancelled?.writer.cancelWriting()
     }
 
     private func takeState() -> sending State? {

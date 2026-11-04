@@ -58,3 +58,4 @@ Neither harness samples the screen, prompts for permissions or touches the user'
 `./Scripts/run-tests.sh nc-CaptureRecording-engine-test` checks countdown, switch lifecycle, cancellation
 at suspended boundaries, pause timing, naming collisions and defaults in private fixtures. Synthetic
 pixel and PCM buffers exercise the shipped H.264/AAC writer, including its still-frame tail.
+Cancellation waits for native finalization to begin, then requires finish to return within two seconds.
