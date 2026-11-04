@@ -66,7 +66,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentCLI: .system
         case .treadmillWalk: .activities
         case .treadmillHistory: .activities
-        case .katana: .systemTools
+        case .katana: .system
         case .appearance: .appearance
         case .pastePlain: .clipboard
         case .pasteImage: .clipboard
@@ -180,7 +180,12 @@ extension NotchcastFeature {
         }
     }
 
-    var isSystemFeature: Bool { settingsGroup == .systemTools }
+    var isSystemFeature: Bool {
+        switch self {
+        case .katana: true
+        default: settingsGroup == .systemTools
+        }
+    }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
