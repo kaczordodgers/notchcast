@@ -33,7 +33,8 @@ jobs:
           BEFORE: ${{ github.event.before }}
         run: |
           if [[ "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}"; then
-            ./notchcast/changed-harnesses.sh --all --all > "$RUNNER_TEMP/selected"
+            # A Sync rewrite: Sync tested this tree before pushing it.
+            echo notchcast-core-test > "$RUNNER_TEMP/selected"
           else
             ./notchcast/changed-harnesses.sh "$BEFORE" "$GITHUB_SHA" > "$RUNNER_TEMP/selected"
           fi

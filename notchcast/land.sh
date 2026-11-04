@@ -10,8 +10,10 @@ if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     head=$(git rev-parse --verify "$3^{commit}")
 elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
-    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid)
+    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,statusCheckRollup)
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
+    python3 -c 'import json,sys; p=json.load(sys.stdin); assert any(c.get("name") == "build" and c.get("conclusion") == "SUCCESS" for c in p["statusCheckRollup"])' <<< "$metadata" 2>/dev/null \
+        || refuse "build is not green on $head; run: gh workflow run PR --ref <branch> -R kaczordodgers/notchcast"
     git fetch origin main "refs/pull/$pr/head"
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
     base=$(git rev-parse origin/main)
