@@ -12,28 +12,29 @@ final class CoreAudioPriorityTransport: AudioPriorityTransport {
     private let system = AudioObjectID(kAudioObjectSystemObject)
 
     func devices() throws -> [AudioPriorityDevice] {
-        try deviceIDs().flatMap { id in
+        try deviceIDs().flatMap { id -> [AudioPriorityDevice] in
             var alive: UInt32 = 1
             var hidden: UInt32 = 0
-            _ = try? read(id, kAudioDevicePropertyDeviceIsAlive, &alive)
-            _ = try? read(id, kAudioDevicePropertyIsHidden, &hidden)
+            guard (try? read(id, kAudioDevicePropertyDeviceIsAlive, &alive)) != nil,
+                  (try? read(id, kAudioDevicePropertyIsHidden, &hidden)) != nil else { return [] }
             guard alive != 0, hidden == 0 else { return [AudioPriorityDevice]() }
             var uid: CFString = "" as CFString
-            try read(id, kAudioDevicePropertyDeviceUID, &uid)
+            guard (try? read(id, kAudioDevicePropertyDeviceUID, &uid)) != nil else { return [] }
             guard !(uid as String).isEmpty else { return [] }
             var name = uid
             _ = try? read(id, kAudioObjectPropertyName, &name)
             let privateAggregates = ["Vorssaint Mixer", "Vorssaint AirPlay",
                                      "Vorssaint Island Levels", "Vorssaint Recorder"]
             guard !privateAggregates.contains(name as String) else { return [] }
-            return try AudioPriorityDevice.Direction.allCases.compactMap { direction in
+            return AudioPriorityDevice.Direction.allCases.compactMap { direction in
                 let scope = scope(for: direction)
                 var address = address(kAudioDevicePropertyStreams, scope: scope)
                 var size: UInt32 = 0
                 guard AudioObjectGetPropertyDataSize(id, &address, 0, nil, &size) == noErr,
                       size >= MemoryLayout<AudioObjectID>.size else { return nil }
                 var eligible: UInt32 = 1
-                try read(id, kAudioDevicePropertyDeviceCanBeDefaultDevice, &eligible, scope: scope)
+                guard (try? read(id, kAudioDevicePropertyDeviceCanBeDefaultDevice,
+                                 &eligible, scope: scope)) != nil else { return nil }
                 guard eligible != 0 else { return nil }
                 return AudioPriorityDevice(uid: uid as String, name: name as String,
                                            direction: direction)
@@ -53,7 +54,7 @@ final class CoreAudioPriorityTransport: AudioPriorityTransport {
     func setDefault(uid: String, for direction: AudioPriorityDevice.Direction) throws {
         for id in try deviceIDs() {
             var candidate: CFString = "" as CFString
-            try read(id, kAudioDevicePropertyDeviceUID, &candidate)
+            guard (try? read(id, kAudioDevicePropertyDeviceUID, &candidate)) != nil else { continue }
             guard candidate as String == uid else { continue }
             var target = id
             var address = address(selector(for: direction))

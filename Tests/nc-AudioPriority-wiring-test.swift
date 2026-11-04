@@ -51,6 +51,8 @@ struct AudioPriorityWiringTests {
             failures += 1
             store.failure = "failure"
         }
+        manager.inventoryChanged = { store.update($0) }
+        manager.succeeded = { store.failure = nil }
         fake.inventory = [.init(uid: "low", name: "Low", direction: .output)]
         let controller = NotchcastModuleController([
             .init(requires: [.audioPriority], module: FakeModule(manager))
@@ -58,31 +60,49 @@ struct AudioPriorityWiringTests {
         controller.run()
         precondition(fake.callback == nil)
         preferences.set(.audioPriority, true)
-        await settle()
+        await wait { fake.callback != nil }
         precondition(fake.callback != nil && fake.writes == 0)
         fake.inventory.append(.init(uid: "high", name: "High", direction: .output))
         fake.callback?()
-        await settle()
+        await wait { fake.writes == 1 }
         precondition(fake.writes == 1)
         fake.inventory.removeAll { $0.uid == "high" }
         fake.callback?()
-        await settle()
+        await wait { !store.devices.contains(where: { $0.uid == "high" }) }
         precondition(fake.writes == 1)
         fake.inventory.append(.init(uid: "high", name: "High", direction: .output))
         fake.fail = true
         fake.callback?()
-        await settle()
+        await wait { fake.writes == 2 }
         fake.callback?()
-        await settle()
+        await wait { store.devices.contains(where: { $0.uid == "high" }) }
         precondition(fake.writes == 2 && failures == 1 && store.failure == "failure")
+        fake.inventory.removeAll { $0.uid == "high" }
+        fake.callback?()
+        await wait { !store.devices.contains(where: { $0.uid == "high" }) }
+        store.forget("high", direction: .output)
+        precondition(!store.outputs.contains("high"))
+        fake.fail = false
+        store.save(.init(enabled: true, uids: ["high", "low"]), for: .output)
+        fake.inventory.append(.init(uid: "high", name: "High", direction: .output))
+        fake.callback?()
+        await wait { fake.writes == 3 }
+        precondition(store.failure == nil)
         let late = fake.callback
         preferences.set(.audioPriority, false)
-        await settle()
+        await wait { fake.callback == nil }
         late?()
-        await settle()
-        precondition(fake.writes == 2 && fake.stops == 1 && fake.callback == nil)
+        await Task.yield()
+        precondition(fake.writes == 3 && fake.stops == 1 && fake.callback == nil)
         print("PASS: switch lifecycle, stale events, connect-only policy, persistence, failure once; fake only")
     }
 
-    static func settle() async { try? await Task.sleep(for: .milliseconds(180)) }
+    @MainActor
+    static func wait(until condition: () -> Bool) async {
+        let deadline = ContinuousClock.now + .seconds(3)
+        while !condition() {
+            precondition(ContinuousClock.now < deadline, "Timed out waiting for state")
+            try? await Task.sleep(for: .milliseconds(1))
+        }
+    }
 }

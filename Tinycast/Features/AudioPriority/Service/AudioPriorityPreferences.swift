@@ -33,6 +33,14 @@ final class AudioPriorityPreferences: AudioPriorityStore {
 
     func name(_ uid: String) -> String { names[uid] ?? uid }
 
+    func forget(_ uid: String, direction: AudioPriorityDevice.Direction) {
+        guard !devices.contains(where: { $0.uid == uid && $0.direction == direction }) else { return }
+        var ranking = ranking(for: direction)
+        ranking.uids.removeAll { $0 == uid }
+        save(ranking, for: direction)
+        if !outputs.contains(uid) && !microphones.contains(uid) { names.removeValue(forKey: uid) }
+    }
+
     func ranking(for direction: AudioPriorityDevice.Direction) -> AudioPriorityRanking {
         direction == .output ? .init(enabled: outputsEnabled, uids: outputs)
             : .init(enabled: microphonesEnabled, uids: microphones)

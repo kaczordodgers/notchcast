@@ -10,6 +10,7 @@ final class AudioPriorityManager {
     private var pending: Task<Void, Never>?
     private var connected: [AudioPriorityDevice.Direction: Set<String>] = [:]
     var inventoryChanged: ([AudioPriorityDevice]) -> Void = { _ in }
+    var succeeded: () -> Void = {}
 
     init(transport: any AudioPriorityTransport, store: any AudioPriorityStore,
          report: @escaping (any Error) -> Void) {
@@ -74,6 +75,7 @@ final class AudioPriorityManager {
                     if let target = AudioPriorityPolicy.target(
                         ranking: ranking, connected: available, current: current) {
                         try transport.setDefault(uid: target, for: direction)
+                        succeeded()
                     }
                 } catch { report(error) }
             }

@@ -2,13 +2,14 @@ import SwiftUI
 
 struct NotchcastAudioPrioritySettingsRows: View {
     @Bindable private var preferences = NotchcastPreferences.shared
+    @Bindable private var store = NotchcastPreferences.shared.audioPriority
 
     var body: some View {
         Toggle("Audio device priority", isOn: $preferences.audioPriorityEnabled)
         if preferences.audioPriorityEnabled {
-            DirectionRows(store: preferences.audioPriority, direction: .output)
-            DirectionRows(store: preferences.audioPriority, direction: .input)
-            if let failure = preferences.audioPriority.failure {
+            DirectionRows(store: store, direction: .output)
+            DirectionRows(store: store, direction: .input)
+            if let failure = store.failure {
                 Text(failure).foregroundStyle(.red)
             }
         }
@@ -29,6 +30,7 @@ struct NotchcastAudioPrioritySettingsRows: View {
                     Text(verbatim: store.name(uid))
                     if !store.devices.contains(where: { $0.uid == uid && $0.direction == direction }) {
                         Text("Disconnected").foregroundStyle(.secondary)
+                        Button("Forget") { store.forget(uid, direction: direction) }
                     }
                     Spacer()
                     Button("Move up", systemImage: "arrow.up") {
