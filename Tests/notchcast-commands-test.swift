@@ -2,10 +2,24 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandController+Command.swift
+// notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule+Command.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction+EntryID.swift
 import Foundation
+
+@MainActor final class MachRemoteModule {
+    func openTerminal() {}
+}
+@MainActor enum NotchcastCore {
+    static let machRemote = MachRemoteModule()
+}
+@MainActor final class NotchcastPreferences {
+    enum Feature { case machRemote }
+    static let shared = NotchcastPreferences()
+    var enabled = false
+    func isOn(_ feature: Feature) -> Bool { enabled }
+}
 
 enum SettingsTab: CaseIterable, Sendable {
     case commands, quicklinks, ai, quickActions, fileSearch, notes, snippets, navigation
@@ -109,6 +123,15 @@ enum QuicklinkDestination {
 @main @MainActor struct NotchcastCommandsTest {
     static func main() {
         let commands = NotchcastCommandCatalog.all
+        let remoteID = "command:nc-open-remote-mac-terminal"
+        assert(commands.contains { $0.id == remoteID })
+        assert(!NotchcastCommandCatalog.isEnabled(remoteID))
+        var remoteDismissed = false
+        assert(NotchcastCommandCatalog.dispatch(remoteID) { remoteDismissed = true })
+        assert(!remoteDismissed)
+        NotchcastPreferences.shared.enabled = true
+        assert(NotchcastCommandCatalog.isEnabled(remoteID))
+        NotchcastPreferences.shared.enabled = false
         assert(Set(commands.map(\.id)).count == commands.count)
         assert(commands.allSatisfy { $0.id.hasPrefix("command:nc-") })
         assert(commands.allSatisfy { command in CommandCatalog.all.contains { $0.id == command.entry.id } })
