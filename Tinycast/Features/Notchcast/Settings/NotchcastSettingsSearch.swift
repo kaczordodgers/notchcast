@@ -41,6 +41,7 @@ extension SettingsSearchCatalog {
     static let notchcast: [SettingsSearchEntry] = [
         .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
+        .init(.notchcastCaptureAndDictation, "Agent MCP Server", keywords: ["agents", "protocol", "tools"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
         .init(.notchcastArchives, "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
         .init(.notchcastArchives, "Extract in place", keywords: ["shrink", "space", "destructive"]),
