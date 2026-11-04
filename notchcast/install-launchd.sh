@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install Notchcast for this user. Usage: install-launchd.sh all|update|app|kick
+# Install Notchcast for this user. Usage: install-launchd.sh all|update|app|kick [--auto-install]
 #   all     first install: update.sh installs /Applications/Notchcast.app, migrate.sh copies the old Tinycast data once,
 #           the old Tinycast .app goes to the Trash (its data stays), then both agents below are loaded.
 #   update  notchcast.update runs notchcast/update.sh every 30 min (needs gh logged in).
@@ -15,6 +15,13 @@ source "$HERE/config.env"
 APP="/Applications/$APP_NAME.app"
 LOGS="$HOME/Library/Logs/notchcast"
 DOMAIN="gui/$(id -u)"
+UPDATE_ARG=""
+case "${2:-}" in
+    --auto-install) UPDATE_ARG=--install ;;
+    "") ;;
+    *) echo "usage: $0 all|update|app|kick [--auto-install]" >&2; exit 2 ;;
+esac
+[ "$#" -le 2 ] || { echo "too many arguments" >&2; exit 2; }
 mkdir -p "$LOGS" "$HOME/Library/LaunchAgents"
 
 agent() { # label log-name extra-plist-keys program...
@@ -44,7 +51,7 @@ install_update() {
         '<key>StartInterval</key><integer>1800</integer>
 <key>ProcessType</key><string>Background</string>
 <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>' \
-        /bin/bash "$HERE/update.sh"
+        /bin/bash "$HERE/update.sh" ${UPDATE_ARG:+"$UPDATE_ARG"}
 }
 
 install_kick() {
@@ -76,7 +83,7 @@ install_app() {
 }
 
 first_install() {
-    /bin/bash "$HERE/update.sh"
+    /bin/bash "$HERE/update.sh" ${UPDATE_ARG:+"$UPDATE_ARG"}
     [ -d "$APP" ] || { echo "no $APP after update.sh; see its output" >&2; exit 1; }
     /bin/bash "$HERE/migrate.sh"
     # The old app goes to the Trash, never rm; its preferences, data and Keychain items stay where they are.
@@ -93,5 +100,5 @@ case "${1:-}" in
     update) install_update ;;
     kick) install_kick ;;
     app) install_app ;;
-    *) echo "usage: $0 all|update|app|kick" >&2; exit 2 ;;
+    *) echo "usage: $0 all|update|app|kick [--auto-install]" >&2; exit 2 ;;
 esac

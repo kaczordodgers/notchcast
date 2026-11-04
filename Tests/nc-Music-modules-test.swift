@@ -256,7 +256,7 @@ struct MusicModuleTests {
         microphone.start()
         let f5 = CGEvent(keyboardEventSource: nil, virtualKey: 96, keyDown: true)!
         precondition(hub.handler!(.keyDown, f5) == .swallow)
-        await settle()
+        for _ in 0..<200 where !mute.isMuted { try? await Task.sleep(for: .milliseconds(10)) }
         precondition(mute.isMuted, "F5 toggles mute through hub")
         microphone.setMuted(false)
         f5.setIntegerValueField(.keyboardEventAutorepeat, value: 1)
