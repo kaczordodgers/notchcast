@@ -2,6 +2,7 @@ import SwiftUI
 
 struct NotchcastModuleSettingsView: View {
     let module: NotchcastSettingsModule
+    @Environment(AppCore.self) private var core
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
@@ -31,6 +32,8 @@ struct NotchcastModuleSettingsView: View {
         .formStyle(.grouped)
         .settingsScrollTarget(module.tab)
         .notchcastEnvironment()
+        .environment(core.appearanceCoordinator)
+        .environment(NotchcastCore.clean.coordinator)
     }
 
     private var requiredGrants: [NotchcastGrant] {

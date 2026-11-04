@@ -41,6 +41,11 @@ enum GallerySettingsTiming {
                     throw GalleryFailure.invalidRegistry
                 }
                 let trials = max(1, Int(environment["NOTCHCAST_SETTINGS_TRIALS"] ?? "") ?? 5)
+                if environment["NOTCHCAST_SETTINGS_ALL_ON"] != nil {
+                    for feature in NotchcastFeature.allCases where feature.isWired {
+                        NotchcastPreferences.shared.set(feature, true)
+                    }
+                }
                 let output = URL(filePath: directory, directoryHint: .isDirectory)
                 try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
                 var results: [Measurement] = []
