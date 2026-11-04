@@ -31,6 +31,12 @@ enum ForkSettingsBackupEngine {
             values.removeValue(forKey: "dictationCleanup")
             values["notchcast.dictationCleanup.settings"] = cleanup
         }
+        // Switches archives held before they left the backup (#199) are skipped, not restored.
+        for key in ["archivesInPlace", "machineSetupProfile"] {
+            if let value = values[key] as? NSNumber, CFGetTypeID(value) == CFBooleanGetTypeID() {
+                values.removeValue(forKey: key)
+            }
+        }
         try validate(values)
         return values
     }
