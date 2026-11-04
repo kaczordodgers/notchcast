@@ -13,4 +13,5 @@ struct DownloadJob: Codable, Sendable, Identifiable, Equatable {
     var created: Date
     var finished: Date?
     var options: [String: String] = [:]
+    var usesIPhone: Bool { options["usesIPhone"] == "true" }
 }
