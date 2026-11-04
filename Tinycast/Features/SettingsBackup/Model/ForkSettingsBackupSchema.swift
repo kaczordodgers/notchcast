@@ -74,6 +74,7 @@ enum ForkSettingsBackupSchema {
     ])
 
     static let allowed: [String: Value] = [
+        "appearance": .bool,
         "island": .bool,
         "islandExternalDisplays": .bool,
         "islandFullScreen": .bool,
@@ -144,6 +145,11 @@ enum ForkSettingsBackupSchema {
     ]
 
     static let excluded: Set<String> = [
+        "agentActions",
+        "agentCLI",
+        "treadmillWalk",
+        "treadmillHistory",
+        "katana",
         "spacesOrder",
         "musicBlockAppleMusic",
         "spotifyConnect",
