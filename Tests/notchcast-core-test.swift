@@ -36,7 +36,7 @@ struct NotchcastCoreTests {
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) })
+        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == ($0 != .pastePlain) })
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))
