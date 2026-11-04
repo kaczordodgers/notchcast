@@ -48,11 +48,8 @@ final class AIUsageModule: NotchcastModule {
 
     func refresh() async throws {
         guard isRunning, !refreshing else { return }
-        guard provider != nil || !preferences.aiUsageCachePath.isEmpty else {
-            post(String(localized: "AI usage cache directory is not configured."))
-            return
-        }
-        let provider = provider ?? AIUsageProvider(cacheDirectory: URL(fileURLWithPath: preferences.aiUsageCachePath))
+        let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
+            path: preferences.aiUsageCachePath, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
         refreshing = true
         defer { refreshing = false }
         let operation = generation

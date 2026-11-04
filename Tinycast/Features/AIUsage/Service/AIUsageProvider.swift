@@ -5,6 +5,11 @@ nonisolated struct AIUsageProvider: Sendable {
     var staleAfter: TimeInterval = OtherMacUsageSnapshot.staleAfter
     var clock: @Sendable () -> Date = { Date() }
 
+    static func cacheDirectory(path: String, homeDirectory: URL) -> URL {
+        path.isEmpty ? homeDirectory.appending(path: ".t3/caches", directoryHint: .isDirectory)
+            : URL(fileURLWithPath: path)
+    }
+
     @concurrent
     func refresh() async -> [AIUsageSnapshot] {
         let files: [URL]
