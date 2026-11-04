@@ -62,6 +62,8 @@ final class SystemToolsModule: NotchcastModule {
             let result = try await runner.startupItems(home: NSHomeDirectory(), uid: getuid())
             guard running, !Task.isCancelled else { return }
             items = result
+        } catch is CancellationError {
+            return
         } catch { core?.showMessage(error.localizedDescription, tone: .danger) }
     }
 

@@ -21,21 +21,33 @@ final class TweaksModule: NotchcastModule {
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
         let data = defaults.data(forKey: key)
         var plans: [String: TypingPreferencePlan] = [:]
+        var decodedJournal = data == nil
         do {
-            if let data { plans = try JSONDecoder().decode([String: TypingPreferencePlan].self, from: data) }
-            let valid = plans.filter { $0.value.permitsJournal(home: NSHomeDirectory()) }
-            if valid.count != plans.count {
-                plans = valid
-                defaults.set(try JSONEncoder().encode(plans), forKey: key)
-                throw SystemToolsProcessRunner.Failure.invalidExecutable
+            if let data {
+                guard let entries = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                    throw SystemToolsProcessRunner.Failure.invalidExecutable
+                }
+                for (identifier, entry) in entries {
+                    guard let encoded = try? JSONSerialization.data(withJSONObject: entry, options: .fragmentsAllowed),
+                          let plan = try? JSONDecoder().decode(TypingPreferencePlan.self, from: encoded),
+                          plan.permitsJournal(home: NSHomeDirectory()) else { continue }
+                    plans[identifier] = plan
+                }
+                decodedJournal = entries.isEmpty || !plans.isEmpty
+                guard decodedJournal else { throw SystemToolsProcessRunner.Failure.invalidExecutable }
+                if plans.count != entries.count {
+                    defaults.set(try JSONEncoder().encode(plans), forKey: key)
+                    throw SystemToolsProcessRunner.Failure.invalidExecutable
+                }
             }
             journalFailure = nil
         } catch {
-            defaults.set(try? JSONEncoder().encode(plans), forKey: key)
             journalFailure = error.localizedDescription
         }
+        let canSave = decodedJournal
         store = TweaksStore(plans: plans, read: TypingPreferenceService().readPreference,
                             run: Self.run, save: { plans in
+            guard canSave else { throw SystemToolsProcessRunner.Failure.invalidExecutable }
             defaults.set(try JSONEncoder().encode(plans), forKey: key)
         })
     }

@@ -21,7 +21,7 @@ struct NotchcastTweaksSettingsRows: View {
             .settingsEnabled(SystemToolsHelperPolicy.available(feature))
             if feature == .startupItems, preferences.isOn(feature) {
                 ForEach(NotchcastCore.systemTools.items, id: \.path) { item in
-                    if item.disabled == nil {
+                    if item.disabled == nil || item.loaded == nil {
                         Text(verbatim: item.label)
                     } else {
                     Toggle(item.label, isOn: Binding(

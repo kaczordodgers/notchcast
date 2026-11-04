@@ -10,9 +10,9 @@ import Foundation
 
 @MainActor
 final class AppCore {
-    enum Tone { case danger }
+    enum Tone { case success, danger }
     func confirm(title: String, message: String, symbol: String, confirmTitle: String) async -> Bool { false }
-    func showMessage(_ message: String, tone: Tone) { preconditionFailure(message) }
+    func showMessage(_ message: String, tone: Tone = .success) { preconditionFailure(message) }
 }
 
 @main
@@ -23,6 +23,33 @@ struct SystemModuleTests {
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
+        let journalDefaults = UserDefaults(suiteName:
+            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
+        let journalKey = UUID().uuidString
+        defer { journalDefaults.removeObject(forKey: journalKey) }
+        let plan = TypingPreferencePlan(entries: [])
+        let encoded = try JSONEncoder().encode(plan)
+        let entry = try JSONSerialization.jsonObject(with: encoded)
+        journalDefaults.set(try JSONSerialization.data(withJSONObject:
+            ["valid": entry, "malformed": ["entries": "invalid"], "scalar": 7]), forKey: journalKey)
+        let recovered = TweaksModule(key: journalKey)
+        precondition(recovered.store.plans == ["valid": plan])
+        let saved = try JSONDecoder().decode([String: TypingPreferencePlan].self,
+            from: journalDefaults.data(forKey: journalKey)!)
+        precondition(saved == ["valid": plan])
+        let malformed = try JSONSerialization.data(withJSONObject: ["bad": 7])
+        journalDefaults.set(malformed, forKey: journalKey)
+        precondition(TweaksModule(key: journalKey).store.plans.isEmpty)
+        precondition(journalDefaults.data(forKey: journalKey) == malformed)
+        let corrupt = Data("not JSON".utf8)
+        journalDefaults.set(corrupt, forKey: journalKey)
+        let unreadable = TweaksModule(key: journalKey)
+        unreadable.store.start()
+        do {
+            try await unreadable.store.set("new", writes: [], on: true)
+            preconditionFailure("An unreadable journal must block replacement")
+        } catch SystemToolsProcessRunner.Failure.invalidExecutable {}
+        precondition(journalDefaults.data(forKey: journalKey) == corrupt)
         var effects: [Bool] = []
         let store = SystemToolsStore(preferences: preferences, available: { _ in true }, apply: { _, value in
             effects.append(value)
