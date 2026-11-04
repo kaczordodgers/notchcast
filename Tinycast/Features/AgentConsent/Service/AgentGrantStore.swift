@@ -1,6 +1,8 @@
 import Foundation
+import Observation
 
 @MainActor
+@Observable
 final class AgentGrantStore {
     private let defaults: UserDefaults
     private let key = "agentActionGrants"

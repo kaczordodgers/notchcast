@@ -11,6 +11,16 @@ struct AgentSettingsSection: View {
             }
             Text(module.installer.link.path)
                 .textSelection(.enabled)
+            if let grants = NotchcastCore.agents.grants {
+                ForEach(Array(grants.grants.enumerated()), id: \.offset) { _, grant in
+                    LabeledContent(grant.agentID + ": " + grant.actionID) {
+                        Button("Remove") {
+                            do { try grants.revoke(agentID: grant.agentID, actionID: grant.actionID) }
+                            catch { AppCore.shared.showMessage(error.localizedDescription, tone: .danger) }
+                        }
+                    }
+                }
+            }
         } header: {
             Text("Agent access")
         }

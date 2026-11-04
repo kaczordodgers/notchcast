@@ -5,20 +5,32 @@ import OSLog
 final class AgentBridgeModule: NotchcastModule {
     let index = AgentActionIndex()
     private var configured = false
+    private var generation = UUID()
+    private(set) var grants: AgentGrantStore?
 
-    func configure(_ core: AppCore) {
+    func configure(_ core: AppCore, grantStore: AgentGrantStore? = nil, auditStore: AgentAuditStore? = nil) {
         guard !configured else { return }
         do {
-            let grants = try AgentGrantStore(bundleIdentifier: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
-            let audit = AgentAuditStore(directory: AppPaths.applicationSupport().appending(path: "agent"))
-            index.authorize = { action, _ in
+            let grants = try grantStore ?? AgentGrantStore(bundleIdentifier: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
+            self.grants = grants
+            let audit = auditStore ?? AgentAuditStore(directory: AppPaths.applicationSupport().appending(path: "agent"))
+            index.authorize = { [weak self] action, _ in
+                guard let self else { return false }
+                let operation = generation
                 let danger: AgentConsentPolicy.Danger = switch action.danger {
                 case .harmless: .safe
                 case .consent: .consent
                 case .dangerous: .dangerous
                 }
-                return AgentConsentPolicy.decide(agentID: "local-cli", actionID: action.id,
-                    danger: danger, grants: grants.grants, now: Date()) == .allow
+                switch AgentConsentPolicy.decide(agentID: "local-cli", actionID: action.id,
+                    danger: danger, grants: grants.grants, now: Date(), islandConfirmationAvailable: true) {
+                case .allow: return true
+                case .refuse: return false
+                case .ask:
+                    return await AgentConfirmationPresenter(danger: danger).ask(
+                        action: action, grants: grants, core: core,
+                        isEnabled: { self.index.isRunning && self.generation == operation })
+                }
             }
             index.readAudit = {
                 let entries = try await audit.entries()
@@ -54,5 +66,5 @@ final class AgentBridgeModule: NotchcastModule {
     }
 
     func start() { index.start() }
-    func stop() { index.stop() }
+    func stop() { generation = UUID(); index.stop() }
 }
