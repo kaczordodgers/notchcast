@@ -1,6 +1,90 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Screenshots" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bildschirmfotos" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Capturas de pantalla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Captures d’écran" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スクリーンショット" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "스크린샷" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Capturas de ecrã" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Снимки экрана" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "屏幕截图" } }
+      }
+    },
+    "Capture an area, window or display." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Nimm einen Bereich, ein Fenster oder einen Bildschirm auf." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Captura un área, una ventana o una pantalla." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Capturez une zone, une fenêtre ou un écran." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "領域、ウインドウ、またはディスプレイをキャプチャします。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영역, 윈도우 또는 디스플레이를 캡처합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Capture uma área, janela ou ecrã." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Создавайте снимки области, окна или экрана." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "截取区域、窗口或显示器。" } }
+      }
+    },
+    "Clipboard and file" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Zwischenablage und Datei" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Portapapeles y archivo" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Presse-papiers et fichier" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "クリップボードとファイル" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "클립보드 및 파일" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Área de transferência e ficheiro" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Буфер обмена и файл" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "剪贴板和文件" } }
+      }
+    },
+    "Screenshot destination" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ziel für Bildschirmfotos" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Destino de las capturas" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Destination des captures" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スクリーンショットの保存先" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "스크린샷 저장 위치" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Destino das capturas" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Назначение снимков экрана" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "截图保存位置" } }
+      }
+    },
+    "Screenshot folder" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Ordner für Bildschirmfotos" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Carpeta de capturas" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Dossier des captures" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "スクリーンショットのフォルダ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "스크린샷 폴더" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Pasta das capturas" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Папка снимков экрана" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "截图文件夹" } }
+      }
+    },
+    "Desktop" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Schreibtisch" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escritorio" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Bureau" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "デスクトップ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "데스크탑" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Secretária" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Рабочий стол" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "桌面" } }
+      }
+    },
+    "Screen Recording" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bildschirmaufnahme" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Grabación de pantalla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Enregistrement de l’écran" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "画面収録" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "화면 기록" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Gravação do ecrã" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Запись экрана" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "屏幕录制" } }
+      }
+    },
     "Capture and dictation" : {
       "localizations" : {
         "de" : {

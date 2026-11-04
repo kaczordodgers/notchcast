@@ -12,6 +12,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayWeather
     case dayMarkets
     case colorPicker
+    case screenshot
 
     var title: String {
         switch self {
@@ -31,6 +32,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Weather")
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
+        case .screenshot: String(localized: "Screenshots")
         }
     }
 
@@ -52,6 +54,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
+        case .screenshot: String(localized: "Capture an area, window or display.")
         }
     }
 
@@ -59,6 +62,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         switch self {
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .screenshot: [.screenRecording]
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets, .colorPicker:
@@ -73,9 +77,10 @@ extension NotchcastFeature {
         self != .displayBrightness && self != .quitProtection && !belongsToCaptureAndDictation
     }
 
-    var belongsToCaptureAndDictation: Bool { self == .colorPicker }
+    var belongsToCaptureAndDictation: Bool { self == .colorPicker || self == .screenshot }
 }
 
 enum NotchcastGrant: CaseIterable, Sendable {
     case accessibility
+    case screenRecording
 }

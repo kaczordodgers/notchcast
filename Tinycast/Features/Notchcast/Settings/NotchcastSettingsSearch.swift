@@ -34,5 +34,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastOptions, "Markets", keywords: ["symbols", "stocks", "prices"]),
         .init(.notchcastCaptureAndDictation, "Color Picker", keywords: ["colour", "eyedropper", "sample"]),
         .init(.notchcastCaptureAndDictation, "Color format", keywords: ["colour", "hex", "rgb", "hsl"]),
+        .init(.notchcastCaptureAndDictation, "Screenshots", keywords: ["screen capture", "image"]),
+        .init(.notchcastCaptureAndDictation, "Screenshot destination", keywords: ["clipboard", "file", "save"]),
+        .init(.notchcastCaptureAndDictation, "Screenshot folder", keywords: ["directory", "desktop"]),
     ]
 }

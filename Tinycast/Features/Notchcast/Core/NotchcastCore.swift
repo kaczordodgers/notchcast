@@ -9,6 +9,7 @@ enum NotchcastCore {
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
     static let colorPicker = ColorPickerModule()
+    static let screenshot = ScreenshotModule()
     private static var controller: NotchcastModuleController?
 
     static func start(_ core: AppCore) {
@@ -24,6 +25,7 @@ enum NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.colorPicker], module: colorPicker),
+            .init(requires: [.screenshot], module: screenshot),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
