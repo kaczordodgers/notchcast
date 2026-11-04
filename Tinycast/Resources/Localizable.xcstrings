@@ -146539,6 +146539,58 @@
         }
       }
     },
+    "Core Audio isn't responding (coreaudiod); restart it or your Mac." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio reagiert nicht (coreaudiod); starte den Dienst oder deinen Mac neu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio no responde (coreaudiod); reinicia el servicio o el Mac."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio ne répond pas (coreaudiod) ; redémarrez le service ou votre Mac."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio（coreaudiod）が応答していません。サービスまたはMacを再起動してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio(coreaudiod)가 응답하지 않습니다. 서비스 또는 Mac을 재시동하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Core Audio não está respondendo (coreaudiod); reinicie o serviço ou o Mac."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio не отвечает (coreaudiod); перезапустите службу или Mac."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core Audio（coreaudiod）无响应；请重新启动该服务或 Mac。"
+          }
+        }
+      }
+    },
     "couldn't be read" : {
       "localizations" : {
         "de" : {
