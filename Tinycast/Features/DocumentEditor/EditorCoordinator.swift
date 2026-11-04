@@ -87,7 +87,7 @@ final class EditorCoordinator: NotchcastModule {
                 let recovery = try await EditorRecoveryService.flush(
                     document, directory: AppPaths.applicationSupport().appendingPathComponent("EditorRecovery"))
                 if let recovery {
-                    logger.error("Document recovered at termination: \(recovery.path, privacy: .public)")
+                    logger.error("Document recovered at termination: \(recovery.path, privacy: .private)")
                 }
             } catch {
                 logger.error("Document recovery failed at termination: \(error.localizedDescription, privacy: .private)")
