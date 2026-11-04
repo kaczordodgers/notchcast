@@ -26,10 +26,9 @@ enum DictationCleanupGuard {
         }
         let joined = zip(heard, heard.dropFirst()).map { $0 + $1 }
         let known = heard + joined
-        for word in vocabulary.flatMap({ words($0.spelling) }) {
-            if written.contains(where: { related($0, word) && !known.contains($0) }) {
-                return false
-            }
+        for word in vocabulary.flatMap({ words($0.spelling) })
+            where written.contains(where: { related($0, word) && !known.contains($0) }) {
+            return false
         }
         let novel = written.filter { word in
             !word.allSatisfy(\.isNumber) && !unitAbbreviations.contains(word)

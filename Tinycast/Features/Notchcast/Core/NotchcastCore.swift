@@ -7,6 +7,10 @@ enum NotchcastCore {
 
     static func stopForTermination() async {
         settingsBackup.stop()
+        captureTrimmer.stop()
+        voiceAsk?.stop()
+        recording.stop()
+        await recording.waitUntilIdle()
         battery.stop()
         await battery.waitUntilIdle()
         monitor?.stop()
@@ -15,6 +19,18 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
+        dictationHistory.onFailure = { [weak core] in
+            core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+        }
+        DictationCleanup.transcriptObserver = { raw, cleaned in
+            dictationHistory.enqueue(raw: raw, cleaned: cleaned)
+        }
+        dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
+        Task { await dictationHistory.maintain() }
+        dictationCleanup.reportFailure = { [weak core] in
+            core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
+        }
+        dictationCleanup.load()
         IslandController.shared.configurePages(core)
         let services = NotchcastServices(core: core, preferences: preferences)
         self.services = services
