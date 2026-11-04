@@ -55,6 +55,20 @@ prompt addition and multiline vocabulary use the engine's fork-local settings st
 line contains a spelling followed by optional misheard forms separated by `|`. The API key is saved
 explicitly with Save or Return through the engine's bundle-scoped Keychain store. Neither credentials
 nor capability flags enter settings.json or upstream backups. No launcher command is added.
+Capture Text (`command:nc-screen-text`) selects an area and copies recognized text or barcode content.
+Remove line breaks persists in the fork defaults suite and cancels pending recognition when changed.
+Scrolling Capture (`command:nc-scrolling-capture`) selects a Quartz area and collects scrolling frames.
+Run the command again to stop and copy the stitched PNG; reaching 20,000 pixels copies automatically
+and presents a HUD notice. Both switches are independent of Island and require Screen Recording only
+when invoked. Disabling either cancels selection and pending output. Capture commands report distinct
+permission, unavailable-area, recognition and clipboard failures through the existing HUD.
+
+`./Scripts/run-tests.sh notchcast-capture-wiring-test` checks the new switch lifecycle, permission
+gating, OCR option persistence, command refresh for every switch and Island independence with private
+defaults and denied permission probes. `notchcast-commands-test` covers command dispatch and filtering.
+
+`./Scripts/run-tests.sh notchcast-capture-errors-test` checks screenshot permission, clipboard,
+capture and file-write messages, plus the colour command's failed-copy HUD and successful-copy silence.
 
 `./Scripts/run-tests.sh nc-ColorPicker-lifecycle-test` checks disabled sampling, switch teardown,
 re-enabling, format persistence and Island independence with injected sampling and clipboard effects.

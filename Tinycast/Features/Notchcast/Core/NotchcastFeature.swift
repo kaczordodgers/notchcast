@@ -41,6 +41,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case agentAnswer
     case voiceAsk
     case recording
+    case screenText
+    case scrollingCapture
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -98,6 +100,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandLiveActivities: .islandOptions
         case .launcherFromIsland: .launcher
         case .colorPicker: .captureAndDictation
+        case .screenText: .captureAndDictation
+        case .scrollingCapture: .captureAndDictation
         case .screenshot: .captureAndDictation
         case .launcherNumberKeys: .launcher
         case .launcherAliasSpace: .launcher
@@ -185,6 +189,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .pasteImage: String(localized: "Paste Image in Finder")
         case .dayMarkets: String(localized: "Markets")
         case .colorPicker: String(localized: "Color Picker")
+        case .screenText: String(localized: "Capture Text")
+        case .scrollingCapture: String(localized: "Scrolling Capture")
         case .screenshot: String(localized: "Screenshots")
         case .greenMaximize: String(localized: "Green Button Maximizes")
         case .middleClick: String(localized: "Trackpad Middle Click")
@@ -254,6 +260,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.")
         case .dayMarkets: String(localized: "Prices refresh every 3 minutes while Day is open.")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.")
+        case .screenText: String(localized: "Copy text from a selected screen area.")
+        case .scrollingCapture: String(localized: "Copy a scrolling area as one image.")
         case .screenshot: String(localized: "Capture an area, window or display.")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.")
@@ -291,6 +299,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         switch self {
+        case .screenText: [.screenRecording]
+        case .scrollingCapture: [.screenRecording]
         case .screenshot: [.screenRecording]
         case .musicNowPlaying: []
         case .musicLastPlayer: [.accessibility]
@@ -323,6 +333,8 @@ extension NotchcastFeature {
         if isSystemFeature { return false }
         return switch self {
         case .colorPicker: false
+        case .screenText: false
+        case .scrollingCapture: false
         case .screenshot: false
         case .buildStats: false
         case .launcherNumberKeys: false
