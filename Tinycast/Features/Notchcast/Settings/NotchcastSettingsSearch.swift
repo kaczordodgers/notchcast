@@ -73,6 +73,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Remote Mac", keywords: ["ssh", "terminal", "Remote Mac address"]),
         .init(.notchcastSystem, "Send to Remote Mac", keywords: ["files", "Finder"]),
         .init(.notchcastSystem, "Update Remote Mac", keywords: ["update", "ssh"]),
+        .init(.notchcastSystem, "Remote Mac Fans", keywords: ["fans", "cooling", "ssh"]),
         .init(.notchcastRemoteMac, "Remote Mac address", keywords: ["ssh", "host", "alias"]),
         .init(.notchcastRemoteMac, "Remote terminal directory"),
         .init(.notchcastRemoteMac, "Remote update script path"),

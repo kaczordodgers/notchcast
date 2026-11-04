@@ -29,6 +29,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case shelfBetweenMacs
     case sendFiles
     case updateRemote
+    case remoteMacFans
     case batteryChargeLimit
     case batterySailing
     case batteryHeatProtection
@@ -74,6 +75,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .shelfBetweenMacs: .activities
         case .sendFiles: .system
         case .updateRemote: .system
+        case .remoteMacFans: .system
         }
     }
 
@@ -107,6 +109,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .shelfBetweenMacs: String(localized: "Shelf between Macs")
         case .sendFiles: String(localized: "Send to Remote Mac")
         case .updateRemote: String(localized: "Update Remote Mac")
+        case .remoteMacFans: String(localized: "Remote Mac Fans")
         case .batteryChargeLimit: String(localized: "Charge Limit")
         case .batterySailing: String(localized: "Battery Sailing")
         case .batteryHeatProtection: String(localized: "Battery Heat Protection")
@@ -147,6 +150,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.")
         case .sendFiles: String(localized: "Send selected files to the remote Mac.")
         case .updateRemote: String(localized: "Run the update on the remote Mac.")
+        case .remoteMacFans: String(localized: "Control fans on the remote Mac over SSH.")
         case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.")
         case .batterySailing: String(localized: "Use battery power above the charge limit.")
         case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.")
@@ -191,6 +195,7 @@ extension NotchcastFeature {
         case .shelfBetweenMacs: true
         case .sendFiles: true
         case .updateRemote: true
+        case .remoteMacFans: true
         default: false
         }
     }

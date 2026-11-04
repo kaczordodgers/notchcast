@@ -4,5 +4,8 @@ extension NotchcastCommandCatalog {
         MachRemoteModule.launcherCommand,
         MachRemoteModule.sendFilesCommand,
         MachRemoteModule.updateCommand,
+        RemoteMacFansModule.autoCommand,
+        RemoteMacFansModule.mediumCommand,
+        RemoteMacFansModule.maxCommand,
     ]
 }

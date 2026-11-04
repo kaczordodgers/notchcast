@@ -12,6 +12,7 @@ enum NotchcastCore {
     static let macLink = AIUsageLinkModule()
     static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
     static let machRemote = MachRemoteModule()
+    static let remoteMacFans = RemoteMacFansModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteNotice)
     static let shelf = ShelfModule()
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
     static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run,
@@ -77,6 +78,7 @@ enum NotchcastCore {
             .init(requires: [.machRemote], module: machRemote),
             .init(requires: [.machRemote, .sendFiles], module: sendFiles),
             .init(requires: [.machRemote, .updateRemote], module: updateRemote),
+            .init(requires: [.machRemote, .remoteMacFans], module: remoteMacFans),
             .init(requires: [.backupStatus], module: backupStatus),
             .init(requires: [.machLink, .linkHealth], module: linkHealth),
             .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
