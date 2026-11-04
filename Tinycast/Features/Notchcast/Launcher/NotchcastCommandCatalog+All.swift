@@ -12,5 +12,7 @@ extension NotchcastCommandCatalog {
         TorrentCommands.downloadClipboardCommand,
         TorrentCommands.openFileCommand,
         TorrentCommands.cancelAllCommand,
+        ArchiveCommands.extractCommand,
+        ArchiveCommands.cancelCommand,
     ]
 }

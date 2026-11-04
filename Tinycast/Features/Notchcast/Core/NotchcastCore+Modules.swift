@@ -20,7 +20,8 @@ extension NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackup = ForkSettingsBackupModule()
-    static let torrents = TorrentsModule()
+    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
+    static let archives = ArchiveModule(preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         [
@@ -44,6 +45,7 @@ extension NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.torrents], module: torrents),
+            .init(requires: [.archives], module: archives),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: EventReminderModule(store: core.calendarStore)),
         ]
     }

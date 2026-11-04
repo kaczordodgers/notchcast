@@ -1,10 +1,5 @@
 import Foundation
 
-extension NotchcastCore {
-    static let torrents = TorrentModule(
-        session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
-}
-
 extension AppCore {
     func handleTorrentURL(_ url: URL) -> Bool {
         guard TorrentModule.accepts(url) else { return false }

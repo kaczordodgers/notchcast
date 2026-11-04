@@ -3,6 +3,7 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
     static let notchcastAlertTemperature = Self(tab: .notchcast, title: "CPU temperature threshold")
@@ -36,6 +37,9 @@ extension SettingsSearchCatalog {
     static let notchcast: [SettingsSearchEntry] = [
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
+        .init(.notchcastArchives, "Archives", keywords: ["extract", "zip", "7z", "rar", "tar", "tgz", "001", "hatchzip"]),
+        .init(.notchcastArchives, "Extract in place", keywords: ["shrink", "space", "destructive"]),
+        .init(.notchcastArchives, "Open archives with Notchcast", keywords: ["default", "handler", "Archive Utility"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),
@@ -90,8 +94,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastMicrophone, "Microphone mute", keywords: ["mute", "f5", "mic"]),
         .init(.notchcastMicrophone, "In-use marks", keywords: ["camera", "privacy", "indicator", "recording"]),
         .init(.notchcastTorrents, "Torrents", keywords: ["magnet", "torrent", "download"]),
-        .init(.notchcastTorrents, "Use a plugged-in iPhone for big downloads",
-              keywords: ["wifi", "iphone", "usb", "hotspot", "network"]),
+        .init(.notchcastTorrents, "Use a plugged-in iPhone for big downloads", keywords: ["wifi", "iphone", "usb", "hotspot", "network"]),
         .init(.notchcastTorrents, "Keep sharing until ratio 1.0", keywords: ["seed", "seeding", "upload"]),
         .init(.notchcastTorrents, "aria2c", keywords: ["install", "homebrew", "tool", "path"]),
     ]

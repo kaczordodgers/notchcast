@@ -28,6 +28,7 @@ struct NotchcastSettingsView: View {
 
             NotchcastTorrentSettings(module: NotchcastCore.torrents)
             NotchcastMusicSettings()
+            NotchcastArchiveSettings()
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)
             }

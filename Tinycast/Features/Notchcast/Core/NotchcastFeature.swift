@@ -45,31 +45,18 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case eventReminder
     case switcherQuitKey
     case linkQuickFixes
+    case archives
+    case archivesInPlace
+    case archivesDefaultApp
     case torrents
     case torrentsUseIPhone
     case torrentsKeepSharing
 
-    /// System tools start off; everything else starts on except the exceptions below.
-    var defaultOn: Bool {
-        if isSystemFeature { return false }
-        return switch self {
-        case .spotifyConnect: false
-        case .systemMonitor: false
-        case .fanControl: false
-        case .monitorAlerts: false
-        case .batteryChargeLimit: false
-        case .batterySailing: false
-        case .batteryHeatProtection: false
-        case .batteryCalibration: false
-        case .keepAwake: false
-        case .torrentsKeepSharing: false
-        case .lidClosedAwake: false
-        default: true
-        }
-    }
-
     var dependencies: [Self] {
         switch self {
+        case .archives: []
+        case .archivesInPlace: [.archives]
+        case .archivesDefaultApp: [.archives]
         case .torrents: []
         case .torrentsUseIPhone: [.torrents]
         case .torrentsKeepSharing: [.torrents]
@@ -126,6 +113,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentConfirmation: .islandOptions
         case .eventReminder: .activities
         case .switcherQuitKey: .launcher
+        case .archives: .archives
+        case .archivesInPlace: .archives
+        case .archivesDefaultApp: .archives
         case .torrents: .torrents
         case .torrentsUseIPhone: .torrents
         case .torrentsKeepSharing: .torrents
@@ -166,6 +156,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide with ⌘M")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order")
         case .showDesktop: String(localized: "Show Desktop with F3")
+        case .archives: String(localized: "Archives")
+        case .archivesInPlace: String(localized: "Extract in place")
+        case .archivesDefaultApp: String(localized: "Open archives with Notchcast")
         case .torrents: String(localized: "Torrents")
         case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads")
         case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0")
@@ -218,6 +211,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.")
+        case .archives: String(localized: "Extract opened archives beside the original file.")
+        case .archivesInPlace: String(localized: "The archive shrinks while extracting.")
+        case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.")
         case .torrents: String(localized: "Download magnet links and torrent files to Downloads.")
         case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.")
         case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.")
@@ -273,6 +269,9 @@ extension NotchcastFeature {
         case .greenMaximize: false
         case .machineSetupProfile: false
         case .switcherQuitKey: false
+        case .archives: false
+        case .archivesInPlace: false
+        case .archivesDefaultApp: false
         case .torrents: false
         case .torrentsUseIPhone: false
         case .torrentsKeepSharing: false
@@ -288,6 +287,9 @@ extension NotchcastFeature {
         if isSystemFeature || isLauncherKeysFeature { return false }
         return switch self {
         case .spotifyConnect: false
+        case .archivesInPlace: false
+        case .archivesDefaultApp: false
+        case .torrentsKeepSharing: false
         case .spacesOrder: false
         case .switcherQuitKey: false
         default: true
