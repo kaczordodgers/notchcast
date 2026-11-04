@@ -27,6 +27,14 @@ struct EditorDocumentRepository: Sendable {
             try Task.checkCancellation()
             guard try read(location) == snapshot.bytes else { throw EditorFailure.externalChange }
             if bytes != snapshot.bytes {
+                let attributes = try FileManager.default.attributesOfItem(atPath: location.path)
+                if (attributes[.referenceCount] as? NSNumber)?.intValue ?? 1 > 1 {
+                    let file = try FileHandle(forWritingTo: location)
+                    defer { try? file.close() }
+                    try file.truncate(atOffset: 0)
+                    try file.write(contentsOf: bytes)
+                    return try EditorDocumentSnapshot(bytes: bytes)
+                }
                 let temporary = location.deletingLastPathComponent().appendingPathComponent(".\(UUID().uuidString).tmp")
                 defer { try? FileManager.default.removeItem(at: temporary) }
                 try bytes.write(to: temporary)

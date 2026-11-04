@@ -88,6 +88,11 @@ struct EditorDocumentTests {
             getxattr(url.path, attribute, buffer.baseAddress, buffer.count, 0, 0)
         }
         precondition(count == tag.count && actual == tag)
+        let hardLink = directory.appendingPathComponent("linked.md")
+        try FileManager.default.linkItem(at: url, to: hardLink)
+        let beforeLinkedSave = try await EditorDocumentRepository.load(url)
+        _ = try await EditorDocumentRepository.save("linked replacement", to: url, expecting: beforeLinkedSave)
+        try check(try Data(contentsOf: hardLink) == Data("linked replacement".utf8))
         let restored = try await EditorDocumentRepository.load(url)
         try FileManager.default.removeItem(at: url)
         do {
