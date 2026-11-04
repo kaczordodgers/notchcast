@@ -1,6 +1,162 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+"Toggle Keep Awake": {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Ruhezustand verhindern umschalten"
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Alternar mantener despierto"
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Activer ou désactiver le maintien en éveil"
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "スリープ防止を切り替え"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "잠자기 방지 전환"
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Alternar manter ativo"
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Переключить запрет сна"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "切换保持唤醒"
+      }
+    }
+  }
+},
+"Set Fans to Max": {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Lüfter auf Maximum stellen"
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Poner ventiladores al máximo"
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Régler les ventilateurs au maximum"
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "ファンを最大に設定"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "팬을 최대로 설정"
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Definir ventoinhas no máximo"
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Установить максимальную скорость вентиляторов"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "将风扇设为最大"
+      }
+    }
+  }
+},
+"Set Fans to Auto": {
+  "localizations": {
+    "de": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Lüfter auf Automatik stellen"
+      }
+    },
+    "es": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Poner ventiladores en automático"
+      }
+    },
+    "fr": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Régler les ventilateurs en automatique"
+      }
+    },
+    "ja": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "ファンを自動に設定"
+      }
+    },
+    "ko": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "팬을 자동으로 설정"
+      }
+    },
+    "pt": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Definir ventoinhas no automático"
+      }
+    },
+    "ru": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "Установить автоматическую скорость вентиляторов"
+      }
+    },
+    "zh-Hans": {
+      "stringUnit": {
+        "state": "translated",
+        "value": "将风扇设为自动"
+      }
+    }
+  }
+},
     "Monitor Alerts": {
       "localizations": {
         "de": {

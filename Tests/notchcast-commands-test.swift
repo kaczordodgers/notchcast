@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/AppEntry+NotchcastCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandController+Command.swift
+// notchcast-sources: Tinycast/Features/Battery/Commands/BatteryModule+Command.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/Commands/FanControl+Command.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction+EntryID.swift
@@ -95,6 +97,27 @@ enum QuicklinkDestination {
     let paletteCoordinator = PaletteCoordinator()
 }
 
+@MainActor final class BatteryModule {
+    var runs = 0
+    func toggleKeepAwake() { runs += 1 }
+}
+
+enum FanControl {
+    enum Mode: String { case max, auto }
+}
+
+@MainActor enum NotchcastCore {
+    static let battery = BatteryModule()
+}
+
+@MainActor final class NotchcastPreferences {
+    enum Feature: Hashable { case keepAwake, fanControl, systemMonitor }
+    static let shared = NotchcastPreferences()
+    var enabled: Set<Feature> = []
+    var fanMode = "auto"
+    func isOn(_ feature: Feature) -> Bool { enabled.contains(feature) }
+}
+
 @MainActor final class PaletteCoordinator {
     var isVisible = false
     var hideCalls = 0
@@ -115,6 +138,27 @@ enum QuicklinkDestination {
         assert(CommandCatalog.entries(ownedBy: .notchcast).count == commands.count)
         assert(CommandCatalog.entries(ownedBy: .notchcast).allSatisfy { $0.hotKeyAction != nil })
         assert(commands.allSatisfy { $0.entry.symbolName == $0.sfSymbol })
+        let preferences = NotchcastPreferences.shared
+        let ids = ["command:nc-keep-awake", "command:nc-fans-max", "command:nc-fans-auto"]
+        for id in ids {
+            assert(commands.filter { $0.id == id }.count == 1)
+            assert(!NotchcastCommandCatalog.isEnabled(id))
+            assert(NotchcastCommandCatalog.dispatch(id, dismiss: { assertionFailure() }))
+        }
+        assert(NotchcastCore.battery.runs == 0 && preferences.fanMode == "auto")
+        preferences.enabled = [.keepAwake, .fanControl]
+        assert(NotchcastCommandCatalog.isEnabled(ids[0]))
+        assert(!NotchcastCommandCatalog.isEnabled(ids[1]))
+        preferences.enabled.insert(.systemMonitor)
+        for id in ids {
+            assert(NotchcastCommandCatalog.isEnabled(id))
+            NotchcastCommandCatalog.perform(id)
+            if id == ids[1] { assert(preferences.fanMode == "max") }
+        }
+        assert(NotchcastCore.battery.runs == 1 && preferences.fanMode == "auto")
+        preferences.enabled.remove(.fanControl)
+        assert(!NotchcastCommandCatalog.isEnabled(ids[1]))
+        assert(!NotchcastCommandCatalog.isEnabled(ids[2]))
         let action = HotKeyAction.notchcastCommand(entryID: commands[0].entry.id)
         assert(action.defaultsKey == "hotkey.command:toggle-island")
         assert(HotKeyAction(entryID: commands[0].entry.id) == action)
