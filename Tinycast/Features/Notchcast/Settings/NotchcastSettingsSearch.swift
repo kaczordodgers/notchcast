@@ -1,5 +1,7 @@
 import Foundation
 
+/// One line per anchor and per entry, so branches that add rows merge by union.
+/// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
     static let notchcastAlertCPU = Self(tab: .notchcast, title: "CPU usage threshold")
@@ -71,8 +73,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastSystem, "Show Desktop with F3", keywords: ["mission control", "windows"]),
         .init(.notchcastSystem, "Hide with ⌘M", keywords: ["minimize", "command m"]),
         .init(.notchcastSystem, "Keep Spaces in a fixed order", keywords: ["desktop", "reorder"]),
-        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)",
-              keywords: ["green button", "maximize", "exceptions"]),
+        .init(.notchcastSystem, "Excluded app bundle IDs (comma-separated)", keywords: ["green button", "maximize", "exceptions"]),
         .init(.notchcastSystem, "Settings Backup", keywords: ["backup", "preferences", "daily"]),
     ]
 }
