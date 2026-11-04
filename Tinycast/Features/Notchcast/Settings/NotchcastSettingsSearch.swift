@@ -17,6 +17,7 @@ extension SettingsAnchor {
     static let notchcastSystem = Self(tab: .notchcast, title: "System")
     static let notchcastActivities = Self(tab: .notchcast, title: "Activities")
     static let notchcastMusic = Self(tab: .notchcast, title: "Music")
+    static let notchcastTasks = Self(tab: .notchcast, title: "Tasks")
     // ai-design-check-ignore-next-line sentence-case -- Spotify Connect is a product name.
     static let notchcastSpotify = Self(tab: .notchcast, title: "Spotify Connect")
     static let notchcastMicrophone = Self(tab: .notchcast, title: "Microphone")
@@ -31,6 +32,7 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
         .init(.notchcastAlerts, "Monitor Alerts"),
         .init(.notchcastAlertCPU, "CPU usage threshold"),
         .init(.notchcastAlertTemperature, "CPU temperature threshold"),

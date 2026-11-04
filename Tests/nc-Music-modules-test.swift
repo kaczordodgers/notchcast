@@ -65,6 +65,7 @@ final class NotchcastServices {
     let spotify = CountingModule()
     let microphone = CountingModule()
     let marks = CountingModule()
+    let tasks = CountingModule()
     let keys = Keys()
 
     init(core: AppCore, preferences: NotchcastPreferences) {}
@@ -178,6 +179,16 @@ struct MusicModuleTests {
         preferences.set(.island, false)
         await settle()
         precondition(modules.allSatisfy { $0.starts == $0.stops })
+        precondition(services.tasks.starts == 0)
+        preferences.set(.tasks, true)
+        await settle()
+        precondition(services.tasks.starts == 1 && services.tasks.stops == 0)
+        preferences.set(.island, true)
+        await settle()
+        precondition(services.tasks.starts == 1)
+        preferences.set(.tasks, false)
+        await settle()
+        precondition(services.tasks.stops == 1)
     }
 
     static func routing() async {

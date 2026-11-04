@@ -21,8 +21,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dayMarkets
     case batteryChargeLimit, batterySailing, batteryHeatProtection, batteryCalibration
     case keepAwake, lidClosedAwake
+    case tasks
 
-    var defaultOn: Bool { self != .spotifyConnect && !isSystemFeature }
+    var defaultOn: Bool { self != .spotifyConnect && self != .tasks && !isSystemFeature }
 
     var dependencies: [Self] {
         switch self {
@@ -33,7 +34,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     }
 
     enum SettingsGroup: Sendable {
-        case island, islandOptions, launcher, system, activities, music
+        case island, islandOptions, launcher, system, activities, music, tasks
     }
 
     var settingsGroup: SettingsGroup {
@@ -49,6 +50,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers, .dayWeather, .dayMarkets: .activities
         case .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect,
              .microphoneMute, .inUseMarks: .music
+        case .tasks: .tasks
         }
     }
 
@@ -84,6 +86,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Battery Calibration")
         case .keepAwake: String(localized: "Keep Awake")
         case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed")
+        case .tasks: String(localized: "Tasks")
         }
     }
 
@@ -119,6 +122,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: String(localized: "Run a full battery calibration cycle.")
         case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.")
         case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.")
+        case .tasks: String(localized: "Keep tasks on this Mac.")
         }
     }
 
@@ -132,7 +136,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
             .musicNowPlaying, .spotifyConnect, .inUseMarks,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayWeather, .dayMarkets,
             .systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
-            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake:
+            .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake, .tasks:
             []
         }
     }
@@ -140,7 +144,9 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
 extension NotchcastFeature {
     /// Shows only in the island, so its switch follows the island switch in Settings.
-    var needsIsland: Bool { self != .displayBrightness && self != .quitProtection && !isSystemFeature }
+    var needsIsland: Bool {
+        self != .displayBrightness && self != .quitProtection && self != .tasks && !isSystemFeature
+    }
 
     var isSystemFeature: Bool {
         [.systemMonitor, .monitorAlerts, .fanControl, .batteryChargeLimit, .batterySailing,
