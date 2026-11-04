@@ -1,9 +1,6 @@
 # Root helper
 
-M0 provides a fixed program and an app client. It has two argument-free verbs: `version` prints the
-contract version (`1`) and `ping` prints `pong`. Both end with a newline. Any other argument vector
-exits 64 without output or effects. Neither verb requires root when run directly. The program reads
-no environment, launches no processes, and performs no system changes.
+The fixed program and app client share five argument-free verbs. `version` prints the contract version (`1`), and `ping` prints `pong`; neither requires root. `fans-auto`, `fans-medium` and `fans-max` require root and print exactly `ok\n` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and hardware failures exit 70, always without output. The program reads no environment and launches no processes.
 
 `RootContract.swift` here is a symlink to the app's contract under
 `Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no
@@ -28,12 +25,21 @@ checks every path component with `lstat`: root ownership, no group/world write p
 parents, an executable regular file, and no symlinks. `isInstalled` reports that path check only;
 sudo's authorization remains a separate typed failure at invocation.
 
-Read operations time out after 3 seconds; the contract reserves 12 seconds for future changes. M0
-exposes no change verbs. Cancellation and timeout terminate and reap the invocation. Replies must
-match the command's complete expected output and version. Consumers own presentation of typed
-failures; M0 adds no settings row or AppCore hook.
+Read operations time out after 3 seconds; fan changes time out after 12 seconds. Cancellation and timeout terminate and reap the invocation. Replies must match the command's complete expected output and version. Consumers own presentation of typed failures; this helper adds no settings row or AppCore hook.
 
 The `notchcast-root-client-test` harness covers parsing, replies, unsafe paths, permission policy,
 timeout selection, process reaping and cancellation. Its processes are ordinary `/bin/sleep`
 fixtures; it never invokes sudo or installs anything.
 It also compiles the helper sources in a temporary directory and checks the executable's replies and exits.
+
+## Fan writes
+
+`FanSMC.swift` is helper-only, adapted from Orion's SMC codec, connection and fan sequence. It is never compiled into the app. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
+
+- `fans-auto`: write 0 to each fan's mode, then clear `Ftst` if present. Every release is attempted even if another fails. Targets are left alone.
+- `fans-medium`: unlock `Ftst` with 1 if present and not already 1; for each fan, write mode 1 repeatedly every 100 ms until it reads back as 1, then write its target `min + 0.6 × (max − min)`.
+- `fans-max`: the same unlock and mode sequence, targeting each fan's maximum instead.
+
+All manual-mode retries share one five-second window. Any manual-operation failure attempts the complete Auto sequence before reporting failure. A failed key-info call is an error, not evidence that `Ftst` is absent. Numeric encodings follow the key's reported type (`flt ` little-endian, `fpe2` and unsigned integers big-endian); invalid sizes, unsupported types and overflow are rejected.
+
+The harness compiles the shipped fan implementation with an in-memory SMC fixture to check targets, encoding bytes, retry timing, write order and failure recovery. Executable fan verbs run only without root and must fail before opening SMC. Live hardware verification and app lifecycle wiring are separate work.
