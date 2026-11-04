@@ -22,9 +22,29 @@ final class FakeRemoteShell: RemoteShellRunning {
     }
 }
 
+// Runs the real commit script under macOS's default shell, where `status` is read-only.
+func commitUnderZsh(in root: URL) throws -> Int32 {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/bin/zsh")
+    process.arguments = ["-c", SendFilesPlan.commit(staging: "stage", name: "a file")]
+    process.currentDirectoryURL = root
+    try process.run()
+    process.waitUntilExit()
+    return process.terminationStatus
+}
+
 @main
 struct SendFilesTests {
-    @MainActor static func main() async {
+    @MainActor static func main() async throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try FileManager.default.createDirectory(at: root.appendingPathComponent("stage"), withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: root.appendingPathComponent("Downloads"), withIntermediateDirectories: true)
+        try Data("x".utf8).write(to: root.appendingPathComponent("stage/a file"))
+        let committed = try commitUnderZsh(in: root)
+        precondition(committed == 0)
+        precondition(FileManager.default.fileExists(atPath: root.appendingPathComponent("Downloads/a file").path))
+        precondition(!FileManager.default.fileExists(atPath: root.appendingPathComponent("Downloads/a file.notchcast-claim").path))
         let source = URL(fileURLWithPath: "/tmp/a file's name")
         for address in ["", "-bad", "host;echo bad", "user@2001:db8::1"] {
             let fake = FakeRemoteShell()

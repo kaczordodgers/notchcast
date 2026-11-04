@@ -18,6 +18,8 @@ final class BackupStatusModule: NotchcastModule {
     private var reading: Task<Void, Never>?
     private var generation = 0
     private var running = false
+    private var enabled = false
+    private var cancelRestart: Cancel?
     private var status: BackupStatus?
     private var previousIssues: [BackupStatusEngine.Issue] = []
 
@@ -36,16 +38,40 @@ final class BackupStatusModule: NotchcastModule {
 
     func start() {
         guard !running else { return }
+        enabled = true
         if let notice = configurationNotice() {
             post(notice)
             return
         }
+        begin()
+    }
+
+    // The debounce keeps each keystroke from watching, and alerting on, a half-typed path.
+    func pathChanged() {
+        guard enabled else { return }
+        cancelRestart?()
+        cancelRestart = schedule(now().addingTimeInterval(1)) { [weak self] in
+            guard let self else { return }
+            self.cancelRestart = nil
+            self.halt()
+            if self.configurationNotice() == nil { self.begin() }
+        }
+    }
+
+    func stop() {
+        enabled = false
+        cancelRestart?()
+        cancelRestart = nil
+        halt()
+    }
+
+    private func begin() {
         running = true
         cancelWatch = watch { [weak self] in self?.reload() }
         reload()
     }
 
-    func stop() {
+    private func halt() {
         running = false
         generation += 1
         reading?.cancel()
@@ -91,6 +117,7 @@ final class BackupStatusModule: NotchcastModule {
     }
 
     isolated deinit {
+        cancelRestart?()
         reading?.cancel()
         cancelWatch?()
         cancelDeadline?()

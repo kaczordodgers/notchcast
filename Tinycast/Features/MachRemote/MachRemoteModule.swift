@@ -2,23 +2,30 @@ import AppKit
 
 @MainActor
 final class MachRemoteModule: NotchcastModule {
+    var automation: Task<Void, Never>?
+
     func start() { AppCore.shared.appIndex.refreshNotchcastCommands() }
-    func stop() { AppCore.shared.appIndex.refreshNotchcastCommands() }
+    func stop() {
+        automation?.cancel()
+        automation = nil
+        AppCore.shared.appIndex.refreshNotchcastCommands()
+    }
 
     func openTerminal() {
         guard NotchcastPreferences.shared.isOn(.machRemote) else { return }
         let ssh = MachSSH(address: NotchcastPreferences.shared.remoteMacAddress, runner: MachSSHProcessRunner.run)
         let script: String
         do { script = try ssh.terminalScript(directory: NotchcastPreferences.shared.remoteTerminalDirectory) } catch {
-            NotchcastCore.remoteNotice(error.localizedDescription)
+            NotchcastCore.remoteResult(error.localizedDescription)
             return
         }
         let escaped = script.replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
         let source = "tell application \"Terminal\"\nactivate\ndo script \"\(escaped)\"\nend tell"
-        var error: NSDictionary?
-        _ = NSAppleScript(source: source)?.executeAndReturnError(&error)
-        if error != nil {
+        automation?.cancel()
+        automation = Task {
+            let result = try? await MachSSHProcessRunner.run("/usr/bin/osascript", ["-e", source])
+            guard !Task.isCancelled, result?.status != 0 else { return }
             AppCore.shared.showMessage(String(localized: "Unable to open Terminal"), tone: .danger)
         }
     }
