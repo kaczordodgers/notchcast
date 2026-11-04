@@ -1,6 +1,9 @@
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
+        TodoCommands.addFromClipboard,
+        TodoCommands.completeNext,
+        TodoCommands.undoLast,
         ForkSettingsBackupCoordinator.restoreCommand,
         ForkSettingsBackupCoordinator.openCommand,
         ColorPickerModule.launcherCommand,
@@ -8,6 +11,7 @@ extension NotchcastCommandCatalog {
         MachineSetupProfileCoordinator.launcherCommand,
         IslandPage.home.launcherCommand,
         IslandPage.day.launcherCommand,
+        AgentSessionsModule.refreshCommand,
         MusicCommands.openCurrentPlayerCommand,
         MusicCommands.resumeLastPlayerCommand,
         MusicCommands.speakerOnCommand,

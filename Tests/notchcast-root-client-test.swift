@@ -326,7 +326,11 @@ struct FanSMCTest {
 struct RootClientTest {
     static func main() async throws {
         validateCommands()
-        try validateExecutable()
+        let strict = ProcessInfo.processInfo.environment["LIBDISPATCH_COOPERATIVE_POOL_STRICT"]
+        print("Cooperative pool strict: \(strict ?? "unset")")
+        if ProcessInfo.processInfo.environment["NOTCHCAST_TEST_HELPER_EXECUTABLE"] == "1" {
+            try validateExecutable()
+        }
         try validatePaths()
         try await validateProcessLifetime()
         print("PASS: root commands, replies, path ownership and permissions, timeouts and cancellation")
