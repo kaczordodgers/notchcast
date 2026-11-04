@@ -14,6 +14,18 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        dictationHistory.onFailure = { [weak core] in
+            core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+        }
+        DictationCleanup.transcriptObserver = { raw, cleaned in
+            dictationHistory.enqueue(raw: raw, cleaned: cleaned)
+        }
+        dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
+        Task { await dictationHistory.maintain() }
+        dictationCleanup.reportFailure = { [weak core] in
+            core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
+        }
+        dictationCleanup.load()
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor

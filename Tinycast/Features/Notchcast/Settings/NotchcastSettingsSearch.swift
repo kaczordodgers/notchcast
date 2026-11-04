@@ -70,6 +70,8 @@ extension SettingsSearchCatalog {
         .init(.notchcastCaptureAndDictation, "Screenshot destination", keywords: ["clipboard", "file", "save"]),
         .init(.notchcastCaptureAndDictation, "Screenshot folder", keywords: ["directory", "desktop"]),
         .init(.notchcastCaptureAndDictation, "AI cleanup"),
+        .init(.notchcastCaptureAndDictation, "Keep dictation history"),
+        .init(.notchcastCaptureAndDictation, "Delete history"),
         .init(.notchcastCaptureAndDictation, "Cleanup endpoint"),
         .init(.notchcastCaptureAndDictation, "Cleanup effort"),
         .init(.notchcastCaptureAndDictation, "Cleanup prompt addition"),
