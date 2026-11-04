@@ -4,6 +4,18 @@ struct TodoRecordChange<Value: Codable & Equatable & Identifiable & Sendable>: C
     where Value.ID == String {
     let before: Value?
     let after: Value?
+    var restoredFrom: TodoEnvelope.ID?
+}
+
+struct TodoRecordIdentity: Hashable, Sendable {
+    let kind: TodoCommand.Entity
+    let id: String
+}
+
+struct TodoOrphanRecovery: Codable, Equatable, Sendable {
+    let taskID: String
+    let projectID: String?
+    let parentID: String?
 }
 
 struct TodoReplicationChanges: Codable, Equatable, Sendable {
@@ -12,6 +24,29 @@ struct TodoReplicationChanges: Codable, Equatable, Sendable {
     var sections: [TodoRecordChange<TodoSection>]
     var labels: [TodoRecordChange<TodoLabel>]
     var filters: [TodoRecordChange<TodoSavedFilter>]
+
+    var hasRestorations: Bool {
+        tasks.contains { $0.restoredFrom != nil } || projects.contains { $0.restoredFrom != nil }
+            || sections.contains { $0.restoredFrom != nil } || labels.contains { $0.restoredFrom != nil }
+            || filters.contains { $0.restoredFrom != nil }
+    }
+
+    mutating func markRestorations(_ deletions: [TodoRecordIdentity: TodoEnvelope.ID]) {
+        Self.mark(&tasks, kind: .task, deletions: deletions)
+        Self.mark(&projects, kind: .project, deletions: deletions)
+        Self.mark(&sections, kind: .section, deletions: deletions)
+        Self.mark(&labels, kind: .label, deletions: deletions)
+        Self.mark(&filters, kind: .filter, deletions: deletions)
+    }
+
+    private static func mark<Value>(_ changes: inout [TodoRecordChange<Value>], kind: TodoCommand.Entity,
+                                    deletions: [TodoRecordIdentity: TodoEnvelope.ID]) {
+        for index in changes.indices where changes[index].before == nil {
+            if let id = changes[index].after?.id {
+                changes[index].restoredFrom = deletions[TodoRecordIdentity(kind: kind, id: id)]
+            }
+        }
+    }
 
     init(command: TodoCommand, before: TodoState, after: TodoState) {
         let taskID: String?
@@ -40,46 +75,64 @@ struct TodoReplicationChanges: Codable, Equatable, Sendable {
     }
 }
 
-struct TodoReplicationProjection {
+struct TodoReplicationProjection: Sendable {
     private var tasks: [String: TodoTask] = [:]
     private var projects: [String: TodoProject] = [:]
     private var sections: [String: TodoSection] = [:]
     private var labels: [String: TodoLabel] = [:]
     private var filters: [String: TodoSavedFilter] = [:]
+    private var deletions: [TodoRecordIdentity: [TodoEnvelope.ID]] = [:]
+    private(set) var latestDeletes: [TodoRecordIdentity: TodoEnvelope.ID] = [:]
 
-    mutating func apply(_ changes: TodoReplicationChanges) throws {
-        try Self.apply(changes.tasks, to: &tasks, merge: Self.mergeTask)
-        try Self.apply(changes.projects, to: &projects) { current, change in
+    mutating func apply(_ envelope: TodoEnvelope) throws {
+        let changes = envelope.changes
+        try Self.apply(changes.tasks, kind: .task, envelopeID: envelope.id, to: &tasks,
+                       deletions: &deletions, latestDeletes: &latestDeletes, merge: Self.mergeTask)
+        try Self.apply(changes.projects, kind: .project, envelopeID: envelope.id, to: &projects,
+                       deletions: &deletions, latestDeletes: &latestDeletes) { current, change in
             Self.assign(\TodoProject.name, to: &current, change: change)
             Self.assign(\TodoProject.order, to: &current, change: change)
         }
-        try Self.apply(changes.sections, to: &sections) { current, change in
+        try Self.apply(changes.sections, kind: .section, envelopeID: envelope.id, to: &sections,
+                       deletions: &deletions, latestDeletes: &latestDeletes) { current, change in
             Self.assign(\TodoSection.name, to: &current, change: change)
             Self.assign(\TodoSection.projectID, to: &current, change: change)
             Self.assign(\TodoSection.order, to: &current, change: change)
         }
-        try Self.apply(changes.labels, to: &labels) { current, change in
+        try Self.apply(changes.labels, kind: .label, envelopeID: envelope.id, to: &labels,
+                       deletions: &deletions, latestDeletes: &latestDeletes) { current, change in
             Self.assign(\TodoLabel.name, to: &current, change: change)
             Self.assign(\TodoLabel.order, to: &current, change: change)
         }
-        try Self.apply(changes.filters, to: &filters) { current, change in
+        try Self.apply(changes.filters, kind: .filter, envelopeID: envelope.id, to: &filters,
+                       deletions: &deletions, latestDeletes: &latestDeletes) { current, change in
             Self.assign(\TodoSavedFilter.name, to: &current, change: change)
             Self.assign(\TodoSavedFilter.query, to: &current, change: change)
             Self.assign(\TodoSavedFilter.order, to: &current, change: change)
         }
     }
 
-    private static func apply<Value>(_ changes: [TodoRecordChange<Value>], to values: inout [String: Value],
+    private static func apply<Value>(_ changes: [TodoRecordChange<Value>], kind: TodoCommand.Entity,
+                                     envelopeID: TodoEnvelope.ID, to values: inout [String: Value],
+                                     deletions: inout [TodoRecordIdentity: [TodoEnvelope.ID]],
+                                     latestDeletes: inout [TodoRecordIdentity: TodoEnvelope.ID],
                                      merge: (inout Value, TodoRecordChange<Value>) -> Void) throws {
         for change in changes {
             guard let id = change.after?.id ?? change.before?.id, UUID(uuidString: id) != nil,
                   change.before == nil || change.after == nil || change.before?.id == change.after?.id else {
                 throw TodoReplicationError.invalidEnvelope
             }
+            let key = TodoRecordIdentity(kind: kind, id: id)
             if change.after == nil {
                 values.removeValue(forKey: id)
+                deletions[key, default: []].append(envelopeID)
+                latestDeletes[key] = envelopeID
             } else if change.before == nil {
-                values[id] = change.after
+                if let restoredFrom = change.restoredFrom {
+                    deletions[key]?.removeAll { $0 == restoredFrom }
+                    latestDeletes[key] = deletions[key]?.last
+                }
+                if deletions[key]?.isEmpty != false { values[id] = change.after }
             } else if var current = values[id] {
                 merge(&current, change)
                 values[id] = current
@@ -103,6 +156,7 @@ struct TodoReplicationProjection {
         assign(\.completedAt, to: &current, change: change)
         assign(\.order, to: &current, change: change)
         assign(\.externalRef, to: &current, change: change)
+        assign(\.addedAt, to: &current, change: change)
         assign(\.claim, to: &current, change: change)
         if let after = change.after,
            change.before?.projectID != after.projectID || change.before?.sectionID != after.sectionID
@@ -125,14 +179,18 @@ struct TodoReplicationProjection {
         }
     }
 
-    func state() throws -> TodoState {
+    func materialize() throws -> (state: TodoState, orphans: [TodoOrphanRecovery]) {
         let validSections = sections.filter { projects[$0.value.projectID] != nil }
-        var validTasks = tasks.filter { $0.value.projectID.map { projects[$0] != nil } ?? true }
-        while validTasks.values.contains(where: { $0.parentID.map { validTasks[$0] == nil } ?? false }) {
-            validTasks = validTasks.filter { $0.value.parentID.map { validTasks[$0] != nil } ?? true }
-        }
+        var validTasks = tasks
+        var orphans: [TodoOrphanRecovery] = []
         for id in validTasks.keys.sorted() {
             guard var task = validTasks[id] else { continue }
+            if task.projectID.map({ projects[$0] == nil }) == true || task.parentID.map({ tasks[$0] == nil }) == true {
+                orphans.append(TodoOrphanRecovery(taskID: id, projectID: task.projectID, parentID: task.parentID))
+                task.projectID = nil
+                task.sectionID = nil
+                task.parentID = nil
+            }
             if let sectionID = task.sectionID, validSections[sectionID]?.projectID != task.projectID { task.sectionID = nil }
             task.labels = task.labels.filter { labels[$0] != nil }
             validTasks[id] = task
@@ -155,12 +213,7 @@ struct TodoReplicationProjection {
             validTasks[id]?.projectID = root?.projectID
             validTasks[id]?.sectionID = root?.sectionID
         }
-        var result = TodoState()
-        try result.apply(.batch(projects.values.sorted { $0.id < $1.id }.map(TodoCommand.addProject)
-            + validSections.values.sorted { $0.id < $1.id }.map(TodoCommand.addSection)
-            + labels.values.sorted { $0.id < $1.id }.map(TodoCommand.addLabel)
-            + filters.values.sorted { $0.id < $1.id }.map(TodoCommand.addFilter)
-            + validTasks.values.sorted { $0.id < $1.id }.map(TodoCommand.addTask)))
-        return result
+        return (try TodoState.replicated(tasks: validTasks, projects: projects, sections: validSections,
+                                         labels: labels, filters: filters), orphans)
     }
 }

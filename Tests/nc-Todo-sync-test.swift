@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift
-// notchcast-sources: Tinycast/Features/Todo/Service/TodoStore.swift
+// notchcast-sources: -O Tinycast/Features/Todo/Service/TodoStore.swift
 import Foundation
 
 @main @MainActor
@@ -24,11 +24,15 @@ struct TodoSyncTests {
         try vectors()
         try agents()
         try agentFailures()
+        try reviewRegressions()
+        try clockQuarantine()
         try json()
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         try await persistence(root)
+        try await quarantinePersistence(root.appending(path: "quarantine"))
+        try await performance(root.appending(path: "performance"))
         print("PASS: sync convergence, per-field LWW, deletes, duplicates, vectors, fake transport, legacy log, agents, JSON")
     }
 
@@ -40,16 +44,17 @@ struct TodoSyncTests {
     }
 
     static func replica(_ id: String) throws -> TodoReplication {
-        try TodoReplication.merge(local: TodoReplication(replicaID: id), remote: fixture().envelopes)
+        try TodoReplication.merge(local: TodoReplication(replicaID: id), remote: fixture().envelopes, now: now)
     }
 
     static func converged(_ left: TodoReplication, _ right: TodoReplication) throws -> TodoReplication {
-        let first = try TodoReplication.merge(local: left, remote: right.envelopes.reversed())
-        let second = try TodoReplication.merge(local: right, remote: left.envelopes.reversed())
+        let first = try TodoReplication.merge(local: left, remote: right.envelopes.reversed(), now: now)
+        let second = try TodoReplication.merge(local: right, remote: left.envelopes.reversed(), now: now)
         precondition(first.state == second.state)
         precondition(first.envelopes == second.envelopes)
         precondition(first.vectorClock == second.vectorClock)
-        let again = try TodoReplication.merge(local: first, remote: first.envelopes + right.envelopes)
+        precondition(first.orphansRecovered == second.orphansRecovered)
+        let again = try TodoReplication.merge(local: first, remote: first.envelopes + right.envelopes, now: now)
         precondition(again.state == first.state && again.envelopes == first.envelopes)
         return first
     }
@@ -71,7 +76,7 @@ struct TodoSyncTests {
         try right.perform(.updateTask(competing))
         let winner = try converged(left, right)
         precondition(winner.state.tasks[task.id]?.title == competing.title)
-        var observed = try TodoReplication.merge(local: left, remote: right.envelopes)
+        var observed = try TodoReplication.merge(local: left, remote: right.envelopes, now: now)
         guard var latest = observed.state.tasks[task.id] else { preconditionFailure("task missing") }
         latest.title = "Causally later"
         try observed.perform(.updateTask(latest))
@@ -153,7 +158,7 @@ struct TodoSyncTests {
         let inverse = try right.perform(.deleteTask(id: task.id))
         try right.perform(inverse)
         let restored = try converged(left, right)
-        precondition(restored.state.tasks[task.id]?.title == edit.title)
+        precondition(restored.state.tasks[task.id] == nil)
         var childReplica = try replica("c")
         let child = TodoTask(id: UUID().uuidString, title: "Child", projectID: project.id,
                              sectionID: backlog.id, parentID: task.id)
@@ -161,7 +166,9 @@ struct TodoSyncTests {
         var projectDelete = try replica("d")
         try projectDelete.perform(.deleteProject(id: project.id))
         let cascade = try converged(childReplica, projectDelete)
-        precondition(cascade.state.tasks.isEmpty && cascade.state.sections.isEmpty)
+        precondition(cascade.state.tasks.count == 1 && cascade.state.sections.isEmpty)
+        precondition(cascade.state.tasks[child.id]?.projectID == nil)
+        precondition(cascade.orphansRecovered.map(\.taskID) == [child.id])
         var sectionDelete = try replica("e")
         try sectionDelete.perform(.deleteSection(id: progress.id))
         var move = try replica("f")
@@ -208,10 +215,12 @@ struct TodoSyncTests {
         for command in commands {
             let before = value.state
             let inverse = try value.perform(command)
-            let merged = try TodoReplication.merge(local: TodoReplication(replicaID: "reader"), remote: value.envelopes)
+            let merged = try TodoReplication.merge(local: TodoReplication(replicaID: "reader"),
+                                                   remote: value.envelopes, now: now)
             precondition(merged.state == value.state, "single-replica replay changed \(command)")
             try value.perform(inverse)
-            let undone = try TodoReplication.merge(local: TodoReplication(replicaID: "reader"), remote: value.envelopes)
+            let undone = try TodoReplication.merge(local: TodoReplication(replicaID: "reader"),
+                                                   remote: value.envelopes, now: now)
             precondition(undone.state == before && value.state == before)
             try value.perform(command)
         }
@@ -225,8 +234,8 @@ struct TodoSyncTests {
         var base = try fixture()
         try base.perform(.addTask(child))
         try base.perform(.addTask(descendant))
-        var left = try TodoReplication.merge(local: TodoReplication(replicaID: "a"), remote: base.envelopes)
-        var right = try TodoReplication.merge(local: TodoReplication(replicaID: "b"), remote: base.envelopes)
+        var left = try TodoReplication.merge(local: TodoReplication(replicaID: "a"), remote: base.envelopes, now: now)
+        var right = try TodoReplication.merge(local: TodoReplication(replicaID: "b"), remote: base.envelopes, now: now)
         try left.perform(.moveTask(id: task.id, projectID: project.id, sectionID: backlog.id, parentID: child.id))
         try right.perform(.moveTask(id: child.id, projectID: project.id, sectionID: backlog.id, parentID: task.id))
         let cycle = try converged(left, right)
@@ -239,7 +248,8 @@ struct TodoSyncTests {
         newChild.parentID = task.id
         try added.perform(.addTask(newChild))
         let orphan = try converged(deleted, added)
-        precondition(orphan.state.tasks.isEmpty)
+        precondition(orphan.state.tasks[child.id]?.parentID == nil && orphan.state.tasks[child.id]?.projectID == nil)
+        precondition(orphan.orphansRecovered.map(\.taskID) == [child.id])
         print("PASS: concurrent parent cycles and descendants of deleted parents preserve store invariants")
     }
 
@@ -248,18 +258,18 @@ struct TodoSyncTests {
         try source.perform(.completeTask(id: task.id, at: now))
         try source.perform(.uncompleteTask(id: task.id))
         let own = source.envelopes.filter { $0.replicaID == "a" }
-        var destination = try TodoReplication.merge(local: TodoReplication(replicaID: "b"), remote: [own[1]])
+        var destination = try TodoReplication.merge(local: TodoReplication(replicaID: "b"), remote: [own[1]], now: now)
         precondition(destination.vectorClock.sequences["a"] == 0)
         let missing = source.envelopes(after: destination.vectorClock)
         precondition(missing.contains(own[0]))
-        destination = try TodoReplication.merge(local: destination, remote: missing)
+        destination = try TodoReplication.merge(local: destination, remote: missing, now: now)
         precondition(destination.state == source.state)
         precondition(source.envelopes(after: destination.vectorClock).isEmpty)
         var conflict = own[0]
         conflict = TodoEnvelope(replicaID: conflict.replicaID, sequence: conflict.sequence,
                                 timestamp: conflict.timestamp + 1, command: conflict.command, changes: conflict.changes)
         do {
-            _ = try TodoReplication.merge(local: destination, remote: [conflict])
+            _ = try TodoReplication.merge(local: destination, remote: [conflict], now: now)
             preconditionFailure("accepted conflicting envelope")
         } catch TodoReplicationError.conflictingEnvelope { }
         print("PASS: vector exchange retains holes and refuses conflicting operation identities")
@@ -305,7 +315,7 @@ struct TodoSyncTests {
                     at: now.addingTimeInterval(11 * 60))
         precondition(value.state.tasks[task.id]?.sectionID == blocked.id)
         try request(.releaseExpired, on: &value, at: now.addingTimeInterval(21 * 60))
-        precondition(value.state.tasks[task.id]?.claim == nil && value.state.tasks[task.id]?.sectionID == backlog.id)
+        precondition(value.state.tasks[task.id]?.claim == nil && value.state.tasks[task.id]?.sectionID == blocked.id)
         try request(.claim(taskID: task.id, agent: "builder"), on: &value, at: now.addingTimeInterval(22 * 60))
         try request(.release(taskID: task.id, agent: "builder"), on: &value, at: now.addingTimeInterval(23 * 60))
         precondition(value.state.tasks[task.id]?.claim == nil)
@@ -357,6 +367,141 @@ struct TodoSyncTests {
             preconditionFailure("zero timeout accepted")
         } catch TodoAgentError.invalidTimeout { }
         print("PASS: typed agent failures, no implicit sections, atomic rejection and idempotent release after expiry")
+    }
+
+    static func reviewRegressions() throws {
+        let child = TodoTask(id: UUID().uuidString, title: "Independent deletion", projectID: project.id,
+                             sectionID: backlog.id, parentID: task.id)
+        var base = try fixture()
+        try base.perform(.addTask(child))
+        for (first, second) in [("a", "b"), ("b", "a")] {
+            var left = try TodoReplication.merge(local: TodoReplication(replicaID: first), remote: base.envelopes, now: now)
+            var right = try TodoReplication.merge(local: TodoReplication(replicaID: second), remote: base.envelopes, now: now)
+            let inverse = try left.perform(.deleteProject(id: project.id))
+            try right.perform(.deleteTask(id: child.id))
+            try left.perform(inverse)
+            let merged = try converged(left, right)
+            precondition(merged.state.projects[project.id] != nil && merged.state.tasks[task.id] != nil)
+            precondition(merged.state.tasks[child.id] == nil, "undo restored another replica's deletion")
+        }
+        var claimed = try TodoReplication.merge(local: TodoReplication(replicaID: "agent"), remote: base.envelopes, now: now)
+        try request(.claim(taskID: child.id, agent: "builder"), on: &claimed)
+        precondition(claimed.state.tasks[child.id]?.parentID == task.id)
+        precondition(claimed.state.tasks[child.id]?.sectionID == backlog.id)
+        try request(.release(taskID: child.id, agent: "builder"), on: &claimed)
+        precondition(claimed.state.tasks[child.id]?.parentID == task.id)
+        try request(.claim(taskID: task.id, agent: "builder"), on: &claimed)
+        try request(.release(taskID: task.id, agent: "builder"), on: &claimed)
+        precondition(claimed.state.tasks[task.id]?.sectionID == backlog.id)
+        var recurring = task
+        recurring.due = .init(date: now, isAllDay: true, recurrenceRule: "every day", normalized: "daily")
+        try claimed.perform(.updateTask(recurring))
+        try claimed.perform(.completeTask(id: child.id, at: now))
+        try request(.complete(taskID: task.id, agent: "builder"), on: &claimed)
+        let next = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now))
+        precondition(claimed.state.tasks[task.id]?.due?.date == next)
+        precondition(claimed.state.tasks[task.id]?.completedAt == nil)
+        precondition(claimed.state.tasks[child.id]?.completedAt == nil)
+        recurring.due?.recurrenceRule = "unparseable recurrence"
+        try claimed.perform(.updateTask(recurring))
+        let before = claimed.state
+        do {
+            try request(.complete(taskID: task.id, agent: "builder"), on: &claimed)
+            preconditionFailure("unsupported recurrence ended series")
+        } catch TodoAgentError.unsupportedRecurrence { }
+        precondition(claimed.state == before)
+        print("PASS: undo preserves independent deletes; child claims keep parents; release respects moves; recurrence advances")
+    }
+
+    static func clockQuarantine() throws {
+        let base = try fixture()
+        guard let original = base.envelopes.first else { preconditionFailure("no fixture envelope") }
+        let bad = TodoEnvelope(replicaID: "bad-clock", sequence: 1, timestamp: UInt64.max,
+                               command: original.command, changes: original.changes)
+        var merged = try TodoReplication.merge(local: base, remote: [bad], now: now)
+        precondition(merged.deferredEnvelopes == [bad] && merged.clockErrors.count == 1)
+        guard case .timestampAhead(let id, _, _) = merged.clockErrors[0] else {
+            preconditionFailure("untyped clock error")
+        }
+        precondition(id == bad.id && merged.vectorClock.sequences[bad.replicaID] == nil)
+        try merged.perform(.completeTask(id: task.id, at: now))
+        precondition(merged.state.tasks[task.id]?.completedAt == now)
+        let timestamp = UInt64((now.timeIntervalSince1970 + 86_460) * 1_000)
+        let future = TodoEnvelope(replicaID: "future", sequence: 1, timestamp: timestamp,
+                                  command: original.command, changes: original.changes)
+        let pending = try TodoReplication.merge(local: TodoReplication(replicaID: "local"), remote: [future], now: now)
+        precondition(pending.state.tasks.isEmpty && pending.deferredEnvelopes == [future])
+        let accepted = try TodoReplication.merge(local: pending, remote: [], now: now.addingTimeInterval(61))
+        precondition(accepted.state == base.state && accepted.deferredEnvelopes.isEmpty && accepted.clockErrors.isEmpty)
+        print("PASS: future timestamps produce typed quarantine errors, remain retryable and cannot exhaust the local clock")
+    }
+
+    static func performance(_ directory: URL) async throws {
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        struct ReceiveRecord: Encodable {
+            let schemaVersion = 1
+            let command = TodoCommand.batch([])
+            let isUndo = false
+            let received: [TodoEnvelope]
+        }
+        var envelopes: [TodoEnvelope] = []
+        for index in 1...10_100 {
+            let task = TodoTask(id: UUID().uuidString, title: "Performance \(index)")
+            let command = TodoCommand.addTask(task)
+            var after = TodoState()
+            try after.apply(command)
+            envelopes.append(TodoEnvelope(replicaID: "performance", sequence: UInt64(index), timestamp: UInt64(index),
+                                          command: command,
+                                          changes: TodoReplicationChanges(command: command, before: TodoState(), after: after)))
+        }
+        var data = Data()
+        let encoder = JSONEncoder()
+        for offset in stride(from: 0, to: 10_000, by: 20) {
+            data.append(try encoder.encode(ReceiveRecord(received: Array(envelopes[offset..<(offset + 20)]))))
+            data.append(0x0A)
+        }
+        try data.write(to: directory.appending(path: "commands.jsonl"))
+        let start = ContinuousClock.now
+        let store = try await TodoStore.open(directory: directory, now: now)
+        let opened = start.duration(to: .now)
+        precondition(store.state.tasks.count == 10_000)
+        precondition(opened < .seconds(1), "10k envelopes in 500 records took \(opened)")
+        let receiving = ContinuousClock.now
+        try store.receive(Array(envelopes.suffix(100)), now: now)
+        let received = receiving.duration(to: .now)
+        precondition(store.state.tasks.count == 10_100)
+        precondition(received < .milliseconds(100), "100 new envelopes onto 10k took \(received)")
+        let tail = TodoTask(id: UUID().uuidString, title: "Local tail after receive")
+        try store.perform(.addTask(tail))
+        let expected = store.state
+        try store.close()
+        let restored = try await TodoStore.open(directory: directory, now: now)
+        precondition(restored.state == expected)
+        precondition(restored.canUndo)
+        try restored.undo()
+        precondition(restored.state.tasks.count == 10_100 && restored.state.tasks[tail.id] == nil)
+        try restored.close()
+        print("PASS: 10k/500-record open \(opened) (< 1 s); 100-envelope receive onto 10k \(received) (< 0.1 s)")
+    }
+
+    static func quarantinePersistence(_ directory: URL) async throws {
+        let store = try await TodoStore.open(directory: directory, now: now)
+        let original = try fixture().envelopes[0]
+        let future = TodoEnvelope(replicaID: "future", sequence: 1,
+                                  timestamp: UInt64((now.timeIntervalSince1970 + 86_460) * 1_000),
+                                  command: original.command, changes: original.changes)
+        let errors = try store.receive([future], now: now)
+        precondition(errors.count == 1 && store.state.tasks.isEmpty)
+        try store.close()
+        let pending = try await TodoStore.open(directory: directory, now: now)
+        precondition(pending.replication.deferredEnvelopes == [future])
+        try pending.receive([], now: now.addingTimeInterval(61))
+        precondition(pending.state.tasks[task.id] == task && pending.replication.clockErrors.isEmpty)
+        try pending.close()
+        let restored = try await TodoStore.open(directory: directory, now: now.addingTimeInterval(61))
+        precondition(restored.state.tasks[task.id] == task && restored.replication.deferredEnvelopes.isEmpty)
+        try restored.close()
+        print("PASS: quarantined envelopes survive reopen and become usable when the injected clock catches up")
     }
 
     static func json() throws {

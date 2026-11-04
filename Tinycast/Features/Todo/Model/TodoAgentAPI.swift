@@ -5,6 +5,7 @@ struct TodoAgentClaim: Codable, Equatable, Sendable {
     let claimedAt: Date
     var lastActivityAt: Date
     let previousSectionID: String?
+    let claimSectionID: String?
 }
 
 enum TodoAgentRequest: Codable, Equatable, Sendable {
@@ -35,6 +36,7 @@ enum TodoAgentError: Error, Codable, Equatable, Sendable {
     case alreadyCompleted(String)
     case claimedBy(String)
     case invalidCommand
+    case unsupportedRecurrence
 }
 
 struct TodoAgentPlan: Sendable {
@@ -80,13 +82,13 @@ enum TodoAgentAPI {
         case .releaseExpired:
             response = .released(expired.map(\.id))
         default:
-            response = try mutate(request, state: &working, commands: &commands, now: now, makeID: makeID)
+            response = try mutate(request, state: &working, commands: &commands, now: now, calendar: calendar, makeID: makeID)
         }
         return TodoAgentPlan(command: .batch(commands), response: response)
     }
 
     private static func mutate(_ request: TodoAgentRequest, state: inout TodoState, commands: inout [TodoCommand],
-                               now: Date, makeID: () -> String) throws(TodoAgentError) -> TodoAgentResponse {
+                               now: Date, calendar: Calendar, makeID: () -> String) throws(TodoAgentError) -> TodoAgentResponse {
         let taskID: String
         let agent: String
         switch request {
@@ -106,16 +108,22 @@ enum TodoAgentAPI {
         switch request {
         case .claim:
             guard task.claim == nil else { return .task(task) }
-            let sections = state.sections.values.filter { $0.projectID == task.projectID && $0.name == "In progress" }
-            guard !sections.isEmpty else { throw .inProgressSectionRequired(projectID: task.projectID) }
-            guard sections.count == 1, let section = sections.first else {
-                throw .ambiguousInProgressSection(projectID: task.projectID)
+            var claimSectionID: String?
+            if task.parentID == nil {
+                let sections = state.sections.values.filter { $0.projectID == task.projectID && $0.name == "In progress" }
+                guard !sections.isEmpty else { throw .inProgressSectionRequired(projectID: task.projectID) }
+                guard sections.count == 1, let section = sections.first else {
+                    throw .ambiguousInProgressSection(projectID: task.projectID)
+                }
+                claimSectionID = section.id
             }
             task.claim = TodoAgentClaim(agent: agent, claimedAt: now, lastActivityAt: now,
-                                        previousSectionID: task.sectionID)
+                                        previousSectionID: task.sectionID, claimSectionID: claimSectionID)
             try apply(.updateTask(task), state: &state, commands: &commands)
-            try apply(.moveTask(id: taskID, projectID: task.projectID, sectionID: section.id, parentID: nil),
-                      state: &state, commands: &commands)
+            if let claimSectionID {
+                try apply(.moveTask(id: taskID, projectID: task.projectID, sectionID: claimSectionID, parentID: nil),
+                          state: &state, commands: &commands)
+            }
             let comment = TodoComment(id: makeID(), text: "claimed by \(agent)", createdAt: now)
             try apply(.addComment(taskID: taskID, comment: comment),
                       state: &state, commands: &commands)
@@ -133,7 +141,11 @@ enum TodoAgentAPI {
         case .complete:
             task.claim = nil
             try apply(.updateTask(task), state: &state, commands: &commands)
-            try apply(.completeTask(id: taskID, at: now), state: &state, commands: &commands)
+            let command: TodoCommand
+            do { command = try TodoCompletion.command(id: taskID, state: state, now: now, calendar: calendar) } catch {
+                throw .unsupportedRecurrence
+            }
+            try apply(command, state: &state, commands: &commands)
         case .release:
             guard task.claim != nil else { return .task(task) }
             try apply(release(task, state: state), state: &state, commands: &commands)
@@ -147,6 +159,9 @@ enum TodoAgentAPI {
         var updated = task
         let previous = task.claim?.previousSectionID
         updated.claim = nil
+        guard let claimSectionID = task.claim?.claimSectionID, task.sectionID == claimSectionID else {
+            return .updateTask(updated)
+        }
         let sectionID = previous.flatMap { state.sections[$0]?.projectID == task.projectID ? $0 : nil }
         return .batch([.updateTask(updated), .moveTask(id: task.id, projectID: task.projectID,
                                                      sectionID: sectionID, parentID: task.parentID)])

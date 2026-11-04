@@ -43,11 +43,18 @@ The store persists its generated UUID replica identity in `replica-id` beside th
 is one replica's data; copying a live directory to another writer also copies its identity and is not
 a way to initialize a second replica. Initialize another store and exchange envelopes instead.
 
-`TodoReplication.merge(local:remote:) throws -> TodoReplication` unions envelope identities and
+`TodoReplication.merge(local:remote:now:) throws -> TodoReplication` unions envelope identities and
 replays their changes in ascending `(timestamp, replicaID, sequence)` order. Re-delivery is idempotent;
 different payloads for one identity fail with `TodoReplicationError.conflictingEnvelope`. A new local
 command advances beyond the greatest observed Lamport timestamp. Old records without envelopes are
 assigned the local replica ID, sequence and Lamport time in log order. Their bytes remain untouched.
+
+The injected wall clock bounds incoming logical ticks to the Unix-millisecond value one day ahead.
+An envelope beyond that ceiling is kept in `deferredEnvelopes`, excluded from the applied vector
+clock, and reported through typed `clockErrors` (`timestampAhead`, including its ID and retry date).
+It cannot advance the local clock. A later merge, including one with an empty remote batch, retries
+deferred envelopes against the supplied clock. The store persists these envelopes before returning
+the typed errors from `receive(_:now:)`; reopening with `open(directory:now:)` retries them too.
 
 Last write wins applies independently to task title, description, due (the entire `Due` value),
 priority, labels (the entire list), location (project/section/parent together), and completed status
@@ -58,8 +65,12 @@ comment use the same envelope ordering. Project, section, label and filter prope
 independently. Batches and cascades record their complete resulting changes under one timestamp.
 
 A delete removes its record even after earlier edits; a later edit to an absent record is ignored.
-Only an explicit add (including undo of deletion) restores that ID. Tasks under a deleted project or
-missing parent are omitted; a deleted section clears a task's section, and deleted labels are removed
+An add restoring a deleted ID records the specific deletion it reverses in `restoredFrom`. Undo of
+a project deletion therefore cannot restore a subtask independently deleted on another replica;
+other outstanding deletions still win in either envelope order. Tasks concurrently added under a
+deleted project or missing parent are re-homed to Inbox with their parent cleared. The typed
+`orphansRecovered: [TodoOrphanRecovery]` snapshot preserves their IDs and former project/parent IDs
+for a later UI report. A deleted section clears a task's section, and deleted labels are removed
 from its labels. Concurrent parent cycles detach the repeated node's parent edge during a sorted-ID traversal;
 children inherit their surviving root's project and section. These rules repair relationships after
 merging so command validation remains true. All envelopes remain available for a later missing
@@ -71,6 +82,11 @@ already-received envelopes beyond a gap. A later exchange fills the gap without 
 `TodoStore.receive(_:)` durably appends a validated batch before publishing its merged state. A receive
 containing new envelopes clears local undo history, since inverses could overwrite remote work;
 duplicate-only delivery leaves history unchanged. `replication` is a read-only store snapshot.
+Envelope IDs are typed `(replicaID, sequence)` values and receive filtering uses a Set. Opening
+collects received batches and the enveloped commands between them, merges once after the last receive,
+then replays the local tail to reconstruct undo. Ordered new batches extend the cached projection;
+out-of-order batches rebuild it deterministically. Projection materialization validates dictionaries
+directly rather than synthesizing thousands of add commands and unused inverses.
 
 `@MainActor TodoSyncTransport` defines `send(_:) throws` and `receive() throws -> [TodoEnvelope]`.
 `TodoFakeSyncTransport.pair()` supplies two in-memory, explicitly owned endpoints; receive drains its
@@ -96,13 +112,18 @@ Lists exclude completed tasks, preserve order with ID as tie-breaker, and use `T
 with project, section and label names resolved from the store. Comma-list results flatten with ID
 deduplication. `p1` means storage priority 4. Date operands resolve through the date parser using the
 injected calendar/time zone. Claim requires exactly one existing `In progress` section in the task's
-project, moves its subtree there, detaches the task from its former parent, sets the marker and adds a
-dated `claimed by <agent>` comment. The engine never creates workflow sections automatically.
+project and moves its subtree there. A subtask claim sets only the marker and preserves its parent
+and location. Both add a dated `claimed by <agent>` comment. The engine never creates workflow
+sections automatically.
 
 Claiming again as the same agent is idempotent; another agent cannot mutate an active claim. Comments
-and moves refresh its activity time; completion clears the marker. Release clears the marker and
-returns the subtree to the previous section if that section still belongs to the current project,
-otherwise to the project's unsectioned tasks. Before every successful request, claims idle for at
+and moves refresh its activity time; completion clears the marker. Recurring completion uses the
+same `TodoCompletion`/`TodoRecurrence` command path as the island feed: advance the due date, keep
+the series open and reset descendant completion. Unsupported recurrence returns a typed error.
+Release clears the marker and returns the subtree only if it is still in the recorded claim section.
+A deliberate move to another section is preserved. The previous section must still belong to the
+current project, otherwise the task returns to the project's unsectioned tasks. Before every
+successful request, claims idle for at
 least the injected N elapsed minutes auto-release; comments also count as activity. `releaseExpired`
 lets an owner run that sweep without another action. No timer is owned by the engine. Concurrent
 offline claims resolve by the claim field's last write wins rule, rather than promising a distributed
@@ -136,3 +157,7 @@ and conflicting last write, equal-clock ties, deletes versus edits, explicit res
 repair, idempotent delivery, vector gaps, fake transport, old logs, durable received batches and claims,
 agent ownership and fake-clock expiry, filter priority mapping, typed failures and JSON round-trips.
 It uses only an in-memory transport and UUID temporary directories.
+The sync harness compiles with optimization and asserts a 10,000-envelope open across 500 receive
+records below one second and receipt of 100 new envelopes onto 10,000 below 0.1 seconds. It also
+guards independent deletion during project undo, Inbox orphan recovery, moved-claim release,
+subtask parent preservation, recurring agent completion and future-clock quarantine/retry.

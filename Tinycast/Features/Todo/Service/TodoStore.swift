@@ -44,8 +44,8 @@ final class TodoStore {
         var validBytes: UInt64 = 0
     }
 
-    static func open(directory: URL) async throws -> TodoStore {
-        let loaded = try await read(directory: directory)
+    static func open(directory: URL, now: Date = Date()) async throws -> TodoStore {
+        let loaded = try await read(directory: directory, now: now)
         try Task.checkCancellation()
         return try TodoStore(directory: directory, loaded: loaded)
     }
@@ -99,16 +99,19 @@ final class TodoStore {
         inverses.removeLast()
     }
 
-    func receive(_ envelopes: [TodoEnvelope]) throws {
-        let candidate = try TodoReplication.merge(local: replication, remote: envelopes)
-        guard candidate.envelopes != replication.envelopes else { return }
-        let received = candidate.envelopes.filter { envelope in
-            !replication.envelopes.contains { $0.replicaID == envelope.replicaID && $0.sequence == envelope.sequence }
+    @discardableResult
+    func receive(_ envelopes: [TodoEnvelope], now: Date = Date()) throws -> [TodoReplicationError] {
+        let candidate = try TodoReplication.merge(local: replication, remote: envelopes, now: now)
+        let known = Set((replication.envelopes + replication.deferredEnvelopes).map(\.id))
+        let received = (candidate.envelopes + candidate.deferredEnvelopes).filter { !known.contains($0.id) }
+        guard !received.isEmpty || candidate.envelopes.count != replication.envelopes.count else {
+            return candidate.clockErrors
         }
-        try append(Record(command: .batch([]), isUndo: false, received: received))
+        if !received.isEmpty { try append(Record(command: .batch([]), isUndo: false, received: received)) }
         replication = candidate
         state = candidate.state
         inverses.removeAll()
+        return candidate.clockErrors
     }
 
     func request(_ request: TodoAgentRequest, now: Date, calendar: Calendar,
@@ -148,7 +151,7 @@ final class TodoStore {
     }
 
     @concurrent
-    private static func read(directory: URL) async throws -> Loaded {
+    private static func read(directory: URL, now: Date) async throws -> Loaded {
         let url = directory.appending(path: "commands.jsonl")
         let replicaURL = directory.appending(path: "replica-id")
         let replicaID: String
@@ -164,6 +167,7 @@ final class TodoStore {
         let decoder = JSONDecoder()
         var start = data.startIndex
         var line = 1
+        var records: [(record: Record, line: Int)] = []
         for end in data.indices where data[end] == 0x0A {
             try Task.checkCancellation()
             let record: Record
@@ -171,33 +175,54 @@ final class TodoStore {
                 record = try decoder.decode(Record.self, from: data[start..<end])
             } catch { throw Failure.corruptLine(line) }
             guard record.schemaVersion == schemaVersion else { throw Failure.unsupportedSchema(record.schemaVersion) }
-            if let received = record.received {
-                guard record.envelope == nil, !record.isUndo, record.command == .batch([]) else {
-                    throw Failure.corruptLine(line)
-                }
-                do {
-                    loaded.replication = try TodoReplication.merge(local: loaded.replication, remote: received)
-                } catch { throw Failure.corruptLine(line) }
-                loaded.inverses.removeAll()
-            } else if record.isUndo {
-                guard let inverse = loaded.inverses.last, inverse == record.command else {
-                    throw Failure.corruptLine(line)
-                }
-                do { try loaded.replication.perform(record.command) } catch { throw Failure.corruptLine(line) }
-                loaded.inverses.removeLast()
-            } else {
-                do {
-                    loaded.inverses.append(try loaded.replication.perform(record.command))
-                } catch { throw Failure.corruptLine(line) }
-            }
-            if let envelope = record.envelope, loaded.replication.envelopes.last != envelope {
-                throw Failure.corruptLine(line)
-            }
+            records.append((record, line))
             start = end + 1
             loaded.validBytes = UInt64(start)
             line += 1
         }
         if start < data.endIndex { loaded.warnings.append(.tornLastLine(line: line)) }
+        let lastReceive = records.lastIndex { $0.record.received != nil }
+        var pending: [TodoEnvelope] = []
+        var collecting = false
+        for (index, entry) in records.enumerated() {
+            try Task.checkCancellation()
+            let record = entry.record
+            if let received = record.received {
+                guard record.envelope == nil, !record.isUndo, record.command == .batch([]) else {
+                    throw Failure.corruptLine(entry.line)
+                }
+                collecting = true
+                pending.append(contentsOf: received)
+            } else if collecting {
+                guard let envelope = record.envelope, envelope.command == record.command else {
+                    throw Failure.corruptLine(entry.line)
+                }
+                pending.append(envelope)
+            } else {
+                try replayLocal(record, line: entry.line, loaded: &loaded)
+            }
+            if index == lastReceive {
+                do {
+                    loaded.replication = try TodoReplication.merge(local: loaded.replication, remote: pending, now: now)
+                } catch { throw Failure.corruptLine(entry.line) }
+                pending.removeAll()
+                loaded.inverses.removeAll()
+                collecting = false
+            }
+        }
         return loaded
+    }
+
+    private nonisolated static func replayLocal(_ record: Record, line: Int, loaded: inout Loaded) throws {
+        if record.isUndo {
+            guard let inverse = loaded.inverses.last, inverse == record.command else { throw Failure.corruptLine(line) }
+            do { try loaded.replication.perform(record.command) } catch { throw Failure.corruptLine(line) }
+            loaded.inverses.removeLast()
+        } else {
+            do {
+                loaded.inverses.append(try loaded.replication.perform(record.command))
+            } catch { throw Failure.corruptLine(line) }
+        }
+        if let envelope = record.envelope, loaded.replication.envelopes.last != envelope { throw Failure.corruptLine(line) }
     }
 }
