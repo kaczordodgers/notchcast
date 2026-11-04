@@ -8,14 +8,21 @@ final class NotchcastServices {
     let spotify: SpotifyConnectModule
     let microphone: MicrophoneMuteModule
     let marks: InUseMarksModule
+    let tasks: TodoModule
     let settings: SpotifySettingsCoordinator
     let keys: NotchcastKeyMonitor
     private let commandFeedback: MusicCommandFeedback
+    private let taskCommandAvailability: TodoCommandAvailability
 
     init(core: AppCore, preferences: NotchcastPreferences) {
         let music = MusicNowPlayingModule(defaults: preferences.engineDefaults)
         self.music = music
+        tasks = TodoModule(directory: AppPaths.applicationSupport().appending(path: "Todo"),
+                           showFailure: { [weak core] in core?.showMessage($0, tone: .danger) })
         commandFeedback = MusicCommandFeedback(music: music, preferences: preferences)
+        taskCommandAvailability = TodoCommandAvailability(preferences: preferences) { [weak core] in
+            core?.appIndex.refreshNotchcastCommands()
+        }
         lastPlayer = MusicLastPlayerModule(model: music.model)
         appleMusic = MusicBlockAppleMusicModule(music: music)
         spotify = SpotifyConnectModule(source: music.soloist, defaults: preferences.engineDefaults)

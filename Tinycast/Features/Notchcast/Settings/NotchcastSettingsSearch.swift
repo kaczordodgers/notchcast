@@ -3,6 +3,7 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastTasks = Self(tab: .notchcast, title: "Tasks")
     static let notchcastArchives = Self(tab: .notchcast, title: "Archives")
     static let notchcastBuildStats = Self(tab: .notchcast, title: "Build statistics")
     static let notchcastAlerts = Self(tab: .notchcast, title: LocalizedStringResource("Monitor Alerts"))
@@ -39,6 +40,8 @@ extension SettingsAnchor {
 extension SettingsSearchCatalog {
     /// Row titles match `NotchcastFeature.title`, which the pane's rows show.
     static let notchcast: [SettingsSearchEntry] = [
+        .init(group: .notchcastTasks, "Tasks", keywords: ["todo", "task store", "local tasks"]),
+        .init(group: .notchcastTasks, "Import Todoist JSON export…", keywords: ["json", "local file", "import"]),
         .init(.notchcastBuildStats, "Build statistics", keywords: ["snapshot", "tokens", "quality"]),
         .init(.notchcastSystem, "Machine Setup Profile", keywords: ["backup", "import", "export"]),
         .init(.notchcastMonitor, "Link Quick Fixes", keywords: ["connection", "dns", "repair"]),
