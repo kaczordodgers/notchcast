@@ -17,6 +17,14 @@ struct CleanupLifecycleTest {
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         let store = DictationCleanupSettingsStore(defaults: defaults, bundleIdentifier: suite)
+        let unreadable = DictationCleanupModule(store: store, install: {}, uninstall: {}, readAPIKey: {
+            throw DictationCleanupSettingsStore.Failure.invalidKey
+        })
+        var failures = 0
+        unreadable.reportFailure = { failures += 1 }
+        precondition(unreadable.apiKey() == nil && failures == 1)
+        let absent = DictationCleanupModule(store: store, install: {}, uninstall: {}, readAPIKey: { nil })
+        precondition(absent.apiKey() == "")
         var installed = false
         var starts = 0
         let module = DictationCleanupModule(store: store, install: {
