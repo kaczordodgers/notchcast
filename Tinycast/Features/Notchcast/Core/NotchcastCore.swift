@@ -1,9 +1,13 @@
+import Foundation
+
 @MainActor
 enum NotchcastCore {
+    static let linkQuickFixes = LinkQuickFixModule()
     static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let systemLevels = SystemLevelsModule()
     static let brightness = DisplayBrightnessModule()
+    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: systemLevels, brightness: brightness)
     static let timers = LiveTimerModule()
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
@@ -12,6 +16,9 @@ enum NotchcastCore {
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let colorPicker = ColorPickerModule()
     static let screenshot = ScreenshotModule()
+    static let dictationHistory = DictationHistoryModule(repository: .init(
+        directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
+    static let dictationCleanup = DictationCleanupModule.live()
     private static var controller: NotchcastModuleController?
     private static var monitor: MonitorModule?
     static let battery = BatteryModule(preferences: .shared, runner: .live)
@@ -25,6 +32,18 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore) {
         guard controller == nil else { return }
+        dictationHistory.onFailure = { [weak core] in
+            core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+        }
+        DictationCleanup.transcriptObserver = { raw, cleaned in
+            dictationHistory.enqueue(raw: raw, cleaned: cleaned)
+        }
+        dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
+        Task { await dictationHistory.maintain() }
+        dictationCleanup.reportFailure = { [weak core] in
+            core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
+        }
+        dictationCleanup.load()
         NotchcastPreferences.shared.onCommandsChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
         }
@@ -32,6 +51,7 @@ enum NotchcastCore {
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
         let modules: [NotchcastModuleController.Entry] = [
+            .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.systemMonitor], module: monitor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing,
@@ -40,6 +60,7 @@ enum NotchcastCore {
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
+            .init(requires: [], module: levelKeys),
             .init(requires: [.quitProtection], module: quitProtectionModule),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
@@ -48,6 +69,8 @@ enum NotchcastCore {
             .init(requires: [.screenshot], module: screenshot),
             .init(requires: [.dictationEnglish], module: DictationEnglishModule(
                 hub: eventTapHub, coordinator: core.dictationCoordinator)),
+            .init(requires: [.dictationHistory], module: dictationHistory),
+            .init(requires: [.dictationCleanup], module: dictationCleanup),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
