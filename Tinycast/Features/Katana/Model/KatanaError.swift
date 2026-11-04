@@ -2,9 +2,11 @@ import Foundation
 
 enum KatanaError: LocalizedError, Equatable {
     case unavailable, disabled, busy, invalidData, verificationFailed, unsupportedFormat, usbRequired
+    case ampBusy
 
     var errorDescription: String? {
         switch self {
+        case .ampBusy: String(localized: "Another Katana command is still running")
         case .unavailable: String(localized: "Katana hardware transport is unavailable.")
         case .disabled: String(localized: "Katana is turned off.")
         case .busy: String(localized: "Another Katana operation is in progress.")
