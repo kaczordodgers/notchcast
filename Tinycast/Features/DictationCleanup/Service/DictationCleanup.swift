@@ -26,7 +26,7 @@ enum DictationCleanup {
     @concurrent
     static func process(
         _ raw: String, language: String?, settings: DictationCleanupSettings, key: String,
-        client: any DictationCleanupClient, timeout: Duration = .seconds(4)
+        client: any DictationCleanupClient, timeout: Duration = .seconds(4), systemPrompt: String? = nil
     ) async -> String {
         guard settings.isEnabled, !Task.isCancelled, !key.isEmpty,
               !raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -34,7 +34,7 @@ enum DictationCleanup {
         else { return raw }
         do {
             let request = try DictationCleanupHTTPClient.request(
-                raw: raw, language: language, settings: settings, key: key)
+                raw: raw, language: language, settings: settings, key: key, systemPrompt: systemPrompt)
             let deadline = ContinuousClock.now.advanced(by: timeout)
             let cleaned = try await withThrowingTaskGroup(of: String?.self) { group in
                 group.addTask { try await client.clean(request) }
@@ -46,7 +46,9 @@ enum DictationCleanup {
                 return try await group.next().flatMap { $0 }
             }
             guard !Task.isCancelled, ContinuousClock.now < deadline, let cleaned,
-                  DictationCleanupGuard.accepts(cleaned, raw: raw, vocabulary: settings.vocabulary)
+                  systemPrompt == nil
+                    ? DictationCleanupGuard.accepts(cleaned, raw: raw, vocabulary: settings.vocabulary)
+                    : (!cleaned.isEmpty && cleaned.count <= raw.count * 4 + 128)
             else { return raw }
             return cleaned
         } catch is CancellationError {
