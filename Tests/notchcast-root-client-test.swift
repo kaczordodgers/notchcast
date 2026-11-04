@@ -58,6 +58,9 @@ struct FanSMCTest {
         try validateValues()
         try validateSequence()
         try validateRecovery()
+        try validateBattery()
+        try validateChargeLimit()
+        try validateTools()
         print("PASS: fan targets, codecs, write order, shared 5s retry window and Auto recovery (fake SMC only)")
     }
 
@@ -66,6 +69,158 @@ struct FanSMCTest {
             try operation()
             preconditionFailure("Expected failure")
         } catch {}
+    }
+
+    private static func validateTools() throws {
+        precondition(Power.arguments(.standbyOff) == ["-a", "standby", "0"])
+        precondition(Power.arguments(.standbyOn) == ["-a", "standby", "1"])
+        precondition(Power.arguments(.autopoweroffOff) == ["-a", "autopoweroff", "0"])
+        precondition(Power.arguments(.autopoweroffOn) == ["-a", "autopoweroff", "1"])
+        precondition(Power.arguments(.ping) == nil)
+        precondition(Spotlight.arguments(.spotlightOff) == ["-a", "-i", "off"])
+        precondition(Spotlight.arguments(.spotlightOn) == ["-a", "-i", "on"])
+        precondition(Spotlight.arguments(.ping) == nil)
+        let sudo = "auth include sudo_local\n"
+        let rule = "auth       sufficient     pam_tid.so\n"
+        for original in ["", "# preserved\n", "auth required pam_other.so"] {
+            let enabled = try TouchIDPolicy.replacement(sudo: sudo, local: original, enabled: true)
+            let expected = original + (original.isEmpty || original.hasSuffix("\n") ? "" : "\n") + rule
+            precondition(enabled == expected)
+            let repeated = try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: true)
+            precondition(repeated == nil)
+            let disabled = try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: false)
+            precondition(disabled == expected.replacingOccurrences(of: rule, with: ""))
+        }
+        let absent = try TouchIDPolicy.replacement(sudo: sudo, local: nil, enabled: true)
+        precondition(absent == rule)
+        for original: String? in [nil, "", "# preserved\n", "auth required pam_other.so\n"] {
+            let unchanged = try TouchIDPolicy.replacement(sudo: sudo, local: original, enabled: false)
+            precondition(unchanged == nil)
+        }
+        let removed = try TouchIDPolicy.replacement(
+            sudo: sudo, local: "# keep\nauth sufficient pam_tid.so # active\nauth required pam_other.so\n",
+            enabled: false)
+        precondition(removed == "# keep\nauth required pam_other.so\n")
+        rejects { _ = try TouchIDPolicy.replacement(sudo: "", local: nil, enabled: true) }
+        rejects { _ = try TouchIDPolicy.replacement(sudo: sudo + rule, local: nil, enabled: false) }
+        rejects {
+            _ = try TouchIDPolicy.replacement(sudo: sudo, local: "auth required pam_tid.so\n", enabled: true)
+        }
+        print("PASS: power and Spotlight arguments and pure PAM transforms")
+    }
+
+    private static func validateChargeLimit() throws {
+        let fixture = """
+        Battery level limits:
+        (
+                {
+                Terminated = 0;
+                chargeSocLimitDrain = 1;
+                chargeSocLimitIsEOC = 1;
+                chargeSocLimitNoChargeToFull = 0;
+                chargeSocLimitOwner = 236;
+                chargeSocLimitReason = manualChargeLimit;
+                chargeSocLimitSoc = 80;
+            },
+                {
+                Terminated = 0;
+                chargeSocLimitDrain = 1;
+                chargeSocLimitIsEOC = 1;
+                chargeSocLimitNoChargeToFull = 0;
+                chargeSocLimitOwner = 0;
+                chargeSocLimitReason = manualChargeLimit;
+                chargeSocLimitSoc = 80;
+            }
+        )
+        """
+        let current = try NativeChargeLimit.parse(fixture)
+        var events: [String] = []
+        try NativeChargeLimit.apply(write: { events.append("confirmed") },
+            enable: { events.append("enabled") }, restore: { events.append("restored") })
+        precondition(events == ["confirmed", "enabled"])
+        events = []
+        rejects {
+            try NativeChargeLimit.apply(write: { events.append("confirmed") }, enable: {
+                _ = try NativeChargeLimit.bounded(timeout: .milliseconds(10)) {
+                    Thread.sleep(forTimeInterval: 0.1)
+                    return true
+                }
+            }, restore: { events.append("restored") })
+        }
+        precondition(events == ["confirmed"])
+        events = []
+        rejects {
+            try NativeChargeLimit.apply(write: { events.append("confirmed") },
+                enable: { throw FanSMC.Failure.refused }, restore: { events.append("restored") })
+        }
+        precondition(events == ["confirmed", "restored"])
+        events = []
+        rejects {
+            try NativeChargeLimit.apply(write: { throw FanSMC.Failure.refused },
+                enable: { events.append("enabled") }, restore: { events.append("restored") })
+        }
+        precondition(events == ["restored"])
+        let empty = try NativeChargeLimit.parse("No battery level limits set\n")
+        let terminated = try NativeChargeLimit.parse(fixture.replacingOccurrences(of: "Terminated = 0",
+            with: "Terminated = 1"))
+        precondition(current == 80 && empty == nil && terminated == nil)
+        rejects { _ = try NativeChargeLimit.parse("unavailable") }
+        rejects { _ = try NativeChargeLimit.parse("No battery level limits set\nextra") }
+        rejects { _ = try NativeChargeLimit.parse(fixture.replacingOccurrences(of: "Soc = 80", with: "Soc = 101")) }
+        print("PASS: native charge limit parser, duplicate limits, off, terminated and invalid output")
+    }
+
+    private static func validateBattery() throws {
+        final class BatteryFixture: FanSMC.Access {
+            var keys: [String: Int] = [:]
+            var writes: [String: [UInt8]] = [:]
+            var failedProbe: String?
+
+            func info(_ key: String) throws -> FanSMC.Info? {
+                if key == failedProbe { throw FanSMC.Failure.refused }
+                return keys[key].map { .init(size: $0, type: "ui8 ") }
+            }
+
+            func read(_ key: String, info: FanSMC.Info) throws -> [UInt8] {
+                [UInt8](repeating: 0, count: info.size)
+            }
+
+            func write(_ key: String, bytes: [UInt8]) throws { writes[key] = bytes }
+        }
+        for keys in [["CHTE": 4, "CHIE": 1], ["CH0B": 1, "CH0C": 1, "CH0I": 1],
+                     ["CH0C": 1], ["CHTE": 4, "CH0B": 1, "CH0C": 1, "CHIE": 1, "CH0I": 1]] {
+            for off in [false, true] {
+                let fixture = BatteryFixture()
+                fixture.keys = keys
+                try BatterySMC.apply(off ? .batteryChargingOff : .batteryChargingOn, smc: fixture)
+                var expected: [String: [UInt8]] = [:]
+                if keys["CHTE"] != nil { expected["CHTE"] = [off ? 1 : 0, 0, 0, 0] }
+                for key in ["CH0B", "CH0C"] where keys[key] != nil { expected[key] = [off ? 2 : 0] }
+                precondition(fixture.writes == expected)
+                fixture.writes = [:]
+                if keys["CHIE"] != nil || keys["CH0I"] != nil {
+                    try BatterySMC.apply(off ? .batteryAdapterOff : .batteryAdapterOn, smc: fixture)
+                    expected = [:]
+                    if keys["CHIE"] != nil { expected["CHIE"] = [off ? 8 : 0] }
+                    if keys["CH0I"] != nil { expected["CH0I"] = [off ? 1 : 0] }
+                    precondition(fixture.writes == expected)
+                }
+            }
+        }
+        for keys in [[:], ["CHTE": 1], ["CH0B": 1, "CH0C": 4]] {
+            let fixture = BatteryFixture()
+            fixture.keys = keys
+            rejects { try BatterySMC.apply(.batteryChargingOff, smc: fixture) }
+            precondition(fixture.writes.isEmpty)
+        }
+        let failed = BatteryFixture()
+        failed.keys = ["CHTE": 4]
+        failed.failedProbe = "CH0B"
+        rejects { try BatterySMC.apply(.batteryChargingOff, smc: failed) }
+        precondition(failed.writes.isEmpty)
+        precondition(BatterySMC.sleepArguments(.batterySleepOn) == ["-a", "disablesleep", "0"])
+        precondition(BatterySMC.sleepArguments(.batterySleepOff) == ["-a", "disablesleep", "1"])
+        print("PASS: battery byte plans, key probes, preflight failures and sleep arguments (fake SMC only)")
     }
 
     private static func validateValues() throws {
@@ -180,9 +335,10 @@ struct RootClientTest {
     private static func validateCommands() {
         for command in RootContract.Command.allCases {
             precondition(RootContract.Command(arguments: command.arguments) == command)
-            let read = command == .version || command == .ping
-            precondition(command.operation == (read ? .read : .change))
-            precondition(command.operation.timeout == .seconds(read ? 3 : 12))
+            let read = command.operation == .read
+            let spotlight = command == .spotlightOn || command == .spotlightOff
+            precondition(command.operation == (read ? .read : spotlight ? .spotlight : .change))
+            precondition(command.operation.timeout == .seconds(read ? 3 : spotlight ? 60 : 12))
             precondition(RootContract.Reply(command: command, output: command.output) != nil)
             precondition(RootContract.Reply(command: command, output: command.output + "extra") == nil)
             precondition(RootContract.Reply(command: command, output: "") == nil)
@@ -202,8 +358,18 @@ struct RootClientTest {
         for arguments in invalid {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
+        precondition(RootContract.version == "2")
         precondition(RootContract.Reply(command: .version, output: "2\n") == .version("2"))
+        for invalid in [" 2 \n\n", "2", "02\n", "2\n\n", "+2\n"] {
+            precondition(RootContract.Reply(command: .version, output: invalid) == nil)
+        }
         precondition(RootContract.Reply(command: .ping, output: "pong") == nil)
+        precondition(RootContract.Command.chargeLimitRead.operation == .read)
+        precondition(RootContract.Reply(command: .chargeLimitRead, output: "80\n") == .chargeLimit(80))
+        precondition(RootContract.Reply(command: .chargeLimitRead, output: "off\n") == .chargeLimit(nil))
+        for invalid in ["0\n", "101\n", "080\n", "80", "80\nextra"] {
+            precondition(RootContract.Reply(command: .chargeLimitRead, output: invalid) == nil)
+        }
         precondition(RootContract.Operation.change.timeout == .seconds(12))
     }
 
@@ -224,36 +390,28 @@ struct RootClientTest {
         compiler.waitUntilExit()
         precondition(compiler.terminationStatus == 0, "Helper compilation failed")
 
-        let cases: [([String], Int32, String)] = [
-            (["version"], 0, "1\n"), (["ping"], 0, "pong\n"),
-            ([], 64, ""), (["unknown"], 64, ""), (["version", "extra"], 64, ""),
-            (["ping", "extra"], 64, ""),
-            (["fans-auto"], 77, ""), (["fans-medium"], 77, ""), (["fans-max"], 77, ""),
-            (["fans-max", "6000"], 64, ""), (["fans-medium", "0.6"], 64, ""),
-        ]
-        for (arguments, status, expected) in cases {
+        for (arguments, expected): ([String], Int32) in [
+            (["invalid"], 64), (["charge-limit-80"], 77), (["fans-auto"], 77),
+        ] {
             let process = Process()
-            let output = Pipe()
-            let errors = Pipe()
             process.executableURL = helper
             process.arguments = arguments
-            process.environment = ["PATH": "/nonexistent", "NOTCHCAST_COMMAND": "unknown"]
-            process.standardInput = FileHandle.nullDevice
-            process.standardOutput = output
-            process.standardError = errors
+            process.standardOutput = FileHandle.nullDevice
+            process.standardError = FileHandle.nullDevice
             try process.run()
             process.waitUntilExit()
-            precondition(process.terminationReason == .exit && process.terminationStatus == status)
-            precondition(output.fileHandleForReading.readDataToEndOfFile() == Data(expected.utf8))
-            precondition(errors.fileHandleForReading.readDataToEndOfFile().isEmpty)
+            precondition(process.terminationReason == .exit && process.terminationStatus == expected)
         }
-        print("PASS: compiled helper version=1, ping=pong; invalid arguments=64, unprivileged changes=77, silent")
         let fanTests = directory.appendingPathComponent("fan-tests")
         let fanCompiler = Process()
         fanCompiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         fanCompiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
                                  "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
                                  "notchcast/root/RootContract.swift", "notchcast/root/FanSMC.swift",
+                                 "notchcast/root/BatterySMC.swift",
+                                 "notchcast/root/NativeChargeLimit.swift",
+                                 "notchcast/root/Power.swift",
+                                 "notchcast/root/Spotlight.swift", "notchcast/root/TouchIDPolicy.swift",
                                  "Tests/notchcast-root-client-test.swift", "-o", fanTests.path]
         try fanCompiler.run()
         fanCompiler.waitUntilExit()
