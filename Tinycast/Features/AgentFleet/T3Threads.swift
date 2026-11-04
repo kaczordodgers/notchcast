@@ -2,12 +2,16 @@ import Foundation
 
 @MainActor
 final class T3Threads: WaitingThreadSource, FleetThreadSource, AgentIslandSource {
+    private struct Unavailable: LocalizedError {
+        var errorDescription: String? { String(localized: "T3 Threads unavailable") }
+    }
+
     let module: T3ThreadsModule
 
     init(_ module: T3ThreadsModule) { self.module = module }
 
     private func available() throws -> [T3Thread] {
-        guard module.isRunning else { throw FleetSnapshot.Failure.unavailable }
+        guard module.isRunning else { throw Unavailable() }
         if let error = module.error { throw error }
         return module.threads
     }

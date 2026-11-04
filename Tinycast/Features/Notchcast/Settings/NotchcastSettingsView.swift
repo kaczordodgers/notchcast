@@ -21,13 +21,11 @@ struct NotchcastSettingsView: View {
             QuitProtectionSettingsSection(store: NotchcastCore.quitProtection)
             NotchcastSystemSettingsSection()
 
-            featureSection(.notchcastActivities, group: .activities)
+            NotchcastExtrasSection()
             FleetSettingsSection()
-            TimerSettingsSection(store: NotchcastCore.timers.store)
-            DaySettingsSection(weather: NotchcastCore.weather.store, markets: NotchcastCore.markets.store)
 
             FeatureCommandsSection(owner: .notchcast, anchor: .notchcastShortcuts)
-                .settingsEnabled(preferences.isOn(.island))
+                .settingsEnabled(preferences.isOn(.island) || preferences.isOn(.botHost))
 
             if !requiredGrants.isEmpty {
                 NotchcastGrantsSection(grants: requiredGrants)

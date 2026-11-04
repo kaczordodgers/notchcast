@@ -75,7 +75,11 @@ final class WaitingAlerts {
                     self.failure = nil
                 } catch {
                     guard !Task.isCancelled, self.generation == generation else { return }
+                    if self.failure != error.localizedDescription { self.post(error.localizedDescription) }
                     self.failure = error.localizedDescription
+                    self.count = 0
+                    self.previous = []
+                    self.baseline = true
                 }
             }
             guard let self, self.generation == generation else { return }
