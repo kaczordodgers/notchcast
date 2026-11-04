@@ -15,6 +15,9 @@ struct ScrollingStitcher: Sendable {
     private let width: Int
     private let frameHeight: Int
     private let limit: Int
+    private var previousFrame: [UInt64]
+    private var leadingRows = 0
+    private var trailingRows = 0
     private(set) var limitReached: Bool
 
     var height: Int { log.rows.count }
@@ -24,6 +27,7 @@ struct ScrollingStitcher: Sendable {
         self.limit = min(limit, Self.maximumHeight)
         width = first.width
         frameHeight = first.height
+        previousFrame = hashes
         let kept = min(first.height, self.limit)
         guard let piece = Self.piece(of: first, firstRow: 0, height: kept) else { return nil }
         pieces = [piece]
@@ -34,15 +38,40 @@ struct ScrollingStitcher: Sendable {
     mutating func add(_ frame: CGImage, hashes: [UInt64]) -> Update {
         guard !limitReached else { return .limitReached }
         guard frame.width == width, frame.height == frameHeight, hashes.count == frameHeight else { return .unmatched }
-        if hashes == log.rows.suffix(frameHeight) { return .unchanged }
-        let minimumOverlap = min(frameHeight, max(16, frameHeight / 8))
-        guard let start = log.placement(of: hashes, minimumOverlap: minimumOverlap) else { return .unmatched }
-        let added = start + frameHeight - height
+        if hashes == previousFrame { return .unchanged }
+        if pieces.count == 1, leadingRows == 0, trailingRows == 0 {
+            var leading = 0
+            var trailing = 0
+            while leading < frameHeight, hashes[leading] == previousFrame[leading] { leading += 1 }
+            while trailing < frameHeight - leading,
+                  hashes[frameHeight - trailing - 1] == previousFrame[frameHeight - trailing - 1] {
+                trailing += 1
+            }
+            let minimumStickyRows = max(1, frameHeight / 10)
+            if leading < minimumStickyRows { leading = 0 }
+            if trailing < minimumStickyRows { trailing = 0 }
+            let count = height - leading - trailing
+            if count > 0, leading + trailing > 0,
+               let original = pieces.first,
+               let cropped = Self.piece(of: original, firstRow: leading, height: count) {
+                let retained = Array(log.rows[leading..<height - trailing])
+                log = ScrollingRowLog()
+                log.append(retained[...])
+                pieces = [cropped]
+                leadingRows = leading
+                trailingRows = trailing
+            }
+        }
+        let content = Array(hashes[leadingRows..<frameHeight - trailingRows])
+        let minimumOverlap = min(content.count, max(16, content.count / 8))
+        guard let start = log.placement(of: content, minimumOverlap: minimumOverlap) else { return .unmatched }
+        previousFrame = hashes
+        let added = start + content.count - height
         guard start >= 0, added > 0 else { return .unchanged }
         let take = min(added, limit - height)
-        let first = frameHeight - added
-        guard let piece = Self.piece(of: frame, firstRow: first, height: take) else { return .unmatched }
-        log.append(hashes[first..<first + take])
+        let first = content.count - added
+        guard let piece = Self.piece(of: frame, firstRow: leadingRows + first, height: take) else { return .unmatched }
+        log.append(content[first..<first + take])
         pieces.append(piece)
         limitReached = height == limit
         return limitReached ? .limitReached : .added(take)
