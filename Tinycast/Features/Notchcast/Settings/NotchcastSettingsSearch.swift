@@ -47,6 +47,7 @@ extension SettingsSearchCatalog {
         .init(.notchcastLauncher, "Launcher from Island", keywords: ["palette", "search", "open"]),
         .init(.notchcastLauncher, "Launcher Number Keys", keywords: ["command", "results", "1", "9"]),
         .init(.notchcastLauncher, "Alias and Space", keywords: ["alias", "space", "arguments"]),
+        .init(.notchcastLauncher, "Quick Look on Space", keywords: ["file", "preview", "markdown"]),
         .init(.notchcastMonitor, "System Monitor", keywords: ["cpu", "memory", "temperature"]),
         .init(.notchcastMonitor, "Fan Control", keywords: ["cooling", "rpm"]),
         .init(.notchcastFanMode, "Fan mode"),
