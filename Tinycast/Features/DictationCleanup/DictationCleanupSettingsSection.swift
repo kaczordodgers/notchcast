@@ -4,6 +4,8 @@ struct DictationCleanupSettingsSection: View {
     let module: DictationCleanupModule
     private let preferences = NotchcastPreferences.shared
     @State private var key = ""
+    @State private var keyLoaded = false
+    @State private var vocabularyText = ""
 
     var body: some View {
         Toggle(isOn: Binding(
@@ -30,17 +32,28 @@ struct DictationCleanupSettingsSection: View {
                 SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup vocabulary")
                 Text("One spelling per line; separate misheard forms with |.")
             }
+            .onAppear {
+                vocabularyText = module.settings.vocabulary.map {
+                    ([$0.spelling] + $0.misheardForms).joined(separator: " | ")
+                }.joined(separator: "\n")
+            }
             LabeledContent {
                 SecureField("API key", text: $key)
-                    .onSubmit { module.saveAPIKey(key) }
+                    .onSubmit { if keyLoaded { module.saveAPIKey(key) } }
                 Button("Save") { module.saveAPIKey(key) }
+                    .disabled(!keyLoaded)
             } label: {
                 SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup API key")
             }
+            .onAppear {
+                if let loaded = module.apiKey() {
+                    key = loaded
+                    keyLoaded = true
+                }
+            }
+            .onDisappear { key = ""; keyLoaded = false }
         }
         .settingsEnabled(preferences.isOn(.dictationCleanup))
-        .onAppear { key = module.apiKey() }
-        .onDisappear { key = "" }
     }
 
     private func setting<Value>(_ path: WritableKeyPath<DictationCleanupSettings, Value>) -> Binding<Value> {
@@ -52,15 +65,10 @@ struct DictationCleanupSettingsSection: View {
     }
 
     private var vocabulary: Binding<String> {
-        Binding(get: {
-            module.settings.vocabulary.map { ([$0.spelling] + $0.misheardForms).joined(separator: " | ") }
-                .joined(separator: "\n")
-        }, set: { text in
+        Binding(get: { vocabularyText }, set: { text in
+            vocabularyText = text
             var updated = module.settings
-            updated.vocabulary = text.split(separator: "\n", omittingEmptySubsequences: false).map { line in
-                let parts = line.components(separatedBy: "|")
-                return .init(spelling: parts[0], misheardForms: Array(parts.dropFirst()))
-            }
+            updated.vocabulary = DictationCleanupSettings.vocabulary(from: text)
             module.save(updated)
         })
     }

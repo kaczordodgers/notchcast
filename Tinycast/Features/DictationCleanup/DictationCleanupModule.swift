@@ -46,8 +46,8 @@ final class DictationCleanupModule: NotchcastModule {
         }
     }
 
-    func apiKey() -> String {
-        do { return try store.apiKey() ?? "" } catch { reportFailure?(); return "" }
+    func apiKey() -> String? {
+        do { return try store.apiKey() ?? "" } catch { reportFailure?(); return nil }
     }
 
     func saveAPIKey(_ key: String) {
