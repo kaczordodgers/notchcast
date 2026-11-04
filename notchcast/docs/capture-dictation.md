@@ -40,7 +40,10 @@ permission, unavailable-area, recognition and clipboard failures through the exi
 
 `./Scripts/run-tests.sh notchcast-capture-wiring-test` checks the new switch lifecycle, permission
 gating, OCR option persistence, command refresh for every switch and Island independence with private
-defaults and denied permission probes. `notchcast-commands-test` covers both new command registrations.
+defaults and denied permission probes. `notchcast-commands-test` covers command dispatch and filtering.
+
+`./Scripts/run-tests.sh notchcast-capture-errors-test` checks screenshot permission, clipboard,
+capture and file-write messages, plus the colour command's failed-copy HUD and successful-copy silence.
 
 `./Scripts/run-tests.sh nc-ColorPicker-lifecycle-test` checks disabled sampling, switch teardown,
 re-enabling, format persistence and Island independence with injected sampling and clipboard effects.
