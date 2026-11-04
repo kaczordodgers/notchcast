@@ -47,12 +47,19 @@ private struct NotchcastModuleFeatureRows: View {
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
-        Toggle(isOn: Binding(get: { preferences.isOn(feature) }, set: { preferences.set(feature, $0) })) {
+        Toggle(isOn: Binding(get: { preferences.isOn(feature) }, set: { feature.setFromSettings($0) })) {
             SettingsRowTitle(anchor, verbatim: feature.title)
             Text(feature.subtitle)
         }
         .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
         .settingsEnabled(feature.dependencies.allSatisfy(preferences.isEnabled))
+        .settingsEnabled(feature.settingsAvailable)
+        if NotchcastSettingsModule.module(of: feature) == .battery && feature != .accessoryBatteries {
+            NotchcastBatteryStatusSettingRow(feature: feature)
+        }
+        if feature == .microphoneMute {
+            MicrophoneHotKeyFailureSettingRow()
+        }
         if preferences.isEnabled(feature) {
             ForEach(commands, id: \.id) { command in
                 FeatureCommandRow(entry: command.entry)
