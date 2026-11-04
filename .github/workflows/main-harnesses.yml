@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   harnesses:
@@ -56,3 +57,10 @@ jobs:
             fi
           done < "$RUNNER_TEMP/selected"
           exit "$status"
+      # land.sh pushes its own squash with no app build on the merged tree; a red main opens the notchcast-main
+      # issue, which the MBA updater turns into one alert (the next green Sync of main closes it).
+      - name: Report a red main
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/notchcast/ci.py issue open main "main ${GITHUB_SHA:0:7} fails its harnesses" "harnesses-$GITHUB_SHA"
