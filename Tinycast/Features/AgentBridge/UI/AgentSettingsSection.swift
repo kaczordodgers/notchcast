@@ -16,6 +16,7 @@ struct AgentSettingsSection: View {
         }
         .settingsEnabled(NotchcastPreferences.shared.isOn(.agentActions)
                          && NotchcastPreferences.shared.isOn(.agentCLI))
+        .onAppear { module.installer.refresh() }
     }
 
     private var status: String {

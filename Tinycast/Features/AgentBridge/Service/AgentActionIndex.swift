@@ -26,7 +26,7 @@ final class AgentActionIndex {
     @ObservationIgnored var authorize: @MainActor (AgentAction, AgentJSON) async -> Bool = { action, _ in
         action.danger == .harmless
     }
-    @ObservationIgnored var didComplete: @MainActor (AgentRequest, AgentReply) -> Void = { _, _ in }
+    @ObservationIgnored var didComplete: @MainActor (AgentRequest, AgentReply) async -> Void = { _, _ in }
     @ObservationIgnored var readAudit: (@MainActor () async throws -> AgentJSON)?
 
     func register(_ entry: Entry) throws {
@@ -42,6 +42,14 @@ final class AgentActionIndex {
     }
 
     func start() { isRunning = true }
+
+    func unregisterAll() {
+        stop()
+        actions.removeAll()
+        states.removeAll()
+        actionIDs = []
+        stateIDs = []
+    }
 
     func stop() {
         isRunning = false
@@ -63,7 +71,7 @@ final class AgentActionIndex {
         } catch {
             reply = .init(code: .failed)
         }
-        didComplete(request, reply)
+        await didComplete(request, reply)
         return reply
     }
 
