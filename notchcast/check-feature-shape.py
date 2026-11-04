@@ -17,7 +17,10 @@ LISTS = {
 
 def mask_literals(source):
     pattern = r'//[^\n]*|/\*.*?\*/|""".*?"""|"(?:\\.|[^"\\])*"'
-    return re.sub(pattern, lambda match: re.sub(r"[^\n]", " ", match[0]), source, flags=re.S)
+    def mask(match):
+        blank = re.sub(r"[^\n]", " ", match[0])
+        return "0" + blank[1:] if match[0].startswith('"') else blank
+    return re.sub(pattern, mask, source, flags=re.S)
 
 
 def case_errors(code):

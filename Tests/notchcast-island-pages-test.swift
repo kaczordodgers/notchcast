@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandPage.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandPageRefresh.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandInputState.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
@@ -7,12 +8,41 @@ import Foundation
 
 @main
 struct IslandPagesTests {
-    @MainActor static func main() {
+    @MainActor static func main() async {
+        await refresh()
         pages()
         dismissal()
         hover()
         preferences()
         print("notchcast-island-pages: registry, landing, pin, hover and preferences passed")
+    }
+
+    @MainActor static func refresh() async {
+        var homeReloads = 0
+        var dayReloads = 0
+        await IslandPage.home.refresh(home: { homeReloads += 1 }, day: { dayReloads += 1 })
+        expect(homeReloads == 1 && dayReloads == 0, "Home refreshes its activity content")
+        await IslandPage.day.refresh(home: { homeReloads += 1 }, day: { dayReloads += 1 })
+        expect(homeReloads == 1 && dayReloads == 1, "Day refreshes its calendar data")
+        let refresh = IslandPageRefresh()
+        var first: CheckedContinuation<Void, Never>?
+        var second: CheckedContinuation<Void, Never>?
+        refresh.run { await withCheckedContinuation { first = $0 } }
+        expect(refresh.isRefreshing, "refresh starts immediately")
+        while first == nil { await Task.yield() }
+        for _ in 0..<20 { await Task.yield() }
+        expect(refresh.isRefreshing, "spinner waits for real work")
+        refresh.run { await withCheckedContinuation { second = $0 } }
+        while second == nil { await Task.yield() }
+        first?.resume()
+        for _ in 0..<20 { await Task.yield() }
+        expect(refresh.isRefreshing, "stale completion cannot clear replacement refresh")
+        second?.resume()
+        while refresh.isRefreshing { await Task.yield() }
+        refresh.run { await Task.yield() }
+        refresh.cancel()
+        expect(!refresh.isRefreshing, "closing clears refresh immediately")
+        await Task.yield()
     }
 
     static func pages() {
