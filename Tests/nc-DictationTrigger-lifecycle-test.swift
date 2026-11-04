@@ -5,7 +5,10 @@ import Foundation
 import Observation
 
 @MainActor @Observable
-private final class Recorder { var active = false }
+private final class Recorder {
+    var active = false
+    var available = true
+}
 
 @main
 struct DictationTriggerLifecycleTest {
@@ -18,12 +21,14 @@ struct DictationTriggerLifecycleTest {
         let recorder = Recorder()
         var reserved = false
         var configurations: [Bool] = []
+        var enabledConfigurations: [Bool] = []
         var stops = 0
         let module = DictationTriggerModule(
+            available: { recorder.available },
             paused: { recorder.active }, reserve: { reserved = $0 },
             configure: { enabled, paused in
-                precondition(enabled)
-                configurations.append(paused)
+                enabledConfigurations.append(enabled)
+                configurations.append(enabled && paused)
             }, teardown: { stops += 1 })
         let controller = NotchcastModuleController([
             .init(requires: [.globeDictation], module: module)
@@ -40,12 +45,20 @@ struct DictationTriggerLifecycleTest {
         recorder.active = false
         await settle()
         precondition(configurations == [false, true, false])
+        recorder.available = false
+        await settle()
+        precondition(!reserved && configurations.last == false)
+        precondition(enabledConfigurations.last == false)
+        recorder.available = true
+        await settle()
+        precondition(reserved)
+        precondition(enabledConfigurations.last == true)
         preferences.set(.globeDictation, false)
         await settle()
         precondition(stops == 1 && !reserved)
         recorder.active = true
         await settle()
-        precondition(configurations.count == 3)
+        precondition(configurations.count == 5)
         preferences.set(.globeDictation, true)
         await settle()
         precondition(configurations.last == true && reserved)

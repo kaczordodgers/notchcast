@@ -11,6 +11,7 @@ extension NotchcastCore {
             }
         }
         return DictationTriggerModule(
+            available: { [weak core] in core?.dictationCoordinator.isEnabled == true },
             paused: { [weak core] in core?.hotKeys.recordingAction != nil },
             reserve: { [weak core] in core?.hotKeys.globeReserved = $0 },
             configure: { manager.setEnabled($0, isPaused: $1) },
