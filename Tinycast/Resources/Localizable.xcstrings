@@ -1,314 +1,962 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Markdown Files" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Markdown-Dateien"
+    "A new copy or Escape cancels the cut." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneutes Kopieren oder Escape bricht das Ausschneiden ab."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Archivos Markdown"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar de nuevo o pulsar Escape cancela el corte."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fichiers Markdown"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une nouvelle copie ou la touche Échap annule la coupe."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Markdownファイル"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新たにコピーするかEscapeを押すとカットを解除します。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Markdown 파일"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새로 복사하거나 Escape를 누르면 잘라내기가 취소됩니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arquivos Markdown"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma nova cópia ou Escape cancela o recorte."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Файлы Markdown"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Новое копирование или Escape отменяет вырезание."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Markdown 文件"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再次复制或按 Escape 可取消剪切。"
           }
         }
       }
     },
-    "Plain Text Files" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Textdateien"
+    "Allow starting the configured backup job." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow starting the configured backup job."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Archivos de texto sin formato"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Starten des konfigurierten Backup-Auftrags erlauben."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fichiers texte brut"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir iniciar la tarea de copia de seguridad configurada."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プレーンテキストファイル"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autoriser le démarrage de la tâche de sauvegarde configurée."
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "일반 텍스트 파일"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定済みのバックアップジョブの開始を許可します。"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arquivos de texto simples"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정된 백업 작업을 시작하도록 허용합니다."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Текстовые файлы"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir iniciar a tarefa de backup configurada."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "纯文本文件"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Разрешить запуск настроенного задания резервного копирования."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许启动已配置的备份任务。"
           }
         }
       }
     },
-    "Editor Spell Checking" : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rechtschreibprüfung im Editor"
+    "Back Up Now" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back Up Now"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revisión ortográfica del editor"
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt sichern"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vérification orthographique de l’éditeur"
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crear copia ahora"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "エディタのスペルチェック"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sauvegarder maintenant"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "편집기 맞춤법 검사"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今すぐバックアップ"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verificação ortográfica do editor"
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지금 백업"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Проверка орфографии в редакторе"
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fazer backup agora"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑器拼写检查"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Создать резервную копию"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "立即备份"
           }
         }
       }
     },
-    "Edit Markdown documents outside the notes folder." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Markdown-Dokumente außerhalb des Notizordners bearbeiten."
+    "Browse and Restore Backups" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browse and Restore Backups"
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edita documentos Markdown fuera de la carpeta de notas."
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backups durchsuchen und wiederherstellen"
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modifiez des documents Markdown en dehors du dossier des notes."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar y restaurar copias de seguridad"
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メモフォルダ以外のMarkdown書類を編集します。"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parcourir et restaurer les sauvegardes"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "메모 폴더 외부의 Markdown 문서를 편집합니다."
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バックアップの参照と復元"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edite documentos Markdown fora da pasta de notas."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "백업 탐색 및 복원"
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Редактируйте документы Markdown вне папки заметок."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar e restaurar backups"
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑笔记文件夹之外的 Markdown 文稿。"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просмотр и восстановление резервных копий"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览和恢复备份"
           }
         }
       }
     },
-    "Edit plain text while preserving its file encoding." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Textdateien unter Beibehaltung ihrer Dateikodierung bearbeiten."
+    "Browse snapshots and restore into a new Downloads folder." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browse snapshots and restore into a new Downloads folder."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edita texto sin formato conservando la codificación del archivo."
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snapshots durchsuchen und in einem neuen Ordner unter „Downloads“ wiederherstellen."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Modifiez du texte brut en conservant l’encodage du fichier."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar instantáneas y restaurarlas en una carpeta nueva dentro de Descargas."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ファイルのエンコーディングを保持してプレーンテキストを編集します。"
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parcourir les instantanés et les restaurer dans un nouveau dossier de Téléchargements."
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "파일 인코딩을 유지하면서 일반 텍스트를 편집합니다."
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スナップショットを参照し、ダウンロード内の新しいフォルダに復元します。"
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Edite texto simples preservando a codificação do arquivo."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스냅샷을 탐색하고 다운로드 내의 새 폴더에 복원합니다."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Редактируйте обычный текст с сохранением кодировки файла."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explorar snapshots e restaurar em uma nova pasta dentro de Downloads."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "编辑纯文本并保留文件编码。"
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просматривать снимки и восстанавливать их в новую папку в «Загрузках»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览快照并恢复到“下载”中的新文件夹。"
+          }
+        }
+      }
+    },
+    "Calendar events on the Day page." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kalenderereignisse auf der Seite Tag."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos del calendario en la página Día."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Événements du calendrier sur la page Jour."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「日」ページのカレンダーイベント。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일 페이지의 캘린더 일정."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eventos do calendário na página Dia."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "События календаря на странице «День»."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“日”页面上的日历事件。"
+          }
+        }
+      }
+    },
+    "Check Disk Space" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speicherplatz prüfen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobar espacio en disco"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifier l’espace disque"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ディスク容量を確認"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "디스크 공간 확인"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificar espaço em disco"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить место на диске"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查磁盘空间"
+          }
+        }
+      }
+    },
+    "Check Tailscale Status" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tailscale-Status prüfen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobar estado de Tailscale"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifier l’état de Tailscale"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tailscaleの状態を確認"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tailscale 상태 확인"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificar estado do Tailscale"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверить состояние Tailscale"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查 Tailscale 状态"
           }
         }
       }
     },
     "Check spelling in the editor." : {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rechtschreibung im Editor prüfen."
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechtschreibung im Editor prüfen."
           }
         },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Revisa la ortografía en el editor."
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisa la ortografía en el editor."
           }
         },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Vérifiez l’orthographe dans l’éditeur."
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérifiez l’orthographe dans l’éditeur."
           }
         },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "エディタでスペルをチェックします。"
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エディタでスペルをチェックします。"
           }
         },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "편집기에서 맞춤법을 검사합니다."
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "편집기에서 맞춤법을 검사합니다."
           }
         },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verifique a ortografia no editor."
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifique a ortografia no editor."
           }
         },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Проверяйте орфографию в редакторе."
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверяйте орфографию в редакторе."
           }
         },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在编辑器中检查拼写。"
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在编辑器中检查拼写。"
+          }
+        }
+      }
+    },
+    "Cut and move files" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dateien ausschneiden und bewegen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cortar y mover archivos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couper et déplacer des fichiers"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルをカットして移動"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "파일 잘라내기 및 이동"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cortar e mover arquivos"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вырезать и переместить файлы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "剪切并移动文件"
+          }
+        }
+      }
+    },
+    "Edit Markdown documents outside the notes folder." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markdown-Dokumente außerhalb des Notizordners bearbeiten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edita documentos Markdown fuera de la carpeta de notas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifiez des documents Markdown en dehors du dossier des notes."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "メモフォルダ以外のMarkdown書類を編集します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "메모 폴더 외부의 Markdown 문서를 편집합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edite documentos Markdown fora da pasta de notas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редактируйте документы Markdown вне папки заметок."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑笔记文件夹之外的 Markdown 文稿。"
+          }
+        }
+      }
+    },
+    "Edit plain text while preserving its file encoding." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Textdateien unter Beibehaltung ihrer Dateikodierung bearbeiten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edita texto sin formato conservando la codificación del archivo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modifiez du texte brut en conservant l’encodage du fichier."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ファイルのエンコーディングを保持してプレーンテキストを編集します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "파일 인코딩을 유지하면서 일반 텍스트를 편집합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edite texto simples preservando a codificação do arquivo."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Редактируйте обычный текст с сохранением кодировки файла."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑纯文本并保留文件编码。"
+          }
+        }
+      }
+    },
+    "Editor Spell Checking" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rechtschreibprüfung im Editor"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revisión ortográfica del editor"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérification orthographique de l’éditeur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "エディタのスペルチェック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "편집기 맞춤법 검사"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verificação ortográfica do editor"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Проверка орфографии в редакторе"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑器拼写检查"
+          }
+        }
+      }
+    },
+    "Finder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "访达"
+          }
+        }
+      }
+    },
+    "Finder Cut and Paste" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausschneiden und Einfügen im Finder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cortar y pegar en Finder"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couper et coller dans le Finder"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finderのカット＆ペースト"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder 잘라내기 및 붙여넣기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cortar e colar no Finder"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вырезание и вставка в Finder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "访达剪切与粘贴"
+          }
+        }
+      }
+    },
+    "Finder Rename" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbenennen im Finder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renombrar en Finder"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renommer dans le Finder"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finderで名前を変更"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finder 이름 변경"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renomear no Finder"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переименование в Finder"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "访达重命名"
+          }
+        }
+      }
+    },
+    "Link Quick Fixes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schnellkorrekturen für Verbindungen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soluciones rápidas de conexión"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corrections rapides de connexion"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続のクイック修復"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 빠른 수정"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Correções rápidas de ligação"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрое исправление подключения"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接快速修复"
+          }
+        }
+      }
+    },
+    "Markdown Files" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markdown-Dateien"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos Markdown"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichiers Markdown"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markdownファイル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markdown 파일"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivos Markdown"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Файлы Markdown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Markdown 文件"
           }
         }
       }
@@ -2041,6 +2689,162 @@
         }
       }
     },
+    "Offer manual fixes for connection problems." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manuelle Lösungen für Verbindungsprobleme anbieten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ofrecer soluciones manuales para problemas de conexión."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proposer des corrections manuelles des problèmes de connexion."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接続の問題に対する手動の修復方法を表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "연결 문제에 대한 수동 수정 방법을 제공합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oferecer correções manuais para problemas de ligação."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Предлагать ручное исправление проблем подключения."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "提供连接问题的手动修复方法。"
+          }
+        }
+      }
+    },
+    "Open Day" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tag öffnen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir día"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ouvrir la journée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日を開く"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오늘 열기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir dia"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Открыть день"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开今日"
+          }
+        }
+      }
+    },
+    "Plain Text Files" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Textdateien"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archivos de texto sin formato"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fichiers texte brut"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレーンテキストファイル"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일반 텍스트 파일"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arquivos de texto simples"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Текстовые файлы"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纯文本文件"
+          }
+        }
+      }
+    },
     "Play sound when time is up" : {
       "localizations" : {
         "de" : {
@@ -2141,6 +2945,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按两次 ⌘Q"
+          }
+        }
+      }
+    },
+    "Preview an arrow-selected file with Space." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine mit den Pfeiltasten ausgewählte Datei mit der Leertaste anzeigen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previsualiza con la barra espaciadora un archivo seleccionado con las flechas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prévisualisez avec la barre d’espace un fichier sélectionné à l’aide des flèches."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "矢印キーで選択したファイルをスペースキーでプレビューします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "방향키로 선택한 파일을 스페이스 키로 미리 봅니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pré-visualize com a barra de espaço um arquivo selecionado pelas setas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Просматривайте файл, выбранный стрелками, нажатием пробела."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按空格键预览使用方向键选中的文件。"
           }
         }
       }
@@ -2301,6 +3157,58 @@
         }
       }
     },
+    "Quick Look on Space" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Look mit der Leertaste"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vista rápida con la barra espaciadora"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coup d’œil avec la barre d’espace"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "スペースキーでクイックルック"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "스페이스 키로 훑어보기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visualização rápida com a barra de espaço"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Быстрый просмотр по пробелу"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按空格键快速查看"
+          }
+        }
+      }
+    },
     "Quit Protection" : {
       "localizations" : {
         "de" : {
@@ -2349,6 +3257,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出保护"
+          }
+        }
+      }
+    },
+    "Rename selection" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auswahl umbenennen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renombrar selección"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renommer la sélection"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択項目の名前を変更"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택 항목 이름 변경"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renomear seleção"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Переименовать выбранное"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重命名所选项目"
           }
         }
       }
@@ -2869,6 +3829,110 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "软件调暗"
+          }
+        }
+      }
+    },
+    "Start Timer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer starten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar temporizador"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrer le minuteur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タイマーを開始"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 시작"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar temporizador"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Запустить таймер"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始计时器"
+          }
+        }
+      }
+    },
+    "Stop Timer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer stoppen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detener temporizador"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrêter le minuteur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タイマーを停止"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "타이머 중지"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parar temporizador"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Остановить таймер"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止计时器"
           }
         }
       }
@@ -3961,6 +5025,162 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在转录第 %1$lld 段，共 %2$lld 段"
+          }
+        }
+      }
+    },
+    "Use Hyper+R to rename the selection in Finder." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit Hyper+R die Auswahl im Finder umbenennen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa Hyper+R para renombrar la selección en Finder."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez Hyper+R pour renommer la sélection dans le Finder."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hyper+RでFinderの選択項目の名前を変更します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hyper+R로 Finder에서 선택 항목의 이름을 변경합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Hyper+R para renomear a seleção no Finder."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Нажмите Hyper+R, чтобы переименовать выбранное в Finder."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 Hyper+R 重命名访达中的所选项目。"
+          }
+        }
+      }
+    },
+    "Use ⌘X and ⌘V to move files in Finder." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit ⌘X und ⌘V Dateien im Finder bewegen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa ⌘X y ⌘V para mover archivos en Finder."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilisez ⌘X et ⌘V pour déplacer des fichiers dans le Finder."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘Xと⌘VでFinderのファイルを移動します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘X와 ⌘V로 Finder에서 파일을 이동합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use ⌘X e ⌘V para mover arquivos no Finder."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Перемещайте файлы в Finder с помощью ⌘X и ⌘V."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 ⌘X 和 ⌘V 在访达中移动文件。"
+          }
+        }
+      }
+    },
+    "Uses Finder’s Return key while no text is being edited." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwendet die Eingabetaste im Finder, solange kein Text bearbeitet wird."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la tecla Retorno de Finder cuando no se está editando texto."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Utilise la touche Retour du Finder lorsqu’aucun texte n’est en cours de modification."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "テキスト編集中でないときにFinderのReturnキーを使います。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "텍스트를 편집 중이 아닐 때 Finder의 Return 키를 사용합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa a tecla Return do Finder quando nenhum texto está sendo editado."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Использует Return в Finder, когда текст не редактируется."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未编辑文本时使用访达的 Return 键。"
           }
         }
       }
