@@ -15,6 +15,7 @@ extension NotchcastFeature {
         case torrents
         case archives
         case clipboard
+        case appearance
         case finder
         case captureAndDictation
         case buildStats
