@@ -57,6 +57,22 @@ final class DayCalendarService {
         rangeStore = nil
     }
 
+    func reminderEvents(in interval: DateInterval) -> [EventReminderEngine.Event] {
+        let visible = Set(events(in: interval).map(\.id))
+        guard let rangeStore, !visible.isEmpty else { return [] }
+        let predicate = rangeStore.predicateForEvents(
+            withStart: interval.start, end: interval.end, calendars: nil)
+        return rangeStore.events(matching: predicate).compactMap { event in
+            guard let start = event.startDate else { return nil }
+            let id = event.calendarItemIdentifier + "|\(start.timeIntervalSinceReferenceDate)"
+            guard visible.contains(id) else { return nil }
+            return EventReminderEngine.Event(
+                id: id, title: event.title ?? String(localized: "(No Title)"), start: start,
+                isAllDay: event.isAllDay, isDeclined: false,
+                offsets: (event.alarms ?? []).filter { $0.absoluteDate == nil }.map(\.relativeOffset))
+        }
+    }
+
     private func observeChanges(_ eventStore: EKEventStore) {
         guard observer == nil else { return }
         let center = NotificationCenter.default
