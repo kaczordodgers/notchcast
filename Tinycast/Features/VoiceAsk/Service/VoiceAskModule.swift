@@ -10,6 +10,7 @@ final class VoiceAskModule: NotchcastModule {
     private(set) var failure: String?
     private(set) var enabled = false
     private var hold = VoiceAskHold()
+    private var isProcessing = false
     private let defaults: UserDefaults
     private var transport: (any VoiceAskTransport)?
     private let beginRecording: @MainActor () async throws -> Void
@@ -41,7 +42,7 @@ final class VoiceAskModule: NotchcastModule {
 
     func press(alone: Bool) {
         guard enabled, transport != nil, !destination.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              hold.state == .idle else { return }
+              hold.state == .idle, !isProcessing else { return }
         cancel()
         failure = nil
         hold.press(alone: alone)
@@ -69,7 +70,9 @@ final class VoiceAskModule: NotchcastModule {
     }
 
     func release() {
+        guard !isProcessing else { return }
         guard hold.release() == .finish else { task?.cancel(); return }
+        isProcessing = true
         let pending = task
         let current = identity
         let destination = destination
@@ -77,6 +80,7 @@ final class VoiceAskModule: NotchcastModule {
         task = Task { [weak self] in
             await pending?.value
             guard let self, identity == current, enabled, !Task.isCancelled else { return }
+            defer { if identity == current { isProcessing = false } }
             do {
                 let text = try await finishRecording()
                 try Task.checkCancellation()
@@ -94,6 +98,7 @@ final class VoiceAskModule: NotchcastModule {
     }
 
     private func cancel() {
+        isProcessing = false
         identity = UUID()
         task?.cancel()
         task = nil

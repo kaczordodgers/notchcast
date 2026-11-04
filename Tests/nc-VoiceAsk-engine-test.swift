@@ -124,10 +124,14 @@ struct Tests {
         try await waitUntil { transcription.continuation != nil }
         precondition(finishes == 1 && !capturing, "Release must close capture after delayed startup")
         module.chord()
+        module.press(alone: true)
+        module.release()
         transcription.resume()
         try await waitUntil { sending.continuation != nil }
         precondition(transport.texts == ["held ask"], "Typing during transcription must preserve delivery")
         module.chord()
+        module.press(alone: true)
+        module.release()
         sending.resume()
         try await waitUntil { module.result != nil }
         precondition(module.result?.firstLines == ["fixture"] && module.failure == nil)
