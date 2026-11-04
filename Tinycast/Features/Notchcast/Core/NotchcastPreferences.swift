@@ -21,8 +21,37 @@ final class NotchcastPreferences {
     var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
     var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.allowed(newValue, Self.chargeLimits, 80); defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
+    static let chargeLimits = Array(stride(from: 50, through: 100, by: 5))
+    static let awakeDurations = [15, 30, 60, 120, 240]
+    private var chargePercent: Int
+    var batteryChargePercent: Int {
+        get { chargePercent }
+        set {
+            chargePercent = Self.chargeLimits.contains(newValue) ? newValue : 80
+            defaults.set(chargePercent, forKey: "batteryChargePercent")
+        }
+    }
+    private var awakeDuration: Int
+    var keepAwakeMinutes: Int {
+        get { awakeDuration }
+        set {
+            awakeDuration = Self.awakeDurations.contains(newValue) ? newValue : 60
+            defaults.set(awakeDuration, forKey: "keepAwakeMinutes")
+        }
+    }
+    static let shared = NotchcastPreferences(
+        suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
+
+    @ObservationIgnored private let defaults: UserDefaults
+    let audioPriority: AudioPriorityPreferences
+    var audioPriorityEnabled: Bool {
+        get { isOn(.audioPriority) }
+        set { set(.audioPriority, newValue) }
+    }
+    private var off: Set<NotchcastFeature>
 
     init(suiteName: String) {
+        audioPriority = AudioPriorityPreferences(suiteName: suiteName)
         let defaults = UserDefaults(suiteName: suiteName)!
         self.defaults = defaults
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""

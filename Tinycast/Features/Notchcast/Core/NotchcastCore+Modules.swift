@@ -23,6 +23,7 @@ extension NotchcastCore {
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
         [
+            .init(requires: [.audioPriority], module: AudioPriorityModule()),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),
