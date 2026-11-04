@@ -1,0 +1,28 @@
+import Observation
+
+@MainActor
+final class MusicCommandFeedback {
+    private let music: MusicNowPlayingModule
+    private let preferences: NotchcastPreferences
+    private var availability: [Bool]?
+    private var lastFailure: MusicModel.Failure?
+
+    init(music: MusicNowPlayingModule, preferences: NotchcastPreferences) {
+        self.music = music
+        self.preferences = preferences
+        observe()
+    }
+
+    private func observe() {
+        withObservationTracking {
+            let current = [preferences.isEnabled(.musicNowPlaying), preferences.isEnabled(.microphoneMute)]
+            if availability != current { AppCore.shared.appIndex.refreshNotchcastCommands() }
+            availability = current
+            let failure = music.model.failure
+            if music.model.isEnabled, failure != nil, failure != lastFailure { MusicCommands.report() }
+            lastFailure = failure
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in self?.observe() }
+        }
+    }
+}

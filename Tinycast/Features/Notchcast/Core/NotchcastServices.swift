@@ -11,10 +11,12 @@ final class NotchcastServices {
     let settings: SpotifySettingsCoordinator
     let keys: NotchcastKeyMonitor
     let eventTapHub = EventTapHub()
+    private let commandFeedback: MusicCommandFeedback
 
     init(core: AppCore, preferences: NotchcastPreferences) {
         let music = MusicNowPlayingModule(defaults: preferences.engineDefaults)
         self.music = music
+        commandFeedback = MusicCommandFeedback(music: music, preferences: preferences)
         lastPlayer = MusicLastPlayerModule(model: music.model)
         appleMusic = MusicBlockAppleMusicModule(music: music)
         spotify = SpotifyConnectModule(source: music.soloist, defaults: preferences.engineDefaults)
