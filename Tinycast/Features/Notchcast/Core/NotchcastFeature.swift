@@ -33,8 +33,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var settingsGroup: SettingsGroup {
         switch self {
-        case .colorPicker: .captureAndDictation
-        case .screenshot: .captureAndDictation
         case .agentChatTools: .captureAndDictation
         case .island: .island
         case .islandExternalDisplays: .islandOptions
