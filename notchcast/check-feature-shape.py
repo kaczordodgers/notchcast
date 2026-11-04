@@ -146,7 +146,7 @@ def main():
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print("PASS: feature cases, switch arms, modules, search entries and settings use one line each, with no repeats")
+    print("PASS: feature cases, switch arms, modules and search entries use one line each, with no repeats")
     return 0
 
 
