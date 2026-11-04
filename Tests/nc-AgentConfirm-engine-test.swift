@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/AgentConfirm/Model/*.swift Tinycast/Features/AgentConfirm/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentConsent/Model/AgentConsentPolicy.swift
 // notchcast-sources: Tinycast/Features/AgentConsent/Service/AgentGrantStore.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 import Foundation
 
 @MainActor
