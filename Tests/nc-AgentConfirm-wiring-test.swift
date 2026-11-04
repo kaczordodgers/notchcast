@@ -67,7 +67,7 @@ struct ConfirmationWiringTests {
         precondition(prompts == before)
         let dangerous = AgentAction(id: "kill", title: "Kill", danger: .dangerous)
         let refused = await authorization.authorize(dangerous, parameters: .null)
-        precondition(!refused)
+        precondition(refused == nil)
         precondition(grants.grants.count == 1)
         let timeout = AgentConfirmationAuthorization(grants: grants, isEnabled: { true },
             timeout: .milliseconds(5)) { _, _, _ in
@@ -95,9 +95,50 @@ struct ConfirmationWiringTests {
             + String(repeating: "x", count: 60) + "…")
         precondition(!message.contains("never-display-this"))
         precondition(detailed.confirmationMessage(parameters: .object([:])) == "local-cli · details")
+        var events: [String] = []
+        var upstream: CheckedContinuation<Void, Never>?
+        var agentChoice: CheckedContinuation<Void, Never>?
+        let queued = AgentConfirmationAuthorization(grants: grants, isEnabled: { true }) { action, _, choices in
+            events.append(action.id)
+            if action.id == "volume" {
+                precondition(choices == [.allowOnce, .deny])
+            } else {
+                precondition(choices == [.allowOnce, .alwaysAllow, .deny])
+            }
+            if action.id == "restart" { await withCheckedContinuation { agentChoice = $0 } }
+            return 0
+        }
+        let queueIndex = AgentActionIndex()
+        queueIndex.authorize = { action, parameters in await queued.authorize(action, parameters: parameters) }
+        try queueIndex.register(.init(action: .init(id: "restart", title: "Restart"), run: { _ in
+            events.append("upstream confirm")
+            await withCheckedContinuation { upstream = $0 }
+            events.append("restart ran")
+            return .null
+        }))
+        let volume = AgentAction(id: "volume", title: "Set Volume", parameters: .init(
+            properties: ["level": .init(kind: .number)], required: ["level"]))
+        try grants.allow(agentID: "local-cli", actionID: volume.id, danger: .consent, now: Date())
+        try queueIndex.register(.init(action: volume, run: { _ in .null }))
+        queueIndex.start()
+        let restart = Task { await queueIndex.handle(.init(verb: .run, id: "restart")) }
+        while agentChoice == nil { await Task.yield() }
+        let setVolume = Task { await queueIndex.handle(.init(verb: .run, id: "volume",
+            parameters: .object(["level": .number(0)]))) }
+        try? await Task.sleep(for: .milliseconds(20))
+        precondition(events == ["restart"])
+        agentChoice?.resume()
+        while upstream == nil { await Task.yield() }
+        precondition(events == ["restart", "upstream confirm"])
+        upstream?.resume()
+        let restartReply = await restart.value
+        let volumeReply = await setVolume.value
+        precondition(restartReply.code == .ok && volumeReply.code == .ok)
+        precondition(events == ["restart", "upstream confirm", "restart ran", "volume"])
+        queued.stop()
         try? await Task.sleep(for: .milliseconds(30))
         authorization.stop()
         timeout.stop()
-        print("PASS: switch, single execution, grants, dangerous choices, exit 5 timeout, serialized queue, sorted parameters, truncation, secret masking")
+        print("PASS: queue held through upstream confirm; parameterized stored grants prompt; parameterless Always allow")
     }
 }

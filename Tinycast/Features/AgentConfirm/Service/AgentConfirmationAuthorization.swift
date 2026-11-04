@@ -7,8 +7,10 @@ final class AgentConfirmationAuthorization {
     private final class Transport: AgentConfirmationTransport, AgentConfirmationActions {
         var continuations: [UUID: CheckedContinuation<Bool, Never>] = [:]
         var dangers: [String: AgentConsentPolicy.Danger] = [:]
+        var approvals: Set<UUID> = []
 
         func reply(_ reply: AgentConfirmationEngine.Reply) {
+            if reply.verdict != .deny, continuations[reply.id] != nil { approvals.insert(reply.id) }
             continuations.removeValue(forKey: reply.id)?.resume(returning: reply.verdict != .deny)
         }
 
@@ -38,15 +40,16 @@ final class AgentConfirmationAuthorization {
                                                   grants: grants, isEnabled: isEnabled)
     }
 
-    func authorize(_ action: AgentAction, parameters: AgentJSON) async -> Bool {
+    func authorize(_ action: AgentAction, parameters: AgentJSON) async -> (@MainActor () -> Void)? {
         let danger: AgentConsentPolicy.Danger = switch action.danger {
         case .harmless: .safe
         case .consent: .consent
         case .dangerous: .dangerous
         }
         if AgentConsentPolicy.decide(agentID: "local-cli", actionID: action.id,
-            danger: danger, grants: grants.grants, now: Date()) == .allow { return true }
-        guard isEnabled(), !Task.isCancelled else { return false }
+            danger: danger, grants: action.parameters.properties.isEmpty ? grants.grants : [],
+            now: Date()) == .allow { return {} }
+        guard isEnabled(), !Task.isCancelled else { return nil }
         let id = UUID()
         transport.dangers[action.id] = danger
         actions[id] = action
@@ -54,7 +57,7 @@ final class AgentConfirmationAuthorization {
         let seconds = timeout / .seconds(1)
         let request = AgentConfirmationEngine.Request(id: id, agentID: "local-cli", client: "local-cli",
             actionID: action.id, parameters: [:], deadline: Date().addingTimeInterval(seconds))
-        return await withTaskCancellationHandler {
+        let approved = await withTaskCancellationHandler {
             await withCheckedContinuation { continuation in
                 transport.continuations[id] = continuation
                 coordinator.receive(request, now: Date())
@@ -66,6 +69,11 @@ final class AgentConfirmationAuthorization {
             }
         } onCancel: {
             Task { @MainActor [weak self] in self?.cancel(id) }
+        }
+        guard approved else { return nil }
+        return { [self] in
+            presenting = false
+            presentNext()
         }
     }
 
@@ -96,17 +104,20 @@ final class AgentConfirmationAuthorization {
         }
         presenting = true
         let message = messages[id] ?? ""
-        let choices: [AgentConfirmationEngine.Choice] = pending.danger == .consent
+        let choices: [AgentConfirmationEngine.Choice] = pending.danger == .consent && action.parameters.properties.isEmpty
             ? [.allowOnce, .alwaysAllow, .deny] : [.allowOnce, .deny]
         Task {
             let index = await dialog(action, message, choices)
             let choice = transport.continuations[id] != nil && choices.indices.contains(index) ? choices[index] : .deny
             try? coordinator.choose(id: id, choice: choice, now: Date())
+            let approved = transport.approvals.remove(id) != nil
             timers.removeValue(forKey: id)?.cancel()
             actions.removeValue(forKey: id)
             messages.removeValue(forKey: id)
-            presenting = false
-            presentNext()
+            if !approved {
+                presenting = false
+                presentNext()
+            }
         }
     }
 }
