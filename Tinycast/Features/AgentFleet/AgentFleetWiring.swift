@@ -42,23 +42,28 @@ final class AgentFleetWiring: NotchcastModule {
 
     private func observe() {
         guard running else { return }
-        withObservationTracking {
+        let inputs = withObservationTracking {
             let waiting = preferences.isOn(.waitingAlerts)
             let fleetEnabled = preferences.isOn(.fleetPanel)
             let islandEnabled = preferences.isOn(.agentIsland) && preferences.isOn(.island)
             let destinations = settings.destinations
-            if fleet.model?.destinations != destinations { fleet.model?.destinations = destinations }
-            source.module.setDemand(waiting || fleetEnabled || islandEnabled, for: "fleet")
             _ = source.module.threads
             _ = source.module.isRunning
             _ = source.module.error
-            let polling = source.module.isRunning && !source.module.hasSnapshot && source.module.error == nil
-            if waiting && !polling { alerts.start(); watcher.changed?() } else { alerts.stop() }
-            refresh?.cancel()
-            if fleetEnabled { refresh = Task { [fleet] in await fleet.refresh() } }
-            if islandEnabled { island.refresh(now: Date.timeIntervalSinceReferenceDate, pointerInside: false) }
+            _ = source.module.hasSnapshot
+            _ = fleet.isEnabled
+            _ = island.isRunning
+            _ = bots.snapshot
+            return (waiting: waiting, fleet: fleetEnabled, island: islandEnabled, destinations: destinations)
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observe() }
         }
+        if fleet.model?.destinations != inputs.destinations { fleet.model?.destinations = inputs.destinations }
+        source.module.setDemand(inputs.waiting || inputs.fleet || inputs.island, for: "fleet")
+        let polling = source.module.isRunning && !source.module.hasSnapshot && source.module.error == nil
+        if inputs.waiting && !polling { alerts.start(); watcher.changed?() } else { alerts.stop() }
+        refresh?.cancel()
+        if inputs.fleet { refresh = Task { [fleet] in await fleet.refresh() } }
+        if inputs.island { island.refresh(now: Date.timeIntervalSinceReferenceDate, pointerInside: false) }
     }
 }

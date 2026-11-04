@@ -99,6 +99,10 @@ import Synchronization
         preferences.set(.fleetPanel, false)
         await waitUntil("fleet stops") { !fleet.isEnabled && fleet.model?.rows.isEmpty == true }
         precondition(fleet.model?.rows.isEmpty == true)
+        preferences.set(.fleetPanel, true)
+        await waitUntil("fleet resumes without another poll") { fleet.isEnabled && fleet.model?.rows.count == 1 }
+        preferences.set(.fleetPanel, false)
+        await waitUntil("fleet stops again") { !fleet.isEnabled && fleet.model?.rows.isEmpty == true }
         preferences.set(.agentIsland, false)
         await waitUntil("agent island stops") { !island.isRunning && island.state.presentations.isEmpty }
         precondition(island.state.presentations.isEmpty)

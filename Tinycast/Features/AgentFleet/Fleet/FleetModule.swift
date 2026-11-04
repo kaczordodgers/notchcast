@@ -1,6 +1,7 @@
 import Foundation
+import Observation
 
-@MainActor
+@MainActor @Observable
 final class FleetModule: NotchcastModule {
     private(set) var isEnabled = false
     private(set) var model: FleetModel?

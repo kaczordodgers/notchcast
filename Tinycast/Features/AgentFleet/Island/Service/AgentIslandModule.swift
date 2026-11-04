@@ -1,4 +1,6 @@
-@MainActor
+import Observation
+
+@MainActor @Observable
 final class AgentIslandModule: NotchcastModule {
     private(set) var state = AgentIslandState()
     private(set) var isRunning = false
