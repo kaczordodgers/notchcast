@@ -21,6 +21,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case showDesktop, spacesOrder, hideCommandM, middleClick, greenMaximize
     case machineSetupProfile
     case agentConfirmation
+    case eventReminder
 
     enum SettingsGroup: Sendable {
         case island, islandOptions, launcher, system, activities
@@ -41,6 +42,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .liveTimers, .dayCalendar, .dayWeather, .dayMarkets: .activities
         case .settingsBackup: .system
         case .machineSetupProfile: .system
+        case .eventReminder: .activities
         }
     }
 
@@ -79,6 +81,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .settingsBackup: String(localized: "Settings Backup")
         case .machineSetupProfile: String(localized: "Machine Setup Profile")
         case .agentConfirmation: String(localized: "Agent Confirmation")
+        case .eventReminder: String(localized: "Event Reminders")
         }
     }
 
@@ -117,6 +120,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.")
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.")
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.")
+        case .eventReminder: String(localized: "Show calendar alerts in the island.")
         }
     }
 
@@ -131,6 +135,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .settingsBackup: []
         case .agentConfirmation: []
         case .volumeLevels, .displayBrightness, .quitProtection: [.accessibility]
+        case .eventReminder: []
         case .island, .islandExternalDisplays, .islandFullScreen, .islandHoverOpen,
             .islandStatusMessages, .islandLiveActivities, .launcherFromIsland,
             .lowDiskWarning, .systemNotices, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets,

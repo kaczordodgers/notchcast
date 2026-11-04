@@ -58,6 +58,8 @@ enum NotchcastCore {
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
+            .init(requires: [.island, .islandLiveActivities, .eventReminder],
+                  module: EventReminderModule(store: core.calendarStore)),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller
