@@ -207,7 +207,7 @@ struct NotchcastCommand: Sendable {
             ForkSettingsBackupState.applyQuit($0, to: store)
         })
         let saved = try state.snapshot()
-        for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks, .archivesInPlace] {
+        for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks] {
             let original = preferences.isOn(feature)
             preferences.set(feature, !original)
             let captured = try state.snapshot()
