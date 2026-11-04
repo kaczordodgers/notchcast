@@ -671,7 +671,6 @@ extension NotchcastFeature {
         .dayMarkets,
         .treadmillHistory,
         .agentSessions,
-        .agentThreads,
         .agentPricing,
         .captureTrimmer,
         .recording,
