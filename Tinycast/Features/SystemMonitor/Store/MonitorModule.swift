@@ -31,6 +31,7 @@ final class MonitorModule: NotchcastModule {
     func stop() {
         running = false
         observationID = nil
+        alerts.resetBreaches()
         if holdsAlertDemand {
             holdsAlertDemand = false
             store.release()

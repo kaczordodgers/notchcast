@@ -13,9 +13,7 @@ final class MonitorAlerts {
         _ snapshot: MonitorSnapshot, rules configured: [MonitorAlertRule.Metric: MonitorAlertRule],
         enabled: Bool, demand: Int, at now: Date
     ) {
-        if demand == 0 {
-            for metric in rules.keys { rules[metric]?.resetBreaches() }
-        }
+        if !enabled || demand == 0 { resetBreaches() }
         guard enabled, demand > 0 else {
             lastSampleID = snapshot.id
             return
@@ -39,6 +37,10 @@ final class MonitorAlerts {
                 sink(Self.title(metric))
             }
         }
+    }
+
+    func resetBreaches() {
+        for metric in rules.keys { rules[metric]?.resetBreaches() }
     }
 
     private static func title(_ metric: MonitorAlertRule.Metric) -> String {

@@ -105,58 +105,6 @@
         }
       }
     },
-    "Evaluate alerts while the Monitor page is open.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Warnungen auswerten, während die Monitorseite geöffnet ist."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Evaluar alertas mientras la página Monitor esté abierta."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Évaluer les alertes lorsque la page Moniteur est ouverte."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "モニターページを開いている間にアラートを評価します。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "모니터 페이지가 열려 있는 동안 알림을 평가합니다."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Avaliar alertas enquanto a página Monitor estiver aberta."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Проверять оповещения, пока открыта страница монитора."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在监视器页面打开时评估提醒。"
-          }
-        }
-      }
-    },
     "CPU usage threshold": {
       "localizations": {
         "de": {

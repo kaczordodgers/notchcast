@@ -77,6 +77,25 @@ struct MonitorAlertsTests {
         check(highSample(), time: 3606)
         precondition(sustainedCalls == 1)
 
+        var streakCalls = 0
+        let streak = MonitorAlerts { _ in streakCalls += 1 }
+        func streakCheck(enabled: Bool = true) {
+            streak.evaluate(highSample(), rules: sustainedRules, enabled: enabled, demand: 1,
+                            at: Date(timeIntervalSince1970: 0))
+        }
+        streakCheck()
+        streakCheck()
+        streakCheck(enabled: false)
+        streakCheck()
+        streakCheck()
+        precondition(streakCalls == 0, "alerts off with demand held clears the streak")
+        streak.resetBreaches()
+        streakCheck()
+        streakCheck()
+        precondition(streakCalls == 0, "stopping the module clears the streak")
+        streakCheck()
+        precondition(streakCalls == 1)
+
         var diskCalls = 0
         let diskAlerts = MonitorAlerts { _ in diskCalls += 1 }
         let diskRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [
