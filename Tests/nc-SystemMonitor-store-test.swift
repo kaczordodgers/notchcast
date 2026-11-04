@@ -112,7 +112,7 @@ struct MonitorStoreTests {
         await crashed.waitUntilIdle()
         crashed.restore()
         await crashed.waitUntilIdle()
-        precondition(recovery.calls == [.fansAuto] && persisted == .auto)
+        precondition(recovery.calls.isEmpty && persisted == .auto)
         let fans = FanControl(runner: { try await restored.run($0) })
         fans.restore()
         await fans.waitUntilIdle()
@@ -133,7 +133,7 @@ struct MonitorStoreTests {
                                  runner: { _ in throw RootHelperClient.Failure.launchFailed })
         missing.restore(silently: true)
         await missing.waitUntilIdle()
-        precondition(saved == .max && recoveryFailures == 0 && missing.failure != nil)
+        precondition(saved == .max && recoveryFailures == 0 && missing.failure == nil)
         print("PASS: demand counts, serialized latest request, restore after timeout/failure/cancellation and shutdown")
     }
 }

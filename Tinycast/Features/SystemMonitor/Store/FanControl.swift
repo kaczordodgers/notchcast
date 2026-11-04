@@ -42,13 +42,11 @@ final class FanControl {
         _ = try await RootHelperClient().run($0)
     }) {
         self.runner = runner
-        self.mode = mode
         self.confirmed = confirmed
         self.failed = failed
         self.persist = persist
         journal = journalData.flatMap { try? JSONDecoder().decode(FanOwnershipJournal.self, from: $0) }
             ?? FanOwnershipJournal()
-        if mode != .auto && !journal.needsUndo { journal.begin(mode.rawValue) }
         unavailable = journal.failures > 0
         if unavailable { failure = RootHelperClient.Failure.executionFailed(70) }
     }

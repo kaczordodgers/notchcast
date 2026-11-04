@@ -13,6 +13,7 @@ import Foundation
 @MainActor
 struct BatteryStoreTests {
     static func main() async {
+        await followupCases()
         await roundThreeCases()
         await safetyCases()
         let suite = "battery-store-test.\(UUID().uuidString)"
@@ -198,6 +199,44 @@ struct BatteryStoreTests {
         print("PASS: stored limit rounding, startup cleanup once, missing verbs, switch-off and quit release")
     }
 
+    static func followupCases() async {
+        let suite = "battery-followup.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let prefs = NotchcastPreferences(suiteName: suite)
+        prefs.set(.batteryChargeLimit, true)
+        for prior in [85, 95] {
+            var reads = 0
+            let module = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
+                preconditionFailure("Unrestorable limits must not be overwritten")
+            }, installed: { true }, version: { "2" }, create: { _ in 0 }, release: { _ in },
+               readLimit: { reads += 1; return prior }))
+            module.start()
+            for _ in 0..<100 { await Task.yield() }
+            let before = reads
+            await module.evaluate(now: .now)
+            await module.evaluate(now: .now)
+            precondition(reads == before && !prefs.batteryOwnsNativeLimit && module.failure != nil)
+            module.stop()
+            await module.waitUntilIdle()
+        }
+        prefs.set(.batteryChargeLimit, false)
+        var journal = BatteryOwnershipJournal()
+        journal.adopt("battery-sleep", applied: "battery-sleep-off", undo: "battery-sleep-on")
+        journal.begin("battery-sleep", verb: "battery-sleep-on", undo: "battery-sleep-on")
+        for _ in 0..<6 { journal.fail("battery-sleep", now: .distantPast) }
+        prefs.batteryJournalData = try? JSONEncoder().encode(journal)
+        var versions = 0
+        let exhausted = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
+            preconditionFailure("Exhausted repair must not run")
+        }, installed: { true }, version: { versions += 1; return "2" },
+           create: { _ in 0 }, release: { _ in }))
+        exhausted.repairAtLaunch()
+        await exhausted.waitUntilIdle()
+        exhausted.stop()
+        await exhausted.waitUntilIdle()
+        precondition(versions == 0)
+    }
+
     static func safetyCases() async {
         let suite = "battery-safety-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
@@ -292,7 +331,7 @@ struct BatteryStoreTests {
         precondition(calls.last == .chargingOn && !preferences.batteryRootDirty)
         module.stop()
         await module.waitUntilIdle()
-        precondition(calls.last == .chargingOn && module.failure != nil && module.nativeLimit == 80)
+        precondition(calls.last == .chargingOn && module.nativeLimit == 85)
         precondition(!preferences.batteryRootDirty && released == created)
         preferences.set(.batteryChargeLimit, false)
         preferences.set(.keepAwake, false)
@@ -325,7 +364,7 @@ struct BatteryStoreTests {
             root: { _ in }, installed: { true }, version: { "2" }, create: { _ in 0 },
             release: { _ in }, readLimit: {
                 if missing { throw RootHelperClient.Failure.executionFailed(RootContract.usageExit) }
-                if pending != nil { return 85 }
+                if pending != nil { return 70 }
                 return try await withCheckedThrowingContinuation { pending = $0 }
             }))
         module.start()
@@ -334,7 +373,7 @@ struct BatteryStoreTests {
         preferences.set(.batteryChargeLimit, true)
         await module.evaluate(now: .now)
         precondition(module.nativeLimit == 80)
-        pending?.resume(returning: 85)
+        pending?.resume(returning: 70)
         for _ in 0..<100 { await Task.yield() }
         precondition(module.nativeLimit == 80)
         missing = true
@@ -428,9 +467,10 @@ struct BatteryStoreTests {
         let beforePlug = calls.count
         connected = true
         await native.evaluate(now: .now)
-        precondition(calls.count == beforePlug + 1 && calls.last == .chargeLimit80)
+        precondition(calls.count == beforePlug && current == 85)
         await native.evaluate(now: .now)
-        precondition(calls.count == beforePlug + 1)
+        precondition(calls.count == beforePlug)
+        precondition(!prefs.batteryOwnsNativeLimit && native.failure != nil)
         native.stop()
         await native.waitUntilIdle()
         prefs.batteryJournalData = nil
@@ -466,18 +506,21 @@ struct BatteryStoreTests {
         prefs.batteryJournalData = nil
         prefs.set(.lidClosedAwake, false)
         var versions = 0
+        var versionFails = true
         calls = []
         let transient = BatteryModule(preferences: prefs, runner: .init(read: {
             BatteryReading.decode(properties: ["CurrentCapacity": 95, "MaxCapacity": 100,
                                                "ExternalConnected": true])
         }, root: { calls.append($0) }, installed: { true }, version: {
             versions += 1
-            if versions == 1 { throw RootHelperClient.Failure.timedOut }
+            if versionFails { throw RootHelperClient.Failure.timedOut }
             return "2"
         }, create: { _ in 1 }, release: { _ in }, readLimit: { nil }))
         transient.start()
         for _ in 0..<100 { await Task.yield() }
-        precondition(!transient.needsHelperUpdate)
+        precondition(transient.needsHelperUpdate)
+        precondition(calls.isEmpty)
+        versionFails = false
         await transient.evaluate(now: .now)
         for _ in 0..<100 { await Task.yield() }
         precondition(versions >= 2 && calls.contains(.chargingOff))

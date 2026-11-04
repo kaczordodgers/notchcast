@@ -37,7 +37,9 @@ enum NotchcastCore {
         })
         self.monitor = monitor
         if !NotchcastPreferences.shared.isOn(.systemMonitor)
-            || !NotchcastPreferences.shared.isOn(.fanControl) { monitor.fans.restore(silently: true) }
+            || !NotchcastPreferences.shared.isOn(.fanControl) {
+            monitor.fans.restore(preservingPreference: true, silently: true)
+        }
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),

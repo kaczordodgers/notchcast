@@ -12,9 +12,7 @@ final class MonitorModule: NotchcastModule {
 
     init(preferences: NotchcastPreferences, alertSink: @escaping (String) -> Void = { _ in },
          fanFailure: @escaping () -> Void = {}) {
-        let enabled = preferences.isOn(.systemMonitor) && preferences.isOn(.fanControl)
-        fans = FanControl(mode: enabled ? .auto : FanControl.Mode(rawValue: preferences.fanMode) ?? .auto,
-                          confirmed: { preferences.fanMode = $0.rawValue }, failed: fanFailure,
+        fans = FanControl(confirmed: { preferences.fanMode = $0.rawValue }, failed: fanFailure,
                           journalData: preferences.fanJournalData,
                           persist: { preferences.fanJournalData = $0 })
         alerts = MonitorAlerts(sink: alertSink)
