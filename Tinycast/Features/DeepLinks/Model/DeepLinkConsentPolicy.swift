@@ -30,6 +30,7 @@ enum DeepLinkConsentPolicy {
     /// Opening a Tinycast screen is harmless; acting outside Tinycast is not.
     static func requiresConsent(_ action: HotKeyAction) -> Bool {
         switch action {
+        case .notchcastCommand: false
         case .command(let id):
             requiresConsent(id)
         case .togglePalette, .settingsPane:
@@ -56,7 +57,6 @@ enum DeepLinkConsentPolicy {
             .exportSettings, .importSettings, .importFromRaycast, .checkForUpdates, .settings, .about,
             .support:
             false
-        case .toggleIsland: false
         }
     }
 }
