@@ -8,7 +8,7 @@ nonisolated enum TouchIDPolicy {
         text.components(separatedBy: .newlines).contains { fields($0) == ["auth", "sufficient", "pam_tid.so"] }
     }
 
-    static func replacement(sudo: String, local: String?, enabled: Bool) throws -> String {
+    static func replacement(sudo: String, local: String?, enabled: Bool) throws -> String? {
         guard sudo.components(separatedBy: .newlines).contains(where: {
             fields($0) == ["auth", "include", "sudo_local"]
         }) else { throw Failure.missingInclude }
@@ -19,7 +19,7 @@ nonisolated enum TouchIDPolicy {
             let tokens = fields($0)
             return tokens.contains("pam_tid.so") && tokens != ["auth", "sufficient", "pam_tid.so"]
         }) else { throw Failure.unsupportedRule }
-        if Self.enabled(in: original) == enabled { return original }
+        if Self.enabled(in: original) == enabled { return nil }
         if enabled { return original + (original.isEmpty || original.hasSuffix("\n") ? "" : "\n") + rule + "\n" }
         return lines.filter { fields($0) != ["auth", "sufficient", "pam_tid.so"] }.joined(separator: "\n")
     }

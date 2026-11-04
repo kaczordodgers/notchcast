@@ -7,10 +7,11 @@
 `sudo_local` include in `/etc/pam.d/sudo`, reject unsupported PAM rules, and refuse symlink,
 non-regular or non-root-owned local files. Writes use a temporary file in `/etc/pam.d`,
 root:wheel ownership, mode 0444, fsync and atomic rename. These four argument-free change verbs
-require root (exit 77 otherwise), return `ok` on success, and use the 12-second change timeout.
+require root (exit 77 otherwise) and return `ok` on success. Spotlight uses a 60-second timeout;
+Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never written.
 The harness verifies their unprivileged refusal and pure PAM transforms without changing the system.
 
-The fixed program and app client share eleven argument-free verbs. `version` prints the contract version (`1`), and `ping` prints `pong`; neither requires root. Fan and battery verbs require root and print exactly `ok\n` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and hardware failures exit 70, always without output. Only battery sleep verbs launch a process, with fixed arguments and an empty environment.
+The fixed program and app client share fifteen argument-free verbs. `version` prints the contract version (`2`), and `ping` prints `pong`; neither requires root. Fan and battery verbs require root and print exactly `ok\n` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, and hardware failures exit 70, always without output. Spotlight and battery sleep verbs launch processes, with fixed arguments and an empty environment.
 
 `RootContract.swift` here is a symlink to the app's contract under
 `Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no
@@ -29,13 +30,13 @@ The rule names the console user at install time; another user re-runs the instal
 
 ## App contract
 
-`RootHelperClient().run(.version)` returns `.version("1")`; `.run(.ping)` returns `.pong`. Calls use
+`RootHelperClient().run(.version)` returns `.version("2")`; `.run(.ping)` returns `.pong`. Calls use
 `/usr/bin/sudo -n` with an empty environment, no stdin, and `/` as the working directory. Each call
 checks every path component with `lstat`: root ownership, no group/world write permission, directory
 parents, an executable regular file, and no symlinks. `isInstalled` reports that path check only;
 sudo's authorization remains a separate typed failure at invocation.
 
-Read operations time out after 3 seconds; changes time out after 12 seconds. Cancellation and timeout terminate and reap the invocation. Replies must match the command's complete expected output and version. Consumers own presentation of typed failures; this helper adds no settings row or AppCore hook.
+Read operations time out after 3 seconds; Spotlight changes after 60 seconds; other changes after 12 seconds. Cancellation and timeout terminate and reap the invocation. Replies must match the command's complete expected output and version. Consumers own presentation of typed failures; this helper adds no settings row or AppCore hook.
 
 The `notchcast-root-client-test` harness covers parsing, replies, unsafe paths, permission policy,
 timeout selection, process reaping and cancellation. Its processes are ordinary `/bin/sleep`

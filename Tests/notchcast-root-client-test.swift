@@ -81,12 +81,16 @@ struct FanSMCTest {
             let expected = original + (original.isEmpty || original.hasSuffix("\n") ? "" : "\n") + rule
             precondition(enabled == expected)
             let repeated = try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: true)
-            precondition(repeated == enabled)
+            precondition(repeated == nil)
             let disabled = try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: false)
             precondition(disabled == expected.replacingOccurrences(of: rule, with: ""))
         }
         let absent = try TouchIDPolicy.replacement(sudo: sudo, local: nil, enabled: true)
         precondition(absent == rule)
+        for original: String? in [nil, "", "# preserved\n", "auth required pam_other.so\n"] {
+            let unchanged = try TouchIDPolicy.replacement(sudo: sudo, local: original, enabled: false)
+            precondition(unchanged == nil)
+        }
         let removed = try TouchIDPolicy.replacement(
             sudo: sudo, local: "# keep\nauth sufficient pam_tid.so # active\nauth required pam_other.so\n",
             enabled: false)
@@ -265,8 +269,9 @@ struct RootClientTest {
         for command in RootContract.Command.allCases {
             precondition(RootContract.Command(arguments: command.arguments) == command)
             let read = command == .version || command == .ping
-            precondition(command.operation == (read ? .read : .change))
-            precondition(command.operation.timeout == .seconds(read ? 3 : 12))
+            let spotlight = command == .spotlightOn || command == .spotlightOff
+            precondition(command.operation == (read ? .read : spotlight ? .spotlight : .change))
+            precondition(command.operation.timeout == .seconds(read ? 3 : spotlight ? 60 : 12))
             precondition(RootContract.Reply(command: command, output: command.output) != nil)
             precondition(RootContract.Reply(command: command, output: command.output + "extra") == nil)
             precondition(RootContract.Reply(command: command, output: "") == nil)
@@ -286,7 +291,8 @@ struct RootClientTest {
         for arguments in invalid {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
-        precondition(RootContract.Reply(command: .version, output: "2\n") == nil)
+        precondition(RootContract.version == "2")
+        precondition(RootContract.Reply(command: .version, output: "1\n") == nil)
         precondition(RootContract.Reply(command: .ping, output: "pong") == nil)
         precondition(RootContract.Operation.change.timeout == .seconds(12))
     }
@@ -309,7 +315,7 @@ struct RootClientTest {
         precondition(compiler.terminationStatus == 0, "Helper compilation failed")
 
         let cases: [([String], Int32, String)] = [
-            (["version"], 0, "1\n"), (["ping"], 0, "pong\n"),
+            (["version"], 0, "2\n"), (["ping"], 0, "pong\n"),
             ([], 64, ""), (["unknown"], 64, ""), (["version", "extra"], 64, ""),
             (["ping", "extra"], 64, ""),
             (["spotlight-off"], 77, ""), (["spotlight-on"], 77, ""),
@@ -338,7 +344,7 @@ struct RootClientTest {
             precondition(output.fileHandleForReading.readDataToEndOfFile() == Data(expected.utf8))
             precondition(errors.fileHandleForReading.readDataToEndOfFile().isEmpty)
         }
-        print("PASS: compiled helper version=1, ping=pong; invalid arguments=64, unprivileged changes=77, silent")
+        print("PASS: compiled helper version=2, ping=pong; invalid arguments=64, unprivileged changes=77, silent")
         let fanTests = directory.appendingPathComponent("fan-tests")
         let fanCompiler = Process()
         fanCompiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
