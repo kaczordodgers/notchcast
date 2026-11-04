@@ -63,7 +63,8 @@ final class RemoteDialogModule: NotchcastModule {
 
     func receive(_ notice: Notice) {
         guard isRunning, !received.contains(notice.occurrence),
-              !notice.macName.isEmpty, notice.macName.count <= 255 else { return }
+              !notice.macName.isEmpty, notice.macName.count <= 255,
+              notice.macName.rangeOfCharacter(from: .controlCharacters.union(.newlines)) == nil else { return }
         received.append(notice.occurrence)
         if received.count > 256 { received.removeFirst() }
         post(String(localized: "\(notice.macName) is waiting on a system dialog"))

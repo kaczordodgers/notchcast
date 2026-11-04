@@ -66,6 +66,10 @@ struct BlockedDialogTest {
         await sender.poll()
         precondition(notices.count == 4 && posted.count == 4)
         precondition(posted.allSatisfy { $0 == "Test Mac is waiting on a system dialog" })
+        for name in ["Mac\nForged", "Mac\rForged", "Mac\t", "Mac\u{0}", "Mac\u{7F}", "Mac\u{2028}"] {
+            receiver.receive(.init(occurrence: UUID(), macName: name))
+        }
+        precondition(posted.count == 4)
         await sender.poll()
         receiver.receive(notices[0])
         precondition(notices.count == 4 && posted.count == 4)
