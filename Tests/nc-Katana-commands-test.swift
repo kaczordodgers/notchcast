@@ -126,11 +126,11 @@ enum DialogTone: Sendable {
         }
         print("PASS: production catalog includes all five commands")
         let settings = try String(contentsOfFile:
-            "Tinycast/Features/Notchcast/Settings/NotchcastSystemSettingsSection.swift", encoding: .utf8)
-        precondition(settings.contains("$0 != .katana"))
+            "Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift", encoding: .utf8)
+        precondition(settings.components(separatedBy: ".feature(.katana,").count == 2)
         let feature = try String(contentsOfFile:
             "Tinycast/Features/Notchcast/Core/NotchcastFeature.swift", encoding: .utf8)
         precondition(feature.contains("case .katana: .system"))
-        print("PASS: Katana stays in System and is excluded from System Monitor")
+        print("PASS: Katana is listed once in Settings")
     }
 }
