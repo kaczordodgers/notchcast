@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
-// notchcast-sources: -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist -Xlinker Tests/Fixtures/settings-backup-info.plist
+// notchcast-sources: -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist
+// notchcast-sources: -Xlinker Tests/fixtures/settings-backup-info.plist
 // notchcast-sources: Tinycast/Features/SettingsBackup/Service/*.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupRestore.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupState.swift
@@ -41,8 +42,11 @@ enum DialogTone { case neutral, danger }
     func setExcludedCalendars(_ ids: Set<String>) { excludedCalendarIDs = ids }
 }
 @MainActor struct ReminderStub { let calendar = CalendarStub() }
+enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
+@MainActor final class PickerStub { var format = ColorPickerFormat.hex }
 @MainActor enum NotchcastCore {
     static let settingsBackupRestore = ForkSettingsBackupCoordinator()
+    static let colorPicker = PickerStub()
     static let timers = LiveTimerModule()
     static let markets = DayMarketsModule()
     static let weather = DayWeatherModule()
@@ -91,7 +95,7 @@ struct NotchcastCommand: Sendable {
         var changed = complete
         for (key, value) in complete where ForkSettingsBackupSchema.allowed[key].map({
             if case .bool = $0 { return true }; return false
-        }) == true { changed[key] = !(value as! Bool) }
+        }) == true { changed[key] = !(value as? Bool ?? false) }
         changed["monitorCPU"] = 60
         changed["monitorTemperature"] = 80
         changed["monitorMemory"] = 1
@@ -110,7 +114,8 @@ struct NotchcastCommand: Sendable {
         changed["notchcast.colorPicker.format"] = "hsl"
         changed["notchcast.appearance.surface"] = "matte"
         changed["notchcast.appearance.theme.backgroundOpacity"] = 0.4
-        let theme = "{\"name\":\"Test\",\"author\":\"Test\",\"appearance\":\"dark\",\"colors\":[" + Array(repeating: "\"#112233\"", count: 12).joined(separator: ",") + "]}"
+        let theme = "{\"name\":\"Test\",\"author\":\"Test\",\"appearance\":\"dark\",\"colors\":["
+            + Array(repeating: "\"#112233\"", count: 12).joined(separator: ",") + "]}"
         changed["notchcast.appearance.theme.dark"] = theme
         changed["notchcast.appearance.theme.light"] = theme.replacingOccurrences(of: "dark", with: "light")
         changed["notchcast.appearance.themes.imported"] = "[" + theme + "]"
@@ -122,10 +127,15 @@ struct NotchcastCommand: Sendable {
         let savedLive = try ForkSettingsBackupState.live.snapshot()
         for (key, expected) in changed {
             if case .json = ForkSettingsBackupSchema.allowed[key]! {
-                let actualJSON = try JSONSerialization.jsonObject(with: Data((savedLive[key] as! String).utf8), options: .fragmentsAllowed)
-                let expectedJSON = try JSONSerialization.jsonObject(with: Data((expected as! String).utf8), options: .fragmentsAllowed)
-                precondition((actualJSON as! NSObject).isEqual(expectedJSON), key)
-            } else { precondition(NSDictionary(dictionary: [key: savedLive[key]!]) == NSDictionary(dictionary: [key: expected]), key) }
+                let actualJSON = try JSONSerialization.jsonObject(
+                    with: Data((savedLive[key] as? String ?? "").utf8), options: .fragmentsAllowed)
+                let expectedJSON = try JSONSerialization.jsonObject(
+                    with: Data((expected as? String ?? "").utf8), options: .fragmentsAllowed)
+                precondition((actualJSON as? NSObject)?.isEqual(expectedJSON) == true, key)
+            } else {
+                precondition(NSDictionary(dictionary: [key: savedLive[key]!])
+                    == NSDictionary(dictionary: [key: expected]), key)
+            }
         }
         try ForkSettingsBackupState.live.apply(complete)
         try ForkSettingsBackupState.live.apply(savedLive)
@@ -146,7 +156,7 @@ struct NotchcastCommand: Sendable {
         let preserved = try cleanupStore.read()
         precondition(preserved.isEnabled && preserved.baseURL == cleanup.baseURL)
         for field in ["isEnabled", "baseURL"] {
-            let bad = (changed["dictationCleanup"] as! String).dropLast() + ",\"\(field)\":true}"
+            let bad = (changed["dictationCleanup"] as? String ?? "").dropLast() + ",\"\(field)\":true}"
             do { try ForkSettingsBackupState.live.apply(["dictationCleanup": String(bad)]); preconditionFailure() } catch { }
         }
         for bad in [Data("broken".utf8), try JSONEncoder().encode(DictationCleanupSettings(
@@ -154,7 +164,12 @@ struct NotchcastCommand: Sendable {
             liveDefaults.set(bad, forKey: "dictationCleanup")
             let snapshot = try ForkSettingsBackupState.live.snapshot()
             precondition(snapshot["dictationCleanup"] == nil && snapshot.count == complete.count - 1)
-            _ = try ForkSettingsBackupEngine.encode(snapshot, created: .now)
+            let badFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+            defer { try? FileManager.default.removeItem(at: badFolder) }
+            let encoded = try ForkSettingsBackupEngine.encode(snapshot, created: .now)
+            try await ForkSettingsBackupService.save(encoded, folder: badFolder, day: 1)
+            let written = try await ForkSettingsBackupService.latest(folder: badFolder)
+            precondition(written == encoded)
         }
         print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
         let suite = "test.settings-restore." + UUID().uuidString

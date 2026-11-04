@@ -14,7 +14,8 @@ extension ForkSettingsBackupState {
             let defaults = AppearanceStore.preferences
             values["notchcast.colorPicker.format"] = defaults.string(forKey: "notchcast.colorPicker.format") ?? "hex"
             values["notchcast.appearance.surface"] = defaults.string(forKey: AppearanceSurfaceStyle.defaultsKey) ?? "glass"
-            values["notchcast.appearance.theme.backgroundOpacity"] = defaults.object(forKey: AppearanceStore.opacityKey) ?? AppearanceStore.defaultOpacity
+            values["notchcast.appearance.theme.backgroundOpacity"] =
+                defaults.object(forKey: AppearanceStore.opacityKey) ?? AppearanceStore.defaultOpacity
             for (key, fallback) in [(AppearanceStore.lightKey, "null"), (AppearanceStore.darkKey, "null"),
                                     (AppearanceStore.importedKey, "[]")] {
                 capture(key, into: &values) {
@@ -53,6 +54,7 @@ extension ForkSettingsBackupState {
             }
             if let value = values["notchcast.colorPicker.format"] as? String {
                 AppearanceStore.preferences.set(value, forKey: "notchcast.colorPicker.format")
+                if let format = ColorPickerFormat(rawValue: value) { NotchcastCore.colorPicker.format = format }
             }
             let appearance = AppearanceStore.current ?? AppearanceStore()
             if let value = values["notchcast.appearance.surface"] as? String,

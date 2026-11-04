@@ -33,7 +33,7 @@ without credentials. Automatic retention is not applied.
 JSON-backed preferences travel as bounded strings with explicit nested field validation, not Data.
 Optional weather and theme selections use JSON null. Theme colors and slot appearance are validated.
 The low-level encoder silently drops unknown and invalid entries; the app writer supplies effective
-values and validates its complete snapshot. It never copies the raw defaults domain.
+values and skips invalid keys individually. It never copies the raw defaults domain.
 
 | Key | Type / limits | Reason |
 | --- | --- | --- |
@@ -136,6 +136,9 @@ surface style uses AppStorage, and a later store reads the restored values.
 Additional included keys: `pastePlain`, `finderCutPaste`, `finderRename`, `pasteImage` (Bool;
 Accessibility still gates their actions), and `notchcast.colorPicker.format` (hex, hexLowercase,
 rgb, hsl, swiftUIColor, nsColorLiteral).
+`colorPicker` is allowed: start only enables the manual sampler. `screenshot`,
+`notchcast.screenshot.destination` and `notchcast.screenshot.folder` are excluded as
+screen-recording capability and capture-output policy.
 
 ## Adding switches
 
