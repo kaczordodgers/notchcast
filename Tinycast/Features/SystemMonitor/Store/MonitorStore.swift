@@ -39,20 +39,140 @@ final class MonitorStore {
     var ejectStates: [String: DiskEjectState] = [:]
     var ejectLifecycle: (enabled: Bool, generation: Int) { (enabled, ejectGeneration) }
     @ObservationIgnored private var ejectGeneration = 0
+    @MainActor
+    final class DemandToken {
+        private var end: (() -> Void)?
+
+        fileprivate init(end: @escaping () -> Void) { self.end = end }
+
+        func cancel() {
+            end?()
+            end = nil
+        }
+
+        isolated deinit { end?() }
+    }
+
+    enum SpeedTestState: Equatable {
+        case idle
+        case running(SpeedTestPhase)
+        case cancelling
+        case completed
+        case cancelled
+        case failed
+    }
+
     private(set) var latest = MonitorSnapshot()
     private(set) var histories: [String: MonitorHistory] = [:]
     private(set) var demand = 0
+    private(set) var speedTestState = SpeedTestState.idle
+    private(set) var speedTestResults: [SpeedTestResult] = []
+    private(set) var publicIP: String?
+    private(set) var isFetchingPublicIP = false
+    private(set) var publicIPLookupFailed = false
     @ObservationIgnored private var enabled = false
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private let sample: (@Sendable () async -> MonitorSnapshot)?
+    @ObservationIgnored private let measureSpeed: @Sendable (SpeedTestPhase) async throws -> SpeedTestResult.Measurement
+    @ObservationIgnored private let lookupPublicIP: @Sendable () async -> String?
+    @ObservationIgnored private let sleep: @Sendable (Duration) async throws -> Void
+    @ObservationIgnored private var speedTestTask: Task<Void, Never>?
+    @ObservationIgnored private var publicIPTask: Task<Void, Never>?
+    @ObservationIgnored private var publicIPIdentity: UUID?
 
-    init(sample: (@Sendable () async -> MonitorSnapshot)? = nil) { self.sample = sample }
+    init(sample: (@Sendable () async -> MonitorSnapshot)? = nil,
+         measureSpeed: @escaping @Sendable (SpeedTestPhase) async throws -> SpeedTestResult.Measurement = {
+             try await SpeedTestRunner().run($0)
+         },
+         lookupPublicIP: @escaping @Sendable () async -> String? = { await NetworkPublicIPService().lookup() },
+         sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) {
+        self.sample = sample
+        self.measureSpeed = measureSpeed
+        self.lookupPublicIP = lookupPublicIP
+        self.sleep = sleep
+    }
+
+    isolated deinit {
+        worker?.cancel()
+        speedTestTask?.cancel()
+        publicIPTask?.cancel()
+    }
 
     func start() { enabled = true; update() }
-    func stop() { enabled = false; ejectGeneration += 1; update() }
-    func acquire() { demand += 1; update() }
-    func release() { demand = max(0, demand - 1); update() }
+    func stop() {
+        enabled = false
+        ejectGeneration += 1
+        update()
+        cancelSpeedTest()
+        publicIPIdentity = nil
+        publicIPTask?.cancel()
+        publicIPTask = nil
+        isFetchingPublicIP = false
+    }
+
+    func beginDemand() -> DemandToken {
+        demand += 1
+        update()
+        return DemandToken { [weak self] in
+            guard let self else { return }
+            self.demand -= 1
+            self.update()
+        }
+    }
+
+    @discardableResult
+    func startSpeedTest() -> Bool {
+        guard enabled, speedTestTask == nil else { return false }
+        speedTestState = .running(.download)
+        let measure = measureSpeed
+        speedTestTask = Task { [weak self] in
+            defer { self?.speedTestTask = nil }
+            do {
+                try Task.checkCancellation()
+                let download = try await measure(.download)
+                try Task.checkCancellation()
+                self?.speedTestState = .running(.upload)
+                let upload = try await measure(.upload)
+                try Task.checkCancellation()
+                guard let self else { return }
+                self.speedTestResults.insert(SpeedTestResult(
+                    downloadMbps: download.throughputMbps, uploadMbps: upload.throughputMbps,
+                    responsivenessRPM: upload.responsivenessRPM ?? download.responsivenessRPM,
+                    baseRTTMilliseconds: download.baseRTTMilliseconds ?? upload.baseRTTMilliseconds), at: 0)
+                self.speedTestResults = Array(self.speedTestResults.prefix(10))
+                self.speedTestState = .completed
+            } catch {
+                self?.speedTestState = Task.isCancelled || error is CancellationError ? .cancelled : .failed
+            }
+        }
+        return true
+    }
+
+    func cancelSpeedTest() {
+        guard let speedTestTask else { return }
+        speedTestState = .cancelling
+        speedTestTask.cancel()
+    }
+
+    @discardableResult
+    func requestPublicIP() -> Bool {
+        guard enabled, publicIP == nil, publicIPTask == nil else { return false }
+        let identity = UUID()
+        publicIPIdentity = identity
+        isFetchingPublicIP = true
+        publicIPLookupFailed = false
+        let lookup = lookupPublicIP
+        publicIPTask = Task { [weak self] in
+            let address = await lookup()
+            guard !Task.isCancelled, let self, self.publicIPIdentity == identity else { return }
+            self.publicIP = address
+            self.publicIPLookupFailed = address == nil
+            self.isFetchingPublicIP = false
+            self.publicIPTask = nil
+        }
+        return true
+    }
 
     private func update() {
         guard enabled, let cadence = MonitorCadence.next(isVisible: demand > 0) else {
@@ -64,6 +184,7 @@ final class MonitorStore {
         guard worker == nil else { return }
         let identity = generation
         let sample = sample
+        let sleep = sleep
         worker = Task { [weak self] in
             let stream = AsyncStream<MonitorSnapshot> { continuation in
                 let producer = Task.detached {
@@ -85,7 +206,7 @@ final class MonitorStore {
                         }
                         guard !Task.isCancelled else { break }
                         continuation.yield(reading)
-                        do { try await Task.sleep(for: .seconds(cadence.interval)) } catch { break }
+                        do { try await sleep(.seconds(cadence.interval)) } catch { break }
                     }
                     continuation.finish()
                 }
