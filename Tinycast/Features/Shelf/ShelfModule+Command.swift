@@ -21,7 +21,7 @@ extension ShelfModule {
 
     func sendClipboard(_ text: String?) {
         guard let text, !text.isEmpty else {
-            NotchcastCore.remoteResult(String(localized: "Clipboard history is empty"))
+            NotchcastCore.remoteResult(String(localized: "Clipboard is empty"))
             return
         }
         let item = ShelfItem(kind: .text, name: "Clipboard.txt", data: Data(text.utf8))

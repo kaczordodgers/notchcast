@@ -6,8 +6,8 @@ extension SystemNoticesModule {
         let warning: Bool
         switch notice {
         case .wifi(let available):
-            text = String(localized: "Wi-Fi") + ": "
-                + (available ? String(localized: "Connected") : String(localized: "Disconnected"))
+            let status = available ? String(localized: "Connected") : String(localized: "Disconnected")
+            text = String(localized: "Wi-Fi: \(status)")
             warning = !available
         case .tailscale(let state):
             let status = switch state {
@@ -17,7 +17,7 @@ extension SystemNoticesModule {
             case .needsLogin: String(localized: "Sign In")
             case .needsApproval, .unavailable: String(localized: "Unavailable")
             }
-            text = String(localized: "Tailscale") + ": " + status
+            text = String(localized: "Tailscale: \(status)")
             warning = state != .connected
         case .lowBattery(let percent, _):
             text = String(localized: "Low battery: \(percent)%")

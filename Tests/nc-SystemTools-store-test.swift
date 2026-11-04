@@ -26,11 +26,12 @@ struct SystemToolsStoreTests {
         }
         precondition(preferences.isOn(.island))
         precondition(NotchcastFeature.systemToolsSettingsFeatures == [
-            .startupItems, .notificationCleanup, .sudoTouchID, .spotlightOff
+            .startupItems, .notificationCleanup, .sudoTouchID, .aiFeaturesOff, .spotlightOff, .privacyChoices
         ])
-        for feature in [NotchcastFeature.killProcess, .macSetup, .aiFeaturesOff, .privacyChoices] {
+        for feature in [NotchcastFeature.killProcess, .macSetup] {
             precondition(!feature.isWired)
         }
+        precondition(NotchcastFeature.aiFeaturesOff.isWired && NotchcastFeature.privacyChoices.isWired)
         precondition(NotchcastFeature.notificationCleanup.requiredGrants == [.accessibility])
         var effects: [Bool] = []
         precondition(SystemToolsHelperPolicy.available(.sudoTouchID))
@@ -57,8 +58,10 @@ struct SystemToolsStoreTests {
         } catch Failure.refused {}
         precondition(!preferences.isOn(.macSetup))
         preferences.set(.killProcess, true)
+        preferences.set(.startupItems, true)
         let reloaded = NotchcastPreferences(suiteName: suite)
-        precondition(reloaded.isOn(.killProcess))
+        precondition(reloaded.isOn(.startupItems))
+        precondition(!reloaded.isOn(.killProcess), "a hidden switch reloads off")
         print("System tools store: default-off, persistence, reversal callback and helper guards passed")
     }
 }

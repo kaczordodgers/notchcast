@@ -177,7 +177,6 @@ final class PalettePanel: NSPanel, AnimatedPanel {
     }
 
     override func sendEvent(_ event: NSEvent) {
-        if notchcastPreviewOnSpace(event) { return }
         if let delegate = delegate as? NSObject, delegate.responds(to: Selector(("ncQuit:"))), delegate.perform(Selector(("ncQuit:")), with: event)?.takeUnretainedValue() as? Bool == true { return }
         if consumeMenuDismissal(event) { return }
         if event.type == .scrollWheel, paletteState?.mode.isNativeEditor == true {
