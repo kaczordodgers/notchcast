@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import Synchronization
 
 @MainActor
 final class NotchcastToolsCommands: NotchcastModule {
@@ -37,6 +38,7 @@ final class NotchcastToolsCommands: NotchcastModule {
     private let post: (String) -> Void
     private let execute: @MainActor (Action, [URL], @escaping @MainActor () -> Bool) async throws -> Void
     private let refresh: () -> Void
+    nonisolated private let revision = Mutex(0)
     private var running = false
     private var tasks: [Action: Task<Void, Never>] = [:]
     private var identities: [Action: UUID] = [:]
@@ -70,6 +72,7 @@ final class NotchcastToolsCommands: NotchcastModule {
                 _ = preferences.isOn(feature)
             }
         } onChange: { [weak self] in
+            self?.revision.withLock { $0 += 1 }
             Task { @MainActor [weak self] in
                 guard let self, running else { return }
                 for action in Action.allCases where !isEnabled(action) {
@@ -87,12 +90,14 @@ final class NotchcastToolsCommands: NotchcastModule {
         guard isEnabled(action) else { return }
         tasks[action]?.cancel()
         let id = UUID()
+        let generation = revision.withLock { $0 }
         identities[action] = id
         tasks[action] = Task { [weak self] in
             guard let self else { return }
             let valid: @MainActor @Sendable () -> Bool = { [weak self] in
                 guard let self else { return false }
                 return !Task.isCancelled && isEnabled(action) && identities[action] == id
+                    && revision.withLock { $0 == generation }
             }
             defer {
                 if identities[action] == id { tasks[action] = nil; identities[action] = nil }
