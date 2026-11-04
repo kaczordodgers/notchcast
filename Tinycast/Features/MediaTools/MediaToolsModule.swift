@@ -19,6 +19,17 @@ final class MediaToolsModule: NotchcastModule {
         operation = nil
     }
 
+    func process(_ inputs: [URL], tool: MediaToolsRunner.Tool,
+                 isCurrent: @MainActor () -> Bool,
+                 post: @MainActor (String) -> Void) async throws {
+        for input in inputs {
+            guard enabled, isCurrent() else { return }
+            let output = try await MediaToolsRunner().run(input, tool: tool)
+            guard enabled, isCurrent(), !Task.isCancelled else { return }
+            post(output.path)
+        }
+    }
+
     func run(_ input: URL, tool: MediaToolsRunner.Tool, post: @escaping @MainActor (String) -> Void) {
         guard enabled else { return }
         cancel()

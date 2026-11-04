@@ -29,6 +29,7 @@ enum NotchcastCore {
         IslandController.shared.configurePages(core)
         let monitor = MonitorModule(preferences: .shared)
         self.monitor = monitor
+        let downloadServices = NotchcastDownloadServices(core: core)
         let modules: [NotchcastModuleController.Entry] = [
             .init(requires: [.urlCleaner], module: urlCleaner),
             .init(requires: [.island], module: IslandController.shared),
@@ -46,7 +47,9 @@ enum NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.convertFiles], module: convertFiles),
             .init(requires: [.mediaTools], module: mediaTools),
-            .init(requires: [.commandRunner], module: CommandRunnerModule()),
+            .init(requires: [], module: NotchcastToolsCommands(core: core)),
+            .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
+            .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
         ]
         let controller = NotchcastModuleController(modules, preferences: .shared)
         self.controller = controller

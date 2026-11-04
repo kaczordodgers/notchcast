@@ -3,7 +3,16 @@ import Foundation
 enum NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
         IslandController.launcherCommand,
-    ]
+        NotchcastDownloadLauncherCommands.video,
+        NotchcastDownloadLauncherCommands.audio,
+        NotchcastDownloadLauncherCommands.transcript,
+        NotchcastDownloadLauncherCommands.webpage,
+        NotchcastDownloadLauncherCommands.addDistill,
+        NotchcastDownloadLauncherCommands.runDistill,
+        NotchcastDownloadLauncherCommands.convert,
+        NotchcastDownloadLauncherCommands.openDownloads,
+        NotchcastDownloadLauncherCommands.openDistill,
+    ] + NotchcastToolsLauncherCommands.all
 
     static var entries: [AppEntry] { all.map(\.entry) }
 
