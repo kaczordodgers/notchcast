@@ -4,12 +4,15 @@ extension SystemNoticesModule {
     static func postNotice(_ notice: SystemNoticeEngine.Notice) {
         let text: String
         let warning: Bool
+        let id: String
         switch notice {
         case .wifi(let available):
+            id = "system.wifi"
             let status = available ? String(localized: "Connected", table: "Notchcast") : String(localized: "Disconnected", table: "Notchcast")
             text = String(localized: "Wi-Fi: \(status)", table: "Notchcast")
             warning = !available
         case .tailscale(let state):
+            id = "system.tailscale"
             let status = switch state {
             case .connected: String(localized: "Connected", table: "Notchcast")
             case .disconnected: String(localized: "Disconnected", table: "Notchcast")
@@ -20,9 +23,10 @@ extension SystemNoticesModule {
             text = String(localized: "Tailscale: \(status)", table: "Notchcast")
             warning = state != .connected
         case .lowBattery(let percent, _):
+            id = "system.battery"
             text = String(localized: "Low battery: \(percent)%", table: "Notchcast")
             warning = true
         }
-        IslandActivityCenter.shared.showMessage(text, tone: warning ? .danger : .neutral, dwell: 5)
+        IslandActivityCenter.shared.showMessage(text, tone: warning ? .danger : .neutral, dwell: 5, id: id)
     }
 }
