@@ -35,7 +35,7 @@ enum SoloistArchiveRules {
             guard entry.kind == "-" || entry.kind == "d", entry.size >= 0,
                   entry.size <= maxUnpacked - total, !name.hasPrefix("/"), !name.hasPrefix("-"),
                   !components.contains(".."), !name.contains("\\"),
-                  !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains),
+                  !hasControlCharacter(name),
                   seen.insert(name).inserted else {
                 let shown = entry.name.debugDescription.prefix(200)
                 throw SoloistFailure.archive.detail("entry \(entry.kind) \(entry.size) \(shown)")
@@ -47,5 +47,16 @@ enum SoloistArchiveRules {
             throw SoloistFailure.archive.detail("no soloist entry")
         }
         return files
+    }
+
+    /// A plain loop: Xcode 27.1 linked `contains(where: CharacterSet.controlCharacters.contains)` to `allSatisfy`'s helper.
+    private static func hasControlCharacter(_ name: String) -> Bool {
+        for scalar in name.unicodeScalars {
+            switch scalar.properties.generalCategory {
+            case .control, .format: return true
+            default: continue
+            }
+        }
+        return false
     }
 }
