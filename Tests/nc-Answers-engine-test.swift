@@ -93,30 +93,35 @@ struct AnswersEngineTest {
         gate.finish(data)
         let freshResult = await fresh.value
         precondition(freshResult != nil)
-        let identityGate = FetchGate()
-        let identityModule = LauncherAnswersModule(provider: {
-            NBPAnswerRateProvider { _ in await identityGate.fetch() }
-        }, clock: { now })
-        identityModule.start()
-        let leader = Task(priority: .high) {
-            _ = await identityModule.answer(for: "1 usd")
-            now += 3600
-            return await identityModule.answer(for: "2 usd")
+        for status in [200, 503] {
+            let cancellationGate = FetchGate()
+            let cancellationModule = LauncherAnswersModule(provider: {
+                NBPAnswerRateProvider { _ in await cancellationGate.fetch() }
+            }, clock: { now })
+            cancellationModule.start()
+            let caller = Task { await cancellationModule.answer(for: "1 usd") }
+            while cancellationGate.count < 1 { await Task.yield() }
+            caller.cancel()
+            cancellationGate.finish(data, status: status)
+            let cancelledResult = await caller.value
+            precondition(cancelledResult == nil)
+            let state = Mirror(reflecting: cancellationModule)
+            let pending = state.children.first { $0.label == "pending" }!.value
+            precondition(Mirror(reflecting: pending).children.isEmpty, "Cancelled caller must clear pending")
+            let failed = state.children.first { $0.label == "refreshFailed" }!.value as? Bool
+            precondition(failed == (status != 200))
+            let cached = await cancellationModule.answer(for: "2 usd")
+            precondition((cached != nil) == (status == 200))
+            precondition(cancellationGate.count == 1)
+            now += status == 200 ? 3600 : 300
+            let retry = Task { await cancellationModule.answer(for: "3 usd") }
+            for _ in 0..<1000 { await Task.yield() }
+            precondition(cancellationGate.count == 2, "Cancelled caller must finalize shared refresh")
+            cancellationGate.finish(data)
+            let retryResult = await retry.value
+            precondition(retryResult != nil)
         }
-        let follower = Task(priority: .background) { await identityModule.answer(for: "3 usd") }
-        while identityGate.count < 1 { await Task.yield() }
-        for _ in 0..<20 { await Task.yield() }
-        identityGate.finish(data)
-        while identityGate.count < 2 { await Task.yield() }
-        _ = await follower.value
-        let probe = Task { await identityModule.answer(for: "4 usd") }
-        for _ in 0..<20 { await Task.yield() }
-        precondition(identityGate.count == 2)
-        identityGate.finish(data)
-        let leaderResult = await leader.value
-        let probeResult = await probe.value
-        precondition(leaderResult != nil && probeResult != nil)
-        print("PASS grouping, small values, successful older table, retry at 300s, shared fetch, stop/restart")
+        print("PASS grouping, small values, retry at 300s, shared fetch, stop/restart, cancelled success/failure")
     }
 }
 
@@ -130,8 +135,8 @@ final class FetchGate: Sendable {
         }
     }
 
-    func finish(_ data: Data) {
+    func finish(_ data: Data, status: Int = 200) {
         let waiter = state.withLock { $0.waiters.removeFirst() }
-        waiter.resume(returning: (data, 200))
+        waiter.resume(returning: (data, status))
     }
 }

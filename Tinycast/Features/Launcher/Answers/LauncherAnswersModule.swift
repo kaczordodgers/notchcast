@@ -10,7 +10,6 @@ final class LauncherAnswersModule: NotchcastModule {
     private var lastAttempt: Date?
     private var refreshFailed = false
     private var generation = UUID()
-    private var requestID = UUID()
     private var pending: Task<NBPAnswerRates?, Never>?
 
     init(provider: @escaping () -> NBPAnswerRateProvider = { NBPAnswerRateProvider() },
@@ -51,18 +50,14 @@ final class LauncherAnswersModule: NotchcastModule {
             || (!refreshFailed && table?.effectiveDate != formatter.string(from: now) && age >= 3600)
         if pending == nil, needsRefresh {
             lastAttempt = now
-            requestID = UUID()
             pending = Task { try? await provider.rates(fetchedAt: now) }
         }
         if let pending {
-            let request = requestID
             let fetched = await pending.value
-            guard !Task.isCancelled, isRunning, generation == operation else { return nil }
-            if requestID == request {
-                if let fetched { table = fetched }
-                refreshFailed = fetched == nil
-                self.pending = nil
-            }
+            guard isRunning, generation == operation else { return nil }
+            if let fetched { table = fetched }
+            refreshFailed = fetched == nil
+            self.pending = nil
         }
         guard !Task.isCancelled, isRunning, generation == operation, let table,
             let value = table.rates.convert(question.amount, from: question.source, to: question.target)
