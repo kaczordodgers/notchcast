@@ -105,6 +105,8 @@ struct TodoLinkTests {
         try await cancellation(root)
         try await paging(root)
         try await pairingChange(root)
+        try await oversized(root)
+        try await failures(root)
         print("PASS: Todo Mac Link fake-channel suite")
     }
 
@@ -114,6 +116,75 @@ struct TodoLinkTests {
             try await Task.sleep(for: .milliseconds(1))
         }
         preconditionFailure("exchange did not settle")
+    }
+
+    static func oversized(_ root: URL) async throws {
+        for size in [45_000, 90_000] {
+            let local = try await TodoStore.open(directory: root.appending(path: "large-\(size)"))
+            let remote = try await TodoStore.open(directory: root.appending(path: "large-peer-\(size)"))
+            try local.perform(.addTask(.init(id: UUID().uuidString, title: "Large",
+                                           description: String(repeating: "x", count: size))))
+            try remote.perform(.addTask(.init(id: UUID().uuidString, title: "Large peer",
+                                            description: String(repeating: "y", count: size))))
+            let peer = TodoLinkCoordinator(exchange: { _ in throw MachLinkMessage.Failure.disconnected })
+            peer.opened(remote)
+            peer.start()
+            let channel = FakeChannel()
+            channel.peer = peer
+            channel.dropResponse = true
+            let sender = TodoLinkCoordinator(exchange: channel.request)
+            sender.opened(local)
+            sender.start()
+            try await idle(sender)
+            sender.requestExchange()
+            try await idle(sender)
+            precondition(local.state == remote.state && remote.replication.envelopes.count == 2)
+            sender.stop()
+            peer.stop()
+            try local.close()
+            try remote.close()
+        }
+        print("PASS: envelopes over 40 KB and 64 KB converge after dropped chunk response without duplicates")
+    }
+
+    static func failures(_ root: URL) async throws {
+        let store = try await TodoStore.open(directory: root.appending(path: "failures"))
+        var messages: [String] = []
+        var fails = true
+        let coordinator = TodoLinkCoordinator(exchange: { packet in
+            if fails { throw MachLinkMessage.Failure.disconnected }
+            return .init(clock: packet.clock, envelopes: [], hasMore: false)
+        })
+        coordinator.showFailure = { messages.append($0) }
+        coordinator.opened(store)
+        coordinator.start()
+        try await idle(coordinator)
+        coordinator.requestExchange()
+        try await idle(coordinator)
+        precondition(messages.count == 1)
+        fails = false
+        coordinator.requestExchange()
+        try await idle(coordinator)
+        fails = true
+        coordinator.requestExchange()
+        try await idle(coordinator)
+        precondition(messages.count == 2)
+        try store.perform(.addTask(.init(id: UUID().uuidString, title: "Original")))
+        var clone = TodoReplication(replicaID: store.replication.replicaID)
+        try clone.perform(.addTask(.init(id: UUID().uuidString, title: "Conflict")))
+        let packet = TodoLinkPacket(clock: .init(), envelopes: clone.envelopes, hasMore: false)
+        let before = store.state
+        for _ in 0..<2 {
+            do {
+                _ = try coordinator.respond(packet)
+                preconditionFailure("conflicting replica accepted")
+            } catch TodoReplicationError.conflictingEnvelope {}
+        }
+        precondition(messages.count == 3 && messages.last!.contains("replica ID"))
+        precondition(store.state == before)
+        coordinator.stop()
+        try store.close()
+        print("PASS: failure messages deduplicate, success resets, replica conflicts stay atomic and visible")
     }
 
     static func convergence(_ root: URL) async throws {

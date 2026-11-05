@@ -2,13 +2,14 @@ import Foundation
 
 extension TodoLinkCoordinator: NotchcastModule {
     func connect(to module: TodoModule) {
+        showFailure = module.showFailure
         module.storeDidOpen = { [weak self] in self?.opened($0) }
         module.storeWillClose = { [weak self] in self?.closed() }
         if let store = module.store { opened(store) }
     }
 
     static func live(channel: MachLinkUsagePeerChannel, preferences: NotchcastPreferences) -> TodoLinkCoordinator {
-        TodoLinkCoordinator(enabled: {
+        let coordinator = TodoLinkCoordinator(enabled: {
             [.tasksSync, .tasks, .machLink].allSatisfy { preferences.isOn($0) }
         }, exchange: { packet in
             guard let pairing = channel.pairing else { throw MachLinkMessage.Failure.disconnected }
@@ -35,6 +36,8 @@ extension TodoLinkCoordinator: NotchcastModule {
             }
             throw MachLinkMessage.Failure.disconnected
         })
+        coordinator.pairingIdentity = { channel.pairing?.id }
+        return coordinator
     }
 
     func response(to request: MachLinkMessage) throws -> MachLinkMessage {
