@@ -35,12 +35,19 @@ extension GalleryPages {
                         (window.contentView?.layer?.mask as? CAShapeLayer)?.path ?? CGMutablePath()
                     }, makeWindow: {
             for activity in IslandActivityCenter.shared.activities { IslandActivityCenter.shared.finish(activity.id) }
-            let titles = ["timer": "Tea timer", "volume": "Volume", "brightness": "Brightness",
-                          "meeting-reminder": "Design review"]
-            let activity = IslandActivity(kind: state == "timer" ? .timer : (state == "transfer" ? .transfer : .status),
+            let titles = ["timer": "Tea timer", "meeting-reminder": "Design review"]
+            var activity = IslandActivity(kind: state == "timer" ? .timer : (state == "transfer" ? .transfer : .status),
                                           title: titles[state] ?? "Sample transfer",
-                                          progress: ["transfer", "volume", "brightness"].contains(state) ? 0.64 : nil,
+                                          progress: state == "transfer" ? 0.64 : nil,
                                           endDate: state == "timer" ? Date().addingTimeInterval(300) : nil)
+            if state == "volume" || state == "brightness" {
+                let center = IslandActivityCenter()
+                let presenter = SystemLevelIslandPresenter(center: center)
+                presenter.present(LevelNotice(kind: state == "volume" ? .volume : .brightness,
+                                              level: state == "volume" ? 0.40 : 0.75))
+                activity = center.current!
+                presenter.present(nil)
+            }
             let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
             let island = IslandController()
             let pages = IslandPagesCoordinator(core: core, island: island)

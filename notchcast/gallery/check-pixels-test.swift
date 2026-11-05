@@ -46,4 +46,17 @@ for (fixture, page, passes, pixel) in fixtures + closedFixtures {
     process.waitUntilExit()
     precondition((process.terminationStatus == 0) == passes, fixture)
 }
+let duplicates = ["transfer", "volume", "brightness"].map { "island-closed-\($0)-mba.png" }
+for page in duplicates {
+    try FileManager.default.copyItem(at: scratch.appending(path: "page.png"), to: scratch.appending(path: page))
+    try FileManager.default.copyItem(at: scratch.appending(path: "page-layout.json"),
+                                    to: scratch.appending(path: page.replacingOccurrences(of: ".png", with: "-layout.json")))
+}
+try duplicates.joined(separator: "\n").write(to: scratch.appending(path: "manifest.txt"), atomically: true, encoding: .utf8)
+let duplicateCheck = Process()
+duplicateCheck.executableURL = URL(filePath: "/usr/bin/swift")
+duplicateCheck.arguments = [checker.path, scratch.path]
+try duplicateCheck.run()
+duplicateCheck.waitUntilExit()
+precondition(duplicateCheck.terminationStatus != 0, "identical closed states must fail")
 print("pixel guard fixtures: PASS (blank, uniform, content, island outline only, island content, idle island)")
