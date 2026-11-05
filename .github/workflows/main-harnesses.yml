@@ -67,6 +67,7 @@ jobs:
           NOTCHCAST_ONLY_TESTS=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")
           export UPSTREAM NOTCHCAST_ONLY_TESTS
           [ -n "${NOTCHCAST_ONLY_TESTS// /}" ] || exit 0
+          # run-tests.sh replays no log when bash's crash notice splits its result line, so print it here.
           bash ../tools/notchcast/ci-tests.sh
       # land.sh pushes its own squash with no app build on the merged tree; a red main opens the notchcast-main
       # issue, which the MBA updater turns into one alert (the next green Sync of main closes it).
