@@ -70,6 +70,9 @@ final class AgentConfirmationAuthorization {
         } onCancel: {
             Task { @MainActor [weak self] in self?.cancel(id) }
         }
+        actions.removeValue(forKey: id)
+        messages.removeValue(forKey: id)
+        timers.removeValue(forKey: id)?.cancel()
         guard approved else { return nil }
         return { [self] in
             presenting = false
@@ -87,9 +90,6 @@ final class AgentConfirmationAuthorization {
 
     private func cancel(_ id: UUID) {
         transport.reply(.init(id: id, verdict: .deny))
-        actions.removeValue(forKey: id)
-        messages.removeValue(forKey: id)
-        timers.removeValue(forKey: id)?.cancel()
     }
 
     private func presentNext() {
@@ -111,9 +111,6 @@ final class AgentConfirmationAuthorization {
             let choice = transport.continuations[id] != nil && choices.indices.contains(index) ? choices[index] : .deny
             try? coordinator.choose(id: id, choice: choice, now: Date())
             let approved = transport.approvals.remove(id) != nil
-            timers.removeValue(forKey: id)?.cancel()
-            actions.removeValue(forKey: id)
-            messages.removeValue(forKey: id)
             if !approved {
                 presenting = false
                 presentNext()
