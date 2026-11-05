@@ -128,7 +128,7 @@ final class HotKeyManager {
 
     /// Never pruned at launch: not-installed-yet and gone are indistinguishable there.
     var boundExtensionCommandEntryIDs: [String] {
-        defaults.stringArray(forKey: boundExtensionCommandKey) ?? []
+        []
     }
 
     /// Bundle IDs holding a per-app hotkey, so `start()` knows which records to load.
@@ -180,7 +180,10 @@ final class HotKeyManager {
         }
     }
 
-    func binding(for action: HotKeyAction) -> HotKeyBinding? { bindings[action] }
+    func binding(for action: HotKeyAction) -> HotKeyBinding? {
+        if case .command(let id) = action, NotchcastHidden.commands.contains(id.rawValue) { return nil }
+        return bindings[action]
+    }
 
     private func storedBinding(for action: HotKeyAction) -> HotKeyBinding? {
         guard
