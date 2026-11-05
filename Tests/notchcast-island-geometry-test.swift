@@ -43,6 +43,15 @@ struct IslandGeometryTests {
                "a removed or unknown display does not open another island")
         expect(IslandGeometry.screenIndex(containing: .zero, frames: []) == nil,
                "no displays means no open island")
+        let onExternal = CGPoint(x: 1500, y: 670)
+        expect(IslandGeometry.panelIndex(containing: onExternal, frames: screens, visible: [true, true]) == 1,
+               "a shortcut opens on the display under the pointer")
+        expect(IslandGeometry.panelIndex(containing: onExternal, frames: screens, visible: [true, false]) == 0,
+               "a display without an island hands the shortcut to the one that has it")
+        expect(IslandGeometry.panelIndex(containing: onExternal, frames: screens, visible: [false, false]) == nil,
+               "no island anywhere opens nothing")
+        expect(IslandGeometry.panelIndex(containing: .zero, frames: [], visible: []) == nil,
+               "no displays, no panel")
     }
 
     static func notchGeometry() {

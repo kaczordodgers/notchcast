@@ -15,11 +15,11 @@ final class IslandController: NotchcastModule {
     var hasLiveActivities = false
     private(set) var page = IslandPage.home
     var openContent = AnyView(Color.clear.frame(height: NotchcastTheme.estimatedContentHeight)) {
-        didSet { updateContent() }
+        didSet { updateOpenContent() }
     }
     /// What every panel shows closed; the view lays it out for its own shape.
     var closedState = IslandClosedState() {
-        didSet { if closedState != oldValue { updateContent() } }
+        didSet { if closedState != oldValue { panels.forEach { $0.setClosed(closedState) } } }
     }
     /// The last cover decoded, keyed by its bytes, so a tick of the track never decodes it again.
     @ObservationIgnored private var artwork: (data: Data, image: NSImage)?
@@ -84,7 +84,8 @@ final class IslandController: NotchcastModule {
     /// The palette's own hide shrinks it back (`observeLauncher`).
     func growLauncher(on screen: NSScreen, collapsed: Bool) -> CGRect? {
         guard observationID != nil, NotchcastPreferences.shared.isOn(.island),
-              let panel = panels.first(where: { $0.displayFrame == screen.frame }), panel.isVisible else { return nil }
+              let panel = panels.first(where: { $0.displayFrame == screen.frame }),
+              panel.isVisible, panel.isOnActiveSpace else { return nil }
         if isOpen { close() }
         if launcherPanel !== panel { launcherPanel?.setLauncher(height: nil, animated: true) }
         launcherPanel = panel
@@ -129,10 +130,9 @@ final class IslandController: NotchcastModule {
 
     func open(page: IslandPage, on screen: NSScreen? = nil, takeKey: Bool = true) {
         guard observationID != nil, NotchcastPreferences.shared.isOn(.island) else { return }
-        let frames = panels.map(\.displayFrame)
         let point = screen.map { CGPoint(x: $0.frame.midX, y: $0.frame.midY) } ?? NSEvent.mouseLocation
-        guard let index = IslandGeometry.screenIndex(containing: point, frames: frames),
-              panels[index].isVisible else { return }
+        guard let index = IslandGeometry.panelIndex(containing: point, frames: panels.map(\.displayFrame),
+                                                    visible: panels.map(\.isVisible)) else { return }
         let wasOpen = openPanel != nil && isOpen
         if openPanel !== panels[index] { openPanel?.setOpen(false, animated: true) }
         openPanel = panels[index]
@@ -174,11 +174,20 @@ final class IslandController: NotchcastModule {
         if !isOpen { close() }
     }
 
+    /// Screen parameters also change on wake and Dock moves; same displays keep their panels and state.
     private func rebuildPanels() {
+        let screens = NSScreen.screens
+        guard panels.map(\.displayFrame) != screens.map(\.frame)
+            || panels.map(\.hardwareNotch) != screens.map(IslandPanel.hardwareNotch(on:)) else {
+            applyPreferences()
+            return
+        }
         let previousFrame = openPanel?.displayFrame
+        let grown = launcherPanel.flatMap { panel in panel.launcherFrame.map { (panel.displayFrame, $0.height) } }
         panels.forEach { $0.close() }
         openPanel = nil
-        panels = NSScreen.screens.map(IslandPanel.init(screen:))
+        launcherPanel = nil
+        panels = screens.map(IslandPanel.init(screen:))
         for panel in panels {
             panel.onOpen = { [weak self, weak panel] in
                 guard let self, let panel else { return }
@@ -186,16 +195,21 @@ final class IslandController: NotchcastModule {
             }
             panel.onKey = { [weak self] in self?.handleKey($0) ?? false }
             panel.onFocus = { [weak self] in self?.hasKeyboardFocus = $0 }
+            panel.setClosed(closedState)
         }
-        updateContent()
+        updateOpenContent()
         applyPreferences()
+        if let grown, let panel = panels.first(where: { $0.displayFrame == grown.0 && $0.isVisible }) {
+            launcherPanel = panel
+            panel.setLauncher(height: grown.1, animated: false)
+        }
         if isOpen, let panel = panels.first(where: { $0.displayFrame == previousFrame && $0.isVisible }) {
             openPanel = panel
             panel.setOpen(true, animated: false)
         } else { close() }
     }
 
-    private func updateContent() {
+    private func updateOpenContent() {
         for panel in panels {
             let header: AnyView
             if let pages {
@@ -205,7 +219,7 @@ final class IslandController: NotchcastModule {
             } else {
                 header = AnyView(Color.clear)
             }
-            panel.setContent(open: openContent, closed: closedState, header: header)
+            panel.setOpenContent(openContent, header: header)
         }
     }
 

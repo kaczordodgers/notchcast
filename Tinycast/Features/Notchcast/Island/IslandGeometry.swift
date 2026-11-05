@@ -16,6 +16,12 @@ enum IslandGeometry {
         frames.firstIndex { $0.contains(point) }
     }
 
+    /// The shown panel on the display under `point`, else the first shown one, so a shortcut works anywhere.
+    static func panelIndex(containing point: CGPoint, frames: [CGRect], visible: [Bool]) -> Int? {
+        if let index = screenIndex(containing: point, frames: frames), visible[index] { return index }
+        return visible.firstIndex(of: true)
+    }
+
     static func notchRect(
         screen: CGRect, safeAreaTop: CGFloat, leftArea: CGRect?, rightArea: CGRect?
     ) -> CGRect? {
