@@ -61,7 +61,10 @@ struct TorrentModuleTests {
     struct MissingTool: TorrentToolLocating { func aria2c() -> URL? { nil } }
 
     static func until(_ message: String, _ predicate: () -> Bool) async throws {
+        // A wedged wait fails by name instead of running into the suite's 300 s kill.
+        let deadline = ContinuousClock.now + .seconds(60)
         while !predicate() {
+            guard ContinuousClock.now < deadline else { fatalError("Timed out: \(message)") }
             try await Task.sleep(for: .milliseconds(10))
         }
     }
@@ -77,7 +80,7 @@ struct TorrentModuleTests {
         let session = Session()
         let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
             ?? FileManager.default.temporaryDirectory.path)
-            .appendingPathComponent("module")
+            .appendingPathComponent("module-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let file = root.appending(path: "test.TORRENT")
@@ -175,7 +178,7 @@ struct TorrentModuleTests {
 
     static func processLifecycle() async throws {
         let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
-            ?? FileManager.default.temporaryDirectory.path).appending(path: "fake-aria2-module")
+            ?? FileManager.default.temporaryDirectory.path).appending(path: "fake-aria2-module-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let tool = root.appending(path: "aria2c")

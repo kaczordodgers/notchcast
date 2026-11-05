@@ -73,7 +73,10 @@ import Foundation
     }
 
     @MainActor static func until(_ message: String, _ predicate: () -> Bool) async throws {
+        // A wedged wait fails by name instead of running into the suite's 300 s kill.
+        let deadline = ContinuousClock.now + .seconds(60)
         while !predicate() {
+            guard ContinuousClock.now < deadline else { fatalError("Timed out: \(message)") }
             try await Task.sleep(for: .milliseconds(10))
         }
         check(true, message)
@@ -95,7 +98,7 @@ import Foundation
     @MainActor static func main() async throws {
         let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
             ?? FileManager.default.temporaryDirectory.path)
-            .appendingPathComponent("engine")
+            .appendingPathComponent("engine-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         let data = torrent(name: "fixture.bin", payload: Data(repeating: 65, count: 32768))
