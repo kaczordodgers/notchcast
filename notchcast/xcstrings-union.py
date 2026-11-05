@@ -42,6 +42,10 @@ def merge(base, target, source):
                  and branch.get(k, missing) != old.get(k, missing)]
     if conflicts:
         raise ValueError("value conflicts: " + ", ".join(json.dumps(k) for k in sorted(conflicts)))
+    try:
+        blocks(target)
+    except ValueError:
+        target = (dump(json.loads(target)) + "\n").replace("\n", newline)
     for key in old.keys() - branch.keys():
         entries = blocks(target)
         for index, (name, start, end) in enumerate(entries):
