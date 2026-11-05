@@ -123,12 +123,30 @@ final class IslandSyntheticLevels {
 
     func start(bars: Int, deliver: @escaping (IslandLevelReading) -> Void) {
         stop()
-        self.bars = max(1, bars)
+        prepare(bars: bars, start: CACurrentMediaTime())
         self.deliver = deliver
         isRunning = true
-        beatStart = CACurrentMediaTime()
-        beatPeriod = 60 / random.uniform(105...135)
         fire()
+    }
+
+    private func prepare(bars: Int, start: TimeInterval) {
+        self.bars = max(1, bars)
+        beatStart = start
+        beatPeriod = 60 / random.uniform(105...135)
+    }
+
+    /// The same source replayed from a fixed seed: every reading up to `time`, fed to an analyser, so a frame
+    /// shows the moment the live view would have shown with that seed.
+    static func analyser(seed: UInt64, bars: Int, at time: TimeInterval) -> IslandSpectrumAnalyser {
+        let source = IslandSyntheticLevels(seed: seed)
+        source.prepare(bars: bars, start: 0)
+        var analyser = IslandSpectrumAnalyser(bars: bars)
+        var moment: TimeInterval = 0
+        while moment <= time {
+            analyser.receive(source.reading(at: moment), at: moment)
+            moment += source.nextInterval()
+        }
+        return analyser
     }
 
     func stop() {
@@ -272,6 +290,27 @@ final class IslandSpectrumBarsView: NSView {
         }
     }
 
+    /// One moment of a seeded replay, without animation, for an offscreen frame.
+    func still(at time: TimeInterval, seed: UInt64) {
+        if source.isRunning { source.stop() }
+        let replay = IslandSyntheticLevels.analyser(seed: seed, bars: barLayers.count, at: time)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for (index, bar) in barLayers.enumerated() {
+            bar.removeAllAnimations()
+            bar.bounds = CGRect(x: 0, y: 0, width: barWidth, height: barHeight(replay.height(index, at: time)))
+            bar.position = CGPoint(x: x(index), y: 0)
+            bar.cornerRadius = barWidth / 2
+            let peak = peakLayers[index]
+            peak.removeAllAnimations()
+            let level = replay.peak(index, at: time)
+            peak.isHidden = level < IslandSpectrumAnalyser.peakVisibleFrom
+            peak.bounds = CGRect(x: 0, y: 0, width: barWidth, height: NotchcastTheme.SpectrumBars.peakHeight)
+            peak.position = CGPoint(x: x(index), y: peakY(level))
+        }
+        CATransaction.commit()
+    }
+
     /// Paused, hidden or still: a dot for each bar, no peaks, no animation.
     private func rest() {
         CATransaction.begin()
@@ -343,7 +382,10 @@ final class IslandSpectrumBarsView: NSView {
 struct IslandSpectrumBars: NSViewRepresentable {
     var isPlaying: Bool
     var visibleOverride: Bool? = nil
+    /// A fixture's seed; with `islandStillTime` set, the view draws that moment of the seeded replay.
+    var seed: UInt64 = 1
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.islandStillTime) private var stillTime
 
     func makeNSView(context: Context) -> IslandSpectrumBarsView {
         let view = IslandSpectrumBarsView(frame: .zero)
@@ -353,7 +395,11 @@ struct IslandSpectrumBars: NSViewRepresentable {
 
     func updateNSView(_ view: IslandSpectrumBarsView, context: Context) {
         view.visibleOverride = visibleOverride
-        view.configure(playing: isPlaying, reduceMotion: reduceMotion)
+        if let stillTime, isPlaying, !reduceMotion {
+            view.still(at: stillTime, seed: seed)
+        } else {
+            view.configure(playing: isPlaying, reduceMotion: reduceMotion)
+        }
     }
 
     func sizeThatFits(_ proposal: ProposedViewSize, nsView: IslandSpectrumBarsView, context: Context) -> CGSize? {

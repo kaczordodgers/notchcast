@@ -152,6 +152,7 @@ struct IslandScrollingText: View {
 struct IslandLevelBars: View {
     let moving: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.islandStillTime) private var stillTime
     @State private var high = false
 
     private var animates: Bool { moving && !reduceMotion }
@@ -162,9 +163,8 @@ struct IslandLevelBars: View {
                 Capsule()
                     .fill(NotchcastTheme.Colors.primary)
                     .frame(width: NotchcastTheme.MusicBars.width, height: NotchcastTheme.MusicBars.height)
-                    .scaleEffect(y: animates ? (high ? 1 : NotchcastTheme.MusicBars.lowestLevel)
-                                 : NotchcastTheme.MusicBars.restingLevel)
-                    .animation(animates ? .easeInOut(duration: NotchcastTheme.MusicBars.cycle)
+                    .scaleEffect(y: scale(index))
+                    .animation(animates && stillTime == nil ? .easeInOut(duration: NotchcastTheme.MusicBars.cycle)
                         .delay(NotchcastTheme.MusicBars.delays[index]).repeatForever(autoreverses: true) : nil,
                                value: high)
             }
@@ -172,6 +172,49 @@ struct IslandLevelBars: View {
         .frame(height: NotchcastTheme.MusicBars.height)
         .onAppear { high = true }
         .accessibilityHidden(true)
+    }
+
+    private func scale(_ index: Int) -> CGFloat {
+        guard animates else { return NotchcastTheme.MusicBars.restingLevel }
+        if let stillTime { return Self.level(at: stillTime, index: index) }
+        return high ? 1 : NotchcastTheme.MusicBars.lowestLevel
+    }
+
+    /// The animation above, solved for one moment: an ease-in-out cycle, reversing, started `delays[index]` late.
+    static func level(at time: TimeInterval, index: Int) -> CGFloat {
+        let bars = NotchcastTheme.MusicBars.self
+        let elapsed = time - bars.delays[index]
+        guard elapsed > 0 else { return bars.lowestLevel }
+        let cycles = (elapsed / bars.cycle).rounded(.down)
+        let eased = IslandCurve.easeInOut(elapsed / bars.cycle - cycles)
+        let span = 1 - bars.lowestLevel
+        return cycles.truncatingRemainder(dividingBy: 2) == 0 ? bars.lowestLevel + span * eased : 1 - span * eased
+    }
+}
+
+extension EnvironmentValues {
+    /// A fixture's clock: when set, pieces that move draw the moment at this many seconds since they appeared
+    /// instead of animating, so a frame can be rendered offscreen from the same curves.
+    @Entry var islandStillTime: TimeInterval? = nil
+}
+
+/// The timing curves the island's pieces and the surface use, solvable at a moment.
+enum IslandCurve {
+    /// Core Animation's and SwiftUI's ease-in-out: the cubic Bézier (0.42, 0, 0.58, 1).
+    static func easeInOut(_ fraction: Double) -> Double {
+        let x = min(1, max(0, fraction))
+        var low = 0.0, high = 1.0
+        for _ in 0..<40 {
+            let mid = (low + high) / 2
+            let point = bezier(mid, 0.42, 0.58)
+            if point < x { low = mid } else { high = mid }
+        }
+        return bezier((low + high) / 2, 0, 1)
+    }
+
+    private static func bezier(_ t: Double, _ p1: Double, _ p2: Double) -> Double {
+        let u = 1 - t
+        return 3 * u * u * t * p1 + 3 * u * t * t * p2 + t * t * t
     }
 }
 
