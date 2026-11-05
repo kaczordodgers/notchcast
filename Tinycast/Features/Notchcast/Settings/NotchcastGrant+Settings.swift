@@ -7,10 +7,10 @@ extension NotchcastGrant {
     var title: String {
         switch self {
         case .accessibility: SettingsAnchor.permissionsAccessibility.title
-        case .screenRecording: String(localized: "Screen Recording")
+        case .screenRecording: String(localized: "Screen Recording", table: "Notchcast")
         case .microphone: SettingsAnchor.permissionsMicrophone.title
         case .calendars: SettingsAnchor.permissionsCalendars.title
-        case .bluetooth: String(localized: "Bluetooth")
+        case .bluetooth: String(localized: "Bluetooth", table: "Notchcast")
         }
     }
 

@@ -16,7 +16,7 @@ struct NotchcastFanModeSettingRow: View {
             Text("Medium").tag("medium")
             Text("Max").tag("max")
         } label: {
-            SettingsRowTitle(.notchcastFanMode, "Fan mode")
+            SettingsRowTitle(.notchcastFanMode, LocalizedStringResource("Fan mode", table: "Notchcast"))
         }
         .settingsEnabled(preferences.isOn(.systemMonitor))
     }
@@ -27,7 +27,7 @@ struct NotchcastAlertCPUSettingRow: View {
 
     var body: some View {
         Stepper(value: $preferences.monitorCPU, in: 10...100, step: 5) {
-            SettingsRowTitle(.notchcastAlertCPU, "CPU usage threshold")
+            SettingsRowTitle(.notchcastAlertCPU, LocalizedStringResource("CPU usage threshold", table: "Notchcast"))
             Text(Double(preferences.monitorCPU) / 100, format: .percent)
         }
         .settingsEnabled(preferences.isOn(.systemMonitor))
@@ -39,7 +39,7 @@ struct NotchcastAlertTemperatureSettingRow: View {
 
     var body: some View {
         Stepper(value: $preferences.monitorTemperature, in: 40...110, step: 5) {
-            SettingsRowTitle(.notchcastAlertTemperature, "CPU temperature threshold")
+            SettingsRowTitle(.notchcastAlertTemperature, LocalizedStringResource("CPU temperature threshold", table: "Notchcast"))
             Text(
                 Measurement(value: Double(preferences.monitorTemperature), unit: UnitTemperature.celsius),
                 format: .measurement(width: .abbreviated, usage: .asProvided))
@@ -56,7 +56,7 @@ struct NotchcastAlertMemorySettingRow: View {
             Text("Warning").tag(0)
             Text("Critical").tag(1)
         } label: {
-            SettingsRowTitle(.notchcastAlertMemory, "Memory pressure threshold")
+            SettingsRowTitle(.notchcastAlertMemory, LocalizedStringResource("Memory pressure threshold", table: "Notchcast"))
         }
         .settingsEnabled(preferences.isOn(.systemMonitor))
     }
@@ -67,7 +67,7 @@ struct NotchcastAlertDiskSettingRow: View {
 
     var body: some View {
         Stepper(value: $preferences.monitorDisk, in: 1...50) {
-            SettingsRowTitle(.notchcastAlertDisk, "Disk free threshold")
+            SettingsRowTitle(.notchcastAlertDisk, LocalizedStringResource("Disk free threshold", table: "Notchcast"))
             Text(Double(preferences.monitorDisk) / 100, format: .percent)
         }
         .settingsEnabled(preferences.isOn(.systemMonitor))
@@ -79,12 +79,12 @@ struct NotchcastAlertBatterySettingRow: View {
 
     var body: some View {
         Stepper(value: $preferences.monitorBattery, in: 1...50) {
-            SettingsRowTitle(.notchcastAlertBattery, "Battery threshold")
+            SettingsRowTitle(.notchcastAlertBattery, LocalizedStringResource("Battery threshold", table: "Notchcast"))
             Text(Double(preferences.monitorBattery) / 100, format: .percent)
         }
         .settingsEnabled(preferences.isOn(.systemMonitor))
         Stepper(value: $preferences.monitorBatteryTemperature, in: 30...60) {
-            SettingsRowTitle(.notchcastAlertBatteryTemperature, "Battery temperature threshold")
+            SettingsRowTitle(.notchcastAlertBatteryTemperature, LocalizedStringResource("Battery temperature threshold", table: "Notchcast"))
             Text(Measurement(value: Double(preferences.monitorBatteryTemperature), unit: UnitTemperature.celsius),
                  format: .measurement(width: .abbreviated, usage: .asProvided))
         }

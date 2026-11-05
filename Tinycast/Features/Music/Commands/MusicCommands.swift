@@ -4,7 +4,7 @@ import AppKit
 enum MusicCommands {
     nonisolated static let launcherCommands: [NotchcastCommand] = [openCurrentPlayerCommand]
     nonisolated static let openCurrentPlayerCommand =
-        NotchcastCommand(slug: "open-current-player", name: String(localized: "Open Current Player"),
+        NotchcastCommand(slug: "open-current-player", name: String(localized: "Open Current Player", table: "Notchcast"),
                          sfSymbol: "music.note", feature: .musicNowPlaying, isEnabled: { enabled }, run: { openCurrentPlayer() })
 
     static var enabled: Bool { NotchcastPreferences.shared.isEnabled(.musicNowPlaying) }
@@ -27,6 +27,6 @@ enum MusicCommands {
     }
 
     static func report() {
-        AppCore.shared.showMessage(String(localized: "The current player is unavailable."), tone: .danger)
+        AppCore.shared.showMessage(String(localized: "The current player is unavailable.", table: "Notchcast"), tone: .danger)
     }
 }

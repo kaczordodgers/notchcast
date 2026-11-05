@@ -7,7 +7,7 @@ struct CaptureTrimmerSettingsSection: View {
         Toggle(isOn: Binding(
             get: { preferences.isOn(.captureTrimmer) },
             set: { preferences.set(.captureTrimmer, $0) })) {
-                SettingsRowTitle(.notchcastCaptureAndDictation, "Recording Trimmer")
+                SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Recording Trimmer", table: "Notchcast"))
                 Text(NotchcastFeature.captureTrimmer.subtitle)
             }
     }

@@ -11,7 +11,7 @@ struct IslandHoverDelaySettingRow: View {
                 Text(delay.title).tag(delay)
             }
         } label: {
-            Text("Hover delay")
+            Text("Hover delay", tableName: "Notchcast")
         }
         .settingsEnabled(preferences.isOn(.island))
     }

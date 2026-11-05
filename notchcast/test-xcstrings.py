@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Standalone catalog merge and PR policy harness."""
 import json
+import itertools
 from pathlib import Path
 import runpy
 import subprocess
@@ -18,6 +19,53 @@ def catalog(**strings):
 
 
 class CatalogTests(unittest.TestCase):
+    def test_migration_current_contexts(self):
+        rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
+        source = ('SettingsFilterField(prompt: "Fork", query: $query)\n'
+                  'Section("Fork") {}\n.help("Fork")\n')
+        result, count = rewrite(source, {'Fork'})
+        self.assertEqual(count, 3)
+        self.assertEqual(rewrite(result, {'Fork'}), (result, 0))
+        source = ('Logger(subsystem: "app", category: "Recording")\n'
+                  'NSError(domain: "Distill")\nDownloadTool(name: "aria2c")\n'
+                  'url.appending(path: "Downloads")\n'
+                  'url.appendingPathComponent("Downloads")\n'
+                  '"com.apple.Battery-Settings.extension": "Battery"\n'
+                  'entry(keywords: ["Remote Mac address"])\n'
+                  'let script = """\n tell application "Finder"\n """')
+        keys = {'Recording', 'Distill', 'aria2c', 'Downloads', 'Battery',
+                'Remote Mac address', 'Finder'}
+        self.assertEqual(rewrite(source, keys), (source, 0))
+        self.assertEqual(rewrite('case "Finder": break', {'Finder'}),
+                         ('case "Finder": break', 0))
+        result, count = rewrite('String(\n localized: "Fork")', {'Fork'})
+        self.assertEqual(count, 1)
+        self.assertIn('table: "Notchcast"', result)
+
+    def test_migration_rewrites_and_is_idempotent(self):
+        rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
+        source = ('Text("Fork")\nString(localized: "Fork")\n'
+                  'LocalizedStringResource("Fork")\nSettingsRowTitle(.group, "Fork")\n'
+                  'TextField("Fork", text: $query)\nText("Shared")\n')
+        result, count = rewrite(source, {'Fork'})
+        self.assertEqual(count, 5)
+        self.assertEqual(result.count('"Notchcast"'), 5)
+        self.assertIn('Text("Shared")', result)
+        self.assertEqual(rewrite(result, {'Fork'}), (result, 0))
+        result, count = rewrite('var title: LocalizedStringResource { switch self {\n'
+                                'case .day: "Day"\n} }', {'Day', 'Notchcast'})
+        self.assertEqual(count, 1)
+        self.assertEqual(rewrite(result, {'Day', 'Notchcast'}), (result, 0))
+
+    def test_migration_interpolation_comments_and_unknown_context(self):
+        rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
+        source = '// Text("Fork")\nString(localized: "Updated \\(format(value))")'
+        result, count = rewrite(source, {'Fork', 'Updated %@'})
+        self.assertEqual(count, 1)
+        self.assertIn('format(value))", table: "Notchcast"', result)
+        with self.assertRaisesRegex(ValueError, 'unrecognized'):
+            rewrite('unknown("Fork")', {'Fork'})
+
     def test_interpolated_references(self):
         for spec in ('%@', '%lld', '%ld', '%d', '%f', '%.2f', '%1$@',
                      '%lf', '%llu', '%lu', '%u'):
@@ -123,15 +171,17 @@ class CatalogTests(unittest.TestCase):
         self.assertFalse(check({}, dict(Listed={}), '', '', ['Listed']))
 
     def test_git_operations(self):
-        for operation in ('branch-first', 'main-first', 'rebase', 'cherry-pick'):
+        for operation, catalog_path in itertools.product(
+                ('branch-first', 'main-first', 'rebase', 'cherry-pick'),
+                (tool['CATALOG'], 'Tinycast/Resources/Notchcast.xcstrings')):
             with self.subTest(operation=operation), tempfile.TemporaryDirectory() as directory:
                 def git(*args, check=True):
-                    return subprocess.run(['git', *args], cwd=directory, check=check,
+                    return subprocess.run(['git', '-C', directory, *args], cwd=directory, check=check,
                                           capture_output=True, text=True)
                 git('init', '-b', 'main')
                 git('config', 'user.name', 'Catalog Test')
                 git('config', 'user.email', 'test@example.com')
-                path = Path(directory) / tool['CATALOG']
+                path = Path(directory) / catalog_path
                 path.parent.mkdir(parents=True)
                 base = catalog(Alpha={}, Deleted={}, Key={'value': 'old'}, Omega={})
                 path.write_text(base)
@@ -156,7 +206,7 @@ class CatalogTests(unittest.TestCase):
                 else:
                     git('cherry-pick', 'branch', check=False)
                 result = subprocess.run(['python3', str(ROOT / 'xcstrings-union.py'),
-                                         '--git', '--main-ref', 'main'], cwd=directory,
+                                         '--git', '--main-ref', 'main', '--catalog', catalog_path], cwd=directory,
                                         capture_output=True, text=True)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(path.read_text(), merge(base, main, branch))
