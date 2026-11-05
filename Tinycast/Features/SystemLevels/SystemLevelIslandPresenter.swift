@@ -18,7 +18,7 @@ final class SystemLevelIslandPresenter {
             return
         }
         let title = notice.kind == .brightness
-            ? String(localized: "Brightness") : String(localized: "Volume")
+            ? String(localized: "Brightness", table: "Notchcast") : String(localized: "Volume")
         center.begin(IslandActivity(id: id, kind: .status, priority: 100, title: title,
                                    progress: notice.muted == true ? 0 : notice.percent.map { Double($0) / 100 }))
         dismissal = Task { [weak self] in

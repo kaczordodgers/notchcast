@@ -12,7 +12,7 @@ struct TorrentSettingsJobRow: View {
             HStack {
                 Text(job.state.title)
                 Text(job.progress, format: .percent.precision(.fractionLength(0)))
-                if job.usesIPhone { Text("Wi-Fi + iPhone") }
+                if job.usesIPhone { Text("Wi-Fi + iPhone", tableName: "Notchcast") }
             }
             .foregroundStyle(.secondary)
             if let error = job.error { Text(error.message).foregroundStyle(.secondary) }

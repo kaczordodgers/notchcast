@@ -46,7 +46,7 @@ final class MediaToolsModule: NotchcastModule {
                 guard !Task.isCancelled, let self, self.identity == id, self.enabled else { return }
                 self.identity = nil
                 self.operation = nil
-                post(String(localized: "Media processing failed."))
+                post(String(localized: "Media processing failed.", table: "Notchcast"))
             }
         }
     }

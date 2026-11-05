@@ -71,7 +71,7 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         }
         try Task.checkCancellation()
         guard manager.fileExists(atPath: staged.path) else {
-            throw ConvertFilesPlan.Failure(message: String(localized: "The conversion produced no output."))
+            throw ConvertFilesPlan.Failure(message: String(localized: "The conversion produced no output.", table: "Notchcast"))
         }
         guard renamex_np(staged.path, item.output.path, UInt32(RENAME_EXCL)) == 0 else {
             throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)

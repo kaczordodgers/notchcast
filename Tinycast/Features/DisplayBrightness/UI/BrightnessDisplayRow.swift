@@ -17,10 +17,10 @@ struct BrightnessDisplayRow: View {
                 Slider(value: $state.value,
                        in: (display.level.softwareOnly ? 0 : -BrightnessLevel.extraDimmingRange)...1)
                     .frame(width: Self.sliderWidth)
-                    .accessibilityLabel(Text("Brightness of \(display.name)"))
-                    .accessibilityValue(Text(state.value < 0 ? String(localized: "Dim")
+                    .accessibilityLabel(Text("Brightness of \(display.name)", tableName: "Notchcast"))
+                    .accessibilityValue(Text(state.value < 0 ? String(localized: "Dim", table: "Notchcast")
                         : max(state.value, 0).formatted(.percent.precision(.fractionLength(0)))))
-                Text(state.value < 0 ? String(localized: "Dim")
+                Text(state.value < 0 ? String(localized: "Dim", table: "Notchcast")
                      : max(state.value, 0).formatted(.percent.precision(.fractionLength(0))))
                     .monospacedDigit()
                     .frame(width: Theme.Size.volumeReadout, alignment: .trailing)
@@ -28,7 +28,7 @@ struct BrightnessDisplayRow: View {
         } label: {
             Label {
                 Text(display.name)
-                Text(state.failed ? String(localized: "Not responding") : controlTitle)
+                Text(state.failed ? String(localized: "Not responding", table: "Notchcast") : controlTitle)
                     .foregroundStyle(state.failed ? Theme.Colors.warning : Theme.Colors.textSecondary)
             } icon: {
                 SymbolImage(name: display.isBuiltIn ? "laptopcomputer" : "display", size: Theme.Size.menuIcon)
@@ -41,9 +41,9 @@ struct BrightnessDisplayRow: View {
 
     private var controlTitle: String {
         switch display.control {
-        case .system: String(localized: "Built-in")
+        case .system: String(localized: "Built-in", table: "Notchcast")
         case .ddc: "DDC"
-        case .software: String(localized: "Software dimming")
+        case .software: String(localized: "Software dimming", table: "Notchcast")
         }
     }
 
