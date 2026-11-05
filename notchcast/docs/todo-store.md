@@ -36,6 +36,8 @@ The application owns one active store for this directory. `close()` disables fur
 
 ## Replication
 
+The optional Mac Link exchange is described in [todo-sync.md](todo-sync.md).
+
 `TodoReplication(replicaID:)` is the pure replication state. `perform(_:)` validates the command and
 returns its inverse, while recording a `TodoEnvelope` containing the replica ID, per-replica sequence,
 Lamport timestamp, command and before/after changes for affected records. No wall clock is used.
