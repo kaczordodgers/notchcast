@@ -29,7 +29,7 @@ extension TreadmillCoordinator {
                                         [.treadmillHistory, .island, .islandStatusMessages]
                                             .allSatisfy { NotchcastPreferences.shared.isOn($0) }
                                     }, present: {
-                                        IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 8)
+                                        IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 8, id: $1)
                                     }))
     }
 }
