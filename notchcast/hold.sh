@@ -19,12 +19,16 @@ hold_read() {
 
 hold_time() { date -r "$1" '+%H:%M %Z'; }
 
+# Splits a hold into owner and until; fails on anything hold.sh set would not write.
+hold_parse() { [[ "$1" =~ ^([A-Za-z0-9._-]+)\ ([1-9][0-9]*)$ ]] && owner=${BASH_REMATCH[1]} until=${BASH_REMATCH[2]}; }
+
 # Refuses unless the hold is absent, expired, or owned by PR $1 or by NOTCHCAST_LAND_AS.
 check_hold() {
     local hold owner until
     hold=$(hold_read) || refuse 'cannot read the landing hold (gh variable get LANDING_HOLD); try again'
-    read -r owner until <<< "$hold"
-    [ -n "$owner" ] && [ "${until:-0}" -gt "$(date +%s)" ] || return 0
+    [ -n "$hold" ] || return 0
+    hold_parse "$hold" || refuse "malformed landing hold '$hold'; replace it: notchcast/hold.sh set or release"
+    [ "$until" -gt "$(date +%s)" ] || return 0
     [ "$owner" = "$1" ] || [ "$owner" = "${NOTCHCAST_LAND_AS:-}" ] \
         || refuse "landing is held for $owner until $(hold_time "$until"); it expires by itself, or: notchcast/hold.sh release"
 }
@@ -35,14 +39,15 @@ if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     case "${1:-}:$#" in
         set:3)
             [[ "$2" =~ ^[A-Za-z0-9._-]+$ && "$3" =~ ^[0-9]+$ ]] || usage
-            until=$(($(date +%s) + $3 * 60))
+            until=$(($(date +%s) + 10#$3 * 60))
             gh variable set LANDING_HOLD -R "$hold_repo" --body "$2 $until"
             echo "landing held for $2 until $(hold_time "$until")" ;;
         release:1) gh variable delete LANDING_HOLD -R "$hold_repo" ;;
         show:1)
-            read -r owner until <<< "$(hold_read)"
-            if [ -z "$owner" ]; then echo 'no landing hold'
-            elif [ "${until:-0}" -le "$(date +%s)" ]; then echo "no landing hold ($owner expired)"
+            hold=$(hold_read)
+            if [ -z "$hold" ]; then echo 'no landing hold'
+            elif ! hold_parse "$hold"; then echo "malformed landing hold '$hold' (land.sh refuses)"; exit 1
+            elif [ "$until" -le "$(date +%s)" ]; then echo "no landing hold ($owner expired)"
             else echo "landing held for $owner until $(hold_time "$until")"; fi ;;
         *) usage ;;
     esac

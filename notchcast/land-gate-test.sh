@@ -105,3 +105,9 @@ export HOLD= HOLD_ERROR=1
 run
 grep -q 'REFUSED: cannot read the landing hold' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: an unreadable hold was ignored'; exit 1; }
 echo 'PASS: an unreadable hold refuses'
+for bad in '330' "330 $later extra" '330 later' '330 1e9' "330 0$later"; do
+    export HOLD="$bad" HOLD_ERROR=
+    run
+    grep -q 'REFUSED: malformed landing hold' "$scratch/output" || { cat "$scratch/output"; echo "FAIL: malformed hold '$bad' was ignored"; exit 1; }
+done
+echo 'PASS: a malformed hold refuses'
