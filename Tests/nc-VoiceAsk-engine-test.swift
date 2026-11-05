@@ -78,17 +78,17 @@ struct Tests {
         controller.run()
         precondition(!module.enabled)
         preferences.set(.voiceAsk, true)
-        try await Task.sleep(for: .milliseconds(100))
+        try await waitUntil { module.enabled }
         precondition(module.enabled)
         module.press(alone: true)
-        try await Task.sleep(for: .milliseconds(300))
+        try await waitUntil { starts == 1 }
         precondition(starts == 1)
         module.release()
-        try await Task.sleep(for: .milliseconds(100))
+        try await waitUntil { module.result != nil }
         precondition(fake.texts == ["hello"])
         precondition(module.result?.firstLines == ["fixture"])
         preferences.set(.voiceAsk, false)
-        try await Task.sleep(for: .milliseconds(100))
+        try await waitUntil { !module.enabled }
         precondition(!module.enabled)
         module.press(alone: true)
         try await Task.sleep(for: .milliseconds(300))
