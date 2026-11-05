@@ -4,7 +4,7 @@ Run `notchcast/local-ci.sh <pr>` to build and test the exact PR head through the
 It posts `build/local` success or failure with the Mac, minutes and last step; logs stay in `~/agents/nc-local-ci/logs/<sha>.log`.
 Success cancels that head’s pending PR Actions runs and supplies build proof to `notchcast/land.sh`.
 
-**Notchcast** is a fork of [Tinycast](https://github.com/abue-ammar/tinycast) (AGPL-3.0): upstream `main` plus a few commits of ours on top, arm64 builds signed with our own identity. Upstream's README is [README.upstream.md](README.upstream.md).
+**Notchcast** is a modified fork of [Tinycast](https://github.com/abue-ammar/tinycast) (AGPL-3.0; a modified version, as its section 5a requires us to state): upstream `main` plus a few commits of ours on top, arm64 builds signed with our own identity. Upstream's README is at [abue-ammar/tinycast](https://github.com/abue-ammar/tinycast#readme).
 
 Every ~10 minutes a GitHub Actions workflow replays our commits onto the newest upstream `main`, builds and runs the tests, and moves `main` only when green; each upstream release is rebuilt the same way and published here under the same tag.
 
@@ -17,7 +17,7 @@ Our commits:
 - `Notchcast: let a LaunchAgent own starting the app`: with `NOTCHCAST_LAUNCHD=1` the app keeps its login item off and its Relaunch only quits, so the LaunchAgent below is the only thing that starts it.
 - `Notchcast: tooling` and later fixes: this folder and `.github/workflows/`.
 - `Notchcast: bundle id app.notchcast, URL scheme notchcast, name Notchcast`: our own app identity (Debug: `app.notchcast.dev`). The in-app updater treats it as a development build and stays inert; `notchcast.update` installs releases.
-- `Notchcast: generated files`, always last: the root `README.md` (this file), `README.upstream.md` (upstream's README with a one-line note), `Tinycast.xcodeproj` (XcodeGen from `project.yml`) and, when our commits change `Scripts/raycast-runtime/`, `Tinycast/Resources/RaycastRuntime.generated.js`. The sync makes it afresh; our other commits never carry these files (replay drops them from each commit), so upstream edits to them never conflict. Edit `notchcast/README.md` or `project.yml`, never the generated files.
+- `Notchcast: generated files`, always last: the root `README.md` (this file), `Tinycast.xcodeproj` (XcodeGen from `project.yml`) and, when our commits change `Scripts/raycast-runtime/`, `Tinycast/Resources/RaycastRuntime.generated.js`. The sync makes it afresh; our other commits never carry these files (replay drops them from each commit), so upstream edits to them never conflict. It also removes every path in `notchcast/prune-paths.txt` (upstream files the app does not need, e.g. `website/`), so upstream edits to them never conflict either. Edit `notchcast/README.md` or `project.yml`, never the generated files.
 
 ## Sync (`.github/workflows/sync.yml`)
 
