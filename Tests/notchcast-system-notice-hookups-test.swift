@@ -26,7 +26,11 @@ import Foundation
     enum Tone { case danger, neutral }
     static let shared = IslandActivityCenter()
     var messages: [String] = []
-    func showMessage(_ text: String, tone: Tone, dwell: TimeInterval) { messages.append(text) }
+    var ids: [String?] = []
+    func showMessage(_ text: String, tone: Tone, dwell: TimeInterval, id: String?) {
+        messages.append(text)
+        ids.append(id)
+    }
 }
 @main struct NoticeTests {
     @MainActor static func main() {
@@ -47,6 +51,8 @@ import Foundation
         }
         precondition(IslandActivityCenter.shared.messages.count == 5)
         precondition(IslandActivityCenter.shared.messages.last == "Low battery: 10%")
+        precondition(IslandActivityCenter.shared.ids == ["lowDisk", "system.wifi", "system.wifi",
+                                                         "system.tailscale", "system.battery"])
         system.stop()
         precondition(system.manager.onNotice == nil)
         print("Verified low disk and system notice callbacks reach island messages and detach on stop")
