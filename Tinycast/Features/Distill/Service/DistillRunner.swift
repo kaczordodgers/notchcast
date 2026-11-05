@@ -12,7 +12,7 @@ nonisolated struct DistillRunner: DownloadRunner {
     init(transcriber: DistillTranscriber, workDirectory: URL,
          saveWebpage: @escaping SaveWebpage = { _, _ in
              throw NSError(domain: "Distill", code: 2, userInfo: [
-                 NSLocalizedDescriptionKey: String(localized: "Webpage saving is not connected to Distill yet.")
+                 NSLocalizedDescriptionKey: String(localized: "Webpage saving is not connected to Distill yet.", table: "Notchcast")
              ])
          }) {
         self.transcriber = transcriber

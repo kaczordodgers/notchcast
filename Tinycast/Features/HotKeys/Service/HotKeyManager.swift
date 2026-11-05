@@ -327,7 +327,7 @@ final class HotKeyManager {
     /// A hold reserves its physical modifier across both tap gestures.
     func conflictOwner(of binding: HotKeyBinding, excluding action: HotKeyAction) -> String? {
         if globeReserved, binding.conflicts(with: .globe, holdsModifier: true) {
-            return String(localized: "Globe Dictation")
+            return String(localized: "Globe Dictation", table: "Notchcast")
         }
         for candidate in candidateActions where candidate != action {
             guard let other = self.binding(for: candidate) else { continue }
