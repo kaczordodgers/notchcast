@@ -89,7 +89,8 @@ enum CleanSystem {
         if info.st_mode & 0o022 == 0 { return true }
         guard info.st_uid == 0 else { return false }
         if info.st_mode & 0o002 != 0 { return info.st_mode & S_ISVTX != 0 }
-        return info.st_gid == 80
+        // admin, and _analyticsusers for /Library/Logs/DiagnosticReports.
+        return [80, 250].contains(info.st_gid)
     }
 
     private static func directory(_ path: String, owner: uid_t, protected: Bool) throws -> Int32 {
