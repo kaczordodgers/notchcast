@@ -4,7 +4,8 @@ root=$(git rev-parse --show-toplevel)
 scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT
 mkdir -p "$scratch/repo/notchcast" "$scratch/bin"
-cp "$root/notchcast/land.sh" "$root/notchcast/local-build-status.sh" "$scratch/repo/notchcast/"
+cp "${LAND_SCRIPT:-$root/notchcast/land.sh}" "$scratch/repo/notchcast/land.sh"
+cp "$root/notchcast/local-build-status.sh" "$scratch/repo/notchcast/"
 cat > "$scratch/bin/gh" <<'STUB'
 #!/bin/bash
 case "$*" in
@@ -13,11 +14,14 @@ case "$*" in
         echo "$*" >> "$CALLS"
         case "$*" in
             *check_name=build*) echo "$BUILD" ;;
-            *check_name=Design*) echo "$DESIGN" ;;
-            *check_name=Leaks*) echo "$LEAKS" ;;
-            *) exit 3 ;;
+            *check_name=design*) echo "$DESIGN" ;;
+            *check_name=leaks*) echo "$LEAKS" ;;
+            *) echo none ;;
         esac ;;
-    *statuses*) echo false ;;
+    *statuses*)
+        if [ "$LOCAL_BUILD" = success ]; then
+            printf '{"id":1,"url":"https://api.github.com/repos/kaczordodgers/notchcast/statuses/%s","state":"success"}\n' "$HEAD_SHA"
+        fi ;;
     *) exit 3 ;;
 esac
 STUB
@@ -37,7 +41,7 @@ export REAL_GIT=$(command -v git)
 cd "$scratch/repo"
 git init -q
 export PATH="$scratch/bin:$PATH" HEAD_SHA=0123456789012345678901234567890123456789
-export CALLS="$scratch/calls" BASE_NAME=main BUILD=success DESIGN=success LEAKS=success
+export CALLS="$scratch/calls" BASE_NAME=main BUILD=success DESIGN=success LEAKS=success LOCAL_BUILD=none
 run() {
     : > "$CALLS"
     status=0
@@ -49,7 +53,7 @@ grep -q 'REFUSED:.*main' "$scratch/output" || { echo 'FAIL: non-main PR was acce
 echo 'PASS: non-main base refused'
 export BASE_NAME=main
 for name in BUILD DESIGN LEAKS; do
-    for verdict in failure pending none cancelled; do
+    for verdict in failure pending; do
         export "$name=$verdict"
         run
         grep -qi "REFUSED:.*$name" "$scratch/output" || { echo "FAIL: $name $verdict accepted"; exit 1; }
@@ -58,6 +62,18 @@ for name in BUILD DESIGN LEAKS; do
     done
     export "$name=success"
 done
+for name in DESIGN LEAKS; do
+    export "$name=none"
+    run
+    [ "$status" -eq 77 ] || { cat "$scratch/output"; echo "FAIL: absent $name refused"; exit 1; }
+    echo "PASS: absent $name allowed"
+    export "$name=success"
+done
+export BUILD=pending LOCAL_BUILD=success
+run
+[ "$status" -eq 77 ] || { cat "$scratch/output"; echo 'FAIL: local build lane refused'; exit 1; }
+echo 'PASS: local build lane accepted'
+export BUILD=success LOCAL_BUILD=none
 run
 [ "$status" -eq 77 ]
 grep -q REACHED_MERGE "$scratch/output"

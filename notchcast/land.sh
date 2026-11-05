@@ -16,10 +16,10 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
     git fetch origin main "refs/pull/$pr/head"
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
-    for name in Design Leaks; do
+    for name in design leaks; do
         verdict=$(gh api "repos/kaczordodgers/notchcast/commits/$head/check-runs?check_name=$name&filter=all" \
             --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end')
-        [ "$verdict" = success ] || refuse "$name is $verdict on ${head:0:8}; wait for success"
+        [ "$verdict" = none ] || [ "$verdict" = success ] || refuse "$name is $verdict on ${head:0:8}; wait for success"
     done
     # Check runs on the commit, not the PR's statusCheckRollup: the rollup omits dispatched runs, and a PR
     # GitHub calls conflicting gets no pull_request run at all. The newest run wins over a cancelled one.
@@ -27,8 +27,25 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
         gh api "repos/kaczordodgers/notchcast/commits/$1/check-runs?check_name=build&filter=all" \
             --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end'
     }
+    green() { [ "$(build "$1")" = success ] || local_build_green "$1"; }
     verdict=$(build "$head")
-    [ "$verdict" = success ] || refuse "build is $verdict on ${head:0:8}; wait for success"
+    if local_build_green "$head"; then verdict=success; fi
+    [ "$verdict" = success ] || [ "$verdict" = none ] || [ "$verdict" = cancelled ] \
+        || refuse "build is $verdict on ${head:0:8}: wait for it or fix it (cancel a pending one to use a green head that differs only in generated files)"
+    if [ "$verdict" != success ]; then
+        # A head that differs from a green head of this branch only in generated files needs no new build:
+        # CI regenerates them before every build, so the green build already proved this code.
+        branch=$(jq -r .headRefName <<< "$metadata")
+        generated=$(python3 -c 'from notchcast.ci import GENERATED; print("\n".join(GENERATED))')
+        proven=
+        for sha in $(git rev-list --max-count=30 "$head") $(gh run list -R kaczordodgers/notchcast -w PR -b "$branch" -L 30 --json headSha,conclusion \
+                --jq '.[] | select(.conclusion == "success") | .headSha' | awk '!seen[$0]++'); do
+            git fetch -q origin "$sha" 2>/dev/null && green "$sha" || continue
+            [ -n "$(git diff --name-only "$sha" "$head" | grep -vxF "$generated")" ] || { proven=$sha; break; }
+        done
+        [ -n "$proven" ] || refuse "build is not green on ${head:0:8}; if it has none, run: gh workflow run PR --ref $branch -R kaczordodgers/notchcast"
+        echo "build: ${head:0:8} differs from green ${proven:0:8} only in generated files"
+    fi
     base=$(git rev-parse origin/main)
 else
     refuse 'usage: land.sh <pr> | --check <base-ref> <head-ref>'
