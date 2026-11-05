@@ -12,7 +12,7 @@ extension GalleryPages {
                           "low-battery", "wifi", "tailscale", "low-disk", "meeting-reminder",
                           "dictation", "walk", "message", "danger-message",
                           "music", "music-paused", "recording", "several-items", "mac-update", "speed-test",
-                          "camera", "transcribing", "agents", "two-at-once", "music-and-timer"].map { state in
+                          "camera", "transcribing", "agents", "two-at-once", "music-and-timer", "long-message"].map { state in
                 islandPage(core, name: "island-closed-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: false)
             }
@@ -138,7 +138,8 @@ extension GalleryPages {
                             "low-battery": "Low battery: 10%", "wifi": "Wi-Fi: Connected",
                             "tailscale": "Tailscale: Connected", "low-disk": "Low disk space: 12 GB",
                             "dictation": "Dictation listening", "walk": "Daily walking goal reached.",
-                            "message": "Nothing to Import", "danger-message": "Couldn’t read the text"]
+                            "message": "Nothing to Import", "danger-message": "Couldn’t read the text",
+                            "long-message": "Export finished: 24 files saved to Downloads, 3 skipped"]
             if let text = messages[state] {
                 let danger = ["low-battery", "low-disk", "danger-message"].contains(state)
                 panel.setMessage(IslandMessage(id: UUID(), tone: danger ? .danger : (state == "status" ? .success : .neutral),

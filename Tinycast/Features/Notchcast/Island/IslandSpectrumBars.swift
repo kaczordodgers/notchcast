@@ -221,7 +221,7 @@ final class IslandSpectrumBarsView: NSView {
 
     static var width: CGFloat {
         let count = CGFloat(NotchcastTheme.SpectrumBars.count)
-        return NotchcastTheme.SpectrumBars.width * (count + (count - 1) * (NotchcastTheme.SpectrumBars.pitch - 1))
+        return NotchcastTheme.SpectrumBars.width * count + NotchcastTheme.SpectrumBars.gap * (count - 1)
     }
 
     func configure(playing: Bool, reduceMotion: Bool) {
@@ -287,7 +287,9 @@ final class IslandSpectrumBarsView: NSView {
         CATransaction.commit()
     }
 
-    private func x(_ index: Int) -> CGFloat { CGFloat(index) * barWidth * NotchcastTheme.SpectrumBars.pitch + barWidth / 2 }
+    private func x(_ index: Int) -> CGFloat {
+        CGFloat(index) * (barWidth + NotchcastTheme.SpectrumBars.gap) + barWidth / 2
+    }
 
     private func barHeight(_ level: Double) -> CGFloat { max(barWidth, maximumBar * CGFloat(level)) }
 

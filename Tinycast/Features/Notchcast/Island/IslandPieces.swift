@@ -175,9 +175,11 @@ struct IslandLevelBars: View {
     }
 }
 
-/// A transient message: the HUD pill's glyph and line. Only danger and warning carry colour.
+/// A transient message: the HUD pill's glyph and line, or either part for a notch wing. Only danger carries colour.
 struct IslandMessageLine: View {
+    enum Part { case glyph, text, row }
     let message: IslandMessage
+    var part: Part = .row
     @State private var hovered = false
 
     var body: some View {
@@ -193,18 +195,28 @@ struct IslandMessageLine: View {
         .onHover { hovered = $0 }
     }
 
+    /// A short message sits in the notch's wings, glyph left and text right, so the band stays one row; only text
+    /// past the title limit takes the row under the camera.
+    static func fitsWings(_ message: IslandMessage) -> Bool {
+        let font = NSFont.preferredFont(forTextStyle: .callout)
+        let width = (message.text as NSString).size(withAttributes: [.font: font]).width
+        return width <= NotchcastTheme.Pill.textLimit
+    }
+
     private var content: some View {
         HStack(spacing: NotchcastTheme.Pill.artworkGap) {
-            if hovered, message.onCancel != nil {
-                IslandGlyph(name: "xmark")
-            } else if message.isProgress {
-                IslandSpinner()
-            } else {
-                IslandGlyph(name: message.tone == .success ? "checkmark.circle"
-                            : (message.tone == .danger ? "exclamationmark.circle" : "info.circle"),
-                            tone: message.tone == .danger ? .danger : .plain)
+            if part != .text {
+                if hovered, message.onCancel != nil {
+                    IslandGlyph(name: "xmark")
+                } else if message.isProgress {
+                    IslandSpinner()
+                } else {
+                    IslandGlyph(name: message.tone == .success ? "checkmark.circle"
+                                : (message.tone == .danger ? "exclamationmark.circle" : "info.circle"),
+                                tone: message.tone == .danger ? .danger : .plain)
+                }
             }
-            IslandWord(text: message.text)
+            if part != .glyph { IslandWord(text: message.text) }
         }
         .frame(maxWidth: Theme.Size.hudMaxWidth, alignment: .leading)
         .fixedSize(horizontal: true, vertical: false)
@@ -219,8 +231,14 @@ struct IslandActivityLine: View {
 
     var body: some View {
         HStack(spacing: NotchcastTheme.Pill.gap) {
-            if part != .value { IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind)) }
-            if part == .row { IslandWord(text: activity.title) }
+            if part == .row {
+                HStack(spacing: NotchcastTheme.Pill.artworkGap) {
+                    IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind))
+                    IslandWord(text: activity.title)
+                }
+            } else if part == .glyph {
+                IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind))
+            }
             if part != .glyph, let value = activity.value { IslandValueView(value: value) }
         }
         .accessibilityElement(children: .combine)

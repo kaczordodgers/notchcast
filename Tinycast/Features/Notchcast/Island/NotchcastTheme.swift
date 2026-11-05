@@ -49,9 +49,10 @@ enum NotchcastTheme {
         static let inset = Theme.Spacing.xl
         /// The launcher's row icon.
         static let artwork = Theme.Size.resultRowIcon
+        /// Glyph or cover to its text: one gap in every line (the launcher's icon-to-name gap).
         static let artworkGap = Theme.Spacing.md
         static let glyph = Theme.Size.menuIcon
-        /// Glyph to word, word to value: a row's own gap.
+        /// Text to its value or bars: a row's trailing gap.
         static let gap = Theme.Spacing.lg
         /// The level readout's fixed slot, so 9% and 100% keep the pill still.
         static let readout = Theme.Size.volumeReadout
@@ -78,11 +79,12 @@ enum NotchcastTheme {
         static let delays: [TimeInterval] = [0, -0.35, -0.6, -0.15]
     }
 
-    /// Damian Tools' spectrum (`NotchBars`): seven thin bars on a Winamp fall, a dot each at rest.
+    /// Damian Tools' spectrum (`NotchBars`): seven bars on a Winamp fall, a dot each at rest, drawn at the level
+    /// bars' own stroke and gap so the two candidates compare at one size.
     enum SpectrumBars {
         static let count = 7
-        static let width: CGFloat = 1.8
-        static let pitch: CGFloat = 1.85
+        static let width = MusicBars.width
+        static let gap = MusicBars.gap
         static let height = MusicBars.height
         static let peakHeight: CGFloat = 1
         static let peakGap: CGFloat = 1
@@ -109,7 +111,8 @@ enum NotchcastTheme {
 
     /// macOS text styles at the sizes the references set: callout is 12 pt, subheadline 11 pt.
     enum Typography {
-        static let pillTitle = Font.callout.weight(.semibold)
+        /// The bar's own weight: hierarchy over the artist comes from colour, not a heavier face.
+        static let pillTitle = Theme.Typography.bar
         static let pillSubtitle = Font.subheadline
         static let activityValue = Theme.Typography.rowTrailing
         static let activityWord = Theme.Typography.bar

@@ -220,7 +220,11 @@ final class IslandPanel: NSPanel {
                      radius: hasExtraRow ? NotchcastTheme.statusRadius : NotchcastTheme.closedRadius)
     }
 
-    private var hasExtraRow: Bool { message != nil || closed.hasSecond }
+    /// A row under the camera: a message too long for the wings, or a second thing behind the primary.
+    private var hasExtraRow: Bool {
+        if let message { return !IslandMessageLine.fitsWings(message) }
+        return closed.hasSecond
+    }
 
     private var openFrame: CGRect {
         IslandGeometry.openFrame(
