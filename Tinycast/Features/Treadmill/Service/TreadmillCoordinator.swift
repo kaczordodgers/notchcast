@@ -122,7 +122,9 @@ final class TreadmillCoordinator {
         timeout = Task { [weak self] in
             do { try await Task.sleep(for: .seconds(15)) } catch { return }
             guard let self, self.generation == token else { return }
-            if let failure = self.engine.checkTimeout(now: self.clock()) { self.report(failure) }
+            let update = self.engine.checkTimeout(now: self.clock())
+            for command in update.commands { try? self.transport.send(command) }
+            if let failure = update.failure { self.report(failure) }
         }
     }
 

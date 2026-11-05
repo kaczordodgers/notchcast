@@ -5,7 +5,6 @@
   "aiUsage": "a surface (island page or launcher command) that calls refresh() and shows snapshots",
   "aiUsageOtherMac": "same aiUsage surface",
   "inUseMarks": "closed-island camera/mic mark view reading InUseMarks",
-  "treadmillWalk": "transport + controls UI or agent registration",
   "treadmillHistory": "totals/goals/lubrication view and reminder posting",
   "agentPricing": "same sessions view showing pricingReport",
   "captureTrimmer": "trimmer UI (opened after a recording) calling save",
