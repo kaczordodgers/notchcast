@@ -205,7 +205,6 @@ extension SettingsSearchCatalog {
         .init(group: .notchcast(feature: .dayCalendar), "Calendar", keywords: ["events", "day", "schedule"]),
         .init(group: .notchcast(feature: .convertFiles), LocalizedStringResource("Convert Files", table: "Notchcast"), keywords: ["convert", "pdf", "formats"]),
         .init(group: .notchcast(feature: .mediaTools), LocalizedStringResource("Media Tools", table: "Notchcast"), keywords: ["compress", "gif", "resize", "text"]),
-        .init(group: .notchcast(feature: .commandRunner), LocalizedStringResource("Command Runner", table: "Notchcast"), keywords: ["catalogue", "shell", "tasks"]),
         .init(group: .notchcast(feature: .greenMaximize), LocalizedStringResource("Green Button Maximizes", table: "Notchcast"), keywords: ["window", "maximize", "restore"]),
         .init(group: .notchcast(feature: .middleClick), LocalizedStringResource("Trackpad Middle Click", table: "Notchcast"), keywords: ["three finger", "mouse", "trackpad"]),
         .init(group: .notchcast(feature: .showDesktop), LocalizedStringResource("Show Desktop with F3", table: "Notchcast"), keywords: ["mission control", "windows"]),
