@@ -49,7 +49,7 @@ Our commits:
 
 The new bundle id and signature need Accessibility to be granted once.
 
-Before each update run, the job fetches origin `main` and runs its `notchcast/` tooling from `~/Library/Application Support/notchcast/tools`, leaving the checkout untouched; if refresh fails, it logs and uses the last extracted copy or the checkout. After this change, run `notchcast/install-launchd.sh update` once on each Mac to rewrite the job wrapper. Replacing an installed app (including `--install`) waits for at least 300 seconds of HID idle time, polling every 30 seconds for up to 25 minutes before deferring to the next run; first installs never wait.
+Before each update run, the job fetches origin `main` and runs its `notchcast/` tooling from `~/Library/Application Support/notchcast/tools`, leaving the checkout untouched; if refresh fails, it logs and uses the last extracted copy or the checkout. After this change, run `notchcast/install-launchd.sh update` once on each Mac to rewrite the job wrapper. A newer release (automatic or `--install`) installs and restarts the app at once; there is no idle wait.
 
 ## Conflict-free PRs
 
