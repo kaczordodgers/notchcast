@@ -20,7 +20,8 @@ extension BlockedDialogModule {
                 .allSatisfy { NotchcastPreferences.shared.isOn($0) }
         }, present: { owner in
             IslandActivityCenter.shared.showMessage(
-                String(localized: "Other Mac: \(owner) is waiting.", table: "Notchcast"), tone: .neutral, dwell: 8)
+                String(localized: "Other Mac: \(owner) is waiting.", table: "Notchcast"), tone: .neutral, dwell: 8,
+                id: "machBlockedDialog.\(owner)")
         })
     }
 }
