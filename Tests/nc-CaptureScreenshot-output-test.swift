@@ -54,5 +54,28 @@ struct ScreenshotOutputTest {
             preconditionFailure("Missing destination must fail")
         } catch CocoaError.fileNoSuchFile {}
         print("✓ screenshot output: naming, rect validation, collision preservation, write errors")
+        let cancelledFolder = folder.appending(path: "cancelled")
+        try FileManager.default.createDirectory(at: cancelledFolder, withIntermediateDirectories: false)
+        var clipboardWrites = 0
+        let saving = Task { @MainActor in
+            try await ScreenshotService.output(Data(repeating: 42, count: 64 * 1024 * 1024),
+                destination: .both(folder: cancelledFolder), writeClipboard: { _ in
+                    clipboardWrites += 1
+                    return true
+                }, clipboardFailure: { _ in })
+        }
+        let watcher = Task.detached {
+            while (try FileManager.default.contentsOfDirectory(atPath: cancelledFolder.path)).isEmpty {
+                await Task.yield()
+            }
+            saving.cancel()
+        }
+        let result = await saving.result
+        try await watcher.value
+        precondition(clipboardWrites == 0, "Cancelled save replaced clipboard")
+        guard case .failure(let error) = result, error is CancellationError else {
+            preconditionFailure("Cancelled save must report cancellation")
+        }
+        print("PASS: cancellation during save preserves clipboard")
     }
 }
