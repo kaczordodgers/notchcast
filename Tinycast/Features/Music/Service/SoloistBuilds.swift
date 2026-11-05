@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import OSLog
 
 @MainActor
 protocol SoloistBuildSource: AnyObject {
@@ -17,8 +18,6 @@ final class SoloistInstaller: SoloistBuildSource {
     private let now: @Sendable () -> Date
     private let fetch: Fetch
     private let probe: Probe
-    private var failures = 0
-    private var retryAt: Date?
 
     init(files: SoloistFiles = SoloistFiles(), now: @escaping @Sendable () -> Date = Date.init,
          fetch: @escaping Fetch = SoloistInstaller.download, probe: @escaping Probe = SoloistInstaller.version) {
@@ -32,21 +31,19 @@ final class SoloistInstaller: SoloistBuildSource {
         try await Self.scan(files: files, excluding: excluding, now: now(), probe: probe)
     }
 
+    /// Only the Download button installs, so every press tries again; a failure names its step.
     func install() async throws -> SoloistBuild {
         try Task.checkCancellation()
-        if let retryAt, now() < retryAt { throw SoloistFailure.retryAfter(retryAt) }
         do {
             let build = try await Self.unpack(files: files, fetch: fetch, now: now, probe: probe)
             try Task.checkCancellation()
-            failures = 0
-            retryAt = nil
             return build
         } catch {
             try Task.checkCancellation()
-            let delay = min(86_400, 3_600 * pow(2, Double(min(failures, 5))))
-            failures += 1
-            retryAt = now().addingTimeInterval(delay)
-            throw (error as? SoloistFailure) ?? .download
+            let failure = (error as? SoloistFailure) ?? .filesystem.detail(SoloistFailure.describe(error))
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast.app", category: "Soloist")
+                .error("Soloist download: \(String(describing: failure), privacy: .public)")
+            throw failure
         }
     }
 
@@ -82,7 +79,7 @@ final class SoloistInstaller: SoloistBuildSource {
         defer { try? FileManager.default.removeItem(at: staging) }
         let data = try await fetch(address)
         try Task.checkCancellation()
-        guard data.count <= SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive }
+        guard data.count <= SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive.detail("\(data.count) bytes") }
         return try await extract(data, staging: staging, files: files, now: now, probe: probe)
     }
 
@@ -99,10 +96,15 @@ final class SoloistInstaller: SoloistBuildSource {
         let staged = unpacked.appending(path: "soloist")
         let values = try staged.resourceValues(forKeys: [.isRegularFileKey, .isSymbolicLinkKey, .fileSizeKey])
         guard values.isRegularFile == true, values.isSymbolicLink != true,
-              let size = values.fileSize, size <= SoloistArchiveRules.maxUnpacked else { throw SoloistFailure.archive }
+              let size = values.fileSize, size <= SoloistArchiveRules.maxUnpacked else {
+            throw SoloistFailure.archive.detail("soloist: not a regular file under the size limit")
+        }
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: staged.path)
-        guard let build = try await probe(staged), SoloistBuild.isUsable(built: build.built, now: now()) else {
-            throw SoloistFailure.refusedBuild
+        guard let build = try await probe(staged) else {
+            throw SoloistFailure.refusedBuild.detail("soloist --version: no version")
+        }
+        guard SoloistBuild.isUsable(built: build.built, now: now()) else {
+            throw SoloistFailure.refusedBuild.detail("soloist \(build.version): built \(build.built.ISO8601Format())")
         }
         try Task.checkCancellation()
         let digest = sha256(try Data(contentsOf: staged))
@@ -138,8 +140,16 @@ final class SoloistInstaller: SoloistBuildSource {
 
     @concurrent
     private static func tar(_ arguments: [String]) async throws -> String {
-        let output = try await SoloistProcess.run(URL(filePath: "/usr/bin/tar"), arguments: arguments)
-        guard output.status == 0 else { throw SoloistFailure.archive }
+        let output: SoloistProcess.Output
+        do {
+            output = try await SoloistProcess.run(URL(filePath: "/usr/bin/tar"), arguments: arguments)
+        } catch let failure as SoloistFailure {
+            throw SoloistFailure.unpack.detail(SoloistFailure.describe(failure))
+        }
+        guard output.status == 0 else {
+            let said = output.text.split(separator: "\n").prefix(2).joined(separator: " ").prefix(300)
+            throw SoloistFailure.unpack.detail("tar \(arguments[0]) exited \(output.status): \(said)")
+        }
         return output.text
     }
 
@@ -150,19 +160,28 @@ final class SoloistInstaller: SoloistBuildSource {
         let delegate = DownloadDelegate()
         let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
         defer { session.invalidateAndCancel() }
-        let (bytes, response) = try await session.bytes(for: URLRequest(url: url, timeoutInterval: 60))
-        guard let http = response as? HTTPURLResponse else { throw SoloistFailure.download }
-        guard http.statusCode == 200 else { throw SoloistFailure.httpStatus(http.statusCode) }
-        guard response.url == url, response.expectedContentLength <= SoloistArchiveRules.maxPacked else {
-            throw SoloistFailure.archive
+        do {
+            let (bytes, response) = try await session.bytes(for: URLRequest(url: url, timeoutInterval: 60))
+            guard let http = response as? HTTPURLResponse else { throw SoloistFailure.download.detail("not an HTTP response") }
+            guard http.statusCode == 200 else { throw SoloistFailure.httpStatus(http.statusCode) }
+            guard response.url == url else {
+                throw SoloistFailure.download.detail("answered from \(response.url?.absoluteString ?? "no address")")
+            }
+            guard response.expectedContentLength <= SoloistArchiveRules.maxPacked else {
+                throw SoloistFailure.archive.detail("\(response.expectedContentLength) bytes")
+            }
+            var data = Data()
+            for try await byte in bytes {
+                try Task.checkCancellation()
+                guard data.count < SoloistArchiveRules.maxPacked else {
+                    throw SoloistFailure.archive.detail("over \(data.count) bytes")
+                }
+                data.append(byte)
+            }
+            return data
+        } catch let error where !(error is SoloistFailure || error is CancellationError) {
+            throw SoloistFailure.download.detail(SoloistFailure.describe(error))
         }
-        var data = Data()
-        for try await byte in bytes {
-            try Task.checkCancellation()
-            guard data.count < SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive }
-            data.append(byte)
-        }
-        return data
     }
 
     nonisolated static func readDownload(_ file: URL) throws -> Data {
