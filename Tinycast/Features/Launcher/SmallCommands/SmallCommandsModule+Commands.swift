@@ -27,7 +27,7 @@ extension SmallCommandsModule {
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
         run: { NotchcastCore.smallCommands.runFromLauncher(.airDrop) })
 
-    func runFromLauncher(_ action: Action,
+    func runFromLauncher(_ action: Action, argument: String = "",
                          execute: ((Action) async throws -> String?)? = nil,
                          copy: @escaping (String) -> Bool = {
                              NSPasteboard.general.clearContents()
@@ -41,7 +41,12 @@ extension SmallCommandsModule {
         commandTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let text = try await (execute ?? perform)(action)
+                let text: String?
+                if let execute {
+                    text = try await execute(action)
+                } else {
+                    text = try await perform(action, argument: argument)
+                }
                 guard !Task.isCancelled, isRunning else { return }
                 if let text {
                     report(copy(text) ? String(localized: "Copied") : String(localized: "Could not copy to clipboard.", table: "Notchcast"))
@@ -56,12 +61,12 @@ extension SmallCommandsModule {
         }
     }
 
-    private func perform(_ action: Action) async throws -> String? {
+    private func perform(_ action: Action, argument: String) async throws -> String? {
         switch action {
         case .password:
             return try randomPassword()
         case .shorten:
-            guard let shortener, let address = ShortenLinkService.pick(argument: "", frontAddress: nil,
+            guard let shortener, let address = ShortenLinkService.pick(argument: argument, frontAddress: nil,
                 clipboard: NSPasteboard.general.string(forType: .string)) else { throw Failure.disabled }
             return try await shortener.shorten(address)
         case .noise:
