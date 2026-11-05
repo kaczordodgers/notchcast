@@ -34,7 +34,7 @@ body:
     id: macos
     attributes:
       label: macOS version and Mac
-      placeholder: macOS 26.1, MacBook Air M3 with notch, one external display
+      placeholder: macOS 26.1, a Mac with a notch, one external display
     validations:
       required: true
   - type: textarea

@@ -17,7 +17,7 @@ replay-fixes/<lowercase subject, non-alphanumerics hyphenated>.patch or fail.
 Failures are remembered as refs/notchcast-failed/<main|release-<tag>>-<upstream or tag>-<our main>, so the same
 input is retried only when upstream or our main changes, and reported as one open issue per kind (label
 notchcast-<kind>: sync = replay onto new upstream, main = main tested as it is, release), which a newer failure with
-the same cause only retitles; notchcast/update.sh tells Chad once per issue and cause.
+the same cause only retitles; notchcast/update.sh reports each issue and cause once through its notify hook.
 """
 import json
 import os
@@ -325,7 +325,7 @@ def issue(action, kind, *args):
 
 def design_notice(tree, old, new):
     """One notchcast-design issue per sync that brings upstream design-system changes; update.sh turns it into a
-    Todoist task and closes it."""
+    private task and closes it."""
     cfg = config()
     url = f"https://github.com/{cfg['UPSTREAM_REPO']}/commit"
     commits = run("git", "log", f"--format=- [`%h`]({url}/%H) %s", f"{old}..{new}", "--", *DESIGN_PATHS, cwd=tree)

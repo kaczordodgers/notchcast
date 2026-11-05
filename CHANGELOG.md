@@ -112,7 +112,7 @@ No user-visible changes.
 
 - Number badges on the first nine launcher results. [#334](https://github.com/kaczordodgers/notchcast/pull/334)
 - Walking pad commands in the launcher. [#256](https://github.com/kaczordodgers/notchcast/pull/256)
-- Fleet Panel for T3 Code threads on both Macs. [#312](https://github.com/kaczordodgers/notchcast/pull/312)
+- Fleet Panel for T3 Code threads on paired Macs. [#312](https://github.com/kaczordodgers/notchcast/pull/312)
 
 ### Fixed
 

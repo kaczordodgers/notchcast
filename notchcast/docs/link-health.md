@@ -17,4 +17,4 @@ monitoring. Stopping resets the snapshot and cancels polling; late results are d
 
 This measures the paired MachLink peer only. Cable routing, mirror freshness and
 external control-plane state are outside this implementation. No address is compiled in.
-Live checks between Macs remain for the morning build; the harness uses synthetic data.
+Live checks between Macs remain manual; the harness uses synthetic data.
