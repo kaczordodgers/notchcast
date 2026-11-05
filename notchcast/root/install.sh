@@ -38,9 +38,6 @@ if [ "$uninstall" -eq 1 ]; then
     exit 0
 fi
 
-step /bin/rm -f "$rule"
-step /bin/rm -f "$helper"
-
 console_user=$(/usr/bin/stat -f '%Su' /dev/console)
 if [[ ! "$console_user" =~ ^[a-z_][a-z0-9_.-]{0,30}$ ]] || [ "$console_user" = root ]; then
     printf 'A signed-in console user with a plain account name is required.\n' >&2
@@ -117,6 +114,8 @@ for destination in "$helper" "$rule"; do
         exit 65
     fi
 done
+step /bin/rm -f "$rule"
+step /bin/rm -f "$helper"
 step /usr/bin/install -o root -g wheel -m 0755 "$stage/helper" "$helper"
 if [ "$dry_run" -eq 1 ]; then
     staged_rule='/etc/sudoers.d/.notchcast.XXXXXX'
