@@ -183,12 +183,7 @@ final class MonitorStore {
 
     private func update() {
         let alertsOnly = visibleDemand == 0
-        if samplingAlertsOnly != alertsOnly {
-            generation += 1
-            worker?.cancel()
-            worker = nil
-            samplingAlertsOnly = alertsOnly
-        }
+        samplingAlertsOnly = alertsOnly
         guard enabled, let cadence = MonitorCadence.next(isVisible: demand > 0) else {
             generation += 1
             worker?.cancel()
@@ -197,21 +192,26 @@ final class MonitorStore {
         }
         guard worker == nil else { return }
         let identity = generation
-        let sample = alertsOnly ? alertSample : sample
+        let sample = sample
+        let alertSample = alertSample
         let sleep = sleep
         worker = Task { [weak self] in
-            let stream = AsyncStream<MonitorSnapshot> { continuation in
-                let producer = Task.detached {
+            let stream = AsyncStream<(MonitorSnapshot, Bool)> { continuation in
+                let producer = Task.detached { [weak self] in
                     var cpu = CPUSampler()
                     var disk = DiskSampler()
                     var network = NetworkSampler()
                     var sensors = SMCSensorReader()
                     var processes = ProcessSampler()
                     while !Task.isCancelled {
+                        guard let alertsOnly = await self?.samplingAlertsOnly else { break }
+                        let sampler = alertsOnly ? alertSample : sample
                         let reading: MonitorSnapshot
-                        if let sample {
-                            reading = await sample()
+                        if let sampler {
+                            reading = await sampler()
                         } else if alertsOnly {
+                            _ = disk.sample(now: ProcessInfo.processInfo.systemUptime)
+                            _ = network.sample()
                             reading = MonitorSnapshot(
                                 cpu: cpu.sample(), memory: MemorySampler().read(),
                                 volumes: disk.read(bootOnly: true), battery: BatteryService().read(),
@@ -224,14 +224,14 @@ final class MonitorStore {
                                 battery: BatteryService().read(), sensors: sensors.read(), processes: processes.sample())
                         }
                         guard !Task.isCancelled else { break }
-                        continuation.yield(reading)
+                        continuation.yield((reading, alertsOnly))
                         do { try await sleep(.seconds(cadence.interval)) } catch { break }
                     }
                     continuation.finish()
                 }
                 continuation.onTermination = { _ in producer.cancel() }
             }
-            for await reading in stream {
+            for await (reading, alertsOnly) in stream {
                 guard !Task.isCancelled, let self, self.generation == identity,
                       self.enabled, self.demand > 0 else { break }
                 self.latest = reading

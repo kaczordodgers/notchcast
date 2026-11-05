@@ -120,9 +120,20 @@ struct MonitorAlertsTests {
             edited.evaluate(highSample(), rules: [
                 .cpu: .init(direction: .above, threshold: threshold, recoverValue: 80, sustainCount: 1)
             ], enabled: true, demand: 1, at: Date(timeIntervalSince1970: time))
-            precondition(editCalls == (time < 900 ? 1 : 2), "threshold edit must preserve 15-minute cooldown")
+            precondition(editCalls == 1, "threshold edit must preserve active state beyond cooldown")
         }
-        print("PASS: threshold edit preserves cooldown and fires after expiry")
+        let recovered = MonitorSnapshot(cpu: CPUReading(
+            usage: .init(totalPercent: 79, userPercent: 79, systemPercent: 0),
+            cores: [], loadAverage: nil))
+        let editedRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [
+            .cpu: .init(direction: .above, threshold: 85, recoverValue: 80, sustainCount: 1)
+        ]
+        edited.evaluate(recovered, rules: editedRules, enabled: true, demand: 1,
+                        at: Date(timeIntervalSince1970: 902))
+        edited.evaluate(highSample(), rules: editedRules, enabled: true, demand: 1,
+                        at: Date(timeIntervalSince1970: 903))
+        precondition(editCalls == 2, "recovery permits a new alert after threshold edit")
+        print("PASS: threshold edit retains active alert until recovery")
         print("PASS: threshold crossing, hysteresis, cooldown, disabled and no-demand gating")
     }
 }

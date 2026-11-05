@@ -59,7 +59,9 @@ struct MonitorStoreTests {
 
     static func main() async {
         let probe = SampleProbe()
-        let store = MonitorStore(sample: { await probe.sample() })
+        let alertProbe = SampleProbe()
+        let store = MonitorStore(sample: { await probe.sample() },
+                                 alertSample: { await alertProbe.sample() })
         store.start()
         await settle()
         precondition(probe.count == 0 && store.demand == 0)
@@ -101,9 +103,17 @@ struct MonitorStoreTests {
         }
         preferences.set(.monitorAlerts, true)
         await settle()
+        precondition(alertProbe.count > 0, "alerts-only probe must run")
+        precondition(store.latest.cpu?.usage?.totalPercent == 25, "alert values reach latest")
+        let history = store.histories["cpu"]?.values
+        await settle()
+        precondition(store.histories["cpu"]?.values == history, "alerts leave histories untouched")
         let visible = store.beginDemand()
-        for _ in 0..<1000 where probe.count == initialCount { await Task.yield() }
+        try? await Task.sleep(for: .seconds(3))
         precondition(probe.count > initialCount, "visible demand switches to full sampler")
+        let alertCount = alertProbe.count
+        try? await Task.sleep(for: .seconds(3))
+        precondition(alertProbe.count == alertCount, "page demand stops alert sampler")
         visible.cancel()
         print("PASS: alerts-only demand skips full sampler; visible demand resumes it")
         module.stop()
@@ -119,6 +129,33 @@ struct MonitorStoreTests {
         preferences.set(.monitorAlerts, false)
         await settle()
         precondition(store.demand == 0)
+
+        let continuity = MonitorStore()
+        continuity.start()
+        let background = continuity.beginDemand(alertsOnly: true)
+        try? await Task.sleep(for: .seconds(3))
+        precondition(continuity.latest.cpu?.usage != nil)
+        var continuityCalls = 0
+        let continuityAlerts = MonitorAlerts { _ in continuityCalls += 1 }
+        let continuityRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [
+            .cpu: .init(direction: .above, threshold: -1, recoverValue: -2, sustainCount: 2)
+        ]
+        continuityAlerts.evaluate(continuity.latest, rules: continuityRules, enabled: true,
+                                  demand: 1, at: Date())
+        let page = continuity.beginDemand()
+        try? await Task.sleep(for: .seconds(2.2))
+        precondition(continuity.latest.cpu?.usage != nil, "first page sample retains CPU baseline")
+        precondition(continuity.latest.network.map { $0.downBytesPerSecond != nil } ?? true,
+                     "first page sample retains network baseline")
+        precondition(continuity.latest.disk.allSatisfy { $0.readBytesPerSecond != nil },
+                     "first page sample retains disk baseline")
+        continuityAlerts.evaluate(continuity.latest, rules: continuityRules, enabled: true,
+                                  demand: 2, at: Date())
+        precondition(continuityCalls == 1, "page opening preserves CPU breach streak")
+        page.cancel()
+        background.cancel()
+        continuity.stop()
+        print("PASS: first page sample has continuous rates and CPU alert streak")
 
         for failure in [RootHelperClient.Failure.timedOut, .launchFailed, .executionFailed(2)] {
             let fake = FakeFans()
