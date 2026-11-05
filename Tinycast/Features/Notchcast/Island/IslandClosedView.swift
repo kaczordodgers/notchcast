@@ -67,7 +67,8 @@ struct IslandClosedView: View {
                     Color.clear.frame(width: NotchcastTheme.monitorPill.width - NotchcastTheme.Pill.inset * 2)
                 }
             }
-            .padding(.horizontal, NotchcastTheme.Pill.inset)
+            .padding(.leading, NotchcastTheme.Pill.inset)
+            .padding(.trailing, endsInButton ? NotchcastTheme.Card.trailing : NotchcastTheme.Pill.inset)
             .frame(height: NotchcastTheme.rowHeight)
             if message == nil, state.hasSecond {
                 bubble.frame(width: NotchcastTheme.Pill.bubble, height: NotchcastTheme.Pill.bubble)
@@ -106,9 +107,11 @@ struct IslandClosedView: View {
         if let second = state.secondary {
             IslandActivityLine(activity: second, part: .glyph)
         } else if let music = state.music {
-            IslandMusicLine(music: music, part: .artwork)
+            IslandMusicLine(music: music, part: .bubble)
         }
     }
+
+    private var endsInButton: Bool { message == nil && state.primary?.action != nil }
 
     private var wingWidth: CGFloat {
         context.wingWidth(contentWidth: max(leadingWidth, trailingWidth), minimum: NotchcastTheme.minimumWing)

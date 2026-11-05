@@ -52,6 +52,8 @@ enum NotchcastTheme {
         /// Glyph or cover to its text: one gap in every line (the launcher's icon-to-name gap).
         static let artworkGap = Theme.Spacing.md
         static let glyph = Theme.Size.menuIcon
+        /// The symbol in that slot: the menu row's; the HUD pill too draws text-sized marks in it.
+        static let symbol = Theme.Typography.menuSymbolSize
         /// Text to its value or bars: a row's trailing gap.
         static let gap = Theme.Spacing.lg
         /// The level readout's fixed slot, so 9% and 100% keep the pill still.
@@ -66,9 +68,12 @@ enum NotchcastTheme {
         static let scrollRest: TimeInterval = 1.2
     }
 
-    /// A card's button: the bar button's height, the bar's type, the footer capsule's fill.
+    /// A card's button: the footer's action group, a bar button held `xs` inside a row-high capsule.
     enum Card {
         static let button = Theme.Size.barButtonHeight
+        static let inset = Theme.Spacing.md
+        /// The capsule's end past the button, as wide as the gap above it, so the two ends are concentric.
+        static let trailing = Theme.Spacing.xs
     }
 
     /// The level beside a playing song: Orion's four bars (`LevelBars`), white.
@@ -132,7 +137,11 @@ enum NotchcastTheme {
         static let secondary = Theme.Colors.textSecondary
         static let tertiary = Theme.Colors.textTertiary
         static let selection = Theme.Colors.selection
-        static let tile = Theme.Colors.cardFill
+        /// A card's button and a value chip: Tinycast's small control surface and its hover step.
+        static let control = Theme.Colors.controlSurface
+        static let controlHover = Theme.Colors.controlHover
+        /// The square a missing album cover leaves, the row icon's own placeholder.
+        static let placeholder = Theme.Colors.iconPlaceholder
         /// Only an error and a warning carry colour in a closed state (look-decisions, Messages).
         static let danger = Theme.Colors.destructive
         static let warning = Theme.Colors.warning

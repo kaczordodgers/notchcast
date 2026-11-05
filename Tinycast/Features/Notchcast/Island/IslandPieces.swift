@@ -11,7 +11,7 @@ struct IslandGlyph: View {
     var tone: Tone = .plain
 
     var body: some View {
-        SymbolImage(name: name, size: NotchcastTheme.Pill.glyph)
+        SymbolImage(name: name, size: NotchcastTheme.Pill.symbol)
             .foregroundStyle(tone == .danger ? NotchcastTheme.Colors.danger
                              : tone == .warning ? NotchcastTheme.Colors.warning : NotchcastTheme.Colors.primary)
             .frame(width: NotchcastTheme.Pill.glyph, height: NotchcastTheme.Pill.glyph)
@@ -22,7 +22,7 @@ struct IslandGlyph: View {
 /// The spinner a state shows while it knows nothing better: the message HUD's own.
 struct IslandSpinner: View {
     var body: some View {
-        SymbolImage(name: "progress.indicator", size: NotchcastTheme.Pill.glyph)
+        SymbolImage(name: "progress.indicator", size: NotchcastTheme.Pill.symbol)
             .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing)
             .foregroundStyle(NotchcastTheme.Colors.primary)
             .frame(width: NotchcastTheme.Pill.glyph, height: NotchcastTheme.Pill.glyph)
@@ -33,6 +33,7 @@ struct IslandSpinner: View {
 /// A state's value, in the row's trailing type with still digits; a percent keeps the volume HUD's readout slot.
 struct IslandValueView: View {
     let value: IslandActivity.Value
+    var font = NotchcastTheme.Typography.activityValue
 
     var body: some View {
         Group {
@@ -54,7 +55,7 @@ struct IslandValueView: View {
                 IslandSpinner()
             }
         }
-        .font(NotchcastTheme.Typography.activityValue)
+        .font(font)
         .monospacedDigit()
         .foregroundStyle(NotchcastTheme.Colors.primary)
         .lineLimit(1)
@@ -76,23 +77,25 @@ struct IslandWord: View {
     }
 }
 
-/// The album cover at the row icon's size, or a quiet note while the player gave none.
+/// The album cover at the row icon's size, or a quiet note; round in the bubble, concentric with it.
 struct IslandArtwork: View {
     let image: NSImage?
+    var round = false
 
     var body: some View {
         Group {
             if let image {
                 Image(nsImage: image).resizable().scaledToFill()
             } else {
-                SymbolImage(name: "music.note", size: NotchcastTheme.Pill.glyph)
+                SymbolImage(name: "music.note", size: NotchcastTheme.Pill.symbol)
                     .foregroundStyle(NotchcastTheme.Colors.secondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(NotchcastTheme.Colors.tile)
+                    .background(NotchcastTheme.Colors.placeholder)
             }
         }
         .frame(width: NotchcastTheme.Pill.artwork, height: NotchcastTheme.Pill.artwork)
-        .clipShape(RoundedRectangle(cornerRadius: NotchcastTheme.Corners.artwork, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: round ? NotchcastTheme.Pill.artwork / 2
+                                        : NotchcastTheme.Corners.artwork, style: .continuous))
         .accessibilityHidden(true)
     }
 }
@@ -265,21 +268,25 @@ struct IslandMessageLine: View {
     }
 }
 
-/// The one button a card carries, in the bar's own capsule (the launcher footer's "Open" capsule).
+/// A card's one button: the footer's bar button, on a control surface as the black has no glass.
 struct IslandActionButton: View {
     let title: String
     let run: () -> Void
+    @State private var hovered = false
 
     var body: some View {
         Button(action: run) {
             Text(title)
                 .font(NotchcastTheme.Typography.activityWord)
                 .foregroundStyle(NotchcastTheme.Colors.primary)
-                .padding(.horizontal, NotchcastTheme.Pill.inset)
+                .padding(.horizontal, NotchcastTheme.Card.inset)
                 .frame(height: NotchcastTheme.Card.button)
-                .background(NotchcastTheme.Colors.tile, in: Capsule())
+                .contentShape(Capsule())
+                .background(hovered ? NotchcastTheme.Colors.controlHover : NotchcastTheme.Colors.control,
+                            in: Capsule())
         }
         .buttonStyle(.plain)
+        .onHover { hovered = $0 }
         .accessibilityLabel(title)
     }
 }
@@ -321,17 +328,17 @@ struct IslandActivityLine: View {
     }
 }
 
-/// A song as a row: cover, title over artist, bars; or any part of it, for a notch wing.
+/// A song as a row: cover, title over artist, bars; or any part of it, for a notch wing or the bubble.
 struct IslandMusicLine: View {
-    enum Part { case artwork, bars, row }
+    enum Part { case artwork, bars, row, bubble }
     let music: IslandClosedState.Music
     var part: Part = .row
 
     var body: some View {
         HStack(spacing: NotchcastTheme.Pill.artworkGap) {
-            if part != .bars { IslandArtwork(image: music.artwork) }
+            if part != .bars { IslandArtwork(image: music.artwork, round: part == .bubble) }
             if part == .row { IslandTrackText(title: music.title, artist: music.artist) }
-            if part != .artwork {
+            if part == .row || part == .bars {
                 IslandLevelBars(moving: music.isPlaying)
                     .padding(.leading, part == .row ? NotchcastTheme.Pill.gap - NotchcastTheme.Pill.artworkGap : 0)
             }
