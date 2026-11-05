@@ -546,6 +546,7 @@
 		4AA8CC016C58742B6C149157 /* FinderToolsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0D8BA70CE92BA53B264422 /* FinderToolsModule.swift */; };
 		4ACBD3E39FCED30BE56CD00F /* NotchcastCommandCatalog+All.swift in Sources */ = {isa = PBXBuildFile; fileRef = 361CEDE35F1081E9ADC733F4 /* NotchcastCommandCatalog+All.swift */; };
 		4B0636C7E4AD3EEFD9D6705A /* AgentSessionPricing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 604C477C402FE620D4269F1D /* AgentSessionPricing.swift */; };
+		4B52AFEF9AED73A483ADFCE0 /* Notchcast.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D43A3532CAB4412682B295A6 /* Notchcast.xcstrings */; };
 		4B5E78B9A46001F16AFA0800 /* DistillDocumentReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E657F237CC8E38BE597C7D6 /* DistillDocumentReader.swift */; };
 		4B5EDBD483DFFEAC3BDDD72D /* MusicLaunchBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7DF440B42A3C578B5466FF /* MusicLaunchBlocker.swift */; };
 		4B7E0EB3EB9ABF2E1918286D /* FinderImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD5C7B3C2751E33CE470A60 /* FinderImageService.swift */; };
@@ -3528,6 +3529,7 @@
 		D3C748E631A87882F0907072 /* CommandRunnerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandRunnerModule.swift; sourceTree = "<group>"; };
 		D3F82845FDA307DF71676352 /* CalendarAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarAccess.swift; sourceTree = "<group>"; };
 		D3FAE967202A55A0C937776A /* TodoDayBucket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDayBucket.swift; sourceTree = "<group>"; };
+		D43A3532CAB4412682B295A6 /* Notchcast.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Notchcast.xcstrings; sourceTree = "<group>"; };
 		D43E5D47E198B86901D75515 /* ChatGPTSubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatGPTSubscription.swift; sourceTree = "<group>"; };
 		D43F1080FB443A1D0616790E /* FavoritesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesStore.swift; sourceTree = "<group>"; };
 		D4462AB0E866F02397B57EC6 /* MeetingDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingDetails.swift; sourceTree = "<group>"; };
@@ -7820,6 +7822,7 @@
 				1D2472AA0A370E1D5A3C4025 /* EmojiKeywords */,
 				38BFF5870110FAA6C85E34D9 /* InfoPlist.xcstrings */,
 				95C2F7AE05BF02E8465E426B /* Localizable.xcstrings */,
+				D43A3532CAB4412682B295A6 /* Notchcast.xcstrings */,
 				74284B4E771DA0B2869C914E /* RaycastRuntime.generated.js */,
 			);
 			path = Resources;
@@ -9678,6 +9681,7 @@
 				93760F54AB37EECDF7317FCC /* LICENSE.upstream in Resources */,
 				3F6F43462780AF066D8E58C3 /* Localizable.xcstrings in Resources */,
 				6B3A9A37600C941DF38F9171 /* NOTICE.md in Resources */,
+				4B52AFEF9AED73A483ADFCE0 /* Notchcast.xcstrings in Resources */,
 				6C1CA140E9905C08807A825E /* QuitProtection.xcstrings in Resources */,
 				694B7E1A8C7C2D6DF26D3BF9 /* RaycastRuntime.generated.js in Resources */,
 				BA1D69A1EC7EF1E8D44CA571 /* SendFiles.xcstrings in Resources */,
