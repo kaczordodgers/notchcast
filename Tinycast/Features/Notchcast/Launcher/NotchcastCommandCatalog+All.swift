@@ -50,6 +50,8 @@ extension NotchcastCommandCatalog {
         MachRemoteModule.updateCommand,
         AgentSessionsModule.refreshCommand,
         OpenBotAgentsModule.refreshCommand,
+        AgentThreadsModule.refreshCommand,
+        AgentThreadsModule.waitingCommand,
         MusicCommands.openCurrentPlayerCommand,
         MusicCommands.resumeLastPlayerCommand,
         MusicCommands.speakerOnCommand,

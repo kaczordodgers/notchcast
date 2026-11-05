@@ -208,6 +208,7 @@ enum ForkSettingsBackupSchema {
         "torrents",
         "agentSessions",
         "openBotAgents",
+        "agentThreads",
         "torrentsUseIPhone",
         "torrentsKeepSharing",
         "tasks",

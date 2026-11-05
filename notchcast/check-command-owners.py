@@ -36,7 +36,7 @@ for entry in entries:
         definition = text[start:]
     symbol = re.search(r'sfSymbol: [^,]+,', definition)
     assert symbol, entry
-    match = re.match(r' feature: ([\w.]+)', definition[symbol.end():])
+    match = re.match(r'\s+feature: ([\w.]+)', definition[symbol.end():])
     assert match, f'{entry}: missing feature in {path}'
     owner = match[1]
     if owner == 'action.feature':
