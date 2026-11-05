@@ -246,10 +246,11 @@ struct NotchcastCommand: Sendable {
             let original = preferences.isOn(feature)
             preferences.set(feature, !original)
             let captured = try state.snapshot()
-            precondition(captured[feature.rawValue] as? Bool == !original)
+            let effective = feature.isWired && !original
+            precondition(captured[feature.rawValue] as? Bool == effective)
             preferences.set(feature, original)
             try state.apply(captured)
-            precondition(preferences.isOn(feature) == !original)
+            precondition(preferences.isOn(feature) == effective)
             precondition(defaults.bool(forKey: feature.rawValue) == !original)
             preferences.set(feature, original)
         }
