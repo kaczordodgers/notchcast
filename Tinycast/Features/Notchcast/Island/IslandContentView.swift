@@ -15,9 +15,9 @@ struct IslandContentView: View {
                 .frame(maxWidth: .infinity)
                 .fixedSize(horizontal: false, vertical: true)
                 .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { onHeight($0) }
+                // Beside a camera the silhouette's sides stand in by its shoulders; the pages keep their inset.
+                .padding(.horizontal, hasHardwareNotch ? NotchcastTheme.openShoulder : 0)
         }
-        // Beside a camera the silhouette's sides stand in by its shoulders; the pages keep their inset.
-        .padding(.horizontal, hasHardwareNotch ? NotchcastTheme.openShoulder : 0)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .foregroundStyle(Theme.Colors.textPrimary)
         .environment(\.colorScheme, .dark)

@@ -60,8 +60,8 @@ struct IslandHeaderView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        // The list's own inset, so a tab's fill and the gear's line up with the rows' fills below.
-        .padding(.horizontal, Theme.Spacing.md)
+        // The list's inset, so the tabs' and gear's fills line up with the rows'; inside a camera's shoulders.
+        .padding(.horizontal, Theme.Spacing.md + (cameraWidth > 0 ? NotchcastTheme.openShoulder : 0))
         .frame(height: height)
     }
 
