@@ -113,7 +113,8 @@ struct MediaLevelKeysTests {
             }
         }, applied: { notices.append($0) }, replay: { replays.append($0) })
         monitor.setEnabled([.volumeUp, .volumeDown, .mute])
-        check(hub.handlers.count == 1 && hub.masks == [1 << 14], "Only system-defined events are registered")
+        check(hub.handlers.count == 1 && hub.masks == [1 << 14],
+              "Volume registers only system-defined events")
         let handler = hub.handlers.values.first!
         let system = CGEventType(rawValue: 14)!
         check(handler(system, event(.brightnessUp)) == .pass, "Other feature passes")
@@ -141,6 +142,7 @@ struct MediaLevelKeysTests {
         check(handler(system, event(.volumeDown)) == .swallow, "Failed hardware starts intercepted")
         await drain()
         check(replays.count == 1 && replays[0].key == .volumeDown, "Failure replays the original key")
+        _ = handler(system, event(.volumeDown, down: false))
         result = .cancelled
         _ = handler(system, event(.mute))
         _ = handler(system, event(.mute, repeat: true))
@@ -177,9 +179,64 @@ struct MediaLevelKeysTests {
         check(hub.refreshes == refreshes, "Off removes permission observation")
     }
 
+    static func brightnessChecks() async {
+        let hub = EventTapHub()
+        var presses: [MediaLevelKeyMonitor.Press] = []
+        let monitor = MediaLevelKeyMonitor(hub: hub, prepare: { press in
+            presses.append(press)
+            return { .cancelled }
+        }, applied: { _ in }, replay: { _ in })
+        monitor.setEnabled([.brightnessUp, .brightnessDown])
+        check(hub.masks == [(1 << 14) | (1 << 10) | (1 << 11)], "Brightness registers down and up")
+        let handler = hub.handlers.values.first!
+        let system = CGEventType(rawValue: 14)!
+        func keyboard(_ code: CGKeyCode, down: Bool, flags: CGEventFlags = []) -> CGEvent {
+            let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down)!
+            event.flags = flags
+            return event
+        }
+        for (code, key) in [(CGKeyCode(144), MediaLevelKey.brightnessUp), (145, .brightnessDown)] {
+            var policy = MediaLevelKeyPolicy()
+            let enabled: Set<MediaLevelKey> = [.brightnessUp, .brightnessDown]
+            check(policy.decide(keyCode: Int(code), isDown: true, isRepeat: false,
+                                modifiers: 0, enabled: []) == .pass, "Disabled keycodes pass")
+            for flags: UInt64 in [0, 0xA0000] {
+                let expected = MediaLevelKeyPolicy.Decision.press(key, fine: flags != 0)
+                check(policy.decide(keyCode: Int(code), isDown: true, isRepeat: false,
+                                    modifiers: flags, enabled: enabled) == expected, "Keycode step size")
+                check(policy.decide(keyCode: Int(code), isDown: true, isRepeat: true,
+                                    modifiers: flags, enabled: enabled) == expected, "Owned keycode repeats")
+                check(policy.decide(keyCode: Int(code), isDown: false, isRepeat: false,
+                                    modifiers: flags, enabled: enabled) == .swallow, "Keycode release owned")
+            }
+            for systemFirst in [false, true] {
+                let first = systemFirst ? event(key) : keyboard(code, down: true)
+                let second = systemFirst ? keyboard(code, down: true) : event(key)
+                check(handler(systemFirst ? system : .keyDown, first) == .swallow, "First down owned")
+                check(handler(systemFirst ? .keyDown : system, second) == .swallow, "Duplicate down swallowed")
+                check(handler(.keyUp, keyboard(code, down: false)) == .swallow, "Paired key up owned")
+                check(handler(system, event(key, down: false)) == .pass, "Duplicate release passes")
+                await drain()
+                check(presses.last?.key == key, "Keycode maps to the matching brightness key")
+            }
+            check(handler(.keyDown, keyboard(code, down: true, flags: .maskCommand)) == .pass,
+                  "Command modified down passes")
+            check(handler(.keyUp, keyboard(code, down: false, flags: .maskCommand)) == .pass,
+                  "Command modified up passes")
+        }
+        for code: CGKeyCode in [0, 122, 160] {
+            check(handler(.keyDown, keyboard(code, down: true)) == .pass, "Other key down passes")
+            check(handler(.keyUp, keyboard(code, down: false)) == .pass, "Other key up passes")
+        }
+        await drain()
+        check(presses.count == 4, "Each dual-delivered press executes exactly once")
+        monitor.stop()
+    }
+
     static func main() async {
         policyChecks()
         await monitorChecks()
+        await brightnessChecks()
         print("PASS: \(checks) media-key checks; unposted events, no real hardware writes")
     }
 }
