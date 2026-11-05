@@ -70,8 +70,8 @@ extension NotchcastSettingsModule {
                 .feature(.eventReminder, settings: []),
             ]),
             .init(title: "Tasks", items: [
-                .feature(.tasks, settings: [.dayAndTasksTaskImport]),
                 .feature(.todoIsland, settings: []),
+                .feature(.tasks, settings: [.dayAndTasksTaskImport]),
             ]),
             .init(title: "Timers", items: [
                 .feature(.liveTimers, settings: [.dayAndTasksTimerOptions]),
