@@ -4,7 +4,8 @@ nonisolated struct MacSetupRollbackStore: Sendable {
     enum Failure: Error, LocalizedError {
         case corruptJournal
         var errorDescription: String? {
-            "The setup rollback journal was corrupt and has been set aside. Retry to start a new journal."
+            String(localized: "The setup rollback journal was corrupt and has been set aside. Retry to start a new journal.",
+                   table: "Notchcast")
         }
     }
     let url: URL

@@ -9,7 +9,7 @@ enum CleanSystem {
               cacheAge: 30 * 86_400, logAge: 30 * 86_400)
     }
 
-    static func inspect(_ path: String) throws -> CleanSystemEntry {
+    static func inspect(_ path: String, owner: uid_t? = nil) throws -> CleanSystemEntry {
         guard !path.utf8.contains(0), path.hasPrefix("/"), "/" + path.split(separator: "/").joined(separator: "/") == path,
               !path.split(separator: "/").contains(where: { $0 == ".." || $0 == "." })
         else { throw Failure.refused }
@@ -21,6 +21,7 @@ enum CleanSystem {
             else { throw Failure.refused }
         }
         guard info.st_mode & S_IFMT != S_IFREG || info.st_nlink == 1 else { throw Failure.refused }
+        guard owner == nil || info.st_uid == owner else { throw Failure.refused }
         return .init(path: path, size: info.st_size,
                      modified: Date(timeIntervalSince1970: Double(info.st_mtimespec.tv_sec)
                         + Double(info.st_mtimespec.tv_nsec) / 1_000_000_000),
@@ -41,7 +42,7 @@ enum CleanSystem {
                 guard let walker = FileManager().enumerator(atPath: root.path) else { continue }
                 while let relative = walker.nextObject() as? String {
                     let path = root.path + "/" + relative
-                    guard let entry = try? inspect(path) else { walker.skipDescendants(); continue }
+                    guard let entry = try? inspect(path, owner: 0) else { walker.skipDescendants(); continue }
                     guard let parent = try? directory((path as NSString).deletingLastPathComponent,
                                                       owner: 0, protected: true) else { continue }
                     close(parent)
@@ -77,9 +78,18 @@ enum CleanSystem {
                                    owner: sourceOwner, protected: true)
         defer { close(source) }
         try validate(entry, policy: policy)
+        guard try inspect(entry.path, owner: sourceOwner) == entry else { throw Failure.refused }
         let name = UUID().uuidString + "-" + (entry.path as NSString).lastPathComponent
         guard renameatx_np(source, (entry.path as NSString).lastPathComponent,
                            destination, name, UInt32(RENAME_EXCL)) == 0 else { throw Failure.refused }
+    }
+
+    static func acceptsParent(_ info: stat, owner: uid_t) -> Bool {
+        guard info.st_uid == 0 || info.st_uid == owner else { return false }
+        if info.st_mode & 0o022 == 0 { return true }
+        guard info.st_uid == 0 else { return false }
+        if info.st_mode & 0o002 != 0 { return info.st_mode & S_ISVTX != 0 }
+        return info.st_gid == 80
     }
 
     private static func directory(_ path: String, owner: uid_t, protected: Bool) throws -> Int32 {
@@ -93,8 +103,8 @@ enum CleanSystem {
                 descriptor = next
                 if protected {
                     var info = stat()
-                    guard fstat(descriptor, &info) == 0, (info.st_uid == 0 || info.st_uid == owner),
-                          info.st_mode & 0o022 == 0 else { throw Failure.refused }
+                    guard fstat(descriptor, &info) == 0, acceptsParent(info, owner: owner)
+                    else { throw Failure.refused }
                 }
             }
             var info = stat()
