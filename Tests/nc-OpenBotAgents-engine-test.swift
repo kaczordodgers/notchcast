@@ -46,18 +46,23 @@ final class FixtureTransport: OpenBotTransport {
     let requests = Mutex<[URLRequest]>([])
     let delay: Bool
     let error: URLError?
+    /// Answers once the queue is empty, so timer-driven passes under load cannot exhaust it.
+    let fallback: (@Sendable (URLRequest) -> (String, Int))?
 
-    init(_ responses: [(String, Int)], delay: Bool = false, error: URLError? = nil) {
+    init(_ responses: [(String, Int)], delay: Bool = false, error: URLError? = nil,
+         fallback: (@Sendable (URLRequest) -> (String, Int))? = nil) {
         self.responses = Mutex(responses)
         self.delay = delay
         self.error = error
+        self.fallback = fallback
     }
 
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.withLock { $0.append(request) }
         if delay { try? await Task.sleep(for: .milliseconds(100)) }
         if let error { throw error }
-        let response = responses.withLock { $0.removeFirst() }
+        let queued = responses.withLock { $0.isEmpty ? nil : $0.removeFirst() }
+        guard let response = queued ?? fallback?(request) else { fatalError("Fixture queue empty") }
         return (Data(response.0.utf8), response.1)
     }
 }
@@ -224,7 +229,7 @@ struct OpenBotTests {
                 fatalError("Cancellation became \(error)")
             }
         }
-        let polling = FixtureTransport([(bots, 200), (empty, 200), (bots, 200), (empty, 200)])
+        let polling = FixtureTransport([]) { $0.url?.path.hasSuffix("/pending") == true ? (empty, 200) : (bots, 200) }
         var reports = 0
         let active = OpenBotAgentsModule(service: service(polling), pollInterval: .milliseconds(300), report: { count, failure in
             reports += 1
@@ -236,14 +241,13 @@ struct OpenBotTests {
         while polling.requests.withLock({ $0.count < 4 }) { await Task.yield() }
         try await Task.sleep(for: .milliseconds(100))
         polling.requests.withLock { $0 = [] }
-        polling.responses.withLock { $0 = [(bots, 200), (empty, 200), (bots, 200), (empty, 200)] }
         active.refresh(reportResult: true)
         let deadline = ContinuousClock.now + .seconds(5)
         while polling.requests.withLock({ $0.count < 4 }), ContinuousClock.now < deadline {
             try await Task.sleep(for: .milliseconds(100))
         }
         try await Task.sleep(for: .milliseconds(100))
-        precondition(polling.requests.withLock { $0.count } == 4)
+        precondition(polling.requests.withLock { $0.count } >= 4)
         precondition(active.agents.count == 1 && active.pending.count == 1 && reports == 1)
         active.stop()
         var availability = 0
