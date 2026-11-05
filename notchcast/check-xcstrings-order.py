@@ -7,12 +7,14 @@ import json
 import re
 import subprocess
 import sys
+from pathlib import Path
+import runpy
 
 CATALOG = "Tinycast/Resources/Localizable.xcstrings"
 
 
 def git(*args):
-    return subprocess.check_output(["git", *args], text=True)
+    return subprocess.check_output(["git", "-C", str(Path.cwd()), *args], text=True)
 
 
 def check(base, head, added_swift, remaining_swift, allowed=()):
@@ -51,7 +53,10 @@ def main():
     parser.add_argument("--head", default="HEAD")
     args = parser.parse_args()
     base = git("merge-base", args.base_ref, args.head).strip()
-    catalogs = [json.loads(git("show", ref + ":" + CATALOG))["strings"] for ref in (base, args.head)]
+    union = runpy.run_path(str(Path(__file__).with_name('xcstrings-union.py')))
+    tables = [CATALOG, 'Tinycast/Resources/Notchcast.xcstrings']
+    catalogs = [{table: json.loads(union['git_catalog'](ref, table))['strings']
+                 for table in tables} for ref in (base, args.head)]
     diff = git("diff", "--unified=0", base, args.head, "--", "*.swift")
     added = "\n".join(line[1:] for line in diff.splitlines() if line.startswith("+") and not line.startswith("+++"))
     remaining = git("grep", "-h", "-e", "", args.head, "--", "Tinycast/**/*.swift")
@@ -59,11 +64,23 @@ def main():
     allowed = []
     if allow_path in git("ls-tree", "-r", "--name-only", args.head).splitlines():
         allowed = json.loads(git("show", args.head + ":" + allow_path))
-    errors = check(*catalogs, added, remaining, allowed)
+    errors = []
+    migration = not catalogs[0][tables[1]] and bool(catalogs[1][tables[1]])
+    for table in tables:
+        old, new = [catalog[table] for catalog in catalogs]
+        moved = set().union(*(catalog[other].keys() for catalog in catalogs for other in tables
+                              if other != table))
+        if migration and table == CATALOG:
+            old = {key: old[key] for key in new if key in old} | {
+                key: value for key, value in old.items() if key not in new}
+        errors += check(old, new, added, remaining, set(allowed) | moved)
+    if catalogs[1][tables[1]]:
+        errors += runpy.run_path(str(Path(__file__).with_name('check-fork-strings.py')))['check']()
+        if subprocess.run(['node', str(Path(__file__).with_name('check-localizations.js'))]).returncode:
+            errors.append('fork catalog translation validation failed')
     for error in errors:
         print("xcstrings: " + error, file=sys.stderr)
-    print(f"xcstrings: {len(catalogs[1].keys() - catalogs[0].keys())} added, "
-          f"{len(catalogs[0].keys() - catalogs[1].keys())} removed; {len(errors)} errors")
+    print(f"xcstrings: checked both tables; {len(errors)} errors")
     return bool(errors)
 
 

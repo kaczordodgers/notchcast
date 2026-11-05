@@ -105,7 +105,7 @@ final class BackupStatusModule: NotchcastModule {
         let date = now()
         let issues = BackupStatusEngine.issues(status, now: date, staleAfter: staleAfter)
         if issues.contains(where: { !previousIssues.contains($0) }) {
-            post(String(localized: "Backup needs attention."))
+            post(String(localized: "Backup needs attention.", table: "Notchcast"))
         }
         previousIssues = issues
         guard let status else { return }
