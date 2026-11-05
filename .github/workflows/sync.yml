@@ -237,7 +237,7 @@ jobs:
           set -a; source tools/notchcast/config.env; set +a
           NAME="$APP_NAME"
           APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
-          ./src/Scripts/verify-signature.sh "$APP"
+          bash tools/notchcast/verify-signature.sh "$APP" ./src/Scripts/verify-signature.sh
           ./tools/notchcast/check-identity.sh app "$APP"
           codesign --verify --deep --strict "$APP"
           plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$APP/Contents/Info.plist"; }
