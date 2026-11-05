@@ -46,7 +46,7 @@ final class SettingsCoordinator {
     }
 
     func showBackupSettings() {
-        showSettings(tab: NotchcastSettingsModule.backups.tab)
+        showSettings(tab: .backup)
     }
 
     /// ⌘Q and the window's close button land here; the app itself keeps running.

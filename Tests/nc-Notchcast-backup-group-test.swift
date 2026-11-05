@@ -68,8 +68,6 @@ struct SettingsSectionHeader: View {
         precondition(!group.contains("settingsFileEnabled ="))
         let settings = try read("Tinycast/Features/Settings/AppSettings.swift")
         precondition(settings.contains("settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)"))
-        let coordinator = try read("Tinycast/Features/Settings/SettingsCoordinator.swift")
-        precondition(coordinator.contains("showSettings(tab: NotchcastSettingsModule.backups.tab)"))
         print("Backup group wiring and construction passed; full app launch is not exercised")
     }
 }

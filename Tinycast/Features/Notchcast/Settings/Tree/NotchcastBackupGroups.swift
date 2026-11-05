@@ -5,7 +5,7 @@ struct NotchcastBackupGroups: View {
     @State private var exportSelection = BackupCategory.all
     @State private var exporting = false
     @State private var importing = false
-    @State private var status: String?
+    @State private var status: (message: String, failed: Bool)?
 
     static func settingsFileSync(core: AppCore) -> Binding<Bool> {
         Binding(
@@ -42,7 +42,10 @@ struct NotchcastBackupGroups: View {
                 Text("The ticked items, as one .tinycast file.")
             }
             BackupCategorySelection(selection: $exportSelection)
-            if let status { Text(status) }
+            if let status {
+                Label(status.message, systemImage: status.failed ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                    .foregroundStyle(status.failed ? .orange : .green)
+            }
         } header: {
             SettingsSectionHeader(.backupExport)
         }
@@ -74,10 +77,10 @@ struct NotchcastBackupGroups: View {
             defer { exporting = false }
             do {
                 let result = try await BackupActions.exportBackup(core: core, categories: categories)
-                status = BackupActions.exportText(result)
+                status = (BackupActions.exportText(result), false)
             } catch is CancellationError {
             } catch {
-                status = error.localizedDescription
+                status = (error.localizedDescription, true)
             }
         }
     }
