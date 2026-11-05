@@ -74,6 +74,7 @@ final class LauncherCoordinator {
         }
         // Commands dispatch before the palette hides: mode-switching commands keep it open.
         if app.kind == .command {
+            if ShortenLinkArgumentsAccessory.run(app, vm: core.palette, dismiss: dismissPalette) { return }
             if NotchcastCommandCatalog.dispatch(app.id, dismiss: dismissPalette) { return }
             guard let id = CommandCatalog.command(for: app) else { return }
             // Query-driven: only this row knows the URL the typed text resolved to.
