@@ -44,6 +44,13 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
             --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end')
         [ "$verdict" = none ] || [ "$verdict" = success ] || refuse "$name is $verdict on ${head:0:8}; wait for success"
     done
+    required=$(python3 notchcast/app-proof.py plan origin/main "$head")
+    if [ -n "$required" ]; then
+        verdict=$(gh api "repos/kaczordodgers/notchcast/commits/$head/check-runs?check_name=proof&filter=all" \
+            --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end')
+        branch=$(jq -r .headRefName <<< "$metadata")
+        [ "$verdict" = success ] || refuse "real-app proof ($required) is $verdict on ${head:0:8}; it runs on the PR, or: gh workflow run Proof --ref $branch -R kaczordodgers/notchcast"
+    fi
     # Check runs on the commit, not the PR's statusCheckRollup: the rollup omits dispatched runs, and a PR
     # GitHub calls conflicting gets no pull_request run at all. The newest run wins over a cancelled one.
     build() {
