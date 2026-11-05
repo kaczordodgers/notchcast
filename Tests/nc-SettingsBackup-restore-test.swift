@@ -103,6 +103,11 @@ struct NotchcastCommand: Sendable {
             precondition(complete[feature.rawValue] as? Bool == NotchcastPreferences.shared.isOn(feature), feature.rawValue)
         }
         print("PASS: snapshots record urlCleaner, dictationHistory, captureTrimmer as they are")
+        try ForkSettingsBackupRestore.apply(["captureTrimmer": true], to: NotchcastPreferences.shared)
+        precondition(liveDefaults.bool(forKey: "captureTrimmer"))
+        precondition(!NotchcastPreferences.shared.isOn(.captureTrimmer))
+        precondition(!NotchcastPreferences.shared.isEnabled(.captureTrimmer))
+        print("PASS: restored captureTrimmer true stays off and disabled")
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
             bundleIdentifier: Bundle.main.bundleIdentifier!)

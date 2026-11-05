@@ -18,10 +18,19 @@ struct NotchcastSettingsTreeTests {
         precondition(!preferences.isOn(.agentAnswer), "Agent Answers stays forced off")
         precondition(!preferences.isEnabled(.agentAnswer))
         precondition(!NotchcastFeature.agentAnswer.isWired, "Settings and search exclude unwired features")
-        let visibleFeatures = NotchcastSettingsModule.allCases.flatMap(\.visibleGroups)
-            .flatMap(\.items).compactMap(\.feature).filter(\.isWired)
-        precondition(!visibleFeatures.contains(.agentAnswer), "Agent Answers absent from sidebar and search rows")
-        print("PASS: Agent Answers hidden from sidebar/search and forced off with stored true")
+        for feature in NotchcastFeature.allCases where !feature.isWired {
+            preferences.set(feature, true)
+            precondition(defaults.bool(forKey: feature.rawValue), "Stored true: \(feature)")
+            precondition(!preferences.isOn(feature), "Unwired feature stays off: \(feature)")
+            precondition(!preferences.isEnabled(feature), "Unwired feature stays disabled: \(feature)")
+        }
+        for feature in NotchcastFeature.allCases where feature.isWired {
+            preferences.set(feature, true)
+            precondition(preferences.isOn(feature), "Wired feature turns on: \(feature)")
+            preferences.set(feature, false)
+            precondition(!preferences.isOn(feature), "Wired feature turns off: \(feature)")
+        }
+        print("PASS: every unwired feature stays off with stored true; wired switches still toggle")
         let modules = NotchcastSettingsModule.allCases
         precondition(modules.count == 17, "Expected 17 modules")
         var featureCounts: [NotchcastFeature: Int] = [:]

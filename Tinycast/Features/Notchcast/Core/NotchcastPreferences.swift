@@ -64,7 +64,7 @@ final class NotchcastPreferences {
 
     func revision(_ feature: NotchcastFeature) -> Int { versions[feature, default: 0] }
 
-    func isOn(_ feature: NotchcastFeature) -> Bool { feature != .agentAnswer && !off.contains(feature) }
+    func isOn(_ feature: NotchcastFeature) -> Bool { feature.isWired && !off.contains(feature) }
     func isEnabled(_ feature: NotchcastFeature) -> Bool {
         isOn(feature) && feature.dependencies.allSatisfy(isEnabled)
     }
