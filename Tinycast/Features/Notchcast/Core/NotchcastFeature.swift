@@ -523,7 +523,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayWeather: String(localized: "Forecast from Open-Meteo on the Day page.")
         case .agentActions: String(localized: "Expose actions and read-only state to local agents.")
         case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
-        case .treadmillWalk: String(localized: "Walking pad controls are not available yet.")
+        case .treadmillWalk: String(localized: "Control a Bluetooth walking pad from the launcher.")
         case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
         case .katana: String(localized: "Switch Katana amp channels from the launcher.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
@@ -719,7 +719,6 @@ extension NotchcastFeature {
         .buildStats,
         .killProcess,
         .launcherAnswers,
-        .treadmillWalk,
         .agentAnswer,
         .remoteScreen,
         .machMBPFans,
@@ -898,6 +897,7 @@ extension NotchcastFeature {
         case .fleetPanel: false
         case .waitingAlerts: false
         case .agentPricing: false
+        case .treadmillWalk: false
         default: true
         }
     }
