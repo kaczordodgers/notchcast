@@ -48,9 +48,42 @@ PLIST
 
 # Login Items shows the executable, so a job runs through a named wrapper rather than /bin/bash.
 named_job() { # name program...
+    local name=$1
     local wrapper="$HOME/Library/Application Support/notchcast/jobs/$1"; shift
     mkdir -p "$(dirname "$wrapper")"
-    printf '#!/bin/bash\nexec %s\n' "$(printf '%q ' "$@")" > "$wrapper"
+    printf '#!/bin/bash\n' > "$wrapper"
+    if [ "$name" = 'Notchcast update' ]; then
+        printf 'repo=%q\n' "$HERE/.." >> "$wrapper"
+        cat >> "$wrapper" <<'REFRESH'
+set -o pipefail
+root="$HOME/Library/Application Support/notchcast"
+tools="$root/tools"
+stage=''
+refresh() {
+    git -C "$repo" fetch --quiet origin main 2>/dev/null || return 1
+    stage=$(mktemp -d "$root/tools.XXXXXX") || return 1
+    git -C "$repo" archive refs/remotes/origin/main notchcast/ 2>/dev/null | tar -xf - -C "$stage" 2>/dev/null || return 1
+    [ -f "$stage/notchcast/update.sh" ] && [ -f "$stage/notchcast/install-app.sh" ] \
+        && [ -f "$stage/notchcast/config.env" ] || return 1
+    local old
+    old=$(readlink "$tools")
+    ln -s "$stage/notchcast" "$stage/link" && mv -fh "$stage/link" "$tools" || return 1
+    stage=''
+    case "$old" in "$root"/tools.??????/notchcast) rm -rf "${old%/notchcast}" ;; esac
+}
+if ! refresh; then
+    echo 'tooling refresh failed; using previous code'
+    [ -z "$stage" ] || rm -rf "$stage"
+fi
+REFRESH
+        shift 2
+        local args=''
+        if [ "$#" -gt 0 ]; then args="$(printf '%q ' "$@")"; fi
+        printf 'if [ -f "$tools/update.sh" ]; then exec /bin/bash "$tools/update.sh" %s; fi\n' \
+            "$args" >> "$wrapper"
+        set -- /bin/bash "$HERE/update.sh" "$@"
+    fi
+    printf 'exec %s\n' "$(printf '%q ' "$@")" >> "$wrapper"
     chmod 755 "$wrapper"
     /bin/bash -n "$wrapper"
     echo "$wrapper"
