@@ -33,6 +33,7 @@ final class SupportReminderStore {
     deinit { pump?.cancel() }
 
     func start() {
+        guard NotchcastHidden.supportEnabled else { return }
         // Replace rather than bail: an exited loop leaves a non-nil task that would block restart.
         pump?.cancel()
         pump = Task { [weak self] in

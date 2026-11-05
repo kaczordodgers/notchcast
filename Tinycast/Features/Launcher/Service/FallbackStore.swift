@@ -19,7 +19,7 @@ final class FallbackStore {
         Fallback.ordered(available, by: orderedIDs)
     }
 
-    func isEnabled(_ fallback: Fallback) -> Bool { !disabledIDs.contains(fallback.id) }
+    func isEnabled(_ fallback: Fallback) -> Bool { NotchcastHidden.fallbacksEnabled && !disabledIDs.contains(fallback.id) }
 
     func setEnabled(_ enabled: Bool, for fallback: Fallback) {
         if enabled {
