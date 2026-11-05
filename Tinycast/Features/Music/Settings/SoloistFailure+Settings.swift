@@ -5,7 +5,7 @@ extension SoloistFailure {
         switch self {
         case .keyUnavailable: String(localized: "Couldn’t read the API key from Keychain.", table: "Notchcast")
         case .keyNotSaved: String(localized: "Couldn’t save the API key in Keychain.", table: "Notchcast")
-        case .invalidKey: String(localized: "Spotify didn’t accept the API key.", table: "Notchcast")
+        case .invalidKey: String(localized: "That API key has spaces, line breaks or hidden characters.", table: "Notchcast")
         case .keyFileUnreadable: String(localized: "Couldn’t read that file.", table: "Notchcast")
         case .download: String(localized: "Couldn’t download Soloist. Check your connection.", table: "Notchcast")
         case .httpStatus(let status): String(localized: "Spotify’s download server answered \(status).", table: "Notchcast")
