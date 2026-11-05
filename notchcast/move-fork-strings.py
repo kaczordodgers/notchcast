@@ -101,9 +101,17 @@ def rewrite(source, keys):
             continue
         if re.search(r'keywords:\s*\[[^\n\]]*$', before):
             continue
+        if re.search(r'\bcase\s*$', before):
+            continue
+        if re.search(r'(?:restart:[^\n]*|subtitle\()\s*$', before) and literal == '"Finder"':
+            continue
+        if re.search(r'arguments:\s*\[[^\n\]]*$', before):
+            continue
+        if re.search(r'\bproperties\[\s*$', before):
+            continue
         if re.match(r'\s*,\s*table(?:Name)?:\s*"Notchcast"', after):
             continue
-        if re.search(r'(?:String\(localized:|LocalizedStringResource\()\s*$', before):
+        if re.search(r'(?:String\(\s*localized:|LocalizedStringResource\()\s*$', before):
             edits.append((end, end, ', table: "Notchcast"'))
         elif re.search(r'\bText\(\s*$', before):
             edits.append((end, end, ', tableName: "Notchcast"'))

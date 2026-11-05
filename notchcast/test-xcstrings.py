@@ -36,6 +36,11 @@ class CatalogTests(unittest.TestCase):
         keys = {'Recording', 'Distill', 'aria2c', 'Downloads', 'Battery',
                 'Remote Mac address', 'Finder'}
         self.assertEqual(rewrite(source, keys), (source, 0))
+        self.assertEqual(rewrite('case "Finder": break', {'Finder'}),
+                         ('case "Finder": break', 0))
+        result, count = rewrite('String(\n localized: "Fork")', {'Fork'})
+        self.assertEqual(count, 1)
+        self.assertIn('table: "Notchcast"', result)
 
     def test_migration_rewrites_and_is_idempotent(self):
         rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
