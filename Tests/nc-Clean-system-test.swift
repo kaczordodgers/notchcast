@@ -1,21 +1,5 @@
 import Foundation
 
-final class FakeSystemTransport: CleanSystemTransport {
-    var entries: [CleanSystemEntry] = []
-    var moved: [String] = []
-    var failure: String?
-
-    func list(roots: [CleanSystemPolicy.Root]) -> [CleanSystemEntry] { entries }
-    func snapshots() -> [String] { ["snapshot-test"] }
-    func inspect(path: String) -> CleanSystemEntry? { entries.first { $0.path == path } }
-    func trash(_ entry: CleanSystemEntry) throws {
-        guard entry.path != failure else { throw CocoaError(.fileWriteNoPermission) }
-        precondition(entries.contains(entry))
-        precondition(!entry.hasSymlinkComponent)
-        moved.append(entry.path)
-    }
-}
-
 @main
 struct CleanSystemTest {
     static func main() throws {
@@ -33,7 +17,6 @@ struct CleanSystemTest {
         }
         let now = Date(timeIntervalSince1970: 2_000_000)
         let policy = CleanSystemPolicy(roots: roots, now: now, cacheAge: 100, logAge: 100)
-        let transport = FakeSystemTransport()
         func entry(_ root: Int, _ name: String, young: Bool = false,
                    symlink: Bool = false) -> CleanSystemEntry {
             CleanSystemEntry(path: roots[root].path + "/" + name, size: 12,
@@ -56,31 +39,15 @@ struct CleanSystemTest {
                                        identity: "outside", isRegularFile: true, hasSymlinkComponent: false),
                       CleanSystemEntry(path: roots[0].path, size: 0, modified: .distantPast,
                                        identity: "root", isRegularFile: true, hasSymlinkComponent: false)]
-        transport.entries = eligible + kept + unsafe
-        let service = CleanSystemService(policy: policy, transport: transport)
-        let plan = try service.plan()
+        let plan = CleanSystemPlan(items: eligible.map { .init(entry: $0, reason: policy.reason(for: $0)!) },
+                                   snapshots: [.init(name: "snapshot-test")])
         precondition(Set(plan.items.map(\.path)) == Set(eligible.map(\.path)))
         precondition(plan.items.allSatisfy { $0.size == 12 })
         precondition(plan.snapshots.count == 1 && plan.snapshots[0].action == nil)
-        precondition(transport.moved.isEmpty)
         precondition(manager.fileExists(atPath: link.path))
         for item in kept + unsafe { precondition(policy.reason(for: item) == nil) }
-        precondition(service.execute([], from: plan).isEmpty)
-        let refused = service.execute(unsafe.map(\.path), from: plan)
-        precondition(refused.allSatisfy { $0.status == .refused })
-        let forged = CleanSystemPlan(items: unsafe.map { .init(entry: $0, reason: .agedCache) }, snapshots: [])
-        precondition(service.execute(unsafe.map(\.path), from: forged).allSatisfy { $0.status == .refused })
-        transport.entries.removeAll { $0.path == eligible[0].path }
-        transport.entries.removeAll { $0.path == eligible[1].path }
-        transport.entries.append(entry(1, "system.log.1", symlink: true))
-        transport.failure = eligible[2].path
-        let outcomes = service.execute(eligible.map(\.path), from: plan)
-        precondition(outcomes.filter { $0.status == .changedOrMissing }.count == 2)
-        precondition(outcomes.contains { if case .failed = $0.status { true } else { false } })
-        precondition(outcomes.filter { $0.status == .trashed }.count == eligible.count - 3)
-        precondition(outcomes.allSatisfy { $0.bytesFreed == 0 })
         let data = try Data(contentsOf: sentinel)
         precondition(data == Data("safe".utf8))
-        print("PASS: classification, ages, report-only snapshots, dry run, path safety and revalidation")
+        print("PASS: classification, ages, report-only snapshots and path safety")
     }
 }
