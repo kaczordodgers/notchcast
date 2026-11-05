@@ -16,8 +16,17 @@ enum TreadmillBluetoothEvent {
     case failed
 }
 
-enum TreadmillBluetoothFailure: Error, Equatable {
+enum TreadmillBluetoothFailure: LocalizedError, Equatable {
     case bluetoothOff, unauthorized, padAbsent, connectionFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .bluetoothOff: String(localized: "Bluetooth is turned off.")
+        case .unauthorized: String(localized: "Allow Bluetooth access in System Settings.")
+        case .padAbsent: String(localized: "No walking pad was found nearby.")
+        case .connectionFailed: String(localized: "Could not connect to the walking pad.")
+        }
+    }
 }
 
 @MainActor
