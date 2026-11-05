@@ -44,6 +44,7 @@ final class IslandSurfaceView: NSView {
         band.wantsLayer = true
         band.layer?.backgroundColor = fill
         band.isHidden = true
+        band.setAccessibilityHidden(true)
         addSubview(band)
         for host in [openHost, closedHost] {
             host.sizingOptions = []
