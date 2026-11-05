@@ -21,22 +21,22 @@ spec.loader.exec_module(snapshot)
 
 
 class SnapshotTests(unittest.TestCase):
-    def test_dispatch_verdict_is_outside_concurrency(self):
+    def test_workflow_holds_snapshot_lock_through_publish(self):
         root = Path(__file__).resolve().parent.parent
-        workflow = (root / ".github/workflows/snapshot.yml").read_text()
+        revision = os.environ.get("SNAPSHOT_WORKFLOW_REF")
+        workflow = (subprocess.check_output(
+            ["git", "show", f"{revision}:.github/workflows/snapshot.yml"], cwd=root, text=True)
+            if revision else (root / ".github/workflows/snapshot.yml").read_text())
         header, jobs = workflow.split("\njobs:\n", 1)
-        self.assertNotIn("\nconcurrency:", header)
+        self.assertEqual(len(re.findall(r"^\s*concurrency:", workflow, re.M)), 1)
+        self.assertIn("\nconcurrency:\n  group: snapshot\n  cancel-in-progress: false\n", header + "\n")
+        self.assertNotRegex(jobs, r"(?m)^\s+concurrency:")
         sections = dict(re.findall(r"^  (\w+):\n(.*?)(?=^  \w+:\n|\Z)", jobs, re.M | re.S))
-        check = sections["check"]
-        self.assertNotIn("    concurrency:", check)
-        self.assertIn("if: github.event_name == 'workflow_dispatch'", check)
-        self.assertIn("run: python3 notchcast/snapshot.py", check)
-        self.assertLess(check.index("run: python3 notchcast/snapshot-test.py"),
-                        check.index("run: python3 notchcast/snapshot.py"))
-        self.assertIn("    needs: check\n", sections["plan"])
-        for job in ("plan", "snapshot", "publish"):
-            self.assertIn("    concurrency:\n      group: snapshot\n      cancel-in-progress: false", sections[job])
+        self.assertNotIn("check", sections)
+        self.assertLess(sections["plan"].index("run: python3 notchcast/snapshot-test.py"),
+                        sections["plan"].index("run: python3 notchcast/snapshot.py"))
         self.assertIn("    runs-on: ubuntu-latest\n", sections["plan"])
+        self.assertIn('cron: "7,27,47 * * * *"', header)
         self.assertNotIn("snapshot-test.py", (root / "notchcast/ci-tests.sh").read_text())
 
     def test_vkey(self):

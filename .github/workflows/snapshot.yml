@@ -3,33 +3,16 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "7,17,27,37,47,57 * * * *"
+    - cron: "7,27,47 * * * *"
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: snapshot
+  cancel-in-progress: false
 jobs:
-  check:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          ref: main
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Test snapshot planning
-        run: python3 notchcast/snapshot-test.py
-      - name: Check manual dispatch before joining concurrency
-        if: github.event_name == 'workflow_dispatch'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 notchcast/snapshot.py
   plan:
-    needs: check
     if: github.ref == 'refs/heads/main'
-    concurrency:
-      group: snapshot
-      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 65
     outputs:
@@ -43,6 +26,8 @@ jobs:
           ref: main
           fetch-depth: 0
           persist-credentials: false
+      - name: Test snapshot planning
+        run: python3 notchcast/snapshot-test.py
       - name: Plan snapshot, waiting for the gate on Linux
         id: plan
         env:
@@ -50,9 +35,6 @@ jobs:
         run: python3 notchcast/snapshot.py
   snapshot:
     needs: plan
-    concurrency:
-      group: snapshot
-      cancel-in-progress: false
     if: needs.plan.outputs.tag != ''
     runs-on: xcode-27
     timeout-minutes: 120
@@ -225,9 +207,6 @@ jobs:
   # Its own job, so "Re-run failed jobs" after a GitHub 5xx or SSH failure reuses the build above instead of rebuilding.
   publish:
     needs: snapshot
-    concurrency:
-      group: snapshot
-      cancel-in-progress: false
     if: needs.snapshot.outputs.green == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
