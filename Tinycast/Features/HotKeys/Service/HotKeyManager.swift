@@ -128,7 +128,7 @@ final class HotKeyManager {
 
     /// Never pruned at launch: not-installed-yet and gone are indistinguishable there.
     var boundExtensionCommandEntryIDs: [String] {
-        defaults.stringArray(forKey: boundExtensionCommandKey) ?? []
+        []
     }
 
     /// Bundle IDs holding a per-app hotkey, so `start()` knows which records to load.

@@ -854,7 +854,7 @@ struct RootPaletteView: View {
 
     /// Mode-gated ahead of the cast, which would otherwise cost every other mode a list build.
     private var extensionCommandScreen: ExtensionCommandScreen? {
-        guard vm.mode == .extensionCommand else { return nil }
+        guard settings.extensionsEnabled, vm.mode == .extensionCommand else { return nil }
         return screen as? ExtensionCommandScreen
     }
 

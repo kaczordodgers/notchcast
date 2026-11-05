@@ -465,7 +465,8 @@ final class AppSettings {
 
     /// Consent to run third-party JavaScript: it confirms, defaults off, rides no backup.
     var extensionsEnabled: Bool {
-        didSet { defaults.set(extensionsEnabled, forKey: Key.extensionsEnabled.rawValue) }
+        get { false }
+        set { }
     }
 
     var extensionsShowInLauncher: Bool {

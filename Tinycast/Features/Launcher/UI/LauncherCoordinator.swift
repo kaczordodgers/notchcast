@@ -127,6 +127,7 @@ final class LauncherCoordinator {
         }
         // Before the palette hides: a view command takes the palette over rather than closing it.
         if app.kind == .extensionCommand {
+            guard core.settings.extensionsEnabled else { return }
             extensionCoordinator.runExtensionCommand(app, arguments: arguments)
             return
         }
@@ -313,6 +314,7 @@ final class LauncherCoordinator {
     }
 
     func deepLink(for app: AppEntry) -> URL? {
+        guard app.kind != .extensionCommand || core.settings.extensionsEnabled else { return nil }
         let values = argumentValues(for: app)
         guard app.kind != .extensionCommand else {
             return extensionCoordinator.deepLink(forEntryID: app.id, arguments: values)
@@ -321,6 +323,7 @@ final class LauncherCoordinator {
     }
 
     func deepLink(for action: HotKeyAction) -> URL? {
+        if case .extensionCommand = action, !core.settings.extensionsEnabled { return nil }
         if case .extensionCommand(let entryID) = action {
             return extensionCoordinator.deepLink(forEntryID: entryID, arguments: [:])
         }

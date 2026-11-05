@@ -488,6 +488,7 @@ final class AppIndex {
     }
 
     func setExtensionCommands(_ entries: [AppEntry]) {
+        guard settings?.extensionsEnabled == true else { return }
         guard entries != extensionEntries else { return }
         extensionEntries = entries
         publishEntries()
