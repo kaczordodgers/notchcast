@@ -5,13 +5,9 @@ traffic light fills the display's visible frame in the current Space; clicking a
 the previous frame. Option-click retains macOS behavior. Full-screen, non-resizable and excluded
 apps pass through. Exclusions are comma-separated bundle identifiers in the same Settings pane.
 
-The shared EventTapHub reads only a mutex-protected geometry snapshot. Workspace activation,
-AX focused-window/move/resize notifications and a one-second refresh update that snapshot outside
-the tap on a serial background queue, including observer registration. Refresh requests coalesce;
-results are discarded after stop or a front-app change. AX handles transfer to main only after the
-worker finishes. Snapshots expire two seconds after the read starts. A consumed mouse down owns its matching mouse up,
-even if maximizing moves the button. Queued actions validate the focused window and generation.
-Stopping clears the cache, removes the tap consumer and observer, and invalidates the timer.
+The shared EventTapHub reads mutex-protected button snapshots for all running applications, including non-focused windows. A serial background queue reads AX windows and hit-tests each button's center to exclude covered buttons; no AX call blocks the tap. Workspace activation and a one-second timer refresh the snapshots, with requests coalesced and results discarded after stop. Snapshots expire two seconds after the read starts. A consumed mouse down owns its matching mouse up, even if maximizing moves the button. Queued actions validate the module generation and act on the captured window, independently of application focus. Stopping clears the snapshots, removes the consumer and invalidates the timer.
+
+Newly exposed or moved buttons can pass through until the next refresh. The macOS green-button hover popup is outside this click-only feature.
 
 The pure geometry and click decisions are covered by `Tests/notchcast-green-maximize-test.swift`.
 No third-party source was copied; AX access and frame writes use upstream's window-management API.

@@ -1,6 +1,9 @@
 import Foundation
 
 enum GreenMaximizeClick {
+    static func target<T>(point: CGPoint, candidates: [T], rect: (T) -> CGRect) -> T? {
+        candidates.first { rect($0).contains(point) }
+    }
     static func intercept(
         point: CGPoint, rect: CGRect?, age: TimeInterval, option: Bool,
         bundleID: String?, exclusions: Set<String>

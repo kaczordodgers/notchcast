@@ -5,50 +5,39 @@ nonisolated enum GreenMaximizeRefresh {
     // Handles are created on the serial worker and used only on main after publication.
     struct Result: @unchecked Sendable {
         let window: AXUIElement
-        let observer: AXObserver?
         let rect: CGRect
         let date: TimeInterval
     }
 
-    static func read(pid: pid_t, observed: AXUIElement?, callback: AXObserverCallback, context: UInt) -> Result? {
-        let date = ProcessInfo.processInfo.systemUptime
+    static func readAll(pid: pid_t) -> [Result] {
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, 0.1)
-        guard let window = element(application, kAXFocusedWindowAttribute) else { return nil }
+        guard let windows = value(application, kAXWindowsAttribute) as? [AXUIElement]
+        else { return [] }
+        return windows.compactMap { read(window: $0) }
+    }
+
+    private static func read(window: AXUIElement) -> Result? {
+        let date = ProcessInfo.processInfo.systemUptime
         AXUIElementSetMessagingTimeout(window, 0.1)
+        var settable = DarwinBoolean(false)
         guard value(window, kAXRoleAttribute) as? String == kAXWindowRole,
             value(window, kAXMinimizedAttribute) as? Bool != true,
-            frame(window) != nil,
-            value(window, "AXFullScreen") as? Bool != true
-        else { return nil }
-        var settable = DarwinBoolean(false)
-        guard AXUIElementIsAttributeSettable(window, kAXSizeAttribute as CFString, &settable) == .success,
+            value(window, "AXFullScreen") as? Bool != true,
+            AXUIElementIsAttributeSettable(window, kAXSizeAttribute as CFString, &settable) == .success,
             settable.boolValue,
             let button = element(window, kAXZoomButtonAttribute) ?? element(window, "AXFullScreenButton")
         else { return nil }
         AXUIElementSetMessagingTimeout(button, 0.1)
         guard value(button, kAXEnabledAttribute) as? Bool != false,
             let rect = frame(button) else { return nil }
-        let observer = newObserver(for: window, observed: observed) { () -> AXObserver? in
-            var observer: AXObserver?
-            guard AXObserverCreate(pid, callback, &observer) == .success, let observer else { return nil }
-            let pointer = UnsafeMutableRawPointer(bitPattern: context)
-            AXObserverAddNotification(observer, application,
-                kAXFocusedWindowChangedNotification as CFString, pointer)
-            for name in [kAXMovedNotification, kAXResizedNotification, kAXUIElementDestroyedNotification] {
-                AXObserverAddNotification(observer, window, name as CFString, pointer)
-            }
-            return observer
-        }
-        return Result(window: window, observer: observer, rect: rect, date: date)
-    }
-
-    // The periodic read keeps the snapshot fresh; only a newly focused window needs AX registrations.
-    static func newObserver(
-        for window: AXUIElement, observed: AXUIElement?, make: () -> AXObserver?
-    ) -> AXObserver? {
-        if let observed, CFEqual(observed, window) { return nil }
-        return make()
+        let system = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(system, 0.1)
+        var hit: AXUIElement?
+        guard AXUIElementCopyElementAtPosition(system, Float(rect.midX), Float(rect.midY), &hit) == .success,
+            let hit, let hitWindow = element(hit, kAXWindowAttribute), CFEqual(window, hitWindow)
+        else { return nil }
+        return Result(window: window, rect: rect, date: date)
     }
 
     private static func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {

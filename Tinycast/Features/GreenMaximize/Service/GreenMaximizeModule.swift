@@ -10,10 +10,11 @@ final class GreenMaximizeModule: NotchcastModule {
         let bundleID: String
         let date: TimeInterval
         let generation: UUID
+        let target: GreenMaximizeRefresh.Result
     }
 
     private struct TapState: Sendable {
-        var snapshot: Snapshot?
+        var snapshots: [Snapshot] = []
         var pressed = false
     }
 
@@ -24,8 +25,6 @@ final class GreenMaximizeModule: NotchcastModule {
     private let hub: EventTapHub
     private var registration: UUID?
     private var activation: NotificationToken?
-    private var observer: AXObserver?
-    private var observedPID: pid_t?
     private var window: AXUIElement?
     private var memory: GreenMaximizeEngine.Memory?
     private var generation = UUID()
@@ -34,12 +33,6 @@ final class GreenMaximizeModule: NotchcastModule {
     private let refreshQueue = DispatchQueue(label: "app.notchcast.green-maximize.refresh")
     private var refreshID: UUID?
     private var refreshAgain = false
-
-    nonisolated private static let observerCallback: AXObserverCallback = { _, _, _, context in
-        guard let context else { return }
-        let owner = Unmanaged<GreenMaximizeModule>.fromOpaque(context).takeUnretainedValue()
-        MainActor.assumeIsolated { owner.refresh() }
-    }
 
     init(hub: EventTapHub) { self.hub = hub }
 
@@ -68,7 +61,8 @@ final class GreenMaximizeModule: NotchcastModule {
                     value.pressed = false
                     return (swallowed, nil)
                 }
-                guard let snapshot = value.snapshot,
+                guard let snapshot = GreenMaximizeClick.target(
+                    point: event.location, candidates: value.snapshots, rect: { $0.rect }),
                     GreenMaximizeClick.intercept(
                         point: event.location, rect: snapshot.rect,
                         age: ProcessInfo.processInfo.systemUptime - snapshot.date,
@@ -92,7 +86,6 @@ final class GreenMaximizeModule: NotchcastModule {
         activation = nil
         timer?.invalidate()
         timer = nil
-        clearObserver()
         window = nil
         memory = nil
         generation = UUID()
@@ -100,37 +93,30 @@ final class GreenMaximizeModule: NotchcastModule {
         refreshAgain = false
     }
 
-    private func clearObserver() {
-        if let observer {
-            CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
-        }
-        observer = nil
-        observedPID = nil
-    }
-
     private func refresh() {
         guard refreshID == nil else { refreshAgain = true; return }
         exclusions = Set(NotchcastPreferences.shared.greenMaximizeExcludedApps
             .split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
-        guard AXIsProcessTrusted(), let app = NSWorkspace.shared.frontmostApplication,
-            let bundleID = app.bundleIdentifier, !exclusions.contains(bundleID)
-        else { shared.value.withLock { $0.snapshot = nil }; return }
+        guard AXIsProcessTrusted()
+        else { shared.value.withLock { $0.snapshots = [] }; return }
+        let apps = NSWorkspace.shared.runningApplications.compactMap { app -> (pid_t, String)? in
+            guard let bundleID = app.bundleIdentifier, !exclusions.contains(bundleID) else { return nil }
+            return (app.processIdentifier, bundleID)
+        }
         let id = UUID()
         refreshID = id
-        let pid = app.processIdentifier
-        let observed = observer != nil && observedPID == pid ? window : nil
-        let context = UInt(bitPattern: Unmanaged.passUnretained(self).toOpaque())
+        let generation = self.generation
         refreshQueue.async { [weak self] in
-            let result = GreenMaximizeRefresh.read(
-                pid: pid, observed: observed, callback: Self.observerCallback, context: context)
+            let snapshots = apps.flatMap { pid, bundleID in
+                GreenMaximizeRefresh.readAll(pid: pid).map { result in
+                    Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
+                        date: result.date, generation: generation, target: result)
+                }
+            }
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.refreshID == id else { return }
                 self.refreshID = nil
-                if NSWorkspace.shared.frontmostApplication?.processIdentifier == pid {
-                    self.publish(result, pid: pid, bundleID: bundleID)
-                } else {
-                    self.shared.value.withLock { $0.snapshot = nil }
-                }
+                self.shared.value.withLock { $0.snapshots = snapshots }
                 if self.refreshAgain {
                     self.refreshAgain = false
                     self.refresh()
@@ -139,36 +125,14 @@ final class GreenMaximizeModule: NotchcastModule {
         }
     }
 
-    private func publish(_ result: GreenMaximizeRefresh.Result?, pid: pid_t, bundleID: String) {
-        guard let result else { shared.value.withLock { $0.snapshot = nil }; return }
-        let focused = result.window
-        let changed = window == nil || !CFEqual(window, focused) || observedPID != pid
-        if changed {
-            clearObserver()
-            memory = nil
-            generation = UUID()
-        }
-        window = focused
-        if observer == nil {
-            if let newObserver = result.observer {
-                observer = newObserver
-                observedPID = pid
-                CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(newObserver), .commonModes)
-            }
-        }
-        let snapshot = Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
-            date: result.date, generation: generation)
-        shared.value.withLock { $0.snapshot = snapshot }
-    }
-
     private func maximize(_ snapshot: Snapshot) {
+        let clicked = snapshot.target.window
         guard registration != nil, snapshot.generation == generation,
-            NSWorkspace.shared.frontmostApplication?.processIdentifier == snapshot.pid,
-            let window, let focused = AXWindowAccess.element(
-                AXWindowAccess.application(for: snapshot.pid, timeout: 0.1), kAXFocusedWindowAttribute),
-            CFEqual(window, focused), !AXWindowAccess.isFullScreen(window),
-            let current = AXWindowAccess.frame(of: window)
+            !AXWindowAccess.isFullScreen(clicked),
+            let current = AXWindowAccess.frame(of: clicked)
         else { return }
+        if window == nil || !CFEqual(window, clicked) { memory = nil }
+        window = clicked
         let screens = NSScreen.screens
         let geometry = AXGeometry(screens: screens)
         guard let screen = screens.max(by: {
@@ -180,7 +144,7 @@ final class GreenMaximizeModule: NotchcastModule {
         let restore = AXWindowAccess.suppressEnhancedUserInterface(
             on: AXWindowAccess.application(for: snapshot.pid, timeout: 0.1))
         defer { restore(); refresh() }
-        guard let applied = AXWindowAccess.write(target, anchor: .centered, to: window,
+        guard let applied = AXWindowAccess.write(target, anchor: .centered, to: clicked,
             current: current, canResize: true, canvas: nil) else { return }
         memory = GreenMaximizeEngine.memory(original: current, requested: target, applied: applied)
     }

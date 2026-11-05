@@ -35,26 +35,34 @@ struct GreenMaximizeTest {
         precondition(!hit(age: -1))
         precondition(!hit(option: true))
         precondition(!hit(exclusions: ["test.app"]))
-        testObserverTicks()
-        print("green-maximize: 19 assertions passed")
-    }
-
-    private static func testObserverTicks() {
-        var created = 0
-        var observed: AXUIElement?
-        for _ in 0..<3_600 {
-            let focused = AXUIElementCreateApplication(getpid())
-            _ = GreenMaximizeRefresh.newObserver(for: focused, observed: observed) { created += 1; return nil }
-            observed = focused
+        struct Window {
+            let name: String
+            let app: String
+            let button: CGRect
         }
-        precondition(created == 1, "An hour of ticks on one window registers one observer, got \(created)")
-        _ = GreenMaximizeRefresh.newObserver(for: AXUIElementCreateApplication(1), observed: observed) {
-            created += 1; return nil
+        let focused = Window(name: "focused window", app: "front.app", button: rect)
+        let others = [
+            Window(name: "inactive app", app: "other.app",
+                button: CGRect(x: 220, y: 120, width: 14, height: 14)),
+            Window(name: "non-focused window", app: "front.app",
+                button: CGRect(x: 420, y: 220, width: 14, height: 14))
+        ]
+        let windowsByApp = ["front.app": [focused, others[1]], "other.app": [others[0]]]
+        let candidates = ["front.app", "other.app"].flatMap { windowsByApp[$0] ?? [] }
+        var failures = 0
+        for window in others {
+            let point = CGPoint(x: window.button.midX, y: window.button.midY)
+            let resolved = GreenMaximizeClick.target(point: point, candidates: candidates, rect: { $0.button })
+            let intercepted = GreenMaximizeClick.intercept(point: point, rect: resolved?.button,
+                age: 0, option: false, bundleID: resolved?.app, exclusions: [])
+            let maximized = intercepted && resolved?.name == window.name
+                && GreenMaximizeEngine.target(current: original, visible: visible, memory: nil) == visible
+            print("\(window.name): \(maximized ? "maximize" : "FAIL passed through")")
+            if !maximized { failures += 1 }
         }
-        precondition(created == 2, "A newly focused window registers its own observer")
-        _ = GreenMaximizeRefresh.newObserver(for: AXUIElementCreateApplication(1), observed: nil) {
-            created += 1; return nil
-        }
-        precondition(created == 3, "A failed or cleared observer is created again")
+        guard failures == 0 else { exit(1) }
+        precondition(GreenMaximizeClick.target(point: CGPoint(x: 900, y: 900),
+            candidates: candidates, rect: { $0.button }) == nil)
+        print("green-maximize: geometry, click routing and passthrough passed")
     }
 }
