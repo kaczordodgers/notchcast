@@ -8,7 +8,7 @@ extension GalleryPages {
         "idle", "timer", "transfer", "status", "volume", "brightness", "airpods", "low-battery", "wifi", "tailscale",
         "low-disk", "meeting-reminder", "dictation", "walk", "message", "danger-message",
         "music", "music-paused", "recording", "count", "step", "speed", "toggle", "level", "spinner", "calibration",
-        "two-at-once", "music-and-timer", "timer-end", "long-message",
+        "two-at-once", "timer-end", "long-message",
     ]
 
     static func island(_ core: AppCore) -> [GalleryPage] {
@@ -103,9 +103,10 @@ extension GalleryPages {
     /// Every fixture goes through the controller's own ranking, the way a live island builds its closed state.
     private static func closedFixture(_ state: String) -> IslandClosedState {
         let now = Date()
-        let track = IslandTrack(title: "Night drive", artist: "Mara Lind", artwork: sampleArtwork,
+        let track = IslandTrack(title: "Teardrop", artist: "Massive Attack", artwork: sampleArtwork,
                                 isPlaying: state != "music-paused")
-        let tea = IslandActivity(kind: .timer, title: "Tea timer", endDate: now.addingTimeInterval(300))
+        // 299 s so the frozen gallery frame reads 4:59, the same in both lanes.
+        let tea = IslandActivity(kind: .timer, title: "Tea timer", endDate: now.addingTimeInterval(299))
         func message(_ text: String, _ tone: IslandMessage.Tone = .neutral, symbol: String? = nil,
                      detail: String? = nil, progress: Bool = false) -> IslandMessage {
             IslandMessage(id: UUID(), tone: tone, text: text, isProgress: progress, onCancel: nil,
@@ -139,7 +140,7 @@ extension GalleryPages {
         case "dictation": shown.message = message("Dictation listening", progress: true)
         case "walk": shown.message = message("Daily walking goal reached", symbol: "figure.walk")
         case "message": shown.message = message("Nothing to Import")
-        case "danger-message": shown.message = message("Couldn’t read the text", .danger)
+        case "danger-message": shown.message = message("Couldn't read the text", .danger)
         case "music", "music-paused": shown.track = track
         case "recording":
             shown.activities = [activity("Recording", symbol: "record.circle", value: .elapsed(since: now - 83))]
@@ -154,34 +155,23 @@ extension GalleryPages {
         case "calibration":
             shown.activities = [activity("Battery calibration", symbol: "battery.75percent",
                                          value: .pair(.percent(0.8), .step(2, of: 4)))]
-        case "two-at-once": shown = (message("AirPods: Connected", symbol: "headphones"), [], track)
-        case "music-and-timer": shown = (nil, [tea], track)
+        case "two-at-once": shown = (nil, [tea], track)
         case "timer-end":
             return IslandClosedState(main: .card(IslandCard(kind: .timerEnd, title: "Tea timer", action: {})))
         case "long-message":
-            shown.message = message("Couldn’t paste some dictation into this app",
+            shown.message = message("Couldn't paste some dictation into the app",
                                     detail: "The text is on the clipboard instead")
         default: break
         }
         return IslandController.closedState(message: shown.message, activities: shown.activities, track: shown.track)
     }
 
-    /// A plausible cover for "Night drive": a road under a low moon, flat colours, the one coloured thing on screen.
+    /// The shared sample cover: a flat #2F3E46 square with a centred #F4A261 circle half its width.
     private static let sampleArtwork = NSImage(size: CGSize(width: 64, height: 64), flipped: false) { rect in
-        NSColor(srgbRed: 0.11, green: 0.13, blue: 0.19, alpha: 1).setFill()
+        NSColor(srgbRed: 0x2F / 255, green: 0x3E / 255, blue: 0x46 / 255, alpha: 1).setFill()
         rect.fill()
-        NSColor(srgbRed: 0.07, green: 0.08, blue: 0.11, alpha: 1).setFill()
-        CGRect(x: 0, y: 0, width: 64, height: 26).fill()
-        let road = NSBezierPath()
-        road.move(to: CGPoint(x: 6, y: 0))
-        road.line(to: CGPoint(x: 31, y: 26))
-        road.line(to: CGPoint(x: 33, y: 26))
-        road.line(to: CGPoint(x: 58, y: 0))
-        road.close()
-        NSColor(srgbRed: 0.93, green: 0.62, blue: 0.28, alpha: 1).setFill()
-        road.fill()
-        NSColor(srgbRed: 0.96, green: 0.93, blue: 0.86, alpha: 1).setFill()
-        NSBezierPath(ovalIn: CGRect(x: 36, y: 36, width: 12, height: 12)).fill()
+        NSColor(srgbRed: 0xF4 / 255, green: 0xA2 / 255, blue: 0x61 / 255, alpha: 1).setFill()
+        NSBezierPath(ovalIn: rect.insetBy(dx: rect.width / 4, dy: rect.height / 4)).fill()
         return true
     }
 }
