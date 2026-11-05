@@ -1,151 +1,70 @@
-# Tinycast
+# Notchcast
 
-**A tiny, fully native macOS launcher. One hotkey, everything you reach for all day, under 100 MB of
-RAM.**
+Run `notchcast/local-ci.sh <pr>` to build and test the exact PR head through the Mac build queue.
+It posts `build/local` success or failure with the Mac, minutes and last step; logs stay in `~/agents/nc-local-ci/logs/<sha>.log`.
+Success cancels that head’s pending PR Actions runs and supplies build proof to `notchcast/land.sh`.
 
-<p align="center">
-  <a href="https://github.com/abue-ammar/tinycast/releases/latest">
-    <img alt="Latest release"
-         src="https://img.shields.io/github/v/release/abue-ammar/tinycast?sort=semver&style=flat&label=release&color=1F6FEB"></a>
-  <img alt="Swift 6.0"
-       src="https://img.shields.io/badge/Swift-6.0-F05138?style=flat&logo=swift&logoColor=white">
-  <img alt="macOS 26 or later"
-       src="https://img.shields.io/badge/macOS-26%2B-000000?style=flat&logo=apple&logoColor=white">
-  <a href="LICENSE">
-    <img alt="License: AGPL-3.0"
-         src="https://img.shields.io/badge/License-AGPL--3.0-3DA639?style=flat"></a>
-  <a href="https://discord.gg/v2Eeb4QQy3">
-    <img alt="Join the Tinycast Discord"
-         src="https://img.shields.io/badge/Discord-Join-5865F2?style=flat&logo=discord&logoColor=white"></a>
-</p>
+**Notchcast** is a fork of [Tinycast](https://github.com/abue-ammar/tinycast) (AGPL-3.0): upstream `main` plus a few commits of ours on top, arm64 builds signed with our own identity. Upstream's README is [README.upstream.md](README.upstream.md).
 
-SwiftUI and AppKit, **zero third-party dependencies**, no Electron and no telemetry. It also **runs
-real Raycast extensions**, rendered as native SwiftUI. Free, open source, and staying that way.
+Every ~10 minutes a GitHub Actions workflow replays our commits onto the newest upstream `main`, builds and runs the tests, and moves `main` only when green; each upstream release is rebuilt the same way and published here under the same tag.
 
-For anything private, email [iabueammar@gmail.com](mailto:iabueammar@gmail.com).
+This file is `notchcast/README.md`; the sync copies it to the root `README.md`. `main` is the default branch. Feature work happens on branches off `main` and lands as linear commits (no merge commits). Features are our own code; Notchcast uses no Raycast extensions.
 
-<p align="center">
-  <img src="docs/screenshot.png" alt="Tinycast command palette" width="720">
-</p>
+Our commits:
 
-## Features
+- `Notchcast: read releases from kaczordodgers/notchcast`: the in-app updater reads this repo's releases.
+- `Notchcast: remove upstream workflows`: none of upstream's workflows run here. The sync makes this commit afresh on every replay, so upstream workflow edits never conflict and new ones never land.
+- `Notchcast: let a LaunchAgent own starting the app`: with `NOTCHCAST_LAUNCHD=1` the app keeps its login item off and its Relaunch only quits, so the LaunchAgent below is the only thing that starts it.
+- `Notchcast: tooling` and later fixes: this folder and `.github/workflows/`.
+- `Notchcast: bundle id app.notchcast, URL scheme notchcast, name Notchcast`: our own app identity (Debug: `app.notchcast.dev`). The in-app updater treats it as a development build and stays inert; `notchcast.update` installs releases.
+- `Notchcast: generated files`, always last: the root `README.md` (this file), `README.upstream.md` (upstream's README with a one-line note), `Tinycast.xcodeproj` (XcodeGen from `project.yml`) and, when our commits change `Scripts/raycast-runtime/`, `Tinycast/Resources/RaycastRuntime.generated.js`. The sync makes it afresh; our other commits never carry these files (replay drops them from each commit), so upstream edits to them never conflict. Edit `notchcast/README.md` or `project.yml`, never the generated files.
 
-- **App launcher** — fuzzy-search and launch anything, pin favorites, see what's running, quit an app
-  or every app at once.
-- **Global hotkey** — one shortcut summons the palette from anywhere.
-- **Per-app hotkeys** — bind a key to an app; press it to toggle (focus/hide).
-- **Deeplinks** — run any command, window action, quicklink, snippet, note or chat from a
-  `tinycast://` URL, for Karabiner-Elements, Shortcuts or scripts. A link can carry text and
-  arguments, and a link from outside asks before it acts. Copy Deeplink (⇧⌘C) gives you the link.
-- **Search Files** — find files and folders instantly from a private index of the folders you choose,
-  kept on your Mac. Needs Full Disk Access; off by default.
-- **Dictionary** — look a word up with the Define Word command, or define whatever you typed from the
-  launcher's fallbacks, read from the Mac's own dictionaries.
-- **Clipboard history** — text and images, searchable, pasted back into the app you were using.
-- **Calculator** — do math, unit, live currency and crypto conversions inline, right in the palette.
-- **Quicklinks** — turn a URL, search, file or deeplink into a command, with placeholders for typed
-  input, the clipboard or the date.
-- **Apple Shortcuts** — search and run the shortcuts you built in the Shortcuts app, with aliases and
-  global hotkeys.
-- **Snippets** — reusable Markdown templates with dynamic placeholders, arguments, nested references
-  and optional keyword expansion.
-- **Custom commands** — run named shell commands through fuzzy search or their own global hotkeys.
-- **Window management** — 39 Rectangle-style actions: halves, quarters, thirds, sizing, nudging,
-  edge moves, display moves, fullscreen and Spaces.
-- **System actions** — lock, sleep, restart, empty trash, toggle appearance, Bluetooth, mute, hidden
-  files, and more.
-- **Calendar and meetings** — your next meeting on the empty palette and in the menu bar, one key to
-  join it, or let it join itself.
-- **Notes** — an unlimited collection of plain Markdown files in one floating editor, searchable from
-  the palette and rendered as you write.
-- **Emoji picker** — a searchable emoji grid, one keystroke away.
-- **AI chat** — use your own key or an installed AI account: ask Quick AI from the palette, or keep
-  longer conversations in the AI Chat window, with a searchable, pinnable history. Off out of the box,
-  like every AI feature.
-- **Quick Actions** — fix grammar, rewrite, translate or summarize the selected text in any app.
-- **Dictation** — press a shortcut and speak, and the text lands in the app you're
-  using. Speech is turned into text on your Mac. Off by default.
-- **Raycast extensions** — run the ones you already have natively, rendered as SwiftUI.
-- **Backup and import** — export your settings to a file, or import your setup from Raycast.
+## Sync (`.github/workflows/sync.yml`)
 
-## Install
+- Started by `notchcast.kick` (below) when upstream `main` or its newest release changed, at least hourly, on a push to `main` and by hand. GitHub's own `schedule` stays in the workflow but has never fired for this fork. Each run: if upstream `main` moved, the plan job first replays our commits on Linux; a conflict is reported there without spending a macOS runner. Then `notchcast/ci.py replay` cherry-picks our commits (`merge-base(main, upstream/main)..main`) onto the new upstream `main`, builds Debug on a GitHub-hosted `xcode-27` runner and runs upstream's `Scripts/run-tests.sh`. Only when green does it update `main` with `--force-with-lease` on the `main` it started from. That workflow push is the only history rewrite allowed in this repo; nobody force-pushes by hand. A `main` commit without a green `notchcast/tested` status (a push) is built and tested as it is, and gets that status when green.
+- Every upstream release from `BASELINE_TAG` (`config.env`) on is rebuilt from its tag with our commits replayed onto it, tested, built Release for arm64, signed with `Notchcast Self-Signed` and published under the same tag, title and prerelease flag as `Notchcast-<version>.zip` and `.dmg`. Version and build number come from upstream's own zip; mirror versions stay unchanged; snapshots append a numeric revision. Upstream's tag is mirrored unchanged.
+- Tests: upstream's full suite except `CI_SKIP_TESTS` (`config.env`), harnesses the hosted VM cannot run (Vision OCR, rendered-text capture), which must still pass on a Mac. A harness that fails is run once more alone; if it still fails, it is run on the pristine upstream commit under our commits, and only a harness that passes there blocks (a failure on upstream too is upstream's flake or the VM, and is ignored with a warning).
+- On a replay conflict, a red build or a red test nothing is pushed or published and `main` stays as it is. A red build or test is remembered as `refs/notchcast-failed/<main-<upstream>|release-<tag>|test>-<main>`, so it is retried only when upstream or `main` changes; a conflict is found again cheaply on Linux each run.
+- Each failure opens or updates one issue per kind, closed by the next green run of that kind: `notchcast-sync` (replaying onto new upstream), `notchcast-main` (a pushed `main` tested as it is), `notchcast-release` (per tag). A conflict's issue names our commit and files and lists the upstream commits that touched them. A cause that stays the same (the same conflict, the same red `main`, the same tag) on a newer upstream only retitles the issue. The updater on the MBA tells Chad once per issue and cause (`chad-opus ping failure`).
+- A sync that brings upstream changes under `Tinycast/DesignSystem/`, to `Theme.swift` or to `docs/ui.md` opens one `notchcast-design` issue listing those upstream commits; the updater on the MBA turns it into one Todoist task (label `notchcast`), "Refresh notchcast/docs/design-system.md", and closes it.
 
-First, add the tap:
+## Secrets and checks
 
-```sh
-brew trust --tap abue-ammar/tinycast   # required for third-party taps
-brew tap abue-ammar/tinycast
-```
+- Actions secrets live in the environment `sync`, which only `main` may use: `SIGNING_P12_BASE64` and `SIGNING_P12_PASSWORD` (the self-signed code-signing identity) and `DEPLOY_KEY` (write deploy key `notchcast-actions`; `GITHUB_TOKEN` cannot push commits that touch workflow files). The same material is kept outside git on the maintainer's Mac. The public leaf fingerprint is `SIGN_SHA1` in `config.env`.
+- `.github/workflows/leaks.yml` and the hooks in `notchcast/githooks` run gitleaks and `check-identity.sh` (no employer name in files, commit messages or commit identities). Per clone, before the first commit: `git config core.hooksPath notchcast/githooks`, a repo-local `user.email` noreply address, and `git remote set-url --push upstream DISABLED`.
+- Sync commits use `github-actions[bot]`; snapshot annotated tags use the repository identity.
+- UI checks: `notchcast/design-check.sh` runs [enmerasoftware/ai-design-check](https://github.com/enmerasoftware/ai-design-check) (version `DESIGN_CHECK_VERSION` in `config.env`; Node 20+) on `Tinycast/` with upstream's own findings as the baseline, so only what our commits add counts: errors fail (icon-only buttons without a name, Title Case text, radii and type off the scale, ...), warnings are shown. It runs in `.github/workflows/design.yml` on pushes and pull requests that change Swift, and in the pre-commit hook when Swift under `Tinycast/` is staged. A deliberate exception gets `// ai-design-check-ignore-next-line <rule> -- <reason>`.
 
-Then run the one line that matches your Mac:
+## Installing on a Mac
 
-| Your Mac                         | Install                                  |
-| -------------------------------- | ---------------------------------------- |
-| Apple silicon, macOS 26 or newer | `brew install --cask tinycast`           |
-| Intel, macOS 26                  | `brew install --cask tinycast-universal` |
+`notchcast/install-launchd.sh all` once per Mac; logs are in `~/Library/Logs/notchcast/`. It:
 
-Not sure which Mac you have? **Apple menu → About This Mac.**
+1. installs the newest release at `/Applications/Notchcast.app` (`update.sh`);
+2. copies the old Tinycast Beta data once (`migrate.sh`), each part only while the Notchcast side is still empty: preferences (`defaults export com.tinycast.app.beta | defaults import app.notchcast`), `~/Library/Application Support/com.tinycast.app.beta/` and `~/.config/tinycast-beta/settings.json` (to `~/.config/app.notchcast/`). The old data is never changed. Keychain secrets (keyed by bundle id) are not copied;
+3. quits Tinycast Beta and moves its `.app` to the Trash;
+4. loads the three LaunchAgents:
+   - `notchcast.app` runs `/Applications/Notchcast.app` itself: started at login, restarted after a crash or a Quit (`KeepAlive`, at most every 10 s), with `NOTCHCAST_LAUNCHD=1`. Stop: `launchctl bootout gui/$(id -u)/notchcast.app`. Start: `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/notchcast.app.plist`.
+   - `notchcast.kick` runs `kick.sh` every 10 minutes (needs `gh` logged in; installed on both Macs, `install-launchd.sh kick`): it starts `sync.yml` when upstream `main` or upstream's newest release differs from what it last started for, and at least hourly. Where `chad-opus` exists (the MBA) it tells Chad once when it cannot start the sync, and once per upstream commit missing from our `main` 40 minutes after it was committed while no `notchcast-sync` issue is open. Log: `~/Library/Logs/notchcast/kick.log`.
+   - `notchcast.update` runs `update.sh` every 30 minutes (needs `gh` logged in), unless Notchcast's own "Automatically check for updates" is off (`general.automaticallyCheckForUpdates: false` in `~/.config/app.notchcast/settings.json`; then it logs that and installs nothing): the newest release is installed when it is newer, or when the installed copy is not ours, after checking bundle id, version and our leaf certificate. A release that failed its check is not installed again until `update.sh --retry`. `install-app.sh` keeps one previous bundle in `~/Library/Application Support/notchcast/previous/`, sending its predecessor to the Trash. It kickstarts `notchcast.app` and watches its pid and run count for 60 seconds, restoring and watching the previous bundle if the new one fails. Failed bundles go to the Trash. An unloaded agent skips the check; every install logs what was left running. Leads run `notchcast/update.sh --install` at each milestone end on both Macs to bypass only that preference; combine with `--dry-run` in either order to check without installing. Settings, data and Keychain items are never touched.
 
-- **Early builds:** `brew install --cask tinycast@beta` installs `Tinycast Beta.app` beside the stable app.
-- **DMG from [Releases](https://github.com/abue-ammar/tinycast/releases)?** Drag Tinycast to
-  Applications. It's notarized by Apple, so it opens without a warning.
+The new bundle id and signature need Accessibility to be granted once.
 
-## Building from source
+Before each update run, the job fetches origin `main` and runs its `notchcast/` tooling from `~/Library/Application Support/notchcast/tools`, leaving the checkout untouched; if refresh fails, it logs and uses the last extracted copy or the checkout. After this change, run `notchcast/install-launchd.sh update` once on each Mac to rewrite the job wrapper. Replacing an installed app (including `--install`) waits for at least 300 seconds of HID idle time, polling every 30 seconds for up to 25 minutes before deferring to the next run; first installs never wait.
 
-See **[docs/development.md](docs/development.md)** for the toolchain, build, packaging, release and
-website workflows. **[docs/](docs/README.md)** indexes everything else — architecture, engineering
-standards, the design system and one document per feature.
+## Conflict-free PRs
 
-## Support
+Merge only with `notchcast/land.sh <pr>`. It checks an isolated merge of the PR head into current main, runs core and affected fork harnesses, and squash-merges only that PR head after they pass. It refuses unless `build` is green on that head. Main harnesses tests the newest source push (a newer push cancels an older run) with the harnesses changed since its last green run (core only on a sync rewrite, which Sync tested). This is not an app build: switches in files no selected harness compiles, UI integration, and main moving between the check and the merge remain outside its protection; the PR build is still required.
 
-Tinycast is **free, and it stays that way**. If it earns a place on your Mac, consider supporting its
-development. Thanks in advance.
+PRs carry no generated files: edit their inputs, regenerate locally before using Xcode (`xcodegen generate`), and leave the generated diff uncommitted. PR CI regenerates before building. After each source push to main, the Generated files workflow runs `ci.py regenerate` and commits only `GENERATED` as `Notchcast: generated files` with the repository identity; each attempt starts from a fresh `origin/main`, its generated-only push is excluded by path filters, and the Actions token starts no further workflow runs. Sync regenerates before every build too.
 
-<p align="center">
-  <a href="https://tinycast.dev/support">
-    <img alt="Support Tinycast" width="188" height="44" src="docs/support-button.svg"></a><br>
-  <sub>Payments are handled securely by <a href="https://polar.sh">Polar.sh</a>.</sub>
-</p>
+Fork harnesses are discovered by `notchcast/test-harnesses.sh`, so a PR never edits `Scripts/run-tests.sh`. `Tests/nc-<Folder>-<name>-test.swift` compiles all Model and Service sources of `Tinycast/Features/<Folder>/`. Any other fork harness (`Tests/notchcast-*-test.swift` or an upstream-style name) declares its sources in one or more `// notchcast-sources: <compiler arguments and source globs>` header lines (no spaces in paths). A `notchcast-*` harness without the header fails alone with an error; the rest of the suite still runs.
 
-You can also support Tinycast with crypto: scan a code with your wallet, or copy an address. Send
-only on the network named for that address. If yours isn't listed,
-[email me](mailto:iabueammar@gmail.com?subject=Supporting%20Tinycast).
+## Snapshot releases
 
-<table>
-  <tr>
-    <td align="center">
-      <img width="160" alt="Bitcoin address QR code" src="website/public/wallets/bitcoin-qr.svg"><br>
-      <b>Bitcoin</b>
-    </td>
-    <td align="center">
-      <img width="160" alt="Ethereum, Base and BNB Smart Chain address QR code" src="website/public/wallets/ethereum-qr.svg"><br>
-      <b>Ethereum, Base, BNB Smart Chain</b>
-    </td>
-    <td align="center">
-      <img width="160" alt="Solana address QR code" src="website/public/wallets/solana-qr.svg"><br>
-      <b>Solana</b>
-    </td>
-  </tr>
-</table>
+`notchcast/kick.sh` dispatches both sync and `.github/workflows/snapshot.yml` when upstream changes and at least hourly. Snapshot also keeps an hourly schedule (minute 37) as a fallback and supports manual dispatch from main. It uses its own `snapshot` concurrency group with `cancel-in-progress: false`, never cancelling sync or other workflows. An unchanged main or a published snapshot whose tag timestamp is less than 50 minutes old skips. Build time does not delay the next hourly snapshot; failed attempts do not block manual retries.
 
-**Bitcoin**
+The workflow regenerates the project and uses sync's `notchcast/actions/tests` action on the captured main commit, including hosted-runner exclusions, retries and comparison against pristine `merge-base(main, upstream/main)`. Lint must also pass. Either failing skips publication successfully; Leaks is independent. Green commits use sync's Release arm64 build, signing identity, signature checks and zip/dmg packaging steps. Build or signing failures publish nothing. Snapshot tags point to that exact main commit and use the repository identity.
 
-```text
-bc1qpfxtjpuhm2cm8kg4lqgu3ffjch7vcjf678arwn
-```
+Tags append `.snapshot.YYYYMMDDHHMMSS` (UTC) to the newest published upstream mirror version, for example `v0.12.7-beta.131.snapshot.20261104120000`. The app version and asset names include the suffix. The updater compares a numeric snapshot revision after its existing version fields: mirrors < their snapshots < the next upstream beta or patch; stable snapshots also sort below the next patch's beta. An upstream `v0.12.8-beta.1` wins over every 0.12.7 snapshot. Sync's mirror parser ignores snapshot tags. Existing updater copies must be updated before they can see snapshot tags; no automatic downgrade occurs. Ordering and skip checks: `python3 notchcast/snapshot-test.py`.
 
-**Ethereum, Base and BNB Smart Chain** (one address for all three)
-
-```text
-0x22A00612bc0bf1Dc73AAC75e8De1BA4e81fF0810
-```
-
-**Solana**
-
-```text
-4EH7JDXZxkJiahas1xgPyC1iBW9pfCVUXxVtpqvwAz6T
-```
-
-## License
-
-[AGPL-3.0](LICENSE)
+Enable independent 30-minute installs on either Mac from its checkout with `/bin/bash ~/Code/notchcast/notchcast/install-launchd.sh update --auto-install`. This reloads only `notchcast.update`, with `update.sh --install` in its arguments, and runs at load and every 1800 seconds. It never changes `general.automaticallyCheckForUpdates`. Run `install-launchd.sh update` to restore preference-respecting behavior. First-time setup can use `install-launchd.sh all --auto-install`.
