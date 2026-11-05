@@ -382,7 +382,8 @@ enum KatanaPresetImporter {
 
     private static func number(_ value: Any, types: [String: Int] = [:]) throws -> Int {
         if let text = value as? String {
-            guard let number = types[text] ?? Int(text) else { throw KatanaError.invalidData }
+            guard let number = types[text] ?? Int(text),
+                  (-65535...65535).contains(number) else { throw KatanaError.invalidData }
             return number
         }
         guard let number = value as? NSNumber, String(cString: number.objCType) != "c",
