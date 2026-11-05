@@ -6,7 +6,7 @@ import Observation
 final class IslandActivityCenter {
     static let shared = IslandActivityCenter()
 
-    weak var presenter: (any IslandActivityPresenter)?
+    var hasPresenter = false
     private(set) var activities: [IslandActivity] = []
     private(set) var message: IslandMessage?
     @ObservationIgnored private var dismissal: Task<Void, Never>?
