@@ -4,6 +4,11 @@ set -euo pipefail
 PR=$1
 tools=$(cd "$(dirname "$0")/.." && pwd)
 cd "$tools"
+# During a landing hold (notchcast/hold.sh) the owner's build takes the build queue's landing lane, ahead of every
+# normal job, and any other PR's local CI waits here until the hold ends.
+source "$tools/notchcast/hold.sh"
+lane=
+if hold_turn "$PR"; then lane=--landing; fi
 metadata=$(gh pr view "$1" -R kaczordodgers/notchcast --json headRefOid,baseRefOid)
 head=$(jq -r .headRefOid <<< "$metadata")
 export HEAD_SHA=$head BASE_SHA=$(jq -r .baseRefOid <<< "$metadata")
@@ -32,6 +37,8 @@ finish() {
             --limit 100 --json databaseId,status --jq '.[] | select(.status != "completed") | .databaseId') || code=1
         for run in $runs; do gh run cancel "$run" -R kaczordodgers/notchcast || code=1; done
     fi
+    # The landing lane prints only the build's last 40 lines and keeps the full output in the tree's git dir.
+    if [ -n "$lane" ]; then cat "$tree"/.git/land-check/lander/*.log 2>/dev/null || true; fi
     if [ "$owned" -eq 1 ]; then rm -rf "$tree" || code=1; fi
     exec 1>&3 2>&4
     cat "$log"
@@ -75,4 +82,4 @@ git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kacz
     commit --quiet --allow-empty --no-edit -m "Merge $head"
 export RUNNER_TEMP="$scratch" TMPDIR="$scratch/tmp"
 mkdir "$TMPDIR"
-python3 "$HOME/chad/bin/build-queue.py" hold -- bash "$tools/notchcast/ci-build.sh"
+python3 "$HOME/chad/bin/build-queue.py" hold $lane -- bash "$tools/notchcast/ci-build.sh"
