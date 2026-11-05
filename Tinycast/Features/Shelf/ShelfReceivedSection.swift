@@ -102,6 +102,8 @@ struct ShelfReceivedRows: View {
         ForEach(entries) { entry in
             HStack(spacing: Theme.Spacing.lg) {
                 SymbolImage(name: symbol(entry.item.kind), size: Theme.Size.settingsRowIcon)
+                    .foregroundStyle(.secondary)
+                    .frame(width: Theme.Size.settingsRowIcon)
                 VStack(alignment: .leading, spacing: Theme.Spacing.xxs) {
                     Text(entry.item.kind == .text
                         ? String(data: entry.item.data, encoding: .utf8) ?? "" : entry.item.name).lineLimit(2)
