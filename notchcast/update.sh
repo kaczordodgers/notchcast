@@ -73,7 +73,7 @@ alert_issues() {
             --section "$NOTCHCAST_TODOIST_BACKLOG" --labels notchcast --description "$body" --json | jq -r '.id // empty')"
         [ -n "$task" ] || { log "Todoist task for design issue #$n not created; retried next run"; return 1; }
         # A failed close would make the next run add a second task.
-        gh issue close "$n" -R "$FORK_REPO" --comment "Todoist task $task" >/dev/null \
+        gh issue close "$n" -R "$FORK_REPO" --comment "Tracked privately." >/dev/null \
             || { log "design issue #$n: Todoist task $task created but the issue is still open; close it by hand"; return 1; }
         log "design issue #$n -> Todoist task $task"
     done
