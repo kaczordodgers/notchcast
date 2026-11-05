@@ -1,0 +1,42 @@
+diff --git a/Tinycast/App/AppCore.swift b/Tinycast/App/AppCore.swift
+--- a/Tinycast/App/AppCore.swift
++++ b/Tinycast/App/AppCore.swift
+@@ -288,6 +288,7 @@
+     }
+ 
+     func start(launchedByUser: Bool) {
++        if LaunchAtLogin.managedByLaunchd { LaunchAtLogin.set(false) }
+         Signposts.interval("AppCore.start") {
+             // Shorten AppKit's ~2–3s tooltip delay; registration domain, so a user default wins.
+             UserDefaults.standard.register(defaults: ["NSInitialToolTipDelay": 250])
+@@ -620,7 +621,8 @@
+         mcp.stop()
+         installedAI.stop()
+         updateCoordinator.installStagedUpdate()
+-        if relaunchRequested { RelaunchRunner.relaunchAfterExit(Bundle.main.bundleURL) }
++        // Under the LaunchAgent, launchd restarts the app; a second start would be a second instance.
++        if relaunchRequested, !LaunchAtLogin.managedByLaunchd { RelaunchRunner.relaunchAfterExit(Bundle.main.bundleURL) }
+     }
+ 
+     /// Only the tool whose own path or variables changed is checked again; the rest keep running.
+diff --git a/Tinycast/Platform/LaunchAtLogin.swift b/Tinycast/Platform/LaunchAtLogin.swift
+--- a/Tinycast/Platform/LaunchAtLogin.swift
++++ b/Tinycast/Platform/LaunchAtLogin.swift
+@@ -1,11 +1,16 @@
+ import ServiceManagement
+ 
+ enum LaunchAtLogin {
++    /// Started by a LaunchAgent that keeps the app alive (Notchcast sets NOTCHCAST_LAUNCHD=1). The agent owns
++    /// starting at login, so the login item stays off: both would start a second instance.
++    static let managedByLaunchd = ProcessInfo.processInfo.environment["NOTCHCAST_LAUNCHD"] == "1"
++
+     static var isEnabled: Bool {
+-        SMAppService.mainApp.status == .enabled
++        !managedByLaunchd && SMAppService.mainApp.status == .enabled
+     }
+ 
+     static func set(_ enabled: Bool) {
++        let enabled = enabled && !managedByLaunchd
+         do {
+             if enabled {
+                 if SMAppService.mainApp.status != .enabled { try SMAppService.mainApp.register() }
