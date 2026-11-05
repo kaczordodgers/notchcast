@@ -1,6 +1,6 @@
-# Tinycast design system (for Notchcast features), design B copy
+# Tinycast design system (for Notchcast features), design B
 
-This is `design-system.md` plus what the island work on `nc-design-race-b-v3` (14d5c2b6) taught, read against the `design-system-patterns` skill (wshobson/agents, `plugins/ui-design/skills/design-system-patterns`). The original file stays as it is; this copy is the candidate. Sections 0–14 are the original with additions marked **(B)**; §15–§18 are new: token tiers and their governance, the island kit as the component tier, the catalogue and its checks, and what the skill says that does not apply to a native app. Citations into `Tinycast/Features/Notchcast/` are against 14d5c2b6.
+The design system as design B leaves it: `design-system.md` carried forward with what the island work on `nc-design-race-b-v3` settled, read against the `design-system-patterns` skill (wshobson/agents, `plugins/ui-design/skills/design-system-patterns`) and accepted by Damian on 5 Nov. §0–§14 are upstream's rules with the island's additions in place; §15 names the token tiers and how a token changes in a fork that cannot touch its primitives; §16 is the island kit as the component tier; §17 the catalogue and its checks; §18 what the skill says that does not apply to a native app. Citations into `Tinycast/Features/Notchcast/` are against 14d5c2b6. The original `design-system.md` is untouched until the race is decided.
 
 Source: read-only clone of upstream `abue-ammar/tinycast` at HEAD `3be769dc`. All `path:line` citations are relative to that clone. The goal: a Notchcast feature should look as if the upstream author shipped it. This is **Tinycast's** system (native Liquid Glass + an alpha ink ramp), not any other design system. Upstream's own spec is `docs/ui.md` (907 lines) and it is authoritative and largely accurate; this file condenses it, ties each rule to code and records where the doc and the code disagree.
 
@@ -118,7 +118,7 @@ System text styles only; no fixed sizes in views (`docs/ui.md:208-211`). Tokens 
 - Footer actions: `CameraButton` → `.buttonStyle(.modalAction(role, fillsWidth: false))` + `.tooltip(keyCaps:)` (`Tinycast/Features/Camera/UI/CameraButton.swift:15-19`); Cancel/Close leading, primary trailing (`CameraView.swift:39-47`).
 - Transient readouts go through `HUDPresenter` (one at a time, replace, never stack); a new HUD shape is a new presenter (`docs/ui.md:600-608`).
 - Corner radii: palette and dialogs `panel 26` (`Theme.swift:31`); Camera and volume HUD `dialog 20` (`Theme.swift:43`); pill/compact bar `Capsule`.
-- **(B) Window levels are the z-scale.** The skill keeps a z-index scale as tokens; here it is `NSWindow.Level`, and the table is: island `statusBar + 1` (`Island/IslandPanel.swift:65`), so the closed row sits over a black menu bar and under nothing; palette `.palette` (`PalettePanel.swift:267`); HUDs `.palette`, never key; Notes and Camera `.floating`. A surface that grows into another surface's frame must give way, not out-level it: the island's black fades out under the launcher's glass (`NotchcastTheme.Motion.blackOut/blackIn`, `Island/IslandPanel.swift:170`) because the palette sits below the island's level. Found in v3: before that fade the whole black covered the launcher beside a camera.
+- **Window levels are the z-scale.** The skill keeps a z-index scale as tokens; here it is `NSWindow.Level`, and the table is: island `statusBar + 1` (`Island/IslandPanel.swift:65`), so the closed row sits over a black menu bar and under nothing; palette `.palette` (`PalettePanel.swift:267`); HUDs `.palette`, never key; Notes and Camera `.floating`. A surface that grows into another surface's frame must give way, not out-level it: the island's black fades out under the launcher's glass (`NotchcastTheme.Motion.blackOut/blackIn`, `Island/IslandPanel.swift:170`) because the palette sits below the island's level. Found in v3: before that fade the whole black covered the launcher beside a camera.
 
 ## 9. Copy and wording
 
@@ -142,16 +142,16 @@ Capitalization as shipped:
 - Curves: hover `.easeOut(duration: Theme.Duration.hover)` (`ModalActionButtonStyle.swift:30`, `MessageHUDView.swift:33`); disclosure `MenuMotion.chevronAnimation` timingCurve(0.16, 1, 0.3, 1) (`Theme.swift:359-363`); glass morph springs `CompactBarMotion.capsule` spring(0.44, 0.62) / `.button` spring(0.44, 0.86), staggered 0.055s (`Theme.swift:344-356`); glide `RoomMotion.glide` (`Theme.swift:333-336`).
 - Panels open/close with AppKit's `.documentWindow` animation, not a SwiftUI scale (`docs/ui.md:545-550`).
 - Glyph reveal: opacity + blur(4) after the glass settles (`CompactBar.swift:114-116`).
-- **(B) The island's motion tokens are aliases of the above** (`Island/NotchcastTheme.swift:153-165`): outline springs with `bounce: 0`, `grow` on `settingsReveal` 0.28 (open, and any closed change), `shrink` on `enter` 0.18; content in on `dialogEnter` 0.12, out on `exit` 0.12; `contentHold` = `CompactBarMotion.stagger` 0.055; `landing` = `CompactBarMotion.revealDelay` 0.12; the black under the launcher `exit`/`enter`. A notch island never bounces: the launcher's capsule spring (0.44, 0.62) undershot and left the island shorter than the notch for 0.4 s.
-- **(B) Handover of a changing closed row** (`Island/IslandMotion.swift:49-62`): a value ticking in place, a pause or the same message cuts; rows that share a piece hold one `contentHold` beat (`.holds`); rows that share nothing swap at once (`.leaves`); a change that buds a bubble keeps the picture of the old row for the `grow` duration, then the new row with its round cover fades in (`holdsRowWhileBudding`, `Island/IslandSurfaceView.swift` `holdWhileBudding`). After a close the closed row and the black wait `landing` for the island to land; a page opening straight from the launcher gets its black at once.
-- **(B) Path morphs:** Core Animation morphs a path element by element, so every outline of one shape has the same element list, and a missing bubble is a circle of no size (`IslandMotion.morphPath`); subpaths that may overlap mid-morph wind the same way, or the nonzero rule cuts a hole (`IslandSilhouette.bubbleWinding`). Harness: `Tests/notchcast-island-motion-test.swift`.
+- **The island's motion tokens are aliases of the above** (`Island/NotchcastTheme.swift:153-165`): outline springs with `bounce: 0`, `grow` on `settingsReveal` 0.28 (open, and any closed change), `shrink` on `enter` 0.18; content in on `dialogEnter` 0.12, out on `exit` 0.12; `contentHold` = `CompactBarMotion.stagger` 0.055; `landing` = `CompactBarMotion.revealDelay` 0.12; the black under the launcher `exit`/`enter`. A notch island never bounces: the launcher's capsule spring (0.44, 0.62) undershot and left the island shorter than the notch for 0.4 s.
+- **Handover of a changing closed row** (`Island/IslandMotion.swift:49-62`): a value ticking in place, a pause or the same message cuts; rows that share a piece hold one `contentHold` beat (`.holds`); rows that share nothing swap at once (`.leaves`); a change that buds a bubble keeps the picture of the old row for the `grow` duration, then the new row with its round cover fades in (`holdsRowWhileBudding`, `Island/IslandSurfaceView.swift` `holdWhileBudding`). After a close the closed row and the black wait `landing` for the island to land; a page opening straight from the launcher gets its black at once.
+- **Path morphs:** Core Animation morphs a path element by element, so every outline of one shape has the same element list, and a missing bubble is a circle of no size (`IslandMotion.morphPath`); subpaths that may overlap mid-morph wind the same way, or the nonzero rule cuts a hole (`IslandSilhouette.bubbleWinding`). Harness: `Tests/notchcast-island-motion-test.swift`.
 
 ## 11. Light/dark
 
 - Dark is the design; Light is the same geometry with ink inverted (`docs/ui.md:19-21`). `AppCore.applyAppearance()` is the only appearance assignment (`AppCore.swift:799-801`); `.system` → `nil`.
 - Every colour through `ramp`/`adaptive`; a few stay fixed on purpose (gradient masks, saturated tiles, selected compact glyph) (`docs/ui.md:40`; `Theme.swift:447-450`).
 - Glass adapts on its own. Test over a light wallpaper; dark wallpaper hides transparency and corner bugs (`docs/ui.md:45`).
-- **(B) The island is the one surface that does not theme:** it is the hardware notch's black in every appearance (`NotchcastTheme.Colors.surface`, `Island/NotchcastTheme.swift:134-149`), so its ink is the ramp's dark side (`textPrimary/Secondary/Tertiary` 1.0 / 0.60 / 0.40 white) and colour is only `destructive` and `warning` on a glyph. The launcher grown from it keeps its glass and themes as the palette does. Contrast on black: 0.60 white is 7.4:1, 0.40 is 3.7:1 (below AA for text; the island draws no text in tertiary).
+- **The island is the one surface that does not theme:** it is the hardware notch's black in every appearance (`NotchcastTheme.Colors.surface`, `Island/NotchcastTheme.swift:134-149`), so its ink is the ramp's dark side (`textPrimary/Secondary/Tertiary` 1.0 / 0.60 / 0.40 white) and colour is only `destructive` and `warning` on a glyph. The launcher grown from it keeps its glass and themes as the palette does. Contrast on black: 0.60 white is 7.4:1, 0.40 is 3.7:1 (below AA for text; the island draws no text in tertiary).
 
 ## 12. Accessibility
 
@@ -160,9 +160,9 @@ Capitalization as shipped:
 - Keyboard: ↵ primary, Esc cancel, Cancel leading; ⌘↵ in multiline forms; keycaps never printed on buttons, revealed in a hover `Tooltip` (`docs/ui.md:59-60`).
 - Reduce Motion: read `@Environment(\.accessibilityReduceMotion)` and return `nil` animations for movement (`CompactBar.swift:45`, `:126-135`); AppKit side `NSWorkspace.shared.accessibilityDisplayShouldReduceMotion` (`Tinycast/Features/Notes/UI/NotesCoordinator.swift:383`).
 - Disabled = dimmed 0.45 as well as disabled (`SettingsComponents.swift:186-188`, `ModalActionButtonStyle.swift:31`).
-- **(B) One key map per surface, read from the physical key** (`Pages/IslandKey.swift`): ⌘P pin, ⌘R refresh, ⌘1–9 pages (ASCII layout under ⌘, number-row key codes), Esc close, ↵ activate, ←/→ and Tab/⇧Tab headers, ↑/↓ selection; a held chord or repeat is swallowed so one press acts once. The map is a pure function with a harness (`Tests/notchcast-island-keys-test.swift`), and the views never read `NSEvent` themselves.
-- **(B) What the island tells VoiceOver:** a Home row is one element with its action as an accessibility action (`Pages/IslandHomeView.swift:77-79`), a music row reads the title and the artist as its value (`Island/IslandPieces.swift:352-354`), a cancelable message is "Cancel …" (`:240`); the camera band, the level bars, the spinner and the outgoing snapshot are hidden (`Island/IslandClosedView.swift:35`, `IslandSurfaceView.swift:65`); the header's page buttons carry `.isSelected`. Reduce Motion on the AppKit side (`NSWorkspace…accessibilityDisplayShouldReduceMotion`, `Island/IslandPanel.swift:219`) lands the outline at once and only fades content (`IslandMotion.choice`).
-- **(B) Not handled anywhere (upstream included):** Increase Contrast and Reduce Transparency; a grep of `Tinycast/` finds no reader. The skill's high-contrast and forced-colours modes have no counterpart here; note it, do not invent one.
+- **One key map per surface, read from the physical key** (`Pages/IslandKey.swift`): ⌘P pin, ⌘R refresh, ⌘1–9 pages (ASCII layout under ⌘, number-row key codes), Esc close, ↵ activate, ←/→ and Tab/⇧Tab headers, ↑/↓ selection; a held chord or repeat is swallowed so one press acts once. The map is a pure function with a harness (`Tests/notchcast-island-keys-test.swift`), and the views never read `NSEvent` themselves.
+- **What the island tells VoiceOver:** a Home row is one element with its action as an accessibility action (`Pages/IslandHomeView.swift:77-79`), a music row reads the title and the artist as its value (`Island/IslandPieces.swift:352-354`), a cancelable message is "Cancel …" (`:240`); the camera band, the level bars, the spinner and the outgoing snapshot are hidden (`Island/IslandClosedView.swift:35`, `IslandSurfaceView.swift:65`); the header's page buttons carry `.isSelected`. Reduce Motion on the AppKit side (`NSWorkspace…accessibilityDisplayShouldReduceMotion`, `Island/IslandPanel.swift:219`) lands the outline at once and only fades content (`IslandMotion.choice`).
+- **Not handled anywhere (upstream included):** Increase Contrast and Reduce Transparency; a grep of `Tinycast/` finds no reader. The skill's high-contrast and forced-colours modes have no counterpart here; note it, do not invent one.
 
 ## 13. New feature checklist (≤15)
 
@@ -192,13 +192,13 @@ Capitalization as shipped:
 - **Comment contradicting code.** `HUDPanel` says neither HUD "carries elevation" yet sets `hasShadow = true` (`Tinycast/Windows/HUD/HUDPanel.swift:13-14`).
 - **Doc drift (trust code):** ui.md says Notes titlebar 44pt; code has `noteTitlebar 52` (`Theme.swift:82`). ui.md names `Palette/HoverArming.swift`; the file is `Tinycast/Palette/ArmedHover.swift`. ui.md says Camera takes "the same recipe" as the dialog (`panel 26`); `CameraView` clips at `dialog 20` (`CameraView.swift:16`).
 - **Editing `EdgeDissolve.swift`/`ThinScrollbar.swift`**, or adding anything to `DesignSystem/`/`Theme` for an Extensions-style opaque feature; both are explicit upstream non-negotiables (`AGENTS.md`).
-- **(B) A rule applied past its surface.** "One glyph size per surface" put the menu row's 14 pt mark in the island's 20 pt slot; beside a 17 pt value on the notch it read thin, and the review set 16 (`NotchcastTheme.Pill.symbol`). A component token may depart from the semantic one when the surface's own content says so; write the reason beside it.
-- **(B) Out-levelling instead of giving way.** The covered launcher had two fixes on the table, lifting the palette above the island while grown or fading the island's black under the glass; the fade won, as it keeps every window level as upstream set it (§8).
-- **(B) A spring with bounce on a shape that meets an edge.** The capsule spring's undershoot showed the screen behind the notch (§10).
-- **(B) A second SwiftUI tree for a crossfade.** The outgoing row is a snapshot image, not a second hosted view (`IslandSurfaceView.swift:36`); the frame-by-frame review of two live trees showed the row doubled.
-- **(B) Width tokens for pages.** Each open page is as wide as its own content; a shared page width made every page the widest page's width (`NotchcastTheme.Open`, look-decisions 3 Nov).
+- **A rule applied past its surface.** "One glyph size per surface" put the menu row's 14 pt mark in the island's 20 pt slot; beside a 17 pt value on the notch it read thin, and the review set 16 (`NotchcastTheme.Pill.symbol`). A component token may depart from the semantic one when the surface's own content says so; write the reason beside it.
+- **Out-levelling instead of giving way.** The covered launcher had two fixes on the table, lifting the palette above the island while grown or fading the island's black under the glass; the fade won, as it keeps every window level as upstream set it (§8).
+- **A spring with bounce on a shape that meets an edge.** The capsule spring's undershoot showed the screen behind the notch (§10).
+- **A second SwiftUI tree for a crossfade.** The outgoing row is a snapshot image, not a second hosted view (`IslandSurfaceView.swift:36`); the frame-by-frame review of two live trees showed the row doubled.
+- **Width tokens for pages.** Each open page is as wide as its own content; a shared page width made every page the widest page's width (`NotchcastTheme.Open`, look-decisions 3 Nov).
 
-## 15. Token tiers and governance (B)
+## 15. Token tiers and governance
 
 The skill's one transferable idea is the three tiers: primitives → semantic → component, each referencing the tier above, named by purpose, changed as an API. Mapped onto this fork:
 
@@ -220,7 +220,7 @@ Governance, the skill's propose → review → test → deprecate → remove, as
 
 Not adopted: a JSON token file with Style Dictionary output. Tinycast's tokens are Swift and the kit reads them directly; a generated layer would be a second source of truth to drift.
 
-## 16. The island kit as the component tier (B)
+## 16. The island kit as the component tier
 
 The skill's component chapter (compound, polymorphic, slot, headless, variants) is React. The native equivalents the island uses, so a new island or page piece follows the same grammar:
 
@@ -233,7 +233,7 @@ The skill's component chapter (compound, polymorphic, slot, headless, variants) 
 
 Island checklist, on top of §13: (a) every size, colour, font and duration from `NotchcastTheme` or `Theme`, `check-kit.py` clean; (b) a new piece renders in the capsule, the wings, the row under the camera and the bubble, and the gallery has a page per state in both shapes; (c) a new transition names its handover case and its Reduce Motion path, and the stage replays it; (d) a new key goes into `IslandKey` with a harness line; (e) VoiceOver: one element per row, actions as accessibility actions, decoration hidden; (f) nothing above the island's level, nothing under the launcher's glass but the island's black.
 
-## 17. Catalogue and checks (B)
+## 17. Catalogue and checks
 
 The skill's Storybook is the offscreen gallery (`notchcast/gallery/`), DEBUG only:
 
@@ -242,7 +242,7 @@ The skill's Storybook is the offscreen gallery (`notchcast/gallery/`), DEBUG onl
 - **Code:** `check-kit.py` (no literals in island and page views), `check-feature-shape.py`, `design-check.sh` (ai-design-check with baseline), `lint.sh`, the harnesses under `Tests/notchcast-island-*`, and `Model purity` grep.
 - **Review page for Damian:** stills and GIFs of the same scenario on two branches, one decision per change (`show` skill, `decisions` block); the v2→v3 review ran 23 decisions that way.
 
-## 18. From `design-system-patterns`: what does not apply (B)
+## 18. From `design-system-patterns`: what does not apply
 
 Read whole; most of it is a React and CSS toolkit. Kept out on purpose:
 
