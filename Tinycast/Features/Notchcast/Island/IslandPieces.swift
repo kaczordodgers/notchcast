@@ -77,7 +77,7 @@ struct IslandWord: View {
     }
 }
 
-/// The album cover at the row icon's size, or a quiet note; round in the bubble, concentric with it.
+/// The album cover at the row icon's size, or a quiet note; round in the bubble, concentric there.
 struct IslandArtwork: View {
     let image: NSImage?
     var round = false
@@ -328,7 +328,7 @@ struct IslandActivityLine: View {
     }
 }
 
-/// A song as a row: cover, title over artist, bars; or any part of it, for a notch wing or the bubble.
+/// A song as a row: cover, title over artist, bars; or one part, for a notch wing or the bubble.
 struct IslandMusicLine: View {
     enum Part { case artwork, bars, row, bubble }
     let music: IslandClosedState.Music
