@@ -5,7 +5,7 @@ struct NotchcastSettingRowsC: View {
 
     @ViewBuilder var body: some View {
         switch setting {
-        case .dictationHistory: DictationHistorySettingsSection()
+        case .dictationHistory: DictationHistorySettingRow()
         case .downloadsFolder:
             DownloadsFolderSettingRow()
         case .downloadsDistillFolder:
