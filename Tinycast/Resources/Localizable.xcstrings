@@ -67600,6 +67600,58 @@
         }
       }
     },
+    "Exchange tasks with your paired Mac over Mac Link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufgaben über Mac Link mit deinem gekoppelten Mac austauschen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Intercambia tareas con tu Mac enlazado a través de Mac Link."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échangez des tâches avec votre Mac jumelé via Mac Link."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac Link経由でペアリング済みのMacとタスクを交換します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac Link를 통해 페어링된 Mac과 작업을 교환합니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Troque tarefas com seu Mac emparelhado pelo Mac Link."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Обменивайтесь задачами с сопряжённым Mac через Mac Link."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通过 Mac Link 与已配对的 Mac 交换任务。"
+          }
+        }
+      }
+    },
     "Excluded Applications" : {
       "localizations" : {
         "de" : {
@@ -154023,6 +154075,58 @@
         }
       }
     },
+    "Sync tasks between Macs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufgaben zwischen Macs synchronisieren"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizar tareas entre Macs"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchroniser les tâches entre les Mac"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac間でタスクを同期"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac 간 작업 동기화"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronizar tarefas entre Macs"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синхронизировать задачи между Mac"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Mac 之间同步任务"
+          }
+        }
+      }
+    },
     "System" : {
       "comment" : "Option: follow macOS (theme, language)",
       "localizations" : {
@@ -155119,6 +155223,162 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "任务列表"
+          }
+        }
+      }
+    },
+    "Task sync exceeded the 8 MB transfer limit." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Aufgabensynchronisierung hat das Übertragungslimit von 8 MB überschritten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sincronización de tareas superó el límite de transferencia de 8 MB."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La synchronisation des tâches a dépassé la limite de transfert de 8 Mo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タスク同期が8 MBの転送上限を超えました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "작업 동기화가 8 MB 전송 제한을 초과했습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sincronização de tarefas excedeu o limite de transferência de 8 MB."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Синхронизация задач превысила лимит передачи 8 МБ."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任务同步超出了 8 MB 传输限制。"
+          }
+        }
+      }
+    },
+    "Task sync failed; check Mac Link and try again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufgabensynchronisierung fehlgeschlagen; prüfe Mac Link und versuche es erneut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sincronización de tareas falló; comprueba Mac Link e inténtalo de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La synchronisation des tâches a échoué ; vérifiez Mac Link et réessayez."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タスク同期に失敗しました。Mac Linkを確認して再試行してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "작업 동기화에 실패했습니다. Mac Link를 확인하고 다시 시도하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sincronização de tarefas falhou; verifique o Mac Link e tente novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось синхронизировать задачи; проверьте Mac Link и повторите попытку."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任务同步失败；请检查 Mac Link 后重试。"
+          }
+        }
+      }
+    },
+    "Task sync found conflicting changes; the Macs may share a replica ID." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aufgabensynchronisierung fand widersprüchliche Änderungen; die Macs verwenden möglicherweise dieselbe Replikat-ID."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sincronización encontró cambios en conflicto; los Macs podrían compartir un ID de réplica."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La synchronisation a trouvé des modifications incompatibles ; les Mac partagent peut-être un identifiant de réplique."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "タスク同期で競合する変更が見つかりました。Macが同じレプリカIDを使用している可能性があります。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "작업 동기화에서 충돌하는 변경을 발견했습니다. Mac이 같은 복제본 ID를 사용할 수 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A sincronização encontrou alterações em conflito; os Macs podem partilhar um ID de réplica."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "При синхронизации задач обнаружены конфликты; возможно, у компьютеров Mac одинаковый идентификатор реплики."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "任务同步发现冲突更改；这些 Mac 可能使用了相同的副本 ID。"
           }
         }
       }
