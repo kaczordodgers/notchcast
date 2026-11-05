@@ -35,6 +35,9 @@ struct GreenMaximizeTest {
         precondition(!hit(age: -1))
         precondition(!hit(option: true))
         precondition(!hit(exclusions: ["test.app"]))
+        precondition(!GreenMaximizeClick.intercept(point: CGPoint(x: 25, y: 25), rect: rect,
+            age: 0, option: false, bundleID: "test.app", exclusions: [], verified: false))
+        print("stale button covered by moved window: passed through")
         struct Window {
             let name: String
             let app: String
@@ -61,6 +64,12 @@ struct GreenMaximizeTest {
             if !maximized { failures += 1 }
         }
         guard failures == 0 else { exit(1) }
+        let overlapping = Window(name: "top window", app: "other.app", button: rect)
+        let zOrdered = [overlapping, focused]
+        let top = GreenMaximizeClick.target(point: CGPoint(x: 25, y: 25),
+            candidates: zOrdered, rect: { $0.button })
+        precondition(top?.name == "top window")
+        print("overlap in window z-order: top window selected")
         precondition(GreenMaximizeClick.target(point: CGPoint(x: 900, y: 900),
             candidates: candidates, rect: { $0.button }) == nil)
         print("green-maximize: geometry, click routing and passthrough passed")

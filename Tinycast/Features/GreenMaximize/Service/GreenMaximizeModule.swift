@@ -25,6 +25,7 @@ final class GreenMaximizeModule: NotchcastModule {
     private let hub: EventTapHub
     private var registration: UUID?
     private var activation: NotificationToken?
+    private var observer: AXObserver?
     private var window: AXUIElement?
     private var memory: GreenMaximizeEngine.Memory?
     private var generation = UUID()
@@ -62,18 +63,24 @@ final class GreenMaximizeModule: NotchcastModule {
                     return (swallowed, nil)
                 }
                 guard let snapshot = GreenMaximizeClick.target(
-                    point: event.location, candidates: value.snapshots, rect: { $0.rect }),
+                    point: event.location, candidates: value.snapshots, rect: {
+                        $0.rect.contains(event.location)
+                            && GreenMaximizeRefresh.verifies($0.target, point: event.location) ? $0.rect : .null
+                    }),
                     GreenMaximizeClick.intercept(
                         point: event.location, rect: snapshot.rect,
                         age: ProcessInfo.processInfo.systemUptime - snapshot.date,
                         option: event.flags.contains(.maskAlternate),
-                        bundleID: snapshot.bundleID, exclusions: [])
+                        bundleID: snapshot.bundleID, exclusions: [],
+                        verified: GreenMaximizeRefresh.verifies(snapshot.target, point: event.location))
                 else { return (false, nil) }
                 value.pressed = true
                 return (true, snapshot)
             }
             if let snapshot = result.1 {
                 DispatchQueue.main.async { [weak self] in self?.maximize(snapshot) }
+            } else if type == .leftMouseDown {
+                DispatchQueue.main.async { [weak self] in self?.refresh() }
             }
             return result.0 ? .swallow : .pass
         }
@@ -84,6 +91,10 @@ final class GreenMaximizeModule: NotchcastModule {
         if let registration { hub.remove(registration) }
         registration = nil
         activation = nil
+        if let observer {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+        }
+        observer = nil
         timer?.invalidate()
         timer = nil
         window = nil
@@ -94,15 +105,24 @@ final class GreenMaximizeModule: NotchcastModule {
     }
 
     private func refresh() {
+        observeFrontmost()
         guard refreshID == nil else { refreshAgain = true; return }
         exclusions = Set(NotchcastPreferences.shared.greenMaximizeExcludedApps
             .split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
         guard AXIsProcessTrusted()
         else { shared.value.withLock { $0.snapshots = [] }; return }
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+            kCGNullWindowID) as? [[String: Any]] ?? []
+        let visiblePIDs = Set(windows.compactMap { info -> pid_t? in
+            guard info[kCGWindowLayer as String] as? Int == 0 else { return nil }
+            return info[kCGWindowOwnerPID as String] as? pid_t
+        })
+        let orderedPIDs = windows.compactMap { $0[kCGWindowOwnerPID as String] as? pid_t }
         let apps = NSWorkspace.shared.runningApplications.compactMap { app -> (pid_t, String)? in
-            guard let bundleID = app.bundleIdentifier, !exclusions.contains(bundleID) else { return nil }
+            guard visiblePIDs.contains(app.processIdentifier), app.activationPolicy != .prohibited,
+                let bundleID = app.bundleIdentifier, !exclusions.contains(bundleID) else { return nil }
             return (app.processIdentifier, bundleID)
-        }
+        }.sorted { (orderedPIDs.firstIndex(of: $0.0) ?? .max) < (orderedPIDs.firstIndex(of: $1.0) ?? .max) }
         let id = UUID()
         refreshID = id
         let generation = self.generation
@@ -123,6 +143,36 @@ final class GreenMaximizeModule: NotchcastModule {
                 }
             }
         }
+    }
+
+    private func observeFrontmost() {
+        if let observer {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+        }
+        observer = nil
+        guard let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier else { return }
+        var created: AXObserver?
+        guard AXObserverCreate(pid, { _, _, _, context in
+            guard let context else { return }
+            MainActor.assumeIsolated {
+                let owner = Unmanaged<GreenMaximizeModule>.fromOpaque(context).takeUnretainedValue()
+                owner.shared.value.withLock { $0.snapshots = [] }
+                owner.refresh()
+            }
+        }, &created) == .success, let created else { return }
+        let application = AXUIElementCreateApplication(pid)
+        AXUIElementSetMessagingTimeout(application, 0.01)
+        let context = Unmanaged.passUnretained(self).toOpaque()
+        AXObserverAddNotification(created, application, kAXFocusedWindowChangedNotification as CFString, context)
+        var value: CFTypeRef?
+        AXUIElementCopyAttributeValue(application, kAXWindowsAttribute as CFString, &value)
+        for window in value as? [AXUIElement] ?? [] {
+            for notification in [kAXMovedNotification, kAXResizedNotification, kAXUIElementDestroyedNotification] {
+                AXObserverAddNotification(created, window, notification as CFString, context)
+            }
+        }
+        observer = created
+        CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(created), .commonModes)
     }
 
     private func maximize(_ snapshot: Snapshot) {

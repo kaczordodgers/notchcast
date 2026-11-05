@@ -5,6 +5,7 @@ nonisolated enum GreenMaximizeRefresh {
     // Handles are created on the serial worker and used only on main after publication.
     struct Result: @unchecked Sendable {
         let window: AXUIElement
+        let button: AXUIElement
         let rect: CGRect
         let date: TimeInterval
     }
@@ -37,7 +38,15 @@ nonisolated enum GreenMaximizeRefresh {
         guard AXUIElementCopyElementAtPosition(system, Float(rect.midX), Float(rect.midY), &hit) == .success,
             let hit, let hitWindow = element(hit, kAXWindowAttribute), CFEqual(window, hitWindow)
         else { return nil }
-        return Result(window: window, rect: rect, date: date)
+        return Result(window: window, button: button, rect: rect, date: date)
+    }
+
+    static func verifies(_ result: Result, point: CGPoint) -> Bool {
+        let system = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(system, 0.01)
+        var hit: AXUIElement?
+        return AXUIElementCopyElementAtPosition(system, Float(point.x), Float(point.y), &hit) == .success
+            && hit.map { CFEqual($0, result.button) } == true
     }
 
     private static func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
