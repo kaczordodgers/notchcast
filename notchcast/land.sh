@@ -4,6 +4,33 @@ source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
 refuse() { echo "REFUSED: $*" >&2; exit 1; }
+wait_for_sync() {
+    local run runs jobs replay deadline status
+    local poll=${NOTCHCAST_TEST_SYNC_POLL_SECONDS:-30}
+    local limit=${NOTCHCAST_TEST_SYNC_LIMIT_SECONDS:-2400}
+    deadline=$((SECONDS + limit))
+    while :; do
+        replay=
+        runs=$(for status in queued in_progress; do
+            gh run list -R kaczordodgers/notchcast --workflow sync.yml --status "$status" --limit 1000 \
+                --json databaseId --jq '.[].databaseId' || exit 1
+        done) || refuse 'could not list Sync runs'
+        for run in $runs; do
+            jobs=$(gh run view "$run" -R kaczordodgers/notchcast --json jobs) \
+                || refuse "could not read Sync run $run"
+            if jq -e 'any(.jobs[]; .name == "replay" and (.status == "queued" or .status == "in_progress"))' \
+                <<< "$jobs" >/dev/null; then
+                replay=$run
+                break
+            fi
+        done
+        [ -n "$replay" ] || return 0
+        [ "$SECONDS" -lt "$deadline" ] \
+            || refuse "Sync replay $replay still running after 40 min; run land.sh $pr again"
+        echo "Waiting for Sync replay $replay: landing would invalidate its main lease"
+        sleep "$((poll < deadline - SECONDS ? poll : deadline - SECONDS))"
+    done
+}
 check=0
 if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     check=1
@@ -116,6 +143,7 @@ if [ "$check" -eq 0 ]; then
     # main and retries. Harnesses rerun only when the new commits touch a file the PR touches; otherwise the clean
     # merge is the same proof GitHub's merge button gives.
     pr_files=$(git diff --name-only "$(git merge-base "$base" "$head")" "$head" | sort -u)
+    wait_for_sync
     for attempt in 1 2 3 4 5 6; do
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"

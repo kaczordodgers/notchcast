@@ -54,6 +54,7 @@ jobs:
   # Either way the tested commit gets a green `notchcast/tested` status.
   # Issues: kind sync for a replay onto new upstream (cause stable across upstream commits), main for main as it is.
   main:
+    name: ${{ needs.plan.outputs.rebase == 'true' && 'replay' || 'main' }}
     needs: plan
     if: needs.plan.outputs.rebase == 'true' || needs.plan.outputs.test_main == 'true'
     runs-on: xcode-27
