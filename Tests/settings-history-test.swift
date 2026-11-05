@@ -115,9 +115,9 @@ struct SettingsHistoryTests {
     static func sidebarCoversEveryPane() {
         let grouped = SettingsSection.allCases.flatMap(\.tabs)
         expect(
-            Set(grouped) == Set(SettingsTab.allCases),
+            Set(grouped) == Set(SettingsTab.allCases).subtracting(NotchcastHidden.tabs),
             "every pane appears in exactly one sidebar group")
-        expect(grouped.count == SettingsTab.allCases.count, "and none appears twice")
+        expect(grouped.count == Set(grouped).count, "and none appears twice")
     }
 
     /// A selectable `List` flattens section and row IDs into one namespace.
@@ -136,7 +136,7 @@ struct SettingsHistoryTests {
     static func catalogCoversEveryPane() {
         let covered = Set(SettingsSearchCatalog.entries.map(\.tab))
         expect(
-            covered == Set(SettingsTab.allCases),
+            covered == Set(SettingsTab.allCases).subtracting(NotchcastHidden.tabs),
             "every pane is reachable from Settings search")
     }
 
@@ -184,7 +184,7 @@ struct SettingsHistoryTests {
     /// A term found in the title has to beat the same term found only in a breadcrumb.
     static func catalogRanksTitlesFirst() {
         let results = SettingsSearchCatalog.results(for: "extensions")
-        expect(results.first?.tab == .extensions, "“extensions” opens on its own pane")
+        expect(!results.contains { $0.tab == .extensions }, "extensions stays absent from search")
         expect(
             SettingsSearchCatalog.results(for: "nothing here matches at all").isEmpty,
             "and an unmatched query returns nothing")

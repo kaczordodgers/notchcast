@@ -249,6 +249,10 @@ struct DeepLinkTests {
         let slugs = SettingsTab.allCases.map(\.slug)
         expect(Set(slugs).count == slugs.count, "every Settings tab has a slug of its own")
         for tab in SettingsTab.allCases {
+            if NotchcastHidden.tabs.contains(tab) {
+                expect(SettingsTab(slug: tab.slug) == nil, "settings/\(tab.slug) stays hidden")
+                continue
+            }
             expect(SettingsTab(slug: tab.slug) == tab, "settings/\(tab.slug) opens its own tab")
         }
         expect(SettingsTab(slug: "nope") == nil, "an unknown tab opens nothing")

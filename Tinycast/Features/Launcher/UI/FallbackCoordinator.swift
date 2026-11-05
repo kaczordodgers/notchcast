@@ -41,6 +41,7 @@ final class FallbackCoordinator {
     }
 
     func run(_ fallback: Fallback, query: String) {
+        guard NotchcastHidden.fallbacksEnabled else { return }
         switch fallback {
         case .builtin(.quickAI): core.quickAICoordinator.ask(query)
         case .builtin(.searchFiles): core.fileSearchCoordinator.show(query: query)

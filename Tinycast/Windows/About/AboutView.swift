@@ -34,7 +34,7 @@ struct AboutView: View {
                 }
                 .settingsAnchor(.aboutAbout)
                 links
-                support
+                if NotchcastHidden.supportEnabled { support }
             }
             .formStyle(.grouped)
             .settingsScrollTarget(.about)
