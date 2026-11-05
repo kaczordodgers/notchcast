@@ -78,6 +78,7 @@ private struct NotchcastModuleFeatureRows: View {
         if feature == .settingsBackup, NotchcastCore.settingsBackupRestore.choosing {
             ForkSettingsBackupCopiesView(copies: NotchcastCore.settingsBackupRestore.copies,
                 restore: { NotchcastCore.settingsBackupRestore.restore(name: $0) })
+                .onDisappear { NotchcastCore.settingsBackupRestore.cancelChoosing() }
         }
         if preferences.isEnabled(feature) && feature.settingsAvailable {
             ForEach(commands, id: \.id) { command in

@@ -35,15 +35,6 @@ enum ForkSettingsBackupService {
     }
 
     @concurrent
-    static func latest(folder: URL) async throws -> Data? {
-        try Task.checkCancellation()
-        guard FileManager.default.fileExists(atPath: folder.path) else { return nil }
-        let names = try FileManager.default.contentsOfDirectory(atPath: folder.path)
-        guard let name = ForkSettingsBackupEngine.newest(in: names) else { return nil }
-        return try await read(folder: folder, name: name)
-    }
-
-    @concurrent
     static func read(folder: URL, name: String) async throws -> Data {
         guard ForkSettingsBackupEngine.newest(in: [name]) == name else {
             throw ForkSettingsBackupEngine.Failure.invalidArchive

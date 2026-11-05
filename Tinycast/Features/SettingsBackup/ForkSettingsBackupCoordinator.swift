@@ -11,7 +11,6 @@ import Observation
     private let state: ForkSettingsBackupState
     private let confirm: () async -> Bool
     private let report: (Bool) -> Void
-    private let missing: () async -> Void
 
     init(folder: URL = AppPaths.applicationSupport().appendingPathComponent("fork-settings-backups"),
          state: ForkSettingsBackupState = .live,
@@ -27,20 +26,19 @@ import Observation
                  AppCore.shared.showMessage(
                      String(localized: "Settings backup could not be opened or restored."), tone: .danger)
              }
-         },
-         missing: @escaping () async -> Void = {
-             await AppCore.shared.showNotice(title: String(localized: "Restore Settings Backup"),
-                 message: String(localized: "No settings backup was found."),
-                 symbol: "clock.arrow.circlepath", tone: .neutral)
          }) {
         self.folder = folder
         self.state = state
         self.confirm = confirm
         self.report = report
-        self.missing = missing
     }
 
-    func stop() { task?.cancel(); folderTask?.cancel() }
+    func stop() { cancelChoosing(); folderTask?.cancel() }
+
+    func cancelChoosing() {
+        choosing = false
+        task?.cancel()
+    }
 
     func settled() async { await task?.value }
 
@@ -79,7 +77,7 @@ import Observation
         guard task == nil else { return }
         task = Task { [weak self] in
             guard let self else { return }
-            defer { task = nil }
+            defer { task = nil; choosing = false }
             do {
                 let data = try await ForkSettingsBackupService.read(folder: folder, name: name)
                 try Task.checkCancellation()
@@ -103,7 +101,7 @@ extension ForkSettingsBackupCoordinator {
     nonisolated static let restoreCommand = NotchcastCommand(slug: "restore-settings-backup",
         name: String(localized: "Restore Settings Backup"), sfSymbol: "clock.arrow.circlepath", feature: .settingsBackup,
         run: {
-            AppCore.shared.settingsCoordinator.showSettings(tab: NotchcastSettingsModule.module(of: .settingsBackup).tab)
+            SettingsActionCommands.show(NotchcastSettingsModule.module(of: .settingsBackup).tab, .settingsBackup)
             NotchcastCore.settingsBackupRestore.restore()
         })
     nonisolated static let openCommand = NotchcastCommand(slug: "open-settings-backup-folder",
