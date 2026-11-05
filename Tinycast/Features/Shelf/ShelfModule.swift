@@ -7,7 +7,6 @@ final class ShelfModule: NotchcastModule {
     var linkStatus: (any ShelfLinkStatus)?
     var transport: (any ShelfTransport)?
     let store: ShelfReceivedStore
-    private var sent: Set<String> = []
     private var receiving = false
 
     init(directory: URL = URL.cachesDirectory
@@ -21,25 +20,16 @@ final class ShelfModule: NotchcastModule {
     func stop() {
         isRunning = false
         generation = UUID()
-        sent.removeAll()
     }
 
     func send(_ item: ShelfItem) async throws {
         try ShelfEngine.validate(item)
         guard isRunning else { throw ShelfEngine.Failure.stopped }
         guard linkStatus?.shelfPeerAvailable == true, let transport else { throw ShelfEngine.Failure.peerDown }
-        guard !sent.contains(item.fingerprint) else { return }
-        guard sent.count < ShelfEngine.maximumItems else { throw ShelfEngine.Failure.full }
         let operation = generation
-        sent.insert(item.fingerprint)
-        do {
-            try await transport.sendShelfItem(item)
-            try Task.checkCancellation()
-            guard isRunning, generation == operation else { throw ShelfEngine.Failure.stopped }
-        } catch {
-            if generation == operation { sent.remove(item.fingerprint) }
-            throw error
-        }
+        try await transport.sendShelfItem(item)
+        try Task.checkCancellation()
+        guard isRunning, generation == operation else { throw ShelfEngine.Failure.stopped }
     }
 
     func receive(_ item: ShelfItem) async throws -> URL {
