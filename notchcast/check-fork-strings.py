@@ -17,6 +17,11 @@ def check():
     if not fork_path.exists():
         return ['Notchcast.xcstrings is missing; run move-fork-strings.py']
     fork = json.loads(fork_path.read_bytes())['strings']
+    # CI and local-ci check catalogs before their own upstream fetch step.
+    if subprocess.run(['git', '-C', str(ROOT), 'rev-parse', '-q', '--verify', 'refs/remotes/upstream/main'],
+                      capture_output=True).returncode:
+        subprocess.check_call(['git', '-C', str(ROOT), 'fetch', '-q', '--no-tags',
+                               'https://github.com/abue-ammar/tinycast.git', '+refs/heads/main:refs/remotes/upstream/main'])
     upstream = json.loads(subprocess.check_output([
         'git', '-C', str(ROOT), 'show', 'upstream/main:' + tools['LOCAL']]))['strings']
     errors = ['fork key in Localizable: ' + key for key in local.keys() - upstream.keys()]
