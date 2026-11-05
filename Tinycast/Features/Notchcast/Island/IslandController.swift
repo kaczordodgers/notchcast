@@ -4,7 +4,7 @@ import SwiftUI
 
 @MainActor
 @Observable
-final class IslandController: NotchcastModule, IslandActivityPresenter {
+final class IslandController: NotchcastModule {
     struct ClosedContent {
         var leading: AnyView?
         var trailing: AnyView?
@@ -82,7 +82,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
 
     func stop() {
         NotchcastCore.levelKeys.hudPresenterAvailable = false
-        IslandActivityCenter.shared.presenter = nil
+        IslandActivityCenter.shared.hasPresenter = false
         close()
         setCommandAvailable(false)
         observationID = nil
@@ -215,7 +215,7 @@ final class IslandController: NotchcastModule, IslandActivityPresenter {
             running: observationID != nil,
             enabled: NotchcastPreferences.shared.isOn(.islandStatusMessages),
             visibleOnActiveScreen: active?.isVisible == true && active?.isOnActiveSpace == true)
-        IslandActivityCenter.shared.presenter = eligible ? self : nil
+        IslandActivityCenter.shared.hasPresenter = eligible
         NotchcastCore.levelKeys.hudPresenterAvailable = eligible
             && NotchcastPreferences.shared.isOn(.islandLiveActivities)
     }
