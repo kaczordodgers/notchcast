@@ -11,5 +11,5 @@ enum NotchcastCommandCatalog {
 }
 
 extension Array where Element == AppEntry {
-    func appendingNotchcastCommands(ownedBy owner: SettingsTab? = nil) -> [AppEntry] { self }
+    func appendingNotchcastCommands() -> [AppEntry] { self }
 }
