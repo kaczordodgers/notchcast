@@ -23,10 +23,12 @@ import Foundation
     func stop() {}
 }
 @MainActor final class IslandActivityCenter {
-    enum Tone { case danger, neutral }
+    enum Tone { case warning, neutral }
     static let shared = IslandActivityCenter()
     var messages: [String] = []
-    func showMessage(_ text: String, tone: Tone, dwell: TimeInterval) { messages.append(text) }
+    func showMessage(_ text: String, tone: Tone, dwell: TimeInterval, symbol: String? = nil) {
+        messages.append(text)
+    }
 }
 @main struct NoticeTests {
     @MainActor static func main() {
