@@ -146,13 +146,19 @@ enum NotchcastTheme {
         static let warning = Theme.Colors.warning
     }
 
-    /// Tinycast's glass morph, for controls that bead out of the island.
+    /// The silhouette moves on springs; content and the black fade on Tinycast's surface durations.
     enum Motion {
-        static let capsule = Theme.CompactBarMotion.capsule
-        static let button = Theme.CompactBarMotion.button
         static let pageChange = Animation.easeOut(duration: Theme.Duration.hover)
-        /// The launcher's own fade, for the palette arriving over the grown island.
-        static let launcherEnter = Theme.Duration.enter
-        static let launcherExit = Theme.Duration.exit
+        /// Opening, and a closed row changing shape: no bounce, since a notch island must never dip under the notch.
+        static let grow = Spring(duration: Theme.Duration.settingsReveal, bounce: 0)
+        static let shrink = Spring(duration: Theme.Duration.enter, bounce: 0)
+        static let contentIn = Theme.Duration.dialogEnter
+        static let contentOut = Theme.Duration.exit
+        /// An outgoing closed row holds one beat over the new one, so pieces both show never dim.
+        static let contentHold = Theme.CompactBarMotion.stagger
+        /// After a close the closed row waits for the island to land, as a summon lands first.
+        static let landing = Theme.CompactBarMotion.revealDelay
+        static let blackOut = Theme.Duration.exit
+        static let blackIn = Theme.Duration.enter
     }
 }

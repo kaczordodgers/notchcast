@@ -1,6 +1,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandGeometry.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandMotion.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Island/IslandClosedState.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
 import Foundation
 
 @main
@@ -121,22 +123,23 @@ struct IslandGeometryTests {
     }
 
     static func motionPolicy() {
-        expect(IslandMotion.choice(opening: true, reduceMotion: false, animationsEnabled: true) == .open,
-               "opening uses the zero-bounce spring")
-        expect(IslandMotion.choice(opening: false, reduceMotion: false, animationsEnabled: true) == .close,
-               "closing uses ease-in-out")
-        expect(IslandMotion.open.duration == 0.28 && IslandMotion.close.duration == 0.20,
-               "the morph uses the specified open and close timings")
-        for opening in [true, false] {
-            expect(IslandMotion.choice(opening: opening, reduceMotion: true, animationsEnabled: true) == .fade,
-                   "Reduce Motion removes geometry movement in either direction")
-            for reduceMotion in [true, false] {
-                expect(IslandMotion.choice(opening: opening, reduceMotion: reduceMotion,
-                                           animationsEnabled: false) == .instant,
-                       "the global animation switch takes precedence")
+        let stages: [IslandStage] = [.closed, .open, .launcher]
+        for from in stages {
+            for to in stages {
+                let motion = IslandMotion.choice(from: from, to: to, reduceMotion: false, animationsEnabled: true)
+                let expected: IslandMotion = to != .closed ? .open : (from == .closed ? .change : .close)
+                expect(motion == expected, "growing opens, shrinking closes, a closed row changes")
+                expect(IslandMotion.choice(from: from, to: to, reduceMotion: true, animationsEnabled: true) == .fade,
+                       "Reduce Motion removes geometry movement in every direction")
+                for reduceMotion in [true, false] {
+                    expect(IslandMotion.choice(from: from, to: to, reduceMotion: reduceMotion,
+                                               animationsEnabled: false) == .instant,
+                           "the global animation switch takes precedence")
+                }
             }
         }
-        expect(IslandMotion.fade.duration == 0.12, "Reduce Motion fades for 120 ms")
+        expect(IslandMotion.close.landsBeforeContent && !IslandMotion.change.landsBeforeContent
+               && !IslandMotion.fade.landsBeforeContent, "only a close holds the row until the island lands")
     }
 
     static func silhouetteHitRegion() {
@@ -160,8 +163,6 @@ struct IslandGeometryTests {
                && IslandSilhouette.bottomRadius(height: 475, cap: 26) == 26, "a tall island stops at the caps")
         expect(IslandSilhouette.shoulder(height: -4, cap: 14) == 0
                && IslandSilhouette.bottomRadius(height: 32, cap: -1) == 0, "negative input never inverts a corner")
-        expect(IslandMotion.shrinkWidth.bounce == 0 && IslandMotion.shrinkHeight.bounce == 0
-               && IslandMotion.growWidth.bounce > 0, "only growing sides swing")
     }
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {

@@ -17,6 +17,8 @@ final class IslandPanel: NSPanel {
     private var compactWidth: CGFloat = 0
     private var message: IslandMessage?
     private var closed = IslandClosedState()
+    /// The message the closed row last drew, so a new one crossfades in.
+    private var shownMessage: UUID?
     var onOpen: (() -> Void)?
     var onKey: ((NSEvent) -> Bool)?
     var onFocus: ((Bool) -> Void)?
@@ -115,7 +117,10 @@ final class IslandPanel: NSPanel {
     }
 
     func setClosed(_ closed: IslandClosedState) {
+        let handover = Motion.duration(1) > 0
+            ? IslandMotion.handover(from: self.closed, message: shownMessage, to: closed, message: message?.id) : nil
         self.closed = closed
+        shownMessage = message?.id
         let compact = IslandClosedView(context: closedContext, state: closed, cameraWidth: hardwareNotch?.width ?? 0,
                                        bandHeight: hardwareNotch?.height ?? NotchcastTheme.rowHeight,
                                        message: message) { [weak self] width in
@@ -125,7 +130,8 @@ final class IslandPanel: NSPanel {
             compactWidth = width
             if !self.open, launcherFrame == nil { present(animated: true) }
         }
-        surface.setClosedContent(AnyView(compact.environment(\.hasHardwareNotch, closedContext.hasHardwareNotch)))
+        surface.setClosedContent(AnyView(compact.environment(\.hasHardwareNotch, closedContext.hasHardwareNotch)),
+                                 handover: handover)
         present(animated: true)
     }
 
@@ -155,9 +161,13 @@ final class IslandPanel: NSPanel {
     func setLauncher(height: CGFloat?, animated: Bool) {
         launcherFrame = height.map { launcherFrame(height: $0) }
         present(animated: animated)
-        surface.setSurfaceOpacity(launcherFrame != nil ? 0 : 1,
-                                  duration: animated ? Motion.duration(launcherFrame != nil
-                                      ? NotchcastTheme.Motion.launcherEnter : NotchcastTheme.Motion.launcherExit) : 0)
+        let grown = launcherFrame != nil
+        // The black returns once the island has landed, so a launcher-sized ghost never flashes on the way back.
+        let lands = !grown && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        surface.setSurfaceOpacity(grown ? 0 : 1,
+                                  duration: animated ? Motion.duration(grown
+                                      ? NotchcastTheme.Motion.blackOut : NotchcastTheme.Motion.blackIn) : 0,
+                                  delay: lands ? NotchcastTheme.Motion.landing : 0)
     }
 
     /// Where the palette sits over the grown island: the row under a camera, else the island's own top.
@@ -203,10 +213,11 @@ final class IslandPanel: NSPanel {
     var headerHeight: CGFloat { hardwareNotch?.height ?? NotchcastTheme.monitorHeader }
 
     private func present(animated: Bool) {
+        let stage: IslandStage = launcherFrame != nil ? .launcher : (open ? .open : .closed)
         let motion = IslandMotion.choice(
-            opening: open || launcherFrame != nil, reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
+            from: surface.showing, to: stage, reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion,
             animationsEnabled: animated && Motion.duration(1) > 0)
-        surface.present(outline, content: launcherFrame != nil ? .launcher : (open ? .open : .closed), motion: motion)
+        surface.present(outline, content: stage, motion: motion)
         invalidateShadow()
     }
 

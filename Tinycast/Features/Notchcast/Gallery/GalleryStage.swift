@@ -87,62 +87,103 @@ enum GalleryStage {
 
     // MARK: Curves
 
-    /// The surface's open spring (`IslandSurfaceView.pathAnimation`): Core Animation's own parameters, solved.
-    static let openSpring = CASpringAnimation(perceptualDuration: IslandMotion.open.duration, bounce: 0)
-    static var openSettle: TimeInterval { openSpring.settlingDuration }
+    /// The spring the surface plays for a motion (`IslandSurfaceView.springAnimation`).
+    static func spring(_ motion: IslandMotion) -> Spring? {
+        switch motion {
+        case .open, .change: NotchcastTheme.Motion.grow
+        case .close: NotchcastTheme.Motion.shrink
+        case .fade, .instant: nil
+        }
+    }
 
-    /// Where a damped spring from 0 to 1 at rest is after `time` seconds.
-    static func springProgress(_ time: TimeInterval) -> CGFloat {
-        guard time > 0 else { return 0 }
-        guard time < openSettle else { return 1 }
-        let mass = Double(openSpring.mass), stiffness = Double(openSpring.stiffness), damping = Double(openSpring.damping)
-        let omega = (stiffness / mass).squareRoot()
-        let zeta = damping / (2 * (stiffness * mass).squareRoot())
-        if abs(zeta - 1) < 1e-6 {
-            return CGFloat(1 - (1 + omega * time) * exp(-omega * time))
+    /// Core Animation's own settling time for those parameters: the animation's duration on screen.
+    static func settling(_ spring: Spring) -> TimeInterval {
+        let animation = CASpringAnimation()
+        animation.mass = CGFloat(spring.mass)
+        animation.stiffness = CGFloat(spring.stiffness)
+        animation.damping = CGFloat(spring.damping)
+        return animation.settlingDuration
+    }
+
+    /// Core Animation's named curves as cubic Béziers, solved at a fraction of their duration.
+    nonisolated static func easeOut(_ fraction: Double) -> CGFloat { CGFloat(cubic(fraction, 0, 0, 0.58, 1)) }
+    nonisolated static func easeInOut(_ fraction: Double) -> CGFloat { CGFloat(cubic(fraction, 0.42, 0, 0.58, 1)) }
+
+    nonisolated static func cubic(_ fraction: Double, _ x1: Double, _ y1: Double, _ x2: Double, _ y2: Double) -> Double {
+        func bezier(_ t: Double, _ p1: Double, _ p2: Double) -> Double {
+            3 * (1 - t) * (1 - t) * t * p1 + 3 * (1 - t) * t * t * p2 + t * t * t
         }
-        if zeta < 1 {
-            let damped = omega * (1 - zeta * zeta).squareRoot()
-            let decay = exp(-zeta * omega * time)
-            return CGFloat(1 - decay * (cos(damped * time) + zeta * omega / damped * sin(damped * time)))
+        let x = min(1, max(0, fraction))
+        var low = 0.0, high = 1.0
+        for _ in 0..<40 {
+            let mid = (low + high) / 2
+            if bezier(mid, x1, x2) < x { low = mid } else { high = mid }
         }
-        let root = omega * (zeta * zeta - 1).squareRoot()
-        let r1 = -zeta * omega + root, r2 = -zeta * omega - root
-        return CGFloat(1 - (r2 * exp(r1 * time) - r1 * exp(r2 * time)) / (r2 - r1))
+        return bezier((low + high) / 2, y1, y2)
+    }
+
+    /// A fade of `duration` that starts `delay` in, from 0 to 1, on the surface's curve.
+    nonisolated static func fade(_ time: TimeInterval, _ duration: TimeInterval, delay: TimeInterval = 0,
+                                 curve: (Double) -> CGFloat = easeOut) -> CGFloat {
+        curve((time - delay) / duration)
     }
 
     static func logCurves() {
-        let swiftUI = Spring(duration: IslandMotion.open.duration, bounce: 0)
-        print("stage: open spring CA mass \(openSpring.mass) stiffness \(openSpring.stiffness) damping \(openSpring.damping)"
-              + " settling \(openSpring.settlingDuration)")
-        print("stage: open spring SwiftUI mass \(swiftUI.mass) stiffness \(swiftUI.stiffness) damping \(swiftUI.damping)"
-              + " settling \(swiftUI.settlingDuration)")
-        print("stage: close easeInEaseOut \(IslandMotion.close.duration), content fade \(IslandMotion.fade.duration),"
-              + " black fade \(NotchcastTheme.Motion.launcherEnter) / \(NotchcastTheme.Motion.launcherExit)")
+        for motion in [IslandMotion.open, .close, .change] {
+            guard let spring = spring(motion) else { continue }
+            print("stage: \(motion) spring mass \(spring.mass) stiffness \(spring.stiffness) damping \(spring.damping)"
+                  + " settling \(settling(spring))")
+        }
+        let kit = NotchcastTheme.Motion.self
+        print("stage: content in \(kit.contentIn) out \(kit.contentOut) hold \(kit.contentHold) landing \(kit.landing),"
+              + " black out \(kit.blackOut) in \(kit.blackIn)")
     }
 
-    /// A transition between two settled outlines, as the surface plays it (`IslandPanel.present`): the spring into
-    /// the launcher, the ease-in-out out of it and for every closed change; a path whose element count changes
-    /// cannot be interpolated by Core Animation, so it cuts.
+    /// A transition between two settled outlines as the surface plays it: Core Animation moves every point of the
+    /// path on the spring, element by element, so the frame does the same.
     @MainActor
     struct Transition {
-        let from: IslandSurfaceView.Outline
-        let to: IslandSurfaceView.Outline
-        let opens: Bool
-        let cuts: Bool
+        let from: CGPath
+        let to: CGPath
+        let spring: Spring?
 
-        var duration: TimeInterval { opens ? openSettle : IslandMotion.close.duration }
+        var duration: TimeInterval { spring.map(settling) ?? 0 }
 
-        func outline(at time: TimeInterval) -> IslandSurfaceView.Outline {
-            if cuts || time >= duration { return to }
-            let progress = opens ? springProgress(time) : CGFloat(IslandCurve.easeInOut(time / duration))
-            func mix(_ a: CGFloat, _ b: CGFloat) -> CGFloat { a + (b - a) * progress }
-            let rect = CGRect(x: mix(from.rect.minX, to.rect.minX), y: mix(from.rect.minY, to.rect.minY),
-                              width: mix(from.rect.width, to.rect.width), height: mix(from.rect.height, to.rect.height))
-            return .init(rect: rect, shoulder: mix(from.shoulder, to.shoulder), radius: mix(from.radius, to.radius),
-                         topRadius: mix(from.topRadius, to.topRadius), bubble: mix(from.bubble, to.bubble),
-                         bubbleGap: to.bubbleGap)
+        func progress(at time: TimeInterval) -> CGFloat {
+            guard let spring, time < duration else { return 1 }
+            return CGFloat(spring.value(target: 1.0, time: max(0, time)))
         }
+
+        func path(at time: TimeInterval) -> CGPath { blend(from, to, progress(at: time)) }
+    }
+
+    nonisolated static func blend(_ from: CGPath, _ to: CGPath, _ progress: CGFloat) -> CGPath {
+        var points: [[CGPoint]] = []
+        from.applyWithBlock { element in
+            let count = element.pointee.type == .addCurveToPoint ? 3 : element.pointee.type == .addQuadCurveToPoint ? 2
+                : element.pointee.type == .closeSubpath ? 0 : 1
+            points.append((0..<count).map { element.pointee.points[$0] })
+        }
+        let path = CGMutablePath()
+        var index = 0
+        func mix(_ a: CGPoint, _ b: CGPoint) -> CGPoint {
+            CGPoint(x: a.x + (b.x - a.x) * progress, y: a.y + (b.y - a.y) * progress)
+        }
+        to.applyWithBlock { element in
+            let start = index < points.count ? points[index] : []
+            index += 1
+            let target = element.pointee.points
+            func point(_ at: Int) -> CGPoint { at < start.count ? mix(start[at], target[at]) : target[at] }
+            switch element.pointee.type {
+            case .moveToPoint: path.move(to: point(0))
+            case .addLineToPoint: path.addLine(to: point(0))
+            case .addQuadCurveToPoint: path.addQuadCurve(to: point(1), control: point(0))
+            case .addCurveToPoint: path.addCurve(to: point(2), control1: point(0), control2: point(1))
+            case .closeSubpath: path.closeSubpath()
+            @unknown default: break
+            }
+        }
+        return path
     }
 
     // MARK: One scenario
@@ -151,22 +192,23 @@ enum GalleryStage {
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let panel = IslandPanel(screenFrame: shape.display, hardwareNotch: shape.notch)
         defer { panel.close() }
-        guard let surface = panel.contentView,
-              let host = surface.subviews.compactMap({ $0 as? NSHostingView<AnyView> }).last else {
-            throw GalleryFailure.capture("no closed host")
-        }
+        guard let surface = panel.contentView as? IslandSurfaceView else { throw GalleryFailure.capture("no surface") }
+        let (host, outgoing) = surface.stageViews
         var frame = 0
         var time: TimeInterval = 0
-        var previous: IslandSurfaceView.Outline?
+        var previous: (outline: IslandSurfaceView.Outline, stage: IslandStage)?
         var musicStart: TimeInterval?
         var timerStart: TimeInterval?
         var base = AnyView(EmptyView())
 
-        func apply(_ step: Step, at moment: TimeInterval) {
+        func apply(_ step: Step, at moment: TimeInterval, deciding: Bool = false) {
             let timerElapsed = timerStart.map { moment - $0 } ?? 0
+            // On only as a step begins, for the panel to decide its crossfade.
+            Motion.isEnabled = deciding
             panel.setContent(open: AnyView(EmptyView()), closed: closedState(step.state, timerElapsed: timerElapsed),
                              header: AnyView(EmptyView()))
             panel.setMessage(step.message.flatMap { messages[$0] })
+            Motion.isEnabled = false
             panel.setLauncher(height: step.launcher ? launcherHeight : nil, animated: false)
             surface.layer?.backgroundColor = nil
             base = host.rootView
@@ -185,18 +227,29 @@ enum GalleryStage {
             return last
         }
 
+        var lastRow: (state: IslandClosedState, message: UUID?)?
         for (index, step) in steps.enumerated() {
+            let shows = (state: closedState(step.state, timerElapsed: 0), message: step.message.flatMap { messages[$0] }?.id)
+            let handover = lastRow.flatMap {
+                IslandMotion.handover(from: $0.state, message: $0.message, to: shows.state, message: shows.message)
+            }
+            lastRow = shows
             let hasMusic = ["music", "music-paused", "two-at-once"].contains(step.state)
             let hasTimer = ["timer", "two-at-once"].contains(step.state)
             if hasMusic { musicStart = musicStart ?? time } else { musicStart = nil }
             if hasTimer { timerStart = timerStart ?? time } else { timerStart = nil }
             let start = time
-            apply(step, at: start)
+            let picture = outgoing.layer?.contents as AnyObject?
+            apply(step, at: start, deciding: true)
             let settled = try await settle(until: nil)
-            let transition = previous.map { from in
-                Transition(from: from, to: settled, opens: step.launcher && !steps[index - 1].launcher,
-                           cuts: (from.bubble > 0) != (settled.bubble > 0))
+            let stage: IslandStage = step.launcher ? .launcher : .closed
+            let crossfades = outgoing.layer?.contents as AnyObject? !== picture
+            let motion = previous.map {
+                IslandMotion.choice(from: $0.stage, to: stage, reduceMotion: false, animationsEnabled: true)
             }
+            let transition = previous.map { Transition(from: $0.outline.path, to: settled.path, spring: motion.flatMap(spring)) }
+            // `IslandSurfaceView.carry`: the row starts where the old one stood and slides with the shape.
+            let carry = motion == .change ? (previous?.outline.contentMidX ?? 0) - settled.contentMidX : 0
             let launcherOpens = step.launcher && index > 0 && !steps[index - 1].launcher
             let launcherCloses = !step.launcher && index > 0 && steps[index - 1].launcher
             let end = start + (transition?.duration ?? 0) + step.hold
@@ -210,28 +263,40 @@ enum GalleryStage {
                 }
                 try await Task.sleep(for: .milliseconds(16))
                 surface.layoutSubtreeIfNeeded()
-                host.isHidden = false
-                host.layer?.opacity = 1
-                let outline = transition?.outline(at: since) ?? settled
-                // Content and black fade only when the launcher takes the black or gives it back.
-                var content: CGFloat = 1
+                // The surface's own fades, solved for this frame (`IslandSurfaceView.setOpacity`, `setClosedContent`,
+                // `setSurfaceOpacity`); the black never fades the content, which sits in its own layers.
+                let kit = NotchcastTheme.Motion.self
+                var row: CGFloat = 1
+                var old: CGFloat = 0
                 var black: CGFloat = 1
                 if launcherOpens {
-                    content = 1 - fade(since, IslandMotion.fade.duration)
-                    black = 1 - fade(since, NotchcastTheme.Motion.launcherEnter)
+                    row = 1 - fade(since, kit.contentOut)
+                    black = 1 - fade(since, kit.blackOut)
                 } else if launcherCloses {
-                    content = fade(since, IslandMotion.fade.duration)
-                    black = fade(since, NotchcastTheme.Motion.launcherExit)
+                    row = fade(since, kit.contentIn, delay: kit.landing)
+                    black = fade(since, kit.blackIn, delay: kit.landing)
                 } else if step.launcher {
-                    content = 0
+                    row = 0
                     black = 0
+                } else if crossfades {
+                    row = fade(since, kit.contentIn)
+                    let holds = handover == .holds
+                    old = 1 - fade(since, kit.contentOut, delay: holds ? kit.contentHold : 0, curve: holds ? easeInOut : easeOut)
                 }
+                host.isHidden = false
+                host.layer?.opacity = Float(row)
+                outgoing.isHidden = old <= 0
+                outgoing.layer?.opacity = Float(old)
+                let slide = carry * (1 - (transition?.progress(at: since) ?? 1))
+                for layer in [host.layer, outgoing.layer] {
+                    layer?.setAffineTransform(CGAffineTransform(translationX: slide, y: 0))
+                }
+                let path = transition?.path(at: since) ?? settled.path
                 frame += 1
                 try write(frame: frame, into: folder) { graphics in
                     drawStage(graphics, shape: shape, launcher: step.launcher ? launcher : nil,
                               launcherFrame: panel.launcherFrame(height: launcherHeight), island: { graphics in
                         graphics.translateBy(x: panel.frame.minX, y: panel.frame.minY)
-                        let path = outline.path
                         graphics.setFillColor(NSColor.black.withAlphaComponent(black).cgColor)
                         graphics.addPath(path)
                         graphics.fillPath()
@@ -241,28 +306,28 @@ enum GalleryStage {
                             graphics.setFillColor(NSColor.black.cgColor)
                             graphics.fill(band)
                         }
-                        guard content > 0, let layer = surface.layer else { return }
-                        graphics.setAlpha(content * black)
-                        graphics.beginTransparencyLayer(auxiliaryInfo: nil)
+                        guard row > 0 || old > 0, let layer = surface.layer else { return }
                         layer.displayIfNeeded()
+                        // The clip above is this frame's outline; the surface's own mask is already the settled one.
+                        let mask = layer.mask
+                        layer.mask = nil
                         layer.render(in: graphics)
-                        graphics.endTransparencyLayer()
+                        layer.mask = mask
                     })
                 }
                 time += 1 / fps
             }
-            previous = settled
+            previous = (settled, stage)
         }
         return frame
     }
 
-    static func fade(_ time: TimeInterval, _ duration: TimeInterval) -> CGFloat {
-        CGFloat(min(1, max(0, time / duration)))
-    }
+    /// One timer through a scenario, as a producer keeps its activity's id while the value ticks.
+    static let timerID = UUID()
 
     /// The gallery's sample states; a timer counts from the moment it started on the stage, not from the render.
     static func closedState(_ key: String, timerElapsed: TimeInterval) -> IslandClosedState {
-        let timer = IslandActivity(kind: .timer, title: "Tea timer",
+        let timer = IslandActivity(id: timerID, kind: .timer, title: "Tea timer",
                                    value: .timeLeft(Date().addingTimeInterval(299.7 - timerElapsed)))
         switch key {
         case "timer": return IslandClosedState(primary: timer)
