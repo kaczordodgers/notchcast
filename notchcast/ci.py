@@ -12,7 +12,8 @@ Our commits are merge-base(main, upstream main)..main. Replaying cherry-picks th
 files, so those never conflict and never travel in our diffs. Two commits are made afresh instead of picked:
 "Notchcast: remove upstream workflows" (git rm -r .github/workflows), so upstream workflow edits never conflict and
 new ones never land, and "Notchcast: generated files", always last, which rewrites GENERATED (`regenerate`).
-Catalog conflicts merge by key; other conflicts use main's replay-fixes/<lowercase subject, non-alphanumerics hyphenated>.patch or fail.
+Catalog conflicts merge by key; other conflicts use per-file diffs from the replay tip in main's
+replay-fixes/<lowercase subject, non-alphanumerics hyphenated>.patch or fail.
 Failures are remembered as refs/notchcast-failed/<main|release-<tag>>-<upstream or tag>-<our main>, so the same
 input is retried only when upstream or our main changes, and reported as one open issue per kind (label
 notchcast-<kind>: sync = replay onto new upstream, main = main tested as it is, release), which a newer failure with
@@ -214,17 +215,22 @@ def replay(tree, onto, check=False):
                     resolved_catalog = True
             if (picked.returncode and not conflicts and not resolved_catalog
                     or set(conflicts) - set(GENERATED)):
-                subprocess.run(["git", "cherry-pick", "--abort"], cwd=tree, capture_output=True)
-                subprocess.run(["git", "reset", "-q", "--hard"], cwd=tree, capture_output=True)
                 name = re.sub(r"[^a-z0-9]+", "-", subject.lower()).strip("-")
                 patch = subprocess.run(
                     ["git", "show", f"{main}:notchcast/replay-fixes/{name}.patch"],
                     cwd=tree, text=True, capture_output=True)
                 applied = None
                 if set(conflicts) - set(GENERATED) - {catalog} and patch.returncode == 0:
+                    for path in set(conflicts) - set(GENERATED) - {catalog}:
+                        if subprocess.run(["git", "cat-file", "-e", f"HEAD:{path}"], cwd=tree,
+                                          stderr=subprocess.DEVNULL).returncode == 0:
+                            run("git", "checkout", "HEAD", "--", path, cwd=tree)
+                        else:
+                            run("git", "rm", "-q", "-f", "--", path, cwd=tree)
                     applied = subprocess.run(["git", "apply", "--index", "-"], input=patch.stdout,
                                              cwd=tree, text=True, capture_output=True)
-                if applied is None or applied.returncode:
+                remaining = run("git", "diff", "--name-only", "--diff-filter=U", cwd=tree).split()
+                if applied is None or applied.returncode or set(remaining) - set(GENERATED):
                     run("git", "reset", "-q", "--hard", cwd=tree)
                     raise Conflict(subject, [f for f in conflicts if f not in GENERATED]
                                    or [(picked.stderr.strip().splitlines() or ["cherry-pick failed"])[0]])
