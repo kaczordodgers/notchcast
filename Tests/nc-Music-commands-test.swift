@@ -51,7 +51,9 @@ struct AppEntry: Sendable {
  struct Services {
  let music: MusicNowPlayingModule
  let microphone: MicrophoneMuteModule
+ let spotify: Spotify
  }
+ struct Spotify { let key: SoloistKey }
 }
 @MainActor final class CommandSource: NowPlayingSource {
     var commands: [PlayerCommand] = []
@@ -167,7 +169,9 @@ struct AppEntry: Sendable {
  let mute = MicrophoneMute(audio: CommandAudio(), defaults: defaults)
  let microphone = MicrophoneMuteModule(model: mute, showMessage: { _ in }, showFailure: { _ in })
  microphone.start()
- NotchcastCore.services = .init(music: music, microphone: microphone)
+ var hasKey = false
+ let key = SoloistKey(read: { hasKey ? "fixture" : nil }, write: { _ in }, presence: { hasKey })
+ NotchcastCore.services = .init(music: music, microphone: microphone, spotify: .init(key: key))
  let muteCommands = [MicrophoneMuteCommands.muteLauncherCommand, MicrophoneMuteCommands.unmuteLauncherCommand]
  precondition(muteCommands.allSatisfy { $0.isEnabled() })
  muteCommands[0].run()
@@ -197,18 +201,29 @@ struct AppEntry: Sendable {
      preferences.set(.spotifyConnect, savedSpeaker)
      preferences.set(.musicLastPlayer, savedResume)
  }
+ let speakerCommands = [MusicCommands.speakerOnCommand, MusicCommands.speakerOffCommand]
+ func speakerListed() -> Bool {
+     speakerCommands.allSatisfy { $0.isEnabled() && $0.feature.map(preferences.isEnabled) == true }
+ }
  preferences.set(.spotifyConnect, false)
+ precondition(speakerListed(), "both speaker commands stay listed while the speaker is off")
  let opens = AppCore.shared.settingsCoordinator.opens
  MusicCommands.speakerOnCommand.run()
- precondition(!preferences.isOn(.spotifyConnect))
- precondition(AppCore.shared.settingsCoordinator.opens == opens + 1)
- preferences.set(.spotifyConnect, true)
+ precondition(preferences.isOn(.spotifyConnect), "On without a key still turns the speaker on")
+ precondition(AppCore.shared.settingsCoordinator.opens == opens + 1, "On without a key opens Settings")
+ hasKey = true
  MusicCommands.speakerOnCommand.run()
  precondition(AppCore.shared.messages.last == String(localized: "Spotify Connect Speaker is already on."))
  MusicCommands.speakerOffCommand.run()
  precondition(!preferences.isOn(.spotifyConnect))
+ precondition(AppCore.shared.messages.last == String(localized: "Spotify Connect Speaker is off."))
+ precondition(speakerListed(), "Off keeps both speaker commands listed")
  MusicCommands.speakerOffCommand.run()
  precondition(AppCore.shared.messages.last == String(localized: "Spotify Connect Speaker is already off."))
+ MusicCommands.speakerOnCommand.run()
+ precondition(preferences.isOn(.spotifyConnect), "On with a key starts the speaker directly")
+ precondition(AppCore.shared.settingsCoordinator.opens == opens + 1, "On with a key opens no Settings")
+ precondition(AppCore.shared.messages.last == String(localized: "Starting…"))
  preferences.set(.musicLastPlayer, true)
  music.model.lastPlayer.setEnabled(false)
  precondition(!music.model.canResume)
