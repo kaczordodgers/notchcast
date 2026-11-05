@@ -7,7 +7,6 @@ on:
       - Tinycast.xcodeproj/project.pbxproj
       - Tinycast/Resources/RaycastRuntime.generated.js
       - README.md
-      - README.upstream.md
 
 permissions:
   actions: read

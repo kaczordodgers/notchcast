@@ -113,16 +113,24 @@ class ReplayTests(unittest.TestCase):
             write("project.yml", "name: Tinycast\n")
             write(CI.PBXPROJ, "project\n")
             write(CI.RUNTIME_JS, "runtime\n")
+            write("docs/screenshot.png", "png\n")
+            write("docs/development.md", "kept\n")
+            write("Scripts/gen-emoji.js", "generator\n")
+            write("Scripts/lint.sh", "kept\n")
             commit("base")
             base = git("rev-parse", "HEAD")
             write("notchcast/README.md", "ours\n")
-            write("notchcast/prune-paths.txt", "# one path per line\n\nwebsite/\n")
+            write("notchcast/prune-paths.txt",
+                  "# one path per line\n\nwebsite/\ndocs/screenshot.png\nREADME.upstream.md\nScripts/gen-emoji.js\n")
             write("feature.swift", "ours\n")
+            write("README.upstream.md", "made by the old regenerate\n")
             commit("ours")
             CI.regenerate(root, base)
             git("add", "-A", "--", *CI.GENERATED)
             git("commit", "-qm", CI.GENERATED_COMMIT)
             self.assertFalse((root / "website").exists())
+            self.assertEqual(git("ls-files", "README.upstream.md", "docs/screenshot.png", "Scripts/gen-emoji.js"), "")
+            self.assertEqual(git("ls-files", "docs", "Scripts"), "Scripts/lint.sh\ndocs/development.md")
             ours = git("rev-parse", "HEAD")
             git("checkout", "-q", "--detach", base)
             write("website/page.md", "upstream edit\n")
@@ -137,9 +145,25 @@ class ReplayTests(unittest.TestCase):
             self.assertFalse((root / "website").exists())
             self.assertEqual(git("status", "--porcelain"), "")
             self.assertEqual((root / "feature.swift").read_text(), "ours\n")
+            self.assertEqual(git("ls-files", "README.upstream.md", "docs/screenshot.png", "Scripts/gen-emoji.js"), "")
             # A second regenerate on the result is a no-op: nothing left to prune.
             CI.regenerate(root, upstream)
             self.assertEqual(git("status", "--porcelain"), "")
+
+    def test_prune_list_never_covers_kept_paths(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "notchcast").mkdir()
+            (root / "docs/features").mkdir(parents=True)
+            for path in ("LICENSE", "NOTICE.md", "AGENTS.md", "docs/", "docs/features", "docs/ui.md", "Tests/",
+                         "Tests/nc-x-test.swift", "Scripts/", "Scripts/raycast-runtime/build.mjs", "/", "."):
+                (root / "notchcast/prune-paths.txt").write_text(path + "\n")
+                with self.assertRaises(SystemExit, msg=path):
+                    CI.pruned(root)
+            (root / "notchcast/prune-paths.txt").write_text("docs/screenshot.png\nScripts/gen-emoji.js\n")
+            self.assertEqual(CI.pruned(root), ["docs/screenshot.png", "Scripts/gen-emoji.js"])
+        # The fork's own list passes.
+        CI.pruned(Path(__file__).resolve().parent.parent)
 
 
 if __name__ == "__main__":
