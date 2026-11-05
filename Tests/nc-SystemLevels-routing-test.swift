@@ -135,11 +135,12 @@ struct SystemLevelRoutingTests {
         let center = IslandActivityCenter()
         let presenter = SystemLevelIslandPresenter(center: center)
         var notices = 0
+        var replays: [MediaLevelKeyMonitor.Press] = []
         let keys = SystemLevelKeysModule(hub: hub, levels: levels, brightness: brightness,
                                         preferences: preferences, present: {
             if $0 != nil { notices += 1 }
             presenter.present($0)
-        })
+        }, replay: { replays.append($0) })
         let controller = NotchcastModuleController([
             .init(requires: [.island, .volumeLevels], module: levels),
             .init(requires: [], module: keys),
@@ -172,17 +173,34 @@ struct SystemLevelRoutingTests {
         let step = brightness.controller.steps.first!
         check(step.0 && step.1 && step.2.rawValue == 2, "Brightness targets the display under the event pointer")
         check(keys.revision == 4, "Every applied press publishes a revision for island presentation")
+        hub.send(.brightnessDown, location: .init(x: 500, y: 500))
+        try? await Task.sleep(for: .milliseconds(50))
+        check(replays.count == 1 && replays.last?.key == .brightnessDown,
+              "Missing brightness target replays the native key")
+        brightness.controller.failStep = true
+        hub.send(.brightnessUp)
+        try? await Task.sleep(for: .milliseconds(50))
+        check(replays.count == 2, "Unavailable external brightness step replays the native key")
+        brightness.controller.failStep = false
         BrightnessDisplayService.available = false
         hub.send(.brightnessDown)
-        await eventually { brightness.controller.steps.count == 2 }
+        await eventually { brightness.controller.steps.count == 3 }
         for _ in 0..<20 { await Task.yield() }
         check(keys.revision == 4, "A disconnected or reused display cannot publish stale brightness")
+        check(replays.count == 2, "A step already applied is never replayed to the native key")
         BrightnessDisplayService.available = true
         brightness.controller.cancelStep = true
         hub.send(.brightnessUp)
-        await eventually { brightness.controller.steps.count == 3 }
+        await eventually { brightness.controller.steps.count == 4 }
         for _ in 0..<20 { await Task.yield() }
         check(keys.revision == 4, "Superseded brightness operations neither publish nor replay native keys")
+        check(replays.count == 2, "Superseded brightness step stays cancelled")
+        hub.send(.brightnessDown, location: .init(x: 500, y: 500))
+        preferences.set(.displayBrightness, false)
+        try? await Task.sleep(for: .milliseconds(50))
+        check(replays.count == 2, "Switching brightness off cancels already-dispatched fallback")
+        preferences.set(.displayBrightness, true)
+        await eventually { hub.handlers.count == 1 }
         preferences.set(.volumeLevels, false)
         await eventually { !levels.service.isRunning && keys.latest == nil }
         check(hub.handlers.count == 1, "Brightness remains registered with volume off")
