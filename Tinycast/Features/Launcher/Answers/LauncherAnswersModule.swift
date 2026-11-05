@@ -7,7 +7,8 @@ final class LauncherAnswersModule: NotchcastModule {
     private let makeProvider: () -> NBPAnswerRateProvider
     private let clock: () -> Date
     private var table: NBPAnswerRates?
-    private var attemptedDay: Date?
+    private var lastAttempt: Date?
+    private var refreshFailed = false
     private var generation = UUID()
     private var requestID = UUID()
     private var pending: Task<NBPAnswerRates?, Never>?
@@ -29,7 +30,8 @@ final class LauncherAnswersModule: NotchcastModule {
         generation = UUID()
         pending?.cancel()
         pending = nil
-        attemptedDay = nil
+        lastAttempt = nil
+        refreshFailed = false
     }
 
     func answer(for query: String) async -> LauncherCurrencyAnswer? {
@@ -38,9 +40,17 @@ final class LauncherAnswersModule: NotchcastModule {
         let now = clock()
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(identifier: "Europe/Warsaw")!
-        let day = calendar.startOfDay(for: now)
-        if pending == nil, attemptedDay != day {
-            attemptedDay = day
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.dateFormat = "yyyy-MM-dd"
+        let age = lastAttempt.map { now.timeIntervalSince($0) } ?? .infinity
+        let needsRefresh = lastAttempt == nil
+            || (refreshFailed && age >= 300)
+            || (!refreshFailed && table?.effectiveDate != formatter.string(from: now) && age >= 3600)
+        if pending == nil, needsRefresh {
+            lastAttempt = now
             requestID = UUID()
             pending = Task { try? await provider.rates(fetchedAt: now) }
         }
@@ -50,18 +60,14 @@ final class LauncherAnswersModule: NotchcastModule {
             guard !Task.isCancelled, isRunning, generation == operation else { return nil }
             if requestID == request {
                 if let fetched { table = fetched }
+                refreshFailed = fetched == nil
                 self.pending = nil
             }
         }
         guard !Task.isCancelled, isRunning, generation == operation, let table,
             let value = table.rates.convert(question.amount, from: question.source, to: question.target)
         else { return nil }
-        let formatter = DateFormatter()
-        formatter.calendar = calendar
-        formatter.timeZone = calendar.timeZone
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.dateFormat = "yyyy-MM-dd"
         return LauncherCurrencyAnswer(query: question, converted: value, effectiveDate: table.effectiveDate,
-                                      isStale: table.effectiveDate != formatter.string(from: now))
+                                      isStale: refreshFailed && table.effectiveDate < formatter.string(from: now))
     }
 }

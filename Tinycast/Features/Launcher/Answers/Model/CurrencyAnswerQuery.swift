@@ -7,8 +7,14 @@ struct CurrencyAnswerQuery: Equatable, Sendable {
 
     static func parse(_ text: String) -> Self? {
         let words = text.lowercased().split(whereSeparator: \.isWhitespace)
-        guard words.count == 2 || words.count == 4,
-            let amount = Double(words[0].replacingOccurrences(of: ",", with: ".")),
+        guard words.count == 2 || words.count == 4 else { return nil }
+        let raw = String(words[0])
+        let grouped = raw.range(of: #"^[+-]?[0-9]{1,3}(,[0-9]{3})+(\.[0-9]+)?$"#,
+                                options: .regularExpression) != nil
+        let format = raw.contains(",") && !grouped
+            ? CalcNumberFormat(decimalSeparator: ",", groupingSeparator: nil)! : .english
+        guard let canonical = format.canonical(raw),
+            let amount = Double(grouped ? canonical.replacingOccurrences(of: ",", with: "") : canonical),
             amount.isFinite,
             words[0].utf8.allSatisfy({ (48...57).contains($0) || [43, 45, 44, 46].contains($0) }),
             let source = code(words[1]) else { return nil }
@@ -36,6 +42,8 @@ struct LauncherCurrencyAnswer: Equatable, Sendable {
     let isStale: Bool
 
     func formattedValue(locale: Locale) -> String {
-        converted.formatted(.number.locale(locale).precision(.fractionLength(2))) + " " + query.target
+        let precision: NumberFormatStyleConfiguration.Precision = abs(converted) >= 1 || converted == 0
+            ? .fractionLength(2) : .significantDigits(3)
+        return converted.formatted(.number.locale(locale).precision(precision)) + " " + query.target
     }
 }

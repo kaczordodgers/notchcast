@@ -2,14 +2,12 @@
 // notchcast-sources: Tinycast/Features/Launcher/Answers/Service/*.swift
 // notchcast-sources: Tinycast/Features/Launcher/Answers/LauncherAnswersModule.swift
 // notchcast-sources: Tinycast/Features/Calculator/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 import Foundation
 import Synchronization
-
-@MainActor
-protocol NotchcastModule: AnyObject {
-    func start()
-    func stop()
-}
 
 @main
 struct AnswersEngineTest {
@@ -22,6 +20,11 @@ struct AnswersEngineTest {
                      "1e3 usd", "100 usd extra"] {
             precondition(CurrencyAnswerQuery.parse(text) == nil, text)
         }
+        precondition(CurrencyAnswerQuery.parse("1,000 usd")?.amount == 1000)
+        precondition(CurrencyAnswerQuery.parse("12,5 eur")?.amount == 12.5)
+        let small = LauncherCurrencyAnswer(query: CurrencyAnswerQuery.parse("1 krw to usd")!,
+                                          converted: 0.000725, effectiveDate: "2026-11-03", isStale: false)
+        precondition(small.formattedValue(locale: Locale(identifier: "en_US")) == "0.000725 USD")
         let data = Data(#"[{"effectiveDate":"2026-11-03","rates":[{"code":"EUR","mid":4.25},{"code":"USD","mid":4}]}]"#.utf8)
         var now = Date(timeIntervalSince1970: 1_793_664_000)
         let calls = Mutex(0)
@@ -38,6 +41,7 @@ struct AnswersEngineTest {
         precondition(abs(first!.converted - 400 / 4.25) < 1e-10)
         precondition(first!.formattedValue(locale: Locale(identifier: "pl_PL")).contains(","))
         precondition(first!.formattedValue(locale: Locale(identifier: "en_US")).contains("."))
+        precondition(first?.isStale == false)
         _ = await module.answer(for: "100 usd")
         precondition(calls.withLock { $0 } == 1)
         now += 86_400
@@ -45,8 +49,14 @@ struct AnswersEngineTest {
         precondition(next?.converted == 53.125)
         precondition(next?.isStale == true)
         precondition(calls.withLock { $0 } == 2)
+        now += 299
         _ = await module.answer(for: "100 usd")
         precondition(calls.withLock { $0 } == 2)
+        now += 1
+        _ = await module.answer(for: "100 usd")
+        precondition(calls.withLock { $0 } == 3)
+        _ = await module.answer(for: "100 usd")
+        precondition(calls.withLock { $0 } == 3)
         module.stop()
         let stopped = await module.answer(for: "100 usd")
         precondition(stopped == nil)
@@ -56,6 +66,49 @@ struct AnswersEngineTest {
         offline.start()
         let unavailable = await offline.answer(for: "100 usd")
         precondition(unavailable == nil)
-        print("PASS parser, conversion, locales, rollover, offline, switch-off")
+        let gate = FetchGate()
+        let concurrent = LauncherAnswersModule(provider: {
+            NBPAnswerRateProvider { _ in await gate.fetch() }
+        }, clock: { now })
+        concurrent.start()
+        let one = Task { await concurrent.answer(for: "100 usd") }
+        let two = Task { await concurrent.answer(for: "100 eur") }
+        while gate.count < 1 { await Task.yield() }
+        for _ in 0..<20 { await Task.yield() }
+        precondition(gate.count == 1)
+        gate.finish(data)
+        let firstShared = await one.value
+        let secondShared = await two.value
+        precondition(firstShared != nil && secondShared != nil)
+        now += 3600
+        let old = Task { await concurrent.answer(for: "100 usd") }
+        while gate.count < 2 { await Task.yield() }
+        concurrent.stop()
+        concurrent.start()
+        let fresh = Task { await concurrent.answer(for: "100 eur") }
+        while gate.count < 3 { await Task.yield() }
+        gate.finish(data)
+        let stoppedResult = await old.value
+        precondition(stoppedResult == nil)
+        gate.finish(data)
+        let freshResult = await fresh.value
+        precondition(freshResult != nil)
+        print("PASS grouping, small values, successful older table, retry at 300s, shared fetch, stop/restart")
+    }
+}
+
+final class FetchGate: Sendable {
+    private let state = Mutex((count: 0, waiters: [CheckedContinuation<(Data, Int), Never>]()))
+    var count: Int { state.withLock { $0.count } }
+
+    func fetch() async -> (Data, Int) {
+        await withCheckedContinuation { continuation in
+            state.withLock { $0.count += 1; $0.waiters.append(continuation) }
+        }
+    }
+
+    func finish(_ data: Data) {
+        let waiter = state.withLock { $0.waiters.removeFirst() }
+        waiter.resume(returning: (data, 200))
     }
 }
