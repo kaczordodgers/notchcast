@@ -1,7 +1,9 @@
 name: Snapshot
 on:
+  push:
+    branches: [main]
   schedule:
-    - cron: "37 * * * *"
+    - cron: "7,27,47 * * * *"
   workflow_dispatch:
 permissions:
   contents: read
@@ -9,8 +11,31 @@ concurrency:
   group: snapshot
   cancel-in-progress: false
 jobs:
-  snapshot:
+  plan:
     if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 65
+    outputs:
+      tag: ${{ steps.plan.outputs.tag }}
+      main: ${{ steps.plan.outputs.main }}
+      version: ${{ steps.plan.outputs.version }}
+      build: ${{ steps.plan.outputs.build }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test snapshot planning
+        run: python3 notchcast/snapshot-test.py
+      - name: Plan snapshot, waiting for the gate on Linux
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 notchcast/snapshot.py
+  snapshot:
+    needs: plan
+    if: needs.plan.outputs.tag != ''
     runs-on: xcode-27
     timeout-minutes: 120
     environment: sync
@@ -24,16 +49,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: main
+          ref: ${{ needs.plan.outputs.main }}
           path: src
           fetch-depth: 0
           persist-credentials: false
       - name: Plan snapshot
         id: plan
-        working-directory: src
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 notchcast/snapshot.py
+          TAG: ${{ needs.plan.outputs.tag }}
+          MAIN: ${{ needs.plan.outputs.main }}
+          VERSION: ${{ needs.plan.outputs.version }}
+          BUILD: ${{ needs.plan.outputs.build }}
+        run: |
+          printf 'tag=%s\nmain=%s\nversion=%s\nbuild=%s\n' "$TAG" "$MAIN" "$VERSION" "$BUILD" >> "$GITHUB_OUTPUT"
       - uses: actions/checkout@v7
         if: steps.plan.outputs.tag != ''
         with:
