@@ -23,8 +23,9 @@ struct CleanAIDataService: Sendable {
                 else { continue }
                 if policy.permits(path, kind: kind),
                    let snapshot = try? measure(path), old(snapshot.newest, kind: kind) {
+                    let refusal = try await refusal(path, kind: kind)
                     result.append(CleanAIDataItem(path: path, kind: kind,
-                        selectable: try await eligible(path, kind: kind), snapshot: snapshot.values))
+                        selectable: refusal == nil, refusal: refusal, snapshot: snapshot.values))
                 } else if attributes[.type] as? FileAttributeType == .typeDirectory,
                           kind != .worktree || path.lastPathComponent == URL(fileURLWithPath: root).lastPathComponent {
                     pending += (try? FileManager().contentsOfDirectory(at: path,
@@ -67,7 +68,9 @@ struct CleanAIDataService: Sendable {
                     results.append(.init(path: item.path, status: .changed, recovery: recovery)); continue
                 }
                 try Task.checkCancellation()
+                let repository = item.kind == .worktree ? try owningRepository(item.path) : nil
                 try transport.trash(item.path)
+                if let repository { try await git.prune(repository) }
                 status = .trashed
             } catch is CancellationError {
                 throw CancellationError()
@@ -87,9 +90,41 @@ struct CleanAIDataService: Sendable {
     }
 
     private func eligible(_ path: URL, kind: CleanAIDataItem.Kind) async throws -> Bool {
-        if kind == .worktree { return try await git.inspect(path)?.eligible == true }
-        guard kind == .claude else { return false }
-        return await chatIdle(path) == true
+        try await refusal(path, kind: kind) == nil
+    }
+
+    private func refusal(_ path: URL, kind: CleanAIDataItem.Kind) async throws -> CleanAIDataItem.Refusal? {
+        if kind == .worktree {
+            guard (try? owningRepository(path)) != nil,
+                  try await git.inspect(path)?.eligible == true else { return .gitStateUnverified }
+            return nil
+        }
+        guard kind == .claude else { return .indexedStore }
+        let project = path.deletingLastPathComponent()
+        let sidecars = [project.appendingPathComponent("sessions-index.json"), path.deletingPathExtension()]
+        guard !sidecars.contains(where: { FileManager().fileExists(atPath: $0.path) }) else {
+            return .sessionSidecars
+        }
+        return await chatIdle(path) == true ? nil : .chatNotIdle
+    }
+
+    private func owningRepository(_ path: URL) throws -> URL {
+        let pointer = path.appendingPathComponent(".git")
+        let attributes = try FileManager().attributesOfItem(atPath: pointer.path)
+        guard attributes[.type] as? FileAttributeType == .typeRegular else {
+            throw CocoaError(.fileReadNoPermission)
+        }
+        let text = try String(contentsOf: pointer, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.hasPrefix("gitdir: ") else { throw CocoaError(.fileReadCorruptFile) }
+        let value = String(text.dropFirst(8))
+        guard !value.isEmpty, !value.contains("\n"), !value.contains("\0") else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        let directory = URL(fileURLWithPath: value, relativeTo: path).standardizedFileURL
+        guard directory.deletingLastPathComponent().lastPathComponent == "worktrees" else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        return directory.deletingLastPathComponent().deletingLastPathComponent()
     }
 
     private func old(_ date: Date, kind: CleanAIDataItem.Kind) -> Bool {
@@ -101,10 +136,12 @@ struct CleanAIDataService: Sendable {
         guard home == home.resolvingSymlinksInPath(),
               path.standardizedFileURL.path.hasPrefix(home.path + "/") else { return false }
         var cursor = path.standardizedFileURL
-        while cursor != home {
+        while cursor.path != home.path {
             guard let attributes = try? FileManager().attributesOfItem(atPath: cursor.path),
                   attributes[.type] as? FileAttributeType != .typeSymbolicLink else { return false }
-            cursor.deleteLastPathComponent()
+            let parent = cursor.deletingLastPathComponent()
+            guard parent.path != cursor.path else { return false }
+            cursor = parent
         }
         return true
     }

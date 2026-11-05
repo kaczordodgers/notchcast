@@ -4,14 +4,23 @@ struct AITrash: CleanTrashTransport {
     let receipts: URL
     func trash(_ url: URL) throws {
         try Data(url.path.utf8).write(to: receipts.appendingPathComponent(UUID().uuidString))
+        if url.deletingLastPathComponent().lastPathComponent == "wt" {
+            try FileManager().moveItem(at: url, to: receipts.appendingPathComponent("trashed-worktree"))
+        }
     }
 }
 
 struct AIGit: CleanAIDataGitReader {
+    let receipt: URL
+    func prune(_ repository: URL) throws {
+        precondition(!FileManager().fileExists(atPath:
+            receipt.deletingLastPathComponent().appendingPathComponent("fixture/agents/wt/clean").path))
+        try Data(repository.path.utf8).write(to: receipt)
+    }
     func inspect(_ path: URL) throws -> CleanAIDataGitState? {
         let name = path.lastPathComponent
         if name == "unknown" { return nil }
-        return .init(linked: true, locked: false, dirty: name == "dirty",
+        return .init(linked: true, locked: name == "locked", dirty: name == "dirty",
                      unpushed: name == "unpushed", mergedIntoMain: true, hiddenIndexFlags: false,
                      submodules: false, operationInProgress: false, idle: true)
     }
@@ -21,7 +30,9 @@ struct AIGit: CleanAIDataGitReader {
 struct CleanAIDataTest {
     static func main() async throws {
         let manager = FileManager()
-        let temp = manager.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let scratch = ProcessInfo.processInfo.environment["TMPDIR"].map { URL(fileURLWithPath: $0) }
+            ?? manager.temporaryDirectory
+        let temp = scratch.appendingPathComponent(UUID().uuidString)
         try manager.createDirectory(at: temp, withIntermediateDirectories: true)
         let base = temp.resolvingSymlinksInPath()
         defer { try? manager.removeItem(at: base) }
@@ -40,15 +51,28 @@ struct CleanAIDataTest {
         try manager.setAttributes([.modificationDate: old], ofItemAtPath: chat.path)
         try manager.createSymbolicLink(at: project.appendingPathComponent(UUID().uuidString + ".jsonl"),
                                        withDestinationURL: sentinel)
-        for name in ["clean", "dirty", "unpushed", "unknown", "recent"] {
+        for name in ["clean", "dirty", "unpushed", "locked", "unknown", "recent"] {
             let tree = home.appendingPathComponent("agents/wt/" + name)
             try manager.createDirectory(at: tree, withIntermediateDirectories: true)
+            try Data("gitdir: /fixture/repo/.git/worktrees/\(name)".utf8)
+                .write(to: tree.appendingPathComponent(".git"))
+            try manager.setAttributes([.modificationDate: old], ofItemAtPath: tree.appendingPathComponent(".git").path)
             try manager.setAttributes([.modificationDate: name == "recent" ? clock : old],
                                       ofItemAtPath: tree.path)
         }
+        for root in [".codex/sessions/2020", ".local/share/opencode/storage/session/project"] {
+            let directory = home.appendingPathComponent(root)
+            try manager.createDirectory(at: directory, withIntermediateDirectories: true)
+            let session = directory.appendingPathComponent("session.jsonl")
+            try bytes.write(to: session)
+            try manager.setAttributes([.modificationDate: old], ofItemAtPath: session.path)
+        }
+        let index = home.appendingPathComponent(".codex/session_index.jsonl")
+        try bytes.write(to: index)
+        let pruneReceipt = base.appendingPathComponent("pruned")
         let policy = CleanAIDataPolicy(home: home, age: CleanAIDataPolicy.defaultAge)
         let service = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
-            git: AIGit(), now: { clock }, chatIdle: { _ in true }, copy: { _, destination in
+            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true }, copy: { _, destination in
                 try Data("corrupted".utf8).write(to: destination)
             })
         let items = try await service.scan()
@@ -56,6 +80,15 @@ struct CleanAIDataTest {
         let recorded = try manager.contentsOfDirectory(atPath: receipts.path)
         precondition(recorded.isEmpty)
         precondition(items.filter { $0.selectable }.count == 2)
+        let indexed = items.filter { $0.kind == .codex || $0.kind == .openCode }
+        precondition(indexed.count == 2 && indexed.allSatisfy { !$0.selectable && $0.refusal == .indexedStore })
+        let indexedOutcomes = try await service.clean(indexed)
+        precondition(indexedOutcomes.allSatisfy { $0.status == .refused })
+        let indexAfter = try Data(contentsOf: index)
+        precondition(indexAfter == bytes)
+        precondition(!policy.permits(base.appendingPathComponent("outside.jsonl"), kind: .claude))
+        precondition(!policy.permits(project.appendingPathComponent("../bad.jsonl"), kind: .claude))
+        precondition(!policy.permits(project.appendingPathComponent(".hidden.jsonl"), kind: .claude))
         precondition(!items.contains { $0.path.lastPathComponent == "recent" })
         let empty = try await service.clean([])
         precondition(empty.isEmpty)
@@ -65,9 +98,26 @@ struct CleanAIDataTest {
         precondition(unchanged == bytes)
         let outcomes = try await service.clean(items.filter { $0.kind == .worktree })
         precondition(outcomes.filter { $0.status == .trashed }.count == 1)
-        precondition(outcomes.filter { $0.status == .refused }.count == 3)
+        precondition(outcomes.filter { $0.status == .refused }.count == 4)
+        let pruned = try String(contentsOf: pruneReceipt, encoding: .utf8)
+        precondition(pruned == "/fixture/repo/.git")
+        let recovering = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
+            git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true }, copy: {
+                try FileManager().copyItem(at: $0, to: $1)
+            })
+        let recovered = try await recovering.clean(items.filter { $0.kind == .claude })
+        precondition(recovered.first?.status == .trashed)
+        let backup = try Data(contentsOf: recovered[0].recovery!)
+        precondition(backup == bytes)
+        let sidecar = chat.deletingPathExtension()
+        try manager.createDirectory(at: sidecar, withIntermediateDirectories: false)
+        let sidecarScan = try await recovering.scan()
+        precondition(sidecarScan.contains {
+            $0.path.lastPathComponent == chat.lastPathComponent && !$0.selectable && $0.refusal == .sessionSidecars
+        }, String(describing: sidecarScan))
         let surviving = try Data(contentsOf: sentinel)
         precondition(surviving == Data("safe".utf8))
-        print("PASS: scan read-only, unselected, recovery verification, git refusal, symlink, sentinel")
+        print("PASS: trash then prune owning repo; dirty/unpushed/locked refused")
+        print("PASS: indexed stores and sidecars refused; recovery verified; unsafe paths refused")
     }
 }

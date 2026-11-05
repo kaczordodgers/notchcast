@@ -265,6 +265,12 @@ final class CleanModule: NotchcastModule {
     }
 
     private struct GitReader: CleanAIDataGitReader {
+        func prune(_ repository: URL) async throws {
+            let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/usr/bin/git"),
+                ["--git-dir", repository.path, "worktree", "prune", "--expire", "now"], timeout: 5)
+            guard result.code == 0, result.error.isEmpty else { throw Failure.toolFailed }
+        }
+
         func inspect(_ path: URL) async throws -> CleanAIDataGitState? {
             do {
                 return try await read(path)

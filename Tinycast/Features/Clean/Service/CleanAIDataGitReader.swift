@@ -2,6 +2,7 @@ import Foundation
 
 protocol CleanAIDataGitReader: Sendable {
     func inspect(_ path: URL) async throws -> CleanAIDataGitState?
+    func prune(_ repository: URL) async throws
 }
 
 struct CleanAIDataGitState: Sendable {
