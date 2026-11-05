@@ -18,7 +18,7 @@ struct MarketSymbolsSettingRow: View {
     var body: some View {
         TextField(text: $symbols) {
             SettingsRowTitle(.notchcastDay, "Symbols")
-            Text("Yahoo Finance symbols, separated by commas.")
+            Text("Yahoo Finance symbols, separated by commas.", tableName: "Notchcast")
         }
         .textFieldStyle(.roundedBorder)
         .onAppear { symbols = markets.symbols.joined(separator: ", ") }
@@ -39,7 +39,7 @@ struct TimerSoundSettingRow: View {
 
     var body: some View {
         Toggle(isOn: $store.playSoundWhenTimeIsUp) {
-            SettingsRowTitle(.notchcastTimers, "Play sound when time is up")
+            SettingsRowTitle(.notchcastTimers, LocalizedStringResource("Play sound when time is up", table: "Notchcast"))
         }
         .settingsEnabled(NotchcastPreferences.shared.isOn(.island))
     }
@@ -55,7 +55,7 @@ struct TimerDefaultDurationSettingRow: View {
                     .tag(duration)
             }
         } label: {
-            SettingsRowTitle(.notchcastTimers, "Default timer")
+            SettingsRowTitle(.notchcastTimers, LocalizedStringResource("Default timer", table: "Notchcast"))
         }
         .settingsEnabled(NotchcastPreferences.shared.isOn(.island))
     }
@@ -65,7 +65,7 @@ struct TaskCountSettingRow: View {
 
     var body: some View {
         if let module = NotchcastCore.services?.tasks, let store = module.store {
-            Text("Tasks: \(store.state.tasks.count)").foregroundStyle(.secondary)
+            Text("Tasks: \(store.state.tasks.count)", tableName: "Notchcast").foregroundStyle(.secondary)
         }
     }
 }
@@ -76,8 +76,8 @@ struct TodoistImportSettingRow: View {
     var body: some View {
         Group {
             if let module = NotchcastCore.services?.tasks {
-                Button("Import Todoist JSON export…", action: selectFile)
-                    .help("Accepts a JSON object with Todoist tasks, projects, sections and labels arrays.")
+                Button(String(localized: "Import Todoist JSON export…", table: "Notchcast"), action: selectFile)
+                    .help(String(localized: "Accepts a JSON object with Todoist tasks, projects, sections and labels arrays.", table: "Notchcast"))
                     .disabled(module.store == nil || selectedFile != nil)
                     .settingsAnchor(.notchcastTasks)
                 if let result { Text(result).foregroundStyle(.secondary) }
@@ -93,11 +93,11 @@ struct TodoistImportSettingRow: View {
                 guard module.store === store else { return }
                 let count = try TodoSettingsImport.apply(data, to: store, now: Date(),
                     calendar: .current, timeZone: .current)
-                result = String(localized: "Imported tasks: \(count)")
+                result = String(localized: "Imported tasks: \(count)", table: "Notchcast")
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled, module.store === store else { return }
-                result = String(localized: "The file is not a Todoist JSON export.")
+                result = String(localized: "The file is not a Todoist JSON export.", table: "Notchcast")
             }
         }
     }

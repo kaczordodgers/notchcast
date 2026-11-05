@@ -8,7 +8,7 @@ extension DictationEnglishModule {
             let translated = await DictationEnglish.process(raw, language: language) {
                 await MainActor.run {
                     AppCore.shared.showMessage(
-                        String(localized: "English translation failed; using the original transcript"), tone: .danger)
+                        String(localized: "English translation failed; using the original transcript", table: "Notchcast"), tone: .danger)
                 }
             }
             await DictationCleanup.observeTranscript(raw: raw, cleaned: translated)

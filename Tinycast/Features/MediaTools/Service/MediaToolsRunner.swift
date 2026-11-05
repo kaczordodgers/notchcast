@@ -17,11 +17,11 @@ struct MediaToolsRunner: Sendable {
 
         var errorDescription: String? {
             switch self {
-            case .unsupported: String(localized: "This media format is not supported.")
-            case .invalidOptions: String(localized: "The media options are invalid.")
-            case .encoding: String(localized: "Media encoding failed.")
-            case .targetTooSmall: String(localized: "The requested media size is too small.")
-            case .gifLimit: String(localized: "GIFs support videos up to 30 seconds at 12 fps and 480 pixels.")
+            case .unsupported: String(localized: "This media format is not supported.", table: "Notchcast")
+            case .invalidOptions: String(localized: "The media options are invalid.", table: "Notchcast")
+            case .encoding: String(localized: "Media encoding failed.", table: "Notchcast")
+            case .targetTooSmall: String(localized: "The requested media size is too small.", table: "Notchcast")
+            case .gifLimit: String(localized: "GIFs support videos up to 30 seconds at 12 fps and 480 pixels.", table: "Notchcast")
             }
         }
     }

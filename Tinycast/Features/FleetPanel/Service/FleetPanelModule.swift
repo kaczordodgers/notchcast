@@ -74,23 +74,23 @@ final class FleetPanelModule: NotchcastModule {
 
     static func localMessage(_ column: FleetSnapshot.Column) -> String {
         switch column {
-        case .rows: String(localized: "This Mac: \(column.waiting) waiting, \(column.working) working.")
-        case .sourceOff, .remoteOff: String(localized: "This Mac: Agent Threads is off.")
-        case .linkDown, .failed: String(localized: "This Mac: could not read threads.")
+        case .rows: String(localized: "This Mac: \(column.waiting) waiting, \(column.working) working.", table: "Notchcast")
+        case .sourceOff, .remoteOff: String(localized: "This Mac: Agent Threads is off.", table: "Notchcast")
+        case .linkDown, .failed: String(localized: "This Mac: could not read threads.", table: "Notchcast")
         }
     }
 
     static func remoteMessage(_ column: FleetSnapshot.Column) -> String {
         switch column {
-        case .rows: String(localized: "Other Mac: \(column.waiting) waiting, \(column.working) working.")
-        case .sourceOff, .remoteOff: String(localized: "Other Mac: remote feature is off.")
-        case .linkDown: String(localized: "Other Mac: link is down.")
-        case .failed: String(localized: "Other Mac: could not read threads.")
+        case .rows: String(localized: "Other Mac: \(column.waiting) waiting, \(column.working) working.", table: "Notchcast")
+        case .sourceOff, .remoteOff: String(localized: "Other Mac: remote feature is off.", table: "Notchcast")
+        case .linkDown: String(localized: "Other Mac: link is down.", table: "Notchcast")
+        case .failed: String(localized: "Other Mac: could not read threads.", table: "Notchcast")
         }
     }
 
     nonisolated static let command = NotchcastCommand(
-        slug: "show-fleet", name: String(localized: "Show Fleet"),
+        slug: "show-fleet", name: String(localized: "Show Fleet", table: "Notchcast"),
         sfSymbol: "desktopcomputer", feature: .fleetPanel,
         isEnabled: { NotchcastPreferences.shared.isOn(.fleetPanel) },
         run: { NotchcastCore.fleetPanel.refresh {

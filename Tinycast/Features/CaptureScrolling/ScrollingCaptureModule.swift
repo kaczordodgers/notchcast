@@ -44,7 +44,7 @@ final class ScrollingCaptureModule: NotchcastModule {
                 guard let self, self.enabled, let selection else { return }
                 do {
                     try self.session.start(rect: selection.rect, displayID: selection.displayID)
-                    report(String(localized: "Scroll the area, then run Scrolling Capture again to copy."), .neutral)
+                    report(String(localized: "Scroll the area, then run Scrolling Capture again to copy.", table: "Notchcast"), .neutral)
                     self.task = Task { [weak self] in
                         do {
                             while let self, self.session.state == .capturing {
@@ -69,8 +69,8 @@ final class ScrollingCaptureModule: NotchcastModule {
             let data = try await ScrollingCaptureSession.pngData(for: image)
             try Task.checkCancellation()
             guard enabled else { return }
-            guard write(data) else { report(String(localized: "Could not copy to clipboard."), .danger); return }
-            if limited { report(String(localized: "Scrolling capture reached the 20,000 pixel limit."), .neutral) }
+            guard write(data) else { report(String(localized: "Could not copy to clipboard.", table: "Notchcast"), .danger); return }
+            if limited { report(String(localized: "Scrolling capture reached the 20,000 pixel limit.", table: "Notchcast"), .neutral) }
         } catch is CancellationError {
         } catch {
             guard !Task.isCancelled else { return }
@@ -81,11 +81,11 @@ final class ScrollingCaptureModule: NotchcastModule {
     isolated deinit { task?.cancel() }
 
     static func failureMessage(_ error: any Error) -> String {
-        if error is CaptureAreaService.Failure { return String(localized: "Screen Recording access is required.") }
+        if error is CaptureAreaService.Failure { return String(localized: "Screen Recording access is required.", table: "Notchcast") }
         switch error as? ScrollingCaptureSession.Failure {
-        case .permissionDenied: return String(localized: "Screen Recording access is required.")
-        case .invalidRect, .displayUnavailable: return String(localized: "Capture area is unavailable.")
-        default: return String(localized: "Could not capture the screen.")
+        case .permissionDenied: return String(localized: "Screen Recording access is required.", table: "Notchcast")
+        case .invalidRect, .displayUnavailable: return String(localized: "Capture area is unavailable.", table: "Notchcast")
+        default: return String(localized: "Could not capture the screen.", table: "Notchcast")
         }
     }
 }

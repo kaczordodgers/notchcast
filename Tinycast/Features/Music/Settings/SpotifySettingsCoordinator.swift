@@ -34,7 +34,7 @@ final class SpotifySettingsCoordinator {
             try module.key.save(keyText)
             keyText = ""
             hasKey = true
-            core?.showMessage(String(localized: "API Key Saved"))
+            core?.showMessage(String(localized: "API Key Saved", table: "Notchcast"))
         } catch { present((error as? SoloistFailure) ?? .keyUnavailable) }
     }
 
@@ -52,7 +52,7 @@ final class SpotifySettingsCoordinator {
                 try self.module.key.importKey(from: url)
                 self.keyText = ""
                 self.hasKey = true
-                self.core?.showMessage(String(localized: "API Key Saved"))
+                self.core?.showMessage(String(localized: "API Key Saved", table: "Notchcast"))
             } catch {
                 self.present((error as? SoloistFailure) ?? .keyFileUnreadable, importing: true)
             }
@@ -65,15 +65,15 @@ final class SpotifySettingsCoordinator {
             guard let self else { return }
             defer { action = nil }
             guard await core?.confirm(
-                title: String(localized: "Remove API key?"),
-                message: String(localized: "Spotify Connect stops until you add a key again."),
+                title: String(localized: "Remove API key?", table: "Notchcast"),
+                message: String(localized: "Spotify Connect stops until you add a key again.", table: "Notchcast"),
                 symbol: "key", confirmTitle: String(localized: "Remove")) == true,
                 !Task.isCancelled else { return }
             do {
                 try module.key.remove()
                 hasKey = false
                 keyText = ""
-                core?.showMessage(String(localized: "API Key Removed"))
+                core?.showMessage(String(localized: "API Key Removed", table: "Notchcast"))
             } catch {
                 core?.showMessage(SoloistFailure.keyUnavailable.message, tone: .danger)
             }
@@ -92,7 +92,7 @@ final class SpotifySettingsCoordinator {
             if let failure = speaker.installFailure {
                 present(failure)
             } else if speaker.build != nil {
-                core?.showMessage(String(localized: "Soloist Downloaded"))
+                core?.showMessage(String(localized: "Soloist Downloaded", table: "Notchcast"))
             }
         }
     }
@@ -104,9 +104,9 @@ final class SpotifySettingsCoordinator {
             defer { action = nil }
             _ = await core?.reportFailure(
                 title: importing
-                    ? String(localized: "Couldn’t import the API key") : String(localized: "Spotify Connect stopped"),
+                    ? String(localized: "Couldn’t import the API key", table: "Notchcast") : String(localized: "Spotify Connect stopped", table: "Notchcast"),
                 message: importing && failure == .invalidKey
-                    ? String(localized: "That file has no API key.") : failure.message,
+                    ? String(localized: "That file has no API key.", table: "Notchcast") : failure.message,
                 symbol: "hifispeaker.fill", recovery: nil)
         }
     }

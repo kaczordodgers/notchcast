@@ -15,8 +15,8 @@ enum WaitingAlertsEngine {
     }
 
     static func countMessage(_ count: Int) -> String {
-        count == 0 ? String(localized: "No agents are waiting.")
-            : String(localized: "\(count) agents are waiting.")
+        count == 0 ? String(localized: "No agents are waiting.", table: "Notchcast")
+            : String(localized: "\(count) agents are waiting.", table: "Notchcast")
     }
 
     /// One new wait names its thread; several new waits report the total, so the notice matches the count.
@@ -24,8 +24,8 @@ enum WaitingAlertsEngine {
         guard let first = notices.first else { return nil }
         guard notices.count == 1 else { return countMessage(total) }
         switch first.kind {
-        case .approval: return String(localized: "\(first.title) is waiting for approval.")
-        case .question: return String(localized: "\(first.title) has a question.")
+        case .approval: return String(localized: "\(first.title) is waiting for approval.", table: "Notchcast")
+        case .question: return String(localized: "\(first.title) has a question.", table: "Notchcast")
         }
     }
 }

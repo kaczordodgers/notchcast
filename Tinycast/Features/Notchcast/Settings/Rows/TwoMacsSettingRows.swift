@@ -5,7 +5,7 @@ struct MacLinkStatusSettingRow: View {
 
     var body: some View {
         LabeledContent("Status", value: link.isPaired
-            ? String(localized: "Paired") : String(localized: "Not connected"))
+            ? String(localized: "Paired", table: "Notchcast") : String(localized: "Not connected", table: "Notchcast"))
             .settingsEnabled(link.isRunning)
     }
 }
@@ -17,8 +17,8 @@ struct MacLinkPairingSettingRow: View {
 
     var body: some View {
         Group {
-            RevealableSecureField(title: String(localized: "Pairing code"), text: $code)
-            Button(link.isPaired ? String(localized: "Unpair") : String(localized: "Pair")) {
+            RevealableSecureField(title: String(localized: "Pairing code", table: "Notchcast"), text: $code)
+            Button(link.isPaired ? String(localized: "Unpair", table: "Notchcast") : String(localized: "Pair", table: "Notchcast")) {
                 do {
                     if link.isPaired {
                         try link.unpair()
@@ -29,8 +29,8 @@ struct MacLinkPairingSettingRow: View {
                     failed = false
                 } catch { failed = true }
             }
-            if failed || link.failed { Text("Pairing failed.").foregroundStyle(.secondary) }
-            Text("Pair with an empty code to create one, then enter it on the other Mac.")
+            if failed || link.failed { Text("Pairing failed.", tableName: "Notchcast").foregroundStyle(.secondary) }
+            Text("Pair with an empty code to create one, then enter it on the other Mac.", tableName: "Notchcast")
         }
         .settingsEnabled(link.isRunning)
     }
@@ -40,7 +40,7 @@ struct RemoteMacAddressSettingRow: View {
     @Bindable private var preferences = NotchcastPreferences.shared
 
     var body: some View {
-        TextField("Remote Mac address", text: $preferences.remoteMacAddress)
+        TextField(String(localized: "Remote Mac address", table: "Notchcast"), text: $preferences.remoteMacAddress)
             .textFieldStyle(.roundedBorder)
             .settingsAnchor(.notchcastRemoteMac)
     }
@@ -50,7 +50,7 @@ struct RemoteTerminalDirectorySettingRow: View {
     @Bindable private var preferences = NotchcastPreferences.shared
 
     var body: some View {
-        TextField("Remote terminal directory", text: $preferences.remoteTerminalDirectory)
+        TextField(String(localized: "Remote terminal directory", table: "Notchcast"), text: $preferences.remoteTerminalDirectory)
             .textFieldStyle(.roundedBorder)
     }
 }
@@ -59,7 +59,7 @@ struct RemoteUpdateScriptSettingRow: View {
     @Bindable private var preferences = NotchcastPreferences.shared
 
     var body: some View {
-        TextField("Remote update script path", text: $preferences.remoteUpdatePath)
+        TextField(String(localized: "Remote update script path", table: "Notchcast"), text: $preferences.remoteUpdatePath)
             .textFieldStyle(.roundedBorder)
     }
 }
