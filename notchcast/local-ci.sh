@@ -10,8 +10,9 @@ export HEAD_SHA=$head BASE_SHA=$(jq -r .baseRefOid <<< "$metadata")
 root="$HOME/agents/nc-local-ci"
 mkdir -p "$root/logs"
 scratch=$(mktemp -d "$root/build.XXXXXX")
-tree="$root/$head"
-log="$root/logs/$head.log"
+tree="$scratch/tree"
+log="$scratch/build.log"
+stable_log="$root/logs/$head.log"
 started=$SECONDS
 owned=0
 finish() {
@@ -32,7 +33,11 @@ finish() {
         for run in $runs; do gh run cancel "$run" -R kaczordodgers/notchcast || code=1; done
     fi
     if [ "$owned" -eq 1 ]; then rm -rf "$tree" || code=1; fi
+    exec 1>&3 2>&4
+    cat "$log"
+    cp "$log" "$scratch/published.log" && mv -f "$scratch/published.log" "$stable_log" || code=1
     rm -rf "$scratch"
+    log=$stable_log
     echo "$state: $description; log: $log"
     # Wake the T3 thread that started the build: build-wake.py only watches Actions runs, so nothing else does.
     if [ -n "${T3CODE_THREAD_ID:-}" ]; then
@@ -44,9 +49,8 @@ finish() {
 trap finish EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM HUP
-exec > >(tee "$log") 2>&1
-# A tree left by a killed run would make every rerun fail here.
-rm -rf "$tree"
+exec 3>&1 4>&2
+exec > "$log" 2>&1
 # A shared clone, not a worktree: a worktree sees every tag of this checkout, upstream's releases included, and
 # upstream's check-migrations.sh then fails on them. The clone gets the fork's tags only, as Actions' checkout does.
 git clone --quiet --shared --no-checkout --no-tags "$(git rev-parse --path-format=absolute --git-common-dir)" "$tree"
