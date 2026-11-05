@@ -330,6 +330,7 @@ final class HotKeyManager {
             return String(localized: "Globe Dictation")
         }
         for candidate in candidateActions where candidate != action {
+            if case .notchcastCommand(let id) = candidate, !NotchcastCommandCatalog.registersHotKey(id) { continue }
             guard let other = self.binding(for: candidate) else { continue }
             let holdsModifier =
                 dictationHoldToTalk
@@ -416,6 +417,7 @@ final class HotKeyManager {
         let dictationBinding = binding(for: .dictation)
         let holdKey = dictationHoldToTalk ? dictationBinding?.holdKey : nil
         for action in candidateActions {
+            if case .notchcastCommand(let id) = action, !NotchcastCommandCatalog.registersHotKey(id) { continue }
             guard let binding = binding(for: action), binding.usesModifierTapMonitor else { continue }
             if globeReserved, binding.conflicts(with: .globe, holdsModifier: true) { continue }
             if action == .dictation, !dictationEnabled { continue }
