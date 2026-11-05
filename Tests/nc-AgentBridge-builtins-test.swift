@@ -16,6 +16,20 @@ import Foundation
 struct StoredSnippet { typealias ID = String }
 
 @MainActor
+enum NotchcastCommandCatalog {
+    struct Command {
+        struct Entry { let id: String }
+        let entry: Entry
+        let name: String
+    }
+    static let all = [Command(entry: .init(id: "command:toggle-island"), name: "Toggle Island"),
+                      Command(entry: .init(id: "command:nc-test"), name: "Test Command")]
+    static var preference = true
+    static var condition = true
+    static func isEnabled(_ id: String) -> Bool { preference && condition }
+}
+
+@MainActor
 final class AppCore {
     final class HotKeyFixture {
         var actions: [HotKeyAction] = []
@@ -31,7 +45,10 @@ final class AppCore {
     let systemActionCoordinator = VolumeFixture()
     var hidden: Set<HotKeyAction> = []
 
-    func allowsHotKeyAction(_ action: HotKeyAction) -> Bool { !hidden.contains(action) }
+    func allowsHotKeyAction(_ action: HotKeyAction) -> Bool {
+        if case .notchcastCommand(let id) = action { return NotchcastCommandCatalog.isEnabled(id) }
+        return !hidden.contains(action)
+    }
 }
 
 @main
@@ -44,8 +61,31 @@ struct AgentBuiltInTests {
         let index = AgentActionIndex()
         try AgentBuiltInActions.register(in: index, core: core)
         index.start()
+        check(index.actionIDs.contains("command:toggle-island"), "fork launcher command missing")
         check(index.actionIDs.count == HotKeyAction.builtInActions.count
-              + SystemActionCatalog.all.count + WindowCommandCatalog.all.count)
+              + SystemActionCatalog.all.count + WindowCommandCatalog.all.count + NotchcastCommandCatalog.all.count)
+        let fork = AgentRequest(verb: .run, id: "command:toggle-island")
+        check((await index.handle(fork)).code == .ok)
+        check(core.hotKeys.actions.removeLast() == .notchcastCommand(entryID: "command:toggle-island"))
+        for enabled in [false, true] {
+            NotchcastCommandCatalog.preference = enabled
+            let reply = await index.handle(.init(verb: .list))
+            guard case .object(let fields) = reply.result, case .array(let actions) = fields["actions"],
+                  let action = actions.first(where: {
+                      guard case .object(let fields) = $0 else { return false }
+                      return fields["id"] == .string("command:toggle-island")
+                  }), case .object(let descriptor) = action else { preconditionFailure("missing fork action") }
+            check(descriptor["available"] == .bool(enabled))
+            check(descriptor["danger"] == .string("harmless"))
+            check((await index.handle(.init(verb: .run, id: fork.id, dryRun: true))).code == (enabled ? .ok : .failed))
+        }
+        NotchcastCommandCatalog.condition = false
+        check((await index.handle(fork)).code == .failed)
+        check((await index.handle(.init(verb: .run, id: fork.id, dryRun: true))).code == .failed)
+        NotchcastCommandCatalog.condition = true
+        check((await index.handle(.init(verb: .run, id: "command:nc-test"))).code == .declined)
+        check(core.hotKeys.actions.isEmpty)
+        print("PASS: fork registration, live preference/condition, unavailable dry-run, consent and hotkey dispatch")
         check(!index.actionIDs.contains(CommandID.runShellCommand.rawValue))
         check(!index.actionIDs.contains(CommandID.quit.rawValue))
         check(!index.actionIDs.contains { $0.hasPrefix("quicklink:") || $0.hasPrefix("extension:") })

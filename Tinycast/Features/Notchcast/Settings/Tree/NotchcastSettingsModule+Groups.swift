@@ -217,6 +217,7 @@ extension NotchcastSettingsModule {
                 .feature(.agentChatTools, settings: [.aiAndAgentsChatTools]),
                 .feature(.agentAnswer, settings: []),
                 .feature(.voiceAsk, settings: [.aiAndAgentsVoiceDestination]),
+                .feature(.openBotAgents, settings: []),
             ]),
         ]
         case .twoMacs: [

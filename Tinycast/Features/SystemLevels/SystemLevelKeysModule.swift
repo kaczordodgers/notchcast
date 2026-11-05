@@ -16,6 +16,7 @@ final class SystemLevelKeysModule: NotchcastModule {
     @ObservationIgnored private let hub: EventTapHub
     @ObservationIgnored private let present: (LevelNotice?) -> Void
     @ObservationIgnored private var running = false
+    @ObservationIgnored private var generation = 0
     @ObservationIgnored private lazy var monitor = MediaLevelKeyMonitor(
         hub: hub, prepare: { [weak self] press in
             self?.prepare(press) ?? { .cancelled }
@@ -52,6 +53,8 @@ final class SystemLevelKeysModule: NotchcastModule {
 
     private func observeSwitches() {
         guard running else { return }
+        generation += 1
+        let current = generation
         withObservationTracking {
             let island = preferences.isOn(.island)
             let volume = preferences.isOn(.volumeLevels)
@@ -63,7 +66,10 @@ final class SystemLevelKeysModule: NotchcastModule {
             latest = nil
             if !hudPresenterAvailable { present(nil) }
         } onChange: { [weak self] in
-            Task { @MainActor [weak self] in self?.observeSwitches() }
+            Task { @MainActor [weak self] in
+                guard let self, generation == current else { return }
+                observeSwitches()
+            }
         }
     }
 

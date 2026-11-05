@@ -56,6 +56,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case sendFiles
     case updateRemote
     case agentSessions
+    case openBotAgents
     case agentThreads
     case waitingAlerts
     case agentPricing
@@ -242,6 +243,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: .activities
         case .dayWeather: .activities
         case .agentSessions: .activities
+        case .openBotAgents: .activities
         case .agentThreads: .activities
         case .waitingAlerts: .activities
         case .agentPricing: .agentPricing
@@ -363,6 +365,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .katana: String(localized: "Katana")
         case .appearance: String(localized: "Custom appearance")
         case .agentSessions: String(localized: "Agent Session Logs")
+        case .openBotAgents: String(localized: "OpenBot Agents")
         case .agentThreads: String(localized: "Agent Threads")
         case .waitingAlerts: String(localized: "Waiting-for-you alerts")
         case .agentPricing: String(localized: "Agent API Value")
@@ -509,6 +512,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .katana: String(localized: "Katana channels, tones and USB audio.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
+        case .openBotAgents: String(localized: "Read waiting items from local OpenBot agents.")
         case .agentThreads: String(localized: "Read active and recently finished agent threads on this Mac.")
         case .waitingAlerts: String(localized: "Notify when an agent needs approval or an answer.")
         case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
@@ -752,6 +756,7 @@ extension NotchcastFeature {
         case .machineSetupProfile: false
         case .switcherQuitKey: false
         case .agentSessions: false
+        case .openBotAgents: false
         case .agentThreads: false
         case .waitingAlerts: false
         case .archives: false
@@ -871,6 +876,7 @@ extension NotchcastFeature {
         case .remoteScreen: false
         case .machMBPFans: false
         case .agentSessions: false
+        case .openBotAgents: false
         case .agentThreads: false
         case .waitingAlerts: false
         case .agentPricing: false

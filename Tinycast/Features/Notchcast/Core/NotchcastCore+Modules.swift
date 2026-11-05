@@ -42,6 +42,7 @@ extension NotchcastCore {
     static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
     static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let waitingAlerts = WaitingAlertsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
@@ -153,6 +154,7 @@ extension NotchcastCore {
             .init(requires: [.machLink, .remoteScreen], module: remoteScreen),
             .init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: blockedDialogs),
             .init(requires: [.agentSessions], module: agentSessions),
+            .init(requires: [.openBotAgents], module: openBotAgents),
             .init(requires: [.agentThreads], module: agentThreads),
             .init(requires: [.waitingAlerts], module: waitingAlerts),
             .init(requires: [.finderCutPaste], module: finderCut),

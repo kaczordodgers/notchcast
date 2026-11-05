@@ -19,7 +19,7 @@ extension IslandPage {
                 guard IslandController.shared.commandsAvailable, preferences.isOn(.island) else { return false }
                 switch self {
                 case .home: return true
-                case .day: return preferences.isOn(.dayWeather) || preferences.isOn(.dayMarkets)
+                case .day: return [.dayCalendar, .dayWeather, .dayMarkets].contains { preferences.isOn($0) }
                 }
             }, run: {
                 let island = IslandController.shared
