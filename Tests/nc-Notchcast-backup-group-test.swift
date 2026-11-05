@@ -30,7 +30,7 @@ struct BackupCategorySelection: View {
     @Binding var selection: Set<BackupCategory>
     var body: some View { EmptyView() }
 }
-enum FixtureAnchor { case backupSettingsFile, backupExport, backupImport }
+enum FixtureAnchor { case notchcastBackupSettingsFile, notchcastBackupExport, notchcastBackupImport }
 struct SettingsRowTitle: View {
     init(_ anchor: FixtureAnchor, _ title: String) {}
     var body: some View { EmptyView() }
