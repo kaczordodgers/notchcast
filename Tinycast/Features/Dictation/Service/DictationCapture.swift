@@ -102,12 +102,7 @@ final class DictationCapture {
         guard let session else { return [] }
         self.session = nil
         let box = CaptureSessionBox(session)
-        await withCheckedContinuation { continuation in
-            DispatchQueue.global().async {
-                box.session.stopRunning()
-                continuation.resume()
-            }
-        }
+        await Self.stopBounded { box.session.stopRunning() }
         output?.setSampleBufferDelegate(nil, queue: nil)
         output = nil
         let samples = collector?.finish() ?? []
