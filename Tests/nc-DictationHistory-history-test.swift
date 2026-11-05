@@ -12,6 +12,7 @@ import Foundation
 @MainActor
 enum DictationCoordinator {
     static var transcriptStage: (@Sendable (String, String?) async -> String)?
+    static var transcriptObserver: ((String, String) -> Void)?
 }
 
 @main
@@ -37,12 +38,14 @@ struct DictationHistoryTests {
         let stage = DictationCoordinator.transcriptStage!
         for blank in ["", " \n\t "] {
             let unchanged = await stage(blank, nil)
+            DictationCoordinator.transcriptObserver?(blank, unchanged)
             precondition(unchanged == blank)
         }
         await module.waitUntilIdle()
         let emptyHistory = try await module.recent()
         precondition(emptyHistory.isEmpty)
         let raw = await stage("fixture raw", nil)
+        DictationCoordinator.transcriptObserver?("fixture raw", raw)
         precondition(raw == "fixture raw")
         await module.waitUntilIdle()
         let entries = try await module.recent()
@@ -65,6 +68,7 @@ struct DictationHistoryTests {
         DictationCleanup.uninstall()
         precondition(DictationCoordinator.transcriptStage != nil)
         let retained = await DictationCoordinator.transcriptStage!("history only", nil)
+        DictationCoordinator.transcriptObserver?("history only", retained)
         precondition(retained == "history only")
         await module.waitUntilIdle()
         try await module.deleteAll()
@@ -114,6 +118,7 @@ struct DictationHistoryTests {
         var failures = 0
         module.onFailure = { failures += 1 }
         let fallbackText = await DictationCoordinator.transcriptStage!("survives failure", nil)
+        DictationCoordinator.transcriptObserver?("survives failure", fallbackText)
         precondition(fallbackText == "survives failure")
         await module.waitUntilIdle()
         precondition(failures > 0)

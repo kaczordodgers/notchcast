@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 enum DictationCoordinator {
     static var transcriptStage: (@Sendable (String, String?) async -> String)?
+    static var transcriptObserver: ((String, String) -> Void)?
 }
 
 private struct FakeClient: DictationCleanupClient {
