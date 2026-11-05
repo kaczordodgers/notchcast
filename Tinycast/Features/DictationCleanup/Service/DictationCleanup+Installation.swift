@@ -33,13 +33,15 @@ extension DictationCleanup {
 
     @MainActor
     private static func updateStage() {
+        DictationCoordinator.transcriptObserver = historyEnabled ? { raw, cleaned in
+            observeTranscript(raw: raw, cleaned: cleaned)
+        } : nil
         guard cleanupEnabled || historyEnabled else {
             DictationCoordinator.transcriptStage = nil
             return
         }
         DictationCoordinator.transcriptStage = { @MainActor raw, language in
             let cleaned = cleanupEnabled ? await process(raw, language: language) : raw
-            observeTranscript(raw: raw, cleaned: cleaned)
             return cleaned
         }
     }
