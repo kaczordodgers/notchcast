@@ -29,7 +29,7 @@ final class IslandDayPage {
         hasAccess ? UpcomingWindow.agenda(from: store.events, now: clock.now) : []
     }
     var selection: MeetingEvent.ID? {
-        events.first { $0.id == selectedID }?.id ?? events.first?.id
+        IslandPageFocus.selection(in: events.map(\.id), stored: selectedID)
     }
 
     func refresh() {
@@ -44,14 +44,14 @@ final class IslandDayPage {
     }
 
     func moveSelection(_ delta: Int) {
-        let events = events
-        guard !events.isEmpty else { return }
-        let index = events.firstIndex { $0.id == selection } ?? 0
-        selectedID = events[max(0, min(events.count - 1, index + delta))].id
+        guard let next = IslandPageFocus.row(in: events.map(\.id), from: selectedID, by: delta) else { return }
+        selectedID = next
         scroll = ScrollIntent(kind: .follow)
     }
 
+    /// Without access the page's one control is Settings, so Return reaches it as a click does.
     func activate() {
+        guard hasAccess else { return showSettings() }
         guard let meeting = events.first(where: { $0.id == selection }) else { return }
         activate(meeting)
     }

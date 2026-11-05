@@ -17,7 +17,7 @@ extension GalleryPages {
                 islandPage(core, name: "island-closed-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: false)
             }
-            let opened = ["home-empty", "home-entries", "day-calendar"].map { state in
+            let opened = ["home-empty", "home-entries", "home-card", "day-calendar", "day-no-access"].map { state in
                 islandPage(core, name: "island-open-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: true)
             }
@@ -109,7 +109,8 @@ extension GalleryPages {
                            "IslandWord", "IslandArtwork", "IslandTrackText", "IslandLevelBars", "IslandMessageLine",
                            "IslandActionButton"]
         return GalleryPage(name: name, types: ["IslandPanel", "IslandSurfaceView", "IslandContentView", "IslandHeaderView"]
-                    + (state == "day-calendar" ? ["ScheduleList"] : (open ? ["IslandHomeView"] : closedTypes)),
+                    + (state == "day-calendar" ? ["ScheduleList"] : state == "day-no-access" ? ["IslandDayView"]
+                       : (open ? ["IslandHomeView"] : closedTypes)),
                     hardwareNotch: notch.map {
                         CGRect(x: $0.minX - (display.midX - NotchcastTheme.openMinimumWidth / 2),
                                y: NotchcastTheme.maximumHeight, width: $0.width, height: $0.height)
@@ -121,6 +122,11 @@ extension GalleryPages {
                 NotchcastPreferences.shared.set(.islandLiveActivities, true)
                 IslandActivityCenter.shared.begin(closedState("timer").primary!)
                 IslandActivityCenter.shared.begin(IslandActivity(kind: .status, title: "Sample export complete"))
+            }
+            if state == "home-card" {
+                NotchcastPreferences.shared.set(.islandLiveActivities, true)
+                IslandActivityCenter.shared.begin(closedState("timer-end").primary!) {}
+                IslandActivityCenter.shared.begin(closedState("timer").primary!)
             }
             let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
             let island = IslandController()
@@ -141,7 +147,9 @@ extension GalleryPages {
                 content = AnyView(ScheduleList(results: events, selectedID: events.first?.id, now: now,
                                                scroll: ScrollIntent(kind: .top), onActivate: { _ in }, onActions: { _ in })
                     .frame(height: 200))
-            } else { content = AnyView(IslandHomeView()) }
+            } else if state == "day-no-access" {
+                content = AnyView(pages.content(.day).environment(pages))
+            } else { content = AnyView(IslandHomeView().environment(pages)) }
             panel.setContent(open: AnyView(content.paletteEnvironment(core)), closed: closedState(state),
                              header: AnyView(header.paletteEnvironment(core)))
             let messages = ["status": "Exported 24 photos", "airpods": "AirPods: Connected",

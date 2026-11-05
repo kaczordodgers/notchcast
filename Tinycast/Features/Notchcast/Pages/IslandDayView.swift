@@ -3,6 +3,7 @@ import SwiftUI
 struct IslandDayView: View {
     @Environment(\.metrics) private var metrics
     @Environment(\.islandHeaderHeight) private var headerHeight
+    @Environment(IslandPagesCoordinator.self) private var pages
     let page: IslandDayPage
 
     var body: some View {
@@ -30,7 +31,8 @@ struct IslandDayView: View {
             .frame(maxWidth: .infinity)
             .padding(metrics.spacing.xxl)
         } else {
-            ScheduleList(results: page.events, selectedID: page.selection, now: page.clock.now,
+            ScheduleList(results: page.events, selectedID: pages.focusesHeader ? nil : page.selection,
+                         now: page.clock.now,
                          scroll: page.scroll, onActivate: page.activate,
                          onActions: { _ in })
                 .frame(height: listHeight)
