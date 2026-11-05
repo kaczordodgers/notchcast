@@ -564,7 +564,6 @@
 		4D8C05DD67FAB9F2DA1F31FB /* AIStreamDecoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0337B056DA2D31772534F1EF /* AIStreamDecoder.swift */; };
 		4DA03A170E95F0D08E3569F9 /* ExtensionColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0266BAF4643A4B5C41B600DE /* ExtensionColors.swift */; };
 		4DACF6209BCCDED25E2BEE77 /* BrightnessController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 292BD068546D5D3BC3BA5D5F /* BrightnessController.swift */; };
-		4DE63EFDD484467962502C94 /* CleanSystemService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3E5546441748D7FB475A280 /* CleanSystemService.swift */; };
 		4E1BFE20BD4308D1EF05A5F2 /* ClipDrag.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB74C73EB33F368E0890E839 /* ClipDrag.swift */; };
 		4E34047A243B17B66E01A7CA /* MonitorCadence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6961D9F6A790A9F614C7B264 /* MonitorCadence.swift */; };
 		4E3F8B89B19E7633583E494D /* CleanPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89D993D4E30294DF56AC70C4 /* CleanPolicy.swift */; };
@@ -1570,7 +1569,6 @@
 		D7736A666985713B30B01957 /* AgentSessionAccumulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E4C3C067EAC2D5DD19C739D /* AgentSessionAccumulator.swift */; };
 		D7904A49FC7647AE9B43DF44 /* MonitorAndFansSettingRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9F6BFB6F9507AD2E2C5DE2A /* MonitorAndFansSettingRows.swift */; };
 		D7C49F8AC18CB80B58E4FEAA /* RoomLayoutKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39B8982F3CFB63CAAB0520E3 /* RoomLayoutKind.swift */; };
-		D7D7CC01238BB165689E18D1 /* CleanSystemTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20954F8AFE29A6290356D463 /* CleanSystemTransport.swift */; };
 		D7E8AE8EDE146C25CA7DFCCF /* TweakValue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A58E476B21AC7444951EFE5F /* TweakValue.swift */; };
 		D83B5715B54B8B3D415297B5 /* CleanAIDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA947589F42FEC97AC9A2372 /* CleanAIDataService.swift */; };
 		D83D67012C176C605341EE42 /* TodoTaskNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8DF0962F1EE6A6F0A268573 /* TodoTaskNode.swift */; };
@@ -2185,7 +2183,6 @@
 		2032C2D9AFA070652E0C479A /* AppearanceCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceCommands.swift; sourceTree = "<group>"; };
 		20342D5781E78CB9BEEB5637 /* NotchcastGrantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastGrantState.swift; sourceTree = "<group>"; };
 		2069789D62057E302322AFDB /* MeetingRowParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRowParts.swift; sourceTree = "<group>"; };
-		20954F8AFE29A6290356D463 /* CleanSystemTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanSystemTransport.swift; sourceTree = "<group>"; };
 		209D951FDD587A040F1F76F3 /* PaletteWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteWindowController.swift; sourceTree = "<group>"; };
 		20F0D01B8B9E54D3C2FDC9F7 /* AIUsageSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIUsageSnapshot.swift; sourceTree = "<group>"; };
 		20F281D0AD946F83FA85D0FF /* ScreenshotRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotRequest.swift; sourceTree = "<group>"; };
@@ -3633,7 +3630,6 @@
 		E3565430A7FBF553E22FE36B /* NetworkSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkSampler.swift; sourceTree = "<group>"; };
 		E35673FED7186D01D831241E /* ChargePlanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargePlanService.swift; sourceTree = "<group>"; };
 		E38EE17D34B643CB873F459E /* AgentThreadsState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentThreadsState.swift; sourceTree = "<group>"; };
-		E3E5546441748D7FB475A280 /* CleanSystemService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanSystemService.swift; sourceTree = "<group>"; };
 		E3EAD167D7B52BCB504D6264 /* DictationTensor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationTensor.swift; sourceTree = "<group>"; };
 		E417A2669D79802BC2B76377 /* ChargeEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChargeEngine.swift; sourceTree = "<group>"; };
 		E42D2FC1E807C065209BB736 /* DayWeatherModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayWeatherModule.swift; sourceTree = "<group>"; };
@@ -6320,8 +6316,6 @@
 				68E7F15700B48B8DFF43451E /* CleanProcessRunner.swift */,
 				0BC5BF571A9C1707902360C3 /* CleanPurgeService.swift */,
 				CA9401D1557D59650A7B80A0 /* CleanService.swift */,
-				E3E5546441748D7FB475A280 /* CleanSystemService.swift */,
-				20954F8AFE29A6290356D463 /* CleanSystemTransport.swift */,
 				4CA3CB949D69DB4300814671 /* CleanTrashTransport.swift */,
 			);
 			path = Service;
@@ -10106,8 +10100,6 @@
 				2704B98210ECD5D9ABD38220 /* CleanSystemPlan.swift in Sources */,
 				0235A4338356BA25DCC3755A /* CleanSystemPolicy.swift in Sources */,
 				F3D798581AA0C69F7BB86649 /* CleanSystemRootClient.swift in Sources */,
-				4DE63EFDD484467962502C94 /* CleanSystemService.swift in Sources */,
-				D7D7CC01238BB165689E18D1 /* CleanSystemTransport.swift in Sources */,
 				9F5C7BC5E229B89BD3CAEEF3 /* CleanTrashTransport.swift in Sources */,
 				7FDF49089E2644BCEBE71AB3 /* CleaningModeEngine+EventTapHub.swift in Sources */,
 				D2B8AE3AB6C2ACC4CB80A720 /* CleaningModeEngine.swift in Sources */,
