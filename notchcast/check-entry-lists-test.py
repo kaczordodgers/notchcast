@@ -36,4 +36,16 @@ with tempfile.TemporaryDirectory() as directory:
         assert "dropped from ours: case deletedByTheirs" not in result.stdout
         assert "dropped from theirs: case deletedByOurs" not in result.stdout
         print(f"PASS {label}: {result.stdout.strip()}")
-print("entry lists tests: PASS (3 resolutions)")
+    git("checkout", "-q", "--detach", base)
+    git("checkout", "-q", "--orphan", "upstream")
+    upstream = commit("upstream", [])
+    git("checkout", "-q", "--detach", base)
+    git("replace", "--graft", base, upstream)
+    git("checkout", "-q", "--detach", upstream)
+    rewritten = commit("rewritten main", ["case kept"])
+    git("update-ref", "refs/notchcast/synced/old", base)
+    commit("resolution", ["case kept", "case theirs"])
+    result = subprocess.run([sys.executable, str(SCRIPT), "--ours", rewritten, "--theirs", theirs, "--file", "entries.swift"], cwd=root, text=True, capture_output=True)
+    assert result.returncode == 0, result.stdout + result.stderr
+    print("PASS rewrite preserves main deletions: " + result.stdout.strip())
+print("entry lists tests: PASS (4 resolutions)")

@@ -94,21 +94,11 @@ top=$(pwd)
 # every one of our commits twice. sync.yml records each replaced main tip under refs/notchcast/synced/; the PR's
 # fork point is its merge base with the newest such tip whose shared history main no longer has. A PR that merged
 # the new main since ("Update branch") has a plain merge base outside that tip and keeps the plain merge.
-fork_point() {
-    local tip shared plain
-    plain=$(git merge-base "$1" "$head")
-    for tip in $(git for-each-ref --sort=-committerdate --format='%(objectname)' refs/notchcast/synced/); do
-        git merge-base --is-ancestor "$plain" "$tip" || continue
-        shared=$(git merge-base "$tip" "$head") || continue
-        git merge-base --is-ancestor "$shared" "$1" || { echo "$shared"; return; }
-    done
-    echo "$plain"
-}
 # Merges $head onto $1 in a fresh scratch tree and runs the cheap checks; any real conflict is refused.
 merge_onto() {
     local onto=$1 file revived unmerged
     cd "$top"
-    fork=$(fork_point "$onto")
+    fork=$(bash "$(dirname "$selector")/fork-point.sh" "$onto" "$head")
     git worktree remove --force "$scratch/tree" >/dev/null 2>&1 || true
     git worktree add --quiet --detach "$scratch/tree" "$onto"
     cd "$scratch/tree"
