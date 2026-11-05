@@ -30,6 +30,7 @@ python3 notchcast/check-feature-shape-test.py
 python3 notchcast/check-backup-schema.py
 python3 notchcast/check-backup-schema-test.py
 python3 notchcast/check-entry-lists-test.py
+bash notchcast/ci-finishes-test.sh
 python3 notchcast/replay-test.py
 step legacy-ids
 python3 notchcast/check-legacy-command-ids.py
