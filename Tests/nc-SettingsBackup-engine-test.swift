@@ -59,15 +59,18 @@ struct SettingsBackupTest {
         defer { try? FileManager.default.removeItem(at: folder) }
         try await ForkSettingsBackupService.save(data, folder: folder, day: 1)
         try await ForkSettingsBackupService.save(Data(), folder: folder, day: 1)
-        let saved = try await ForkSettingsBackupService.latest(folder: folder)
+        let saved = try await ForkSettingsBackupService.read(folder: folder, name: "settings-v2-1.plist")
         precondition(saved == data)
         let fifo = folder.appendingPathComponent("settings-v2-2.plist")
         precondition(mkfifo(fifo.path, 0o600) == 0)
-        do { _ = try await ForkSettingsBackupService.latest(folder: folder); preconditionFailure("Accepted FIFO") } catch { }
+        do {
+            _ = try await ForkSettingsBackupService.read(folder: folder, name: "settings-v2-2.plist")
+            preconditionFailure("Accepted FIFO")
+        } catch { }
         try FileManager.default.removeItem(at: fifo)
         try Data(repeating: 0, count: ForkSettingsBackupEngine.maximumSize + 1).write(to: fifo)
         do {
-            _ = try await ForkSettingsBackupService.latest(folder: folder)
+            _ = try await ForkSettingsBackupService.read(folder: folder, name: "settings-v2-2.plist")
             preconditionFailure("Accepted oversized file")
         } catch { }
         print("PASS: feature classification guard; Bool/Int/Double/String/array round trip")

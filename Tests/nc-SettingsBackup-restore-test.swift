@@ -50,6 +50,9 @@ enum NotchcastSettingsModule {
     case system
     var tab: SettingsStub.Tab { .notchcast }
 }
+enum SettingsActionCommands {
+    @MainActor static func show(_ tab: SettingsStub.Tab, _ feature: NotchcastFeature) { }
+}
 @MainActor final class CalendarStub {
     var excludedCalendarIDs: Set<String> = []
     func setExcludedCalendars(_ ids: Set<String>) { excludedCalendarIDs = ids }
@@ -233,7 +236,7 @@ struct NotchcastCommand: Sendable {
             defer { try? FileManager.default.removeItem(at: badFolder) }
             let encoded = try ForkSettingsBackupEngine.encode(snapshot, created: .now)
             try await ForkSettingsBackupService.save(encoded, folder: badFolder, day: 1)
-            let written = try await ForkSettingsBackupService.latest(folder: badFolder)
+            let written = try await ForkSettingsBackupService.read(folder: badFolder, name: "settings-v2-1.plist")
             precondition(written == encoded)
         }
         print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
@@ -321,8 +324,10 @@ struct NotchcastCommand: Sendable {
         precondition(validCopies.map(\.name) == ["settings-v2-3.plist", "settings-v2-1.plist"])
         var reports: [Bool] = []
         let coordinator = ForkSettingsBackupCoordinator(folder: folder, state: state,
-            confirm: { await script.confirm() }, report: { reports.append($0) },
-            missing: { preconditionFailure("Missing backup") })
+            confirm: { await script.confirm() }, report: { reports.append($0) })
+        coordinator.restore()
+        await coordinator.settled()
+        precondition(coordinator.choosing)
         coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         coordinator.restore(name: "settings-v2-1.plist")
@@ -330,18 +335,27 @@ struct NotchcastCommand: Sendable {
         precondition(script.calls == 1)
         script.answer(false)
         await coordinator.settled()
-        precondition(preferences.monitorCPU == 75 && reports.isEmpty)
+        precondition(preferences.monitorCPU == 75 && reports.isEmpty && !coordinator.choosing)
+        coordinator.restore()
+        await coordinator.settled()
+        coordinator.cancelChoosing()
+        precondition(!coordinator.choosing)
+        coordinator.restore()
+        await coordinator.settled()
         coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         coordinator.stop()
         script.answer(true)
         await coordinator.settled()
         precondition(preferences.monitorCPU == 75 && reports.isEmpty)
+        coordinator.restore()
+        await coordinator.settled()
+        precondition(coordinator.choosing)
         coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         script.answer(true)
         await coordinator.settled()
-        precondition(preferences.monitorCPU == 90 && reports == [true])
+        precondition(preferences.monitorCPU == 90 && reports == [true] && !coordinator.choosing)
         precondition(preferences.fanMode == "manual" && preferences.batteryChargePercent == 90)
         for feature in NotchcastFeature.allCases where ForkSettingsBackupSchema.excluded.contains(feature.rawValue) {
             precondition(!preferences.isOn(feature))
