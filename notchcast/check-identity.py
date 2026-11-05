@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Inspect added lines, metadata and bundle strings; never print matched content."""
 import argparse
+import ast
+import os
 import re
 import runpy
 import subprocess
@@ -68,6 +70,31 @@ def metadata(base):
     return failed
 
 
+def added_lines(base):
+    failed = False
+    path = None
+    line = None
+    patch = git("log", "-p", "--cherry-pick", "--right-only", "--format=", "--no-ext-diff", "--no-textconv",
+                "--no-renames", "--unified=0", "--diff-merges=first-parent", f"{base}...{HEAD}")
+    for text in patch.splitlines():
+        if text.startswith("diff --git "):
+            path = None
+            line = None
+        elif text.startswith("+++ b/") or text.startswith('+++ "b/'):
+            path = text[4:]
+            if path.startswith('"'):
+                path = ast.literal_eval(path)
+            path = path[2:]
+            if path in ALLOW_FILES:
+                path = None
+        elif path is not None and text.startswith("@@"):
+            line = int(re.search(r"\+(\d+)", text)[1])
+        elif path is not None and line is not None and text.startswith("+"):
+            failed |= inspect(text[1:], f"{path}:{line} (commit addition)")
+            line += 1
+    return failed
+
+
 def annotated_tag(sha):
     content = git("cat-file", "-p", sha)
     failed = inspect(content, f"tag {sha[:12]}")
@@ -124,6 +151,10 @@ def main():
     failed = False
     if args.mode in ("history", "diff"):
         failed |= diff(base)
+        additions_base = "refs/remotes/origin/main"
+        if pr_base := os.environ.get("GITHUB_BASE_REF"):
+            additions_base = f"refs/remotes/origin/{pr_base}"
+        failed |= added_lines(additions_base)
     if args.mode in ("history", "metadata"):
         failed |= metadata(base)
     return failed
