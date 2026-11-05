@@ -18,7 +18,7 @@ struct HiddenFeaturesTest {
         precondition(SettingsTab(slug: "extensions") == nil)
         let document = try String(contentsOfFile: "notchcast/docs/hidden.md", encoding: .utf8)
         let rows = document.split(separator: "\n").filter { $0.hasPrefix("| Hidden |") }
-        precondition(rows.count == 5)
+        precondition(rows.count == 7)
         let visible = SettingsSection.allCases.flatMap(\.tabs)
         for row in rows {
             let cells = row.split(separator: "|").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -33,7 +33,12 @@ struct HiddenFeaturesTest {
                 precondition(NotchcastHidden.commands.contains(cells[3]))
             }
         }
-        precondition(visible.contains(.backup))
+        precondition(SettingsSection.advanced.tabs.isEmpty)
+        for (title, anchor) in [("Sync settings file", SettingsAnchor.notchcastBackupSettingsFile),
+                                ("Export Backup", .notchcastBackupExport), ("Backup File", .notchcastBackupImport)] {
+            precondition(anchor.tab == .notchcastBackups)
+            precondition(SettingsSearchCatalog.results(for: title).contains { $0.anchor == anchor })
+        }
         precondition(NotchcastSettingsModule.module(of: .settingsBackup).visibleGroups.contains {
             $0.items.contains { $0.feature == .settingsBackup }
         })
@@ -41,6 +46,12 @@ struct HiddenFeaturesTest {
             try String(contentsOfFile: "Tinycast/" + path, encoding: .utf8)
         }
         let settings = try source("Features/Settings/AppSettings.swift")
+        let backups = try source("Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift")
+        precondition(backups.contains("SettingsRowTitle(.notchcastBackupSettingsFile, \"Sync settings file\")"))
+        precondition(backups.contains("get: { core.settings.settingsFileEnabled }"))
+        precondition(!backups.contains("settingsFileEnabled ="))
+        let sidebar = try source("Features/Settings/SettingsSidebarView.swift")
+        precondition(sidebar.contains("SettingsSection.allCases.filter { !$0.tabs.isEmpty }"))
         let property = settings.components(separatedBy: "var extensionsEnabled: Bool {")[1]
             .components(separatedBy: "var extensionsShowInLauncher")[0]
         precondition(property.contains("get { false }") && property.contains("set { }"))
