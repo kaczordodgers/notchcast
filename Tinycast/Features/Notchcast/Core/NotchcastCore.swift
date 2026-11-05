@@ -70,6 +70,7 @@ enum NotchcastCore {
         dictationCleanup.load()
         macLink.listenerRoute = { request in
             if let response = try await tasksSync.peerResponse(to: request, via: macLink.channel.manager) { return response }
+            if request.method == "agent-threads" { return try await FleetMachLinkTransport.response(to: request) }
             if request.method == "shelf-item" {
                 guard await NotchcastPreferences.shared.isOn(.machLink),
                       await NotchcastPreferences.shared.isOn(.shelfBetweenMacs) else {
