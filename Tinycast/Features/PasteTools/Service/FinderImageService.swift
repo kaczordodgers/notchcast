@@ -27,7 +27,7 @@ struct FinderImageService {
 
     func place(_ file: URL) -> PlaceResult {
         let finder = NSAppleEventDescriptor(bundleIdentifier: "com.apple.finder")
-        let move = Self.moveEvent(file, toFrontWindow: false, to: finder)
+        let move = Self.moveEvent(file, to: finder)
         move.setParam(Self.insertionLocation, forKeyword: Event.insertHere)
         switch Self.send(move) {
         case .failure(let failure):
@@ -52,28 +52,11 @@ struct FinderImageService {
         }
     }
 
-    private static func countWindows(to finder: NSAppleEventDescriptor) -> Result<Int, Failure> {
-        switch send(countEvent(to: finder)) {
-        case .failure(let failure): return .failure(failure)
-        case .success(let reply): return .success(Int(reply?.paramDescriptor(forKeyword: Event.directObject)?.int32Value ?? 0))
-        }
-    }
-
-    static func countEvent(to finder: NSAppleEventDescriptor) -> NSAppleEventDescriptor {
-        let event = NSAppleEventDescriptor(eventClass: Event.core, eventID: Event.count, targetDescriptor: finder,
-            returnID: AEReturnID(kAutoGenerateReturnID),
-            transactionID: AETransactionID(kAnyTransactionID))
-        event.setParam(.null(), forKeyword: Event.directObject)
-        event.setParam(NSAppleEventDescriptor(typeCode: Event.windowClass), forKeyword: Event.each)
-        return event
-    }
-
-    static func moveEvent(_ file: URL, toFrontWindow: Bool, to finder: NSAppleEventDescriptor) -> NSAppleEventDescriptor {
+    static func moveEvent(_ file: URL, to finder: NSAppleEventDescriptor) -> NSAppleEventDescriptor {
         let event = NSAppleEventDescriptor(eventClass: Event.core, eventID: Event.move, targetDescriptor: finder,
             returnID: AEReturnID(kAutoGenerateReturnID),
             transactionID: AETransactionID(kAnyTransactionID))
         event.setParam(NSAppleEventDescriptor(fileURL: file), forKeyword: Event.directObject)
-        event.setParam(toFrontWindow ? frontWindowTarget : desktop, forKeyword: Event.insertHere)
         return event
     }
 
@@ -83,17 +66,6 @@ struct FinderImageService {
             transactionID: AETransactionID(kAnyTransactionID))
         event.setParam(item, forKeyword: Event.directObject)
         return event
-    }
-
-    static var frontWindowTarget: NSAppleEventDescriptor {
-        let window = specifier(Event.windowClass, in: .null(), form: Event.indexForm, data: NSAppleEventDescriptor(int32: 1))
-        return specifier(Event.propertyClass, in: window, form: Event.propertyForm,
-                         data: NSAppleEventDescriptor(typeCode: Event.target))
-    }
-
-    static var desktop: NSAppleEventDescriptor {
-        specifier(Event.propertyClass, in: .null(), form: Event.propertyForm,
-            data: NSAppleEventDescriptor(typeCode: Event.desktop))
     }
 
     static var insertionLocation: NSAppleEventDescriptor {
