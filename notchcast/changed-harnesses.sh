@@ -16,7 +16,7 @@ if len(sys.argv) != 3:
     sys.exit('usage: changed-harnesses.sh <base> <head>')
 # --no-renames lists both ends of a move; a moved source leaves the harness that compiled it.
 changed = set(subprocess.check_output(
-    ['git', 'diff', '--name-only', '--no-renames', '-z', sys.argv[1], sys.argv[2]], text=True).split('\0'))
+    ['git', 'diff', '--name-only', '--no-renames', '-z', sys.argv[1], sys.argv[2]], text=True).split('\0')) - {''}
 selected = {'notchcast-core-test'}
 for path in sorted(Path('Tests').glob('*-test.swift')):
     headers = [line.removeprefix('// notchcast-sources: ') for line in
@@ -24,7 +24,7 @@ for path in sorted(Path('Tests').glob('*-test.swift')):
     name = path.stem
     extra = subprocess.check_output(
         ['bash', '-c', 'name=$1; shift; source notchcast/command-harness-sources.sh; printf "%s\\n" "$@"',
-         'harness-sources', name], text=True).splitlines()
+         'harness-sources', name], text=True).split()
     if not (headers or extra or name.startswith(('nc-', 'notchcast-'))):
         continue
     patterns = [token for header in headers for token in shlex.split(header)
