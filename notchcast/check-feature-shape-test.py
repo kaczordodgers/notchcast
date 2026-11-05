@@ -173,9 +173,9 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_repeated_search_entry_with_new_keywords(self):
         source = (self.root / SEARCH).read_text()
-        line = '        .init(.notchcastActivities, "Timers", keywords: ["duration", "alarm", "sound"]),\n'
+        line = '        .init(group: .notchcast(feature: .liveTimers), "Timers", keywords: ["duration", "alarm", "sound"]),\n'
         self.rejected(SEARCH, source.replace(line, line + line.replace('"sound"', '"sound", "ring"')),
-                      'repeated entry .init(.notchcastActivities, "Timers"')
+                      'repeated entry .init(group: .notchcast(feature: .liveTimers), "Timers"')
 
     def test_setting_split_over_lines(self):
         source = (self.root / PREFS).read_text()
@@ -280,13 +280,13 @@ class FeatureShapeTests(unittest.TestCase):
         modules, search = self.root / MODULES, self.root / SEARCH
         base = (modules.read_text(), search.read_text())
         anchor = "            .init(requires: [.island, .dayMarkets], module: markets),\n"
-        row = '        .init(.notchcastActivities, "Calendar", keywords: ["events", "day", "schedule"]),\n'
+        row = '        .init(group: .notchcast(feature: .dayCalendar), "Calendar", keywords: ["events", "day", "schedule"]),\n'
         for name in ("alpha", "beta"):
             run(self.root, "git", "switch", "-qc", name, "base")
             modules.write_text(base[0].replace(
                 "    static let battery", f"    static let {name} = LiveTimerModule()\n    static let battery").replace(
                 anchor, anchor + f"            .init(requires: [.island], module: {name}),\n"))
-            search.write_text(base[1].replace(row, row + f'        .init(.notchcastActivities, "{name}"),\n'))
+            search.write_text(base[1].replace(row, row + f'        .init(group: .notchcast(feature: .dayCalendar), "{name}"),\n'))
             self.assertEqual(SHAPE.check(self.root), [])
             run(self.root, "git", "commit", "-qam", f"Append {name}")
         run(self.root, "git", "switch", "-q", "base")

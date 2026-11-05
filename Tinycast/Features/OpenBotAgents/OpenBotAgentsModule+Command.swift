@@ -3,7 +3,7 @@ import Foundation
 extension OpenBotAgentsModule: NotchcastModule {
     nonisolated static let refreshCommand = NotchcastCommand(
         slug: "refresh-openbot-agents", name: String(localized: "Refresh OpenBot Agents"),
-        sfSymbol: "arrow.clockwise", isEnabled: { NotchcastPreferences.shared.isOn(.openBotAgents) },
+        sfSymbol: "arrow.clockwise", feature: .openBotAgents, isEnabled: { NotchcastPreferences.shared.isOn(.openBotAgents) },
         run: { NotchcastCore.openBotAgents.refresh(reportResult: true) })
 
     static func report(count: Int?, failure: OpenBotFailure?) {
