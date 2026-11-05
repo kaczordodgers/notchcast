@@ -34,11 +34,21 @@ enum AppPaths { static func applicationSupport() -> URL { FileManager.default.te
 enum DialogTone { case neutral, danger }
 @MainActor final class AppIndexStub { func refreshNotchcastCommands() { } }
 @MainActor final class AppCore {
+    let settingsCoordinator = SettingsStub()
     static let shared = AppCore()
     let appIndex = AppIndexStub()
     func showNotice(title: String, message: String, symbol: String, tone: DialogTone) async { }
     func confirm(title: String, message: String?, symbol: String?, confirmTitle: String) async -> Bool { false }
     func showMessage(_ message: String, tone: DialogTone = .neutral) { }
+}
+@MainActor final class SettingsStub {
+    enum Tab { case notchcast }
+    func showSettings(tab: Tab) { }
+}
+enum NotchcastSettingsModule {
+    static func module(of feature: NotchcastFeature) -> Self { .system }
+    case system
+    var tab: SettingsStub.Tab { .notchcast }
 }
 @MainActor final class CalendarStub {
     var excludedCalendarIDs: Set<String> = []
@@ -305,25 +315,29 @@ struct NotchcastCommand: Sendable {
         let data = try ForkSettingsBackupEngine.encode(saved, created: .now)
         try await ForkSettingsBackupService.save(data, folder: folder, day: 1)
         let script = DialogScript()
+        let newer = try ForkSettingsBackupEngine.encode(["monitorCPU": 60], created: .now.addingTimeInterval(60))
+        try await ForkSettingsBackupService.save(newer, folder: folder, day: 3)
+        let validCopies = try await ForkSettingsBackupService.copies(folder: folder)
+        precondition(validCopies.map(\.name) == ["settings-v2-3.plist", "settings-v2-1.plist"])
         var reports: [Bool] = []
         let coordinator = ForkSettingsBackupCoordinator(folder: folder, state: state,
             confirm: { await script.confirm() }, report: { reports.append($0) },
             missing: { preconditionFailure("Missing backup") })
-        coordinator.restore()
+        coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
-        coordinator.restore()
+        coordinator.restore(name: "settings-v2-1.plist")
         for _ in 0..<100 { await Task.yield() }
         precondition(script.calls == 1)
         script.answer(false)
         await coordinator.settled()
         precondition(preferences.monitorCPU == 75 && reports.isEmpty)
-        coordinator.restore()
+        coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         coordinator.stop()
         script.answer(true)
         await coordinator.settled()
         precondition(preferences.monitorCPU == 75 && reports.isEmpty)
-        coordinator.restore()
+        coordinator.restore(name: "settings-v2-1.plist")
         await script.waitForDialog()
         script.answer(true)
         await coordinator.settled()
@@ -333,9 +347,14 @@ struct NotchcastCommand: Sendable {
             precondition(!preferences.isOn(feature))
         }
         try Data("broken".utf8).write(to: folder.appendingPathComponent("settings-v2-2.plist"))
-        coordinator.restore()
+        let listed = try await ForkSettingsBackupService.copies(folder: folder)
+        precondition(listed.count == 3 && listed.filter(\.valid).map(\.name)
+            == ["settings-v2-3.plist", "settings-v2-1.plist"])
+        coordinator.restore(name: "settings-v2-2.plist")
         await coordinator.settled()
         precondition(script.calls == 3 && reports == [true, false])
+        precondition(preferences.monitorCPU == 90)
+        print("PASS: copies sorted newest first; chosen older copy restored; invalid copy leaves settings unchanged")
         print("PASS: effective defaults restored (90 after 50), default switch and real store reach memory/defaults")
         print("PASS: root/consent keys unchanged; absent keys untouched; invalid values rejected before writes")
         print("PASS: coordinator declined/cancelled/reentrant/corrupt/success flows")

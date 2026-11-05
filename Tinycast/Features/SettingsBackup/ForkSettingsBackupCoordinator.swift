@@ -1,7 +1,10 @@
 import AppKit
+import Observation
 
 @MainActor
-final class ForkSettingsBackupCoordinator {
+@Observable final class ForkSettingsBackupCoordinator {
+    private(set) var copies: [ForkSettingsBackupService.Copy] = []
+    private(set) var choosing = false
     private var task: Task<Void, Never>?
     private var folderTask: Task<Void, Never>?
     private let folder: URL
@@ -14,7 +17,7 @@ final class ForkSettingsBackupCoordinator {
          state: ForkSettingsBackupState = .live,
          confirm: @escaping () async -> Bool = {
              await AppCore.shared.confirm(title: String(localized: "Restore Settings Backup", table: "Notchcast"),
-                 message: String(localized: "Replace saved settings with the newest backup?", table: "Notchcast"),
+                 message: String(localized: "Replace saved settings with the selected backup?", table: "Notchcast"),
                  symbol: "clock.arrow.circlepath", confirmTitle: String(localized: "Restore", table: "Notchcast"))
          },
          report: @escaping (Bool) -> Void = { success in
@@ -62,11 +65,23 @@ final class ForkSettingsBackupCoordinator {
             guard let self else { return }
             defer { task = nil }
             do {
-                guard let data = try await ForkSettingsBackupService.latest(folder: folder) else {
-                    try Task.checkCancellation()
-                    await missing()
-                    return
-                }
+                let result = try await ForkSettingsBackupService.copies(folder: folder)
+                try Task.checkCancellation()
+                copies = result
+                choosing = true
+            } catch {
+                if !Task.isCancelled { report(false) }
+            }
+        }
+    }
+
+    func restore(name: String) {
+        guard task == nil else { return }
+        task = Task { [weak self] in
+            guard let self else { return }
+            defer { task = nil }
+            do {
+                let data = try await ForkSettingsBackupService.read(folder: folder, name: name)
                 try Task.checkCancellation()
                 let values = try ForkSettingsBackupEngine.decode(data)
                 try state.validate(values)
@@ -87,7 +102,10 @@ final class ForkSettingsBackupCoordinator {
 extension ForkSettingsBackupCoordinator {
     nonisolated static let restoreCommand = NotchcastCommand(slug: "restore-settings-backup",
         name: String(localized: "Restore Settings Backup", table: "Notchcast"), sfSymbol: "clock.arrow.circlepath", feature: .settingsBackup,
-        run: { NotchcastCore.settingsBackupRestore.restore() })
+        run: {
+            AppCore.shared.settingsCoordinator.showSettings(tab: NotchcastSettingsModule.module(of: .settingsBackup).tab)
+            NotchcastCore.settingsBackupRestore.restore()
+        })
     nonisolated static let openCommand = NotchcastCommand(slug: "open-settings-backup-folder",
         name: String(localized: "Open Settings Backup Folder", table: "Notchcast"), sfSymbol: "folder", feature: .settingsBackup,
         run: { NotchcastCore.settingsBackupRestore.openFolder() })
