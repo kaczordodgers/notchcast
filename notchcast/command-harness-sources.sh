@@ -14,8 +14,14 @@ if [[ " $* " == *" Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.
     done
 fi
 
+# Hidden-feature gates sit in upstream files any harness may compile; the core file has no dependencies.
+if [[ " $* " == *" Tinycast/"* && " $* " != *" Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift "* ]]; then
+    set -- "$@" Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift
+fi
+
 if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
-    for source in Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
+    for source in Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift \
+        Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
         Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift \
         Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift; do
         [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
