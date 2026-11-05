@@ -9,6 +9,7 @@ final class LauncherAnswersModule: NotchcastModule {
     private var table: NBPAnswerRates?
     private var attemptedDay: Date?
     private var generation = UUID()
+    private var requestID = UUID()
     private var pending: Task<NBPAnswerRates?, Never>?
 
     init(provider: @escaping () -> NBPAnswerRateProvider = { NBPAnswerRateProvider() },
@@ -40,12 +41,14 @@ final class LauncherAnswersModule: NotchcastModule {
         let day = calendar.startOfDay(for: now)
         if pending == nil, attemptedDay != day {
             attemptedDay = day
+            requestID = UUID()
             pending = Task { try? await provider.rates(fetchedAt: now) }
         }
         if let pending {
+            let request = requestID
             let fetched = await pending.value
             guard !Task.isCancelled, isRunning, generation == operation else { return nil }
-            if attemptedDay == day {
+            if requestID == request {
                 if let fetched { table = fetched }
                 self.pending = nil
             }
