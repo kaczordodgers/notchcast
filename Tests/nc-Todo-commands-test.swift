@@ -91,6 +91,18 @@ struct TodoCommandTests {
         precondition(opened.state.tasks[today.id]?.completedAt == nil)
         commands[2].run()
         precondition(opened.state == before)
+        let repeating = TodoTask(id: UUID().uuidString, title: "Repeat", due: .init(date: now.addingTimeInterval(-2 * 86400),
+            isAllDay: true, recurrenceRule: "every 1 days", normalized: "every 1 days"))
+        try opened.perform(.addTask(repeating))
+        commands[1].run()
+        let repeated = opened.state.tasks[repeating.id]
+        precondition(repeated?.completedAt == nil, "Complete Next Task closed a repeating task for good")
+        let nextDay = calendar.startOfDay(for: now.addingTimeInterval(86400))
+        precondition(repeated?.due?.date == nextDay, "Repeating task due \(String(describing: repeated?.due?.date))")
+        precondition(opened.state.tasks[overdue.id]?.completedAt == nil)
+        commands[2].run()
+        commands[2].run()
+        precondition(opened.state == before)
         enabled = false
         let readCount = reads
         for command in commands { command.run() }
