@@ -39,12 +39,16 @@ run_case() {
         test -f "$HOME/downloaded"
     else
         test ! -f "$HOME/installed"
-        test ! -f "$HOME/downloaded"
+        if [ "$name" = becomes-busy ]; then
+            test -f "$HOME/downloaded"
+        else
+            test ! -f "$HOME/downloaded"
+        fi
     fi
     case "$name" in
         idle) grep -q 'idle 600 s' "$HOME/log" || { echo 'FAIL: missing idle gate on immediate install'; return 1; } ;;
         becomes-idle) grep -q 'waiting.*idle 10 s' "$HOME/log"; grep -q 'installing.*idle 400 s' "$HOME/log" ;;
-        busy) grep -q 'Mac in use; installing at the next run' "$HOME/log" ;;
+        busy|becomes-busy) grep -q 'Mac in use; installing at the next run' "$HOME/log" ;;
         first) test ! -f "$HOME/checked" ;;
     esac
     echo "PASS: $name"
@@ -53,3 +57,4 @@ run_case idle yes yes 600
 run_case becomes-idle yes yes '10\n400'
 run_case busy yes no 10
 run_case first no yes 10
+run_case becomes-busy yes no '400\n10'

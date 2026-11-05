@@ -118,15 +118,19 @@ fi
 log "preparing $TAG over ${INSTALLED:-nothing} ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
 [ "$DRY" = 1 ] && exit 0
 
+read_idle() {
+    IDLE="$(if [ -n "${NOTCHCAST_IDLE_COMMAND:-}" ]; then
+        "$NOTCHCAST_IDLE_COMMAND"
+    else
+        ioreg -c IOHIDSystem | awk '/"HIDIdleTime"/ {printf "%.0f\n", int($NF / 1000000000); exit}'
+    fi)" || IDLE=0
+    case "$IDLE" in ''|*[!0-9]*) IDLE=0 ;; esac
+}
+
 if [ -d "$APP" ]; then
     POLLS=0
     while true; do
-        IDLE="$(if [ -n "${NOTCHCAST_IDLE_COMMAND:-}" ]; then
-            "$NOTCHCAST_IDLE_COMMAND"
-        else
-            ioreg -c IOHIDSystem | awk '/"HIDIdleTime"/ {printf "%.0f\n", int($NF / 1000000000); exit}'
-        fi)" || IDLE=0
-        case "$IDLE" in ''|*[!0-9]*) IDLE=0 ;; esac
+        read_idle
         if [ "$IDLE" -ge 300 ]; then
             log "installing $TAG (idle $IDLE s)"
             break
@@ -153,6 +157,14 @@ codesign --verify --deep --strict "$NEW"
 [ "$(plist "$NEW" CFBundleIdentifier)" = "$BUNDLE_ID" ] || { log "bundle id mismatch; refusing"; exit 1; }
 [ "$(plist "$NEW" CFBundleShortVersionString)" = "$WANT" ] || { log "version mismatch; refusing"; exit 1; }
 [ "$(leaf_sha1 "$NEW")" = "$SIGN_SHA1" ] || { log "not signed by $SIGN_IDENTITY; refusing"; exit 1; }
+
+if [ -d "$APP" ]; then
+    read_idle
+    if [ "$IDLE" -lt 300 ]; then
+        log "Mac in use; installing at the next run"
+        exit 0
+    fi
+fi
 
 STATUS=0
 "$HERE/install-app.sh" "$NEW" || STATUS=$?
