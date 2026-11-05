@@ -155,13 +155,13 @@ final class AgentIslandModule: NotchcastModule {
     }
 
     nonisolated static let command = NotchcastCommand(slug: "show-agent-status",
-        name: String(localized: "Show Agent Status"), sfSymbol: "bubble.left", feature: .agentIsland,
+        name: String(localized: "Show Agent Status", table: "Notchcast"), sfSymbol: "bubble.left", feature: .agentIsland,
         isEnabled: { NotchcastPreferences.shared.isOn(.agentIsland) },
         run: { NotchcastCore.agentIsland.refresh { message in
             let text: String
             switch message {
-            case .idle: text = String(localized: "No agents active.")
-            case let .counts(waiting, working): text = String(localized: "\(waiting) waiting, \(working) working.")
+            case .idle: text = String(localized: "No agents active.", table: "Notchcast")
+            case let .counts(waiting, working): text = String(localized: "\(waiting) waiting, \(working) working.", table: "Notchcast")
             }
             AppCore.shared.showMessage(text, tone: .neutral)
         } })

@@ -2,7 +2,7 @@ import Foundation
 
 enum SpotifySettingsLinks {
     static var keyDescription: AttributedString {
-        linked(String(localized: "Create one in Spotify for Developers."),
+        linked(String(localized: "Create one in Spotify for Developers.", table: "Notchcast"),
                phrase: "Spotify for Developers", address: "https://developer.spotify.com/dashboard")
     }
 
@@ -10,7 +10,7 @@ enum SpotifySettingsLinks {
         linked(String(localized: """
                Soloist is Spotify’s player for personal use under the Spotify Developer Terms. \
                Each build works for 90 days.
-               """),
+               """, table: "Notchcast"),
                phrase: "Spotify Developer Terms", address: "https://developer.spotify.com/terms")
     }
 
