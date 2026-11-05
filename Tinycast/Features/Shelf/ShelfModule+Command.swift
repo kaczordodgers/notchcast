@@ -9,7 +9,7 @@ extension ShelfModule {
         readText: @escaping @MainActor @Sendable () -> String?
     ) -> NotchcastCommand {
         NotchcastCommand(
-        slug: "send-shelf-to-other-mac", name: String(localized: "Send Clipboard to Other Mac"),
+        slug: "send-shelf-to-other-mac", name: String(localized: "Send Clipboard to Other Mac", table: "Notchcast"),
         sfSymbol: "paperplane", feature: .shelfBetweenMacs,
         isEnabled: {
             NotchcastPreferences.shared.isOn(.shelfBetweenMacs)
@@ -21,7 +21,7 @@ extension ShelfModule {
 
     func sendClipboard(_ text: String?) {
         guard let text, !text.isEmpty else {
-            NotchcastCore.remoteResult(String(localized: "Clipboard is empty"))
+            NotchcastCore.remoteResult(String(localized: "Clipboard is empty", table: "Notchcast"))
             return
         }
         let item = ShelfItem(kind: .text, name: "Clipboard.txt", data: Data(text.utf8))
@@ -31,10 +31,10 @@ extension ShelfModule {
             do {
                 try await send(item)
                 guard !Task.isCancelled, isRunning, generation == token else { return }
-                NotchcastCore.remoteResult(String(localized: "Sent Clipboard to Other Mac"))
+                NotchcastCore.remoteResult(String(localized: "Sent Clipboard to Other Mac", table: "Notchcast"))
             } catch {
                 guard !Task.isCancelled, isRunning, generation == token else { return }
-                NotchcastCore.remoteResult(String(localized: "Could Not Send Clipboard to Other Mac"))
+                NotchcastCore.remoteResult(String(localized: "Could Not Send Clipboard to Other Mac", table: "Notchcast"))
             }
         }
     }

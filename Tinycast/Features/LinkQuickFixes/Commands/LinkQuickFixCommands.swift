@@ -2,7 +2,7 @@ import AppKit
 
 extension LinkQuickFixModule {
     nonisolated static let launcherCommand = NotchcastCommand(
-        slug: "fix-mac-link", name: String(localized: "Fix Mac Link"),
+        slug: "fix-mac-link", name: String(localized: "Fix Mac Link", table: "Notchcast"),
         sfSymbol: "link", feature: .linkQuickFixes,
         isEnabled: { NotchcastPreferences.shared.isOn(.linkQuickFixes) },
         run: { Task { await NotchcastCore.linkQuickFixes.run() } })
@@ -29,16 +29,16 @@ extension LinkQuickFixModule {
             let options = actions.map { action in
                 let title: String
                 switch action {
-                case .openNetworkSettings: title = String(localized: "Open Network Settings")
-                case .relinkInConnections: title = String(localized: "Open Mac Link Settings")
-                case .copyCommand(_, .dnsFailure): title = String(localized: "Copy DNS Reset Command")
-                case .copyCommand(_, .tailscaleStopped): title = String(localized: "Copy Tailscale Command")
-                case .copyCommand: title = String(localized: "Copy Sync Command")
-                case .openMirrorLog: title = String(localized: "Open Log")
+                case .openNetworkSettings: title = String(localized: "Open Network Settings", table: "Notchcast")
+                case .relinkInConnections: title = String(localized: "Open Mac Link Settings", table: "Notchcast")
+                case .copyCommand(_, .dnsFailure): title = String(localized: "Copy DNS Reset Command", table: "Notchcast")
+                case .copyCommand(_, .tailscaleStopped): title = String(localized: "Copy Tailscale Command", table: "Notchcast")
+                case .copyCommand: title = String(localized: "Copy Sync Command", table: "Notchcast")
+                case .openMirrorLog: title = String(localized: "Open Log", table: "Notchcast")
                 }
                 return DialogAction(title: title)
             } + [DialogAction(title: String(localized: "Cancel"), role: .cancel)]
-            let index = await AppCore.shared.choose(title: String(localized: "Fix Mac Link"),
+            let index = await AppCore.shared.choose(title: String(localized: "Fix Mac Link", table: "Notchcast"),
                 message: note, symbol: "link", options: options, defaultIndex: actions.count)
             return actions.indices.contains(index) ? index : nil
         }

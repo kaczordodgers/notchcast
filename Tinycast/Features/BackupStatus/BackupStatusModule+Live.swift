@@ -19,7 +19,7 @@ extension BackupStatusModule {
             }
             return { task.cancel() }
         }, configurationNotice: {
-            path().hasPrefix("/") ? nil : String(localized: "Backup status path is not configured.")
+            path().hasPrefix("/") ? nil : String(localized: "Backup status path is not configured.", table: "Notchcast")
         }, post: post)
     }
 }

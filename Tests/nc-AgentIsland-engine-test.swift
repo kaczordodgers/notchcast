@@ -268,7 +268,7 @@ private struct CountingRunner: AgentThreadRunning {
         while !botDone { await Task.yield() }
         restarted.stop()
         restartedBots.stop()
-        let catalogData = try Data(contentsOf: URL(filePath: "Tinycast/Resources/Localizable.xcstrings"))
+        let catalogData = try Data(contentsOf: URL(filePath: "Tinycast/Resources/Notchcast.xcstrings"))
         let catalog = try JSONSerialization.jsonObject(with: catalogData) as? [String: Any]
         func catalogText(_ path: [String]) -> String? {
             path.reduce(catalog as Any?) { value, key in (value as? [String: Any])?[key] } as? String
