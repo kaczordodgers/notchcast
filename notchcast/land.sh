@@ -1,5 +1,25 @@
 #!/bin/bash
 set -euo pipefail
+# A stale checkout lands by stale rules (one skipped the Sync wait), so a landing always runs main's tooling.
+if [ "$#" -eq 1 ] && [ -z "${NOTCHCAST_LAND_TOOLS:-}" ]; then
+    origin_top=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
+    git -C "$origin_top" fetch --quiet origin main || { echo 'REFUSED: could not fetch origin main' >&2; exit 1; }
+    if [ "$(git -C "$origin_top" rev-parse HEAD:notchcast)" != "$(git -C "$origin_top" rev-parse origin/main:notchcast)" ] \
+        || ! git -C "$origin_top" diff --quiet HEAD -- notchcast; then
+        tools=$(mktemp -d)
+        git -C "$origin_top" worktree add --quiet --detach "$tools/tree" origin/main
+        echo "land.sh: this checkout's notchcast/ differs from origin/main; running main's copy"
+        cd "$tools/tree"
+        NOTCHCAST_LAND_TOOLS=$tools NOTCHCAST_LAND_ORIGIN=$origin_top exec bash notchcast/land.sh "$@"
+    fi
+fi
+remove_tools() {
+    [ -n "${NOTCHCAST_LAND_ORIGIN:-}" ] || return 0
+    cd "$NOTCHCAST_LAND_ORIGIN"
+    git worktree remove --force "$NOTCHCAST_LAND_TOOLS/tree" >/dev/null 2>&1 || true
+    rm -rf "$NOTCHCAST_LAND_TOOLS"
+}
+trap remove_tools EXIT
 source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
@@ -16,8 +36,11 @@ wait_for_sync() {
                 --json databaseId --jq '.[].databaseId' || exit 1
         done) || refuse 'could not list Sync runs'
         for run in $runs; do
+            # Plan records main as the replay's lease, so a landing from plan's start to replay's end breaks it.
             jobs=$(gh run view "$run" -R kaczordodgers/notchcast --json jobs \
-                --jq 'any(.jobs[]; .name == "replay" and (.status == "queued" or .status == "in_progress"))') \
+                --jq '(any(.jobs[]; .name == "plan" and .status == "in_progress"))
+                    or ([.jobs[].name] == ["plan"] and any(.jobs[]; .name == "plan" and .conclusion == "success"))
+                    or any(.jobs[]; .name == "replay" and (.status == "queued" or .status == "in_progress"))') \
                 || refuse "could not read Sync run $run"
             if [ "$jobs" = true ]; then
                 replay=$run
@@ -26,8 +49,8 @@ wait_for_sync() {
         done
         [ -n "$replay" ] || return 0
         [ "$SECONDS" -lt "$deadline" ] \
-            || refuse "Sync replay $replay still running after 40 min; run land.sh $pr again"
-        echo "Waiting for Sync replay $replay: landing would invalidate its main lease"
+            || refuse "Sync run $replay (plan or replay) still running after 40 min; run land.sh $pr again"
+        echo "Waiting for Sync run $replay (plan or replay): landing would invalidate its main lease"
         sleep "$((poll < deadline - SECONDS ? poll : deadline - SECONDS))"
     done
 }
@@ -75,6 +98,7 @@ scratch=$(mktemp -d)
 cleanup() {
     git worktree remove --force "$scratch/tree" >/dev/null 2>&1 || true
     rm -rf "$scratch"
+    remove_tools
 }
 trap cleanup EXIT
 trap 'exit 1' HUP INT TERM
