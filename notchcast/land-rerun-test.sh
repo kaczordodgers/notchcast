@@ -47,6 +47,8 @@ printf 'Fixture squash\n' > "$scratch/message"
 refuse() { echo "REFUSED: $*"; exit 1; }
 merge_onto() { echo rebuilt >> "$scratch/rebuilt"; }
 harnesses() { refuse 'selected harness detects removed API in disjoint file'; }
+source "$root/notchcast/hold.sh"
+gh() { [ -n "${HOLD:-}" ] && echo "$HOLD" || { echo 'variable LANDING_HOLD was not found' >&2; return 1; }; }
 status=0
 (source "$scratch/retry") > "$scratch/output" 2>&1 || status=$?
 if [ "$status" -ne 1 ] || ! grep -q 'selected harness detects removed API' "$scratch/output"; then
@@ -56,3 +58,16 @@ fi
 [ "$(wc -l < "$PUSHES")" -eq 1 ]
 [ "$(wc -l < "$scratch/rebuilt")" -eq 1 ]
 echo 'PASS: disjoint retry reruns harnesses and refuses before second push'
+# A hold set for another PR while this one ran its harnesses stops it before the push.
+: > "$PUSHES"
+git update-ref refs/remotes/origin/main "$base"
+HOLD="330 $(($(date +%s) + 600))"
+status=0
+(source "$scratch/retry") > "$scratch/output" 2>&1 || status=$?
+if [ "$status" -ne 1 ] || ! grep -q 'landing is held for 330' "$scratch/output"; then
+    cat "$scratch/output"
+    echo 'FAIL: a hold set during the check did not stop the push'
+    exit 1
+fi
+[ ! -s "$PUSHES" ]
+echo 'PASS: a hold set during the check refuses before the push'
