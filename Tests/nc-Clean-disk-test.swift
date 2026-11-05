@@ -47,6 +47,7 @@ struct CleanDiskTest {
         let scan = try await scanner.scan(id: id)
         precondition(!scan.nodes.contains { $0.path.lastPathComponent == "sentinel" })
         precondition(scan.nodes.contains { $0.path.path == denied.path && $0.unreadable })
+        precondition(scan.nodes[0].unreadable)
         var info = stat()
         precondition(lstat(file.path, &info) == 0)
         let files = scan.nodes.filter { ["data", "hard"].contains($0.path.lastPathComponent) }
