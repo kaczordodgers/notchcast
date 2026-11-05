@@ -91,13 +91,11 @@ struct FinderImageService {
 
     nonisolated enum Event {
         static let core = code("core"), misc = code("misc")
-        static let move = code("move"), count = code("cnte"), select = code("slct")
-        static let directObject = code("----"), insertHere = code("insh"), each = code("kocl"), errorNumber = code("errn")
-        static let windowClass = code("brow"), propertyClass = code("prop")
-        static let target = code("fvtg"), desktop = code("desk")
-        static let insertionLocation = code("pins")
+        static let move = code("move"), select = code("slct")
+        static let directObject = code("----"), insertHere = code("insh"), errorNumber = code("errn")
+        static let propertyClass = code("prop"), insertionLocation = code("pins")
         static let want = code("want"), container = code("from"), form = code("form"), data = code("seld")
-        static let indexForm = code("indx"), propertyForm = code("prop"), objectSpecifier = code("obj ")
+        static let propertyForm = code("prop"), objectSpecifier = code("obj ")
 
         static func code(_ text: String) -> OSType {
             text.utf8.reduce(0) { $0 << 8 | OSType($1) }
