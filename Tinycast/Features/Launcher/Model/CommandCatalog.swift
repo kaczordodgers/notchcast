@@ -4,6 +4,7 @@ enum CommandCatalog {
     /// Sorted by name for the `AppIndex` invariant; the URL is a placeholder.
     nonisolated static let all: [AppEntry] =
         CommandID.allCases
+        .filter { !NotchcastHidden.commands.contains($0.rawValue) }
         .filter { !$0.isQueryDriven }
         .map { makeEntry($0) }
         .appendingNotchcastCommands()
