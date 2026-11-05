@@ -118,6 +118,9 @@ merge_onto() {
     if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Localizable.xcstrings; then
         python3 notchcast/xcstrings-union.py --git --main-ref "$onto" || refuse 'string catalog conflict xcstrings-union.py cannot merge'
     fi
+    if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Notchcast.xcstrings; then
+        python3 notchcast/xcstrings-union.py --git --main-ref "$onto" --catalog Tinycast/Resources/Notchcast.xcstrings || refuse 'fork string catalog conflict'
+    fi
     unmerged=$(git diff --name-only --diff-filter=U)
     [ -z "$unmerged" ] || refuse "merge conflict: $(echo $unmerged)"
     git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
