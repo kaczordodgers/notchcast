@@ -84,7 +84,7 @@ extension GalleryPages {
                             "low-battery": "Low battery: 10%", "wifi": "Wi-Fi: Connected",
                             "tailscale": "Tailscale: Connected", "low-disk": "Low disk space: 12 GB",
                             "dictation": "Dictation listening", "walk": "Daily walking goal reached.",
-                            "message": "Copied path", "danger-message": "Couldn’t read the text"]
+                            "message": "Nothing to Import", "danger-message": "Couldn’t read the text"]
             if let text = messages[state] {
                 let danger = ["low-battery", "low-disk", "danger-message"].contains(state)
                 panel.setMessage(IslandMessage(id: UUID(), tone: danger ? .danger : (state == "status" ? .success : .neutral),
