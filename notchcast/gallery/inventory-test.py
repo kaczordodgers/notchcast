@@ -15,6 +15,11 @@ spec.loader.exec_module(inventory)
 
 
 class InventoryTests(unittest.TestCase):
+    def test_closed_state_registry(self):
+        source = (Path(__file__).resolve().parents[2] / "Tinycast/Features/Notchcast/Gallery/GalleryPages+Island.swift").read_text()
+        for state in ("idle", "volume", "brightness", "airpods", "low-battery", "wifi", "tailscale", "low-disk", "meeting-reminder", "dictation", "walk", "message", "danger-message"):
+            self.assertIn('"' + state + '"', source, state)
+
     def test_declarations(self):
         source = """
         // struct Comment: View {}

@@ -23,6 +23,7 @@ nonzero for findings. They do not modify the product or suppress successful capt
 Stable page names:
 
 - `island-closed-{idle,timer,transfer,status}-{mba,ext}`
+- `island-closed-{volume,brightness,airpods,low-battery,wifi,tailscale,low-disk,meeting-reminder,dictation,walk,message,danger-message}-{mba,ext}`
 - `island-open-{home-empty,home-entries,day-calendar}-{mba,ext}`
 - `launcher-{root,results,empty}-{dark,light}`
 - `settings-notchcast-<group>-{dark,light}`

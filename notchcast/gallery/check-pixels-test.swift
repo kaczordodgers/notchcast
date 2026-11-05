@@ -15,7 +15,16 @@ let fixtures: [(String, String, Bool, (Int, Int) -> (CGFloat, CGFloat))] = [
     ("island with content", "island-open-home-entries-mba.png", true, { x, y in (x == 10 && y < 8 ? 1 : 0, x < 32 ? 1 : 0) }),
     ("idle island is empty by design", "island-closed-idle-mba.png", true, { x, _ in (0, x < 32 ? 1 : 0) }),
 ]
-for (fixture, page, passes, pixel) in fixtures {
+let closedStates = ["volume", "brightness", "airpods", "low-battery", "wifi", "tailscale", "low-disk",
+                    "meeting-reminder", "dictation", "walk", "message", "danger-message"]
+let closedFixtures: [(String, String, Bool, (Int, Int) -> (CGFloat, CGFloat))] = closedStates.flatMap { state in
+    ["mba", "ext"].flatMap { shape in
+        let page = "island-closed-\(state)-\(shape).png"
+        return [("\(page) blank", page, false, { (x: Int, _: Int) in (CGFloat(0), x < 32 ? CGFloat(1) : CGFloat(0)) }),
+                ("\(page) content", page, true, { (x: Int, y: Int) in (x == 10 && y < 8 ? CGFloat(1) : CGFloat(0), x < 32 ? CGFloat(1) : CGFloat(0)) })]
+    }
+}
+for (fixture, page, passes, pixel) in fixtures + closedFixtures {
     let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 64, pixelsHigh: 64,
                                   bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
                                   isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
