@@ -232,7 +232,6 @@ struct DictationFieldTests {
             AudioEvents.log == ["start cue", "duck"],
             "The start cue plays on the first samples, with ducking")
         fixture.coordinator.toggle(into: editor)
-        try await Task.sleep(for: .milliseconds(100))
         expect(
             AudioEvents.log == ["start cue", "duck"] && fixture.capture.isRecording,
             "The microphone captures the tail with audio still ducked and no stop cue")
