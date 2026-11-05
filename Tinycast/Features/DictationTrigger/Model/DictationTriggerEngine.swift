@@ -7,6 +7,7 @@ struct DictationTriggerEngine: Sendable {
         case confirm
         case otherInput
         case finish
+        case cancel
         case reset
     }
 
@@ -53,6 +54,10 @@ struct DictationTriggerEngine: Sendable {
             press = nil
             ownsRecording = false
             return .finish
+        case .cancel:
+            press = nil
+            ownsRecording = false
+            return .cancel
         case .reset:
             press = nil
             guard ownsRecording else { return nil }

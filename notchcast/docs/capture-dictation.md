@@ -55,9 +55,9 @@ without deleting them, and pauses during shortcut recording. Disabling stops the
 the reservation. Accessibility is listed in the existing permissions section.
 
 The trigger uses the upstream dictation coordinator's consent and model checks. Tap Globe to start,
-tap again to finish, or hold for at least 350 ms and release to finish. Return and Escape finish the
-recording, including its 200 ms audio tail; Escape during transcription keeps the result pending for
-insertion. Capture begins on a solo tap's release or after the hold threshold, so Fn chords have no
+tap again to finish, or hold for at least 350 ms and release to finish. Return and keypad Enter finish
+the recording, including its 200 ms audio tail; Escape with Globe held discards it, panel focus or not.
+Capture begins on a solo tap's release or after the hold threshold, so Fn chords have no
 capture effects. Other input cancels a provisional press and finishes a confirmed hold. Disabling
 the switch finishes any recording it started, preserving the text. This switch adds no launcher command.
 
