@@ -1,0 +1,18 @@
+# Upstream paths the app does not need, one per line. `ci.py regenerate` removes them in "Notchcast: generated
+# files" on every Sync, release replay and generated.yml run, so upstream edits to them never conflict.
+# ci.py refuses a path covering LICENSE, NOTICE.md, AGENTS.md, docs/*.md, Tests/ or Scripts/raycast-runtime/.
+website/
+docs/screenshot.png
+README.upstream.md
+CONTRIBUTING.md
+CONTRIBUTOR_LICENSE_AND_FEEDBACK_AGREEMENT.md
+SECURITY.md
+.vscode/
+.github/ISSUE_TEMPLATE/
+Scripts/gen-countries.js
+Scripts/gen-currencies.js
+Scripts/gen-emoji.js
+Scripts/import-signing-identity.sh
+Scripts/package-release.sh
+Scripts/sync-lsp.sh
+Scripts/upload-website-media.sh
