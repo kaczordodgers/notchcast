@@ -269,7 +269,8 @@ final class DictationCoordinator {
                 let target = self.target
                 let assembled = liveText + text
                 if !inEnglish, !liveText.isEmpty {
-                    Self.transcriptObserver?(liveText + raw, assembled)
+                    let gap = liveText.last?.isWhitespace == false && !raw.isEmpty ? " " : ""
+                    Self.transcriptObserver?(liveText + gap + raw, assembled)
                 }
                 guard !text.isEmpty else { finishWithoutRemainder(destination); return }
                 panel.close()
@@ -301,6 +302,7 @@ final class DictationCoordinator {
                 }
             } catch {
                 guard token == current else { return }
+                if !inEnglish, !liveText.isEmpty { Self.transcriptObserver?(liveText, liveText) }
                 reset(cancelTranscription: false)
                 showMessage(error.localizedDescription, .danger)
             }

@@ -8,7 +8,9 @@ import Observation
 @MainActor
 struct DictationHistoryLiveTest {
     static func main() async throws {
-        for tail in [800, 3_200] {
+        for (tail, answer) in [(800, "raw tail"), (3_200, "raw tail"), (3_200, "fail")] {
+            let recorded = tail < 1_600 || answer == "fail" ? "" : " raw tail"
+            Fixture.expectsError = answer == "fail"
             let fixture = Fixture()
             fixture.settings.dictationLiveInsertion = true
             var records: [(String, String)] = []
@@ -26,16 +28,17 @@ struct DictationHistoryLiveTest {
             let live = fixture.injector.text
             fixture.capture.samples.removeLast(1_600)
             fixture.capture.samples += Array(repeating: 0.5, count: tail)
-            fixture.models.answer = "raw tail"
+            fixture.models.answer = answer
             fixture.panel.onAccept?()
             try await wait { !fixture.panel.isVisible }
             precondition(records.count == 1, "One entry per live dictation")
-            precondition(records[0].0 == live + (tail < 1_600 ? "" : "raw tail"))
+            precondition(records[0].0 == live + recorded)
             precondition(records[0].1 == fixture.injector.text)
-            precondition(DictationCleanup.inputs == (tail < 1_600 ? [] : ["raw tail"]))
-            print("PASS live tail \(tail): one full history entry equals inserted text; cleanup tail only")
+            precondition(DictationCleanup.inputs == (recorded.isEmpty ? [] : ["raw tail"]))
+            print("PASS live tail \(tail) \(answer): one full history entry equals inserted text; cleanup tail only")
             DictationCleanup.inputs = []
         }
+        Fixture.expectsError = false
         let fixture = Fixture()
         var records: [(String, String)] = []
         DictationCleanup.transcriptObserver = { records.append(($0, $1)) }
@@ -65,7 +68,8 @@ struct DictationHistoryLiveTest {
         lazy var coordinator = DictationCoordinator(
             settings: settings, hotKeys: HotKeyManager(), models: models,
             injector: injector, audioDucker: DictationAudioDucker(),
-            confirmEnable: { false }, showMessage: { _, _ in preconditionFailure("Unexpected error") })
+            confirmEnable: { false }, showMessage: { _, _ in precondition(Fixture.expectsError, "Unexpected error") })
+        static var expectsError = false
         var panel: DictationPanelController { DictationPanelController.latest! }
         var capture: DictationCapture { DictationCapture.latest! }
     }
@@ -114,6 +118,7 @@ enum HotKeyAction { case dictation }
     func prepareForTermination() {}
     func transcribe(_ samples: [Float], model: DictationModel, language: String?) async throws -> String {
         calls += 1
+        if answer == "fail" { throw CocoaError(.featureUnsupported) }
         return answer
     }
     func finish() { let continuation = pending; pending = nil; continuation?.resume(returning: "Spoken words") }
