@@ -111,6 +111,7 @@ final class ExtensionCoordinator {
     // MARK: - Managing one extension from the launcher
 
     func showStoreInstall(_ install: ExtensionDeepLink.StoreInstall) {
+        guard settings.extensionsEnabled else { return }
         paletteCoordinator.hidePalette(restoreFocus: false)
         if settings.extensionsEnabled { core.pendingExtensionStoreInstall = install }
         settingsCoordinator.showSettings(tab: .extensions)
