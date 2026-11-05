@@ -182,18 +182,18 @@ struct SystemLevelRoutingTests {
         await eventually { brightness.controller.steps.count == 3 }
         for _ in 0..<20 { await Task.yield() }
         check(keys.revision == 4, "A disconnected or reused display cannot publish stale brightness")
-        check(replays.count == 3, "Disconnected brightness destination replays the native key")
+        check(replays.count == 2, "A step already applied is never replayed to the native key")
         BrightnessDisplayService.available = true
         brightness.controller.cancelStep = true
         hub.send(.brightnessUp)
         await eventually { brightness.controller.steps.count == 4 }
         for _ in 0..<20 { await Task.yield() }
         check(keys.revision == 4, "Superseded brightness operations neither publish nor replay native keys")
-        check(replays.count == 3, "Superseded brightness step stays cancelled")
+        check(replays.count == 2, "Superseded brightness step stays cancelled")
         hub.send(.brightnessDown, location: .init(x: 500, y: 500))
         preferences.set(.displayBrightness, false)
         try? await Task.sleep(for: .milliseconds(50))
-        check(replays.count == 3, "Switching brightness off cancels already-dispatched fallback")
+        check(replays.count == 2, "Switching brightness off cancels already-dispatched fallback")
         preferences.set(.displayBrightness, true)
         await eventually { hub.handlers.count == 1 }
         preferences.set(.volumeLevels, false)

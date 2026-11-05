@@ -97,12 +97,12 @@ final class SystemLevelKeysModule: NotchcastModule {
                 let result = await controller.step(up: press.key.isIncreasing, fine: press.fine, for: display.id)
                 guard !Task.isCancelled, preferences.isOn(.displayBrightness)
                 else { return .cancelled }
-                if case .cancelled = result { return .cancelled }
-                guard BrightnessDisplayService.isAvailable(display.id),
-                      controller.displays().contains(where: { $0.id == display.id })
-                else { return .fallbackToNativeKeys }
                 switch result {
-                case .applied(let level): return .applied(LevelNotice(kind: .brightness, level: level.value))
+                case .applied(let level):
+                    guard BrightnessDisplayService.isAvailable(display.id),
+                          controller.displays().contains(where: { $0.id == display.id })
+                    else { return .cancelled }
+                    return .applied(LevelNotice(kind: .brightness, level: level.value))
                 case .unavailable: return .fallbackToNativeKeys
                 case .cancelled: return .cancelled
                 }
