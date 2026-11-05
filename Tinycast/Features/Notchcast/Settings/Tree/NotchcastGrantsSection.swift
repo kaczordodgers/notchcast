@@ -7,11 +7,9 @@ struct NotchcastGrantsSection: View {
 
     var body: some View {
         Section {
-            // Re-read each second, as upstream's Permissions page does, so a grant shows up live.
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
+            TimelineView(.periodic(from: .now, by: 1)) { context in
                 ForEach(grants, id: \.self) { grant in
-                    // One system privacy check per grant and tick; each read is a synchronous call.
-                    let granted = grant.isGranted
+                    let granted = NotchcastCore.grantStatuses.values[grant] ?? false
                     LabeledContent {
                         HStack(spacing: Theme.Spacing.lg) {
                             HStack(spacing: Theme.Spacing.xs) {
@@ -27,6 +25,9 @@ struct NotchcastGrantsSection: View {
                     } label: {
                         Text(grant.title)
                     }
+                }
+                .task(id: context.date) {
+                    await NotchcastCore.grantStatuses.refresh(grants)
                 }
             }
         } header: {
