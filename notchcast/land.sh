@@ -25,6 +25,7 @@ selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
 refuse() { echo "REFUSED: $*" >&2; exit 1; }
 source "$(dirname "$0")/sync-wait.sh"
+source "$(dirname "$0")/hold.sh"
 check=0
 if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     check=1
@@ -34,6 +35,7 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
     metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName,baseRefName)
     [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
+    check_hold "$pr"
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
     git fetch origin main "refs/pull/$pr/head" '+refs/notchcast/synced/*:refs/notchcast/synced/*'
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
@@ -165,6 +167,7 @@ if [ "$check" -eq 0 ]; then
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
     for attempt in 1 2 3 4 5 6; do
+        check_hold "$pr"  # a hold set while the harnesses ran wins
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"
         git fetch --quiet origin main '+refs/notchcast/synced/*:refs/notchcast/synced/*'
