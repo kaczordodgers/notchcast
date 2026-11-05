@@ -83,8 +83,6 @@ extension NotchcastCommandCatalog {
         DayCommands.calendar,
         LowDiskModule.refreshCommand,
         SystemNoticesModule.refreshCommand,
-        QuitProtectionModule.settingsCommand,
-        DisplayBrightnessCommands.settings,
         AppearanceCommands.settings,
         SystemLevelsCommands.presets[0],
         SystemLevelsCommands.presets[1],
