@@ -735,6 +735,7 @@ extension NotchcastFeature {
     var needsIsland: Bool {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
+        case .island: false
         case .tasks: false
         case .tasksSync: false
         case .todoIsland: false
