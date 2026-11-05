@@ -169,6 +169,10 @@ struct TodoLinkTests {
         coordinator.requestExchange()
         try await idle(coordinator)
         precondition(messages.count == 2)
+        coordinator.stop()
+        coordinator.start()
+        try await idle(coordinator)
+        precondition(messages.count == 3, "restarting sync shows a still-failing peer again")
         try store.perform(.addTask(.init(id: UUID().uuidString, title: "Original")))
         var clone = TodoReplication(replicaID: store.replication.replicaID)
         try clone.perform(.addTask(.init(id: UUID().uuidString, title: "Conflict")))
@@ -180,7 +184,7 @@ struct TodoLinkTests {
                 preconditionFailure("conflicting replica accepted")
             } catch TodoReplicationError.conflictingEnvelope {}
         }
-        precondition(messages.count == 3 && messages.last!.contains("replica ID"))
+        precondition(messages.count == 4 && messages.last!.contains("replica ID"))
         precondition(store.state == before)
         coordinator.stop()
         try store.close()

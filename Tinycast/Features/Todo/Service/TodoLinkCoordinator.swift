@@ -103,6 +103,7 @@ final class TodoLinkCoordinator {
         acknowledged = TodoVectorClock()
         assembly = TodoLinkAssembly()
         peerReceipt = nil
+        reported.removeAll()
         pending = false
         debounce?.cancel()
         debounce = nil
@@ -193,6 +194,7 @@ final class TodoLinkCoordinator {
         assembly = TodoLinkAssembly()
         peerReceipt = nil
         acknowledged = TodoVectorClock()
+        reported.removeAll()
     }
 
     private func report(_ error: Error) {
