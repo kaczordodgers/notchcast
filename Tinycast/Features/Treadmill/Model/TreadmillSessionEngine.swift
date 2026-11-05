@@ -24,7 +24,7 @@ struct TreadmillSessionEngine: Sendable {
     }
 
     mutating func start(speed: Double, minutes: Int, now: Date) throws -> [Data] {
-        guard walk == nil, startFrame == nil else { throw TreadmillFailure.alreadyWalking }
+        guard walk == nil, startFrame == nil, !stopping else { throw TreadmillFailure.alreadyWalking }
         _ = try TreadmillProtocol.speed(speed)
         let frame = try TreadmillProtocol.start(minutes: minutes)
         requestedSpeed = (speed * 10).rounded() / 10
@@ -78,16 +78,25 @@ struct TreadmillSessionEngine: Sendable {
         return try setSpeed(speed)
     }
 
-    mutating func checkTimeout(now: Date) -> TreadmillFailure? {
-        guard let startDeadline, now >= startDeadline else { return nil }
+    mutating func checkTimeout(now: Date) -> Update {
+        guard let startDeadline, now >= startDeadline else { return Update() }
+        stopping = true
         clearPending()
-        return .timedOut
+        return Update(commands: [TreadmillProtocol.stop], failure: .timedOut)
     }
 
     mutating func receive(_ message: TreadmillProtocol.Message, now: Date) -> Update {
-        var update = Update()
-        update.failure = checkTimeout(now: now)
+        var update = checkTimeout(now: now)
         guard case .status(let status) = message else { return update }
+        if stopping, walk == nil {
+            switch status.phase {
+            case .countdown, .running, .slowing, .paused:
+                if update.commands.isEmpty { update.commands.append(TreadmillProtocol.stop) }
+                return update
+            case .standby, .ready, .asleep, .ended, .error:
+                stopping = false
+            }
+        }
         switch status.phase {
         case .countdown:
             if walk == nil { walk = TreadmillWalk(started: now, updated: now, phase: .countdown) }
