@@ -89,13 +89,11 @@ struct IslandPagesTests {
             state.dismiss(reason)
             expect(state.isOpen && state.isPinned, "a pinned island survives \(reason)")
         }
-        for reason in [IslandInputState.Dismissal.escape, .pageKey] {
-            var state = IslandInputState()
-            state.open()
-            state.togglePin()
-            state.dismiss(reason)
-            expect(!state.isOpen && !state.isPinned, "\(reason) always closes and unpins")
-        }
+        var pinned = IslandInputState()
+        pinned.open()
+        pinned.togglePin()
+        pinned.close()
+        expect(!pinned.isOpen && !pinned.isPinned, "close always closes and unpins")
         var state = IslandInputState()
         state.togglePin()
         expect(!state.isOpen && !state.isPinned, "a hidden island cannot be pinned")

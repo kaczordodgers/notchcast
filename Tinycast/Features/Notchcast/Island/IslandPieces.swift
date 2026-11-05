@@ -9,9 +9,10 @@ struct IslandGlyph: View {
     enum Tone { case plain, danger, warning }
     let name: String
     var tone: Tone = .plain
+    var size = NotchcastTheme.Pill.symbol
 
     var body: some View {
-        SymbolImage(name: name, size: NotchcastTheme.Pill.symbol)
+        SymbolImage(name: name, size: size)
             .foregroundStyle(tone == .danger ? NotchcastTheme.Colors.danger
                              : tone == .warning ? NotchcastTheme.Colors.warning : NotchcastTheme.Colors.primary)
             .frame(width: NotchcastTheme.Pill.glyph, height: NotchcastTheme.Pill.glyph)
@@ -301,16 +302,17 @@ struct IslandActivityLine: View {
     enum Part { case glyph, value, row, card }
     let activity: IslandActivity
     var part: Part = .row
+    var glyphSize = NotchcastTheme.Pill.symbol
 
     var body: some View {
         HStack(spacing: NotchcastTheme.Pill.gap) {
             if part == .row {
                 HStack(spacing: NotchcastTheme.Pill.artworkGap) {
-                    IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind))
+                    IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind), size: glyphSize)
                     IslandWord(text: activity.title)
                 }
             } else if part == .glyph {
-                IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind))
+                IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind), size: glyphSize)
             } else if part == .card {
                 IslandWord(text: activity.title)
             }

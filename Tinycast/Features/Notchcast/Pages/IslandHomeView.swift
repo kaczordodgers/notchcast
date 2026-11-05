@@ -76,5 +76,10 @@ private struct IslandActivityRow: View {
         .armedHover($hovered)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityActions {
+            if let action = activity.action {
+                Button(action) { IslandActivityCenter.shared.perform(activity.id) }
+            }
+        }
     }
 }

@@ -97,11 +97,12 @@ final class IslandController: NotchcastModule {
     }
 
     private func shrinkLauncher() {
+        let screen = launcherPanel?.screen
         launcherPanel?.setLauncher(height: nil, animated: true)
         launcherPanel = nil
         if let page = pinnedUnderLauncher {
             pinnedUnderLauncher = nil
-            open(page: page, takeKey: false)
+            open(page: page, on: screen, takeKey: false)
             input.setPinned(true)
         }
     }

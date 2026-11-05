@@ -1,7 +1,8 @@
 import Foundation
 
 struct IslandInputState: Sendable {
-    enum Dismissal { case outsideClick, appSwitch, mouseOut, escape, pageKey }
+    /// A passive dismissal; Escape and the page key close through `close()`, pinned or not.
+    enum Dismissal { case outsideClick, appSwitch, mouseOut }
     enum HoverAction: Sendable { case open, close }
     struct PendingHover: Equatable, Sendable {
         let action: HoverAction
@@ -20,7 +21,7 @@ struct IslandInputState: Sendable {
 
     mutating func dismiss(_ reason: Dismissal, focused: Bool = false) {
         guard reason != .mouseOut || !focused else { return }
-        guard !isPinned || reason == .escape || reason == .pageKey else { return }
+        guard !isPinned else { return }
         close()
     }
 

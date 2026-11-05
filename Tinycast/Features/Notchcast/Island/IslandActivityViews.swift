@@ -5,7 +5,7 @@ struct IslandActivityGlyph: View {
     let activity: IslandActivity
 
     var body: some View {
-        IslandActivityLine(activity: activity, part: .glyph)
+        IslandActivityLine(activity: activity, part: .glyph, glyphSize: NotchcastTheme.Pill.rowSymbol)
     }
 }
 

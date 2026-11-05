@@ -53,6 +53,8 @@ enum NotchcastTheme {
         static let glyph = Theme.Size.menuIcon
         /// The symbol in that slot: the menu row's; the HUD pill too draws text-sized marks in it.
         static let symbol = Theme.Typography.menuSymbolSize
+        /// The symbol in an open page's row: the schedule row's share of the row icon (`ScheduleView`).
+        static let rowSymbol = Theme.Size.resultRowIcon * 0.7
         /// Text to its value or bars: a row's trailing gap.
         static let gap = Theme.Spacing.lg
         /// The level readout's fixed slot, so 9% and 100% keep the pill still.

@@ -109,6 +109,7 @@ final class IslandSurfaceView: NSView {
         activeHost.setAccessibilityHidden(content == .launcher)
         inactiveHost.setAccessibilityHidden(true)
         setAccessibilityRole(content == .closed ? .button : .group)
+        setAccessibilityElement(content != .launcher)
         let path = outline.path
         let previousPath = silhouette.presentation()?.path ?? silhouette.path ?? path
         CATransaction.begin()

@@ -162,8 +162,9 @@ final class IslandPanel: NSPanel {
         launcherFrame = height.map { launcherFrame(height: $0) }
         present(animated: animated)
         let grown = launcherFrame != nil
-        // The black returns once the island has landed, so a launcher-sized ghost never flashes on the way back.
-        let lands = !grown && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        // Closing back, the black returns once the island has landed, so a launcher-sized ghost never flashes;
+        // a page opening straight from the launcher needs its black at once.
+        let lands = !grown && !open && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         surface.setSurfaceOpacity(grown ? 0 : 1,
                                   duration: animated ? Motion.duration(grown
                                       ? NotchcastTheme.Motion.blackOut : NotchcastTheme.Motion.blackIn) : 0,
