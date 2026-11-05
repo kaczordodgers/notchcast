@@ -42,7 +42,7 @@ nonisolated struct DistillTranscriber: Sendable {
         return try await transcribePCM(file: pcm) { completed, total in
             await context.report(DownloadProgress(
                 fraction: Double(completed) / Double(total),
-                stage: String(localized: "Transcribing \(completed) of \(total)")))
+                stage: String(localized: "Transcribing \(completed) of \(total)", table: "Notchcast")))
             await progress(completed, total)
         }
     }

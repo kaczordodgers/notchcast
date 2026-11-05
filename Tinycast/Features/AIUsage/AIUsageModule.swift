@@ -14,7 +14,7 @@ final class AIUsageModule: NotchcastModule {
     private var refreshing = false
 
     var peerStatus: String {
-        otherMac.peerStatus == .available ? String(localized: "Connected") : String(localized: "Not connected")
+        otherMac.peerStatus == .available ? String(localized: "Connected", table: "Notchcast") : String(localized: "Not connected", table: "Notchcast")
     }
 
     init(

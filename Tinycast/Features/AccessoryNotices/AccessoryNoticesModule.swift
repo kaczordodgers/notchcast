@@ -35,7 +35,7 @@ final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerD
         guard CBManager.authorization == .allowedAlways else { return }
         engine.seed(source.start { [weak self] address, name, connected in
             guard let self, self.running, self.engine.connection(address, connected: connected) else { return }
-            let message = String(localized: "\(name): Connected")
+            let message = String(localized: "\(name): Connected", table: "Notchcast")
             IslandActivityCenter.shared.showMessage(message, tone: .neutral, dwell: 4)
         })
         timer = Task { [weak self] in
@@ -43,7 +43,7 @@ final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerD
                 let readings = await Self.readBatteries()
                 guard !Task.isCancelled, let self, self.running else { return }
                 for reading in self.engine.batteries(readings) {
-                    let message = String(localized: "\(reading.name): Low battery: \(Int(reading.percent))%")
+                    let message = String(localized: "\(reading.name): Low battery: \(Int(reading.percent))%", table: "Notchcast")
                     IslandActivityCenter.shared.showMessage(message, tone: .danger, dwell: 4)
                 }
                 do { try await Task.sleep(for: .seconds(30)) } catch { return }

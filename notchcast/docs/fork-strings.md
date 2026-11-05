@@ -1,0 +1,9 @@
+# Fork localization
+
+Fork-only keys live in `Tinycast/Resources/Notchcast.xcstrings`. Use explicit `table: "Notchcast"` on `String(localized:)` and `LocalizedStringResource`, and `tableName: "Notchcast"` on `Text`. Implicit resource literals must become explicit resources. Shared upstream keys keep their original table. All eight translations and entry metadata move together; entries marked `shouldTranslate: false` remain nontranslatable.
+
+Run `python3 notchcast/move-fork-strings.py --fetch` against the intended upstream baseline. It validates everything before writing, restores the upstream catalog byte for byte, and refuses changed shared translations, conflicting entries and unknown literal contexts. `--check` writes nothing and fails if any changes are pending. Drop the separate migration-result commit and rerun the tooling after the feature train lands. Fetching uses the upstream URL and never changes remote configuration.
+
+The installed Swift compiler's `-emit-localized-strings` probe extracted explicit Text, String and resource calls into `Notchcast`. A wrapper taking `LocalizedStringKey` extracted its caller literal into `Localizable`, despite selecting a different table inside the wrapper. Explicit arguments are therefore required. The project recursively includes resources; regenerate with XcodeGen without committing generated files.
+
+Use `bash notchcast/sync-strings.sh` for compiler extraction and synchronization of both tables. `python3 notchcast/check-fork-strings.py` rejects fork keys in Localizable, missing explicit-table keys, missing locales and unconverted literals. PR catalog checks invoke it after migration. `xcstrings-union.py --git --catalog Tinycast/Resources/Notchcast.xcstrings` handles fork-table conflicts, including creation on one side. Catalog-order checks allow the initial migration's upstream order restoration and require ordinary relative ordering thereafter.

@@ -43,16 +43,16 @@ final class AgentThreadsState {
 
     var refreshMessage: String {
         switch status {
-        case .unavailable: String(localized: "T3 CLI not found.")
-        case .failed: String(localized: "Could not refresh agent threads.")
-        default: String(localized: "\(threads.filter { $0.phase.waiting }.count) waiting agent threads.")
+        case .unavailable: String(localized: "T3 CLI not found.", table: "Notchcast")
+        case .failed: String(localized: "Could not refresh agent threads.", table: "Notchcast")
+        default: String(localized: "\(threads.filter { $0.phase.waiting }.count) waiting agent threads.", table: "Notchcast")
         }
     }
 
     var waitingMessage: String? {
         switch status {
         case .unavailable, .failed: refreshMessage
-        default: threads.contains(where: { $0.phase.waiting }) ? nil : String(localized: "No waiting agent threads.")
+        default: threads.contains(where: { $0.phase.waiting }) ? nil : String(localized: "No waiting agent threads.", table: "Notchcast")
         }
     }
 

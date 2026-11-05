@@ -15,14 +15,14 @@ final class AgentThreadsModule: NotchcastModule {
     func setActive(_ active: Bool) { state.setActive(active) }
 
     nonisolated static let refreshCommand = NotchcastCommand(
-        slug: "refresh-agent-threads", name: String(localized: "Refresh Agent Threads"),
+        slug: "refresh-agent-threads", name: String(localized: "Refresh Agent Threads", table: "Notchcast"),
         sfSymbol: "arrow.clockwise", feature: .agentThreads,
         isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) },
         run: { NotchcastCore.agentThreads.state.refresh { state in
             AppCore.shared.showMessage(state.refreshMessage, tone: .neutral)
         } })
     nonisolated static let waitingCommand = NotchcastCommand(
-        slug: "open-waiting-agent-thread", name: String(localized: "Open Waiting Agent Thread"),
+        slug: "open-waiting-agent-thread", name: String(localized: "Open Waiting Agent Thread", table: "Notchcast"),
         sfSymbol: "bubble.left", feature: .agentThreads,
         isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) },
         run: { NotchcastCore.agentThreads.openWaiting() })

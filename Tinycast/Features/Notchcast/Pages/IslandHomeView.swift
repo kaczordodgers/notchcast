@@ -21,7 +21,7 @@ struct IslandHomeView: View {
         VStack(spacing: metrics.spacing.md) {
             SymbolImage(name: "house", size: metrics.size.dialogIcon)
                 .accessibilityHidden(true)
-            Text("Nothing running right now")
+            Text("Nothing running right now", tableName: "Notchcast")
                 .font(metrics.typography.rowTrailing)
         }
         .foregroundStyle(Theme.Colors.textSecondary)

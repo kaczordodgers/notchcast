@@ -35,6 +35,6 @@ struct TranscriptDownloadRunner: DownloadRunner {
         }
         if let transcribe { return try await transcribe(job, context) }
         throw MediaFailure(detail: String(localized:
-            "No captions are available. The Distill transcriber fallback is not connected yet."))
+            "No captions are available. The Distill transcriber fallback is not connected yet.", table: "Notchcast"))
     }
 }

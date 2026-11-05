@@ -4,7 +4,7 @@ struct AIUsageCacheDirectorySettingRow: View {
     @Bindable private var preferences = NotchcastPreferences.shared
 
     var body: some View {
-        TextField("AI usage cache directory", text: $preferences.aiUsageCachePath)
+        TextField(String(localized: "AI usage cache directory", table: "Notchcast"), text: $preferences.aiUsageCachePath)
             .textFieldStyle(.roundedBorder)
     }
 }
@@ -14,7 +14,7 @@ struct BuildStatsSnapshotSettingRow: View {
     @State private var state: BuildStatsLoader.State = .unconfigured
 
     var body: some View {
-        TextField("Snapshot path", text: $preferences.buildStatsPath)
+        TextField(String(localized: "Snapshot path", table: "Notchcast"), text: $preferences.buildStatsPath)
             .textFieldStyle(.roundedBorder)
         Text(verbatim: status)
             .lineLimit(1)
@@ -35,14 +35,14 @@ struct BuildStatsSnapshotSettingRow: View {
 
     private var status: String {
         switch state {
-        case .unconfigured: return String(localized: "No snapshot loaded.")
+        case .unconfigured: return String(localized: "No snapshot loaded.", table: "Notchcast")
         case let .loaded(model):
             let updated = model.modificationDate.formatted(.relative(presentation: .named))
-            return String(localized: "Loaded: \(model.entryCount) entries, updated \(updated)")
-        case .failed(.missing): return String(localized: "Snapshot file is missing.")
-        case .failed(.unreadable): return String(localized: "Snapshot file cannot be read.")
-        case .failed(.tooLarge): return String(localized: "Snapshot file is too large.")
-        case .failed(.invalid), .failed(.overflow): return String(localized: "Snapshot file is invalid.")
+            return String(localized: "Loaded: \(model.entryCount) entries, updated \(updated)", table: "Notchcast")
+        case .failed(.missing): return String(localized: "Snapshot file is missing.", table: "Notchcast")
+        case .failed(.unreadable): return String(localized: "Snapshot file cannot be read.", table: "Notchcast")
+        case .failed(.tooLarge): return String(localized: "Snapshot file is too large.", table: "Notchcast")
+        case .failed(.invalid), .failed(.overflow): return String(localized: "Snapshot file is invalid.", table: "Notchcast")
         }
     }
 }
@@ -62,7 +62,7 @@ struct AgentCLIInstallSettingRow: View {
         switch module.installer.state {
         case .installed: return String(localized: "Installed")
         case .notInstalled: return String(localized: "Not installed")
-        case .failed: return String(localized: "Unable to install the command line tool.")
+        case .failed: return String(localized: "Unable to install the command line tool.", table: "Notchcast")
         }
     }
 }
@@ -76,17 +76,17 @@ struct AgentChatToolsAccessSettingRow: View {
             if module.isAdded {
                 Button("Remove", action: module.remove)
             } else {
-                Button("Add Notchcast to AI chat") {
+                Button(String(localized: "Add Notchcast to AI chat", table: "Notchcast")) {
                     if module.add() == .binaryMissing {
-                        core.showMessage(String(localized: "Install the Notchcast CLI first."), tone: .danger)
+                        core.showMessage(String(localized: "Install the Notchcast CLI first.", table: "Notchcast"), tone: .danger)
                     }
                 }
                 .disabled(!module.isRunning)
             }
         } label: {
             Text(module.isAdded
-                 ? (core.mcpCoordinator.isActive ? String(localized: "Added") : String(localized: "Disabled"))
-                 : String(localized: "Not added"))
+                 ? (core.mcpCoordinator.isActive ? String(localized: "Added", table: "Notchcast") : String(localized: "Disabled"))
+                 : String(localized: "Not added", table: "Notchcast"))
         }
     }
 }
@@ -95,7 +95,7 @@ struct VoiceAskDestinationSettingRow: View {
     @Bindable var module: VoiceAskModule
 
     var body: some View {
-        TextField("Voice Ask destination", text: $module.destination)
+        TextField(String(localized: "Voice Ask destination", table: "Notchcast"), text: $module.destination)
             .textFieldStyle(.roundedBorder)
     }
 }

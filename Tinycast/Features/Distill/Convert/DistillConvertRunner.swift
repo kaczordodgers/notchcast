@@ -38,17 +38,17 @@ nonisolated struct DistillConvertRunner: DownloadRunner {
     private static func detail(_ result: DistillConversion.Result) -> String {
         let message: String
         switch result.status {
-        case .converted: message = String(localized: "Converted")
-        case .retained: message = String(localized: "Converted; original retained")
+        case .converted: message = String(localized: "Converted", table: "Notchcast")
+        case .retained: message = String(localized: "Converted; original retained", table: "Notchcast")
         case .failed(let reason): message = reason
         case .skipped(let reason):
             switch reason {
-            case .htmlUnavailable: message = String(localized: "Skipped: HTML converter is unavailable")
-            case .mediaUnavailable: message = String(localized: "Skipped: transcriber is unavailable")
-            case .markdown: message = String(localized: "Skipped: already Markdown")
-            case .generated: message = String(localized: "Skipped: generated file")
-            case .symbolicLink: message = String(localized: "Skipped: symbolic link")
-            case .unsupported: message = String(localized: "Skipped: unsupported format")
+            case .htmlUnavailable: message = String(localized: "Skipped: HTML converter is unavailable", table: "Notchcast")
+            case .mediaUnavailable: message = String(localized: "Skipped: transcriber is unavailable", table: "Notchcast")
+            case .markdown: message = String(localized: "Skipped: already Markdown", table: "Notchcast")
+            case .generated: message = String(localized: "Skipped: generated file", table: "Notchcast")
+            case .symbolicLink: message = String(localized: "Skipped: symbolic link", table: "Notchcast")
+            case .unsupported: message = String(localized: "Skipped: unsupported format", table: "Notchcast")
             }
         }
         return result.source.lastPathComponent + ": " + message
