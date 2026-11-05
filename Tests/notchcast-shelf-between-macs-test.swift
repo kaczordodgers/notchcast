@@ -30,7 +30,16 @@ struct ShelfTest {
         let text = ShelfItem(kind: .text, name: "text.txt", data: Data("hello".utf8))
         try await module.send(text)
         try await module.send(text)
-        precondition(fake.sent.count == 1)
+        precondition(fake.sent.count == 2)
+        for index in 0..<65 {
+            try await module.send(ShelfItem(kind: .text, name: "item", data: Data("send \(index)".utf8)))
+        }
+        precondition(fake.sent.count == 67)
+        for index in 0..<65 {
+            _ = try await module.receive(ShelfItem(kind: .text, name: "item", data: Data("receive \(index)".utf8)))
+        }
+        let entries = try FileManager.default.contentsOfDirectory(atPath: directory.path)
+        precondition(entries.count == 64, "Stored \(entries.count) items")
         let received = try await module.receive(text)
         let duplicate = try await module.receive(text)
         precondition(received == duplicate)
