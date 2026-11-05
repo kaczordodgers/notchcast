@@ -1,4 +1,5 @@
 {
+  "agentIsland": "launcher command Show Agent Status → AgentIslandModule.refresh; pure per-source presentation, no island page",
   "waitingAlerts": "Show Waiting Agents → Tinycast/Features/WaitingAlerts/Service/WaitingAlertsModule.swift; local file events read pending requests in SQLite and post message HUD notices",
   "openBotAgents": "launcher command Refresh OpenBot Agents: OpenBotAgentsModule.refreshCommand, gated by openBotAgents",
   "agentThreads": "launcher commands Refresh Agent Threads / Open Waiting Agent Thread → Tinycast/Features/AgentThreads/AgentThreadsModule.swift; start and refresh read the local CLI; no page",
