@@ -215,6 +215,7 @@ enum ForkSettingsBackupSchema {
         "torrentsKeepSharing",
         "tasks",
         "tasksSync",
+        "todoIsland",
         "archivesInPlace",
         "machineSetupProfile",
         "backupRunNow",
