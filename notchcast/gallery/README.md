@@ -30,6 +30,7 @@ Stable page names:
 - `launcher-number-keys-{dark,light}`
 - `launcher-shorten-link-{dark,light}`
 - `settings-notchcast-<group>-{dark,light}`
+- `settings-notchcast-backups-{dark,light}` includes the settings file sync and backup actions.
 - `settings-<SettingsTab.slug>-{dark,light}` (including hidden upstream tabs)
 
 The MBA fixture is 1470 × 956 with a centered 184 × 32 hardware notch; the
