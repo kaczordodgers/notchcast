@@ -99,6 +99,9 @@ def rewrite(source, keys):
             continue
         if re.search(r'"com\.apple\.[^"]+":\s*$', before):
             continue
+        # Plain dictionary values (gallery sample text) are not localized, so there is nothing to route.
+        if re.search(r'"[\w-]+":\s*$', before):
+            continue
         if re.search(r'keywords:\s*\[[^\n\]]*$', before):
             continue
         if re.search(r'\bcase\s*$', before):
