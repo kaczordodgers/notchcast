@@ -16,7 +16,7 @@ final class ChildProcess: Sendable {
         var errorDescription: String? {
             result.errors.split(whereSeparator: \.isNewline)
                 .map { $0.trimmingCharacters(in: .whitespaces) }.last { !$0.isEmpty }
-                ?? String(localized: "Tool exited with status \(result.status).")
+                ?? String(localized: "Tool exited with status \(result.status).", table: "Notchcast")
         }
     }
 

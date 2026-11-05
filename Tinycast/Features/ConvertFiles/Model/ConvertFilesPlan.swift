@@ -19,7 +19,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
         sources: [URL], target: String, pages: String = "", occupied: Set<URL> = []
     ) throws -> Self {
         guard !sources.isEmpty, sources.allSatisfy({ $0.isFileURL && $0.path.hasPrefix("/") }) else {
-            throw Failure(message: String(localized: "Choose local files."))
+            throw Failure(message: String(localized: "Choose local files.", table: "Notchcast"))
         }
         let format = target.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "."))
         var used = Set(occupied.union(sources).map { $0.standardizedFileURL.path })
@@ -37,7 +37,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
         }
         if format == "pdf-merge" {
             guard sources.allSatisfy({ $0.pathExtension.lowercased() == "pdf" }) else {
-                throw Failure(message: String(localized: "PDF merge requires PDF files."))
+                throw Failure(message: String(localized: "PDF merge requires PDF files.", table: "Notchcast"))
             }
             let destination = output(sources[0], suffix: " merged.pdf")
             return Self(items: [Item(sources: sources, output: destination, tool: "native",
@@ -109,7 +109,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
                 arguments = ["-nostdin", "-v", "error", "-n", "-protocol_whitelist", "file,pipe,crypto,data",
                              "-i", source.path, destination.path]
             } else {
-                throw Failure(message: String(localized: "This file conversion is not supported."))
+                throw Failure(message: String(localized: "This file conversion is not supported.", table: "Notchcast"))
             }
             items.append(Item(sources: [source], output: destination, tool: tool, arguments: arguments))
         }

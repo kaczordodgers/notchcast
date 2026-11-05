@@ -173,9 +173,10 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_repeated_search_entry_with_new_keywords(self):
         source = (self.root / SEARCH).read_text()
-        line = '        .init(group: .notchcast(feature: .liveTimers), "Timers", keywords: ["duration", "alarm", "sound"]),\n'
+        line = ('        .init(group: .notchcast(feature: .liveTimers), LocalizedStringResource("Timers", table: "Notchcast"),'
+                ' keywords: ["duration", "alarm", "sound"]),\n')
         self.rejected(SEARCH, source.replace(line, line + line.replace('"sound"', '"sound", "ring"')),
-                      'repeated entry .init(group: .notchcast(feature: .liveTimers), "Timers"')
+                      'repeated entry .init(group: .notchcast(feature: .liveTimers), LocalizedStringResource("Timers"')
 
     def test_setting_split_over_lines(self):
         source = (self.root / PREFS).read_text()

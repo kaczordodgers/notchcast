@@ -203,16 +203,16 @@ final class TodoLinkCoordinator {
         switch error {
         case TodoReplicationError.conflictingEnvelope:
             kind = "conflict"
-            message = String(localized: "Task sync found conflicting changes; the Macs may share a replica ID.")
+            message = String(localized: "Task sync found conflicting changes; the Macs may share a replica ID.", table: "Notchcast")
         case TodoLinkPacket.Failure.tooLarge:
             kind = "size"
-            message = String(localized: "Task sync exceeded the 8 MB transfer limit.")
+            message = String(localized: "Task sync exceeded the 8 MB transfer limit.", table: "Notchcast")
         case is TodoReplicationError:
             kind = "rejected"
-            message = String(localized: "Task sync failed; check Mac Link and try again.")
+            message = String(localized: "Task sync failed; check Mac Link and try again.", table: "Notchcast")
         default:
             kind = String(reflecting: error)
-            message = String(localized: "Task sync failed; check Mac Link and try again.")
+            message = String(localized: "Task sync failed; check Mac Link and try again.", table: "Notchcast")
         }
         if reported.insert(kind).inserted { showFailure(message) }
     }
