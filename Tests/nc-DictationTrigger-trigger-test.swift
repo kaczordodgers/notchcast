@@ -14,7 +14,8 @@ struct DictationTriggerTest {
         testEngine()
         try await testEvents()
         try await testCaptureStart()
-        print("ALL PASSED: Globe tap/hold, chord isolation, preserved text, bounded capture start")
+        try await testCaptureStop()
+        print("ALL PASSED: Globe tap/hold, chord isolation, preserved text, bounded capture start and stop")
     }
 
     private static func testEngine() {
@@ -170,6 +171,37 @@ struct DictationTriggerTest {
         cancelledRelease.signal()
         try await wait { cancelledStopped.withLock { $0 } }
         expect(true, "Cancellation returns promptly and closes a late start")
+    }
+
+    private static func testCaptureStop() async throws {
+        let stopped = Mutex(false)
+        await DictationCapture.stopBounded { stopped.withLock { $0 = true } }
+        expect(stopped.withLock { $0 }, "A prompt stop runs before stop returns")
+
+        let release = DispatchSemaphore(value: 0)
+        let clock = ContinuousClock()
+        let started = clock.now
+        await DictationCapture.stopBounded(timeout: .milliseconds(30)) { release.wait() }
+        expect(clock.now - started < .seconds(2), "A hung coreaudiod stop returns within its bound")
+        release.signal()
+
+        let entered = Mutex(false)
+        let cancelledRelease = DispatchSemaphore(value: 0)
+        let returned = Mutex(false)
+        let task = Task {
+            await DictationCapture.stopBounded(timeout: .seconds(10)) {
+                entered.withLock { $0 = true }
+                cancelledRelease.wait()
+            }
+            returned.withLock { $0 = true }
+        }
+        try await wait { entered.withLock { $0 } }
+        task.cancel()
+        try await Task.sleep(for: .milliseconds(50))
+        expect(!returned.withLock { $0 }, "Cancellation cannot skip a stop still in progress")
+        cancelledRelease.signal()
+        await task.value
+        expect(returned.withLock { $0 }, "A cancelled stop returns once the session stops")
     }
 
     private static func wait(_ condition: () -> Bool) async throws {
