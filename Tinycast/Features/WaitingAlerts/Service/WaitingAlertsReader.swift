@@ -21,8 +21,7 @@ struct WaitingAlertsReader: WaitingAlertsReading {
         defer { sqlite3_finalize(statement) }
         let query = """
             SELECT t.thread_id, t.title,
-                   MAX(CASE WHEN r.kind = 'user_input' THEN 0 ELSE 1 END),
-                   MAX(CASE WHEN r.kind = 'user_input' THEN 1 ELSE 0 END)
+                   MAX(CASE WHEN r.kind = 'user_input' THEN 0 ELSE 1 END)
             FROM orchestration_v2_projection_runtime_requests r
             JOIN orchestration_v2_projection_threads t ON t.thread_id = r.thread_id
             WHERE r.resolved_at IS NULL AND t.deleted_at IS NULL AND t.archived_at IS NULL

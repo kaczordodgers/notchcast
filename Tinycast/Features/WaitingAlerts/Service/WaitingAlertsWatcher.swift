@@ -7,10 +7,10 @@ protocol WaitingAlertsWatching: AnyObject {
     func stop()
 }
 
+/// Reports changes to files directly inside `path`, where T3 keeps its state database; writes in subfolders are ignored.
 @MainActor
 final class WaitingAlertsWatcher: WaitingAlertsWatching {
-    private var stream: FSEventStreamRef?
-    private var changed: (@MainActor () -> Void)?
+    private var watcher: FileSystemWatcher?
 
     func start(path: String, changed: @escaping @MainActor () -> Void) -> Bool {
         stop()
@@ -18,28 +18,21 @@ final class WaitingAlertsWatcher: WaitingAlertsWatching {
         guard FileManager.default.fileExists(atPath: path, isDirectory: &directory), directory.boolValue else {
             return false
         }
-        self.changed = changed
-        var context = FSEventStreamContext(version: 0, info: Unmanaged.passUnretained(self).toOpaque(),
-                                          retain: nil, release: nil, copyDescription: nil)
-        guard let stream = FSEventStreamCreate(nil, { _, info, _, _, _, _ in
-            guard let info else { return }
-            MainActor.assumeIsolated {
-                Unmanaged<WaitingAlertsWatcher>.fromOpaque(info).takeUnretainedValue().changed?()
-            }
-        }, &context, [path] as CFArray, FSEventStreamEventId(kFSEventStreamEventIdSinceNow), 2.5,
-        FSEventStreamCreateFlags(kFSEventStreamCreateFlagFileEvents)) else { return false }
-        self.stream = stream
-        FSEventStreamSetDispatchQueue(stream, .main)
-        guard FSEventStreamStart(stream) else { stop(); return false }
-        return true
+        // FSEvents reports real paths (`/private/var/…`), so compare against the real root.
+        guard let resolved = realpath(path, nil) else { return false }
+        let root = String(cString: resolved) + "/"
+        free(resolved)
+        watcher = FileSystemWatcher(
+            paths: [path], since: FSEventStreamEventId(kFSEventStreamEventIdSinceNow), queue: .main
+        ) { events in
+            guard events.contains(where: {
+                $0.has(kFSEventStreamEventFlagRootChanged)
+                    || ($0.path.hasSuffix("/") ? $0.path : $0.path + "/") == root
+            }) else { return }
+            Task { @MainActor in changed() }
+        }
+        return watcher != nil
     }
 
-    func stop() {
-        changed = nil
-        guard let stream else { return }
-        FSEventStreamStop(stream)
-        FSEventStreamInvalidate(stream)
-        FSEventStreamRelease(stream)
-        self.stream = nil
-    }
+    func stop() { watcher = nil }
 }

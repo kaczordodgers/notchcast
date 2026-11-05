@@ -26,8 +26,9 @@ T3's internal schema is not a public contract. If an update changes it, a missin
 sets the failure state and the command reports “T3 data is unavailable.” Nothing crashes.
 Missing database files fail without creating a file.
 
-FSEvents observes the local userdata directory with 2.5-second latency, providing coalescing without
-a timer or throttle. Missing directories create no stream; enabling again retries watcher creation.
+Upstream's `FileSystemWatcher` observes the local userdata directory (one-second latency, no timer
+or throttle). Only changes to files directly in it count, where T3 keeps its state database; writes in
+subfolders such as logs and attachments are ignored. Missing directories create no stream; enabling again retries watcher creation.
 Changes during a read coalesce into exactly one trailing read; reads never overlap.
 Stop closes the stream, cancels its owned task and invalidates late callbacks and results.
 Failed reads preserve the previous successful snapshot; explicit commands report failure.
@@ -40,10 +41,9 @@ alerts switch gates the command. Module start/stop refresh command availability.
 
 ## Cuts
 
-Chad lead QUESTION:/BLOCKED: reports use a private event router, outside the T3 contract.
+Private agent status reports are out of scope.
 Remote Mac coverage belongs to fleet-panel. Click-to-open also waits for fleet-panel; the existing
-Open Waiting Agent Thread command already handles opening. Mark rendering and all new visible design
-wait for Damian.
+Open Waiting Agent Thread command already handles opening. Mark rendering waits for a design decision.
 
 ## Verification
 

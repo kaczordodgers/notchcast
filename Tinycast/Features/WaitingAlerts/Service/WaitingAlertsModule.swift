@@ -4,7 +4,6 @@ import Observation
 @MainActor
 @Observable
 final class WaitingAlertsModule: NotchcastModule {
-    private(set) var waiting: [WaitingAlert] = []
     private(set) var waitingCount = 0
     private(set) var unavailable = false
     private let watcher: any WaitingAlertsWatching
@@ -51,7 +50,6 @@ final class WaitingAlertsModule: NotchcastModule {
         watcher.stop()
         task?.cancel()
         previous = nil
-        waiting = []
         waitingCount = 0
         unavailable = false
         dirty = false
@@ -86,7 +84,6 @@ final class WaitingAlertsModule: NotchcastModule {
                     self.unavailable = false
                     let notices = WaitingAlertsEngine.notices(previous: self.previous, current: current)
                     self.previous = current
-                    if self.waiting != current { self.waiting = current }
                     if self.waitingCount != current.count { self.waitingCount = current.count }
                     if report {
                         self.post(WaitingAlertsEngine.countMessage(current.count))

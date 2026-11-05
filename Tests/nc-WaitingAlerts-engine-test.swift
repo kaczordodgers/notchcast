@@ -1,5 +1,6 @@
 // notchcast-sources: -strict-concurrency=complete -lsqlite3
 // notchcast-sources: Tinycast/Features/WaitingAlerts/Model/*.swift Tinycast/Features/WaitingAlerts/Service/*.swift
+// notchcast-sources: Tinycast/Features/FileSearch/Service/FileSystemWatcher.swift
 import Foundation
 import SQLite3
 
@@ -59,6 +60,7 @@ struct NotchcastCommand {
     @MainActor static func settle() async { for _ in 0..<30 { await Task.yield() } }
     @MainActor static func main() async throws {
         try await verifyReader()
+        try await verifyWatcher()
         let approval = [wait("one", .approval)]
         let question = [wait("two", .question)]
         precondition(WaitingAlertsEngine.notices(previous: nil, current: approval).isEmpty)
@@ -140,6 +142,31 @@ struct NotchcastCommand {
         print("PASS: fake watcher/reader; immediate command read; one in flight; exactly one trailing read")
         print("PASS: stop drops late result/event; missing folder; switch command gate; exact hook init; Swift 6 strict")
         print("PASS: stop/restart serializes the old read and suppresses notices on the new first read")
+    }
+
+    @MainActor static func verifyWatcher() async throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "waiting-watch-\(UUID().uuidString)")
+        let nested = directory.appending(path: "logs")
+        try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let watcher = WaitingAlertsWatcher()
+        var changes = 0
+        precondition(!watcher.start(path: directory.appending(path: "missing").path) { changes += 1 })
+        precondition(watcher.start(path: directory.path) { changes += 1 })
+        try await Task.sleep(for: .seconds(2))
+        changes = 0
+        try Data("x".utf8).write(to: nested.appending(path: "log.txt"))
+        try await Task.sleep(for: .seconds(3))
+        precondition(changes == 0, "subfolder write must not count")
+        try Data("x".utf8).write(to: directory.appending(path: "statev2.sqlite-wal"))
+        for _ in 0..<50 where changes == 0 { try await Task.sleep(for: .milliseconds(100)) }
+        precondition(changes > 0, "top-level write must count")
+        watcher.stop()
+        let stopped = changes
+        try Data("y".utf8).write(to: directory.appending(path: "statev2.sqlite-wal"))
+        try await Task.sleep(for: .seconds(2))
+        precondition(changes == stopped, "stop must end events")
+        print("PASS: real FSEvents on a temp folder: top-level write counts, subfolder write ignored, stop ends events")
     }
 
     static func verifyReader() async throws {
