@@ -5,7 +5,10 @@ extension SoloistFailure {
         switch self {
         case .keyUnavailable: String(localized: "Couldn’t read the API key from Keychain.", table: "Notchcast")
         case .keyNotSaved: String(localized: "Couldn’t save the API key in Keychain.", table: "Notchcast")
-        case .invalidKey: String(localized: "Spotify didn’t accept the API key.", table: "Notchcast")
+        case .invalidKey(.empty): String(localized: "Paste an API key first.", table: "Notchcast")
+        case .invalidKey(.tooLong): String(localized: "That’s too long to be an API key.", table: "Notchcast")
+        case .invalidKey(.whitespace): String(localized: "The API key can’t contain spaces or line breaks.", table: "Notchcast")
+        case .invalidKey(.control): String(localized: "The API key contains hidden characters.", table: "Notchcast")
         case .keyFileUnreadable: String(localized: "Couldn’t read that file.", table: "Notchcast")
         case .download: String(localized: "Couldn’t download Soloist. Check your connection.", table: "Notchcast")
         case .httpStatus(let status): String(localized: "Spotify’s download server answered \(status).", table: "Notchcast")
@@ -21,7 +24,7 @@ extension SoloistFailure {
     /// The message after importing a key file, where an invalid key means the file holds none.
     var importMessage: String {
         switch self {
-        case .invalidKey: String(localized: "That file has no API key.", table: "Notchcast")
+        case .invalidKey(.empty): String(localized: "That file has no API key.", table: "Notchcast")
         case .detailed(let failure, let detail): "\(failure.importMessage)\n\(detail)"
         default: message
         }

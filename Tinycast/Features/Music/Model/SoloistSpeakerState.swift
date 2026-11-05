@@ -15,7 +15,7 @@ enum SoloistSpeakerState: Equatable, Sendable {
 enum SoloistFailure: Error, Equatable, Sendable {
     case keyUnavailable
     case keyNotSaved
-    case invalidKey
+    case invalidKey(SoloistKeyValidation.Problem)
     case keyFileUnreadable
     case download
     case httpStatus(Int)

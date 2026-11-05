@@ -45,8 +45,9 @@ struct NotchcastSoloistFailuresTest {
         try Data("fixture secret\n".utf8).write(to: spaced)
         do { try key.importKey(from: spaced); preconditionFailure("imported a key with a space") } catch {
             let failure = error as! SoloistFailure
-            check(failure.reason == .invalidKey)
-            check(failure.importMessage.hasPrefix(String(localized: "That file has no API key.", table: "Notchcast")))
+            check(failure.reason == .invalidKey(.whitespace))
+            let message = String(localized: "The API key can’t contain spaces or line breaks.", table: "Notchcast")
+            check(failure.importMessage.hasPrefix(message))
             check(failure.importMessage.contains(spaced.path) && failure.importMessage.contains("15"), failure.importMessage)
             check(!failure.importMessage.contains("secret") && !failure.message.contains("secret"), "message leaked the key")
         }
@@ -54,6 +55,38 @@ struct NotchcastSoloistFailuresTest {
         try Data("fixture-secret\n".utf8).write(to: good)
         try key.importKey(from: good)
         check(stored == "fixture-secret")
+
+        let fixture = String(repeating: "aB3", count: 12) + "_"
+        check(fixture.count == 37)
+        try key.save(fixture + "\n")
+        check(stored == fixture)
+        try Data((fixture + "\n").utf8).write(to: good)
+        try key.importKey(from: good)
+        check(stored == fixture)
+        let problems: [(String, SoloistKeyValidation.Problem)] = [
+            ("", .empty),
+            (String(repeating: "x", count: SoloistKeyValidation.maximumBytes + 1), .tooLong),
+            ("fixture space", .whitespace),
+            ("fixture\nline", .whitespace),
+            ("fixture\u{0007}control", .control),
+            ("fixture\u{200B}hidden", .control)
+        ]
+        for (text, problem) in problems {
+            do { try key.save(text); preconditionFailure("saved invalid key") } catch {
+                guard let failure = error as? SoloistFailure else { throw error }
+                check(failure.reason == .invalidKey(problem), "expected \(problem), got \(failure.reason)")
+                if !text.isEmpty {
+                    check(!failure.message.contains(text) && !failure.importMessage.contains(text))
+                }
+            }
+        }
+        try Data().write(to: good)
+        do { try key.importKey(from: good); preconditionFailure("imported an empty key") } catch {
+            guard let failure = error as? SoloistFailure else { throw error }
+            check(failure.importMessage.hasPrefix(
+                String(localized: "That file has no API key.", table: "Notchcast")))
+        }
+        try Data((fixture + "\n").utf8).write(to: good)
 
         let locked = SoloistKey(read: { throw KeychainSecretStore.StoreError.keychain(errSecInteractionNotAllowed) },
                                 write: { _ in throw KeychainSecretStore.StoreError.keychain(errSecAuthFailed) })
@@ -104,6 +137,14 @@ struct NotchcastSoloistFailuresTest {
 
     @MainActor
     private static func installChecks(root: URL) async throws {
+        let listing = "-rwxr-xr-x 0 user group 123 Nov 5 12:00 soloist"
+        check(try SoloistArchiveRules.check(SoloistArchiveRules.entries(listing)) == ["soloist"])
+        do {
+            _ = try SoloistArchiveRules.check([.init(kind: "-", size: 123, name: "soloist\u{0007}")])
+            preconditionFailure("accepted a control character in an archive name")
+        } catch {
+            check((error as? SoloistFailure)?.reason == .archive)
+        }
         let files = SoloistFiles(root: root.appending(path: "Application Support/soloist"))
         let garbage = SoloistInstaller(files: files, fetch: { _ in Data("not an archive".utf8) }, probe: { _ in nil })
         do { _ = try await garbage.install(); preconditionFailure("installed garbage") } catch {

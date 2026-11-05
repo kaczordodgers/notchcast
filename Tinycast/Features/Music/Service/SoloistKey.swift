@@ -35,7 +35,10 @@ final class SoloistKey {
     }
 
     func save(_ pasted: String) throws {
-        let key = try SoloistKeyValidation.validated(pasted)
+        let key: String
+        do { key = try SoloistKeyValidation.validated(pasted) } catch SoloistFailure.invalidKey(let problem) {
+            throw Self.failure(.invalidKey(problem), "\(problem.rawValue): \(pasted.utf8.count) bytes")
+        }
         do { try write(key) } catch { throw Self.failure(.keyNotSaved, error) }
         onChange?()
     }
@@ -49,10 +52,18 @@ final class SoloistKey {
             data = try handle.read(upToCount: SoloistKeyValidation.maximumBytes + 1) ?? Data()
         } catch { throw Self.failure(.keyFileUnreadable, "\(file.path): \(SoloistFailure.describe(error))") }
         let found = "\(file.path): \(data.count.formatted(.byteCount(style: .file)))"
-        guard data.count <= SoloistKeyValidation.maximumBytes, let text = String(data: data, encoding: .utf8) else {
+        guard data.count <= SoloistKeyValidation.maximumBytes else {
+            throw Self.failure(.invalidKey(.tooLong), found)
+        }
+        guard let text = String(data: data, encoding: .utf8) else {
             throw Self.failure(.keyFileUnreadable, found)
         }
-        do { try save(text) } catch SoloistFailure.invalidKey { throw Self.failure(.invalidKey, found) }
+        do { try save(text) } catch let failure as SoloistFailure {
+            if case .invalidKey(let problem) = failure.reason {
+                throw Self.failure(.invalidKey(problem), "\(found); \(problem.rawValue)")
+            }
+            throw failure
+        }
     }
 
     func remove() throws {

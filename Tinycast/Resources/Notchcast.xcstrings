@@ -40153,55 +40153,214 @@
         }
       }
     },
-    "Spotify didn’t accept the API key." : {
+    "Paste an API key first." : {
       "extractionState" : "manual",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spotify hat den API-Schlüssel nicht akzeptiert."
+            "value" : "Füge zuerst einen API-Schlüssel ein."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spotify no ha aceptado la clave API."
+            "value" : "Pega primero una clave API."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spotify n’a pas accepté la clé API."
+            "value" : "Collez d’abord une clé API."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SpotifyがAPIキーを受け付けませんでした。"
+            "value" : "まずAPIキーを貼り付けてください。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spotify에서 API 키를 승인하지 않았습니다."
+            "value" : "먼저 API 키를 붙여넣으세요."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O Spotify não aceitou a chave de API."
+            "value" : "Cole primeiro uma chave de API."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spotify не принял ключ API."
+            "value" : "Сначала вставьте ключ API."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Spotify 未接受该 API 密钥。"
+            "value" : "请先粘贴 API 密钥。"
+          }
+        }
+      }
+    },
+    "That’s too long to be an API key." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das ist zu lang für einen API-Schlüssel."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eso es demasiado largo para ser una clave API."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C’est trop long pour être une clé API."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APIキーとしては長すぎます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 키로 사용하기에는 너무 깁니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Isso é longo demais para ser uma chave de API."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это слишком длинно для ключа API."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这太长了，无法用作 API 密钥。"
+          }
+        }
+      }
+    },
+    "The API key can’t contain spaces or line breaks." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der API-Schlüssel darf keine Leerzeichen oder Zeilenumbrüche enthalten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clave API no puede contener espacios ni saltos de línea."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé API ne peut pas contenir d’espaces ni de sauts de ligne."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APIキーに空白や改行は使用できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 키에는 공백이나 줄바꿈을 포함할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A chave de API não pode conter espaços ou quebras de linha."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ API не может содержать пробелы или переносы строк."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥不能包含空格或换行符。"
+          }
+        }
+      }
+    },
+    "The API key contains hidden characters." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der API-Schlüssel enthält unsichtbare Zeichen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clave API contiene caracteres ocultos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La clé API contient des caractères invisibles."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "APIキーに不可視文字が含まれています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 키에 숨겨진 문자가 포함되어 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A chave de API contém caracteres ocultos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ключ API содержит скрытые символы."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "API 密钥包含隐藏字符。"
           }
         }
       }

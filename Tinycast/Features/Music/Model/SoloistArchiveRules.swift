@@ -35,7 +35,7 @@ enum SoloistArchiveRules {
             guard entry.kind == "-" || entry.kind == "d", entry.size >= 0,
                   entry.size <= maxUnpacked - total, !name.hasPrefix("/"), !name.hasPrefix("-"),
                   !components.contains(".."), !name.contains("\\"),
-                  !name.unicodeScalars.contains(where: CharacterSet.controlCharacters.contains),
+                  !SoloistTextValidation.hasControlCharacters(name),
                   seen.insert(name).inserted else {
                 let shown = entry.name.debugDescription.prefix(200)
                 throw SoloistFailure.archive.detail("entry \(entry.kind) \(entry.size) \(shown)")

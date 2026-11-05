@@ -23,7 +23,7 @@ final class SpotifySettingsCoordinator {
         panel?.cancel(nil)
     }
 
-    var canSave: Bool { (try? SoloistKeyValidation.validated(keyText)) != nil }
+    var canSave: Bool { !keyText.isEmpty }
 
     func refreshKey() {
         do { hasKey = try module.key.isSaved } catch { present(.keyUnavailable) }
