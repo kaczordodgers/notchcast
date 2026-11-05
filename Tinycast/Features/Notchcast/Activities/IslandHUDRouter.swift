@@ -24,7 +24,7 @@ enum IslandHUDRouter {
     }
 
     private static var shouldRoute: Bool {
-        IslandActivityCenter.shared.presenter != nil
+        IslandActivityCenter.shared.hasPresenter
             && NotchcastPreferences.shared.isOn(.islandStatusMessages)
     }
 }
