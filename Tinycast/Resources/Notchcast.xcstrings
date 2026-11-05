@@ -32439,54 +32439,54 @@
         }
       }
     },
-    "Replace saved settings with the newest backup?" : {
+    "Replace saved settings with the selected backup?" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Gespeicherte Einstellungen durch die neueste Sicherung ersetzen?"
+            "value" : "Gespeicherte Einstellungen durch die ausgewählte Sicherung ersetzen?"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "¿Reemplazar los ajustes guardados con la copia más reciente?"
+            "value" : "¿Reemplazar los ajustes guardados con la copia seleccionada?"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Remplacer les réglages enregistrés par la sauvegarde la plus récente ?"
+            "value" : "Remplacer les réglages enregistrés par la sauvegarde sélectionnée ?"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "保存した設定を最新のバックアップで置き換えますか？"
+            "value" : "保存した設定を選択したバックアップで置き換えますか？"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "저장된 설정을 최신 백업으로 바꾸시겠습니까?"
+            "value" : "저장된 설정을 선택한 백업으로 바꾸시겠습니까?"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Substituir as configurações salvas pelo backup mais recente?"
+            "value" : "Substituir as configurações salvas pelo backup selecionado?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Заменить сохранённые настройки последней резервной копией?"
+            "value" : "Заменить сохранённые настройки выбранной резервной копией?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用最新备份替换已保存的设置？"
+            "value" : "用所选备份替换已保存的设置？"
           }
         }
       }
@@ -48199,6 +48199,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "取消固定灵动岛"
+          }
+        }
+      }
+    },
+    "Unreadable or invalid backup." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sicherung nicht lesbar oder ungültig."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia ilegible o no válida."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sauvegarde illisible ou non valide."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "バックアップを読み込めないか、無効です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "백업을 읽을 수 없거나 올바르지 않습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backup ilegível ou inválido."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Резервная копия нечитаема или недействительна."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "备份无法读取或无效。"
           }
         }
       }

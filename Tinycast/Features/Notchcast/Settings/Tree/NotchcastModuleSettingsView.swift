@@ -76,6 +76,11 @@ private struct NotchcastModuleFeatureRows: View {
         if feature == .microphoneMute, servicesReady {
             MicrophoneHotKeyFailureSettingRow()
         }
+        if feature == .settingsBackup, NotchcastCore.settingsBackupRestore.choosing {
+            ForkSettingsBackupCopiesView(copies: NotchcastCore.settingsBackupRestore.copies,
+                restore: { NotchcastCore.settingsBackupRestore.restore(name: $0) })
+                .onDisappear { NotchcastCore.settingsBackupRestore.cancelChoosing() }
+        }
         if preferences.isEnabled(feature) && feature.settingsAvailable {
             ForEach(commands, id: \.id) { command in
                 if command.slug.hasPrefix("settings-") {
