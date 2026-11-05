@@ -13,7 +13,7 @@ enum TreadmillCommands {
         _ slug: String, _ name: String.LocalizationValue, action: Action
     ) -> NotchcastCommand {
         NotchcastCommand(slug: slug, name: String(localized: name), sfSymbol: "figure.walk",
-            isEnabled: { NotchcastPreferences.shared.isOn(.treadmillWalk) },
+            feature: .treadmillWalk, isEnabled: { NotchcastPreferences.shared.isOn(.treadmillWalk) },
             run: {
                 execute(action, coordinator: NotchcastCore.treadmill) {
                     AppCore.shared.showMessage($0, tone: $1)
