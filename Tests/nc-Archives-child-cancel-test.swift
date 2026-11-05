@@ -28,7 +28,8 @@ struct ArchiveChildCancelTest {
             signal.signal(signal.SIGTERM, signal.SIG_IGN)
             time.sleep(30)
             os._exit(0)
-        with open('\(pidFile.path)', 'w') as file: file.write(str(child))
+        with open('\(pidFile.path).tmp', 'w') as file: file.write(str(child))
+        os.rename('\(pidFile.path).tmp', '\(pidFile.path)')
         os._exit(0)
         """.write(to: script, atomically: false, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
@@ -41,12 +42,15 @@ struct ArchiveChildCancelTest {
             defer { completed.withLock { $0 = true } }
             return try await ArchiveProcess.run(tool: script, arguments: [])
         }
-        for _ in 0..<100 {
+        // A cold python3 on a loaded CI runner can take seconds to start.
+        for _ in 0..<1000 {
             if FileManager.default.fileExists(atPath: pidFile.path) { break }
             try await Task.sleep(for: .milliseconds(20))
         }
-        let child = Int32(try String(contentsOf: pidFile, encoding: .utf8)
-            .trimmingCharacters(in: .whitespacesAndNewlines))!
+        guard let text = try? String(contentsOf: pidFile, encoding: .utf8),
+              let child = Int32(text.trimmingCharacters(in: .whitespacesAndNewlines)) else {
+            preconditionFailure("Extractor never reported its child pid")
+        }
         defer { kill(child, SIGKILL) }
         try await Task.sleep(for: .milliseconds(200))
         task.cancel()
