@@ -14,16 +14,19 @@ never copied and continue to gate their features. Root-helper switches and `agen
 remain excluded, as do AgentGrantStore grants, credentials, tokens and API keys.
 
 Format 2 uses `settings-v2-<day>.plist`. Selection ignores old `settings-<day>.plist` files;
-there is no format-1 compatibility path. Format 3 is refused. The newest file must be a regular file
+there is no format-1 compatibility path. Format 3 is refused. The selected file must be a regular file
 of at most 1 MiB before reading; FIFOs and symbolic links are refused without blocking.
 Restore validates every value before confirmation and again before writing. Any unknown key,
 including a root or nested JSON key, wrong type, unsupported choice or out-of-range value refuses
 the whole file and leaves memory and defaults unchanged. Plist booleans are distinct from numbers.
-Missing keys stay untouched. A bad newest file is refused without falling back.
+Missing keys stay untouched. Restore opens a list ordered by creation date, newest first, with sizes.
+Unreadable or invalid files remain visible with a reason and a disabled Restore button.
+Selecting a copy validates and holds that exact file's data through confirmation; no fallback occurs.
 Switches apply through `NotchcastPreferences.set`; unwired switches present in the backup are
 written as false so restore cannot enable hidden features. Other values use setters and store APIs.
 Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
-opening the folder has its own task. Missing backups show a notice.
+opening the folder has its own task. Missing backups show an empty state.
+The command reveals the backup section. Cancelling, restoring or leaving it clears the copy list.
 Open Settings Backup Folder creates and opens the folder. Both commands work with the switch off.
 Restoring weather or markets can refetch from their fixed hosts when running or visible,
 without credentials. Automatic retention is not applied.
