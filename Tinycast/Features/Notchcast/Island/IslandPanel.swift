@@ -113,7 +113,7 @@ final class IslandPanel: NSPanel {
             contentHeight = height
             if self.open { present(animated: true) }
         }
-        surface.setOpenContent(AnyView(expanded))
+        surface.setOpenContent(AnyView(expanded.environment(\.hasHardwareNotch, hardwareNotch != nil)))
     }
 
     func setClosed(_ closed: IslandClosedState) {
