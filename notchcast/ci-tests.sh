@@ -15,8 +15,9 @@ if [ "$status" -ne 0 ] && ls "$BIN"/*.failed >/dev/null 2>&1; then
   mkdir -p "$RUNNER_TEMP/first-try" && cp "$BIN"/*.log "$RUNNER_TEMP/first-try/" 2>/dev/null || true
   still=""
   for name in $failed; do
+    cat "$RUNNER_TEMP/first-try/$name.log"
     echo "::warning::retrying $name alone"
-    ./Scripts/run-tests.sh "$name" || still="$still $name"
+    ./Scripts/run-tests.sh "$name" || { still="$still $name"; cat "$BIN/$name.log"; }
   done
   status=0
   if [ -n "$still" ]; then
