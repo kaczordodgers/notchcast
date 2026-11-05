@@ -74,9 +74,17 @@ enum TodoistImportMapper {
             task.projectID = try reference(source.project_id, in: projects)
             task.sectionID = try reference(source.section_id, in: sections)
             task.parentID = try reference(source.parent_id, in: taskIDs)
-            task.labels = try (source.labels ?? []).map { label in
-                guard let id = labels[label] else { throw ImportError.invalidReference(label) }
-                return id
+            task.labels = try (source.labels ?? []).map { name in
+                if let id = labels[name] ?? candidate.labels.values.first(where: { $0.name == name })?.id {
+                    labels[name] = id
+                    return id
+                }
+                // Shared labels are absent from the export's labels array; they arrive by name.
+                let label = TodoLabel(id: makeID(), name: name)
+                try candidate.apply(.addLabel(label))
+                commands.append(.addLabel(label))
+                labels[name] = label.id
+                return label.id
             }
             if source.is_completed == true { task.completedAt = now }
             if let due = source.due {
