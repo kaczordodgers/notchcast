@@ -33,7 +33,9 @@ GENERATED_COMMIT = "Notchcast: generated files"
 PBXPROJ = "Tinycast.xcodeproj/project.pbxproj"
 RUNTIME_JS = "Tinycast/Resources/RaycastRuntime.generated.js"
 # Rewritten by `regenerate`, never taken from our commits.
-GENERATED = [PBXPROJ, RUNTIME_JS, "README.md", "README.upstream.md"]
+GENERATED = [PBXPROJ, RUNTIME_JS, "README.md"]
+# Never pruned (notchcast/prune-paths.txt); docs/*.md is kept too.
+KEEP = ["LICENSE", "NOTICE.md", "AGENTS.md", "Tests", "Scripts/raycast-runtime"]
 # Upstream changes here mean notchcast/docs/design-system.md may need a refresh.
 DESIGN_PATHS = ["Tinycast/DesignSystem/", ":(glob)**/Theme.swift", "docs/ui.md"]
 BOT = {
@@ -231,13 +233,30 @@ def replay(tree, onto, check=False):
     print(run("git", "log", "--format=%h %an | %cn | %s", f"{onto}..HEAD", cwd=tree))
 
 
+def pruned(tree):
+    """Paths in notchcast/prune-paths.txt. None may cover a kept path (license notices, agent and feature docs,
+    harnesses, the extension runtime sources)."""
+    prune = Path(tree) / "notchcast/prune-paths.txt"
+    paths = [line.strip() for line in prune.read_text().splitlines()] if prune.exists() else []
+    paths = [path for path in paths if path and not path.startswith("#")]
+    for path in paths:
+        bare = path.rstrip("/")
+        if any(keep == bare or keep.startswith(bare + "/") or bare.startswith(keep + "/") for keep in KEEP) \
+                or bare in ("", ".", "docs") or bare.startswith("docs/") and (
+                    bare.endswith(".md") or path.endswith("/") or (Path(tree) / bare).is_dir()):
+            sys.exit(f"notchcast/prune-paths.txt: {path} covers a path Notchcast keeps")
+    return paths
+
+
 def regenerate(tree, onto):
-    """Write GENERATED in tree: our README as README.md, upstream's (from onto) as README.upstream.md, the Xcode
-    project from project.yml ($XCODEGEN), and the extension runtime bundle when our commits change its sources."""
+    """Write GENERATED in tree: our README as README.md, the Xcode project from project.yml ($XCODEGEN), and the
+    extension runtime bundle when our commits change its sources. Also stage the removal of every path in
+    notchcast/prune-paths.txt (upstream files the app does not need), so the removal rides in the generated-files
+    commit, which a replay never picks and so never conflicts."""
     tree = Path(tree)
-    upstream_readme = run("git", "show", f"{onto}:README.md", cwd=tree)
-    (tree / "README.upstream.md").write_text(
-        "> Upstream's README, kept verbatim; Notchcast's is [README.md](README.md).\n\n" + upstream_readme + "\n")
+    paths = pruned(tree)
+    if paths:
+        run("git", "rm", "-r", "-q", "--ignore-unmatch", "--", *paths, cwd=tree)
     (tree / "README.md").write_text((tree / "notchcast/README.md").read_text())
     if os.environ.get("XCODEGEN"):
         run(os.environ["XCODEGEN"], "generate", "--quiet", cwd=tree)
