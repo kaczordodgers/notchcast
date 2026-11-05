@@ -50,6 +50,24 @@ private struct Transport: OpenBotTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) { (Data("[]".utf8), 200) }
 }
 
+@MainActor private final class PassCounter {
+    var passes = 0
+    var cancellations = 0
+}
+private struct CountingRunner: AgentThreadRunning {
+    let counter: PassCounter
+    func run(arguments: [String]) async throws -> Data {
+        await MainActor.run { counter.passes += 1 }
+        do {
+            try await Task.sleep(for: .milliseconds(80))
+        } catch {
+            await MainActor.run { counter.cancellations += 1 }
+            throw error
+        }
+        return Data("[]".utf8)
+    }
+}
+
 @main struct AgentIslandTest {
     @MainActor static func main() async throws {
         let now = Date(timeIntervalSince1970: 100)
@@ -80,9 +98,23 @@ private struct Transport: OpenBotTransport {
         let workers = (0..<5).map { row(.running, String($0)) }
         precondition(evaluate(workers).t3 == .working(names: ["0", "1", "2"], total: 5))
         precondition(evaluate(workers.reversed()) == evaluate(workers))
+        precondition(evaluate([row(.completed)]).t3 == .finished("a"))
         precondition(evaluate([row(.completed)], date: now.addingTimeInterval(5.199)).t3 == .finished("a"))
         precondition(evaluate([row(.completed)], date: now.addingTimeInterval(5.2)).t3 == .idle)
         precondition(evaluate([row(.completed)], date: now.addingTimeInterval(-1)).t3 == .idle)
+        engine = AgentIslandEngine()
+        precondition(evaluate([row(.completed, date: now.addingTimeInterval(-31))]).t3 == .idle)
+        precondition(evaluate([row(.running)]).t3 == .working(names: ["a"], total: 1))
+        let late = now.addingTimeInterval(15)
+        precondition(evaluate([row(.completed)], date: late).t3 == .finished("a"))
+        precondition(evaluate([row(.completed)], date: late.addingTimeInterval(5.199)).t3 == .finished("a"))
+        precondition(evaluate([row(.completed)], date: late.addingTimeInterval(5.2)).t3 == .idle)
+        engine = AgentIslandEngine()
+        let recent = row(.completed, date: now.addingTimeInterval(-20))
+        precondition(evaluate([recent]).t3 == .finished("a"))
+        precondition(evaluate([recent], date: now.addingTimeInterval(5.2)).t3 == .idle)
+        let newest = row(.completed, "new", date: now.addingTimeInterval(1))
+        precondition(evaluate([recent, newest], date: now.addingTimeInterval(1)).t3 == .finished("new"))
         let failed = row(.failed)
         precondition(evaluate([failed], date: now.addingTimeInterval(500)).t3 == .failed("a"))
         engine.dismissFailed(failed)
@@ -140,6 +172,50 @@ private struct Transport: OpenBotTransport {
         bots.stop()
         for _ in 0..<20 { await Task.yield() }
         precondition(observed.presentation == .init())
+        let counter = PassCounter()
+        let countedState = AgentThreadsState(runner: CountingRunner(counter: counter), projects: Projects())
+        let countedThreads = AgentThreadsModule(state: countedState)
+        let counted = AgentIslandModule(threads: countedThreads, bots: bots, enabled: { $0 == .t3 },
+                                        availabilityChanged: {})
+        countedThreads.start()
+        counted.start()
+        counted.setVisible(false)
+        counted.stop()
+        await countedState.waitUntilIdle()
+        precondition(counter.passes == 1 && counter.cancellations == 0)
+        counted.start()
+        var foreignDelivered = false
+        countedState.refresh { _ in foreignDelivered = true }
+        counted.stop()
+        await countedState.waitUntilIdle()
+        precondition(foreignDelivered && counter.cancellations == 0)
+        counted.start()
+        foreignDelivered = false
+        countedState.refresh { _ in foreignDelivered = true }
+        var joined = false
+        let beforeJoin = counter.passes
+        counted.refresh { _ in joined = true }
+        while !joined { await Task.yield() }
+        precondition(foreignDelivered && counter.passes == beforeJoin + 1 && counter.cancellations == 0)
+        counted.setVisible(true)
+        try await Task.sleep(for: .milliseconds(200))
+        let beforeVisibleRefresh = counter.passes
+        var visibleDone = false
+        counted.refresh { _ in visibleDone = true }
+        while !visibleDone { await Task.yield() }
+        try await Task.sleep(for: .milliseconds(200))
+        precondition(counter.passes == beforeVisibleRefresh + 1)
+        let deadline = ContinuousClock.now + .seconds(20)
+        while counter.passes < beforeVisibleRefresh + 2 && ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        precondition(counter.passes == beforeVisibleRefresh + 2,
+                     "Polling passes: \(counter.passes), before refresh: \(beforeVisibleRefresh)")
+        counted.stop()
+        countedThreads.stop()
+        print("PASS: invisible stop/refresh preserve foreign refresh completion; zero forwarded activity changes")
+        print("PASS: visible status refresh runs exactly one T3 pass, then normal 15-second polling")
+        print("PASS: late completion gets 5.2 seconds from first sight; stale completion stays hidden")
         print("PASS: every source mapping, priority, stable ordering, name cap and combined summary/message choice")
         print("PASS: injected 5.2-second window, persistent failure, dismissal and changed failure")
         print("PASS: Swift 6 complete concurrency, hook-shaped MainActor init, switch gate and stop")

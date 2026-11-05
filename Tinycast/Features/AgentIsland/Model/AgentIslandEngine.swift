@@ -18,6 +18,8 @@ struct AgentIslandEngine: Sendable {
     enum Message: Equatable, Sendable { case idle, counts(waiting: Int, working: Int) }
 
     private var dismissed: [String: AgentThread] = [:]
+    private var previous: [String: AgentThread.Phase] = [:]
+    private var completions: [String: Date] = [:]
     private(set) var presentation = Presentation()
 
     mutating func dismissFailed(_ thread: AgentThread) {
@@ -27,6 +29,13 @@ struct AgentIslandEngine: Sendable {
     mutating func update(threads: [AgentThread], pending: [String: OpenBotPending],
                          t3Enabled: Bool, openBotEnabled: Bool, now: Date) {
         let threads = t3Enabled ? threads.sorted { $0.id < $1.id } : []
+        completions = completions.filter { id, _ in threads.contains { $0.id == id && $0.phase == .completed } }
+        for thread in threads where thread.phase == .completed && previous[thread.id] != .completed {
+            let wasWorking = previous[thread.id] == .running || previous[thread.id] == .starting
+            let recent = now >= thread.updatedAt && now.timeIntervalSince(thread.updatedAt) <= 30
+            if wasWorking || (previous[thread.id] == nil && recent) { completions[thread.id] = now }
+        }
+        previous = Dictionary(threads.map { ($0.id, $0.phase) }, uniquingKeysWith: { first, _ in first })
         dismissed = dismissed.filter { id, value in threads.contains { $0.id == id && $0 == value } }
         let approvals = threads.filter { $0.phase == .waitingForApproval }
             .reduce(0) { $0 + max(1, $1.pendingCount) }
@@ -45,8 +54,13 @@ struct AgentIslandEngine: Sendable {
         } else if !working.isEmpty {
             result.t3 = .working(names: working.prefix(3).map(\.title), total: working.count)
         } else if let finished = threads.filter({
-            $0.phase == .completed && now >= $0.updatedAt && now.timeIntervalSince($0.updatedAt) < 5.2
-        }).max(by: { $0.updatedAt < $1.updatedAt }) {
+            guard let seen = completions[$0.id] else { return false }
+            return now >= seen && now.timeIntervalSince(seen) < 5.2
+        }).max(by: {
+            let left = completions[$0.id] ?? .distantPast
+            let right = completions[$1.id] ?? .distantPast
+            return left == right ? $0.updatedAt < $1.updatedAt : left < right
+        }) {
             result.t3 = .finished(finished.title)
         }
         if botApprovals > 0 {
