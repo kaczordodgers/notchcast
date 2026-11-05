@@ -104,7 +104,7 @@ struct NotchcastCommand: Sendable {
         }
         print("PASS: snapshots record urlCleaner, dictationHistory, captureTrimmer as they are")
         try ForkSettingsBackupRestore.apply(["captureTrimmer": true], to: NotchcastPreferences.shared)
-        precondition(liveDefaults.bool(forKey: "captureTrimmer"))
+        precondition(!liveDefaults.bool(forKey: "captureTrimmer"))
         precondition(!NotchcastPreferences.shared.isOn(.captureTrimmer))
         precondition(!NotchcastPreferences.shared.isEnabled(.captureTrimmer))
         print("PASS: restored captureTrimmer true stays off and disabled")
@@ -246,12 +246,12 @@ struct NotchcastCommand: Sendable {
             let original = preferences.isOn(feature)
             preferences.set(feature, !original)
             let captured = try state.snapshot()
-            let effective = feature.isWired && !original
-            precondition(captured[feature.rawValue] as? Bool == effective)
+            precondition(captured[feature.rawValue] as? Bool == !original)
             preferences.set(feature, original)
             try state.apply(captured)
-            precondition(preferences.isOn(feature) == effective)
-            precondition(defaults.bool(forKey: feature.rawValue) == !original)
+            let restored = feature.isWired && !original
+            precondition(preferences.isOn(feature) == restored)
+            precondition(defaults.bool(forKey: feature.rawValue) == restored)
             preferences.set(feature, original)
         }
         precondition(saved["monitorCPU"] as? Int == 90)

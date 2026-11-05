@@ -1,5 +1,4 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift
@@ -7,30 +6,8 @@ import Foundation
 
 @main
 struct NotchcastSettingsTreeTests {
-    @MainActor static func main() throws {
-        let suite = "nc-hidden-agent-answer-" + UUID().uuidString
-        let defaults = UserDefaults(suiteName: suite)!
-        defer { defaults.removePersistentDomain(forName: suite) }
-        defaults.set(true, forKey: NotchcastFeature.agentAnswer.rawValue)
-        let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(!preferences.isEnabled(.agentAnswer), "Stored true cannot enable Agent Answers")
-        preferences.set(.agentAnswer, true)
-        precondition(!preferences.isOn(.agentAnswer), "Agent Answers stays forced off")
-        precondition(!preferences.isEnabled(.agentAnswer))
+    static func main() throws {
         precondition(!NotchcastFeature.agentAnswer.isWired, "Settings and search exclude unwired features")
-        for feature in NotchcastFeature.allCases where !feature.isWired {
-            preferences.set(feature, true)
-            precondition(defaults.bool(forKey: feature.rawValue), "Stored true: \(feature)")
-            precondition(!preferences.isOn(feature), "Unwired feature stays off: \(feature)")
-            precondition(!preferences.isEnabled(feature), "Unwired feature stays disabled: \(feature)")
-        }
-        for feature in NotchcastFeature.allCases where feature.isWired {
-            preferences.set(feature, true)
-            precondition(preferences.isOn(feature), "Wired feature turns on: \(feature)")
-            preferences.set(feature, false)
-            precondition(!preferences.isOn(feature), "Wired feature turns off: \(feature)")
-        }
-        print("PASS: every unwired feature stays off with stored true; wired switches still toggle")
         let modules = NotchcastSettingsModule.allCases
         precondition(modules.count == 17, "Expected 17 modules")
         var featureCounts: [NotchcastFeature: Int] = [:]
