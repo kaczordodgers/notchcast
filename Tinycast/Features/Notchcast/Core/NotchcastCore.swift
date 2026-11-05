@@ -3,6 +3,7 @@ import Foundation
 /// Modules and their entries live in `NotchcastCore+Modules.swift`.
 @MainActor
 enum NotchcastCore {
+    static let grantStatuses = NotchcastGrantState()
     private static var controller: NotchcastModuleController?
     static private(set) var services: NotchcastServices?
     private static var monitor: MonitorModule?
@@ -35,6 +36,7 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
+        Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         battery.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()

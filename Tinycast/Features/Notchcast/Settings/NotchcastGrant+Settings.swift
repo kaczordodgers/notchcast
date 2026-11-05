@@ -14,10 +14,11 @@ extension NotchcastGrant {
         }
     }
 
-    var isGranted: Bool {
+    @concurrent
+    func readIsGranted() async -> Bool {
         switch self {
-        case .accessibility: Permissions.isAccessibilityTrusted()
-        case .screenRecording: ScreenshotService.hasScreenRecordingAccess()
+        case .accessibility: AXIsProcessTrusted()
+        case .screenRecording: CGPreflightScreenCaptureAccess()
         case .microphone: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
         case .calendars: EKEventStore.authorizationStatus(for: .event) == .fullAccess
         case .bluetooth: CBManager.authorization == .allowedAlways
