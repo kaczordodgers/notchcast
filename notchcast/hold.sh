@@ -33,6 +33,26 @@ check_hold() {
         || refuse "landing is held for $owner until $(hold_time "$until"); it expires by itself, or: notchcast/hold.sh release"
 }
 
+# local-ci.sh: succeeds when PR $1 (or NOTCHCAST_LAND_AS) owns an unexpired hold, so its build goes first; fails when
+# there is none; waits while anyone else holds it, or while it cannot be read or parsed.
+hold_turn() {
+    local hold owner until said=
+    while :; do
+        owner= until=
+        if hold=$(hold_read); then
+            [ -n "$hold" ] || return 1
+            if hold_parse "$hold"; then
+                [ "$until" -gt "$(date +%s)" ] || return 1
+                [ "$owner" != "$1" ] && [ "$owner" != "${NOTCHCAST_LAND_AS:-}" ] || return 0
+            fi
+        fi
+        if [ -z "$said" ] && [ -n "$owner" ]; then echo "local CI waits: landing is held for $owner until $(hold_time "$until")"
+        elif [ -z "$said" ]; then echo 'local CI waits: the landing hold is unreadable or malformed'; fi
+        said=1
+        sleep "${NOTCHCAST_HOLD_POLL_SECONDS:-30}"
+    done
+}
+
 if [ "${BASH_SOURCE[0]}" = "$0" ]; then
     set -euo pipefail
     usage() { echo 'usage: notchcast/hold.sh set <owner> <minutes> | release | show' >&2; exit 2; }
