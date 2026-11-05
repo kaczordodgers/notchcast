@@ -145,7 +145,7 @@ s = p.read_text()
 assert s.count(line) == 1, 'tree'
 p.write_text(s.replace(line, line + '                .feature(.landingFixture, settings: []),\n'))
 import json
-p = Path('notchcast/switch-paths.json')
+p = Path('notchcast/switch-path-allowlist-2026-11-04.json')
 paths = json.loads(p.read_text())
 paths['landingFixture'] = 'Synthetic feature used only by the merged-tree landing test.'
 p.write_text(json.dumps(paths, indent=2) + '\n')
@@ -156,7 +156,7 @@ s = p.read_text().replace('    static let excluded: Set<String> = [\n',
 assert '"landingFixture"' in s
 p.write_text(s)
 PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-paths.json \
+git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-path-allowlist-2026-11-04.json \
     Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift \
     Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
 git commit --quiet -m 'Fixture: add enum case'
