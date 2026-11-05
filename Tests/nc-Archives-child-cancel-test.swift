@@ -1,0 +1,65 @@
+// notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+import Darwin
+import Foundation
+import Synchronization
+
+@main
+struct ArchiveChildCancelTest {
+    static func main() async throws {
+        try await check(escaped: false)
+        try await check(escaped: true)
+    }
+
+    static func check(escaped: Bool) async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let script = root.appending(path: "extractor")
+        let pidFile = root.appending(path: "child.pid")
+        try """
+        #!/usr/bin/python3
+        import os, signal, sys, time
+        if len(sys.argv) > 1: sys.exit(int(sys.argv[1]))
+        child = os.fork()
+        if child == 0:
+            if \(escaped ? "True" : "False"): os.setsid()
+            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            signal.signal(signal.SIGTERM, signal.SIG_IGN)
+            time.sleep(30)
+            os._exit(0)
+        with open('\(pidFile.path)', 'w') as file: file.write(str(child))
+        os._exit(0)
+        """.write(to: script, atomically: false, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
+        for status: Int32 in [0, 5] {
+            let result = try await ArchiveProcess.run(tool: script, arguments: [String(status)])
+            precondition(result.status == status, "Extractor exit status changed")
+        }
+        let completed = Mutex(false)
+        let task = Task {
+            defer { completed.withLock { $0 = true } }
+            return try await ArchiveProcess.run(tool: script, arguments: [])
+        }
+        for _ in 0..<100 {
+            if FileManager.default.fileExists(atPath: pidFile.path) { break }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        let child = Int32(try String(contentsOf: pidFile, encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines))!
+        defer { kill(child, SIGKILL) }
+        try await Task.sleep(for: .milliseconds(200))
+        task.cancel()
+        try await Task.sleep(for: .seconds(5))
+        let finished = completed.withLock { $0 }
+        let childStopped = kill(child, 0) == -1 && errno == ESRCH
+        kill(child, SIGKILL)
+        let result = await task.result
+        precondition(finished, "Cancellation hung after extractor parent exited")
+        precondition(escaped || childStopped, "Cancellation left the extractor child running")
+        guard case .failure(let error) = result, error is CancellationError else {
+            preconditionFailure("Cancelled extractor reported success")
+        }
+        print("PASS: child pipe cancellation, escaped=\(escaped)")
+    }
+}
