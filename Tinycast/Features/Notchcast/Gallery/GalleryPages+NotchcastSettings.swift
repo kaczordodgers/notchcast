@@ -19,7 +19,7 @@ extension GalleryPages {
                               size: CGSize(width: 800, height: 800), dark: dark)
             })
         }
-        return modules + pricing + settingsBackupCopies + shelfReceived(core)
+        return modules + pricing + settingsBackupCopies + shelfReceived(core) + dictationHistory(core)
     }
 }
 #endif
