@@ -55,21 +55,15 @@ private struct NotchcastModuleFeatureRows: View {
             if feature.helperLocked {
                 Text("Needs the Notchcast helper update")
             } else {
-                Text(feature.subtitle)
+                // One Text, so a second caption line keeps the description's size.
+                Text([feature.subtitle, detail].compactMap(\.self).joined(separator: "\n"))
             }
-            switch feature {
-            case .dockTweaks:
-                Text("Changes screenshot preferences and restarts SystemUIServer after confirmation.")
-            case .cleaningMode:
-                Text("Media keys still work.")
+            if feature == .cleaningMode {
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
                     if NotchcastCore.cleaning.remaining > 0 {
                         Text("\(Duration.seconds(NotchcastCore.cleaning.remaining).formatted(.units())) left")
                     }
                 }
-            case .cleanAIData:
-                Text("Codex and OpenCode are report-only.")
-            default: EmptyView()
             }
         }
         .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
@@ -93,6 +87,15 @@ private struct NotchcastModuleFeatureRows: View {
                 NotchcastSettingRow(setting: setting)
                     .settingsEnabled(preferences.isEnabled(feature))
             }
+        }
+    }
+
+    private var detail: String? {
+        switch feature {
+        case .dockTweaks: String(localized: "Changes screenshot preferences and restarts SystemUIServer after confirmation.")
+        case .cleaningMode: String(localized: "Media keys still work.")
+        case .cleanAIData: String(localized: "Codex and OpenCode are report-only.")
+        default: nil
         }
     }
 

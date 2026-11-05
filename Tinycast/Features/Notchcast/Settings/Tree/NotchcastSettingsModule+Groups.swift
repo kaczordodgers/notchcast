@@ -274,8 +274,7 @@ extension NotchcastSettingsModule {
             .init(title: "Finder", items: [
                 .feature(.finderTweaks, settings: [.tweaksFinder]),
             ]),
-            // ai-design-check-ignore-next-line sentence-case -- Heading follows the Settings tree spec.
-            .init(title: "Dock and Windows", items: [
+            .init(title: "Dock and windows", items: [
                 .feature(.dockTweaks, settings: [.tweaksDock]),
             ]),
         ]

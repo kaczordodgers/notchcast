@@ -1,8 +1,8 @@
 # Typing and app preference wiring
 
-Five independent Notchcast switches default off: Typing, Finder, Dock and Windows,
+Five independent Notchcast switches default off: Typing, Finder, Dock and windows,
 Apple Apps and iPhone Backup. They do not depend on the island.
-The Settings tree places Typing, Finder and Dock and Windows in Tweaks, and Apple apps
+The Settings tree places Typing, Finder and Dock and windows in Tweaks, and Apple apps
 and iPhone backup in Privacy and Startup. Their control rows are stubs pending the page builders;
 `NotchcastTweaksAppsSettingsRows` remains available as their source.
 
