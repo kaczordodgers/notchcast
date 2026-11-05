@@ -7,6 +7,7 @@ import re
 import runpy
 import subprocess
 import sys
+import textwrap
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCAL = 'Tinycast/Resources/Localizable.xcstrings'
@@ -76,13 +77,29 @@ def rewrite(source, keys):
     static = {json.dumps(key.replace('%%', '%'), ensure_ascii=False) for key in keys}
     dynamic = [key for key in keys if '%' in key]
     for start, end, literal in literals(source):
+        match_literal = literal
+        if literal.startswith('"""'):
+            body = re.sub(r'\\\n\s*', '', literal[3:-3])
+            match_literal = json.dumps(textwrap.dedent(body).strip('\n'), ensure_ascii=False)
         candidates = keys if literal.startswith('"""') else dynamic
         if literal not in static and not (('\\(' in literal or literal.startswith('"""')) and any(
-                REFERENCED(key, literal) for key in candidates)):
+                REFERENCED(key, match_literal) for key in candidates)):
             continue
         before = source[:start]
         after = source[end:]
         if re.search(r'\btable(?:Name)?:\s*$', before):
+            continue
+        if re.search(r'Logger\([^\n]*category:\s*$', before):
+            continue
+        if re.search(r'NSError\(domain:\s*$', before):
+            continue
+        if re.search(r'DownloadTool\(name:\s*$', before):
+            continue
+        if re.search(r'\.(?:appending\(path:|appendingPathComponent\()\s*$', before):
+            continue
+        if re.search(r'"com\.apple\.[^"]+":\s*$', before):
+            continue
+        if re.search(r'keywords:\s*\[[^\n\]]*$', before):
             continue
         if re.match(r'\s*,\s*table(?:Name)?:\s*"Notchcast"', after):
             continue
@@ -90,12 +107,15 @@ def rewrite(source, keys):
             edits.append((end, end, ', table: "Notchcast"'))
         elif re.search(r'\bText\(\s*$', before):
             edits.append((end, end, ', tableName: "Notchcast"'))
-        elif re.search(r'\bTextField\(\s*$', before):
+        elif re.search(r'\b(?:TextField|SecureField|Section|Button|Toggle|Picker|LabeledContent)\(\s*$', before):
             edits.append((start, end, 'String(localized: ' + literal + ', table: "Notchcast")'))
-        elif re.search(r'\.accessibility(?:Label|Hint|Value)\(\s*$', before):
+        elif re.search(r'\bButton\([^\n]*[?:]\s*$', before):
+            edits.append((start, end, 'String(localized: ' + literal + ', table: "Notchcast")'))
+        elif re.search(r'\.(?:help|accessibility(?:Label|Hint|Value))\(\s*$', before):
             edits.append((start, end, 'String(localized: ' + literal + ', table: "Notchcast")'))
         elif (re.search(r'(?:SettingsRowTitle|\.init)\([^\n"]*,\s*$', before)
-              or re.search(r'(?:title|subtitle):\s*$', before)
+              or re.search(r'(?:title|subtitle|prompt):\s*$', before)
+              or re.search(r'var \w+: LocalizedStringResource\s*\{[^\n]*[?:]\s*$', before)
               or (re.search(r'case [^\n]+:\s*$', before)
                   and re.search(r'var \w+: LocalizedStringResource\s*\{[^}]*$', before))
               or re.search(r'LocalizedStringResource\s*=\s*$', before)):
