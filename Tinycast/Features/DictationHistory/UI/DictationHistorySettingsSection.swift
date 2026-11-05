@@ -4,7 +4,7 @@ extension EnvironmentValues {
     @Entry var dictationHistorySampleEntries: [DictationHistoryEntry]? = nil
 }
 
-struct DictationHistorySettingsSection: View {
+struct DictationHistorySettingRow: View {
     @Environment(AppCore.self) private var core
     @Environment(\.dictationHistorySampleEntries) private var sampleEntries
     private let preferences = NotchcastPreferences.shared

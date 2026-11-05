@@ -7,7 +7,7 @@ extension GalleryPages {
             [false, true].map { empty in
                 GalleryPage(
                     name: "settings-dictation-history-\(empty ? "empty" : "populated")-\(dark ? "dark" : "light")",
-                    types: ["NotchcastModuleSettingsView", "DictationHistorySettingsSection"], makeWindow: {
+                    types: ["NotchcastModuleSettingsView", "DictationHistorySettingRow"], makeWindow: {
                         let date = Date(timeIntervalSince1970: 1_790_000_000)
                         let entries = empty ? [] : [
                             DictationHistoryEntry(id: UUID(), date: date, raw: "Sample",
