@@ -26,7 +26,7 @@ struct AnswersEngineTest {
                                           converted: 0.000725, effectiveDate: "2026-11-03", isStale: false)
         precondition(small.formattedValue(locale: Locale(identifier: "en_US")) == "0.000725 USD")
         let data = Data(#"[{"effectiveDate":"2026-11-03","rates":[{"code":"EUR","mid":4.25},{"code":"USD","mid":4}]}]"#.utf8)
-        var now = Date(timeIntervalSince1970: 1_793_664_000)
+        var now = Date(timeIntervalSince1970: 1_793_750_400)
         let calls = Mutex(0)
         let module = LauncherAnswersModule(provider: {
             NBPAnswerRateProvider { _ in
@@ -93,6 +93,29 @@ struct AnswersEngineTest {
         gate.finish(data)
         let freshResult = await fresh.value
         precondition(freshResult != nil)
+        let identityGate = FetchGate()
+        let identityModule = LauncherAnswersModule(provider: {
+            NBPAnswerRateProvider { _ in await identityGate.fetch() }
+        }, clock: { now })
+        identityModule.start()
+        let leader = Task(priority: .high) {
+            _ = await identityModule.answer(for: "1 usd")
+            now += 3600
+            return await identityModule.answer(for: "2 usd")
+        }
+        let follower = Task(priority: .background) { await identityModule.answer(for: "3 usd") }
+        while identityGate.count < 1 { await Task.yield() }
+        for _ in 0..<20 { await Task.yield() }
+        identityGate.finish(data)
+        while identityGate.count < 2 { await Task.yield() }
+        _ = await follower.value
+        let probe = Task { await identityModule.answer(for: "4 usd") }
+        for _ in 0..<20 { await Task.yield() }
+        precondition(identityGate.count == 2)
+        identityGate.finish(data)
+        let leaderResult = await leader.value
+        let probeResult = await probe.value
+        precondition(leaderResult != nil && probeResult != nil)
         print("PASS grouping, small values, successful older table, retry at 300s, shared fetch, stop/restart")
     }
 }
