@@ -1318,6 +1318,7 @@
 		B44BBBDD8C0EB71D08339711 /* CopyPathSystemReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86741B8A0B11C6E817D2BCF9 /* CopyPathSystemReader.swift */; };
 		B49D9340A925890E5A7C2C44 /* KatanaChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E06FE1E51670E6FDDA08CAF3 /* KatanaChannel.swift */; };
 		B4D39E9ED85FCC9D43E525F3 /* CopyPathTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607E79AFDF366572B7EB6C7C /* CopyPathTarget.swift */; };
+		B4DF27BCE53424454BEDA135 /* TodoLinkWiring.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1EA5768B937E438504C433 /* TodoLinkWiring.swift */; };
 		B566FC125D9D193F234EC1AB /* ExtensionFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 988EA3698EA86BA53590C24E /* ExtensionFetcher.swift */; };
 		B568B2DB072831116AA95767 /* WindowLayoutsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF202236034AB044CA846B60 /* WindowLayoutsSection.swift */; };
 		B56F252262AA1BD3E2631F0C /* FileSearchQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391B8024E8719506361B45F7 /* FileSearchQuery.swift */; };
@@ -1699,6 +1700,7 @@
 		E944610E828C3992C257802F /* DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4EBECCC282E150409338E15 /* DeepLink.swift */; };
 		E97CE4BF5A7FCBE91E859472 /* TorrentSubmission.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714B4C8915B06CC505587 /* TorrentSubmission.swift */; };
 		E99765A5038912C283973F8F /* EmptyResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3A6E15A480A4779ACCE259D /* EmptyResults.swift */; };
+		E9B07B3481D7166A6BF03809 /* TodoLinkCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60CA301B802B04BE40CBAF29 /* TodoLinkCoordinator.swift */; };
 		E9FBE3C5475A52EB7A3D57E3 /* RoomPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1709EB9609FE6A1037E36BE6 /* RoomPreviewView.swift */; };
 		EA077323DE71DAF8FE17693C /* CalendarCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FC504A12A2D9CC00B502D9E /* CalendarCoordinator.swift */; };
 		EA11F318540A70F74A263C71 /* PDFSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 310F316AA01FA5AFC042E303 /* PDFSurface.swift */; };
@@ -1777,6 +1779,7 @@
 		F51785CF5A6EC0B87D6802C9 /* ExtensionScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCCBDD92DEAD780A1DC423CA /* ExtensionScreen.swift */; };
 		F523D6A2014A471C1C34A018 /* LauncherAnswersModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF78C3919A55F33FDA6E803A /* LauncherAnswersModule.swift */; };
 		F53C97C4CE7C23C2D4C1D785 /* CleanOutcome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53CFBB4F78C3C3321DA99E42 /* CleanOutcome.swift */; };
+		F53CFE02174AEE9B0C580AEA /* TodoLinkPacket.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCF35ED15C7B7609E4D8D656 /* TodoLinkPacket.swift */; };
 		F55A313A1B562EFB93108D4B /* TweakPreference.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CCD0CEF2020C43BB84F973A /* TweakPreference.swift */; };
 		F5666CB23C1304A57C09E562 /* FinderShortcutPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0ECF96709F909590C5508F2 /* FinderShortcutPolicy.swift */; };
 		F5CC30A7FD6D8F11187D631B /* ExtensionPickerList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1FC5C77AA5F4DD6E2D9B4D /* ExtensionPickerList.swift */; };
@@ -2648,6 +2651,7 @@
 		607E79AFDF366572B7EB6C7C /* CopyPathTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyPathTarget.swift; sourceTree = "<group>"; };
 		607E7B669817BFC39B12C12D /* SettingsEditorPresenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsEditorPresenter.swift; sourceTree = "<group>"; };
 		60A7B8C65B8B882AD07CC8C2 /* DictationEnglishPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationEnglishPrompt.swift; sourceTree = "<group>"; };
+		60CA301B802B04BE40CBAF29 /* TodoLinkCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLinkCoordinator.swift; sourceTree = "<group>"; };
 		60CCB1A47E0022BAEDD1EE96 /* CalculatorHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalculatorHistoryView.swift; sourceTree = "<group>"; };
 		60D4D2146CE38403B2DDB072 /* CustomQuickActionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomQuickActionStore.swift; sourceTree = "<group>"; };
 		60DC06B26E276FC6EDFC5D1D /* MediaToolsModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaToolsModule.swift; sourceTree = "<group>"; };
@@ -3591,6 +3595,7 @@
 		DDE8B48420B83D612E01603A /* MarkdownBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownBlock.swift; sourceTree = "<group>"; };
 		DE0EFB95551AD217589092E4 /* DictationDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationDestination.swift; sourceTree = "<group>"; };
 		DE1A2CE5E4D5F10346B5F6F3 /* EmojiGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiGridView.swift; sourceTree = "<group>"; };
+		DE1EA5768B937E438504C433 /* TodoLinkWiring.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLinkWiring.swift; sourceTree = "<group>"; };
 		DE4D630849AFAEFA3BB311F8 /* DownloadJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadJob.swift; sourceTree = "<group>"; };
 		DE4DC857F2BD2A5B18D8A394 /* TodoReminderSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoReminderSchedule.swift; sourceTree = "<group>"; };
 		DF0880635E294D9DF55BAADA /* CustomCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommand.swift; sourceTree = "<group>"; };
@@ -3794,6 +3799,7 @@
 		FCCFAE5285B455D5FB7EE67B /* IslandContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandContentView.swift; sourceTree = "<group>"; };
 		FCD5C7B3C2751E33CE470A60 /* FinderImageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderImageService.swift; sourceTree = "<group>"; };
 		FCE974CFE096B03BC33121B1 /* FileIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileIndex.swift; sourceTree = "<group>"; };
+		FCF35ED15C7B7609E4D8D656 /* TodoLinkPacket.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLinkPacket.swift; sourceTree = "<group>"; };
 		FD0D24FF0A2B992B44FCDC96 /* DownloadTool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadTool.swift; sourceTree = "<group>"; };
 		FDC04AF159B94B3E8D1A5217 /* QwenRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QwenRecognizer.swift; sourceTree = "<group>"; };
 		FE17A709CFB089C8383FF294 /* AIUsageLinkModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIUsageLinkModule.swift; sourceTree = "<group>"; };
@@ -3843,6 +3849,7 @@
 				6248BF82976FF6DD3C237E93 /* TodoIslandSnapshot.swift */,
 				2BD303D4144CAFD7F964F1BD /* TodoistImportMapper.swift */,
 				D70181CD06E0BB5217407E10 /* TodoLabel.swift */,
+				FCF35ED15C7B7609E4D8D656 /* TodoLinkPacket.swift */,
 				E2A0CFB122ABA3E3842DF293 /* TodoProject.swift */,
 				11799AFF330C8F13A9ECA581 /* TodoQuickAddDate.swift */,
 				85A48D34CC99B079CC576CAD /* TodoQuickAddDraft.swift */,
@@ -4558,6 +4565,7 @@
 				C05EFEB37012280B8E351AC6 /* TodoIslandFeed.swift */,
 				8D6B7C9F98ADDD41C6140C10 /* TodoIslandPresenting.swift */,
 				19C6A884B8B2850DCF9B3AD9 /* TodoistImportClient.swift */,
+				60CA301B802B04BE40CBAF29 /* TodoLinkCoordinator.swift */,
 				16B630C0FA6450A30125E83B /* TodoReminderTimer.swift */,
 				9AA5CBDF74831EE6E4A1655B /* TodoStore.swift */,
 				CFEEE4B0CE44019A5F1E422A /* TodoStore+WorkflowSections.swift */,
@@ -8268,6 +8276,7 @@
 				01098CB79E60D60A669536CE /* Model */,
 				22EE7351D08BE3772B39ED8F /* Service */,
 				4DEA0EC4696F239B606CD1AC /* Settings */,
+				DE1EA5768B937E438504C433 /* TodoLinkWiring.swift */,
 				70173E25B6850B54463FC6E2 /* TodoModule.swift */,
 			);
 			path = Todo;
@@ -11298,6 +11307,9 @@
 				61D2D5CF84EE469EB21F5FF3 /* TodoIslandPresenting.swift in Sources */,
 				22890E9A87A45C25C96B5AD2 /* TodoIslandSnapshot.swift in Sources */,
 				6484D9F4C497DC06F25D5378 /* TodoLabel.swift in Sources */,
+				E9B07B3481D7166A6BF03809 /* TodoLinkCoordinator.swift in Sources */,
+				F53CFE02174AEE9B0C580AEA /* TodoLinkPacket.swift in Sources */,
+				B4DF27BCE53424454BEDA135 /* TodoLinkWiring.swift in Sources */,
 				E054305CE656387C446312C0 /* TodoModule.swift in Sources */,
 				9C7790A17089F95EE00AD318 /* TodoProject.swift in Sources */,
 				01603B1B9EA687B783CBCD1D /* TodoQuickAddDate.swift in Sources */,
