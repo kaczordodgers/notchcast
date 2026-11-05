@@ -27,7 +27,7 @@ struct FinderImageService {
 
     func place(_ file: URL) -> PlaceResult {
         let finder = NSAppleEventDescriptor(bundleIdentifier: "com.apple.finder")
-        let move = Self.moveEvent(file, toFrontWindow: false, to: finder)
+        let move = Self.moveEvent(file, to: finder)
         move.setParam(Self.insertionLocation, forKeyword: Event.insertHere)
         switch Self.send(move) {
         case .failure(let failure):
@@ -52,28 +52,11 @@ struct FinderImageService {
         }
     }
 
-    private static func countWindows(to finder: NSAppleEventDescriptor) -> Result<Int, Failure> {
-        switch send(countEvent(to: finder)) {
-        case .failure(let failure): return .failure(failure)
-        case .success(let reply): return .success(Int(reply?.paramDescriptor(forKeyword: Event.directObject)?.int32Value ?? 0))
-        }
-    }
-
-    static func countEvent(to finder: NSAppleEventDescriptor) -> NSAppleEventDescriptor {
-        let event = NSAppleEventDescriptor(eventClass: Event.core, eventID: Event.count, targetDescriptor: finder,
-            returnID: AEReturnID(kAutoGenerateReturnID),
-            transactionID: AETransactionID(kAnyTransactionID))
-        event.setParam(.null(), forKeyword: Event.directObject)
-        event.setParam(NSAppleEventDescriptor(typeCode: Event.windowClass), forKeyword: Event.each)
-        return event
-    }
-
-    static func moveEvent(_ file: URL, toFrontWindow: Bool, to finder: NSAppleEventDescriptor) -> NSAppleEventDescriptor {
+    static func moveEvent(_ file: URL, to finder: NSAppleEventDescriptor) -> NSAppleEventDescriptor {
         let event = NSAppleEventDescriptor(eventClass: Event.core, eventID: Event.move, targetDescriptor: finder,
             returnID: AEReturnID(kAutoGenerateReturnID),
             transactionID: AETransactionID(kAnyTransactionID))
         event.setParam(NSAppleEventDescriptor(fileURL: file), forKeyword: Event.directObject)
-        event.setParam(toFrontWindow ? frontWindowTarget : desktop, forKeyword: Event.insertHere)
         return event
     }
 
@@ -83,17 +66,6 @@ struct FinderImageService {
             transactionID: AETransactionID(kAnyTransactionID))
         event.setParam(item, forKeyword: Event.directObject)
         return event
-    }
-
-    static var frontWindowTarget: NSAppleEventDescriptor {
-        let window = specifier(Event.windowClass, in: .null(), form: Event.indexForm, data: NSAppleEventDescriptor(int32: 1))
-        return specifier(Event.propertyClass, in: window, form: Event.propertyForm,
-                         data: NSAppleEventDescriptor(typeCode: Event.target))
-    }
-
-    static var desktop: NSAppleEventDescriptor {
-        specifier(Event.propertyClass, in: .null(), form: Event.propertyForm,
-            data: NSAppleEventDescriptor(typeCode: Event.desktop))
     }
 
     static var insertionLocation: NSAppleEventDescriptor {
@@ -119,13 +91,11 @@ struct FinderImageService {
 
     nonisolated enum Event {
         static let core = code("core"), misc = code("misc")
-        static let move = code("move"), count = code("cnte"), select = code("slct")
-        static let directObject = code("----"), insertHere = code("insh"), each = code("kocl"), errorNumber = code("errn")
-        static let windowClass = code("brow"), propertyClass = code("prop")
-        static let target = code("fvtg"), desktop = code("desk")
-        static let insertionLocation = code("pins")
+        static let move = code("move"), select = code("slct")
+        static let directObject = code("----"), insertHere = code("insh"), errorNumber = code("errn")
+        static let propertyClass = code("prop"), insertionLocation = code("pins")
         static let want = code("want"), container = code("from"), form = code("form"), data = code("seld")
-        static let indexForm = code("indx"), propertyForm = code("prop"), objectSpecifier = code("obj ")
+        static let propertyForm = code("prop"), objectSpecifier = code("obj ")
 
         static func code(_ text: String) -> OSType {
             text.utf8.reduce(0) { $0 << 8 | OSType($1) }
