@@ -20,6 +20,10 @@ enum AgentBuiltInActions {
             }
             try register(action, id: id, title: title, index: index, core: core)
         }
+        for command in NotchcastCommandCatalog.all {
+            try register(.notchcastCommand(entryID: command.entry.id), id: command.entry.id,
+                         title: command.name, index: index, core: core)
+        }
         for action in SystemActionCatalog.all {
             let danger: AgentAction.Danger
             switch action.confirmation {
