@@ -12,7 +12,7 @@ Our commits are merge-base(main, upstream main)..main. Replaying cherry-picks th
 files, so those never conflict and never travel in our diffs. Two commits are made afresh instead of picked:
 "Notchcast: remove upstream workflows" (git rm -r .github/workflows), so upstream workflow edits never conflict and
 new ones never land, and "Notchcast: generated files", always last, which rewrites GENERATED (`regenerate`).
-Any other conflict fails the run; nothing is pushed.
+Catalog conflicts merge by key; any other conflict fails the run and nothing is pushed.
 Failures are remembered as refs/notchcast-failed/<main|release-<tag>>-<upstream or tag>-<our main>, so the same
 input is retried only when upstream or our main changes, and reported as one open issue per kind (label
 notchcast-<kind>: sync = replay onto new upstream, main = main tested as it is, release), which a newer failure with
@@ -191,7 +191,27 @@ def replay(tree, onto, check=False):
             picked = subprocess.run(["git", "cherry-pick", "--no-commit", sha], cwd=tree, text=True,
                                     capture_output=True)
             conflicts = run("git", "diff", "--name-only", "--diff-filter=U", cwd=tree).split()
-            if picked.returncode and not conflicts or set(conflicts) - set(GENERATED):
+            catalog = "Tinycast/Resources/Localizable.xcstrings"
+            resolved_catalog = False
+            catalog_refs = (sha + "^", "HEAD", sha)
+            if catalog in conflicts and all(
+                    subprocess.run(["git", "cat-file", "-e", f"{ref}:{catalog}"], cwd=tree,
+                                   stderr=subprocess.DEVNULL).returncode == 0 for ref in catalog_refs):
+                with tempfile.TemporaryDirectory() as directory:
+                    inputs = []
+                    for index, ref in enumerate(catalog_refs):
+                        path = Path(directory) / str(index)
+                        path.write_text(run("git", "show", f"{ref}:{catalog}", cwd=tree) + "\n")
+                        inputs.append(str(path))
+                    merged = subprocess.run(
+                        [sys.executable, str(HERE / "xcstrings-union.py"), *inputs,
+                         str(Path(tree).resolve() / catalog)], text=True, capture_output=True)
+                if merged.returncode == 0:
+                    run("git", "add", "--", catalog, cwd=tree)
+                    conflicts.remove(catalog)
+                    resolved_catalog = True
+            if (picked.returncode and not conflicts and not resolved_catalog
+                    or set(conflicts) - set(GENERATED)):
                 subprocess.run(["git", "cherry-pick", "--abort"], cwd=tree, capture_output=True)
                 subprocess.run(["git", "reset", "-q", "--hard"], cwd=tree, capture_output=True)
                 raise Conflict(subject, [f for f in conflicts if f not in GENERATED]
