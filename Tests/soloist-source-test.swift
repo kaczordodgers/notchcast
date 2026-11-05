@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/Music/Model/NowPlaying.swift
 // notchcast-sources: Tinycast/Features/Music/Model/SoloistProtocol.swift
+// notchcast-sources: Tinycast/Features/Music/Model/SoloistRefreshState.swift
 // notchcast-sources: Tinycast/Features/Music/Service/SoloistSource.swift
 import Foundation
 import Network
@@ -10,6 +11,12 @@ private let snapshot = #"""
 "creators":[{"entity":{"decorations":{"identity":{"name":"Massive Attack"}}}}],
 "parent":{"entity":{"decorations":{"identity":{"name":"Mezzanine"}}}},
 "playback":{"duration_ms":331000}}},"position":{"position_ms":134000,"timestamp_ms":1000}}
+"""#
+
+private let queueReply = #"""
+{"type":"queue_changed","previous":[],"upcoming":[{"item":{"uri":"spotify:track:fixture1",
+"decorations":{"identity":{"name":"Next Song"},"creators":[{"entity":{"decorations":{
+"identity":{"name":"First Artist"}}}}]}}}]}
 """#
 
 @MainActor
@@ -51,6 +58,8 @@ private final class Server {
                         #"{"type":"error","message":"command requires authentication"}"#, connection)
                 } else if command == "get_auth_state" {
                     self.sendAuth(connection)
+                } else if command == "get_queue" {
+                    self.send(queueReply, connection)
                 }
                 self.receive(connection)
             }
@@ -145,7 +154,7 @@ struct SoloistSourceTest {
         }
         for event in ["track_changed", "position_sync", "queue_changed", "playback_changed", "options_changed"] {
             let parsed = try SoloistProtocol.parse("{\"type\":\"\(event)\"}", now: now)
-            precondition(parsed == .changed)
+            precondition(parsed == .changed(queue: ["track_changed", "queue_changed", "options_changed"].contains(event)))
         }
         let idle = try SoloistProtocol.parse(#"{"type":"playback_state","status":"idle"}"#, now: now)
         precondition(idle == .state(nil, cover: nil))
@@ -168,45 +177,71 @@ struct SoloistSourceTest {
         var changes = 0
         source.watch { changes += 1 }
         source.connect(port: server.port)
-        try await wait { source.authState?.loggedIn == false && server.commands.count == 2 }
-        try await wait {
-            if case .command("command requires authentication") = source.failure { return true }
-            return false
-        }
+        try await wait { source.authState?.loggedIn == false && server.commands.count == 3 && source.queue != nil }
         let loggedOut = try await source.read()
         precondition(loggedOut == nil)
         server.loggedIn = true
         server.sendAuth(server.connections[0])
-        try await wait { changes >= 5 && server.commands.count == 4 }
+        try await wait { server.commands.count == 5 }
+        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"], "Pairing refreshes once")
+        server.sendAuth(server.connections[0])
+        try await Task.sleep(for: .milliseconds(100))
+        precondition(server.commands.count == 5, "Repeated auth reply must stay passive")
+        server.send(#"{"type":"track_changed"}"#, server.connections[0])
+        try await Task.sleep(for: .milliseconds(900))
+        precondition(server.commands.count == 7, "\(server.commands)")
         precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"])
         let received = try await source.read()
         precondition(received == track)
         precondition(changes >= 2)
         commands.forEach { source.send($0.0) }
-        try await wait { server.commands.count == 11 }
-        precondition(Array(server.commands.dropFirst(4)) == commands.map(\.1))
-        precondition(source.queue == nil)
-        server.send(#"{"type":"queue_changed"}"#, server.connections[0])
-        try await wait { server.commands.count == 13 }
-        try await Task.sleep(for: .milliseconds(200))
-        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"])
-        source.receive(#"{"type":"get_queue","queue":[]}"#)
-        server.send(#"{"type":"queue_changed"}"#, server.connections[0])
-        try await wait { server.commands.count == 15 }
-        try await Task.sleep(for: .milliseconds(200))
-        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"])
-        for payload in [
-            #"{"type":"get_queue","queue":null}"#,
-            #"{"type":"get_queue","tracks":[{"title":"Next"}]}"#,
-            #"{"type":"get_queue","queue":["spotify:track:x"]}"#
-        ] {
-            source.receive(#"{"type":"get_queue","queue":[]}"#)
-            let count = server.commands.count
-            source.receive(payload)
-            precondition(source.queue == nil)
-            try await Task.sleep(for: .milliseconds(200))
-            precondition(server.commands.count == count, "Unreadable queue must not request another queue")
+        try await wait { server.commands.count == 14 }
+        precondition(Array(server.commands.dropFirst(7)) == commands.map(\.1))
+        precondition(source.queue == [.init(title: "Next Song", artist: "First Artist",
+                                          uri: "spotify:track:fixture1")])
+        let count = server.commands.count
+        if let path = ProcessInfo.processInfo.environment["SOLOIST_QUEUE_FIXTURE"] {
+            let reply = try String(contentsOfFile: path, encoding: .utf8)
+            guard case .queue(let items?) = try SoloistProtocol.parse(reply, now: now) else {
+                fatalError("Real queue reply was not parsed")
+            }
+            precondition(items.count > 1 && items.allSatisfy { $0.title != nil && $0.uri != nil })
+            precondition(items.contains { $0.artist?.contains(", ") == true })
+            source.receive(reply)
+            print("PASS: full captured queue reply parsed with correct titles, URIs and joined artists")
         }
+        for reply in [queueReply, snapshot, #"{"type":"command_result","success":true}"#] {
+            source.receive(reply)
+        }
+        try await Task.sleep(for: .milliseconds(450))
+        precondition(server.commands.count == count, "Replies send zero commands")
+        for _ in 0..<50 { source.receive(#"{"type":"position_sync"}"#) }
+        try await Task.sleep(for: .milliseconds(500))
+        precondition(Array(server.commands.dropFirst(count)) == ["get_state", "get_state"])
+        var refresh = SoloistRefreshState()
+        var refreshCommands: [String] = []
+        for index in 0..<50 {
+            refreshCommands += refresh.event(queue: false, now: Double(index) * 0.007)
+        }
+        refreshCommands += refresh.flush(now: 0.4)
+        precondition(refreshCommands == [SoloistProtocol.getState, SoloistProtocol.getState])
+        var window = SoloistRefreshState()
+        _ = window.event(queue: false, now: 0)
+        _ = window.event(queue: true, now: 0.1)
+        _ = window.event(queue: false, now: 0.2)
+        precondition(window.flush(now: 0.4) == [SoloistProtocol.getState, SoloistProtocol.getQueue],
+                     "A queue event inside the window keeps the trailing queue fetch")
+        for event in ["track_changed", "playback_changed", "device_changed", "context_changed",
+                      "options_changed", "queue_changed", "position_sync", "volume_changed"] {
+            let parsed = try SoloistProtocol.parse("{\"type\":\"\(event)\"}", now: now)
+            guard case .changed(let queue) = parsed else { fatalError("Missing event") }
+            var policy = SoloistRefreshState()
+            let requests = policy.event(queue: queue, now: 0)
+            precondition(requests.contains(SoloistProtocol.getQueue) ==
+                         ["track_changed", "options_changed", "queue_changed"].contains(event))
+        }
+        print("PASS: queue reply sends zero commands; 50 position_sync events send 2 get_state")
+        print("PASS: queue refresh restricted to track_changed, queue_changed and options_changed")
         let coverServer = try CoverServer()
         defer { coverServer.stop() }
         try await wait { coverServer.listener.port != nil && coverServer.port > 0 }
