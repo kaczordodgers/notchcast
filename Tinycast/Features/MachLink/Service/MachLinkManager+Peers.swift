@@ -1,6 +1,20 @@
 import Foundation
 
 extension MachLinkManager {
+    func todoResponse(to request: MachLinkMessage, enabled: @MainActor () -> Bool,
+                      handler: @MainActor (MachLinkMessage) async throws -> MachLinkMessage) async throws -> MachLinkMessage? {
+        guard request.method == "todo-sync" else { return nil }
+        try Task.checkCancellation()
+        guard enabled() else { throw MachLinkMessage.Failure.disconnected }
+        let response = try await handler(request)
+        try Task.checkCancellation()
+        guard enabled() else { throw MachLinkMessage.Failure.disconnected }
+        guard response.id == request.id, response.method == request.method else {
+            throw MachLinkMessage.Failure.invalidMessage
+        }
+        return response
+    }
+
     func peerResponse(to request: MachLinkMessage) async throws -> MachLinkMessage? {
         switch request.method {
         case "mbp-fans":
