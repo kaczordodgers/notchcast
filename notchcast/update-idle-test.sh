@@ -11,7 +11,12 @@ printf '%s\n' '<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleIden
 printf '#!/bin/bash\nvalue=$(head -1 "$HOME/idle")\nif [ "$(wc -l < "$HOME/idle")" -gt 1 ]; then sed 1d "$HOME/idle" > "$HOME/rest"; mv "$HOME/rest" "$HOME/idle"; fi\necho "$value"\ntouch "$HOME/checked"\n' > "$WORK/idle-command"
 chmod +x "$WORK/idle-command"
 export FIXTURE="$WORK/Fixture.app"
-gh() { if [ "$1 $2" = 'release list' ]; then echo v2.0.0; fi; }
+gh() {
+    case "$1 $2" in
+        'release list') echo v2.0.0 ;;
+        'release download') touch "$HOME/downloaded" ;;
+    esac
+}
 codesign() { return 0; }
 shasum() { echo '95280FD4EC25303CCC1FE2AA2A5E8B0A1A757DCC certificate'; }
 ditto() { cp -R "$FIXTURE" "$4/New.app"; }
@@ -29,7 +34,13 @@ run_case() {
         /usr/libexec/PlistBuddy -c 'Set :CFBundleShortVersionString 1.0.0' "$NOTCHCAST_APP/Contents/Info.plist"
     fi
     bash "$WORK/update.sh" --install > "$HOME/log" 2>&1 || { cat "$HOME/log"; return 1; }
-    if [ "$expected" = yes ]; then test -f "$HOME/installed"; else test ! -f "$HOME/installed"; fi
+    if [ "$expected" = yes ]; then
+        test -f "$HOME/installed"
+        test -f "$HOME/downloaded"
+    else
+        test ! -f "$HOME/installed"
+        test ! -f "$HOME/downloaded"
+    fi
     case "$name" in
         idle) grep -q 'idle 600 s' "$HOME/log" || { echo 'FAIL: missing idle gate on immediate install'; return 1; } ;;
         becomes-idle) grep -q 'waiting.*idle 10 s' "$HOME/log"; grep -q 'installing.*idle 400 s' "$HOME/log" ;;

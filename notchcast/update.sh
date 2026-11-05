@@ -118,19 +118,6 @@ fi
 log "preparing $TAG over ${INSTALLED:-nothing} ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
 [ "$DRY" = 1 ] && exit 0
 
-WORK="$(mktemp -d "${TMPDIR:-/tmp}/notchcast-update.XXXXXX")"
-trap 'rm -rf "$WORK"' EXIT
-gh release download "$TAG" -R "$FORK_REPO" -D "$WORK" -p "$APP_NAME-${WANT}.zip"
-mkdir "$WORK/x"
-ditto -x -k "$WORK/$APP_NAME-${WANT}.zip" "$WORK/x"
-NEW="$(find "$WORK/x" -maxdepth 1 -name '*.app' | head -1)"
-[ -n "$NEW" ] || { log "no app in the release zip"; exit 1; }
-xattr -dr com.apple.quarantine "$NEW" 2>/dev/null || true
-codesign --verify --deep --strict "$NEW"
-[ "$(plist "$NEW" CFBundleIdentifier)" = "$BUNDLE_ID" ] || { log "bundle id mismatch; refusing"; exit 1; }
-[ "$(plist "$NEW" CFBundleShortVersionString)" = "$WANT" ] || { log "version mismatch; refusing"; exit 1; }
-[ "$(leaf_sha1 "$NEW")" = "$SIGN_SHA1" ] || { log "not signed by $SIGN_IDENTITY; refusing"; exit 1; }
-
 if [ -d "$APP" ]; then
     POLLS=0
     while true; do
@@ -153,6 +140,19 @@ if [ -d "$APP" ]; then
         POLLS=$((POLLS + 1))
     done
 fi
+
+WORK="$(mktemp -d "${TMPDIR:-/tmp}/notchcast-update.XXXXXX")"
+trap 'rm -rf "$WORK"' EXIT
+gh release download "$TAG" -R "$FORK_REPO" -D "$WORK" -p "$APP_NAME-${WANT}.zip"
+mkdir "$WORK/x"
+ditto -x -k "$WORK/$APP_NAME-${WANT}.zip" "$WORK/x"
+NEW="$(find "$WORK/x" -maxdepth 1 -name '*.app' | head -1)"
+[ -n "$NEW" ] || { log "no app in the release zip"; exit 1; }
+xattr -dr com.apple.quarantine "$NEW" 2>/dev/null || true
+codesign --verify --deep --strict "$NEW"
+[ "$(plist "$NEW" CFBundleIdentifier)" = "$BUNDLE_ID" ] || { log "bundle id mismatch; refusing"; exit 1; }
+[ "$(plist "$NEW" CFBundleShortVersionString)" = "$WANT" ] || { log "version mismatch; refusing"; exit 1; }
+[ "$(leaf_sha1 "$NEW")" = "$SIGN_SHA1" ] || { log "not signed by $SIGN_IDENTITY; refusing"; exit 1; }
 
 STATUS=0
 "$HERE/install-app.sh" "$NEW" || STATUS=$?

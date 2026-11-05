@@ -43,6 +43,19 @@ check() {
 }
 check
 echo 'PASS: rewritten main, arguments, adjacent files and untouched checkout'
+TOOLS="$HOME/Library/Application Support/notchcast/tools"
+OLD_COPY="$(readlink "$TOOLS")"
+printf '\necho v2\n' >> "$WORK/origin/notchcast/update.sh"
+git -C "$WORK/origin" add .
+git -C "$WORK/origin" commit -qm v2
+check
+NEW_COPY="$(readlink "$TOOLS")"
+test "$NEW_COPY" != "$OLD_COPY"
+test -f "$NEW_COPY/update.sh"
+test ! -e "${OLD_COPY%/notchcast}"
+grep -qx v2 "$WORK/log"
+test "$(git -C "$WORK/checkout" rev-parse refs/remotes/origin/main)" = "$(git -C "$WORK/origin" rev-parse main)"
+echo 'PASS: consecutive refresh swaps link, removes old copy and runs v2'
 mv "$WORK/origin" "$WORK/unreachable"
 check
 test "$(grep -c 'refresh failed' "$WORK/log")" = 1
