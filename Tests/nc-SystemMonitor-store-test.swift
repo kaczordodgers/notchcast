@@ -42,10 +42,12 @@ final class FakeFans {
 @MainActor
 final class SampleProbe {
     var count = 0
+    let percent: Double
+    init(percent: Double = 25) { self.percent = percent }
     func sample() -> MonitorSnapshot {
         count += 1
         return MonitorSnapshot(cpu: CPUReading(
-            usage: .init(totalPercent: 25, userPercent: 10, systemPercent: 15),
+            usage: .init(totalPercent: percent, userPercent: percent, systemPercent: 0),
             cores: [], loadAverage: nil))
     }
 }
@@ -59,7 +61,7 @@ struct MonitorStoreTests {
 
     static func main() async {
         let probe = SampleProbe()
-        let alertProbe = SampleProbe()
+        let alertProbe = SampleProbe(percent: 95)
         let store = MonitorStore(sample: { await probe.sample() },
                                  alertSample: { await alertProbe.sample() })
         store.start()
@@ -88,6 +90,7 @@ struct MonitorStoreTests {
         preferences.set(.monitorAlerts, false)
         let module = MonitorModule(preferences: preferences, store: store, alertSink: { _ in })
         let initialCount = probe.count
+        let history = store.histories["cpu"]?.values
         module.start()
         await settle()
         precondition(store.demand == 0 && probe.count == initialCount)
@@ -104,8 +107,7 @@ struct MonitorStoreTests {
         preferences.set(.monitorAlerts, true)
         await settle()
         precondition(alertProbe.count > 0, "alerts-only probe must run")
-        precondition(store.latest.cpu?.usage?.totalPercent == 25, "alert values reach latest")
-        let history = store.histories["cpu"]?.values
+        precondition(store.latest.cpu?.usage?.totalPercent == 95, "alert values reach latest")
         await settle()
         precondition(store.histories["cpu"]?.values == history, "alerts leave histories untouched")
         let visible = store.beginDemand()
