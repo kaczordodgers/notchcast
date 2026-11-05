@@ -97,6 +97,13 @@ struct SmallCommandsTest {
         precondition(ShortenLinkService.pick(argument: "invalid", frontAddress: "https://example.com", clipboard: nil) == nil)
         precondition(ShortenLinkService.pick(argument: "", frontAddress: nil, clipboard: "Read https://example.com/a") != nil)
         precondition(ShortenLinkService.pick(argument: "example.com", frontAddress: nil, clipboard: nil) != nil)
+        precondition(ShortenLinkService.pick(argument: "https://typed.example/path", frontAddress: nil,
+            clipboard: "https://clipboard.example") == "https://typed.example/path")
+        precondition(ShortenLinkService.pick(argument: " \n", frontAddress: nil,
+            clipboard: "https://clipboard.example") == "https://clipboard.example")
+        precondition(ShortenLinkService.pick(argument: "invalid", frontAddress: nil,
+            clipboard: "https://clipboard.example") == nil)
+        precondition(ShortenLinkService.pick(argument: "", frontAddress: nil, clipboard: "invalid") == nil)
         let service = ShortenLinkService { request in
             let parts = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
             precondition(parts.host == "tinyurl.com" && request.timeoutInterval == 10)
