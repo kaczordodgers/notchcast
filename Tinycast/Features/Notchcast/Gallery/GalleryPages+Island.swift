@@ -8,7 +8,9 @@ extension GalleryPages {
             let display = CGRect(x: 0, y: 0, width: mba ? 1470 : 1920, height: mba ? 956 : 1080)
             let notch = mba ? CGRect(x: display.midX - 92, y: display.maxY - 32, width: 184, height: 32) : nil
             let suffix = mba ? "mba" : "ext"
-            let closed = ["idle", "timer", "transfer", "status"].map { state in
+            let closed = ["idle", "timer", "transfer", "status", "volume", "brightness", "airpods",
+                          "low-battery", "wifi", "tailscale", "low-disk", "meeting-reminder",
+                          "dictation", "walk", "message", "danger-message"].map { state in
                 islandPage(core, name: "island-closed-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: false)
             }
@@ -33,17 +35,26 @@ extension GalleryPages {
                         (window.contentView?.layer?.mask as? CAShapeLayer)?.path ?? CGMutablePath()
                     }, makeWindow: {
             for activity in IslandActivityCenter.shared.activities { IslandActivityCenter.shared.finish(activity.id) }
-            let activity = IslandActivity(kind: state == "timer" ? .timer : .transfer,
-                                          title: state == "timer" ? "Tea timer" : "Sample transfer",
-                                          progress: state == "timer" ? nil : 0.64,
+            let titles = ["timer": "Tea timer", "meeting-reminder": "Design review"]
+            var activity = IslandActivity(kind: state == "timer" ? .timer : (state == "transfer" ? .transfer : .status),
+                                          title: titles[state] ?? "Sample transfer",
+                                          progress: state == "transfer" ? 0.64 : nil,
                                           endDate: state == "timer" ? Date().addingTimeInterval(300) : nil)
+            if state == "volume" || state == "brightness" {
+                let center = IslandActivityCenter()
+                let presenter = SystemLevelIslandPresenter(center: center)
+                presenter.present(LevelNotice(kind: state == "volume" ? .volume : .brightness,
+                                              level: state == "volume" ? 0.40 : 0.75))
+                activity = center.current!
+                presenter.present(nil)
+            }
             let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
             let island = IslandController()
             let pages = IslandPagesCoordinator(core: core, island: island)
             let header = IslandHeaderView(cameraWidth: notch?.width ?? 0, height: panel.headerHeight)
                 .environment(island).environment(pages)
             var compact = IslandController.ClosedContent()
-            if state == "timer" || state == "transfer" {
+            if ["timer", "transfer", "volume", "brightness", "meeting-reminder"].contains(state) {
                 compact = IslandController.ClosedContent(leading: AnyView(IslandActivityGlyph(activity: activity)),
                                                          trailing: AnyView(IslandActivityValue(activity: activity)))
             }
@@ -69,9 +80,15 @@ extension GalleryPages {
             } else { content = AnyView(IslandHomeView()) }
             panel.setContent(open: AnyView(content.paletteEnvironment(core)), closed: compact,
                              header: AnyView(header.paletteEnvironment(core)))
-            if state == "status" {
-                panel.setMessage(IslandMessage(id: UUID(), tone: .success, text: "Sample export complete",
-                                              isProgress: false, onCancel: nil))
+            let messages = ["status": "Sample export complete", "airpods": "AirPods: Connected",
+                            "low-battery": "Low battery: 10%", "wifi": "Wi-Fi: Connected",
+                            "tailscale": "Tailscale: Connected", "low-disk": "Low disk space: 12 GB",
+                            "dictation": "Dictation listening", "walk": "Daily walking goal reached.",
+                            "message": "Nothing to Import", "danger-message": "Couldn’t read the text"]
+            if let text = messages[state] {
+                let danger = ["low-battery", "low-disk", "danger-message"].contains(state)
+                panel.setMessage(IslandMessage(id: UUID(), tone: danger ? .danger : (state == "status" ? .success : .neutral),
+                                              text: text, isProgress: state == "dictation", onCancel: nil))
             }
             panel.setOpen(open, animated: false)
             return panel
