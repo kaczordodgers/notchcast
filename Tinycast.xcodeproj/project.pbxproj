@@ -1298,6 +1298,7 @@
 		B15CF5D63FED5BC8AF375400 /* MenuSearchItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90DEF8D0211CA35DF44537B2 /* MenuSearchItem.swift */; };
 		B174C6D21BD3B1C4B9173FCA /* OpenBotService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3AB43CBA418E6652F425570A /* OpenBotService.swift */; };
 		B17B6FE6F8DE23D815E3C5BB /* InstalledCLIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E08F20B0B823443E176F1566 /* InstalledCLIProvider.swift */; };
+		B17D70DE7D5C0DCB1471B9A6 /* KatanaModule+Commands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 178D9C8519882FE8DC6D4BA6 /* KatanaModule+Commands.swift */; };
 		B18974C91E59A80C182B72CE /* TemperatureSensorPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF5FAE8A5472A8A09E233984 /* TemperatureSensorPolicy.swift */; };
 		B2404EBFB52B8199DC2536F6 /* HotKeyBinding.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85B00A698366E83C7352BC1E /* HotKeyBinding.swift */; };
 		B252A2FE21C314FE90BD8FBF /* MicrophoneInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7607B37A32A737867F8CB3CE /* MicrophoneInput.swift */; };
@@ -2127,6 +2128,7 @@
 		1752EFD965C5AC8168FAA07F /* SettingsFileJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsFileJSON.swift; sourceTree = "<group>"; };
 		175C52A798660607C0FDD180 /* RoomCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomCoordinator.swift; sourceTree = "<group>"; };
 		1762593AE39A13A73DD81538 /* DistillConvertRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistillConvertRunner.swift; sourceTree = "<group>"; };
+		178D9C8519882FE8DC6D4BA6 /* KatanaModule+Commands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "KatanaModule+Commands.swift"; sourceTree = "<group>"; };
 		17EA0B9FFCBAB10941EC7702 /* VisibilityStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisibilityStore.swift; sourceTree = "<group>"; };
 		180B2EC8CC8D91B82459DA63 /* CleanSystemPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanSystemPlan.swift; sourceTree = "<group>"; };
 		182F93091240D777FC26846C /* SystemAudioHardware.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAudioHardware.swift; sourceTree = "<group>"; };
@@ -8593,6 +8595,7 @@
 				5B4D072BEF36B08B27D69746 /* Model */,
 				D8326CD104C9545A0103DADE /* Service */,
 				51D7C67D1699A605107840A3 /* KatanaModule.swift */,
+				178D9C8519882FE8DC6D4BA6 /* KatanaModule+Commands.swift */,
 			);
 			path = Katana;
 			sourceTree = "<group>";
@@ -10614,6 +10617,7 @@
 				DBE15B7E2A1CCAC380E0FBDB /* KatanaMIDITransport.swift in Sources */,
 				7BD49F67AC9F8D5CBD166F51 /* KatanaMk1Data.swift in Sources */,
 				4EF5EF3310D8024D81761EA3 /* KatanaMkIIBlock.swift in Sources */,
+				B17D70DE7D5C0DCB1471B9A6 /* KatanaModule+Commands.swift in Sources */,
 				99DC37AA452AC435F7BE49CD /* KatanaModule.swift in Sources */,
 				AD30262AEEC0DF5F33C5130A /* KatanaPatchRegion.swift in Sources */,
 				B3AAC8F043A8853E76F6F002 /* KatanaPitchEngine.swift in Sources */,
