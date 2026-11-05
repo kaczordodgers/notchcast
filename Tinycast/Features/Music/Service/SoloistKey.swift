@@ -1,4 +1,6 @@
 import Foundation
+import OSLog
+import Security
 
 @MainActor
 final class SoloistKey {
@@ -21,37 +23,58 @@ final class SoloistKey {
         self.write = write
     }
 
-    var isSaved: Bool { get throws { try presence?() ?? (value() != nil) } }
+    var isSaved: Bool {
+        get throws {
+            guard let presence else { return try value() != nil }
+            do { return try presence() } catch { throw Self.failure(.keyUnavailable, error) }
+        }
+    }
 
     func value() throws -> String? {
-        do { return try read().map(SoloistKeyValidation.validated) } catch { throw SoloistFailure.keyUnavailable }
+        do { return try read().map(SoloistKeyValidation.validated) } catch { throw Self.failure(.keyUnavailable, error) }
     }
 
     func save(_ pasted: String) throws {
         let key = try SoloistKeyValidation.validated(pasted)
-        do { try write(key) } catch { throw SoloistFailure.keyUnavailable }
+        do { try write(key) } catch { throw Self.failure(.keyNotSaved, error) }
         onChange?()
     }
 
+    /// Reads at most one key's worth of bytes; every refusal names the file and what was read.
     func importKey(from file: URL) throws {
-        let text = try Self.readFile(file)
-        try save(text)
-    }
-
-    func remove() throws {
-        do { try write(nil) } catch { throw SoloistFailure.keyUnavailable }
-        onChange?()
-    }
-
-    private static func readFile(_ file: URL) throws -> String {
+        let data: Data
         do {
             let handle = try FileHandle(forReadingFrom: file)
             defer { try? handle.close() }
-            let data = try handle.read(upToCount: SoloistKeyValidation.maximumBytes + 1) ?? Data()
-            guard data.count <= SoloistKeyValidation.maximumBytes, let text = String(data: data, encoding: .utf8) else {
-                throw SoloistFailure.keyFileUnreadable
-            }
-            return text
-        } catch { throw SoloistFailure.keyFileUnreadable }
+            data = try handle.read(upToCount: SoloistKeyValidation.maximumBytes + 1) ?? Data()
+        } catch { throw Self.failure(.keyFileUnreadable, "\(file.path): \(SoloistFailure.describe(error))") }
+        let found = "\(file.path): \(data.count.formatted(.byteCount(style: .file)))"
+        guard data.count <= SoloistKeyValidation.maximumBytes, let text = String(data: data, encoding: .utf8) else {
+            throw Self.failure(.keyFileUnreadable, found)
+        }
+        do { try save(text) } catch SoloistFailure.invalidKey { throw Self.failure(.invalidKey, found) }
+    }
+
+    func remove() throws {
+        do { try write(nil) } catch { throw Self.failure(.keyNotSaved, error) }
+        onChange?()
+    }
+
+    private static func failure(_ kind: SoloistFailure, _ error: any Error) -> SoloistFailure {
+        let detail = switch error {
+        case KeychainSecretStore.StoreError.keychain(let status):
+            "Keychain: \(SecCopyErrorMessageString(status, nil) as String? ?? "error") (OSStatus \(status))"
+        case KeychainSecretStore.StoreError.invalidEncoding: "Keychain: the item isn’t UTF-8 text"
+        default: SoloistFailure.describe(error)
+        }
+        return failure(kind, detail)
+    }
+
+    /// Logged so a failure explains itself in Console; the detail never holds the key.
+    private static func failure(_ kind: SoloistFailure, _ detail: String) -> SoloistFailure {
+        let failure = kind.detail(detail)
+        Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast.app", category: "Soloist")
+            .error("API key: \(String(describing: failure), privacy: .public)")
+        return failure
     }
 }
