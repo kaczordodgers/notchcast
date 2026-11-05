@@ -94,12 +94,18 @@ struct MonitorStoreTests {
             await settle()
             module.start()
             precondition(store.demand == 1)
+            precondition(probe.count == initialCount, "alerts-only demand must not invoke full sampler")
             preferences.set(.monitorAlerts, false)
             await settle()
             precondition(store.demand == 0)
         }
         preferences.set(.monitorAlerts, true)
         await settle()
+        let visible = store.beginDemand()
+        for _ in 0..<1000 where probe.count == initialCount { await Task.yield() }
+        precondition(probe.count > initialCount, "visible demand switches to full sampler")
+        visible.cancel()
+        print("PASS: alerts-only demand skips full sampler; visible demand resumes it")
         module.stop()
         module.stop()
         precondition(store.demand == 0)

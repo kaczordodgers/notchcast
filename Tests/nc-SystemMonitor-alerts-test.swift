@@ -104,13 +104,25 @@ struct MonitorAlertsTests {
         let writable = DiskVolume(name: "Data", mountPath: "/", total: 100, available: 50)
         let image = DiskVolume(name: "Image", mountPath: "/Volumes/Image", total: 100,
                                available: 0, isReadOnly: true)
-        diskAlerts.evaluate(MonitorSnapshot(volumes: [writable, image]), rules: diskRules,
+        let external = DiskVolume(name: "USB", mountPath: "/Volumes/USB", total: 100,
+                                  available: 0, isEjectable: true)
+        diskAlerts.evaluate(MonitorSnapshot(volumes: [writable, image, external]), rules: diskRules,
                             enabled: true, demand: 1, at: Date())
-        precondition(diskCalls == 0)
+        precondition(diskCalls == 0, "external writable volume must not trigger disk alerts")
         let full = DiskVolume(name: "Data", mountPath: "/", total: 100, available: 1)
         diskAlerts.evaluate(MonitorSnapshot(volumes: [full, image]), rules: diskRules,
                             enabled: true, demand: 1, at: Date())
         precondition(diskCalls == 1)
+        print("PASS: external volume ignored, boot volume counted")
+        var editCalls = 0
+        let edited = MonitorAlerts { _ in editCalls += 1 }
+        for (time, threshold) in [(0.0, 90.0), (60.0, 85.0), (901.0, 85.0)] {
+            edited.evaluate(highSample(), rules: [
+                .cpu: .init(direction: .above, threshold: threshold, recoverValue: 80, sustainCount: 1)
+            ], enabled: true, demand: 1, at: Date(timeIntervalSince1970: time))
+            precondition(editCalls == (time < 900 ? 1 : 2), "threshold edit must preserve 15-minute cooldown")
+        }
+        print("PASS: threshold edit preserves cooldown and fires after expiry")
         print("PASS: threshold crossing, hysteresis, cooldown, disabled and no-demand gating")
     }
 }

@@ -72,6 +72,9 @@ final class MonitorStore {
     private(set) var publicIPLookupFailed = false
     @ObservationIgnored private var enabled = false
     @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var visibleDemand = 0
+    @ObservationIgnored private var samplingAlertsOnly: Bool?
+    @ObservationIgnored private let alertSample: (@Sendable () async -> MonitorSnapshot)?
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private let sample: (@Sendable () async -> MonitorSnapshot)?
     @ObservationIgnored private let measureSpeed: @Sendable (SpeedTestPhase) async throws -> SpeedTestResult.Measurement
@@ -82,12 +85,14 @@ final class MonitorStore {
     @ObservationIgnored private var publicIPIdentity: UUID?
 
     init(sample: (@Sendable () async -> MonitorSnapshot)? = nil,
+         alertSample: (@Sendable () async -> MonitorSnapshot)? = nil,
          measureSpeed: @escaping @Sendable (SpeedTestPhase) async throws -> SpeedTestResult.Measurement = {
              try await SpeedTestRunner().run($0)
          },
          lookupPublicIP: @escaping @Sendable () async -> String? = { await NetworkPublicIPService().lookup() },
          sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) {
         self.sample = sample
+        self.alertSample = alertSample
         self.measureSpeed = measureSpeed
         self.lookupPublicIP = lookupPublicIP
         self.sleep = sleep
@@ -111,12 +116,14 @@ final class MonitorStore {
         isFetchingPublicIP = false
     }
 
-    func beginDemand() -> DemandToken {
+    func beginDemand(alertsOnly: Bool = false) -> DemandToken {
         demand += 1
+        if !alertsOnly { visibleDemand += 1 }
         update()
         return DemandToken { [weak self] in
             guard let self else { return }
             self.demand -= 1
+            if !alertsOnly { self.visibleDemand -= 1 }
             self.update()
         }
     }
@@ -175,6 +182,13 @@ final class MonitorStore {
     }
 
     private func update() {
+        let alertsOnly = visibleDemand == 0
+        if samplingAlertsOnly != alertsOnly {
+            generation += 1
+            worker?.cancel()
+            worker = nil
+            samplingAlertsOnly = alertsOnly
+        }
         guard enabled, let cadence = MonitorCadence.next(isVisible: demand > 0) else {
             generation += 1
             worker?.cancel()
@@ -183,7 +197,7 @@ final class MonitorStore {
         }
         guard worker == nil else { return }
         let identity = generation
-        let sample = sample
+        let sample = alertsOnly ? alertSample : sample
         let sleep = sleep
         worker = Task { [weak self] in
             let stream = AsyncStream<MonitorSnapshot> { continuation in
@@ -197,6 +211,11 @@ final class MonitorStore {
                         let reading: MonitorSnapshot
                         if let sample {
                             reading = await sample()
+                        } else if alertsOnly {
+                            reading = MonitorSnapshot(
+                                cpu: cpu.sample(), memory: MemorySampler().read(),
+                                volumes: disk.read(bootOnly: true), battery: BatteryService().read(),
+                                sensors: sensors.read(alertsOnly: true))
                         } else {
                             reading = MonitorSnapshot(
                                 cpu: cpu.sample(), memory: MemorySampler().read(),
@@ -216,7 +235,7 @@ final class MonitorStore {
                 guard !Task.isCancelled, let self, self.generation == identity,
                       self.enabled, self.demand > 0 else { break }
                 self.latest = reading
-                for (key, value) in reading.series {
+                for (key, value) in alertsOnly ? [:] : reading.series {
                     self.histories[key, default: MonitorHistory()].append(value)
                 }
             }

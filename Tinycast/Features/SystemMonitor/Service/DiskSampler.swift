@@ -6,11 +6,11 @@ nonisolated struct DiskSampler: Sendable {
     private var previous: [UInt64: DiskIOReading.Counters] = [:]
     private var previousTime: TimeInterval?
 
-    func read() -> [DiskVolume] {
+    func read(bootOnly: Bool = false) -> [DiskVolume] {
         let keys: Set<URLResourceKey> = [.volumeNameKey, .volumeIsLocalKey,
             .volumeTotalCapacityKey, .volumeAvailableCapacityKey, .volumeIsReadOnlyKey,
             .volumeIsEjectableKey, .volumeIsInternalKey, .volumeIsRootFileSystemKey]
-        let urls = FileManager.default.mountedVolumeURLs(
+        let urls = bootOnly ? [URL(filePath: "/")] : FileManager.default.mountedVolumeURLs(
             includingResourceValuesForKeys: Array(keys), options: .skipHiddenVolumes) ?? []
         return urls.compactMap { url in
             guard !url.path.hasPrefix("/System/Volumes/"),
