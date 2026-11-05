@@ -11,9 +11,9 @@ extension MachRemoteModule {
         repeat with chosenItem in chosenItems
             set end of paths to POSIX path of chosenItem
         end repeat
-        set AppleScript's text item delimiters to ASCII character 0
+        set AppleScript's text item delimiters to character id 0
         if (count of paths) is 0 then return ""
-        return (paths as text) & (ASCII character 0)
+        return (paths as text) & (character id 0)
         """
         automation?.cancel()
         automation = Task {

@@ -40,7 +40,7 @@ import AppKit
         await module.automation?.value
         precondition(NotchcastCore.sendFiles.sent.map(\.path) == ["/tmp/one\nname", "/tmp/second"],
                      "Finder filenames must preserve newlines")
-        precondition(MachSSHProcessRunner.script.contains("ASCII character 0"))
+        precondition(MachSSHProcessRunner.script.contains("character id 0"))
         NotchcastCore.sendFiles.sent = []
         MachSSHProcessRunner.output = "relative\0\n"
         module.sendFinderSelection()
