@@ -36,6 +36,7 @@ struct MediaLevelKeyPolicy: Sendable {
             guard down.contains(key) else { return .pass }
             return key == .mute ? .swallow : .press(key, fine: fine)
         }
+        if down.contains(key) { return .swallow }
         guard relevant == 0 || fine else { return .pass }
         down.insert(key)
         return .press(key, fine: fine)
