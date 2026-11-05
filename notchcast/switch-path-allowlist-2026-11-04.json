@@ -16,5 +16,6 @@
   "backupBrowseRestore": "configuration source and a snapshot browser + restore UI",
   "markdownFiles": "an open route (AppCore.handleOpenURL / Open With / command) and an editor window view",
   "plainTextFiles": "the same open route and window",
-  "buildStats": "a surface (island page or Settings detail) that displays the loaded stats"
+  "buildStats": "a surface (island page or Settings detail) that displays the loaded stats",
+  "commandRunner": "a way to add host commands; the launcher commands only read Application Support/Notchcast/host-commands.json, which nothing in the app creates"
 }
