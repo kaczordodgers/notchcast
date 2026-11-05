@@ -1,0 +1,9 @@
+{
+  "spotify-key": [
+    "Tinycast/Features/Music/Model/SoloistKeyValidation.swift",
+    "Tinycast/Features/Music/Model/SoloistArchiveRules.swift",
+    "Tinycast/Features/Music/Service/SoloistKey.swift",
+    "Tinycast/Features/AppProof/**",
+    "Tinycast/App/TinycastApp.swift"
+  ]
+}
