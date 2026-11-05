@@ -25,6 +25,8 @@ final class IslandController: NotchcastModule {
     @ObservationIgnored private var artwork: (data: Data, image: NSImage)?
     /// The palette grown from the island, on one panel, while it is up.
     @ObservationIgnored private weak var launcherPanel: IslandPanel?
+    /// The pinned page the launcher grew over, reopened pinned when it shrinks back.
+    @ObservationIgnored private var pinnedUnderLauncher: IslandPage?
 
     @ObservationIgnored private var panels: [IslandPanel] = []
     @ObservationIgnored private weak var openPanel: IslandPanel?
@@ -86,7 +88,7 @@ final class IslandController: NotchcastModule {
         guard observationID != nil, NotchcastPreferences.shared.isOn(.island),
               let panel = panels.first(where: { $0.displayFrame == screen.frame }),
               panel.isVisible, panel.isOnActiveSpace else { return nil }
-        if isOpen { close() }
+        if isOpen { pinnedUnderLauncher = isPinned ? page : nil; close() }
         if launcherPanel !== panel { launcherPanel?.setLauncher(height: nil, animated: true) }
         launcherPanel = panel
         let height = collapsed ? Theme.Size.compactHeight : NotchcastTheme.Launcher.size.height
@@ -97,6 +99,11 @@ final class IslandController: NotchcastModule {
     private func shrinkLauncher() {
         launcherPanel?.setLauncher(height: nil, animated: true)
         launcherPanel = nil
+        if let page = pinnedUnderLauncher {
+            pinnedUnderLauncher = nil
+            open(page: page, takeKey: false)
+            input.setPinned(true)
+        }
     }
 
     private func observeLauncher(identity: UUID) {
@@ -116,6 +123,7 @@ final class IslandController: NotchcastModule {
         NotchcastCore.levelKeys.hudPresenterAvailable = false
         IslandActivityCenter.shared.hasPresenter = false
         close()
+        pinnedUnderLauncher = nil
         shrinkLauncher()
         setCommandAvailable(false)
         observationID = nil
@@ -372,32 +380,7 @@ final class IslandController: NotchcastModule {
     }
 
     private func handleKey(_ event: NSEvent) -> Bool {
-        guard isOpen else { return false }
-        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-            .subtracting([.capsLock, .numericPad, .function])
-        if flags == .command, let key = event.charactersIgnoringModifiers?.lowercased() {
-            if event.isARepeat { return key == "p" || key == "r" || IslandPage.page(forKey: key) != nil }
-            if key == "p" { togglePin(); return true }
-            if key == "r" { pages?.refresh(page); return true }
-            if let target = IslandPage.page(forKey: key) {
-                if target == page { dismiss(.pageKey) } else { selectPage(target) }
-                return true
-            }
-        }
-        if flags.isEmpty {
-            switch event.keyCode {
-            case 53: dismiss(.escape)
-            case 123: pages?.moveHeader(-1)
-            case 124: pages?.moveHeader(1)
-            case 125: pages?.moveSelection(1, page: page)
-            case 126: pages?.moveSelection(-1, page: page)
-            case 36, 76: pages?.activateHeader(in: self)
-            case 48: pages?.moveHeader(1)
-            default: return false
-            }
-            return true
-        }
-        if flags == .shift, event.keyCode == 48 { pages?.moveHeader(-1); return true }
-        return false
+        guard isOpen, let key = IslandKey(event: event) else { return false }
+        return pages?.perform(key, in: self) ?? false
     }
 }
