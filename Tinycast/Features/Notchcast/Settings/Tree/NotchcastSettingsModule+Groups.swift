@@ -70,7 +70,9 @@ extension NotchcastSettingsModule {
                 .feature(.eventReminder, settings: []),
             ]),
             .init(title: "Tasks", items: [
+                .feature(.todoIsland, settings: []),
                 .feature(.tasks, settings: [.dayAndTasksTaskImport]),
+                .feature(.tasksSync, settings: []),
             ]),
             .init(title: "Timers", items: [
                 .feature(.liveTimers, settings: [.dayAndTasksTimerOptions]),
@@ -208,6 +210,9 @@ extension NotchcastSettingsModule {
                 .feature(.buildStats, settings: [.aiAndAgentsBuildSnapshot]),
             ]),
             .init(title: "Agents", items: [
+                .feature(.agentThreads, settings: []),
+                .feature(.agentIsland, settings: []),
+                .feature(.waitingAlerts, settings: []),
                 .feature(.agentActions, settings: []),
                 .feature(.agentConfirmation, settings: []),
                 .feature(.agentCLI, settings: [.aiAndAgentsCLIInstall]),
@@ -215,6 +220,7 @@ extension NotchcastSettingsModule {
                 .feature(.agentChatTools, settings: [.aiAndAgentsChatTools]),
                 .feature(.agentAnswer, settings: []),
                 .feature(.voiceAsk, settings: [.aiAndAgentsVoiceDestination]),
+                .feature(.openBotAgents, settings: []),
             ]),
         ]
         case .twoMacs: [

@@ -1,9 +1,30 @@
 #!/bin/bash
 set -euo pipefail
+# A stale checkout lands by stale rules (one skipped the Sync wait), so a landing always runs main's tooling.
+if [ "$#" -eq 1 ] && [ -z "${NOTCHCAST_LAND_TOOLS:-}" ]; then
+    origin_top=$(git -C "$(dirname "$0")" rev-parse --show-toplevel)
+    git -C "$origin_top" fetch --quiet origin main || { echo 'REFUSED: could not fetch origin main' >&2; exit 1; }
+    if [ "$(git -C "$origin_top" rev-parse HEAD:notchcast)" != "$(git -C "$origin_top" rev-parse origin/main:notchcast)" ] \
+        || ! git -C "$origin_top" diff --quiet HEAD -- notchcast; then
+        tools=$(mktemp -d)
+        git -C "$origin_top" worktree add --quiet --detach "$tools/tree" origin/main
+        echo "land.sh: this checkout's notchcast/ differs from origin/main; running main's copy"
+        cd "$tools/tree"
+        NOTCHCAST_LAND_TOOLS=$tools NOTCHCAST_LAND_ORIGIN=$origin_top exec bash notchcast/land.sh "$@"
+    fi
+fi
+remove_tools() {
+    [ -n "${NOTCHCAST_LAND_ORIGIN:-}" ] || return 0
+    cd "$NOTCHCAST_LAND_ORIGIN"
+    git worktree remove --force "$NOTCHCAST_LAND_TOOLS/tree" >/dev/null 2>&1 || true
+    rm -rf "$NOTCHCAST_LAND_TOOLS"
+}
+trap remove_tools EXIT
 source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
 refuse() { echo "REFUSED: $*" >&2; exit 1; }
+source "$(dirname "$0")/sync-wait.sh"
 check=0
 if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     check=1
@@ -13,7 +34,7 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
     metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName)
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
-    git fetch origin main "refs/pull/$pr/head"
+    git fetch origin main "refs/pull/$pr/head" '+refs/notchcast/synced/*:refs/notchcast/synced/*'
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
     # Check runs on the commit, not the PR's statusCheckRollup: the rollup omits dispatched runs, and a PR
     # GitHub calls conflicting gets no pull_request run at all. The newest run wins over a cancelled one.
@@ -48,19 +69,41 @@ scratch=$(mktemp -d)
 cleanup() {
     git worktree remove --force "$scratch/tree" >/dev/null 2>&1 || true
     rm -rf "$scratch"
+    remove_tools
 }
 trap cleanup EXIT
 trap 'exit 1' HUP INT TERM
 mkdir "$scratch/tmp"
 top=$(pwd)
+# Sync's rebase rewrites main, so a PR cut before it shares only upstream with the new main, and a plain merge sees
+# every one of our commits twice. sync.yml records each replaced main tip under refs/notchcast/synced/; the PR's
+# fork point is its merge base with the newest such tip whose shared history main no longer has. A PR that merged
+# the new main since ("Update branch") has a plain merge base outside that tip and keeps the plain merge.
+fork_point() {
+    local tip shared plain
+    plain=$(git merge-base "$1" "$head")
+    for tip in $(git for-each-ref --sort=-committerdate --format='%(objectname)' refs/notchcast/synced/); do
+        git merge-base --is-ancestor "$plain" "$tip" || continue
+        shared=$(git merge-base "$tip" "$head") || continue
+        git merge-base --is-ancestor "$shared" "$1" || { echo "$shared"; return; }
+    done
+    echo "$plain"
+}
 # Merges $head onto $1 in a fresh scratch tree and runs the cheap checks; any real conflict is refused.
 merge_onto() {
     local onto=$1 file revived unmerged
     cd "$top"
+    fork=$(fork_point "$onto")
     git worktree remove --force "$scratch/tree" >/dev/null 2>&1 || true
     git worktree add --quiet --detach "$scratch/tree" "$onto"
     cd "$scratch/tree"
-    git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$head" >/dev/null 2>&1 || true
+    if [ "$fork" = "$(git merge-base "$onto" "$head")" ]; then
+        git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$head" >/dev/null 2>&1 || true
+    else
+        echo "merging from ${fork:0:8}, the PR's fork point on main before a Sync rewrite"
+        git merge-recursive "$fork" -- HEAD "$head" >/dev/null 2>&1 || true
+        git rev-parse "$head" > "$(git rev-parse --git-path MERGE_HEAD)"
+    fi
     # Generated files (ci.py GENERATED) keep main's version, conflicting or not: CI regenerates them before every
     # build, so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
     generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
@@ -74,7 +117,6 @@ merge_onto() {
     git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
         commit --quiet --allow-empty --no-edit -m "Merge $head"
     # A union merge keeps a line the PR deleted when main appended next to it; refuse instead of reviving it.
-    fork=$(git merge-base "$onto" "$head")
     for file in $(awk '$2 == "merge=union" {print $1}' .gitattributes); do
         revived=$(comm -12 <(comm -23 <(git show "$fork:$file" 2>/dev/null | sort -u) <(git show "$head:$file" 2>/dev/null | sort -u)) \
             <(sort -u "$file" 2>/dev/null))
@@ -109,17 +151,18 @@ if [ "$check" -eq 0 ]; then
     commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
+    wait_for_sync
     [ "$(gh pr view "$pr" -R kaczordodgers/notchcast --json headRefOid --jq .headRefOid)" = "$head" ] \
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
     # Each landing moves main twice (the squash, then the generated commit), so a lost race merges onto the new
     # main and retries. Harnesses rerun only when the new commits touch a file the PR touches; otherwise the clean
     # merge is the same proof GitHub's merge button gives.
-    pr_files=$(git diff --name-only "$(git merge-base "$base" "$head")" "$head" | sort -u)
+    pr_files=$(git diff --name-only "$fork" "$head" | sort -u)
     for attempt in 1 2 3 4 5 6; do
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"
-        git fetch --quiet origin main
+        git fetch --quiet origin main '+refs/notchcast/synced/*:refs/notchcast/synced/*'
         moved_to=$(git rev-parse origin/main)
         [ "$moved_to" != "$base" ] || refuse "push to main failed and main did not move from ${base:0:8}"
         overlap=$(comm -12 <(git diff --name-only "$base" "$moved_to" | grep -vxF -f <(printf '%s\n' "${generated[@]}") | sort -u) \

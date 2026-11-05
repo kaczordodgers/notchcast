@@ -14,7 +14,8 @@ final class TodoStore {
     private var inverses: [TodoCommand]
     @ObservationIgnored private let log: FileHandle
     @ObservationIgnored private var writeFailed = false
-    @ObservationIgnored private var isClosed = false
+    private(set) var isClosed = false
+    @ObservationIgnored var localCommit: (() -> Void)?
 
     enum LoadWarning: Equatable, Sendable {
         case tornLastLine(line: Int)
@@ -86,6 +87,7 @@ final class TodoStore {
         replication = candidate
         state = candidate.state
         inverses.append(inverse)
+        localCommit?()
         return inverse
     }
 
@@ -97,10 +99,12 @@ final class TodoStore {
         replication = candidate
         state = candidate.state
         inverses.removeLast()
+        localCommit?()
     }
 
     @discardableResult
     func receive(_ envelopes: [TodoEnvelope], now: Date = Date()) throws -> [TodoReplicationError] {
+        guard !isClosed else { throw Failure.closed }
         let candidate = try TodoReplication.merge(local: replication, remote: envelopes, now: now)
         let known = Set((replication.envelopes + replication.deferredEnvelopes).map(\.id))
         let received = (candidate.envelopes + candidate.deferredEnvelopes).filter { !known.contains($0.id) }

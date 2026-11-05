@@ -29,16 +29,8 @@ struct TranscriptDownloadRunner: DownloadRunner {
                 let text = CaptionText.plainText(try String(contentsOf: file, encoding: .utf8), automatic: automatic)
                 guard !text.isEmpty else { continue }
                 let name = file.deletingPathExtension().deletingPathExtension().lastPathComponent
-                var output = context.destination.appending(path: name + ".txt")
-                var suffix = 2
-                while FileManager.default.fileExists(atPath: output.path) {
-                    output = context.destination.appending(path: name + " (\(suffix)).txt")
-                    suffix += 1
-                }
-                try FileManager.default.createDirectory(at: context.destination, withIntermediateDirectories: true)
                 try Task.checkCancellation()
-                try text.write(to: output, atomically: true, encoding: .utf8)
-                return output
+                return try DistillRunner.save(text, name: name + ".txt", in: context.destination)
             }
         }
         if let transcribe { return try await transcribe(job, context) }

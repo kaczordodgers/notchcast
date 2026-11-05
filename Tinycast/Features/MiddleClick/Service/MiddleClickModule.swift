@@ -7,6 +7,7 @@ final class MiddleClickModule: NotchcastModule {
     private var source: MiddleClickTouchSource?
     private var registration: UUID?
     private var permissionTimer: Timer?
+    private var wakeObserver: NotificationToken?
     private var nextSourceAttempt: TimeInterval = 0
     private let state = State()
 
@@ -17,12 +18,27 @@ final class MiddleClickModule: NotchcastModule {
         permissionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in self?.refresh() }
         }
+        let center = NSWorkspace.shared.notificationCenter
+        // Sleep invalidates the multitouch devices, and the device list is only read at start.
+        wakeObserver = NotificationToken(center.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in self?.restartInput() }
+        }, center: center)
     }
 
     func stop() {
         permissionTimer?.invalidate()
         permissionTimer = nil
+        wakeObserver = nil
         stopInput()
+    }
+
+    private func restartInput() {
+        guard wakeObserver != nil else { return }
+        stopInput()
+        nextSourceAttempt = 0
+        refresh()
     }
 
     private func stopInput() {

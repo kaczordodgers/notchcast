@@ -10,8 +10,14 @@ on:
       - README.upstream.md
 
 permissions:
+  actions: read
   contents: read
   issues: write
+
+# Only the newest main is tested; it selects harnesses from the last green run, so skipped pushes stay covered.
+concurrency:
+  group: main-harnesses
+  cancel-in-progress: true
 
 jobs:
   harnesses:
@@ -32,7 +38,11 @@ jobs:
         working-directory: src
         env:
           BEFORE: ${{ github.event.before }}
+          GH_TOKEN: ${{ github.token }}
         run: |
+          green=$(gh run list -R "$GITHUB_REPOSITORY" --workflow main-harnesses.yml --branch main --status success \
+            --limit 1 --json headSha --jq '.[0].headSha // empty') || green=
+          if [ -n "$green" ] && git merge-base --is-ancestor "$green" "$GITHUB_SHA" 2>/dev/null; then BEFORE=$green; fi
           if [[ "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}"; then
             # A Sync rewrite: Sync tested this tree before pushing it.
             echo notchcast-core-test > "$RUNNER_TEMP/selected"

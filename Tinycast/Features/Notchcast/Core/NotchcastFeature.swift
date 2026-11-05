@@ -2,6 +2,8 @@ import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
     case tasks
+    case tasksSync
+    case todoIsland
     case githubSearch
     case clearNotifications
     case launcherAnswers
@@ -56,6 +58,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case sendFiles
     case updateRemote
     case agentSessions
+    case openBotAgents
+    case agentThreads
+    case agentIsland
+    case waitingAlerts
     case agentPricing
     case pastePlain
     case finderCutPaste
@@ -146,6 +152,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var dependencies: [Self] {
         switch self {
+        case .tasksSync: [.tasks, .machLink]
+        case .todoIsland: [.tasks]
         case .archives: []
         case .archivesInPlace: [.archives]
         case .archivesDefaultApp: [.archives]
@@ -166,6 +174,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .appUpdates: .tools
         case .macUpdate: .tools
         case .tasks: .tasks
+        case .tasksSync: .tasks
+        case .todoIsland: .tasks
         case .githubSearch: .launcher
         case .clearNotifications: .launcher
         case .launcherAnswers: .launcher
@@ -240,6 +250,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: .activities
         case .dayWeather: .activities
         case .agentSessions: .activities
+        case .openBotAgents: .activities
+        case .agentThreads: .activities
+        case .agentIsland: .activities
+        case .waitingAlerts: .activities
         case .agentPricing: .agentPricing
         case .dayMarkets: .activities
         case .cleanJunk: .clean
@@ -309,6 +323,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .appUpdates: String(localized: "App updates")
         case .macUpdate: String(localized: "Update this Mac")
         case .tasks: String(localized: "Tasks")
+        case .tasksSync: String(localized: "Sync tasks between Macs")
+        case .todoIsland: String(localized: "Task island feed")
         case .githubSearch: String(localized: "GitHub Search")
         case .clearNotifications: String(localized: "Clear Notifications")
         case .launcherAnswers: String(localized: "Currency Answers")
@@ -359,6 +375,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .katana: String(localized: "Katana")
         case .appearance: String(localized: "Custom appearance")
         case .agentSessions: String(localized: "Agent Session Logs")
+        case .openBotAgents: String(localized: "OpenBot Agents")
+        case .agentThreads: String(localized: "Agent Threads")
+        case .agentIsland: String(localized: "Agent Island")
+        case .waitingAlerts: String(localized: "Waiting-for-you alerts")
         case .agentPricing: String(localized: "Agent API Value")
         case .pastePlain: String(localized: "Paste Plain Text")
         case .finderCutPaste: String(localized: "Finder Cut and Paste")
@@ -452,6 +472,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .appUpdates: String(localized: "Check installed apps for updates on demand.")
         case .macUpdate: String(localized: "Run maintenance only after confirmation.")
         case .tasks: String(localized: "Keep tasks on this Mac.")
+        case .tasksSync: String(localized: "Exchange tasks with your paired Mac over Mac Link.")
+        case .todoIsland: String(localized: "Prepare task snapshots for the island.")
         case .githubSearch: String(localized: "Search GitHub repositories and starred projects.")
         case .clearNotifications: String(localized: "Clear notifications from Notification Center. Requires English system language.")
         case .launcherAnswers: String(localized: "Currency answers using rates from NBP.")
@@ -500,9 +522,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
         case .treadmillWalk: String(localized: "Control a Bluetooth walking pad from the launcher.")
         case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
-        case .katana: String(localized: "Katana channels, tones and USB audio.")
+        case .katana: String(localized: "Switch Katana amp channels from the launcher.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
+        case .openBotAgents: String(localized: "Read waiting items from local OpenBot agents.")
+        case .agentThreads: String(localized: "Read active and recently finished agent threads on this Mac.")
+        case .agentIsland: String(localized: "Summarize waiting and working agents.")
+        case .waitingAlerts: String(localized: "Notify when an agent needs approval or an answer.")
         case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
         case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
         case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
@@ -670,6 +696,7 @@ extension NotchcastFeature {
     /// Switches kept out of Settings until a user can reach them; the code stays.
     /// Each reason is in notchcast/switch-path-allowlist-*.json. Unhide = delete its line.
     static let unwired: Set<Self> = [
+        .todoIsland,
         .githubSearch,
         .aiUsage,
         .aiUsageOtherMac,
@@ -681,7 +708,6 @@ extension NotchcastFeature {
         .agentPricing,
         .captureTrimmer,
         .captureEditor,
-        .recording,
         .backupRunNow,
         .backupBrowseRestore,
         .markdownFiles,
@@ -689,15 +715,7 @@ extension NotchcastFeature {
         .buildStats,
         .killProcess,
         .launcherAnswers,
-        .katana,
         .agentAnswer,
-        .agentMCPServer,
-        .agentChatTools,
-        .voiceAsk,
-        .agentMCPServer,
-        .agentChatTools,
-        .cleanSystem,
-        .linkQuickFixes,
         .remoteScreen,
         .machMBPFans,
         .macSetup,
@@ -714,6 +732,8 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
         case .tasks: false
+        case .tasksSync: false
+        case .todoIsland: false
         case .githubSearch: false
         case .clearNotifications: false
         case .launcherAnswers: false
@@ -743,6 +763,10 @@ extension NotchcastFeature {
         case .machineSetupProfile: false
         case .switcherQuitKey: false
         case .agentSessions: false
+        case .openBotAgents: false
+        case .agentThreads: false
+        case .agentIsland: false
+        case .waitingAlerts: false
         case .archives: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
@@ -818,6 +842,8 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
         return switch self {
         case .tasks: false
+        case .tasksSync: false
+        case .todoIsland: false
         case .accessoryNotices: false
         case .spotifyConnect: false
         case .captureEditor: false
@@ -860,6 +886,10 @@ extension NotchcastFeature {
         case .remoteScreen: false
         case .machMBPFans: false
         case .agentSessions: false
+        case .openBotAgents: false
+        case .agentThreads: false
+        case .agentIsland: false
+        case .waitingAlerts: false
         case .agentPricing: false
         case .treadmillWalk: false
         default: true

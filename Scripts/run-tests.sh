@@ -792,7 +792,6 @@ run settings-history-test  Tinycast/Features/Settings/SettingsTab.swift \
                            Tinycast/Features/Settings/SettingsAnchor.swift \
                            Tinycast/Features/Settings/SettingsNavigationState.swift \
                            Tinycast/Features/Settings/SettingsSearchCatalog.swift \
-                           Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift \
                            $L/SearchRelevance.swift \
                            Tinycast/Platform/LocalizedResource.swift
 run updates-test           Tinycast/Features/Updates/Model/*.swift \
@@ -807,6 +806,12 @@ run ai-provider-test       Tinycast/Features/Settings/AppSettingsKey.swift \
                            Tinycast/Features/AI/Service/CodexAppServerClient.swift \
                            Tinycast/Features/AI/Service/InstalledAIProbe.swift \
                            Tinycast/Platform/ExecutableLocator.swift Tinycast/Platform/ProcessExit.swift
+run opencode-mcp-test      Tinycast/Features/AI/Model/*.swift \
+                           Tinycast/Platform/ExecutableLocator.swift Tinycast/Platform/ProcessExit.swift \
+                           Tinycast/Features/AI/Service/AIProvider.swift \
+                           Tinycast/Features/AI/Service/AIToolLoopProvider.swift \
+                           Tinycast/Features/AI/Service/InstalledCLIProvider.swift \
+                           Tinycast/Features/AI/Service/OpenCodeMCPBridge.swift
 run ai-chat-test           Tinycast/Features/AI/Model/AIRequest.swift \
                            Tinycast/Features/AI/Model/AIConnection.swift \
                            Tinycast/Features/AI/Model/AIConversationOpenPolicy.swift \

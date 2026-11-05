@@ -37,7 +37,7 @@ final class NotchcastToolsCommands: NotchcastModule {
     private let post: (String) -> Void
     private let execute: @MainActor (Action, [URL], @escaping @MainActor () -> Bool) async throws -> Void
     private let refresh: () -> Void
-    private var running = false
+    private var observationID: UUID?
     private var tasks: [Action: Task<Void, Never>] = [:]
     private var generations: [Action: Int] = [:]
     private var identities: [Action: UUID] = [:]
@@ -52,35 +52,35 @@ final class NotchcastToolsCommands: NotchcastModule {
         self.execute = execute
     }
 
-    func isEnabled(_ action: Action) -> Bool { running && preferences.isOn(action.feature) }
+    func isEnabled(_ action: Action) -> Bool { observationID != nil && preferences.isOn(action.feature) }
 
     func start() {
-        running = true
-        for feature in [NotchcastFeature.convertFiles, .mediaTools, .commandRunner] { track(feature) }
+        let identity = UUID()
+        observationID = identity
+        for feature in [NotchcastFeature.convertFiles, .mediaTools, .commandRunner] { track(feature, identity) }
     }
 
     func stop() {
-        running = false
+        observationID = nil
         identities.removeAll()
         tasks.values.forEach { $0.cancel() }
         tasks.removeAll()
         refresh()
     }
 
-    private func track(_ feature: NotchcastFeature) {
-        guard running else { return }
+    private func track(_ feature: NotchcastFeature, _ identity: UUID) {
         withObservationTracking {
             _ = preferences.isOn(feature)
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
-                guard let self, running else { return }
+                guard let self, observationID == identity else { return }
                 for action in Action.allCases where action.feature == feature
                     && generations[action] != preferences.revision(feature) {
                     tasks.removeValue(forKey: action)?.cancel()
                     identities.removeValue(forKey: action)
                 }
                 refresh()
-                track(feature)
+                track(feature, identity)
             }
         }
         refresh()

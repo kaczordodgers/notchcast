@@ -3,6 +3,7 @@ import Foundation
 /// Modules and their entries live in `NotchcastCore+Modules.swift`.
 @MainActor
 enum NotchcastCore {
+    static let grantStatuses = NotchcastGrantState()
     private static var controller: NotchcastModuleController?
     static private(set) var services: NotchcastServices?
     private static var monitor: MonitorModule?
@@ -11,6 +12,7 @@ enum NotchcastCore {
     static var confirmMacUpdate: () async -> Bool = { false }
 
     static func stopForTermination() async {
+        tasksSync.stop()
         katana.stop()
         cleaning.stop()
         appUpdates.stop()
@@ -35,9 +37,11 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
+        Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         battery.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
+            core?.hotKeys.syncNotchcastCommands()
         }
         confirmMacUpdate = { [weak core] in
             guard let core else { return false }
@@ -65,6 +69,7 @@ enum NotchcastCore {
         }
         dictationCleanup.load()
         macLink.listenerRoute = { request in
+            if let response = try await tasksSync.peerResponse(to: request, via: macLink.channel.manager) { return response }
             if request.method == "shelf-item" {
                 guard await NotchcastPreferences.shared.isOn(.machLink),
                       await NotchcastPreferences.shared.isOn(.shelfBetweenMacs) else {
@@ -86,6 +91,7 @@ enum NotchcastCore {
         }
         let services = NotchcastServices(core: core, preferences: preferences)
         self.services = services
+        tasksSync.connect(to: services.tasks)
         let monitor = MonitorModule(preferences: .shared, alertSink: { [weak core] in
             core?.showMessage($0, tone: .danger)
         }, fanFailure: { [weak core] in
