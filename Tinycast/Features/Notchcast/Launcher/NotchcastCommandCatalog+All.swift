@@ -51,6 +51,7 @@ extension NotchcastCommandCatalog {
         AgentSessionsModule.refreshCommand,
         AgentThreadsModule.refreshCommand,
         AgentThreadsModule.waitingCommand,
+        WaitingAlertsModule.command,
         MusicCommands.openCurrentPlayerCommand,
         MusicCommands.resumeLastPlayerCommand,
         MusicCommands.speakerOnCommand,
