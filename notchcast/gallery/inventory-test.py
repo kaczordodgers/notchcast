@@ -3,6 +3,7 @@
 
 import importlib.util
 import json
+import re
 from pathlib import Path
 import tempfile
 import unittest
@@ -15,6 +16,14 @@ spec.loader.exec_module(inventory)
 
 
 class InventoryTests(unittest.TestCase):
+    def test_closed_state_registry(self):
+        source = (Path(__file__).resolve().parents[2] / "Tinycast/Features/Notchcast/Gallery/GalleryPages+Island.swift").read_text()
+        registry = re.search(r'let closed = \[(.*?)\]\.map', source, re.S).group(1)
+        for state in ("idle", "volume", "brightness", "airpods", "low-battery", "wifi", "tailscale", "low-disk", "meeting-reminder", "dictation", "walk", "message", "danger-message"):
+            self.assertIn('"' + state + '"', registry, state)
+        self.assertIn('[true, false].flatMap', source)
+        self.assertIn('mba ? "mba" : "ext"', source)
+
     def test_declarations(self):
         source = """
         // struct Comment: View {}
