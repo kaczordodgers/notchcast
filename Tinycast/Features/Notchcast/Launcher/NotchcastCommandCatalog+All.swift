@@ -52,6 +52,7 @@ extension NotchcastCommandCatalog {
         OpenBotAgentsModule.refreshCommand,
         AgentThreadsModule.refreshCommand,
         AgentThreadsModule.waitingCommand,
+        AgentIslandModule.command,
         WaitingAlertsModule.command,
         MusicCommands.openCurrentPlayerCommand,
         MusicCommands.resumeLastPlayerCommand,
