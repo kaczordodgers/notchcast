@@ -2,6 +2,7 @@ import Foundation
 
 enum NotchcastFeature: String, CaseIterable, Sendable {
     case tasks
+    case tasksSync
     case githubSearch
     case clearNotifications
     case launcherAnswers
@@ -149,6 +150,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     var dependencies: [Self] {
         switch self {
+        case .tasksSync: [.tasks, .machLink]
         case .archives: []
         case .archivesInPlace: [.archives]
         case .archivesDefaultApp: [.archives]
@@ -169,6 +171,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .appUpdates: .tools
         case .macUpdate: .tools
         case .tasks: .tasks
+        case .tasksSync: .tasks
         case .githubSearch: .launcher
         case .clearNotifications: .launcher
         case .launcherAnswers: .launcher
@@ -315,6 +318,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .appUpdates: String(localized: "App updates")
         case .macUpdate: String(localized: "Update this Mac")
         case .tasks: String(localized: "Tasks")
+        case .tasksSync: String(localized: "Sync tasks between Macs")
         case .githubSearch: String(localized: "GitHub Search")
         case .clearNotifications: String(localized: "Clear Notifications")
         case .launcherAnswers: String(localized: "Currency Answers")
@@ -461,6 +465,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .appUpdates: String(localized: "Check installed apps for updates on demand.")
         case .macUpdate: String(localized: "Run maintenance only after confirmation.")
         case .tasks: String(localized: "Keep tasks on this Mac.")
+        case .tasksSync: String(localized: "Exchange tasks with your paired Mac over Mac Link.")
         case .githubSearch: String(localized: "Search GitHub repositories and starred projects.")
         case .clearNotifications: String(localized: "Clear notifications from Notification Center. Requires English system language.")
         case .launcherAnswers: String(localized: "Currency answers using rates from NBP.")
@@ -727,6 +732,7 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
         case .tasks: false
+        case .tasksSync: false
         case .githubSearch: false
         case .clearNotifications: false
         case .launcherAnswers: false
@@ -834,6 +840,7 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
         return switch self {
         case .tasks: false
+        case .tasksSync: false
         case .accessoryNotices: false
         case .spotifyConnect: false
         case .captureEditor: false
