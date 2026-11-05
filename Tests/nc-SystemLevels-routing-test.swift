@@ -57,6 +57,11 @@ final class EventTapHub {
               let handler = handlers.values.first else { fatalError("Expected a registered handler") }
         event.location = location
         precondition(handler(CGEventType(rawValue: 14)!, event) == .swallow)
+        let release = NSEvent.otherEvent(
+            with: .systemDefined, location: .zero, modifierFlags: [], timestamp: 0,
+            windowNumber: 0, context: nil, subtype: 8,
+            data1: key.rawValue << 16 | 0xB00, data2: -1)!.cgEvent!
+        precondition(handler(CGEventType(rawValue: 14)!, release) == .swallow)
     }
 }
 
