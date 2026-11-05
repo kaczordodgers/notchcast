@@ -27,6 +27,14 @@ extension DictationCapture {
         guard running else { throw Failure.captureUnavailable }
     }
 
+    // Unstructured so a cancelled caller still waits out the stop, or the bound, before a restart.
+    nonisolated static func stopBounded(
+        timeout: Duration = .seconds(5), stop: @escaping @Sendable () -> Void
+    ) async {
+        await Task { try? await startBounded(timeout: timeout, start: { stop(); return true }, stop: {}) }
+            .value
+    }
+
     private final class StartAttempt: Sendable {
         private struct State {
             var continuation: CheckedContinuation<Bool, any Error>?

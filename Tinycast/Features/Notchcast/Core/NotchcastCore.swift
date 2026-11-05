@@ -38,6 +38,7 @@ enum NotchcastCore {
         battery.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
+            core?.hotKeys.syncNotchcastCommands()
         }
         confirmMacUpdate = { [weak core] in
             guard let core else { return false }

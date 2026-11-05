@@ -13,6 +13,12 @@ enum NotchcastCommandCatalog {
         return NotchcastPreferences.shared.isEnabled(owner) && command.isEnabled()
     }
 
+    /// Only the switch decides: runtime availability changes without telling `HotKeyManager`.
+    @MainActor static func registersHotKey(_ id: String) -> Bool {
+        guard let command = command(for: id) else { return true }
+        return command.feature.map { NotchcastPreferences.shared.isEnabled($0) } ?? false
+    }
+
     @MainActor static func dispatch(_ id: String, dismiss: () -> Void) -> Bool {
         guard let command = command(for: id) else { return false }
         if isEnabled(id) {
