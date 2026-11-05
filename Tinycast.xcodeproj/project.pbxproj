@@ -1213,6 +1213,7 @@
 		A36A99C96918D7CC605D74A2 /* TorrentCommandAvailability.swift in Sources */ = {isa = PBXBuildFile; fileRef = 479D19440EC7EF859EE439CD /* TorrentCommandAvailability.swift */; };
 		A37FAE27AD1F6643D10D8D55 /* AppleAppsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2370C04E3F6F7684529CE4FD /* AppleAppsService.swift */; };
 		A3A6B954A32A36124401716E /* FileSearchQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391B8024E8719506361B45F7 /* FileSearchQuery.swift */; };
+		A3B1BB9B0EE81CB0310D0F18 /* SoloistRefreshState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BC0F8B8A4D401C9B69FA3B1 /* SoloistRefreshState.swift */; };
 		A3D5CE8403BC42E963E9A500 /* MachineSetupProfileProcessExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 34DE71D15D910957C0E80163 /* MachineSetupProfileProcessExecutor.swift */; };
 		A41185C975CBF97A8C6EAC19 /* SystemPromptEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF36BDC9ACE867DCC2CCF746 /* SystemPromptEditor.swift */; };
 		A42ED8D5ABB522B87BD89F21 /* BatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6C1E89768E93861F9F78FF /* BatteryService.swift */; };
@@ -2643,6 +2644,7 @@
 		5B96B81A9ADAD34DF9300E71 /* AIOffModelService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIOffModelService.swift; sourceTree = "<group>"; };
 		5BB0D7F4D11CA8AC03A40E92 /* AgentConfirmationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentConfirmationEngine.swift; sourceTree = "<group>"; };
 		5BBDB6A6CE9564ADA2D16F53 /* AppDisplayName.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDisplayName.swift; sourceTree = "<group>"; };
+		5BC0F8B8A4D401C9B69FA3B1 /* SoloistRefreshState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloistRefreshState.swift; sourceTree = "<group>"; };
 		5C2E13EA78A8A8C9648E8C54 /* SnippetEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetEditorView.swift; sourceTree = "<group>"; };
 		5C9A1C6592D61B751F53568A /* NotchcastSettingsGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastSettingsGroup.swift; sourceTree = "<group>"; };
 		5CB044816D6A7BC72E676A6C /* ExtensionSearchAccessoryButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionSearchAccessoryButton.swift; sourceTree = "<group>"; };
@@ -9361,6 +9363,7 @@
 				03CF9A6C3E779E0CAB0D8531 /* SoloistKeyValidation.swift */,
 				56A676245EBBEC5335196597 /* SoloistLogScrub.swift */,
 				FA4C5F2F8AFA4690E1E13CA3 /* SoloistProtocol.swift */,
+				5BC0F8B8A4D401C9B69FA3B1 /* SoloistRefreshState.swift */,
 				EBC169F5AB5EBA3CDF8A1F16 /* SoloistSpeakerState.swift */,
 			);
 			path = Model;
@@ -11364,6 +11367,7 @@
 				8CDD47EE1F8CE8CBF1949E5D /* SoloistProcess.swift in Sources */,
 				3F10F309480DD08ACD87CA27 /* SoloistProcesses.swift in Sources */,
 				AD48091EFA8648AE7701C9CC /* SoloistProtocol.swift in Sources */,
+				A3B1BB9B0EE81CB0310D0F18 /* SoloistRefreshState.swift in Sources */,
 				7325F846B9CE5632A0CC81E6 /* SoloistSchedule.swift in Sources */,
 				3A7547320F171F56EC5944A9 /* SoloistSource.swift in Sources */,
 				41D59E1A191DDC4D2B01C84D /* SoloistSpeaker.swift in Sources */,
