@@ -16,7 +16,7 @@ CATALOG = "Tinycast/Resources/Localizable.xcstrings"
 
 
 class ReplayTests(unittest.TestCase):
-    def scenario(self, column_zero=False, conflict=None, later_conflict=False):
+    def scenario(self, column_zero=False, conflict=None, later_conflict=False, fix=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):
@@ -37,12 +37,18 @@ class ReplayTests(unittest.TestCase):
             git("config", "core.hooksPath", "/dev/null")
             catalog({"a": {}, "z": {}})
             (root / "other").write_text("base\n")
+            (root / "second").write_text("base\n")
             commit("base")
             base = git("rev-parse", "HEAD")
             catalog({"a": {}, "ours": {}, "z": {}})
             if conflict == "other":
                 (root / "other").write_text("ours\n")
+                if fix == "partial":
+                    (root / "second").write_text("ours\n")
             commit("ours")
+            (root / "clean").write_text("clean cherry-pick result\n")
+            git("add", "clean")
+            git("commit", "--amend", "--no-edit", "-q")
             if later_conflict:
                 (root / "other").write_text("ours\n")
                 commit("later conflict")
@@ -56,21 +62,49 @@ class ReplayTests(unittest.TestCase):
             else:
                 catalog(entries)
             (root / "other").write_text("upstream\n")
+            (root / "second").write_text("upstream\n")
             commit("upstream")
             upstream = git("rev-parse", "HEAD")
             git("update-ref", "refs/remotes/upstream/main", upstream)
             git("checkout", "-q", "--detach", ours)
-            if conflict or later_conflict:
+            if fix:
+                path = root / "notchcast/replay-fixes/ours.patch"
+                path.parent.mkdir(parents=True)
+                path.write_text("diff --git a/other b/other\n--- a/other\n+++ b/other\n"
+                                "@@ -1 +1,2 @@\n upstream\n+ours\n"
+                                if fix in {"valid", "partial", "extra"} else "invalid patch\n")
+                if fix == "extra":
+                    with path.open("a") as stream:
+                        stream.write("diff --git a/clean b/clean\n--- a/clean\n+++ b/clean\n"
+                                     "@@ -1 +1 @@\n-clean cherry-pick result\n+changed\n")
+                commit("stored fix")
+            if (conflict or later_conflict) and fix != "valid":
                 with self.assertRaises(CI.Conflict) as caught:
                     CI.replay(root, upstream, check=True)
                 self.assertEqual(caught.exception.subject, "later conflict" if later_conflict else "ours")
                 self.assertEqual(caught.exception.files,
+                                 ["other", "second"] if fix == "partial" else
                                  ["other"] if later_conflict or conflict == "other" else [CATALOG])
             else:
                 CI.replay(root, upstream, check=True)
                 self.assertEqual(set(json.loads((root / CATALOG).read_text())["strings"]),
                                  {"a", "ours", "upstream", "z"})
                 self.assertEqual(git("diff", "--name-only", "--diff-filter=U"), "")
+                self.assertEqual((root / "clean").read_text(), "clean cherry-pick result\n")
+                if fix == "valid":
+                    self.assertEqual((root / "other").read_text(), "upstream\nours\n")
+
+    def test_per_file_fix_preserves_clean_results_and_catalog(self):
+        self.scenario(conflict="other", fix="valid")
+
+    def test_invalid_fix_raises_conflict(self):
+        self.scenario(conflict="other", fix="invalid")
+
+    def test_fix_missing_conflicting_file_raises_conflict(self):
+        self.scenario(conflict="other", fix="partial")
+
+    def test_fix_touching_clean_file_raises_conflict(self):
+        self.scenario(conflict="other", fix="extra")
 
     def test_adjacent_additions(self):
         self.scenario()
