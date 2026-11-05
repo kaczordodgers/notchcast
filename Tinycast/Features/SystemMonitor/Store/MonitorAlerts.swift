@@ -46,12 +46,12 @@ final class MonitorAlerts {
 
     private static func title(_ metric: MonitorAlertRule.Metric) -> String {
         switch metric {
-        case .cpu: String(localized: "CPU usage threshold")
-        case .cpuTemperature: String(localized: "CPU temperature threshold")
-        case .memoryPressure: String(localized: "Memory pressure threshold")
-        case .diskFree: String(localized: "Disk free threshold")
-        case .battery: String(localized: "Battery threshold")
-        case .batteryTemperature: String(localized: "Battery temperature threshold")
+        case .cpu: String(localized: "CPU usage threshold", table: "Notchcast")
+        case .cpuTemperature: String(localized: "CPU temperature threshold", table: "Notchcast")
+        case .memoryPressure: String(localized: "Memory pressure threshold", table: "Notchcast")
+        case .diskFree: String(localized: "Disk free threshold", table: "Notchcast")
+        case .battery: String(localized: "Battery threshold", table: "Notchcast")
+        case .batteryTemperature: String(localized: "Battery temperature threshold", table: "Notchcast")
         }
     }
 }

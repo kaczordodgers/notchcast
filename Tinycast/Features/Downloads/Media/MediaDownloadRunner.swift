@@ -58,7 +58,7 @@ struct MediaDownloadRunner: DownloadRunner {
         guard let output = result.output.split(whereSeparator: \.isNewline).reversed()
             .compactMap({ MediaOutput.outputPath(String($0), destination: context.destination) }).first,
             FileManager.default.fileExists(atPath: output.path) else {
-            throw MediaFailure(detail: String(localized: "The downloader did not return an output file."))
+            throw MediaFailure(detail: String(localized: "The downloader did not return an output file.", table: "Notchcast"))
         }
         return output
     }

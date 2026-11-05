@@ -2,7 +2,7 @@ import SwiftUI
 
 struct DownloadsFolderSettingRow: View {
     var body: some View {
-        LabeledContent("Downloads") {
+        LabeledContent(String(localized: "Downloads", table: "Notchcast")) {
             Text(verbatim: (NotchcastDownloadDestinations.downloads.path as NSString).abbreviatingWithTildeInPath)
                 .textSelection(.enabled)
         }
@@ -11,7 +11,7 @@ struct DownloadsFolderSettingRow: View {
 
 struct DistillFolderSettingRow: View {
     var body: some View {
-        LabeledContent("Distill") {
+        LabeledContent(String(localized: "Distill", table: "Notchcast")) {
             Text(verbatim: (NotchcastDownloadDestinations.distill.path as NSString).abbreviatingWithTildeInPath)
                 .textSelection(.enabled)
         }
@@ -28,11 +28,11 @@ struct TorrentToolSettingRow: View {
             } else if !module.toolChecked {
                 Text("Checking…")
             } else {
-                Text("aria2c not found")
+                Text("aria2c not found", tableName: "Notchcast")
             }
         } label: {
-            SettingsRowTitle(.notchcastTorrents, "aria2c")
-            Text("Install aria2c with Homebrew: brew install aria2")
+            SettingsRowTitle(.notchcastTorrents, LocalizedStringResource("aria2c", table: "Notchcast"))
+            Text("Install aria2c with Homebrew: brew install aria2", tableName: "Notchcast")
         }
         .task { await module.refreshTool() }
     }

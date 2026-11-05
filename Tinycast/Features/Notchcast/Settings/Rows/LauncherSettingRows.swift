@@ -2,12 +2,12 @@ import SwiftUI
 
 struct GitHubTokenSettingRow: View {
     @State private var token = ""
-    @State private var status = String(localized: "Not configured")
+    @State private var status = String(localized: "Not configured", table: "Notchcast")
 
     var body: some View {
-        LabeledContent("GitHub Token") {
+        LabeledContent(String(localized: "GitHub Token", table: "Notchcast")) {
             VStack(alignment: .leading) {
-                SecureField("GitHub Token", text: $token)
+                SecureField(String(localized: "GitHub Token", table: "Notchcast"), text: $token)
                     .settingsEditorTextField()
                 HStack {
                     Button("Save") { updateToken(remove: false) }
@@ -38,7 +38,7 @@ struct GitHubTokenSettingRow: View {
     private func readStatus() {
         do {
             status = try KeychainSecretStore(scope: "github").hasSecret(for: GitHubModule.account)
-                ? String(localized: "Configured") : String(localized: "Not configured")
+                ? String(localized: "Configured", table: "Notchcast") : String(localized: "Not configured", table: "Notchcast")
         } catch {
             status = String(localized: "Unavailable")
         }
@@ -50,11 +50,11 @@ struct AppearanceSurfaceSettingRow: View {
 
     var body: some View {
         SettingsRow(
-            title: "Surface", subtitle: String(localized: "How the launcher, dialogs and HUDs are drawn."),
+            title: LocalizedStringResource("Surface", table: "Notchcast"), subtitle: String(localized: "How the launcher, dialogs and HUDs are drawn.", table: "Notchcast"),
             anchor: .notchcastAppearance
         ) {
             SteadySegmentedPicker(
-                title: String(localized: "Surface"),
+                title: String(localized: "Surface", table: "Notchcast"),
                 options: AppearanceSurfaceStyle.allCases.map { .init(value: $0, title: $0.title) },
                 selection: Binding(get: { coordinator.store.surfaceStyle }, set: coordinator.setSurface))
         }
@@ -102,17 +102,17 @@ struct AppearanceOpacitySettingRow: View {
                     value: Binding(get: { coordinator.store.backgroundOpacity }, set: coordinator.setOpacity),
                     in: 0.2...1, step: 0.05
                 ) {
-                    Text("Theme backdrop")
+                    Text("Theme backdrop", tableName: "Notchcast")
                 }
                 .labelsHidden()
-                .accessibilityLabel("Theme backdrop")
+                .accessibilityLabel(String(localized: "Theme backdrop", table: "Notchcast"))
                 Text(coordinator.store.backgroundOpacity, format: .percent.precision(.fractionLength(0)))
                     .monospacedDigit()
                     .frame(width: Theme.Size.volumeReadout, alignment: .trailing)
             }
         } label: {
-            SettingsRowTitle(.notchcastAppearance, "Theme backdrop")
-            Text("How strongly the theme's background shows through.")
+            SettingsRowTitle(.notchcastAppearance, LocalizedStringResource("Theme backdrop", table: "Notchcast"))
+            Text("How strongly the theme's background shows through.", tableName: "Notchcast")
         }
         .settingsEnabled(coordinator.store.light != nil || coordinator.store.dark != nil)
 
@@ -127,11 +127,11 @@ struct AppearanceImportSettingRow: View {
         LabeledContent {
             TextField("", text: $link, prompt: Text(verbatim: "raycast://theme?…"))
                 .textFieldStyle(.roundedBorder)
-                .accessibilityLabel("Theme link")
+                .accessibilityLabel(String(localized: "Theme link", table: "Notchcast"))
             Button("Import") { coordinator.importLink(link) }
                 .settingsEnabled(!link.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         } label: {
-            SettingsRowTitle(.notchcastAppearance, "Import from link")
+            SettingsRowTitle(.notchcastAppearance, LocalizedStringResource("Import from link", table: "Notchcast"))
         }
 
     }
@@ -142,7 +142,7 @@ private struct AppearanceThemeSlotRow: View {
     let theme: RaycastTheme?
     let choose: () -> Void
 
-    private var title: LocalizedStringResource { slot == .dark ? "Dark theme" : "Light theme" }
+    private var title: LocalizedStringResource { slot == .dark ? LocalizedStringResource("Dark theme", table: "Notchcast") : LocalizedStringResource("Light theme", table: "Notchcast") }
     private var name: String { theme?.name ?? String(localized: "Default") }
 
     var body: some View {
@@ -152,7 +152,7 @@ private struct AppearanceThemeSlotRow: View {
                 Text(name).foregroundStyle(.secondary).lineLimit(1)
                 Button("Choose…", action: choose)
                     .accessibilityLabel(slot == .dark
-                        ? String(localized: "Choose dark theme") : String(localized: "Choose light theme"))
+                        ? String(localized: "Choose dark theme", table: "Notchcast") : String(localized: "Choose light theme", table: "Notchcast"))
             }
         }
         .accessibilityElement(children: .contain)

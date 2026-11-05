@@ -38,19 +38,19 @@ struct SpotifyStatusRow: View {
         switch module.speaker.state {
         case .off, .failed: String(localized: "Stopped")
         case .starting: String(localized: "Starting…")
-        case .running: String(localized: "Ready as “\(module.deviceName)”")
-        case .noKey: String(localized: "Needs an API key")
-        case .needsBuild: String(localized: "Needs Soloist")
-        case .downloading: String(localized: "Downloading Soloist…")
-        case .waitingForOther: String(localized: "Waiting for another Soloist")
-        case .expiresSoon(let days): String(localized: "Expires in \(days) days")
+        case .running: String(localized: "Ready as “\(module.deviceName)”", table: "Notchcast")
+        case .noKey: String(localized: "Needs an API key", table: "Notchcast")
+        case .needsBuild: String(localized: "Needs Soloist", table: "Notchcast")
+        case .downloading: String(localized: "Downloading Soloist…", table: "Notchcast")
+        case .waitingForOther: String(localized: "Waiting for another Soloist", table: "Notchcast")
+        case .expiresSoon(let days): String(localized: "Expires in \(days) days", table: "Notchcast")
         }
     }
 
     private var subtitle: String? {
         switch module.speaker.state {
-        case .waitingForOther: String(localized: "Another app is running Soloist with this key. Notchcast starts when it quits.")
-        case .expiresSoon: String(localized: "Download Soloist again to keep playing.")
+        case .waitingForOther: String(localized: "Another app is running Soloist with this key. Notchcast starts when it quits.", table: "Notchcast")
+        case .expiresSoon: String(localized: "Download Soloist again to keep playing.", table: "Notchcast")
         case .failed(let reason): reason.message
         default: nil
         }
