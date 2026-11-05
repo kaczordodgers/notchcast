@@ -233,8 +233,15 @@ def replay(tree, onto, check=False):
 
 def regenerate(tree, onto):
     """Write GENERATED in tree: our README as README.md, upstream's (from onto) as README.upstream.md, the Xcode
-    project from project.yml ($XCODEGEN), and the extension runtime bundle when our commits change its sources."""
+    project from project.yml ($XCODEGEN), and the extension runtime bundle when our commits change its sources.
+    Also stage the removal of every path in notchcast/prune-paths.txt (upstream files the app does not need), so
+    the removal rides in the generated-files commit, which a replay never picks and so never conflicts."""
     tree = Path(tree)
+    prune = tree / "notchcast/prune-paths.txt"
+    paths = [line.strip() for line in prune.read_text().splitlines()] if prune.exists() else []
+    paths = [path for path in paths if path and not path.startswith("#")]
+    if paths:
+        run("git", "rm", "-r", "-q", "--ignore-unmatch", "--", *paths, cwd=tree)
     upstream_readme = run("git", "show", f"{onto}:README.md", cwd=tree)
     (tree / "README.upstream.md").write_text(
         "> Upstream's README, kept verbatim; Notchcast's is [README.md](README.md).\n\n" + upstream_readme + "\n")

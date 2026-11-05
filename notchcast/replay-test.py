@@ -90,6 +90,57 @@ class ReplayTests(unittest.TestCase):
     def test_resolution_does_not_mask_later_failure(self):
         self.scenario(later_conflict=True)
 
+    def test_pruned_paths_stay_gone_without_conflict(self):
+        """Our generated commit removes website/; upstream keeps editing it. The replay never picks that removal,
+        so it cannot conflict, and regenerate removes the path again."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return CI.run("git", *args, cwd=root)
+            def write(path, text):
+                (root / path).parent.mkdir(parents=True, exist_ok=True)
+                (root / path).write_text(text)
+            def commit(message):
+                git("add", "-A")
+                git("commit", "-qm", message)
+            git("init", "-q")
+            git("config", "user.name", "Test")
+            git("config", "user.email", "test@example.com")
+            git("config", "core.hooksPath", "/dev/null")
+            write("README.md", "upstream readme\n")
+            write("website/page.md", "base\n")
+            write("website/package-lock.json", "{}\n")
+            write("project.yml", "name: Tinycast\n")
+            write(CI.PBXPROJ, "project\n")
+            write(CI.RUNTIME_JS, "runtime\n")
+            commit("base")
+            base = git("rev-parse", "HEAD")
+            write("notchcast/README.md", "ours\n")
+            write("notchcast/prune-paths.txt", "# one path per line\n\nwebsite/\n")
+            write("feature.swift", "ours\n")
+            commit("ours")
+            CI.regenerate(root, base)
+            git("add", "-A", "--", *CI.GENERATED)
+            git("commit", "-qm", CI.GENERATED_COMMIT)
+            self.assertFalse((root / "website").exists())
+            ours = git("rev-parse", "HEAD")
+            git("checkout", "-q", "--detach", base)
+            write("website/page.md", "upstream edit\n")
+            write("website/new.md", "new page\n")
+            commit("upstream edits the website")
+            upstream = git("rev-parse", "HEAD")
+            git("update-ref", "refs/remotes/upstream/main", upstream)
+            git("checkout", "-q", "--detach", ours)
+            CI.replay(root, upstream)
+            self.assertEqual(git("log", "-1", "--format=%s"), CI.GENERATED_COMMIT)
+            self.assertEqual(git("ls-files", "website"), "")
+            self.assertFalse((root / "website").exists())
+            self.assertEqual(git("status", "--porcelain"), "")
+            self.assertEqual((root / "feature.swift").read_text(), "ours\n")
+            # A second regenerate on the result is a no-op: nothing left to prune.
+            CI.regenerate(root, upstream)
+            self.assertEqual(git("status", "--porcelain"), "")
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
