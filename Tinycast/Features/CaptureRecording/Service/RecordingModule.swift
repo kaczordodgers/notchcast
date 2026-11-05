@@ -104,7 +104,7 @@ final class RecordingModule: NotchcastModule {
                     do {
                         _ = try await finish()
                         if reportSave {
-                            AppCore.shared.showMessage(String(localized: "Recording saved"), tone: .success)
+                            AppCore.shared.showMessage(String(localized: "Recording saved", table: "Notchcast"), tone: .success)
                         }
                     } catch {
                         lastError = error
@@ -251,17 +251,17 @@ final class RecordingModule: NotchcastModule {
 
     static func failureMessage(_ error: any Error) -> String {
         if error is CaptureAreaService.Failure {
-            return String(localized: "Screen Recording access is required.")
+            return String(localized: "Screen Recording access is required.", table: "Notchcast")
         }
         return switch error as? RecordingTarget.Failure {
-        case .permissionDenied: String(localized: "Screen Recording access is required.")
-        case .disabled: String(localized: "Capture is disabled.")
-        case .invalidTarget, .targetUnavailable: String(localized: "Capture area is unavailable.")
-        case .busy: String(localized: "A recording is already in progress.")
-        case .notRecording: String(localized: "No recording is in progress.")
-        case .noFrames: String(localized: "The recording contains no frames.")
-        case .invalidFolder, .writerFailed: String(localized: "Could not save the recording.")
-        case nil: String(localized: "Recording failed.")
+        case .permissionDenied: String(localized: "Screen Recording access is required.", table: "Notchcast")
+        case .disabled: String(localized: "Capture is disabled.", table: "Notchcast")
+        case .invalidTarget, .targetUnavailable: String(localized: "Capture area is unavailable.", table: "Notchcast")
+        case .busy: String(localized: "A recording is already in progress.", table: "Notchcast")
+        case .notRecording: String(localized: "No recording is in progress.", table: "Notchcast")
+        case .noFrames: String(localized: "The recording contains no frames.", table: "Notchcast")
+        case .invalidFolder, .writerFailed: String(localized: "Could not save the recording.", table: "Notchcast")
+        case nil: String(localized: "Recording failed.", table: "Notchcast")
         }
     }
 

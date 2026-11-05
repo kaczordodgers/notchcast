@@ -23,7 +23,7 @@ final class LinkQuickFixModule: NotchcastModule {
         let causes: [LinkQuickFixEngine.Cause] = !current.paired ? [.linkExpiring]
             : current.reachability != .up ? [.cableDown, .tailscaleStopped, .dnsFailure] : []
         guard !causes.isEmpty else {
-            message(String(localized: "Mac Link is connected."))
+            message(String(localized: "Mac Link is connected.", table: "Notchcast"))
             return
         }
         var offered: [LinkQuickFixEngine.Action] = []
@@ -33,12 +33,12 @@ final class LinkQuickFixModule: NotchcastModule {
             }
         }
         let note = current.paired && current.reachability == .unknown
-            ? String(localized: "Mac Link could not be checked yet.") : nil
+            ? String(localized: "Mac Link could not be checked yet.", table: "Notchcast") : nil
         guard let index = await choose(offered, note), !Task.isCancelled, enabled,
               generation == operation, offered.indices.contains(index) else { return }
         let latest = state()
         if latest.paired && latest.reachability == .up {
-            message(String(localized: "Mac Link is connected."))
+            message(String(localized: "Mac Link is connected.", table: "Notchcast"))
             return
         }
         execute(offered[index])

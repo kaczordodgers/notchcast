@@ -7,7 +7,7 @@ struct DictationTriggerSettingsSection: View {
         Toggle(isOn: Binding(
             get: { preferences.isOn(.globeDictation) },
             set: { preferences.set(.globeDictation, $0) })) {
-                SettingsRowTitle(.notchcastCaptureAndDictation, "Globe Dictation")
+                SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Globe Dictation", table: "Notchcast"))
                 Text(NotchcastFeature.globeDictation.subtitle)
             }
     }

@@ -60,7 +60,7 @@ final class WaitingAlertsModule: NotchcastModule {
     func refresh(report: Bool = false) {
         guard enabled else { return }
         guard watching else {
-            if report { post(String(localized: "T3 data is unavailable.")) }
+            if report { post(String(localized: "T3 data is unavailable.", table: "Notchcast")) }
             return
         }
         self.report = self.report || report
@@ -91,14 +91,14 @@ final class WaitingAlertsModule: NotchcastModule {
                 } catch {
                     guard !Task.isCancelled, self.enabled, self.generation == identity else { return }
                     self.unavailable = true
-                    if report { self.post(String(localized: "T3 data is unavailable.")) }
+                    if report { self.post(String(localized: "T3 data is unavailable.", table: "Notchcast")) }
                 }
             }
         }
     }
 
     nonisolated static let command = NotchcastCommand(
-        slug: "show-waiting-agents", name: String(localized: "Show Waiting Agents"),
+        slug: "show-waiting-agents", name: String(localized: "Show Waiting Agents", table: "Notchcast"),
         sfSymbol: "bubble.left", feature: .waitingAlerts,
         isEnabled: {
             NotchcastPreferences.shared.isOn(.waitingAlerts)

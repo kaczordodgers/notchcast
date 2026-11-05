@@ -8,14 +8,14 @@ struct NotchcastCleanActionsSettingRow: View {
     var body: some View {
         if feature == .cleanSystem {
             ForEach(CleanSystemPolicy.allowedRoots, id: \.path) { root in
-                LabeledContent(root.path) { Text("Report only") }
+                LabeledContent(root.path) { Text("Report only", tableName: "Notchcast") }
             }
             if !coordinator.rootAvailable {
-                Text("Needs the Notchcast helper update")
+                Text("Needs the Notchcast helper update", tableName: "Notchcast")
             }
         }
         if feature == .cleanSystem {
-            Button("Scan…") { CleanSettingsActions.scan(feature, coordinator: coordinator) }
+            Button(String(localized: "Scan…", table: "Notchcast")) { CleanSettingsActions.scan(feature, coordinator: coordinator) }
                 .settingsEnabled(!coordinator.busy.contains(feature) && coordinator.rootAvailable)
         }
         if coordinator.busy.contains(feature) { ProgressView() }
@@ -29,17 +29,17 @@ struct NotchcastCleanActionsSettingRow: View {
                             if let size = item.size {
                                 Text(size.formatted(.byteCount(style: .file)))
                             } else {
-                                Text("Size unavailable")
+                                Text("Size unavailable", tableName: "Notchcast")
                             }
-                            if item.reportOnly { Text("Report only") }
+                            if item.reportOnly { Text("Report only", tableName: "Notchcast") }
                         }
                         .settingsEnabled(!item.reportOnly && !coordinator.busy.contains(feature))
                     }
                 }
             }
             .frame(maxHeight: Theme.Size.settingsControlHeight * 8)
-            if review.items.isEmpty { Text("No items found.") }
-            Button(feature == .cleanHistory ? "Restore" : "Move to trash") {
+            if review.items.isEmpty { Text("No items found.", tableName: "Notchcast") }
+            Button(feature == .cleanHistory ? String(localized: "Restore", table: "Notchcast") : String(localized: "Move to trash", table: "Notchcast")) {
                 coordinator.apply(feature)
             }
             .settingsEnabled(
@@ -65,7 +65,7 @@ struct NotchcastCleaningModeSettingRow: View {
 
     var body: some View {
         if NotchcastCore.cleaning.needsGrant {
-            Text("Accessibility permission is required to start cleaning mode.")
+            Text("Accessibility permission is required to start cleaning mode.", tableName: "Notchcast")
         }
     }
 }
@@ -76,10 +76,10 @@ struct NotchcastAppUpdatesSettingRow: View {
         ForEach(NotchcastCore.appUpdates.results, id: \.app.id) { result in
             LabeledContent(result.app.id) {
                 if let newer = result.isNewer {
-                    Text(newer ? String(localized: "Update available") : String(localized: "Up to date"))
+                    Text(newer ? String(localized: "Update available", table: "Notchcast") : String(localized: "Up to date", table: "Notchcast"))
                     if let latest = result.latest { Text(latest) }
                 } else {
-                    Text("Unknown")
+                    Text("Unknown", tableName: "Notchcast")
                 }
             }
         }

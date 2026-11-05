@@ -12,7 +12,7 @@ enum TreadmillCommands {
     nonisolated private static func command(
         _ slug: String, _ name: String.LocalizationValue, action: Action
     ) -> NotchcastCommand {
-        NotchcastCommand(slug: slug, name: String(localized: name), sfSymbol: "figure.walk",
+        NotchcastCommand(slug: slug, name: String(localized: name, table: "Notchcast"), sfSymbol: "figure.walk",
             feature: .treadmillWalk, isEnabled: { NotchcastPreferences.shared.isOn(.treadmillWalk) },
             run: {
                 execute(action, coordinator: NotchcastCore.treadmill) {
@@ -34,19 +34,19 @@ enum TreadmillCommands {
             case .start:
                 try coordinator.startWalk()
                 let speed = coordinator.engine.requestedSpeed ?? 0
-                message = String(localized: "Walk start requested at \(speed.formatted()) km/h.")
+                message = String(localized: "Walk start requested at \(speed.formatted()) km/h.", table: "Notchcast")
             case .stop:
                 try coordinator.stopWalk()
-                message = String(localized: "Walk stop requested.")
+                message = String(localized: "Walk stop requested.", table: "Notchcast")
             case .pause:
                 let resuming = coordinator.engine.walk?.phase == .paused
                 try coordinator.togglePause()
-                message = resuming ? String(localized: "Walk resume requested.")
-                    : String(localized: "Walk pause requested.")
+                message = resuming ? String(localized: "Walk resume requested.", table: "Notchcast")
+                    : String(localized: "Walk pause requested.", table: "Notchcast")
             case .faster, .slower:
                 if action == .faster { try coordinator.faster() } else { try coordinator.slower() }
                 let speed = coordinator.engine.requestedSpeed ?? coordinator.engine.walk?.sample.speed ?? 0
-                message = String(localized: "Walk speed requested: \(speed.formatted()) km/h.")
+                message = String(localized: "Walk speed requested: \(speed.formatted()) km/h.", table: "Notchcast")
             }
             report(message, .success)
         } catch {
