@@ -35,6 +35,14 @@ def entries(rev, path):
             if line.strip() and not re.fullmatch(r"[{}\[\](),;\s]+", line)}
 
 
+def merged(entry, lines):
+    """A line both sides extended (`case .x: [.a, .b]`) is kept when one result line with the same head holds every
+    word of it."""
+    head, words = entry.split(":", 1)[0] if ":" in entry else "", set(re.findall(r"[\w.]+", entry))
+    return any((line.split(":", 1)[0] if ":" in line else "") == head and words <= set(re.findall(r"[\w.]+", line))
+               for line in lines)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--result", default="HEAD")
@@ -54,7 +62,7 @@ def main():
     for path in dict.fromkeys((*FILES, *args.file)):
         b, o, t, r = (entries(rev, path) for rev in (base, ours, theirs, result))
         required = (o & t) | (o - b) | (t - b)
-        for entry in sorted(required - r):
+        for entry in sorted(entry for entry in required - r if not merged(entry, r)):
             side = "ours and theirs" if entry in o & t else "ours" if entry in o else "theirs"
             print(f"{path}: dropped from {side}: {entry}")
             dropped += 1

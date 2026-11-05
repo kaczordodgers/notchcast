@@ -48,4 +48,17 @@ with tempfile.TemporaryDirectory() as directory:
     result = subprocess.run([sys.executable, str(SCRIPT), "--ours", rewritten, "--theirs", theirs, "--file", "entries.swift"], cwd=root, text=True, capture_output=True)
     assert result.returncode == 0, result.stdout + result.stderr
     print("PASS rewrite preserves main deletions: " + result.stdout.strip())
-print("entry lists tests: PASS (4 resolutions)")
+    # Both sides extend the same one-line list (NotchcastFeature.swift `case .musicLastPlayer: [.island, ...]`).
+    git("checkout", "-q", "--orphan", "multi")
+    multi_base = commit("multi base", ["case .a: [.x]"])
+    multi_ours = commit("multi ours", ["case .a: [.x, .ours]"])
+    git("checkout", "-q", "--detach", multi_base)
+    multi_theirs = commit("multi theirs", ["case .a: [.x, .theirs]"])
+    for label, line, status in (("merged line", "case .a: [.x, .ours, .theirs]", 0),
+                                ("half-merged line", "case .a: [.x, .ours]", 1)):
+        commit(label, [line])
+        result = subprocess.run([sys.executable, str(SCRIPT), "--ours", multi_ours, "--theirs", multi_theirs,
+                                 "--base", multi_base, "--file", "entries.swift"], cwd=root, text=True, capture_output=True)
+        assert result.returncode == status, result.stdout + result.stderr
+        print(f"PASS {label}: {result.stdout.strip()}")
+print("entry lists tests: PASS (6 resolutions)")

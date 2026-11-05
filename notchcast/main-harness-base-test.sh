@@ -21,7 +21,8 @@ before=$(git rev-parse HEAD)
 git commit -qm next --allow-empty
 export GITHUB_REPOSITORY=test/repo
 mkdir bin
-printf '%s\n' '#!/bin/bash' 'if [ "$1" = api ]; then' '  [[ "$2" == */"$TESTED"/status ]] && echo success' 'elif [[ " $* " == *" --limit 1 "* ]]; then' '  echo "$GREEN"' 'else' '  echo "${RUN_GREEN:-$GREEN}"' 'fi' > bin/gh
+# A run list without `--event push` also returns $DISPATCH: a workflow_dispatch on main that selected core only.
+printf '%s\n' '#!/bin/bash' 'if [ "$1" = api ]; then' '  [[ "$2" == */"$TESTED"/status ]] && echo success' 'elif [[ " $* " != *" --event push "* && -n "${DISPATCH:-}" ]]; then' '  echo "$DISPATCH"' 'elif [[ " $* " == *" --limit 1 "* ]]; then' '  echo "$GREEN"' 'else' '  echo "${RUN_GREEN:-$GREEN}"' 'fi' > bin/gh
 chmod +x bin/gh
 export PATH="$scratch/bin:$PATH"
 test "$(bash "$script" "$before" HEAD)" = "$TESTED"
@@ -32,6 +33,10 @@ echo 'PASS: nearest successful run wins'
 export GREEN=$root
 test "$(bash "$script" "$before" HEAD)" = "$root"
 echo 'PASS: ancestral last green retained'
+export DISPATCH=$before
+test "$(bash "$script" "$before" HEAD)" = "$root"
+echo 'PASS: a dispatch on main never becomes the base'
+unset DISPATCH
 export GREEN=
 test "$(bash "$script" "$before" HEAD)" = "$before"
 echo 'PASS: unavailable green keeps event fallback'
