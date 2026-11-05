@@ -38,8 +38,6 @@ func settle() async {
 @main
 @MainActor
 struct NotchcastActivitiesTests {
-    final class Presenter: IslandActivityPresenter {}
-
     static func main() async {
         for running in [false, true] {
             for enabled in [false, true] {
@@ -98,8 +96,7 @@ struct NotchcastActivitiesTests {
         defer { preferences.set(.islandStatusMessages, wasOn) }
         preferences.set(.islandStatusMessages, true)
         precondition(!IslandHUDRouter.show("Fallback", tone: .success))
-        let presenter = Presenter()
-        shared.presenter = presenter
+        shared.hasPresenter = true
         preferences.set(.islandStatusMessages, false)
         precondition(!IslandHUDRouter.show("Off", tone: .success))
         precondition(!IslandHUDRouter.showProgress("Off", onCancel: nil))
@@ -111,15 +108,15 @@ struct NotchcastActivitiesTests {
         precondition(IslandHUDRouter.showProgress("Progress", onCancel: { cancelled = true }))
         shared.message?.onCancel?()
         precondition(cancelled)
-        shared.presenter = nil
+        shared.hasPresenter = false
         precondition(!IslandHUDRouter.showProgress("Fallback progress", onCancel: nil))
         precondition(shared.message == nil)
-        shared.presenter = presenter
+        shared.hasPresenter = true
         precondition(IslandHUDRouter.showProgress("Another progress", onCancel: nil))
-        shared.presenter = nil
+        shared.hasPresenter = false
         precondition(!IslandHUDRouter.show("Fallback result", tone: .success))
         precondition(shared.message == nil)
-        shared.presenter = presenter
+        shared.hasPresenter = true
         precondition(IslandHUDRouter.showProgress("Disabled progress", onCancel: nil))
         preferences.set(.islandStatusMessages, false)
         precondition(!IslandHUDRouter.showProgress("Off", onCancel: nil))
@@ -129,7 +126,7 @@ struct NotchcastActivitiesTests {
         preferences.set(.islandStatusMessages, false)
         precondition(!IslandHUDRouter.show("Off", tone: .success))
         precondition(shared.message == nil)
-        shared.presenter = nil
+        shared.hasPresenter = false
         IslandHUDRouter.dismiss()
         precondition(shared.message == nil)
         print("PASS priority, deadlines, removal, updates, dwell re-arm, replacement, switch, routing and cancellation")
