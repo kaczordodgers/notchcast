@@ -155,22 +155,16 @@ if [ "$check" -eq 0 ]; then
     [ "$(gh pr view "$pr" -R kaczordodgers/notchcast --json headRefOid --jq .headRefOid)" = "$head" ] \
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
-    # Each landing moves main twice (the squash, then the generated commit), so a lost race merges onto the new
-    # main and retries. Harnesses rerun only when the new commits touch a file the PR touches; otherwise the clean
-    # merge is the same proof GitHub's merge button gives.
-    pr_files=$(git diff --name-only "$fork" "$head" | sort -u)
     for attempt in 1 2 3 4 5 6; do
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"
         git fetch --quiet origin main '+refs/notchcast/synced/*:refs/notchcast/synced/*'
         moved_to=$(git rev-parse origin/main)
         [ "$moved_to" != "$base" ] || refuse "push to main failed and main did not move from ${base:0:8}"
-        overlap=$(comm -12 <(git diff --name-only "$base" "$moved_to" | grep -vxF -f <(printf '%s\n' "${generated[@]}") | sort -u) \
-            <(echo "$pr_files") | sed '/^$/d')
-        echo "main moved ${base:0:8} -> ${moved_to:0:8}; overlap with the PR: ${overlap:-none}"
+        echo "main moved ${base:0:8} -> ${moved_to:0:8}; merging again and rerunning harnesses"
         base=$moved_to
         merge_onto "$base"
-        [ -z "$overlap" ] || harnesses "$base"
+        harnesses "$base"
         commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
             GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
             git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
