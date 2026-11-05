@@ -65,12 +65,12 @@ final class ScreenTextModule: NotchcastModule {
     isolated deinit { task?.cancel() }
 
     static func failureMessage(_ error: any Error) -> String {
-        if error is CaptureAreaService.Failure { return String(localized: "Screen Recording access is required.") }
+        if error is CaptureAreaService.Failure { return String(localized: "Screen Recording access is required.", table: "Notchcast") }
         switch error as? ScreenTextService.Failure {
-        case .clipboardWriteFailed: return String(localized: "Could not copy to clipboard.")
-        case .noContent: return String(localized: "No text found in the selected area.")
-        case .displayUnavailable: return String(localized: "Capture area is unavailable.")
-        case nil: return String(localized: "Could not capture the screen.")
+        case .clipboardWriteFailed: return String(localized: "Could not copy to clipboard.", table: "Notchcast")
+        case .noContent: return String(localized: "No text found in the selected area.", table: "Notchcast")
+        case .displayUnavailable: return String(localized: "Capture area is unavailable.", table: "Notchcast")
+        case nil: return String(localized: "Could not capture the screen.", table: "Notchcast")
         }
     }
 }

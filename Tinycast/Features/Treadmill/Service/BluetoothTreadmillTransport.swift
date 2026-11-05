@@ -21,10 +21,10 @@ enum TreadmillBluetoothFailure: LocalizedError, Equatable {
 
     var errorDescription: String? {
         switch self {
-        case .bluetoothOff: String(localized: "Bluetooth is turned off.")
-        case .unauthorized: String(localized: "Allow Bluetooth access in System Settings.")
-        case .padAbsent: String(localized: "No walking pad was found nearby.")
-        case .connectionFailed: String(localized: "Could not connect to the walking pad.")
+        case .bluetoothOff: String(localized: "Bluetooth is turned off.", table: "Notchcast")
+        case .unauthorized: String(localized: "Allow Bluetooth access in System Settings.", table: "Notchcast")
+        case .padAbsent: String(localized: "No walking pad was found nearby.", table: "Notchcast")
+        case .connectionFailed: String(localized: "Could not connect to the walking pad.", table: "Notchcast")
         }
     }
 }

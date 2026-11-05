@@ -2,12 +2,12 @@ import Foundation
 
 extension LiveTimerModule {
     nonisolated static let startCommand = NotchcastCommand(
-        slug: "start-timer", name: String(localized: "Start Timer"), sfSymbol: "timer", feature: .liveTimers,
+        slug: "start-timer", name: String(localized: "Start Timer", table: "Notchcast"), sfSymbol: "timer", feature: .liveTimers,
         isEnabled: { NotchcastPreferences.shared.isOn(.island) && NotchcastPreferences.shared.isOn(.liveTimers) },
         run: { NotchcastCore.timers.store.start() })
 
     nonisolated static let stopCommand = NotchcastCommand(
-        slug: "stop-timer", name: String(localized: "Stop Timer"), sfSymbol: "stop.circle", feature: .liveTimers,
+        slug: "stop-timer", name: String(localized: "Stop Timer", table: "Notchcast"), sfSymbol: "stop.circle", feature: .liveTimers,
         isEnabled: { startCommand.isEnabled() },
         run: {
             let store = NotchcastCore.timers.store

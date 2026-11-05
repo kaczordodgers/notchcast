@@ -8,10 +8,10 @@ enum VoiceAskCLIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidDestination: String(localized: "Enter a T3 thread ID without whitespace.")
-        case .missingCLI: String(localized: "The T3 CLI could not be found.")
-        case .invalidOutput: String(localized: "The T3 CLI returned an invalid response.")
-        case .timeout: String(localized: "The T3 request timed out.")
+        case .invalidDestination: String(localized: "Enter a T3 thread ID without whitespace.", table: "Notchcast")
+        case .missingCLI: String(localized: "The T3 CLI could not be found.", table: "Notchcast")
+        case .invalidOutput: String(localized: "The T3 CLI returned an invalid response.", table: "Notchcast")
+        case .timeout: String(localized: "The T3 request timed out.", table: "Notchcast")
         }
     }
 }
