@@ -210,6 +210,7 @@ enum ForkSettingsBackupSchema {
         "torrentsUseIPhone",
         "torrentsKeepSharing",
         "tasks",
+        "todoIsland",
         "archivesInPlace",
         "machineSetupProfile",
         "backupRunNow",

@@ -14,7 +14,7 @@ final class TodoStore {
     private var inverses: [TodoCommand]
     @ObservationIgnored private let log: FileHandle
     @ObservationIgnored private var writeFailed = false
-    @ObservationIgnored private var isClosed = false
+    private(set) var isClosed = false
 
     enum LoadWarning: Equatable, Sendable {
         case tornLastLine(line: Int)
