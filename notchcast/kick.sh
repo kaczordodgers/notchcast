@@ -1,18 +1,15 @@
 #!/bin/bash
 # Sync trigger: GitHub's own schedule never fired for this fork, so launchd (notchcast.kick, every 10 min) starts
-# sync.yml and snapshot.yml when upstream changes, and at least hourly.
+# sync.yml when upstream changes, and at least hourly.
 # The sync decides everything else (ci.py plan); a start that finds nothing to do costs one Linux minute.
 # Where chad-opus exists (the MBA) Chad is told once when this trigger fails, and once per upstream commit that is
 # not in our main after LAG_ALERT_MIN while no sync issue explains it.
-# Both Macs run it, so the snapshot is dispatched only when no Snapshot run for main's sha is queued, running or
-# green; the other Mac's dispatch from minutes ago counts.
-# Usage: kick.sh [--dry-run [<sha to check instead of main>]]
+# Usage: kick.sh [--dry-run]
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin"
 
 DRY=0
 if [ "${1:-}" = "--dry-run" ]; then DRY=1; fi
-CHECK_SHA="${2:-}"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 # shellcheck disable=SC1091
 source "$HERE/config.env"
@@ -50,22 +47,11 @@ if [ "$want" != "${last_main:-} ${last_release:-}" ]; then reason="upstream chan
 elif [ $((now - ${last_at:-0})) -ge "$HEARTBEAT_SEC" ]; then reason="hourly heartbeat"
 fi
 if [ -n "$reason" ] || [ "$DRY" = 1 ]; then
-    main_sha="${CHECK_SHA:-$(gh api "repos/$FORK_REPO/commits/main" --jq .sha 2>&1)}" || main_sha=""
-    snapshots="unknown (main unreadable)"
-    [ -z "$main_sha" ] || snapshots="$(gh run list -R "$FORK_REPO" -w snapshot.yml -L 30 --json headSha,status,conclusion --jq "[.[] | select(.headSha == \"$main_sha\")
-        | select(.status != \"completed\" or .conclusion == \"success\")] | length" 2>&1)" || snapshots="unknown ($snapshots)"
-    # Unknown skips only the snapshot: Sync still starts, and snapshot.yml's hourly schedule covers the gap.
-    if [[ "$snapshots" == unknown* ]]; then snapshot="skip: Snapshot runs $snapshots"
-    elif [ "$snapshots" != 0 ]; then snapshot="skip: $snapshots run(s) for main ${main_sha:0:8} queued, running or green"
-    else snapshot="dispatch for main ${main_sha:0:8}"; fi
-    if [ "$DRY" = 1 ]; then log "would ${reason:+start sync ($reason); }snapshot: $snapshot"
+    if [ "$DRY" = 1 ]; then log "would start sync ($reason)"
     else
         out="$(gh workflow run sync.yml -R "$FORK_REPO" --ref main 2>&1)" || fail "gh workflow run: $out"
-        if [ "$snapshots" = 0 ]; then
-            out="$(gh workflow run snapshot.yml -R "$FORK_REPO" --ref main 2>&1)" || fail "snapshot dispatch: $out"
-        fi
         echo "$want $now" > "$STATE"
-        log "started sync ($reason); snapshot: $snapshot"
+        log "started sync ($reason)"
     fi
 fi
 # The trigger works again: a later failure is told again.
