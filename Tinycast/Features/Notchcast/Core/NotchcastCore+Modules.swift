@@ -23,6 +23,7 @@ extension NotchcastCore {
     static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
     static let clean = CleanModule()
     static let macLink = AIUsageLinkModule()
+    static let tasksSync = TodoLinkCoordinator.live(channel: macLink.channel, preferences: .shared)
     static let github = GitHubModule()
     static let clearNotifications = ClearNotificationsModule()
     static let answers = LauncherAnswersModule()
@@ -138,6 +139,7 @@ extension NotchcastCore {
             .init(requires: [.smallCommands], module: smallCommands),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
+            .init(requires: [.tasksSync, .tasks, .machLink], module: tasksSync),
             .init(requires: [.urlCleaner], module: urlCleaner),
             .init(requires: [.convertFiles], module: convertFiles),
             .init(requires: [.mediaTools], module: mediaTools),
