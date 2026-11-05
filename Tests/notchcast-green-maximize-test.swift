@@ -36,7 +36,60 @@ struct GreenMaximizeTest {
         precondition(!hit(option: true))
         precondition(!hit(exclusions: ["test.app"]))
         testObserverTicks()
-        print("green-maximize: 19 assertions passed")
+        testEvents()
+        testPointerGate()
+        let background = rect.offsetBy(dx: 100, dy: 0)
+        func target(_ point: CGPoint, age: Double = 0, option: Bool = false,
+                    exclusions: Set<String> = []) -> CGRect? {
+            GreenMaximizeClick.target(pointer: background, frontmost: rect) { candidate in
+                GreenMaximizeClick.intercept(point: point, rect: candidate, age: age,
+                    option: option, bundleID: "test.app", exclusions: exclusions)
+            }
+        }
+        precondition(target(CGPoint(x: 125, y: 25)) == background)
+        precondition(target(CGPoint(x: 25, y: 25)) == rect)
+        precondition(target(.zero) == nil)
+        precondition(target(CGPoint(x: 125, y: 25), option: true) == nil)
+        precondition(target(CGPoint(x: 125, y: 25), exclusions: ["test.app"]) == nil)
+        precondition(target(CGPoint(x: 125, y: 25), age: 2) == nil)
+        precondition(GreenMaximizeRefresh.buttonRect { _ in rect } == rect)
+        precondition(GreenMaximizeRefresh.buttonRect { $0 == "AXFullScreenButton" ? rect : .zero } == rect)
+        precondition(GreenMaximizeRefresh.buttonRect { $0 == "AXZoomButton" ? rect : .zero } == rect)
+        precondition(GreenMaximizeRefresh.buttonRect { _ in .zero } == nil)
+        print("green-maximize: geometry, button selection, observer and fake-event checks passed")
+    }
+
+    private static func testEvents() {
+        var session = GreenMaximizeClick.Session()
+        let hover = session.decide(.move, hit: true)
+        precondition(hover.swallow && !hover.maximize)
+        precondition(!session.decide(.move, hit: false).swallow)
+        let down = session.decide(.down, hit: true)
+        precondition(down.swallow && down.maximize)
+        precondition(session.decide(.drag, hit: false).swallow)
+        let up = session.decide(.up, hit: false)
+        precondition(up.swallow && !up.maximize)
+        precondition(!session.decide(.up, hit: true).swallow)
+        precondition(!session.decide(.down, hit: false).swallow)
+        precondition(!session.decide(.drag, hit: true).swallow)
+        precondition(!session.decide(.up, hit: true).swallow)
+    }
+
+    private static func testPointerGate() {
+        let bounds = CGRect(x: 100, y: 200, width: 800, height: 600)
+        let zone = GreenMaximizeClick.PointerGate.zone(bounds: bounds, layer: 0)!
+        precondition(zone == CGRect(x: 100, y: 200, width: 100, height: 40))
+        precondition(GreenMaximizeClick.PointerGate.zone(bounds: bounds, layer: 1) == nil)
+        var gate = GreenMaximizeClick.PointerGate(zones: [zone, zone.offsetBy(dx: 900, dy: 0)])
+        precondition(!gate.moved(to: .zero))
+        precondition(gate.moved(to: CGPoint(x: 110, y: 210)))
+        precondition(!gate.moved(to: CGPoint(x: 120, y: 220)))
+        precondition(gate.moved(to: CGPoint(x: 1010, y: 210)))
+        precondition(gate.zone == 1)
+        precondition(gate.moved(to: CGPoint(x: 110, y: 250)))
+        precondition(gate.zone == nil)
+        precondition(!gate.moved(to: CGPoint(x: 400, y: 400)))
+        print("green-maximize: pointer zone gate and hop throttling passed")
     }
 
     private static func testObserverTicks() {
