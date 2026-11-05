@@ -9,7 +9,7 @@ enum IslandPage: Int, CaseIterable, Identifiable, Sendable {
     var title: LocalizedStringResource {
         switch self {
         case .home: "Home"
-        case .day: "Day"
+        case .day: LocalizedStringResource("Day", table: "Notchcast")
         }
     }
 

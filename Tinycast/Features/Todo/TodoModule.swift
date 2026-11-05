@@ -40,7 +40,7 @@ final class TodoModule: NotchcastModule {
                 self.storeDidOpen?(store)
                 self.loading = nil
                 if !store.loadWarnings.isEmpty {
-                    self.showFailure(String(localized: "The last task change was interrupted and could not be restored."))
+                    self.showFailure(String(localized: "The last task change was interrupted and could not be restored.", table: "Notchcast"))
                 }
             } catch is CancellationError {
             } catch {
@@ -48,7 +48,7 @@ final class TodoModule: NotchcastModule {
                 Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Todo")
                     .error("Task store failed to open: \(error)")
                 self.loading = nil
-                self.showFailure(String(localized: "The task store could not be opened."))
+                self.showFailure(String(localized: "The task store could not be opened.", table: "Notchcast"))
             }
         }
     }
@@ -63,7 +63,7 @@ final class TodoModule: NotchcastModule {
         do { try store?.close() } catch {
             Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Todo")
                 .error("Task store failed to close: \(error)")
-            showFailure(String(localized: "The task store could not be closed."))
+            showFailure(String(localized: "The task store could not be closed.", table: "Notchcast"))
         }
         store = nil
     }

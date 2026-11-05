@@ -45,8 +45,8 @@ final class LinkHealthModule: NotchcastModule {
         guard !Task.isCancelled, isRunning, generation == current else { return }
         guard let notice = health.consume(latency: latency, at: now()) else { return }
         switch notice {
-        case .lost: post(String(localized: "Mac link lost."))
-        case .recovered: post(String(localized: "Mac link restored."))
+        case .lost: post(String(localized: "Mac link lost.", table: "Notchcast"))
+        case .recovered: post(String(localized: "Mac link restored.", table: "Notchcast"))
         }
     }
 

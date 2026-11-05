@@ -9,13 +9,13 @@ enum TorrentCommands {
     ]
     nonisolated static let downloadClipboardCommand =
         NotchcastCommand(slug: "download-torrent-from-clipboard",
-                         name: String(localized: "Download Torrent from Clipboard"),
+                         name: String(localized: "Download Torrent from Clipboard", table: "Notchcast"),
                          sfSymbol: "arrow.down.doc", feature: .torrents, isEnabled: { enabled }, run: { downloadClipboard() })
     nonisolated static let openFileCommand =
-        NotchcastCommand(slug: "open-torrent-file", name: String(localized: "Open Torrent File…"),
+        NotchcastCommand(slug: "open-torrent-file", name: String(localized: "Open Torrent File…", table: "Notchcast"),
                          sfSymbol: "doc", feature: .torrents, isEnabled: { enabled }, run: { openFile() })
     nonisolated static let cancelAllCommand =
-        NotchcastCommand(slug: "cancel-all-torrents", name: String(localized: "Cancel All Torrents"),
+        NotchcastCommand(slug: "cancel-all-torrents", name: String(localized: "Cancel All Torrents", table: "Notchcast"),
                          sfSymbol: "xmark.circle", feature: .torrents, isEnabled: { enabled }, run: { cancelAll() })
 
     private static let availability = TorrentCommandAvailability()
@@ -74,8 +74,8 @@ enum TorrentCommands {
                                         open: { NotchcastCore.torrents.open($0) })
             guard enabled, !Task.isCancelled, !accepted else { return }
             let message = NotchcastCore.torrents.isRunning
-                ? String(localized: "No usable torrent link or file was found.")
-                : String(localized: "The torrent engine is not running.")
+                ? String(localized: "No usable torrent link or file was found.", table: "Notchcast")
+                : String(localized: "The torrent engine is not running.", table: "Notchcast")
             AppCore.shared.showMessage(message, tone: .danger)
         }
     }
