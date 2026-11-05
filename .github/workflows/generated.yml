@@ -10,6 +10,7 @@ on:
       - README.upstream.md
 
 permissions:
+  actions: read
   contents: write
 
 concurrency:
@@ -19,7 +20,8 @@ concurrency:
 jobs:
   regenerate:
     runs-on: macos-15
-    timeout-minutes: 15
+    # Up to 40 min of it waiting out a Sync replay.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
         with:
@@ -31,10 +33,16 @@ jobs:
           node-version: 22
       - name: Regenerate and push, retrying if main moved
         shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          refuse() { echo "$*" >&2; exit 1; }
+          source notchcast/sync-wait.sh
           git config user.name Damian
           git config user.email 336236323+kaczordodgers@users.noreply.github.com
           for attempt in 1 2 3 4 5; do
+            # Generated pushes cost Sync its main lease too; a rewrite of main restarts this workflow anyway.
+            wait_for_sync
             git fetch origin main
             git reset -q --hard origin/main
             git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
