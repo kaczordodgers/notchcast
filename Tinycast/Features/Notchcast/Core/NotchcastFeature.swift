@@ -724,6 +724,7 @@ extension NotchcastFeature {
         .machMBPFans,
         .macSetup,
         .machineSetupProfile,
+        .commandRunner,
     ]
 
     static var systemToolsSettingsFeatures: [Self] {
