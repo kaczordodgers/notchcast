@@ -88,9 +88,9 @@ struct AppEntry: Sendable {
      let queued = try SoloistProtocol.addToQueue(uri: "spotify:track:fixture")
      precondition(queued.contains("add_to_queue"))
      let notification = try SoloistProtocol.parse(#"{"type":"queue_changed"}"#, now: .now)
-     precondition(notification == .changed)
+     precondition(notification == .changed(queue: true))
      let queueChange = try SoloistProtocol.parse(
-         #"{"type":"queue_changed","queue":[{"title":"Next"}]}"#, now: .now)
+         #"{"type":"queue_changed","upcoming":[{"item":{"decorations":{"identity":{"name":"Next"}}}}]}"#, now: .now)
      precondition(queueChange == .queue([.init(title: "Next", artist: nil, uri: nil)]))
      let source = SoloistSource()
      source.receive("""
@@ -110,10 +110,10 @@ struct AppEntry: Sendable {
      track = try await source.read()
      precondition(track?.shuffle == true && track?.repeatMode == .one)
      source.receive("""
-         {"type":"get_queue","queue":[{"title":"Next","artist":"Artist","uri":"fixture"},{}]}
+         {"type":"queue_changed","upcoming":[{"item":{"uri":"fixture","decorations":{
+         "identity":{"name":"Next"},"creators":[{"entity":{"decorations":{"identity":{"name":"Artist"}}}}]}}}]}
          """)
-     precondition(source.queue == [.init(title: "Next", artist: "Artist", uri: "fixture"),
-                                   .init(title: nil, artist: nil, uri: nil)])
+     precondition(source.queue == [.init(title: "Next", artist: "Artist", uri: "fixture")])
      let model = MusicModel(defaults: .standard)
      model.setSoloistSource(source)
      precondition(model.queue == nil)
@@ -121,8 +121,9 @@ struct AppEntry: Sendable {
      precondition(model.queue == source.queue)
      model.setEnabled(false)
      precondition(model.queue == nil)
-     source.receive(#"{"type":"queue_changed","queue":"unknown"}"#)
-     precondition(source.queue == nil && source.failure == nil)
+     source.receive(#"{"type":"queue_changed","upcoming":null}"#)
+     source.receive(#"{"type":"queue_changed","upcoming":[]}"#)
+     precondition(source.queue == [] && source.failure == nil)
      let adapter = SystemNowPlayingSource()
      adapter.send(.shuffle(true))
      precondition(adapter.commandFailure == .unsupportedCommand)

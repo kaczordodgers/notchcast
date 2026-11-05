@@ -10,7 +10,7 @@ enum SoloistProtocol {
     enum Message: Equatable, Sendable {
         case state(NowPlaying?, cover: URL?)
         case auth(AuthState)
-        case changed
+        case changed(queue: Bool)
         case failure(String)
         case other
         case options(shuffle: Bool?, repeatMode: RepeatMode?)
@@ -27,6 +27,7 @@ enum SoloistProtocol {
     }
 
     private struct Entity: Decodable {
+        var uri: String?
         var decorations: Decorations?
         final class Related: Decodable { var entity: Entity }
         struct Decorations: Decodable {
@@ -49,6 +50,8 @@ enum SoloistProtocol {
         var item: Entity?
         var position: Position?
         var isActive: Bool?
+        var upcoming: [QueueEntry]?
+        struct QueueEntry: Decodable { var item: Entity }
         struct Position: Decodable {
             var positionMs: Double?
             var timestampMs: Double?
@@ -68,15 +71,15 @@ enum SoloistProtocol {
         if object["type"] as? String == "options_changed", shuffle != nil || repeatMode != nil {
             return .options(shuffle: shuffle, repeatMode: repeatMode)
         }
-        if object["type"] as? String == "get_queue"
-            || (object["type"] as? String == "queue_changed" && object["queue"] != nil) {
-            let items = (object["queue"] as? [[String: Any]])?.map {
-                MusicQueueItem(title: $0["title"] as? String,
-                               artist: $0["artist"] as? String, uri: $0["uri"] as? String)
-            }
-            return .queue(items)
-        }
         let frame = try decoder.decode(Frame.self, from: data)
+        if frame.type == "queue_changed", let upcoming = frame.upcoming {
+            return .queue(upcoming.map {
+                MusicQueueItem(title: $0.item.decorations?.identity?.name,
+                               artist: $0.item.decorations?.creators?.compactMap {
+                                   $0.entity.decorations?.identity?.name
+                               }.joined(separator: ", "), uri: $0.item.uri)
+            })
+        }
         switch frame.type {
         case "error": return .failure(frame.message ?? "")
         case "auth_state": return .auth(try decoder.decode(AuthState.self, from: data))
@@ -98,7 +101,8 @@ enum SoloistProtocol {
             )
             return .state(track, cover: cover)
         case "track_changed", "playback_changed", "position_sync", "queue_changed",
-             "device_changed", "context_changed", "options_changed", "volume_changed": return .changed
+             "device_changed", "context_changed", "options_changed", "volume_changed":
+            return .changed(queue: ["queue_changed", "track_changed", "options_changed"].contains(frame.type))
         default: return .other
         }
     }
