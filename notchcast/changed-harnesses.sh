@@ -22,13 +22,17 @@ for path in sorted(Path('Tests').glob('*-test.swift')):
     headers = [line.removeprefix('// notchcast-sources: ') for line in
                path.read_text().splitlines() if line.startswith('// notchcast-sources: ')]
     name = path.stem
-    if not (headers or name.startswith(('nc-', 'notchcast-'))):
+    extra = subprocess.check_output(
+        ['bash', '-c', 'name=$1; shift; source notchcast/command-harness-sources.sh; printf "%s\\n" "$@"',
+         'harness-sources', name], text=True).splitlines()
+    if not (headers or extra or name.startswith(('nc-', 'notchcast-'))):
         continue
     patterns = [token for header in headers for token in shlex.split(header)
                 if not token.startswith('-')]
     if not headers and name.startswith('nc-'):
         folder = name.split('-')[1]
         patterns = [f'Tinycast/Features/{folder}/{part}/*.swift' for part in ('Model', 'Service')]
+    patterns.extend(extra)
     # Against the changed paths, not the tree: a deleted source no longer exists to glob.
     touched = any(fnmatch.fnmatchcase(file, pattern) for pattern in patterns for file in changed)
     if str(path) in changed or touched:
