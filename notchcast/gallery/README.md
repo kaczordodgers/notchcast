@@ -14,7 +14,8 @@ One output folder contains PNGs at 2x, matching `*-layout.json`, `manifest.txt`,
 `coverage.json`, `inventory.json`, `inventory.md`, `run.log` and `layout-check.log`.
 The manifest is written before rendering. Missing PNGs or layout files, capture
 errors and offscreen-check failures make the command fail. `check-pixels.swift`
-also rejects nearly transparent or uniform PNGs, naming each failed page. It samples
+also rejects nearly transparent or uniform PNGs and byte-identical closed states within
+the same display shape, naming each failed page. It samples
 alpha coverage against the measured surface and quantized colour diversity across
 the canvas; this is a blank-output guard, not a visual correctness test. Layout findings are
 reported independently: `python3 notchcast/gallery/check-layout.py <out>` exits
@@ -23,6 +24,7 @@ nonzero for findings. They do not modify the product or suppress successful capt
 Stable page names:
 
 - `island-closed-{idle,timer,transfer,status}-{mba,ext}`
+- `island-closed-{volume,brightness,airpods,low-battery,wifi,tailscale,low-disk,meeting-reminder,dictation,walk,message,danger-message}-{mba,ext}`
 - `island-open-{home-empty,home-entries,day-calendar}-{mba,ext}`
 - `launcher-{root,results,empty}-{dark,light}`
 - `settings-notchcast-<group>-{dark,light}`
@@ -34,6 +36,12 @@ surface, closed view, content wrapper and silhouette. Day uses the real schedule
 list with fake events, without loading EventKit. Launcher fixtures use the real
 palette root, search field and launcher list. The first registry does not yet cover every palette state,
 window or editor. `inventory.md` lists gaps by area for subsequent registries.
+
+Closed fixtures follow the shipped producers: volume and brightness are status
+activities with percentage progress; meeting reminder is a status activity with an
+event title. AirPods, battery, Wi-Fi, Tailscale and disk notices use status messages;
+dictation uses its listening progress message, and walk uses its daily goal reminder.
+Both shapes support every fixture. These are sample payloads, not live device probes.
 
 Each area owns `GalleryPages+<Area>.swift`. Register explicit view types with each
 page; do not claim conditional children that the fixture does not render.
