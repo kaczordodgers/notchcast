@@ -225,6 +225,12 @@ struct SoloistSourceTest {
         }
         refreshCommands += refresh.flush(now: 0.4)
         precondition(refreshCommands == [SoloistProtocol.getState, SoloistProtocol.getState])
+        var window = SoloistRefreshState()
+        _ = window.event(queue: false, now: 0)
+        _ = window.event(queue: true, now: 0.1)
+        _ = window.event(queue: false, now: 0.2)
+        precondition(window.flush(now: 0.4) == [SoloistProtocol.getState, SoloistProtocol.getQueue],
+                     "A queue event inside the window keeps the trailing queue fetch")
         for event in ["track_changed", "playback_changed", "device_changed", "context_changed",
                       "options_changed", "queue_changed", "position_sync", "volume_changed"] {
             let parsed = try SoloistProtocol.parse("{\"type\":\"\(event)\"}", now: now)
