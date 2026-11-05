@@ -1,6 +1,9 @@
 # Shelf core
 
-The shelf switch is off by default and requires Mac Link. No views or commands are registered.
+The shelf switch is off by default and requires Mac Link. Show Shelf opens its received-items
+section in Settings → Notchcast → Two Macs. Items appear newest first, with Copy for text and
+links, Open for links, Save to Downloads for files, Remove and confirmed Clear All.
+Saving uses a unique filename and never replaces an existing download.
 
 `ShelfModule.send` accepts UTF-8 text, HTTP(S) links and binary files, up to 24 KiB each.
 Names are single path components of at most 255 UTF-8 bytes. SHA-256 of kind, name and
