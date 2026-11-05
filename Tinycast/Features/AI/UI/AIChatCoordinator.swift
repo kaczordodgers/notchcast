@@ -354,6 +354,7 @@ final class AIChatCoordinator {
         }
         return AIToolLoopProvider(
             base: try provider(for: chat), tools: session.tools, maxRounds: session.maxCalls,
+            completionEnabled: NotchcastCore.agentChatTools?.isRunning == true,
             invoke: session.invoke)
     }
 
