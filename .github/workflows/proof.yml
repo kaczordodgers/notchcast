@@ -28,6 +28,7 @@ jobs:
           BASE: ${{ github.event.pull_request.base.sha }}
           CHECKS: ${{ inputs.checks || 'all' }}
         run: |
+          set -o pipefail
           if [ -n "$BASE" ]; then
             checks=$(python3 notchcast/app-proof.py plan "$BASE" HEAD | paste -sd ' ' -)
           elif [ "$CHECKS" = all ]; then
