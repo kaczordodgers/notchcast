@@ -8,6 +8,16 @@ import Darwin
 @main struct SystemRootTest {
     static func main() async throws {
         precondition(getuid() != 0)
+        for (mode, uid, gid, accepted) in [(0o1777, 0, 80, true), (0o770, 0, 80, true),
+                                          (0o777, 0, 80, false), (0o770, 501, 80, false),
+                                          (0o775, 0, 20, false)] {
+            var info = stat()
+            info.st_mode = mode_t(mode)
+            info.st_uid = uid_t(uid)
+            info.st_gid = gid_t(gid)
+            precondition(CleanSystem.acceptsParent(info, owner: uid_t(uid)) == accepted)
+        }
+        print("PASS: root sticky and admin parents accepted; unsafe modes and owners refused")
         let folder = URL(fileURLWithPath: "/private/tmp")
             .appendingPathComponent(UUID().uuidString)
         try FileManager().createDirectory(at: folder, withIntermediateDirectories: true)
@@ -15,6 +25,11 @@ import Darwin
         let file = folder.appendingPathComponent("cache")
         try Data("test".utf8).write(to: file)
         let entry = try CleanSystem.inspect(file.path)
+        do {
+            _ = try CleanSystem.inspect(file.path, owner: 0)
+            fatalError("Non-root entry accepted")
+        } catch CleanSystem.Failure.refused {}
+        print("PASS: system entry owned by non-root refused")
         let policy = CleanSystemPolicy(roots: [.init(path: folder.path, rule: .caches)],
             now: .now.addingTimeInterval(100), cacheAge: 1, logAge: 1)
         let moved = Mutex<[String]>([])
