@@ -13,21 +13,21 @@ final class ForkSettingsBackupCoordinator {
     init(folder: URL = AppPaths.applicationSupport().appendingPathComponent("fork-settings-backups"),
          state: ForkSettingsBackupState = .live,
          confirm: @escaping () async -> Bool = {
-             await AppCore.shared.confirm(title: String(localized: "Restore Settings Backup"),
-                 message: String(localized: "Replace saved settings with the newest backup?"),
-                 symbol: "clock.arrow.circlepath", confirmTitle: String(localized: "Restore"))
+             await AppCore.shared.confirm(title: String(localized: "Restore Settings Backup", table: "Notchcast"),
+                 message: String(localized: "Replace saved settings with the newest backup?", table: "Notchcast"),
+                 symbol: "clock.arrow.circlepath", confirmTitle: String(localized: "Restore", table: "Notchcast"))
          },
          report: @escaping (Bool) -> Void = { success in
              if success {
-                 AppCore.shared.showMessage(String(localized: "Settings restored."))
+                 AppCore.shared.showMessage(String(localized: "Settings restored.", table: "Notchcast"))
              } else {
                  AppCore.shared.showMessage(
-                     String(localized: "Settings backup could not be opened or restored."), tone: .danger)
+                     String(localized: "Settings backup could not be opened or restored.", table: "Notchcast"), tone: .danger)
              }
          },
          missing: @escaping () async -> Void = {
-             await AppCore.shared.showNotice(title: String(localized: "Restore Settings Backup"),
-                 message: String(localized: "No settings backup was found."),
+             await AppCore.shared.showNotice(title: String(localized: "Restore Settings Backup", table: "Notchcast"),
+                 message: String(localized: "No settings backup was found.", table: "Notchcast"),
                  symbol: "clock.arrow.circlepath", tone: .neutral)
          }) {
         self.folder = folder
@@ -86,9 +86,9 @@ final class ForkSettingsBackupCoordinator {
 
 extension ForkSettingsBackupCoordinator {
     nonisolated static let restoreCommand = NotchcastCommand(slug: "restore-settings-backup",
-        name: String(localized: "Restore Settings Backup"), sfSymbol: "clock.arrow.circlepath", feature: .settingsBackup,
+        name: String(localized: "Restore Settings Backup", table: "Notchcast"), sfSymbol: "clock.arrow.circlepath", feature: .settingsBackup,
         run: { NotchcastCore.settingsBackupRestore.restore() })
     nonisolated static let openCommand = NotchcastCommand(slug: "open-settings-backup-folder",
-        name: String(localized: "Open Settings Backup Folder"), sfSymbol: "folder", feature: .settingsBackup,
+        name: String(localized: "Open Settings Backup Folder", table: "Notchcast"), sfSymbol: "folder", feature: .settingsBackup,
         run: { NotchcastCore.settingsBackupRestore.openFolder() })
 }

@@ -16,7 +16,7 @@ struct ThemeBrowserSheet: View {
     private var targets: [RaycastThemeLink.Target] {
         let themes = sections.imported + sections.bundled
         let showDefault = query.isEmpty || String(localized: "Default").localizedCaseInsensitiveContains(query)
-            || String(localized: "No theme").localizedCaseInsensitiveContains(query)
+            || String(localized: "No theme", table: "Notchcast").localizedCaseInsensitiveContains(query)
         return (showDefault ? [.tinycast(slot)] : []) + themes.map { .theme($0) }
     }
 
@@ -26,8 +26,8 @@ struct ThemeBrowserSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            SettingsFilterField(prompt: "Search themes", query: $query)
-                .accessibilityLabel("Search themes")
+            SettingsFilterField(prompt: LocalizedStringResource("Search themes", table: "Notchcast"), query: $query)
+                .accessibilityLabel(String(localized: "Search themes", table: "Notchcast"))
                 .padding(Theme.Spacing.lg)
             if targets.isEmpty {
                 EmptyResults(text: String(localized: "No Results"))
@@ -35,12 +35,12 @@ struct ThemeBrowserSheet: View {
                 List(selection: $selection) {
                     if targets.contains(.tinycast(slot)) { row(.tinycast(slot)) }
                     if !sections.imported.isEmpty {
-                        Section("Imported") {
+                        Section(String(localized: "Imported", table: "Notchcast")) {
                             ForEach(sections.imported) { theme in row(.theme(theme), removable: true) }
                         }
                     }
                     if !sections.bundled.isEmpty {
-                        Section("All themes") {
+                        Section(String(localized: "All themes", table: "Notchcast")) {
                             ForEach(sections.bundled) { theme in row(.theme(theme)) }
                         }
                     }
@@ -54,7 +54,7 @@ struct ThemeBrowserSheet: View {
                     .buttonStyle(.modalAction(.standard, fillsWidth: false))
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button(String(localized: "Use Theme")) {
+                Button(String(localized: "Use Theme", table: "Notchcast")) {
                     guard let selectedTarget else { return }
                     coordinator.apply(selectedTarget)
                     dismiss()
@@ -116,7 +116,7 @@ private struct ThemeBrowserRow: View {
             ThemeSwatch(theme: target.theme)
             VStack(alignment: .leading, spacing: metrics.spacing.xxs) {
                 Text(name).font(metrics.typography.rowTitle)
-                Text(target.theme?.author ?? String(localized: "No theme"))
+                Text(target.theme?.author ?? String(localized: "No theme", table: "Notchcast"))
                     .font(metrics.typography.rowTrailing)
                     .foregroundStyle(.secondary)
             }
@@ -131,8 +131,8 @@ private struct ThemeBrowserRow: View {
                     SymbolImage(name: "xmark", size: metrics.size.menuIcon)
                 }
                 .opacity(hovered ? 1 : 0)
-                .help("Remove Theme")
-                .accessibilityLabel("Remove Theme")
+                .help(String(localized: "Remove Theme", table: "Notchcast"))
+                .accessibilityLabel(String(localized: "Remove Theme", table: "Notchcast"))
             }
         }
         .contentShape(Rectangle())

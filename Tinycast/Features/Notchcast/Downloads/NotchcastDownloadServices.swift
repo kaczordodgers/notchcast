@@ -25,7 +25,7 @@ struct NotchcastDownloadServices: Sendable {
     @concurrent
     private func transcribeVideo(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL {
         guard let cleaned = LinkCleaner.clean(job.source), let url = URL(string: cleaned), YtDlpAudio.isMedia(url) else {
-            throw MediaFailure(detail: String(localized: "Transcript fallback requires a supported media link."))
+            throw MediaFailure(detail: String(localized: "Transcript fallback requires a supported media link.", table: "Notchcast"))
         }
         let work = workDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)

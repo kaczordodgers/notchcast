@@ -21,23 +21,23 @@ enum NotchcastSettingsModule: String, CaseIterable, Sendable {
 
     var title: String {
         switch self {
-        case .island: String(localized: "Island")
+        case .island: String(localized: "Island", table: "Notchcast")
         case .launcher: String(localized: "Launcher")
-        case .musicAndSound: String(localized: "Music and Sound")
-        case .dayAndTasks: String(localized: "Day and Tasks")
-        case .monitorAndFans: String(localized: "Monitor and Fans")
-        case .battery: String(localized: "Battery")
-        case .windowsAndDisplay: String(localized: "Windows and Display")
-        case .downloads: String(localized: "Downloads")
-        case .filesAndClipboard: String(localized: "Files and Clipboard")
-        case .capture: String(localized: "Capture")
+        case .musicAndSound: String(localized: "Music and Sound", table: "Notchcast")
+        case .dayAndTasks: String(localized: "Day and Tasks", table: "Notchcast")
+        case .monitorAndFans: String(localized: "Monitor and Fans", table: "Notchcast")
+        case .battery: String(localized: "Battery", table: "Notchcast")
+        case .windowsAndDisplay: String(localized: "Windows and Display", table: "Notchcast")
+        case .downloads: String(localized: "Downloads", table: "Notchcast")
+        case .filesAndClipboard: String(localized: "Files and Clipboard", table: "Notchcast")
+        case .capture: String(localized: "Capture", table: "Notchcast")
         case .dictation: String(localized: "Dictation")
-        case .aiAndAgents: String(localized: "AI and Agents")
-        case .twoMacs: String(localized: "Two Macs")
-        case .backups: String(localized: "Backups")
-        case .cleanAndUpdates: String(localized: "Clean and Updates")
-        case .tweaks: String(localized: "Tweaks")
-        case .privacyAndStartup: String(localized: "Privacy and Startup")
+        case .aiAndAgents: String(localized: "AI and Agents", table: "Notchcast")
+        case .twoMacs: String(localized: "Two Macs", table: "Notchcast")
+        case .backups: String(localized: "Backups", table: "Notchcast")
+        case .cleanAndUpdates: String(localized: "Clean and Updates", table: "Notchcast")
+        case .tweaks: String(localized: "Tweaks", table: "Notchcast")
+        case .privacyAndStartup: String(localized: "Privacy and Startup", table: "Notchcast")
         }
     }
 

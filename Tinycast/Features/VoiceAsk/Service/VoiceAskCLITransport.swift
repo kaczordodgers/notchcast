@@ -28,7 +28,7 @@ struct VoiceAskCLITransport: VoiceAskTransport {
         let decoded = try? JSONDecoder().decode(Reply.self, from: output.stdout)
         if decoded?.status == "failed" || decoded?.error != nil || (output.status != 0 && output.status != 2) {
             let diagnostic = decoded?.error ?? String(decoding: output.stderr.prefix(500), as: UTF8.self)
-            let message = decoded?.error == nil ? String(localized: "The T3 run stopped.") : ""
+            let message = decoded?.error == nil ? String(localized: "The T3 run stopped.", table: "Notchcast") : ""
             return VoiceAskResult(state: .failed, firstLines: ([message] + diagnostic.components(separatedBy: .newlines))
                 .filter { !$0.isEmpty })
         }
@@ -37,7 +37,7 @@ struct VoiceAskCLITransport: VoiceAskTransport {
         }
         if reply.status == "waiting" {
             return VoiceAskResult(state: .running, firstLines: [
-                String(localized: "The agent is waiting for an answer in T3 Code.")
+                String(localized: "The agent is waiting for an answer in T3 Code.", table: "Notchcast")
             ])
         }
         guard output.status == 0, reply.status == "completed", let text = reply.reply else {
