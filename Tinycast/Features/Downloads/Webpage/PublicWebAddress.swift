@@ -8,11 +8,11 @@ enum PublicWebAddress {
         var errorDescription: String? {
             switch self {
             case .invalidURL:
-                String(localized: "Enter a public HTTP or HTTPS webpage URL without credentials, using port 80 or 443.")
+                String(localized: "Enter a public HTTP or HTTPS webpage URL without credentials, using port 80 or 443.", table: "Notchcast")
             case .privateAddress:
-                String(localized: "Private and loopback addresses cannot be saved as webpages.")
+                String(localized: "Private and loopback addresses cannot be saved as webpages.", table: "Notchcast")
             case .resolutionFailed:
-                String(localized: "The webpage host could not be resolved to a public address.")
+                String(localized: "The webpage host could not be resolved to a public address.", table: "Notchcast")
             }
         }
     }

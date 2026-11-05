@@ -17,7 +17,7 @@ struct ArchiveJobRow: View {
             }
             if job.totalBytes > 0 {
                 ProgressView(value: Double(job.bytesWritten), total: Double(job.totalBytes))
-                    .accessibilityLabel(Text("Extraction progress"))
+                    .accessibilityLabel(Text("Extraction progress", tableName: "Notchcast"))
             }
             if let failure = job.failure {
                 Text(failure.message)

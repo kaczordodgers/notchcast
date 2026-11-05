@@ -20,14 +20,14 @@ final class NotchcastToolsCommands: NotchcastModule {
 
         var name: String {
             switch self {
-            case .convertFiles: String(localized: "Convert Files")
-            case .compressVideo: String(localized: "Compress Video")
-            case .makeGIF: String(localized: "Make GIF")
-            case .compressImage: String(localized: "Compress Image")
-            case .resizeImage: String(localized: "Resize Image")
-            case .extractText: String(localized: "Extract Text")
-            case .runHostCommand: String(localized: "Run Host Command")
-            case .listCommands: String(localized: "List Commands")
+            case .convertFiles: String(localized: "Convert Files", table: "Notchcast")
+            case .compressVideo: String(localized: "Compress Video", table: "Notchcast")
+            case .makeGIF: String(localized: "Make GIF", table: "Notchcast")
+            case .compressImage: String(localized: "Compress Image", table: "Notchcast")
+            case .resizeImage: String(localized: "Resize Image", table: "Notchcast")
+            case .extractText: String(localized: "Extract Text", table: "Notchcast")
+            case .runHostCommand: String(localized: "Run Host Command", table: "Notchcast")
+            case .listCommands: String(localized: "List Commands", table: "Notchcast")
             }
         }
     }
@@ -108,7 +108,7 @@ final class NotchcastToolsCommands: NotchcastModule {
                 let files = action.takesFiles ? try await selection() : []
                 guard valid() else { return }
                 guard !action.takesFiles || !files.isEmpty else {
-                    post(String(localized: "No files selected in Finder.")); return
+                    post(String(localized: "No files selected in Finder.", table: "Notchcast")); return
                 }
                 try await execute(action, files, valid)
             } catch {

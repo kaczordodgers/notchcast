@@ -6,7 +6,7 @@ extension TorrentJob {
         if source.scheme?.lowercased() == "magnet" {
             let displayName = URLComponents(url: source, resolvingAgainstBaseURL: false)?
                 .queryItems?.first(where: { $0.name == "dn" })?.value
-            return displayName.flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "Magnet link")
+            return displayName.flatMap { $0.isEmpty ? nil : $0 } ?? String(localized: "Magnet link", table: "Notchcast")
         }
         return source.lastPathComponent
     }
@@ -20,11 +20,11 @@ extension TorrentJob {
 extension TorrentJob.State {
     var title: String {
         switch self {
-        case .findingPeers: String(localized: "Finding peers")
-        case .downloading: String(localized: "Downloading")
-        case .sharing: String(localized: "Sharing")
-        case .finished: String(localized: "Finished")
-        case .failed: String(localized: "Failed")
+        case .findingPeers: String(localized: "Finding peers", table: "Notchcast")
+        case .downloading: String(localized: "Downloading", table: "Notchcast")
+        case .sharing: String(localized: "Sharing", table: "Notchcast")
+        case .finished: String(localized: "Finished", table: "Notchcast")
+        case .failed: String(localized: "Failed", table: "Notchcast")
         case .cancelled: String(localized: "Cancelled")
         }
     }
@@ -33,15 +33,15 @@ extension TorrentJob.State {
 extension TorrentFailure {
     var message: String {
         switch self {
-        case .toolNotInstalled: String(localized: "aria2c not found")
+        case .toolNotInstalled: String(localized: "aria2c not found", table: "Notchcast")
         case .invalidInput, .unreadableTorrent, .invalidTorrent:
-            String(localized: "This torrent file or magnet link could not be read.")
-        case .alreadyRunning: String(localized: "This torrent is already running.")
-        case .launchFailed: String(localized: "aria2c could not start.")
-        case .listenerNotOwned: String(localized: "The aria2c connection could not be verified.")
-        case .rpcUnavailable, .invalidResponse: String(localized: "The aria2c connection failed.")
-        case .rpc, .download: String(localized: "The download failed.")
-        case .noPeers: String(localized: "No peers found in 10 minutes.")
+            String(localized: "This torrent file or magnet link could not be read.", table: "Notchcast")
+        case .alreadyRunning: String(localized: "This torrent is already running.", table: "Notchcast")
+        case .launchFailed: String(localized: "aria2c could not start.", table: "Notchcast")
+        case .listenerNotOwned: String(localized: "The aria2c connection could not be verified.", table: "Notchcast")
+        case .rpcUnavailable, .invalidResponse: String(localized: "The aria2c connection failed.", table: "Notchcast")
+        case .rpc, .download: String(localized: "The download failed.", table: "Notchcast")
+        case .noPeers: String(localized: "No peers found in 10 minutes.", table: "Notchcast")
         }
     }
 }

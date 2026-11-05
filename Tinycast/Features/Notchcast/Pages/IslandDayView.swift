@@ -10,11 +10,11 @@ struct IslandDayView: View {
             VStack(spacing: metrics.spacing.md) {
                 SymbolImage(name: "calendar", size: metrics.size.dialogIcon)
                     .accessibilityHidden(true)
-                Text("Notchcast has no access to your calendar")
+                Text("Notchcast has no access to your calendar", tableName: "Notchcast")
                     .font(metrics.typography.rowTrailing)
                 Button("Settings", action: page.showSettings)
                     .buttonStyle(.modalAction(.standard, fillsWidth: false))
-                    .accessibilityLabel("Calendar Settings")
+                    .accessibilityLabel(String(localized: "Calendar Settings", table: "Notchcast"))
             }
             .foregroundStyle(Theme.Colors.textSecondary)
             .frame(maxWidth: .infinity)
