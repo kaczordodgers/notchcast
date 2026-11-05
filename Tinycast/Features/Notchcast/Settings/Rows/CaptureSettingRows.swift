@@ -7,9 +7,9 @@ struct ScreenshotDestinationSettingRow: View {
         Picker(selection: $module.destination) {
             Text("Clipboard").tag(ScreenshotModule.Destination.clipboard)
             Text("File").tag(ScreenshotModule.Destination.file)
-            Text("Clipboard and file").tag(ScreenshotModule.Destination.both)
+            Text("Clipboard and file", tableName: "Notchcast").tag(ScreenshotModule.Destination.both)
         } label: {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Screenshot destination")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Screenshot destination", table: "Notchcast"))
         }
     }
 }
@@ -21,11 +21,11 @@ struct ScreenshotFolderSettingRow: View {
         LabeledContent {
             Button("Choose…", action: chooseFolder)
         } label: {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Screenshot folder")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Screenshot folder", table: "Notchcast"))
             if let folder = module.folder {
                 Text(folder.path(percentEncoded: false))
             } else {
-                Text("Desktop")
+                Text("Desktop", tableName: "Notchcast")
             }
         }
         .settingsEnabled(module.destination != .clipboard)
@@ -48,7 +48,7 @@ struct ScreenTextLineBreaksSettingRow: View {
 
     var body: some View {
         Toggle(isOn: $module.removeLineBreaks) {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Remove line breaks")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Remove line breaks", table: "Notchcast"))
         }
     }
 }
@@ -65,7 +65,7 @@ struct ColorFormatSettingRow: View {
             Text(verbatim: "SwiftUI Color").tag(ColorPickerFormat.swiftUIColor)
             Text(verbatim: "NSColor #colorLiteral").tag(ColorPickerFormat.nsColorLiteral)
         } label: {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Color format")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Color format", table: "Notchcast"))
         }
     }
 }
@@ -78,10 +78,10 @@ struct RecordingFolderSettingRow: View {
             HStack {
                 RecordingFrameRateSettingRow(module: module)
                 Button("Choose…", action: chooseFolder)
-                    .accessibilityLabel("Recording folder")
+                    .accessibilityLabel(String(localized: "Recording folder", table: "Notchcast"))
             }
         } label: {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Recording folder")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Recording folder", table: "Notchcast"))
             Text(module.folder.path(percentEncoded: false))
         }
     }
@@ -102,7 +102,7 @@ struct RecordingFrameRateSettingRow: View {
     @Bindable var module: RecordingModule
 
     var body: some View {
-        Picker("Recording frame rate", selection: $module.frameRate) {
+        Picker(String(localized: "Recording frame rate", table: "Notchcast"), selection: $module.frameRate) {
             Text(verbatim: "30 fps").tag(30)
             Text(verbatim: "60 fps").tag(60)
         }

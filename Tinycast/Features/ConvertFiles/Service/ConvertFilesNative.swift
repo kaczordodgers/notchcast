@@ -7,7 +7,7 @@ nonisolated enum ConvertFilesNative {
     @concurrent
     static func run(operation: String, format: String, inputs: [URL], output: URL) async throws {
         try Task.checkCancellation()
-        func fail(_ message: String = String(localized: "The file cannot be converted with these options.")) throws -> Never {
+        func fail(_ message: String = String(localized: "The file cannot be converted with these options.", table: "Notchcast")) throws -> Never {
             throw ConvertFilesPlan.Failure(message: message)
         }
         if operation.hasPrefix("pdf-") {
@@ -98,14 +98,14 @@ nonisolated enum ConvertFilesNative {
                     try Task.checkCancellation()
                     if line.trimmingCharacters(in: .whitespaces).hasPrefix("#") { continue }
                     guard line.first?.isWhitespace != true, let split = line.firstIndex(of: separator) else {
-                        try fail(String(localized: "Only flat YAML and TOML tables are supported."))
+                        try fail(String(localized: "Only flat YAML and TOML tables are supported.", table: "Notchcast"))
                     }
                     let key = line[..<split].trimmingCharacters(in: .whitespaces)
                     guard !key.isEmpty, map[key] == nil else { try fail() }
                     let raw = String(line[line.index(after: split)...]).trimmingCharacters(in: .whitespaces)
                     guard key.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" }),
                           !raw.isEmpty, !raw.hasPrefix("["), !raw.hasPrefix("{") else {
-                        try fail(String(localized: "Only flat YAML and TOML tables are supported."))
+                        try fail(String(localized: "Only flat YAML and TOML tables are supported.", table: "Notchcast"))
                     }
                     map[key] = try scalar(raw)
                 }
@@ -148,7 +148,7 @@ nonisolated enum ConvertFilesNative {
                     try Task.checkCancellation()
                     guard key.allSatisfy({ $0.isLetter || $0.isNumber || $0 == "_" || $0 == "-" }),
                           !(map[key]! is [Any]), !(map[key]! is [String: Any]) else {
-                        try fail(String(localized: "Only flat YAML and TOML tables are supported."))
+                        try fail(String(localized: "Only flat YAML and TOML tables are supported.", table: "Notchcast"))
                     }
                     return key + (format == "toml" ? " = " : ": ") + (try quoted(map[key]!))
                 }.joined(separator: "\n") + "\n"

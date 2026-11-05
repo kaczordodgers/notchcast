@@ -45,19 +45,19 @@ enum NotchcastCore {
         }
         confirmMacUpdate = { [weak core] in
             guard let core else { return false }
-            return await core.confirm(title: String(localized: "Update this Mac"),
+            return await core.confirm(title: String(localized: "Update this Mac", table: "Notchcast"),
                 message: String(localized: """
                     Update Homebrew, upgrade packages, update Claude and Codex, then upgrade App Store apps. \
                     Updated Homebrew apps have quarantine removed.
-                    """),
+                    """, table: "Notchcast"),
                 symbol: "arrow.triangle.2.circlepath", confirmTitle: String(localized: "Run"))
         }
         spacesOrder.onFailure = { [weak core] in
-            core?.showMessage(String(localized: "Could not update Spaces ordering."), tone: .danger)
+            core?.showMessage(String(localized: "Could not update Spaces ordering.", table: "Notchcast"), tone: .danger)
         }
         spacesOrder.restoreIfDisabled()
         dictationHistory.onFailure = { [weak core] in
-            core?.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+            core?.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
         }
         DictationCleanup.transcriptObserver = { raw, cleaned in
             dictationHistory.enqueue(raw: raw, cleaned: cleaned)
@@ -65,7 +65,7 @@ enum NotchcastCore {
         dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
         Task { await dictationHistory.maintain() }
         dictationCleanup.reportFailure = { [weak core] in
-            core?.showMessage(String(localized: "Could not save dictation cleanup settings."), tone: .danger)
+            core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)
         }
         dictationCleanup.load()
         macLink.listenerRoute = { request in
@@ -96,7 +96,7 @@ enum NotchcastCore {
         let monitor = MonitorModule(preferences: .shared, alertSink: { [weak core] in
             core?.showMessage($0, tone: .danger)
         }, fanFailure: { [weak core] in
-            core?.showMessage(String(localized: "Could not change fan mode."), tone: .danger)
+            core?.showMessage(String(localized: "Could not change fan mode.", table: "Notchcast"), tone: .danger)
         })
         self.monitor = monitor
         macLink.channel.manager.fanHandler = { [weak monitor] request in guard let monitor else { throw RemoteFanReport.Failure.unavailable }; return try await monitor.remoteFanReport(request) }

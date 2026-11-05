@@ -5,8 +5,8 @@ struct FinderCutPasteSettingRow: View {
         LabeledContent {
             Text(verbatim: "⌘X → ⌘V")
         } label: {
-            SettingsRowTitle(.notchcastFinder, "Cut and move files")
-            Text("A new copy or Escape cancels the cut.")
+            SettingsRowTitle(.notchcastFinder, LocalizedStringResource("Cut and move files", table: "Notchcast"))
+            Text("A new copy or Escape cancels the cut.", tableName: "Notchcast")
         }
     }
 }
@@ -16,8 +16,8 @@ struct FinderRenameSettingRow: View {
         LabeledContent {
             Text(verbatim: "⌃⌥⇧⌘R")
         } label: {
-            SettingsRowTitle(.notchcastFinder, "Rename selection")
-            Text("Uses Finder’s Return key while no text is being edited.")
+            SettingsRowTitle(.notchcastFinder, LocalizedStringResource("Rename selection", table: "Notchcast"))
+            Text("Uses Finder’s Return key while no text is being edited.", tableName: "Notchcast")
         }
     }
 }
@@ -29,14 +29,14 @@ struct ArchiveToolSettingRow: View {
         LabeledContent {
             VStack(alignment: .trailing, spacing: Theme.Spacing.xs) {
                 if let tool = module.toolURL {
-                    Text("Found")
+                    Text("Found", tableName: "Notchcast")
                     Text(verbatim: tool.path)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .textSelection(.enabled)
                 } else {
-                    Text("Not found")
-                    Text("Install hatchzip and add it to PATH or ~/.local/bin.")
+                    Text("Not found", tableName: "Notchcast")
+                    Text("Install hatchzip and add it to PATH or ~/.local/bin.", tableName: "Notchcast")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -64,7 +64,7 @@ struct URLCleanerCustomParametersSettingRow: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        TextField("Custom parameters", text: $draft.custom)
+        TextField(String(localized: "Custom parameters", table: "Notchcast"), text: $draft.custom)
             .textFieldStyle(.roundedBorder)
             .focused($focused)
             .onAppear { draft = URLCleanerRulesDraft(module.rules) }
@@ -86,7 +86,7 @@ struct URLCleanerDisabledParametersSettingRow: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        TextField("Disabled parameters", text: $draft.disabled)
+        TextField(String(localized: "Disabled parameters", table: "Notchcast"), text: $draft.disabled)
             .textFieldStyle(.roundedBorder)
             .focused($focused)
             .onAppear { draft = URLCleanerRulesDraft(module.rules) }
@@ -108,7 +108,7 @@ struct URLCleanerSiteParametersSettingRow: View {
     @FocusState private var focused: Bool
 
     var body: some View {
-        TextField("Per-site parameters", text: $draft.sites)
+        TextField(String(localized: "Per-site parameters", table: "Notchcast"), text: $draft.sites)
             .textFieldStyle(.roundedBorder)
             .focused($focused)
             .onAppear { draft = URLCleanerRulesDraft(module.rules) }
@@ -129,7 +129,7 @@ struct URLCleanerLastRemovedSettingRow: View {
 
     var body: some View {
         if let result = module.lastClean {
-            LabeledContent("Last removed parameters", value: result.removed.joined(separator: ", "))
+            LabeledContent(String(localized: "Last removed parameters", table: "Notchcast"), value: result.removed.joined(separator: ", "))
         }
     }
 }
