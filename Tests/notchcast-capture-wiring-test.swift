@@ -45,6 +45,11 @@ struct CaptureWiringTest {
         }
         precondition(requests == 0)
         var refreshed = 0
+        var availabilityChanges = 0
+        preferences.commandAvailabilityChanged = { availabilityChanges += 1 }
+        preferences.set(.katana, !preferences.isOn(.katana))
+        precondition(availabilityChanges == 1)
+        print("PASS: Katana switch refreshes production command availability")
         preferences.onCommandsChanged = { refreshed += 1 }
         preferences.set(.screenText, true)
         preferences.set(.scrollingCapture, true)
