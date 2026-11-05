@@ -12,7 +12,8 @@ The one list of what Notchcast hides and how. Code stays compiled so upstream ha
 | Hidden | Support | none | command:support | supportRemindersEnabled, supportEnabled | catalog, hotkeys, launcher dispatch, SupportCoordinator, reminder startup; menu and About affordances |
 | Hidden | About tab | about | none | none | sidebar, slug, search; page retained |
 
-Not hidden yet: the upstream Backup tab and Raycast import. Our Backups group in the Notchcast category takes over Settings file sync, export and import first; both are hidden after it lands.
+| Hidden | Backup | backup | none | none | sidebar, slug, search; Notchcast Backups retains sync, export and import |
+| Hidden | Raycast import | none | command:import-from-raycast | none | catalog, hotkeys, launcher dispatch and deeplinks |
 
 Not hidden on purpose: the fork `settingsBackup` feature, and the About page (AGPL notices). The menu bar and app menu call `showAbout()`, which selects `.about` directly; `SettingsDetailView` renders `AboutView` independently of sidebar membership. AboutView's footer carries the AGPL attribution; its GitHub link reaches the upstream repository's `LICENSE` and `NOTICE.md`.
 
