@@ -182,6 +182,8 @@ struct NotchcastCommand: Sendable {
                 let expectedJSON = try JSONSerialization.jsonObject(
                     with: Data((expected as? String ?? "").utf8), options: .fragmentsAllowed)
                 precondition((actualJSON as? NSObject)?.isEqual(expectedJSON) == true, key)
+            } else if let feature = NotchcastFeature(rawValue: key), !feature.isWired {
+                precondition(savedLive[key] as? Bool == false, key)
             } else {
                 precondition(NSDictionary(dictionary: [key: savedLive[key]!])
                     == NSDictionary(dictionary: [key: expected]), key)
