@@ -46,6 +46,17 @@ struct IslandPagesTests {
         refresh.cancel()
         expect(!refresh.isRefreshing, "closing clears refresh immediately")
         await Task.yield()
+        let held = IslandPageRefresh(minimumVisible: .milliseconds(150))
+        var ran = false
+        held.run { ran = true }
+        while !ran { await Task.yield() }
+        for _ in 0..<20 { await Task.yield() }
+        expect(held.isRefreshing, "an instant reload keeps the spinner up long enough to be seen")
+        try? await Task.sleep(for: .milliseconds(400))
+        expect(!held.isRefreshing, "the spinner leaves after its minimum")
+        held.run {}
+        held.cancel()
+        expect(!held.isRefreshing, "closing clears a held spinner immediately")
     }
 
     static func pages() {
