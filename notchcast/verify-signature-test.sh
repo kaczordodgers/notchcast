@@ -18,6 +18,12 @@ if bash "$TOOLS/verify-signature.sh" "$TEMP/App.app" "$TEMP/upstream.sh"; then
     exit 1
 fi
 echo 'PASS: silent upstream failure is enforced'
+printf '%s\n' '#!/bin/bash' 'exit 1' > "$TEMP/upstream.sh"
+if bash "$TOOLS/verify-signature.sh" "$TEMP/App.app" "$TEMP/upstream.sh"; then
+    echo 'FAIL: silent exit 1 was accepted' >&2
+    exit 1
+fi
+echo 'PASS: silent exit 1 is enforced'
 printf '%s\n' '#!/bin/bash' 'echo "✓ App signature verified"' 'exit 0' > "$TEMP/upstream.sh"
 bash "$TOOLS/verify-signature.sh" "$TEMP/App.app" "$TEMP/upstream.sh"
 echo 'PASS: successful upstream verification is accepted'

@@ -193,10 +193,13 @@ def replay(tree, onto, check=False):
             conflicts = run("git", "diff", "--name-only", "--diff-filter=U", cwd=tree).split()
             catalog = "Tinycast/Resources/Localizable.xcstrings"
             resolved_catalog = False
-            if catalog in conflicts:
+            catalog_refs = (sha + "^", "HEAD", sha)
+            if catalog in conflicts and all(
+                    subprocess.run(["git", "cat-file", "-e", f"{ref}:{catalog}"], cwd=tree,
+                                   stderr=subprocess.DEVNULL).returncode == 0 for ref in catalog_refs):
                 with tempfile.TemporaryDirectory() as directory:
                     inputs = []
-                    for index, ref in enumerate((sha + "^", "HEAD", sha)):
+                    for index, ref in enumerate(catalog_refs):
                         path = Path(directory) / str(index)
                         path.write_text(run("git", "show", f"{ref}:{catalog}", cwd=tree) + "\n")
                         inputs.append(str(path))

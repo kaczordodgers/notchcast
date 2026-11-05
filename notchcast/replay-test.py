@@ -51,7 +51,10 @@ class ReplayTests(unittest.TestCase):
             entries = {"a": {}, "upstream": {}, "z": {}}
             if conflict == "catalog":
                 entries["ours"] = {"comment": "different"}
-            catalog(entries)
+            if conflict == "deleted catalog":
+                git("rm", CATALOG)
+            else:
+                catalog(entries)
             (root / "other").write_text("upstream\n")
             commit("upstream")
             upstream = git("rev-parse", "HEAD")
@@ -77,6 +80,9 @@ class ReplayTests(unittest.TestCase):
 
     def test_value_conflict(self):
         self.scenario(conflict="catalog")
+
+    def test_upstream_deletes_catalog(self):
+        self.scenario(conflict="deleted catalog")
 
     def test_other_conflict(self):
         self.scenario(conflict="other")

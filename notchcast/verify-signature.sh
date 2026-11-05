@@ -7,10 +7,13 @@ STATUS=$?
 printf '%s\n' "$OUTPUT"
 [ "$STATUS" -eq 0 ] && exit 0
 [ "$STATUS" -eq 1 ] || exit "$STATUS"
+MATCHED=0
 while IFS= read -r LINE; do
     case "$LINE" in
-        ''|*': not signed with a timestamped Developer ID') ;;
+        '') ;;
+        *': not signed with a timestamped Developer ID') MATCHED=1 ;;
         *) exit "$STATUS" ;;
     esac
 done <<< "$OUTPUT"
+[ "$MATCHED" -eq 1 ] || exit "$STATUS"
 exit 0
