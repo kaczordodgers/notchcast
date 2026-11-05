@@ -71,6 +71,7 @@ extension NotchcastSettingsModule {
             ]),
             .init(title: "Tasks", items: [
                 .feature(.tasks, settings: [.dayAndTasksTaskImport]),
+                .feature(.tasksSync, settings: []),
             ]),
             .init(title: "Timers", items: [
                 .feature(.liveTimers, settings: [.dayAndTasksTimerOptions]),
