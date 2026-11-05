@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/AgentChatTools/Model/AgentTurnCompletion.swift
 import Foundation
 import SQLite3
 
