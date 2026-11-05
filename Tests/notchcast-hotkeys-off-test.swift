@@ -135,6 +135,18 @@ extension NotchcastCommandCatalog {
         check("restoring a dependency restores the Secure Input equivalent",
               HotKeyCenter.current?.entries[equivalentID] != nil)
 
+        let modifier = HotKeyBinding.modifier(.rightOption)
+        relaunched.setBinding(modifier, for: action)
+        check("an enabled command reserves its modifier tap", ModifierTapMonitor.bound.contains(modifier))
+        preferences.set(owner, false)
+        check("switching off releases the modifier tap", !ModifierTapMonitor.bound.contains(modifier))
+        check("a disabled command still reserves its modifier",
+              relaunched.conflictOwner(of: modifier, excluding: .togglePalette) == "Fixture")
+        preferences.set(owner, true)
+        check("switching on restores the modifier tap", ModifierTapMonitor.bound.contains(modifier))
+        check("switching on restores the modifier conflict",
+              relaunched.conflictOwner(of: modifier, excluding: .togglePalette) == "Fixture")
+
         print("\(checks) hotkeys-off checks; \(failures) failures")
         if failures > 0 { exit(1) }
     }
