@@ -210,6 +210,7 @@ extension NotchcastSettingsModule {
             ]),
             .init(title: "Agents", items: [
                 .feature(.agentThreads, settings: []),
+                .feature(.agentIsland, settings: []),
                 .feature(.waitingAlerts, settings: []),
                 .feature(.agentActions, settings: []),
                 .feature(.agentConfirmation, settings: []),
