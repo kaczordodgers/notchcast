@@ -34,7 +34,9 @@ def main():
             if any(fnmatch.fnmatchcase(path, glob) for path in paths for glob in globs):
                 print(name)
         return
-    if args.app and (args.app.absolute().is_relative_to("/Applications") or args.app.resolve().is_relative_to("/Applications")):
+    # samefile catches /applications and the /System/Volumes/Data firmlink, which string checks miss.
+    if args.app and any(parent.exists() and os.path.samefile(parent, "/Applications")
+                        for path in (args.app.absolute(), args.app.resolve()) for parent in (path, *path.parents)):
         parser.error("refusing an app under /Applications")
     for name in args.checks:
         if name not in REGISTRY:
