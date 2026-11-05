@@ -27,7 +27,12 @@ struct IslandItemParts {
     @ViewBuilder var leading: some View {
         switch item {
         case .activity(let activity):
-            IslandGlyph(symbol: activity.shownSymbol, tone: activity.tone)
+            // Work without a number spins in the glyph slot, like Tinycast's progress HUD: one moving thing.
+            if Self.isWorking(activity) {
+                IslandGlyph(symbol: "progress.indicator", tone: activity.tone, spinning: true)
+            } else {
+                IslandGlyph(symbol: activity.shownSymbol, tone: activity.tone)
+            }
         case .music(let track):
             IslandArtwork(image: track.artwork)
         case .message(let message):
@@ -69,7 +74,8 @@ struct IslandItemParts {
     /// The trailing value, visualizer or button; nil when the item has none.
     @ViewBuilder func trailing(compact: Bool) -> some View {
         switch item {
-        case .activity(let activity): IslandValueText(value: activity.shownValue, compact: compact)
+        case .activity(let activity):
+            if Self.hasValue(activity) { IslandValueText(value: activity.shownValue, compact: compact) }
         case .music(let track): IslandVisualizer(isPlaying: track.isPlaying)
         case .message(let message):
             if let value = message.value { IslandValueText(value: value, compact: compact) }
@@ -87,8 +93,16 @@ struct IslandItemParts {
         switch item {
         case .message(let message): message.value != nil
         case .card(let card): card.action != nil
-        case .activity, .music: true
+        case .activity(let activity): Self.hasValue(activity)
+        case .music: true
         }
+    }
+
+    /// A spinner is no value: it moves into the glyph. A status with nothing to count shows its glyph alone.
+    static func hasValue(_ activity: IslandActivity) -> Bool { activity.shownValue != .spinner }
+
+    static func isWorking(_ activity: IslandActivity) -> Bool {
+        activity.shownValue == .spinner && (activity.value != nil || activity.kind != .status)
     }
 
     static func tone(_ tone: IslandMessage.Tone) -> IslandActivity.Tone {
@@ -109,7 +123,10 @@ struct IslandClosedRow: View {
 
     var body: some View {
         HStack(spacing: NotchcastTheme.Closed.itemGap) {
-            if showsLeading { parts.leading }
+            // Below the camera rows stack, so every mark takes the cover's width and the text starts on one line.
+            if showsLeading {
+                parts.leading.frame(width: capsuleEnds ? nil : NotchcastTheme.Closed.artwork)
+            }
             parts.lines
             if parts.hasTrailing {
                 Spacer(minLength: NotchcastTheme.Closed.trailingGap)

@@ -29,6 +29,8 @@ enum NotchcastTheme {
             IslandSilhouette.bottomRadius(height: height, cap: radiusCap)
         }
         static let artwork = Theme.Radius.thumbnail
+        /// Concentric with the pill's end: the cap's radius less the cover's inset (15 − 4 = 11, a round cover).
+        static let capsuleArtwork = Closed.row / 2 - (Closed.row - Closed.artwork) / 2
     }
 
     /// Every closed state of both shapes: one row height, one set of insets, one type ramp.

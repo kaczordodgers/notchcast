@@ -7,7 +7,7 @@ struct TreadmillReminders {
 
     func post(history: TreadmillHistoryStore, reachedGoal: Bool, now: Date, calendar: Calendar) -> Bool {
         guard enabled() else { return false }
-        if reachedGoal { present(String(localized: "Daily walking goal reached.", table: "Notchcast")) }
+        if reachedGoal { present(String(localized: "Daily walking goal reached", table: "Notchcast")) }
         let odometer = history.summary(now: now, calendar: calendar).odometerKm
         guard let mark = history.archive.lubeDueMark(odometerKm: odometer) else { return reachedGoal }
         history.markLubricated(odometerKm: mark)

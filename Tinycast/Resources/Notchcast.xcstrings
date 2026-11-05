@@ -12436,54 +12436,54 @@
         }
       }
     },
-    "Daily walking goal reached." : {
+    "Daily walking goal reached" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tägliches Gehziel erreicht."
+            "value" : "Tägliches Gehziel erreicht"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Objetivo diario de caminata alcanzado."
+            "value" : "Objetivo diario de caminata alcanzado"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Objectif quotidien de marche atteint."
+            "value" : "Objectif quotidien de marche atteint"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今日のウォーキング目標を達成しました。"
+            "value" : "今日のウォーキング目標を達成"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "일일 걷기 목표를 달성했습니다."
+            "value" : "일일 걷기 목표 달성"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Meta diária de caminhada atingida."
+            "value" : "Meta diária de caminhada atingida"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ежедневная цель ходьбы достигнута."
+            "value" : "Ежедневная цель ходьбы достигнута"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已达到每日步行目标。"
+            "value" : "已达到每日步行目标"
           }
         }
       }

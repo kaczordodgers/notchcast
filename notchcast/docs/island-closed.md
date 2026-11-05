@@ -70,3 +70,11 @@ One design, two shapes. Every value lives in `Tinycast/Features/Notchcast/Island
 - Opening (both shapes): launcher shows → the black silhouette springs from its closed shape to the launcher's own frame and corner (compact 56 capsule or panel 26) in 0.28 s, closed content fades out in 0.12, then the black dissolves in 0.12 (T `Duration.exit`) onto the glass launcher. While the launcher is open the island hides; when it closes the island fades back in 0.18 (T `Duration.enter`). Reduce Motion or animations off: no morph, plain fade. D "mikro wersja, cała czarna … rozrasta się do obecnego launchera".
 - Gallery frames: start = the closed state; middle = the black halfway between closed and the launcher's frame (content already gone); end = the black in the launcher's exact frame and corner, the instant before it dissolves (glass cannot render offscreen, so the glass itself is in the launcher pages).
 - Launcher sits 8 under the island's closed body, never its bubble (T `Spacing.md`, existing `launcherGap`). It cannot cover the menu bar (palette level is below it), so the launcher never takes the island's own spot. ★
+
+## Polish rules (second pass)
+- Signature, concentric corners: a piece inside the black follows the shape that holds it. In the pill's end the 22 cover sits 4 in, so its corner is 15 − 4 = 11 (round), and the bubble's cover is round too; in a notch wing it keeps the notch corner's small radius (6). The card button was already a capsule (11).
+- Colour lives in the content only: the album cover and the calendar bar. Warnings and errors tint only their glyph.
+- One moving thing: work without a number spins in the glyph slot (`progress.indicator`, like Tinycast's progress HUD) and shows no trailing spinner. A status with nothing to count shows its glyph alone, never a spinner.
+- A mark never parts from its text: when a notch item's text goes below the camera, its glyph or calendar bar goes with it and the wings stay black.
+- Rows below the camera share one leading column 22 wide (the cover's width), so every title starts on one line.
+- Copy: one-line notices end without a period ("Daily walking goal reached").

@@ -57,8 +57,9 @@ struct IslandClosedView: View {
             if let main = state.main {
                 let parts = IslandItemParts(item: main)
                 // Each wing's content hugs its outer edge, so the two sides balance however wide they grow.
+                // An item whose text drops below the camera takes its mark with it, so the two never part.
                 HStack(spacing: 0) {
-                    wing { parts.leading }
+                    wing { if !needsLines(main) { parts.leading } }
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { leadingWidth = $0 }
                         .frame(width: wingWidth, alignment: .leading)
                     Color.clear.frame(width: camera.width).accessibilityHidden(true)
@@ -68,7 +69,7 @@ struct IslandClosedView: View {
                 }
                 .frame(height: camera.height)
                 if needsLines(main) {
-                    IslandClosedRow(parts: parts, showsLeading: false, capsuleEnds: false)
+                    IslandClosedRow(parts: parts, capsuleEnds: false)
                 }
                 if let second = state.second {
                     IslandClosedRow(parts: IslandItemParts(item: second), capsuleEnds: false)
@@ -95,7 +96,8 @@ struct IslandClosedView: View {
     /// A message short enough to sit in the wing stays there; a longer one, or any card, goes below the camera.
     private func needsLines(_ item: IslandClosedItem) -> Bool {
         switch item {
-        case .activity, .music: false
+        case .music: false
+        case .activity(let activity): !IslandItemParts.hasValue(activity) && titleWidth > NotchcastTheme.Closed.wingTextLimit
         case .card: true
         case .message(let message):
             message.value == nil && (message.detail != nil || titleWidth > NotchcastTheme.Closed.wingTextLimit)
@@ -106,7 +108,7 @@ struct IslandClosedView: View {
     private func notchTrailing(_ parts: IslandItemParts) -> some View {
         switch parts.item {
         case .activity, .message:
-            if case .message(let message) = parts.item, message.value == nil {
+            if !parts.hasTrailing {
                 if !needsLines(parts.item) { titleText(parts.title) }
             } else if pairWidth <= NotchcastTheme.Closed.wingTextLimit {
                 wordAndValue(parts)

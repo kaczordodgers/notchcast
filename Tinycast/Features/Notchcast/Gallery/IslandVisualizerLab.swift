@@ -45,7 +45,7 @@ struct IslandVisualizerLabView: View {
     private func pill(_ style: IslandVisualizer.Style) -> some View {
         HStack(spacing: NotchcastTheme.Closed.itemGap) {
             IslandArtwork(image: nil)
-            IslandLines(title: "Night drive", detail: "Sample Artist")
+            IslandLines(title: "Night drive", detail: "Mara Lind")
             Spacer(minLength: NotchcastTheme.Closed.trailingGap)
             IslandVisualizer(isPlaying: playing, style: style)
         }

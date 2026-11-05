@@ -103,7 +103,7 @@ extension GalleryPages {
     /// Every fixture goes through the controller's own ranking, the way a live island builds its closed state.
     private static func closedFixture(_ state: String) -> IslandClosedState {
         let now = Date()
-        let track = IslandTrack(title: "Night drive", artist: "Sample Artist", artwork: sampleArtwork,
+        let track = IslandTrack(title: "Night drive", artist: "Mara Lind", artwork: sampleArtwork,
                                 isPlaying: state != "music-paused")
         let tea = IslandActivity(kind: .timer, title: "Tea timer", endDate: now.addingTimeInterval(300))
         func message(_ text: String, _ tone: IslandMessage.Tone = .neutral, symbol: String? = nil,
@@ -117,8 +117,8 @@ extension GalleryPages {
         var shown: (message: IslandMessage?, activities: [IslandActivity], track: IslandTrack?) = (nil, [], nil)
         switch state {
         case "timer": shown.activities = [tea]
-        case "transfer": shown.activities = [IslandActivity(kind: .transfer, title: "Sample transfer", progress: 0.64)]
-        case "status": shown.message = message("Sample export complete", .success)
+        case "transfer": shown.activities = [IslandActivity(kind: .transfer, title: "Photos backup", progress: 0.64)]
+        case "status": shown.message = message("Exported 24 photos", .success)
         case "volume", "brightness":
             let center = IslandActivityCenter()
             let presenter = SystemLevelIslandPresenter(center: center)
@@ -137,7 +137,7 @@ extension GalleryPages {
                 meeting: .init(start: now.addingTimeInterval(300), tint: [0.4, 0.6, 1],
                                link: URL(string: "https://meet.google.com/abc-defg-hij")))]
         case "dictation": shown.message = message("Dictation listening", progress: true)
-        case "walk": shown.message = message("Daily walking goal reached.", symbol: "figure.walk")
+        case "walk": shown.message = message("Daily walking goal reached", symbol: "figure.walk")
         case "message": shown.message = message("Nothing to Import")
         case "danger-message": shown.message = message("Couldn’t read the text", .danger)
         case "music", "music-paused": shown.track = track
@@ -166,9 +166,22 @@ extension GalleryPages {
         return IslandController.closedState(message: shown.message, activities: shown.activities, track: shown.track)
     }
 
-    /// A stand-in cover: two of the system's colours, no real art.
+    /// A plausible cover for "Night drive": a road under a low moon, flat colours, the one coloured thing on screen.
     private static let sampleArtwork = NSImage(size: CGSize(width: 64, height: 64), flipped: false) { rect in
-        NSGradient(starting: .systemIndigo, ending: .systemTeal)?.draw(in: rect, angle: 45)
+        NSColor(srgbRed: 0.11, green: 0.13, blue: 0.19, alpha: 1).setFill()
+        rect.fill()
+        NSColor(srgbRed: 0.07, green: 0.08, blue: 0.11, alpha: 1).setFill()
+        CGRect(x: 0, y: 0, width: 64, height: 26).fill()
+        let road = NSBezierPath()
+        road.move(to: CGPoint(x: 6, y: 0))
+        road.line(to: CGPoint(x: 31, y: 26))
+        road.line(to: CGPoint(x: 33, y: 26))
+        road.line(to: CGPoint(x: 58, y: 0))
+        road.close()
+        NSColor(srgbRed: 0.93, green: 0.62, blue: 0.28, alpha: 1).setFill()
+        road.fill()
+        NSColor(srgbRed: 0.96, green: 0.93, blue: 0.86, alpha: 1).setFill()
+        NSBezierPath(ovalIn: CGRect(x: 36, y: 36, width: 12, height: 12)).fill()
         return true
     }
 }
