@@ -1219,6 +1219,7 @@
 		A5BD706E3098CDA4F77CC8B6 /* WindowLayoutPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A5D8DD69E6E38D96B13D1A6 /* WindowLayoutPlan.swift */; };
 		A5C0127645D3A5DE1C4E51B0 /* EventReminderModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FFFE85E3E0FCC0F782AF3C9 /* EventReminderModule.swift */; };
 		A5DE5223BD5B4EC5B5EE40AD /* HideCommandMPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3597F210D10017FC54A270F9 /* HideCommandMPolicy.swift */; };
+		A5F065C1B893172D03FE8071 /* TreadmillCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7E4D0CDA89FC539450816B8 /* TreadmillCommands.swift */; };
 		A6200866E3416744A6E8B6E5 /* ExecutableLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2438C33DEAF16B26E4F195EB /* ExecutableLocator.swift */; };
 		A6438A2A20B7CF2423D10838 /* DictationTriggerManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BDEB82F7C5F588B5E83C4B5 /* DictationTriggerManager.swift */; };
 		A64891F5587F2C11E4A2E2D2 /* ClipboardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 197035E213BEBA67DDA3377B /* ClipboardManager.swift */; };
@@ -3557,6 +3558,7 @@
 		D7B02DBDEEE094542579E7DD /* WebpageExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageExtractor.swift; sourceTree = "<group>"; };
 		D7E3507915434DBD38FA65CA /* VoiceAskHold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceAskHold.swift; sourceTree = "<group>"; };
 		D7E4CE4F045A2AD45BD3794E /* AppUpdatesModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppUpdatesModule.swift; sourceTree = "<group>"; };
+		D7E4D0CDA89FC539450816B8 /* TreadmillCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreadmillCommands.swift; sourceTree = "<group>"; };
 		D7FCA9FA81B1CF8B8C37E48A /* BackupApplier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupApplier.swift; sourceTree = "<group>"; };
 		D80D59CECCA6FB5182AA7449 /* IslandActivityCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandActivityCenter.swift; sourceTree = "<group>"; };
 		D817AF0E23DDCC95147B5AFB /* InstalledAIStream.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledAIStream.swift; sourceTree = "<group>"; };
@@ -4287,6 +4289,7 @@
 			children = (
 				1E3FF3F64FC1EE1BE49A7EF0 /* Model */,
 				AFB874F6EB272C10D5710FF4 /* Service */,
+				D7E4D0CDA89FC539450816B8 /* TreadmillCommands.swift */,
 				1034D58F3F1F5C4CCFFF93AB /* TreadmillModule.swift */,
 			);
 			path = Treadmill;
@@ -11434,6 +11437,7 @@
 				A439D7FB04FB97F3543C9237 /* TranscriptDownloadRunner.swift in Sources */,
 				B1592750790B497077FE0D7C /* TreadmillAgentActions.swift in Sources */,
 				93F0D33777E93858CBA3ED14 /* TreadmillArchive.swift in Sources */,
+				A5F065C1B893172D03FE8071 /* TreadmillCommands.swift in Sources */,
 				9544CCA92ECCCFBC1A3D122E /* TreadmillCoordinator.swift in Sources */,
 				F7298CA93AC3A7DFBE73678E /* TreadmillFailure.swift in Sources */,
 				78833950108EC32E57D8CA90 /* TreadmillGoal.swift in Sources */,
