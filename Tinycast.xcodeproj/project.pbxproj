@@ -594,7 +594,6 @@
 		51C51CD483B35ABAA476D1C8 /* ScriptRomanization.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8358E65DAC02F974829288B /* ScriptRomanization.swift */; };
 		51E8877F53ABA0E51B2493FA /* CommandOutputPresenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42A6D9BE2BB5BA09A4A6FEAB /* CommandOutputPresenter.swift */; };
 		51F434EEB7207F94E15B7435 /* LowDiskModule+Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114AFBB148A69F116598007B /* LowDiskModule+Notice.swift */; };
-		5210AE1CB830A1079771D4C7 /* QuitProtectionCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5AD0798A61BA14FECCD8F87 /* QuitProtectionCommands.swift */; };
 		521618AFB97EF261E83F4DB5 /* QuicklinkEditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B15F208C809EB61B8E6D3B83 /* QuicklinkEditorSession.swift */; };
 		5290DD084CA25EB374262C1D /* SnippetArgumentFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = E20E0F8056B3097D536BB679 /* SnippetArgumentFields.swift */; };
 		5298840830EFD1DD616DBB83 /* SendFilesCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BBADCE7739A5B12A888C0 /* SendFilesCoordinator.swift */; };
@@ -1061,7 +1060,6 @@
 		92CCEC1FF7058F1394195012 /* NotchcastSettingsModule+Groups.swift in Sources */ = {isa = PBXBuildFile; fileRef = F63363A3B99F03BD8D0AD1DF /* NotchcastSettingsModule+Groups.swift */; };
 		92EDFE4591BE41718ECE1C82 /* ChatGPTSubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 943495E91C0D09B633746515 /* ChatGPTSubscriptionManager.swift */; };
 		93047FD2948279FAD69C4E1C /* RoomRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FF6DBC407666868DCE27C22 /* RoomRunner.swift */; };
-		931F36D91643DBC33DD174DB /* DisplayBrightnessCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08AC452147FAE136D9A94464 /* DisplayBrightnessCommands.swift */; };
 		93364B5BCC0933108AADA0B6 /* NoteMarkdown.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC1FDF99BFB0FB10FECEDAF /* NoteMarkdown.swift */; };
 		9339B8905D0CFC13F965F121 /* MachLinkUsagePeerChannel+Health.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66A75A4E9BD3B20FEF7CC7B3 /* MachLinkUsagePeerChannel+Health.swift */; };
 		935F7433BB0C0ECDE6FA3BF3 /* ClipboardScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 548C83C4086CD9FB8E85B222 /* ClipboardScreen.swift */; };
@@ -2023,7 +2021,6 @@
 		0878C95CE13B9785CA279DDF /* MachLinkRequestBudget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachLinkRequestBudget.swift; sourceTree = "<group>"; };
 		08A1D354C1785923E612848C /* RenderNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderNode.swift; sourceTree = "<group>"; };
 		08A369A10D9312F02EBD0067 /* AppleAppsPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAppsPolicy.swift; sourceTree = "<group>"; };
-		08AC452147FAE136D9A94464 /* DisplayBrightnessCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayBrightnessCommands.swift; sourceTree = "<group>"; };
 		08BB552C55576C43EBC8177C /* WindowSwitchCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitchCoordinator.swift; sourceTree = "<group>"; };
 		08BFAE12F7EC9C75E523FD9D /* RoomLayoutEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomLayoutEngine.swift; sourceTree = "<group>"; };
 		0935D49C0A0175E54E69682B /* QuicklinkListScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuicklinkListScreen.swift; sourceTree = "<group>"; };
@@ -3661,7 +3658,6 @@
 		E565D368BAC7F45D510C7326 /* DictationCueRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationCueRunner.swift; sourceTree = "<group>"; };
 		E582B93EFB1A2AA85B048A87 /* CalcFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcFormatter.swift; sourceTree = "<group>"; };
 		E5861814F16B18935FBF034C /* AIPreamble.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIPreamble.swift; sourceTree = "<group>"; };
-		E5AD0798A61BA14FECCD8F87 /* QuitProtectionCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitProtectionCommands.swift; sourceTree = "<group>"; };
 		E5B89168050723B7221F04A2 /* ClipboardCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardCoordinator.swift; sourceTree = "<group>"; };
 		E5C7F0C39D24F068A8F84864 /* CurrencyData.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyData.generated.swift; sourceTree = "<group>"; };
 		E5CBCCE63360E4590CF5884A /* IconCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconCache.swift; sourceTree = "<group>"; };
@@ -5364,7 +5360,6 @@
 				888862722084790FBEE160D3 /* Model */,
 				2AA0DF0A5CD46769C163D74F /* Service */,
 				36A07497B756F72D5E55AB45 /* UI */,
-				08AC452147FAE136D9A94464 /* DisplayBrightnessCommands.swift */,
 				787CD626EB94B95A814942C3 /* DisplayBrightnessModule.swift */,
 			);
 			path = DisplayBrightness;
@@ -8522,7 +8517,6 @@
 				C1EDEB8A0FB401F2A126ACEA /* Model */,
 				809056E9292700EC35950562 /* Service */,
 				FAE0C36CEFE2E8E3ADC6FC80 /* UI */,
-				E5AD0798A61BA14FECCD8F87 /* QuitProtectionCommands.swift */,
 				ACB3EFFBFD7EFB0C03C6E96E /* QuitProtectionModule.swift */,
 			);
 			path = QuitProtection;
@@ -10331,7 +10325,6 @@
 				882C4545175ACD2CD7BEB49F /* DiskIOReading.swift in Sources */,
 				2F2BF71EFA5F773B9FDCF296 /* DiskSampler.swift in Sources */,
 				C99BCE593E298455F4C0A88A /* DiskVolume.swift in Sources */,
-				931F36D91643DBC33DD174DB /* DisplayBrightnessCommands.swift in Sources */,
 				44BC61F12478588B4E59A1F1 /* DisplayBrightnessModule.swift in Sources */,
 				EF6C37FFEC9F3A21F5942162 /* DisplayServicesBrightness.swift in Sources */,
 				BE1844219CDD81B2743566B8 /* DistillAudioChunks.swift in Sources */,
@@ -11084,7 +11077,6 @@
 				74BE9E8319C8302EF525E6B2 /* QuicklinkStore.swift in Sources */,
 				39F5A11DD9D7C31AC720D4C0 /* QuicklinksSettingsView.swift in Sources */,
 				62657CA73CEACB034EB88ED5 /* QuitProtectionAppName.swift in Sources */,
-				5210AE1CB830A1079771D4C7 /* QuitProtectionCommands.swift in Sources */,
 				900938443BA669095CCB00CE /* QuitProtectionEngine.swift in Sources */,
 				F8E5552C9F15D363E824B7A5 /* QuitProtectionExceptionRow.swift in Sources */,
 				18A075F63848A580FEE91F51 /* QuitProtectionModule.swift in Sources */,
