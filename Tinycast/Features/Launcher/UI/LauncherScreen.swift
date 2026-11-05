@@ -179,6 +179,9 @@ struct LauncherScreen: PaletteScreen {
         -> PaletteHeaderAccessory?
     {
         guard let entry = entry(at: selection) else { return nil }
+        if let accessory = ShortenLinkArgumentsAccessory.make(
+            entry: entry, vm: vm, metrics: core.settings.interfaceSize.metrics,
+            focus: focus, onSubmit: { activate(at: selection) }) { return accessory }
         // A quicklink asks for its values in root search too, so the fallback never leaves it.
         if entry.kind == .quicklink {
             return QuicklinkArgumentsAccessory.make(
