@@ -58,11 +58,14 @@ jobs:
           export TMPDIR="$RUNNER_TEMP/main-harnesses"
           mkdir -p "$TMPDIR"
           status=0
+          # run-tests.sh replays no log when bash's crash notice splits its result line, so print it here.
           while IFS= read -r name; do
             [ -n "$name" ] || continue
             if ! ./Scripts/run-tests.sh "$name"; then
+              tail -n 40 "$TMPDIR/tinycast-harness/$name.log" || true
               echo "::warning::retrying $name alone"
               if ! ./Scripts/run-tests.sh "$name"; then
+                tail -n 40 "$TMPDIR/tinycast-harness/$name.log" || true
                 echo "::error::$name failed twice on $GITHUB_SHA"
                 status=1
               fi
