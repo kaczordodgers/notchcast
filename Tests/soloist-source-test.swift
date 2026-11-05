@@ -188,9 +188,11 @@ struct SoloistSourceTest {
         try await Task.sleep(for: .milliseconds(100))
         precondition(server.commands.count == 5, "Repeated auth reply must stay passive")
         server.send(#"{"type":"track_changed"}"#, server.connections[0])
-        try await Task.sleep(for: .milliseconds(900))
-        precondition(server.commands.count == 7, "\(server.commands)")
-        precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"])
+        // A busy runner stalls the main thread across the refresh window; the trailing refresh then lands late,
+        // so the harness waits for it instead of asserting after a fixed sleep.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { Thread.sleep(forTimeInterval: 0.8) }
+        try await wait { server.commands.count >= 7 }
+        precondition(Array(server.commands.dropFirst(5)) == ["get_state", "get_queue"], "\(server.commands)")
         let received = try await source.read()
         precondition(received == track)
         precondition(changes >= 2)
@@ -216,8 +218,10 @@ struct SoloistSourceTest {
         try await Task.sleep(for: .milliseconds(450))
         precondition(server.commands.count == count, "Replies send zero commands")
         for _ in 0..<50 { source.receive(#"{"type":"position_sync"}"#) }
-        try await Task.sleep(for: .milliseconds(500))
-        precondition(Array(server.commands.dropFirst(count)) == ["get_state", "get_state"])
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { Thread.sleep(forTimeInterval: 0.4) }
+        try await wait { server.commands.count >= count + 2 }
+        try await Task.sleep(for: .milliseconds(450))
+        precondition(Array(server.commands.dropFirst(count)) == ["get_state", "get_state"], "\(server.commands)")
         var refresh = SoloistRefreshState()
         var refreshCommands: [String] = []
         for index in 0..<50 {
