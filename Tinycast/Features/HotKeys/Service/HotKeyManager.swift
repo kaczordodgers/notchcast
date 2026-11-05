@@ -401,6 +401,7 @@ final class HotKeyManager {
 
     /// Hands a combo to Carbon; a modifier-only binding has no per-action registration.
     private func register(_ action: HotKeyAction) {
+        if case .notchcastCommand(let id) = action, !NotchcastCommandCatalog.registersHotKey(id) { return }
         guard let shortcut = binding(for: action)?.shortcut else { return }
         center.register(
             id: action.defaultsKey, shortcut: shortcut,
