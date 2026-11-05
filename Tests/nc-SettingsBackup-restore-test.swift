@@ -103,6 +103,11 @@ struct NotchcastCommand: Sendable {
             precondition(complete[feature.rawValue] as? Bool == NotchcastPreferences.shared.isOn(feature), feature.rawValue)
         }
         print("PASS: snapshots record urlCleaner, dictationHistory, captureTrimmer as they are")
+        try ForkSettingsBackupRestore.apply(["captureTrimmer": true], to: NotchcastPreferences.shared)
+        precondition(!liveDefaults.bool(forKey: "captureTrimmer"))
+        precondition(!NotchcastPreferences.shared.isOn(.captureTrimmer))
+        precondition(!NotchcastPreferences.shared.isEnabled(.captureTrimmer))
+        print("PASS: restored captureTrimmer true stays off and disabled")
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
             bundleIdentifier: Bundle.main.bundleIdentifier!)
@@ -177,6 +182,8 @@ struct NotchcastCommand: Sendable {
                 let expectedJSON = try JSONSerialization.jsonObject(
                     with: Data((expected as? String ?? "").utf8), options: .fragmentsAllowed)
                 precondition((actualJSON as? NSObject)?.isEqual(expectedJSON) == true, key)
+            } else if let feature = NotchcastFeature(rawValue: key), !feature.isWired {
+                precondition(savedLive[key] as? Bool == false, key)
             } else {
                 precondition(NSDictionary(dictionary: [key: savedLive[key]!])
                     == NSDictionary(dictionary: [key: expected]), key)
@@ -242,8 +249,9 @@ struct NotchcastCommand: Sendable {
             precondition(captured[feature.rawValue] as? Bool == !original)
             preferences.set(feature, original)
             try state.apply(captured)
-            precondition(preferences.isOn(feature) == !original)
-            precondition(defaults.bool(forKey: feature.rawValue) == !original)
+            let restored = feature.isWired && !original
+            precondition(preferences.isOn(feature) == restored)
+            precondition(defaults.bool(forKey: feature.rawValue) == restored)
             preferences.set(feature, original)
         }
         precondition(saved["monitorCPU"] as? Int == 90)
