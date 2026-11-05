@@ -40153,59 +40153,6 @@
         }
       }
     },
-    "Spotify didn’t accept the API key." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spotify hat den API-Schlüssel nicht akzeptiert."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spotify no ha aceptado la clave API."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spotify n’a pas accepté la clé API."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "SpotifyがAPIキーを受け付けませんでした。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spotify에서 API 키를 승인하지 않았습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O Spotify não aceitou a chave de API."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spotify не принял ключ API."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Spotify 未接受该 API 密钥。"
-          }
-        }
-      }
-    },
     "Spotify’s download server answered %lld." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -42405,6 +42352,59 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "文本编辑器"
+          }
+        }
+      }
+    },
+    "That API key has spaces, line breaks or hidden characters." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser API-Schlüssel enthält Leerzeichen, Zeilenumbrüche oder unsichtbare Zeichen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esa clave API tiene espacios, saltos de línea o caracteres ocultos."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette clé API contient des espaces, des retours à la ligne ou des caractères invisibles."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このAPIキーには空白、改行、または見えない文字が含まれています。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 API 키에 공백, 줄바꿈 또는 보이지 않는 문자가 있습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Essa chave de API tem espaços, quebras de linha ou caracteres ocultos."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "В этом ключе API есть пробелы, переносы строк или скрытые символы."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该 API 密钥包含空格、换行或隐藏字符。"
           }
         }
       }
