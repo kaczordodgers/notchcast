@@ -4,7 +4,7 @@ Code stays compiled so upstream harnesses and future rebases retain their source
 
 | State | Item | Tab slug | Command IDs | Forced off | Hooks |
 | --- | --- | --- | --- | --- | --- |
-| Hidden | Extensions | extensions | none | extensionsEnabled | AppSettings, AppCore startup, AppIndex, extension coordinator, launcher and hotkeys |
+| Hidden | Extensions | extensions | none | extensionsEnabled | AppSettings, AppCore startup, extension coordinator, launcher and hotkeys |
 | Hidden | Fallbacks | fallbacks | none | FallbackStore.isEnabled | NotchcastHidden, sidebar, slug, search, FallbackStore |
 | Hidden | Apple Shortcuts | apple-shortcuts | none | appleShortcutsEnabled | AppSettings, sidebar, slug, search; existing scanner and runner gates |
 | Hidden | Support | none | command:support | supportRemindersEnabled, supportEnabled | catalog, hotkeys, launcher dispatch, SupportCoordinator, reminder startup; menu and About affordances |
@@ -23,7 +23,7 @@ and forced-off getters, even if upstream adds stored defaults or backup restore 
 - Extensions: `AppSettings.extensionsEnabled` always reads false and ignores writes,
   including persisted consent and backup restore. `SettingsTab` omits its sidebar row
   and rejects its settings slug; `SettingsSearchCatalog` omits its search entries.
-  `AppIndex` rejects extension entries, `HotKeyManager` exposes no bound extension
+  Upstream's `ExtensionManager` publishes no launcher entries while off; `HotKeyManager` exposes no bound extension
   commands, and `LauncherCoordinator`, `AppActionsMenu`, `RootPaletteView` and
   `LauncherScreen+AliasSpace` gate extension actions/accessories. `ExtensionCoordinator`
   rejects store-install links as well as its existing command-link gate. `AppCore`

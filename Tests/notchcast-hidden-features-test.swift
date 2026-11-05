@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift
@@ -74,7 +75,7 @@ struct HiddenFeaturesTest {
         precondition(support.contains("guard NotchcastHidden.supportEnabled else { return }"))
         precondition(reminder.contains("guard NotchcastHidden.supportEnabled else { return }"))
         for (path, gate) in [
-            ("Features/Launcher/Service/AppIndex.swift", "guard settings?.extensionsEnabled == true"),
+            ("Features/Extensions/Service/ExtensionManager.swift", "guard isEnabled, showsInLauncher else"),
             ("Features/Launcher/UI/LauncherCoordinator.swift", "guard core.settings.extensionsEnabled"),
             ("Features/Launcher/UI/AppActionsMenu.swift", "&& core.settings.extensionsEnabled"),
             ("Features/Launcher/Keys/LauncherScreen+AliasSpace.swift", "guard core.settings.extensionsEnabled"),
