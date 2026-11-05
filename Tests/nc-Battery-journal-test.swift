@@ -84,8 +84,8 @@ struct OwnershipTests {
                 } else if scenario == 3 || scenario == 4 {
                     module.stop()
                     await module.waitUntilIdle()
-                    check(scenario == 3 ? limit == 70 : calls.contains(.chargeLimitOff),
-                          scenario == 3 ? "restore-prior-limit" : "undo-before-adoption")
+                    check(scenario == 3 ? limit == 70 : !calls.contains(.chargeLimitOff),
+                          scenario == 3 ? "restore-prior-limit" : "external-off-before-adoption")
                 } else if scenario == 5 {
                     fail = true
                     module.stop()
@@ -171,8 +171,13 @@ struct OwnershipTests {
         journal.begin("charge-limit", verb: "charge-limit-70", undo: "charge-limit-70")
         journal.fail("charge-limit", now: now)
         precondition(journal.effects["charge-limit"]?.applied == "charge-limit-80")
-        precondition(!journal.userChangedLimit(nil) && !journal.userChangedLimit(80))
+        precondition(journal.userChangedLimit(nil), "External charge-limit off must release ownership")
+        precondition(!journal.userChangedLimit(80))
         precondition(journal.userChangedLimit(90))
+        journal.begin("charge-limit", verb: "charge-limit-off", undo: "charge-limit-70")
+        precondition(!journal.userChangedLimit(nil), "Pending off is owned intent")
+        journal.succeed("charge-limit", verb: "charge-limit-off", releasing: false)
+        precondition(!journal.userChangedLimit(nil), "Applied off is owned state")
         var fans = FanOwnershipJournal()
         fans.begin("max")
         fans.fail(now: now)
