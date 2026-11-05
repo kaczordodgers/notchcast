@@ -25,7 +25,7 @@ struct NoteEditorView: NSViewRepresentable {
         scrollView.automaticallyAdjustsContentInsets = false
 
         let textView = NoteTextView(usingTextLayoutManager: true)
-        Self.configure(textView, spellCheckingEnabled: spellCheckingEnabled)
+        Self.configure(textView)
         textView.delegate = context.coordinator
         textView.editorUndoManager = context.coordinator.editorUndoManager
         scrollView.documentView = textView
@@ -39,6 +39,7 @@ struct NoteEditorView: NSViewRepresentable {
         context.coordinator.parent = self
         context.coordinator.update(input)
         context.coordinator.setRendersMarkdown(rendersMarkdown)
+        context.coordinator.textView?.isContinuousSpellCheckingEnabled = spellCheckingEnabled
     }
 
     @MainActor
@@ -199,7 +200,7 @@ struct NoteEditorView: NSViewRepresentable {
         }
     }
 
-    static func configure(_ textView: NSTextView, spellCheckingEnabled: Bool = false) {
+    static func configure(_ textView: NSTextView) {
         textView.isRichText = false
         textView.importsGraphics = false
         textView.drawsBackground = false
@@ -226,7 +227,7 @@ struct NoteEditorView: NSViewRepresentable {
         textView.isAutomaticDashSubstitutionEnabled = false
         textView.isAutomaticTextReplacementEnabled = false
         textView.isAutomaticSpellingCorrectionEnabled = false
-        textView.isContinuousSpellCheckingEnabled = spellCheckingEnabled
+        textView.isContinuousSpellCheckingEnabled = false
         textView.smartInsertDeleteEnabled = false
         textView.usesFindBar = true
         textView.allowsUndo = true
