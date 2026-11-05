@@ -16,7 +16,6 @@ final class AgentAuditStore: Sendable {
 
     @concurrent
     func append(_ entry: AgentAuditEntry) async throws {
-        try Task.checkCancellation()
         try lock.withLock { _ in
             let manager = FileManager.default
             try manager.createDirectory(at: directory, withIntermediateDirectories: true,
