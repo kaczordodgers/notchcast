@@ -21,6 +21,24 @@ spec.loader.exec_module(snapshot)
 
 
 class SnapshotTests(unittest.TestCase):
+    def test_dispatch_verdict_is_outside_concurrency(self):
+        root = Path(__file__).resolve().parent.parent
+        workflow = (root / ".github/workflows/snapshot.yml").read_text()
+        header, jobs = workflow.split("\njobs:\n", 1)
+        self.assertNotIn("\nconcurrency:", header)
+        sections = dict(re.findall(r"^  (\w+):\n(.*?)(?=^  \w+:\n|\Z)", jobs, re.M | re.S))
+        check = sections["check"]
+        self.assertNotIn("    concurrency:", check)
+        self.assertIn("if: github.event_name == 'workflow_dispatch'", check)
+        self.assertIn("run: python3 notchcast/snapshot.py", check)
+        self.assertLess(check.index("run: python3 notchcast/snapshot-test.py"),
+                        check.index("run: python3 notchcast/snapshot.py"))
+        self.assertIn("    needs: check\n", sections["plan"])
+        for job in ("plan", "snapshot", "publish"):
+            self.assertIn("    concurrency:\n      group: snapshot\n      cancel-in-progress: false", sections[job])
+        self.assertIn("    runs-on: ubuntu-latest\n", sections["plan"])
+        self.assertNotIn("snapshot-test.py", (root / "notchcast/ci-tests.sh").read_text())
+
     def test_vkey(self):
         source = Path(__file__).with_name("update.sh").read_text()
         vkey = re.search(r"VKEY='(.*?)'", source, re.S)[1]
