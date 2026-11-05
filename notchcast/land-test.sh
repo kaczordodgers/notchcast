@@ -140,8 +140,15 @@ p = Path('notchcast/switch-paths.json')
 paths = json.loads(p.read_text())
 paths['landingFixture'] = 'Synthetic feature used only by the merged-tree landing test.'
 p.write_text(json.dumps(paths, indent=2) + '\n')
+# nc-SettingsBackup-engine-test requires every feature to be classified for backups.
+p = Path('Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift')
+s = p.read_text().replace('    static let excluded: Set<String> = [\n',
+                          '    static let excluded: Set<String> = [\n        "landingFixture",\n', 1)
+assert '"landingFixture"' in s
+p.write_text(s)
 PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-paths.json
+git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-paths.json \
+    Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift
 git commit --quiet -m 'Fixture: add enum case'
 a=$(git rev-parse HEAD)
 "$root/notchcast/changed-harnesses.sh" "$base" "$a" > "$scratch/selected"
