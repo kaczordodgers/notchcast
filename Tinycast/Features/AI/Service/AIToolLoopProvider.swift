@@ -3,6 +3,7 @@ import Foundation
 /// A route that can call tools: it re-streams the turn until the model stops or a cap ends it.
 struct AIToolLoopProvider: AIProvider {
     private let base: any AIProvider
+    private let completionEnabled: Bool
     private let tools: [AITool]
     private let invoke: @Sendable (AIToolCall) async -> AIToolResult
 
@@ -15,10 +16,11 @@ struct AIToolLoopProvider: AIProvider {
     static let maxTurnHistoryBytes = 1_048_576
 
     init(
-        base: any AIProvider, tools: [AITool], maxRounds: Int?,
+        base: any AIProvider, tools: [AITool], maxRounds: Int?, completionEnabled: Bool = false,
         invoke: @escaping @Sendable (AIToolCall) async -> AIToolResult
     ) {
         self.base = base
+        self.completionEnabled = completionEnabled && !tools.isEmpty
         self.tools = tools
         self.maxRounds = maxRounds
         self.invoke = invoke
@@ -44,15 +46,17 @@ struct AIToolLoopProvider: AIProvider {
         _ request: AIRequest, into continuation: AIProviderStream.Continuation
     ) async throws {
         var messages = request.messages
+        var completion = AgentTurnCompletion(enabled: completionEnabled)
         var spent = 0
         var carried = 0
         var rounds = 0
         while carried < Self.maxTurnHistoryBytes, maxRounds.map({ rounds < $0 }) ?? true {
             rounds += 1
             let round = try await streamRound(
-                request.continuing(with: messages, tools: tools), into: continuation)
+                completion.preparing(request.continuing(with: messages, tools: tools)), into: continuation)
             try Task.checkCancellation()
             guard !round.calls.isEmpty else {
+                if completion.resume(text: round.text, responseItems: round.responseItems, messages: &messages) { continue }
                 continuation.yield(.finished)
                 return
             }
