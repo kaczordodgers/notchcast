@@ -45,7 +45,7 @@ final class DictationIslandHUDService {
                 enabled: NotchcastPreferences.shared.isOn(.dictationIslandHUD),
                 islandAvailable: NotchcastPreferences.shared.isOn(.island)
                     && NotchcastPreferences.shared.isOn(.islandStatusMessages)
-                    && IslandActivityCenter.shared.presenter != nil)
+                    && IslandActivityCenter.shared.hasPresenter)
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, self.generation == current else { return }
