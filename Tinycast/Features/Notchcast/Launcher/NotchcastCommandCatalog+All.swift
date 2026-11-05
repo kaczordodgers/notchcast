@@ -78,6 +78,7 @@ extension NotchcastCommandCatalog {
         ArchiveCommands.cancelCommand,
         LiveTimerModule.startCommand,
         LiveTimerModule.stopCommand,
+        LiveTimerModule.silenceCommand,
         DayCommands.weather,
         DayCommands.markets,
         DayCommands.calendar,

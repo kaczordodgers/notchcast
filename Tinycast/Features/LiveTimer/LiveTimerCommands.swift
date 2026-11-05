@@ -13,4 +13,9 @@ extension LiveTimerModule {
             let store = NotchcastCore.timers.store
             if let timer = store.ringing.first ?? store.nextTimer { store.cancel(timer.id) }
         })
+
+    nonisolated static let silenceCommand = NotchcastCommand(
+        slug: "stop-timer-alarm", name: String(localized: "Stop Timer Alarm"), sfSymbol: "bell.slash",
+        feature: .liveTimers, isEnabled: { startCommand.isEnabled() },
+        run: { NotchcastCore.timers.store.silence() })
 }

@@ -92,6 +92,12 @@ final class LiveTimerStore {
         refresh()
     }
 
+    func silence() {
+        guard isRinging else { return }
+        timers.removeAll { $0.status == .ringing }
+        refresh()
+    }
+
     func stop() {
         active = false
         generation = UUID()
