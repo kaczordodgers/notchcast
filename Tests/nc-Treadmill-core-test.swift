@@ -168,10 +168,16 @@ private struct TreadmillTests {
         expect(finished.finished.first?.seconds == 180 && finished.finished.first?.meters == 200, "Final counters saved")
         expect(engine.receive(message(short(0)), now: now).finished.isEmpty, "Final record exactly once")
         expect(engine.stop() == [TreadmillProtocol.stop], "Stop accepts unknown belt state")
+        _ = engine.receive(message(short(0)), now: now)
         _ = try engine.start(speed: 4, minutes: 0, now: now)
-        expect(engine.checkTimeout(now: now.addingTimeInterval(14)) == nil, "No early timeout")
-        expect(engine.checkTimeout(now: now.addingTimeInterval(15)) == .timedOut, "Silent start times out")
-        expect(engine.checkTimeout(now: now.addingTimeInterval(16)) == nil, "Timeout once")
+        expect(engine.checkTimeout(now: now.addingTimeInterval(14)).commands.isEmpty, "No early timeout")
+        let timeout = engine.checkTimeout(now: now.addingTimeInterval(15))
+        expect(timeout.failure == .timedOut && timeout.commands == [TreadmillProtocol.stop], "Silent start times out with Stop")
+        expect(engine.checkTimeout(now: now.addingTimeInterval(16)).commands.isEmpty, "Timeout once")
+        refuses(.alreadyWalking) { _ = try engine.start(speed: 4, minutes: 0, now: now) }
+        let late = engine.receive(message(status(3)), now: now.addingTimeInterval(17))
+        expect(late.commands == [TreadmillProtocol.stop] && engine.walk == nil, "Late running status stopped without adoption")
+        _ = engine.receive(message(short(0)), now: now.addingTimeInterval(18))
         _ = engine.receive(message(status(3, seconds: 300)), now: now)
         let replaced = engine.receive(message(status(3, seconds: 1)), now: now.addingTimeInterval(1))
         expect(replaced.finished.count == 1 && engine.walk?.sample.seconds == 1, "Counter reset starts new session")
@@ -314,6 +320,15 @@ private struct TreadmillTests {
         refuses(.disabled) { try coordinator.startWalk() }
         try await coordinator.prepare()
         let module = TreadmillModule(coordinator, capability: .walk)
+        transport.maintainsConnection = true
+        let freshPreferences = NotchcastPreferences(suiteName: domain)
+        let modules = NotchcastModuleController([.init(requires: [.treadmillWalk], module: module)],
+                                               preferences: freshPreferences)
+        modules.run()
+        expect(!freshPreferences.isOn(.treadmillWalk) && !coordinator.walkEnabled && transport.opens == 0,
+               "Fresh Walking Pad preference is off and module does not open transport")
+        transport.maintainsConnection = false
+        print("Treadmill safety: fresh switch off; timeout emits Stop; late running rejected; restart waits for idle")
         module.start()
         expect(!NotchcastFeature.treadmillWalk.needsIsland && !NotchcastFeature.treadmillHistory.needsIsland,
                "Treadmill switches work without island")
