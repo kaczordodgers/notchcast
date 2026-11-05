@@ -109,6 +109,32 @@ extension NotchcastCommandCatalog {
         preferences.set(owner, true)
         check("turning it on after launch registers it", registered(action))
 
+        let hyper = HotKeyBinding.combo(KeyShortcut(
+            carbonKeyCode: kVK_ANSI_J, carbonModifiers: cmdKey | optionKey | controlKey))
+        let equivalentID = "secureInputEquivalent." + action.defaultsKey
+        relaunched.setBinding(hyper, for: action)
+        relaunched.setSecureInputEquivalents(includesShift: false)
+        check("Secure Input registers an enabled command's equivalent",
+              HotKeyCenter.current?.entries[equivalentID] != nil)
+        preferences.set(owner, false)
+        check("switching off releases the Secure Input equivalent",
+              HotKeyCenter.current?.entries[equivalentID] == nil)
+        check("Secure Input keeps the disabled command's saved Hyper binding",
+              relaunched.binding(for: action) == hyper)
+        relaunched.setSecureInputEquivalents(includesShift: nil)
+        relaunched.setSecureInputEquivalents(includesShift: false)
+        check("entering Secure Input while off registers no equivalent",
+              HotKeyCenter.current?.entries[equivalentID] == nil)
+        preferences.set(owner, true)
+        check("switching on restores the Secure Input equivalent",
+              HotKeyCenter.current?.entries[equivalentID] != nil)
+        preferences.set(dependency, false)
+        check("switching off a dependency releases the Secure Input equivalent",
+              HotKeyCenter.current?.entries[equivalentID] == nil)
+        preferences.set(dependency, true)
+        check("restoring a dependency restores the Secure Input equivalent",
+              HotKeyCenter.current?.entries[equivalentID] != nil)
+
         print("\(checks) hotkeys-off checks; \(failures) failures")
         if failures > 0 { exit(1) }
     }

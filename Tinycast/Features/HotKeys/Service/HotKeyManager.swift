@@ -271,6 +271,7 @@ final class HotKeyManager {
             if let shortcut = binding(for: action)?.shortcut { result[shortcut] = action }
         }
         for action in actions {
+            if case .notchcastCommand(let id) = action, !NotchcastCommandCatalog.registersHotKey(id) { continue }
             guard let equivalent = binding(for: action)?.shortcut?.secureInputEquivalent(of: chord)
             else { continue }
             let original = originalActions[equivalent]
