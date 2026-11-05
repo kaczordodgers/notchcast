@@ -226,6 +226,7 @@
 		1E04684F05DFA84A8B667F20 /* PasteboardFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E5C752F98428A767405AD12 /* PasteboardFiles.swift */; };
 		1E0A1B1B84673EF39871842C /* MarkdownCodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 570CE37C7133E28F7495ED91 /* MarkdownCodeView.swift */; };
 		1E1A5C7D4B782C3EBDB4A666 /* CommandQuickAdd.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B253B37E4993BA91E71D22A /* CommandQuickAdd.swift */; };
+		1E3985FEA66620F98C0091D1 /* NotchcastGrantState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20342D5781E78CB9BEEB5637 /* NotchcastGrantState.swift */; };
 		1E48F2BED1C62873F424F180 /* SnippetCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1847C927A1DA4EE0009201DF /* SnippetCoordinator.swift */; };
 		1E4A34F117604949218C2C62 /* NoteWindowPlacement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A383EB4AC59E07074FE3FBF /* NoteWindowPlacement.swift */; };
 		1E66AE39C9756C29365AF431 /* ClaudeControlProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F69286C2B3F6871A479A432 /* ClaudeControlProtocol.swift */; };
@@ -2174,6 +2175,7 @@
 		200DAD0CF74BCFBE827AB0FD /* DictationEnglishSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationEnglishSettingsSection.swift; sourceTree = "<group>"; };
 		201FCD08ACA933378876385B /* ClipboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardStore.swift; sourceTree = "<group>"; };
 		2032C2D9AFA070652E0C479A /* AppearanceCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceCommands.swift; sourceTree = "<group>"; };
+		20342D5781E78CB9BEEB5637 /* NotchcastGrantState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastGrantState.swift; sourceTree = "<group>"; };
 		2069789D62057E302322AFDB /* MeetingRowParts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeetingRowParts.swift; sourceTree = "<group>"; };
 		20954F8AFE29A6290356D463 /* CleanSystemTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanSystemTransport.swift; sourceTree = "<group>"; };
 		209D951FDD587A040F1F76F3 /* PaletteWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaletteWindowController.swift; sourceTree = "<group>"; };
@@ -6464,6 +6466,7 @@
 				22DB53161207FF25CECD6CC0 /* CleanSettingsActions.swift */,
 				05F14DC78A6F9739DC066F49 /* NotchcastActionCommandRow.swift */,
 				340AF17F69744F795E9D2596 /* NotchcastGrant+Settings.swift */,
+				20342D5781E78CB9BEEB5637 /* NotchcastGrantState.swift */,
 				D50EE15AEB441E0F3E38C96D /* NotchcastSettingsMetrics.swift */,
 				01C7C7F9090C7E2F204770A0 /* NotchcastSettingsSearch.swift */,
 			);
@@ -10827,6 +10830,7 @@
 				0F4125849F1E04DB954DAA55 /* NotchcastFeature+SettingsToggle.swift in Sources */,
 				0EA4E916EF4ECE4B471E9101 /* NotchcastFeature.swift in Sources */,
 				458ED8E32A20ADA27CFE6461 /* NotchcastGrant+Settings.swift in Sources */,
+				1E3985FEA66620F98C0091D1 /* NotchcastGrantState.swift in Sources */,
 				EE04546FF29B2D82D750FA13 /* NotchcastGrantsSection.swift in Sources */,
 				A434E3F9D093A781F18CA055 /* NotchcastKeyMonitor.swift in Sources */,
 				9B19276F20B240F75D09B614 /* NotchcastLauncher.swift in Sources */,
