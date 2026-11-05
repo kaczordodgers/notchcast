@@ -29,8 +29,12 @@ private struct ReminderTests {
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         let fixedCalendar = calendar
         var messages: [String] = []
+        var ids: [String] = []
         var gates = [true, true, true]
-        let reminders = TreadmillReminders(enabled: { gates.allSatisfy { $0 } }, present: { messages.append($0) })
+        let reminders = TreadmillReminders(enabled: { gates.allSatisfy { $0 } }, present: { text, id in
+            messages.append(text)
+            ids.append(id)
+        })
         let repository = TreadmillRepository(directory: root)
         try await repository.save(TreadmillArchive(importedLegacy: true))
         let store = TreadmillHistoryStore(repository: repository)
@@ -67,6 +71,7 @@ private struct ReminderTests {
         precondition(messages.last == "Walking pad: time to lubricate the belt (400 km).", "400 km")
         transport.emit()
         precondition(messages.count == 4, "400 once")
+        precondition(ids == ["treadmill.goal", "treadmill.goal", "treadmill.lube", "treadmill.lube"], "Stable ids")
         try await store.flush()
         let reloaded = TreadmillHistoryStore(repository: repository)
         try await reloaded.load(calendar: fixedCalendar)
