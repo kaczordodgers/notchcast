@@ -167,13 +167,17 @@ struct IslandLevelBars: View {
                     .fill(NotchcastTheme.Colors.primary)
                     .frame(width: NotchcastTheme.MusicBars.width, height: NotchcastTheme.MusicBars.height)
                     .scaleEffect(y: scale(index))
+                    // A pause settles the bars rather than snapping them to rest.
+                    .animation(animates || reduceMotion || stillTime != nil ? nil
+                        : .easeOut(duration: NotchcastTheme.Motion.contentOut), value: animates)
                     .animation(animates && stillTime == nil ? .easeInOut(duration: NotchcastTheme.MusicBars.cycle)
                         .delay(NotchcastTheme.MusicBars.delays[index]).repeatForever(autoreverses: true) : nil,
                                value: high)
             }
         }
         .frame(height: NotchcastTheme.MusicBars.height)
-        .onAppear { high = true }
+        // Follows `animates`, so a resumed song restarts the repeating cycle instead of resting at full height.
+        .onChange(of: animates, initial: true) { _, moving in high = moving }
         .accessibilityHidden(true)
     }
 
