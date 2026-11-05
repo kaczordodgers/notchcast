@@ -105,7 +105,7 @@ struct CleanAIDataTest {
         let unchanged = try Data(contentsOf: chat)
         precondition(unchanged == bytes)
         let outcomes = try await service.clean(items.filter { $0.kind == .worktree })
-        precondition(outcomes.filter { $0.status == .trashed }.count == 1)
+        precondition(outcomes.filter { $0.status == .trashed }.count == 1, String(describing: outcomes))
         precondition(outcomes.filter { $0.status == .refused }.count == 4)
         let pruned = try String(contentsOf: pruneReceipt, encoding: .utf8)
         precondition(pruned == metadataRoot.appendingPathComponent("clean").path)

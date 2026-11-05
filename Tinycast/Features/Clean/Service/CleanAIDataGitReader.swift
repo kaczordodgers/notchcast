@@ -10,7 +10,7 @@ struct CleanAIDataWorktreeMetadata {
         let manager = FileManager()
         let attributes = try manager.attributesOfItem(atPath: directory.path)
         guard attributes[.type] as? FileAttributeType == .typeDirectory,
-              directory.standardizedFileURL == directory.resolvingSymlinksInPath(),
+              directory.standardizedFileURL.path == directory.resolvingSymlinksInPath().path,
               directory.deletingLastPathComponent().lastPathComponent == "worktrees",
               !manager.fileExists(atPath: directory.appendingPathComponent("locked").path) else {
             throw CocoaError(.fileWriteNoPermission)
