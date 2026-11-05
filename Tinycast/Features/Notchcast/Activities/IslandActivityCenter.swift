@@ -11,6 +11,14 @@ final class IslandActivityCenter {
     private(set) var message: IslandMessage?
     @ObservationIgnored private var dismissal: Task<Void, Never>?
     @ObservationIgnored private let sleep: @MainActor (TimeInterval) async -> Void
+    @ObservationIgnored private var pending: [Notice] = []
+
+    private struct Notice {
+        let id: String
+        let text: String
+        let tone: IslandMessage.Tone
+        let dwell: TimeInterval
+    }
 
     init(sleep: @escaping @MainActor (TimeInterval) async -> Void = { try? await Task.sleep(for: .seconds($0)) }) {
         self.sleep = sleep
@@ -46,14 +54,33 @@ final class IslandActivityCenter {
 
     func fail(_ id: UUID) { finish(id) }
 
-    /// A message shown while another is up replaces it in place and re-arms the dwell, like upstream's HUD.
-    func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval) {
-        dismissal?.cancel()
-        message = IslandMessage(id: message?.id ?? UUID(), tone: tone, text: text, isProgress: false, onCancel: nil)
+    func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval, id: String? = nil) {
+        if message?.isProgress == true {
+            dismissal?.cancel()
+            message = nil
+        }
+        let notice = Notice(id: id ?? text, text: text, tone: tone, dwell: dwell)
+        if let index = pending.firstIndex(where: { $0.id == notice.id }) {
+            pending[index] = notice
+        } else {
+            pending.append(notice)
+            if pending.count > 8 { pending.removeFirst() }
+        }
+        if message == nil { presentNext() }
+    }
+
+    private func presentNext() {
+        guard !pending.isEmpty else { return }
+        let notice = pending.removeFirst()
+        let presentationID = UUID()
+        message = IslandMessage(id: presentationID, tone: notice.tone, text: notice.text,
+                                isProgress: false, onCancel: nil)
         dismissal = Task { [weak self, sleep] in
-            await sleep(dwell)
-            guard !Task.isCancelled else { return }
-            self?.dismissMessage()
+            await sleep(notice.dwell)
+            guard !Task.isCancelled, let self, self.message?.id == presentationID else { return }
+            self.dismissal = nil
+            self.message = nil
+            self.presentNext()
         }
     }
 
@@ -67,5 +94,6 @@ final class IslandActivityCenter {
         dismissal?.cancel()
         dismissal = nil
         message = nil
+        pending.removeAll()
     }
 }

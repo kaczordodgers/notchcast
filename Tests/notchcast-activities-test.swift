@@ -77,7 +77,10 @@ struct NotchcastActivitiesTests {
         let shown = center.message?.id
         center.showMessage("New", tone: .danger, dwell: 2)
         await settle()
-        precondition(center.message?.id == shown && center.message?.text == "New")
+        precondition(center.message?.id == shown && center.message?.text == "Old")
+        precondition(clock.dwells == [1])
+        await clock.fire()
+        precondition(center.message?.id != shown && center.message?.text == "New")
         precondition(clock.dwells == [1, 2])
         await clock.fire()
         precondition(center.message == nil)
@@ -129,6 +132,6 @@ struct NotchcastActivitiesTests {
         shared.hasPresenter = false
         IslandHUDRouter.dismiss()
         precondition(shared.message == nil)
-        print("PASS priority, deadlines, removal, updates, dwell re-arm, replacement, switch, routing and cancellation")
+        print("PASS priority, deadlines, removal, updates, FIFO dwell, progress, switch, routing and cancellation")
     }
 }
