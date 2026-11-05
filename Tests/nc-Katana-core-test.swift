@@ -319,7 +319,7 @@ struct KatanaTests {
         fake.pause = nil
         do { try await task.value; fatalError("Stale operation succeeded") } catch is CancellationError {}
         expect(client.channel == nil && !client.isEnabled, "Stop rejects stale result")
-        let disconnected = KatanaClient()
+        let disconnected = KatanaClient(transport: KatanaMIDITransport(midi: SilentKatanaMIDI()))
         disconnected.start()
         await rejects(.unavailable) { try await disconnected.refresh() }
         client.start()
