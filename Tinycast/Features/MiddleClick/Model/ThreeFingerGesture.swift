@@ -24,10 +24,12 @@ struct ThreeFingerGesture {
     mutating func frame(_ touches: [TouchPoint], at time: TimeInterval) -> Bool {
         let down = touches.filter(\.down)
         threeDown = down.count == 3
-        if down.isEmpty {
-            start = nil
-            spent = false
-            return false
+        // All three fingers often lift in one frame: judge the tap before the empty frame resets.
+        defer {
+            if down.isEmpty {
+                start = nil
+                spent = false
+            }
         }
         if down.count > 3 { spent = true }
         guard !spent else { return false }
