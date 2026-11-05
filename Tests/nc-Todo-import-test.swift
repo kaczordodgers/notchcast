@@ -60,6 +60,16 @@ struct TodoImportTests {
         precondition(state.tasks.count == 18 && task("nine").completedAt == now)
         let repeatedCompleted = try map(state, completed: true)
         precondition(repeatedCompleted.commands.isEmpty)
+        let shared = Data(#"{"tasks":[{"id":"shared-a","content":"A","labels":["sample","shared"]},"#.utf8)
+            + Data(#"{"id":"shared-b","content":"B","labels":["shared"]}]}"#.utf8)
+        let sharedReport = try TodoistImportMapper.map(shared, into: state, now: now, calendar: calendar,
+            timeZone: zone, makeID: { UUID().uuidString })
+        try state.apply(.batch(sharedReport.commands))
+        let sharedIDs = state.labels.values.filter { $0.name == "shared" }.map(\.id)
+        precondition(state.labels.count == 2 && sharedIDs.count == 1, "A label missing from the export is created once")
+        let sampleIDs = state.labels.values.filter { $0.name == "sample" }.map(\.id)
+        precondition(state.tasks.values.first { $0.externalRef == "todoist:shared-a" }?.labels == sampleIDs + sharedIDs)
+        precondition(state.tasks.values.first { $0.externalRef == "todoist:shared-b" }?.labels == sharedIDs)
         let invalid = Data("{\"tasks\":[{\"id\":\"fake\",\"content\":\"Invalid\",\"priority\":5}]}".utf8)
         do {
             _ = try TodoistImportMapper.map(invalid, into: state, now: now, calendar: calendar,
