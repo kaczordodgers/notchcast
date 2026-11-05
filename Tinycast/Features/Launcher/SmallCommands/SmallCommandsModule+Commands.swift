@@ -41,7 +41,7 @@ extension SmallCommandsModule {
         commandTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let text = try await (execute ?? perform)(action)
+                let text = try await (execute ?? { try await self.perform($0) })(action)
                 guard !Task.isCancelled, isRunning else { return }
                 if let text {
                     report(copy(text) ? String(localized: "Copied") : String(localized: "Could not copy to clipboard.", table: "Notchcast"))
@@ -56,13 +56,19 @@ extension SmallCommandsModule {
         }
     }
 
-    private func perform(_ action: Action) async throws -> String? {
+    func perform(_ action: Action,
+                 frontAddress: () async -> String? = SmallCommandsModule.frontAddress,
+                 clipboard: () -> String? = { NSPasteboard.general.string(forType: .string) },
+                 service: ShortenLinkService? = nil) async throws -> String? {
         switch action {
         case .password:
             return try randomPassword()
         case .shorten:
-            guard let shortener, let address = ShortenLinkService.pick(argument: "", frontAddress: nil,
-                clipboard: NSPasteboard.general.string(forType: .string)) else { throw Failure.disabled }
+            let front = await frontAddress()
+            try Task.checkCancellation()
+            guard let shortener = service ?? shortener,
+                  let address = ShortenLinkService.pick(argument: "", frontAddress: front,
+                    clipboard: clipboard()) else { throw Failure.disabled }
             return try await shortener.shorten(address)
         case .noise:
             guard let controlCenter = NSRunningApplication.runningApplications(
@@ -76,5 +82,18 @@ extension SmallCommandsModule {
             guard case .sent = outcome else { throw Failure.disabled }
             return nil
         }
+    }
+
+    static func frontAddress() async -> String? {
+        guard let app = NSWorkspace.shared.menuBarOwningApplication,
+              app.processIdentifier != ProcessInfo.processInfo.processIdentifier else { return nil }
+        let target = CopyPathTarget(processID: app.processIdentifier, bundleID: app.bundleIdentifier)
+        if target.browser != nil,
+           let addresses = try? await CopyPathSystemReader.read(.browser(target)),
+           let address = ShortenLinkService.pick(argument: "", frontAddress: addresses.first, clipboard: nil) {
+            return address
+        }
+        guard !Task.isCancelled else { return nil }
+        return AccessibilityText.selection(in: app)
     }
 }
