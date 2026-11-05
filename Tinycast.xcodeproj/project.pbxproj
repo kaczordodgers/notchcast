@@ -293,6 +293,7 @@
 		28C087E2FDE29CD123D4B47A /* ScrollingStitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42ABE6BDFA5B8845F4461A05 /* ScrollingStitcher.swift */; };
 		295AA3F6F9E005C57698201B /* ExtensionListPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA6DDE1843D16C172AAA1002 /* ExtensionListPanel.swift */; };
 		297926CC87395EE0B5097DDE /* TouchIDPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EA3F6B0814EF735D1C97D0D /* TouchIDPolicy.swift */; };
+		2989A72B38BAFE82C50E1B46 /* GalleryPages+SettingsBackup.swift in Sources */ = {isa = PBXBuildFile; fileRef = C120DB70A65C202B70BF5938 /* GalleryPages+SettingsBackup.swift */; };
 		29AE7D39F2969F706A8038A6 /* FileSearchScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847C792F7F5F31259EB56ACC /* FileSearchScreen.swift */; };
 		2A013DE5237A6DF5A96CC2C6 /* HyperKeyConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50B776C855E29FF18F696676 /* HyperKeyConflictPolicy.swift */; };
 		2A4725507E6703B28AF05FE6 /* AgentAnswerTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F70286FED4C316C89BB6CCC /* AgentAnswerTransport.swift */; };
@@ -453,6 +454,7 @@
 		3FC9140341EE41DF2A8ABCA1 /* WindowCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7CB45E85566001834934DF1 /* WindowCommand.swift */; };
 		3FD96768E81105B8EC348499 /* ActionMenuSearchQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 761BF04E2CB1821C6AA3C7B0 /* ActionMenuSearchQuery.swift */; };
 		4003B2EA091BEC30DC386A3B /* RoomArrangement.swift in Sources */ = {isa = PBXBuildFile; fileRef = BFAC61A9583AF468EC95C0B6 /* RoomArrangement.swift */; };
+		40098EF8D79CFFE3B476CA8D /* ForkSettingsBackupCopiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACBBEEC0B7C310568C7D4DBC /* ForkSettingsBackupCopiesView.swift */; };
 		404429C36A8142D2C01FCCAC /* CustomWindowSize+DeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9445B74563C49EAAF97BA2A9 /* CustomWindowSize+DeepLink.swift */; };
 		4052ED52872D359D39992666 /* CopyPathEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B245B4C305FF4F8F01F2EB20 /* CopyPathEngine.swift */; };
 		40859C12CFBDA50FDF92F9A4 /* SystemToolsProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC2BA3B39E0C62F8B9E7B06 /* SystemToolsProcessRunner.swift */; };
@@ -3218,6 +3220,7 @@
 		ABEA89E08994378FB044B4BB /* AccessibilityText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityText.swift; sourceTree = "<group>"; };
 		AC92343320BD523D45A336C7 /* MachineSetupProfileEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachineSetupProfileEngine.swift; sourceTree = "<group>"; };
 		ACB3EFFBFD7EFB0C03C6E96E /* QuitProtectionModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitProtectionModule.swift; sourceTree = "<group>"; };
+		ACBBEEC0B7C310568C7D4DBC /* ForkSettingsBackupCopiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForkSettingsBackupCopiesView.swift; sourceTree = "<group>"; };
 		ACC56DF5D3B82C81597649D6 /* RoomPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPlan.swift; sourceTree = "<group>"; };
 		ACC8371BCD366F2549E0B01B /* SectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SectionHeader.swift; sourceTree = "<group>"; };
 		ACE6ED15B0E898574BA11B6E /* AppleIntelligence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleIntelligence.swift; sourceTree = "<group>"; };
@@ -3388,6 +3391,7 @@
 		C05EFEB37012280B8E351AC6 /* TodoIslandFeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoIslandFeed.swift; sourceTree = "<group>"; };
 		C06BD8A507191F2621FCFFC7 /* FormFieldChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormFieldChrome.swift; sourceTree = "<group>"; };
 		C0F8FCCA9776E1AE123BD5FD /* CaptureEditorImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEditorImage.swift; sourceTree = "<group>"; };
+		C120DB70A65C202B70BF5938 /* GalleryPages+SettingsBackup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "GalleryPages+SettingsBackup.swift"; sourceTree = "<group>"; };
 		C18B99FC5089E20F4C595BC1 /* MacSetupRootVerbs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacSetupRootVerbs.swift; sourceTree = "<group>"; };
 		C1DE47473AFB2C8B7897D199 /* CaptureEditorMark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEditorMark.swift; sourceTree = "<group>"; };
 		C214E40D42F4812F141C16A8 /* ColorPreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPreview.swift; sourceTree = "<group>"; };
@@ -6770,6 +6774,7 @@
 				81E2364B3B8F0908AB447E9E /* Model */,
 				B3B0C2B024BF62679C6876EC /* Service */,
 				BA75136A848126E4737C1DEA /* ForkSettingsBackupCoordinator.swift */,
+				ACBBEEC0B7C310568C7D4DBC /* ForkSettingsBackupCopiesView.swift */,
 				D568292DE4C1BC8F5400A1A0 /* ForkSettingsBackupModule.swift */,
 				D58217887628FA0C33BAF60E /* ForkSettingsBackupRestore.swift */,
 				6E3C9ACC41F618350A2D6276 /* ForkSettingsBackupState.swift */,
@@ -7340,6 +7345,7 @@
 				B4FE43ACBBD6E1AC653100BF /* GalleryPages+Launcher.swift */,
 				C28CDDDD442D506F1BE0AA95 /* GalleryPages+NotchcastSettings.swift */,
 				9C1B08DE656BF33AFA042E4B /* GalleryPages+Settings.swift */,
+				C120DB70A65C202B70BF5938 /* GalleryPages+SettingsBackup.swift */,
 				5F47FC303F251F1C02A8C581 /* GallerySettingsOnscreenTiming.swift */,
 				6E4E99D84CC90C0C20BB6A7B /* GallerySettingsTiming.swift */,
 				AF3D062EB2F877AEBB4B405F /* SettingsTimingHarness.swift */,
@@ -10556,6 +10562,7 @@
 				303FC5342B61A7862EBC1C32 /* FocusRelease.swift in Sources */,
 				6F076223EA47A68C1490F674 /* FolderPicker.swift in Sources */,
 				080AA8D9AD11F6F4BFB65125 /* ForkSettingsBackupCoordinator.swift in Sources */,
+				40098EF8D79CFFE3B476CA8D /* ForkSettingsBackupCopiesView.swift in Sources */,
 				003A67B8920225C6498CE7D6 /* ForkSettingsBackupEngine.swift in Sources */,
 				61C1E8E4BF55A0A38320FD9E /* ForkSettingsBackupModule.swift in Sources */,
 				E126AED2D08F0147EBC45879 /* ForkSettingsBackupRestore.swift in Sources */,
@@ -10577,6 +10584,7 @@
 				B420EE45E78352C8A7959F27 /* GalleryPages+Launcher.swift in Sources */,
 				A53F872EB46E462952A4A91B /* GalleryPages+NotchcastSettings.swift in Sources */,
 				DB908E09030525F636131C16 /* GalleryPages+Settings.swift in Sources */,
+				2989A72B38BAFE82C50E1B46 /* GalleryPages+SettingsBackup.swift in Sources */,
 				075E66ADD1A93BFF409BFC44 /* GallerySettingsOnscreenTiming.swift in Sources */,
 				E3A7247E54426EC78FDEED4B /* GallerySettingsTiming.swift in Sources */,
 				C5F60D8681235B95DAA3314F /* GeneralSettingsView.swift in Sources */,
