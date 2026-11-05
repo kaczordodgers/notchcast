@@ -1,4 +1,6 @@
 // notchcast-sources: Tinycast/Features/Treadmill/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
+// notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/Service/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
@@ -16,6 +18,9 @@ final class IslandActivityCenter {
 
 @MainActor
 private final class FakeTreadmillTransport: TreadmillTransport {
+    var maintainsConnection = false
+    var onReady: (() -> Void)?
+    var onFailure: (((any Error)?) -> Void)?
     var onBytes: ((Data) -> Void)?
     var onDisconnect: (() -> Void)?
     var sent: [Data] = []
@@ -410,5 +415,42 @@ private struct TreadmillTests {
         await reentrant.stopForTermination()
         let terminated = try await TreadmillRepository(directory: root.appending(path: "reentrant")).load(calendar: calendar)
         expect(terminated.current?.sample.steps == 100, "Termination flushes the last counters")
+        let persistent = FakeTreadmillTransport()
+        persistent.maintainsConnection = true
+        let reconnecting = TreadmillCoordinator(transport: persistent,
+            history: TreadmillHistoryStore(repository: TreadmillRepository(directory: root.appending(path: "reconnect"))),
+            preferences: preferences, clock: { now }, calendar: { calendar })
+        try await reconnecting.prepare()
+        reconnecting.setEnabled(.walk, true)
+        expect(persistent.opens == 1 && !reconnecting.connected, "Open waits for transport readiness")
+        persistent.onReady?()
+        expect(reconnecting.connected && persistent.sent.last == TreadmillProtocol.queryStatus,
+               "Ready connects and queries status through the protocol")
+        persistent.onFailure?(TreadmillBluetoothFailure.padAbsent)
+        persistent.onFailure?(TreadmillBluetoothFailure.padAbsent)
+        expect(reconnecting.lastError as? TreadmillBluetoothFailure == .padAbsent,
+               "Repeated absence preserves the transport error")
+        persistent.onFailure?(nil)
+        expect(reconnecting.lastError == nil, "Transport recovery clears its own error")
+        persistent.failSend = true
+        persistent.onReady?()
+        expect(reconnecting.lastError as? TreadmillFailure == .unavailable, "Send failure is reported")
+        persistent.onFailure?(nil)
+        persistent.onFailure?(TreadmillBluetoothFailure.padAbsent)
+        expect(reconnecting.lastError as? TreadmillFailure == .unavailable,
+               "Transport recovery and absence preserve unrelated errors")
+        persistent.failSend = false
+        persistent.emit(status(3, steps: 100))
+        let walk = reconnecting.engine.walk
+        expect(walk != nil, "Remote walk is tracked")
+        persistent.onDisconnect?()
+        expect(!reconnecting.connected && reconnecting.engine.walk == walk && persistent.closes == 0,
+               "Persistent transport disconnect preserves walk without closing")
+        persistent.onReady?()
+        persistent.emit(status(3, steps: 120))
+        expect(reconnecting.connected && reconnecting.engine.walk?.started == walk?.started
+               && reconnecting.engine.walk?.sample.steps == 120, "Reconnect resumes the same walk")
+        await reconnecting.stopForTermination()
+        print("Treadmill protocol lifecycle passed: readiness, preserved walk, reconnect resumes counters")
     }
 }
