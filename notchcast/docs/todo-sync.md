@@ -1,8 +1,7 @@
 # Task sync over Mac Link
 
 The default-off **Sync tasks between Macs** preference requires both Tasks and Mac Link.
-Its one-line Tasks Settings tree registration is still needed before landing; that file is outside
-this implementation pack's allowed paths. Both Macs must opt in and already be paired.
+Both Macs must opt in and already be paired.
 The preference is excluded from settings
 backups because importing settings must not grant access to task replication.
 
@@ -20,8 +19,11 @@ The responder applies and synchronizes the batch
 through `TodoStore.receive` before reporting its clock, then returns envelopes after the request's
 clock. The requester persists that response through the same store API and continues until neither
 side has missing envelopes. Each packet's JSON stays below 40,000 bytes to leave room for Mac Link's
-base64 payload and framing within its 65,536-byte limit. A single larger envelope fails the exchange
-without truncation or deletion. A merge that cannot advance either applied clock stops the exchange
+base64 payload and framing within its 65,536-byte limit. Larger envelopes use 20 KB byte chunks of
+sorted-key JSON with envelope identity, total length, offset and SHA-256 digest. The receiver returns
+its contiguous offset in `receipt`; retries resend unacknowledged bytes idempotently. Only a complete,
+verified envelope enters the strict store merge. One pending envelope is retained per coordinator,
+bounded to 8 MB; teardown drops partial bytes. A merge that cannot advance either applied clock stops the exchange
 instead of spinning on quarantined envelopes.
 
 The existing per-field last-write-wins order `(timestamp, replicaID, sequence)` and comment-ID merge
@@ -42,7 +44,9 @@ Only one outgoing exchange runs at a time, even while cancelling and immediately
 Stopping either dependency or closing the store cancels debounce and request work. Cancellation,
 the current store generation, feature eligibility and pairing identity are validated before applying
 a reply. Peer responses refuse while disabled or while the store is unavailable. Request failures
-are logged through `TodoSync`; local task editing remains available.
+are logged through `TodoSync` and shown through the module's existing failure message path, once per
+failure kind until a successful exchange. Conflicting envelopes report a possible shared replica ID;
+oversized transfers report the 8 MB limit. Local task editing remains available.
 
 `Tests/nc-Todo-link-test.swift` uses an asynchronous fake request channel and temporary stores;
 it never connects to a real peer. It covers convergence, field conflicts, retransmission, paging,

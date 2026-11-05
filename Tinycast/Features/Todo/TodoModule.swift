@@ -6,7 +6,7 @@ import OSLog
 final class TodoModule: NotchcastModule {
     private(set) var store: TodoStore?
     let directory: URL
-    @ObservationIgnored private let showFailure: (String) -> Void
+    @ObservationIgnored let showFailure: (String) -> Void
     @ObservationIgnored private var loading: Task<Void, Never>?
     @ObservationIgnored private var operationID: UUID?
     @ObservationIgnored var storeDidOpen: ((TodoStore) -> Void)?
