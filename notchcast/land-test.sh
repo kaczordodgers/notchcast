@@ -134,14 +134,31 @@ for name, value in values.items():
                        rf'\g<1>        case .landingFixture: {value}\n', s)
     assert count == 1, name
 s = s.replace('        return switch self {\n', '        return switch self {\n        case .landingFixture: false\n')
+# Unwired, so harnesses that iterate every feature expect no search entry for it.
+s, count = re.subn(r'(    static let unwired: Set<Self> = \[\n)', r'\g<1>        .landingFixture,\n', s)
+assert count == 1, 'unwired'
 p.write_text(s)
+# NotchcastSettingsModule.module(of:) traps for a feature placed nowhere in the settings tree.
+p = Path('Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift')
+line = '                .feature(.todoIsland, settings: []),\n'
+s = p.read_text()
+assert s.count(line) == 1, 'tree'
+p.write_text(s.replace(line, line + '                .feature(.landingFixture, settings: []),\n'))
 import json
-p = Path('notchcast/switch-paths.json')
+p = Path('notchcast/switch-path-allowlist-2026-11-04.json')
 paths = json.loads(p.read_text())
 paths['landingFixture'] = 'Synthetic feature used only by the merged-tree landing test.'
 p.write_text(json.dumps(paths, indent=2) + '\n')
+# nc-SettingsBackup-engine-test requires every feature to be classified for backups.
+p = Path('Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift')
+s = p.read_text().replace('    static let excluded: Set<String> = [\n',
+                          '    static let excluded: Set<String> = [\n        "landingFixture",\n', 1)
+assert '"landingFixture"' in s
+p.write_text(s)
 PY
-git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-paths.json
+git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-path-allowlist-2026-11-04.json \
+    Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift \
+    Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
 git commit --quiet -m 'Fixture: add enum case'
 a=$(git rev-parse HEAD)
 "$root/notchcast/changed-harnesses.sh" "$base" "$a" > "$scratch/selected"
