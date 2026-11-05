@@ -15,9 +15,9 @@ final class CaptureEditorCoordinator: NotchcastModule {
 
         var errorDescription: String? {
             switch self {
-            case .disabled: String(localized: "Capture is disabled.")
-            case .noImage: String(localized: "No Image to Edit")
-            case .clipboard: String(localized: "Could not copy to clipboard.")
+            case .disabled: String(localized: "Capture is disabled.", table: "Notchcast")
+            case .noImage: String(localized: "No Image to Edit", table: "Notchcast")
+            case .clipboard: String(localized: "Could not copy to clipboard.", table: "Notchcast")
             }
         }
     }

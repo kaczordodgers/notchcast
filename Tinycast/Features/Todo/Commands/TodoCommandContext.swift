@@ -14,7 +14,7 @@ struct TodoCommandContext {
     func add() {
         execute { store in
             guard let text = clipboardText(), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-                report(String(localized: "The clipboard has no task text."))
+                report(String(localized: "The clipboard has no task text.", table: "Notchcast"))
                 return
             }
             let instant = now()
@@ -25,7 +25,7 @@ struct TodoCommandContext {
                                         display: date.normalised, payload: String(text[date.matchedRange]))
             }
             guard !draft.title.isEmpty else {
-                report(String(localized: "The clipboard has no task text."))
+                report(String(localized: "The clipboard has no task text.", table: "Notchcast"))
                 return
             }
             var task = TodoTask(id: UUID().uuidString, title: draft.title)
@@ -45,7 +45,7 @@ struct TodoCommandContext {
                                  normalized: date.normalised)
             }
             try store.perform(.addTask(task))
-            report(String(localized: "Task added from clipboard."))
+            report(String(localized: "Task added from clipboard.", table: "Notchcast"))
         }
     }
 
@@ -54,22 +54,22 @@ struct TodoCommandContext {
             let instant = now()
             guard let task = TodoViews(state: store.state, now: instant, calendar: calendar)
                 .today().first?.tasks.first?.task else {
-                report(String(localized: "There are no tasks due today."))
+                report(String(localized: "There are no tasks due today.", table: "Notchcast"))
                 return
             }
             try store.perform(TodoCompletion.command(id: task.id, state: store.state, now: instant, calendar: calendar))
-            report(String(localized: "Next task completed."))
+            report(String(localized: "Next task completed.", table: "Notchcast"))
         }
     }
 
     func undo() {
         execute { store in
             guard store.canUndo else {
-                report(String(localized: "There is no task change to undo."))
+                report(String(localized: "There is no task change to undo.", table: "Notchcast"))
                 return
             }
             try store.undo()
-            report(String(localized: "Last task change undone."))
+            report(String(localized: "Last task change undone.", table: "Notchcast"))
         }
     }
 
@@ -79,8 +79,8 @@ struct TodoCommandContext {
     }
 
     private func execute(_ action: (TodoStore) throws -> Void) {
-        guard isEnabled() else { report(String(localized: "Tasks are turned off.")); return }
-        guard let store = store() else { report(String(localized: "The task store is unavailable.")); return }
-        do { try action(store) } catch { report(String(localized: "The task change could not be saved.")) }
+        guard isEnabled() else { report(String(localized: "Tasks are turned off.", table: "Notchcast")); return }
+        guard let store = store() else { report(String(localized: "The task store is unavailable.", table: "Notchcast")); return }
+        do { try action(store) } catch { report(String(localized: "The task change could not be saved.", table: "Notchcast")) }
     }
 }
