@@ -10,7 +10,7 @@ nonisolated enum GreenMaximizeRefresh {
         let date: TimeInterval
     }
 
-    static func read(pid: pid_t, callback: AXObserverCallback, context: UInt) -> Result? {
+    static func read(pid: pid_t, observed: AXUIElement?, callback: AXObserverCallback, context: UInt) -> Result? {
         let date = ProcessInfo.processInfo.systemUptime
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, 0.1)
@@ -29,16 +29,26 @@ nonisolated enum GreenMaximizeRefresh {
         AXUIElementSetMessagingTimeout(button, 0.1)
         guard value(button, kAXEnabledAttribute) as? Bool != false,
             let rect = frame(button) else { return nil }
-        var observer: AXObserver?
-        if AXObserverCreate(pid, callback, &observer) == .success, let observer {
+        let observer = newObserver(for: window, observed: observed) { () -> AXObserver? in
+            var observer: AXObserver?
+            guard AXObserverCreate(pid, callback, &observer) == .success, let observer else { return nil }
             let pointer = UnsafeMutableRawPointer(bitPattern: context)
             AXObserverAddNotification(observer, application,
                 kAXFocusedWindowChangedNotification as CFString, pointer)
             for name in [kAXMovedNotification, kAXResizedNotification, kAXUIElementDestroyedNotification] {
                 AXObserverAddNotification(observer, window, name as CFString, pointer)
             }
+            return observer
         }
         return Result(window: window, observer: observer, rect: rect, date: date)
+    }
+
+    // The periodic read keeps the snapshot fresh; only a newly focused window needs AX registrations.
+    static func newObserver(
+        for window: AXUIElement, observed: AXUIElement?, make: () -> AXObserver?
+    ) -> AXObserver? {
+        if let observed, CFEqual(observed, window) { return nil }
+        return make()
     }
 
     private static func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
