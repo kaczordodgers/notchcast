@@ -93,6 +93,8 @@ jobs:
         run: |
           xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
             -derivedDataPath "$RUNNER_TEMP/DerivedData" CODE_SIGNING_ALLOWED=NO build -quiet
+      # No lint here on purpose: replayed commits passed PR lint, and upstream's own rules (check-migrations after a
+      # stable tag) must never stop main moving onto upstream.
       - uses: ./tools/notchcast/actions/tests
         with:
           # A harness that also fails on this upstream commit is not ours.
