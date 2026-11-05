@@ -40,7 +40,7 @@ struct SoloistRuntimeTest {
         try await leakChecks(files: files)
         logChecks()
         try await processChecks()
-        print("PASS: key validation/import, archive refusal, hashed cache, expiry, download backoff, cancellation, scrubbed log")
+        print("PASS: key validation/import, archive refusal, hashed cache, expiry, retry per press, cancellation, scrubbed log")
     }
 
     private static func downloadSize(root: URL) throws {
@@ -189,14 +189,11 @@ struct SoloistRuntimeTest {
             attempts.withLock { $0 += 1 }
             throw SoloistFailure.download
         })
-        for delay in [3_600.0, 7_200, 14_400, 28_800, 57_600, 86_400] {
-            do { _ = try await offline.install(); preconditionFailure("offline succeeded") } catch {}
-            let count = attempts.withLock { $0 }
-            do { _ = try await offline.install(); preconditionFailure("ignored download backoff") } catch {
-                check(error as? SoloistFailure == .retryAfter(clock.withLock { $0 }.addingTimeInterval(delay)))
+        for attempt in 1...3 {
+            do { _ = try await offline.install(); preconditionFailure("offline succeeded") } catch {
+                check(error as? SoloistFailure == .download)
             }
-            check(attempts.withLock { $0 } == count)
-            clock.withLock { $0 = $0.addingTimeInterval(delay) }
+            check(attempts.withLock { $0 } == attempt, "a press after a failure didn't try again")
         }
         let refusedFiles = SoloistFiles(root: root.appending(path: "refused"))
         let probes = Mutex(0)
@@ -204,8 +201,9 @@ struct SoloistRuntimeTest {
             let count = probes.withLock { $0 += 1; return $0 }
             return count == 1 ? nil : SoloistBuild(executable: url, version: "fixture", built: clock.withLock { $0 })
         })
-        do { _ = try await refused.install(); preconditionFailure("accepted refused build") } catch {}
-        clock.withLock { $0 = $0.addingTimeInterval(3_600) }
+        do { _ = try await refused.install(); preconditionFailure("accepted refused build") } catch {
+            check((error as? SoloistFailure)?.reason == .refusedBuild)
+        }
         _ = try await refused.install()
         check(probes.withLock { $0 } == 2)
         check(try FileManager.default.contentsOfDirectory(atPath: refusedFiles.root.path)
