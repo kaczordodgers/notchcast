@@ -66,6 +66,12 @@ Globe reservation and Island independence with injected effects and isolated tes
 
 ## Verification
 
+Dictation history settings show the latest 100 saved transcripts, newest first, with two-line text,
+local date and time, and a Copy button. Clear History uses the app's destructive confirmation and
+leaves an empty state after deletion. Saved content and the 90-day retention policy are unchanged.
+`./Scripts/run-tests.sh nc-DictationHistory-list-test` checks ordering, the cap and deletion in a
+temporary store. Gallery pages `settings-dictation-history-{populated,empty}-{dark,light}` use fixtures.
+
 AI cleanup is off by default and independent of Island. Its switch installs the engine's final
 transcript stage; switching off removes it so raw transcripts flow through. Endpoint, effort,
 prompt addition and multiline vocabulary use the engine's fork-local settings store. Each vocabulary
