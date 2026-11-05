@@ -1,6 +1,10 @@
 // notchcast-sources: Tinycast/Features/Dictation/Model/*.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationCoordinator.swift
+// notchcast-sources: Tinycast/Features/DictationTrigger/Model/*.swift
+// notchcast-sources: Tinycast/Features/DictationTrigger/Service/DictationTriggerManager.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
 import AppKit
+import Carbon.HIToolbox
 import Observation
 
 @main
@@ -34,6 +38,47 @@ struct DictationEscapeTest {
         try await wait { fixture.injector.calls == 1 }
         precondition(Paster.copies == ["Spoken words"])
         print("PASS Return/normal finish: one injection and requested clipboard copy")
+        try await globe()
+    }
+
+    static func globe() async throws {
+        for key in [kVK_Escape, kVK_Return, kVK_ANSI_KeypadEnter] {
+            Paster.copies = []
+            let fixture = Fixture()
+            let hub = EventTapHub()
+            let coordinator = fixture.coordinator
+            let manager = DictationTriggerManager(
+                hub: hub, isRecording: { coordinator.triggerIsRecording }
+            ) { action in
+                switch action {
+                case .start: coordinator.triggerStarted()
+                case .finish: coordinator.triggerFinished()
+                case .cancel: coordinator.cancel()
+                }
+            }
+            manager.setEnabled(true)
+            hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 1)
+            try await wait { fixture.capture.isRecording }
+            hub.send(.keyDown, key: key, flags: .maskSecondaryFn, at: 1.5)
+            hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 1.6)
+            if key == kVK_Escape {
+                try await wait { !fixture.capture.isRecording }
+                try await Task.sleep(for: .milliseconds(20))
+                fixture.models.finish()
+                try await Task.sleep(for: .milliseconds(20))
+                precondition(fixture.injector.calls == 0, "Globe+Escape must not inject")
+                precondition(Paster.copies.isEmpty, "Globe+Escape must not write the clipboard")
+                precondition(!fixture.panel.isVisible && fixture.models.calls == 0)
+                print("PASS Globe+Escape without panel focus: no injection or clipboard write")
+            } else {
+                try await wait { fixture.models.pending != nil }
+                fixture.models.finish()
+                try await wait { fixture.injector.calls == 1 }
+                precondition(Paster.copies == ["Spoken words"])
+                print("PASS Globe+\(key == kVK_Return ? "Return" : "keypad Enter"): one injection and copy")
+            }
+            manager.stop()
+        }
     }
 
     static func wait(_ condition: () -> Bool) async throws {
@@ -153,4 +198,27 @@ struct InjectedText { init(_ text: String) {} }
     static func copyPlainText(_ text: String) { copies.append(text) }
 }
 enum Permissions { static func ensureAccessibility() {} }
+@MainActor final class EventTapHub {
+    struct Event: Sendable {
+        let type: CGEventType
+        let flags: CGEventFlags
+        let keyCode: Int64
+        let isRepeat: Bool
+        let isSynthetic: Bool
+        let timestamp: CGEventTimestamp
+    }
+    private var handlers: [UUID: @MainActor @Sendable (Event) -> Void] = [:]
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID {
+        let id = UUID()
+        handlers[id] = handler
+        return id
+    }
+    func remove(_ id: UUID) { handlers[id] = nil }
+    func send(_ type: CGEventType, key: Int, flags: CGEventFlags = [], at time: TimeInterval) {
+        let event = Event(
+            type: type, flags: flags, keyCode: Int64(key), isRepeat: false, isSynthetic: false,
+            timestamp: UInt64(time * 1_000_000_000))
+        for handler in handlers.values { handler(event) }
+    }
+}
 enum DialogTone { case danger }
