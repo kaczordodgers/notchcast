@@ -1,6 +1,7 @@
 import AppKit
 
 extension ShelfModule {
+    nonisolated static let showCommand = NotchcastCommand(slug: "show-shelf", name: String(localized: "Show Shelf", table: "Notchcast"), sfSymbol: "tray", feature: .shelfBetweenMacs, run: { SettingsActionCommands.show(.notchcastTwoMacs, .shelfBetweenMacs) })
     nonisolated static let sendCommand = clipboardCommand {
         NSPasteboard.general.string(forType: .string)
     }
