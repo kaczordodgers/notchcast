@@ -334,7 +334,7 @@
     "es": {
       "stringUnit": {
         "state": "translated",
-        "value": "En espera: %1$#@waiting@, activos: %2$#@working@."
+        "value": "%1$#@waiting@, %2$#@working@."
       },
       "substitutions": {
         "waiting": {
@@ -345,19 +345,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld en espera"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld en espera"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld en espera"
                 }
               }
             }
@@ -371,19 +371,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld activo"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld activos"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld activos"
                 }
               }
             }
@@ -394,7 +394,7 @@
     "fr": {
       "stringUnit": {
         "state": "translated",
-        "value": "En attente : %1$#@waiting@, actifs : %2$#@working@."
+        "value": "%1$#@waiting@, %2$#@working@."
       },
       "substitutions": {
         "waiting": {
@@ -405,19 +405,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld en attente"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld en attente"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld en attente"
                 }
               }
             }
@@ -431,19 +431,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld actif"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld actifs"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld actifs"
                 }
               }
             }
@@ -526,7 +526,7 @@
     "pt": {
       "stringUnit": {
         "state": "translated",
-        "value": "Em espera: %1$#@waiting@, ativos: %2$#@working@."
+        "value": "%1$#@waiting@, %2$#@working@."
       },
       "substitutions": {
         "waiting": {
@@ -537,19 +537,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld em espera"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld em espera"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld em espera"
                 }
               }
             }
@@ -563,19 +563,19 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld ativo"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld ativos"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld ativos"
                 }
               }
             }
@@ -586,7 +586,7 @@
     "ru": {
       "stringUnit": {
         "state": "translated",
-        "value": "Ожидают: %1$#@waiting@, работают: %2$#@working@."
+        "value": "%1$#@waiting@, %2$#@working@."
       },
       "substitutions": {
         "waiting": {
@@ -597,25 +597,25 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld ожидает"
                 }
               },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld ожидают"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld ожидают"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld ожидают"
                 }
               }
             }
@@ -629,25 +629,25 @@
               "one": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld работает"
                 }
               },
               "few": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld работают"
                 }
               },
               "many": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld работают"
                 }
               },
               "other": {
                 "stringUnit": {
                   "state": "translated",
-                  "value": "%lld"
+                  "value": "%lld работают"
                 }
               }
             }

@@ -50,6 +50,24 @@ private struct Transport: OpenBotTransport {
     func send(_ request: URLRequest) async throws -> (Data, Int) { (Data("[]".utf8), 200) }
 }
 
+@MainActor private final class BotFixture {
+    var waiting = false
+    var requests = 0
+}
+private struct RestartTransport: OpenBotTransport {
+    let fixture: BotFixture
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let waiting = await MainActor.run {
+            fixture.requests += 1
+            return fixture.waiting
+        }
+        if request.url?.lastPathComponent == "pending" {
+            return (Data((waiting ? #"{"approvals":[{}]}"# : "{}").utf8), 200)
+        }
+        return (Data(#"[{"id":"sample","name":"Example"}]"#.utf8), 200)
+    }
+}
+
 @MainActor private final class PassCounter {
     var passes = 0
     var cancellations = 0
@@ -111,13 +129,31 @@ private struct CountingRunner: AgentThreadRunning {
         precondition(evaluate([row(.completed)], date: late.addingTimeInterval(5.2)).t3 == .idle)
         engine = AgentIslandEngine()
         let recent = row(.completed, date: now.addingTimeInterval(-20))
-        precondition(evaluate([recent]).t3 == .finished("a"))
+        precondition(evaluate([recent]).t3 == .idle)
         precondition(evaluate([recent], date: now.addingTimeInterval(5.2)).t3 == .idle)
+        engine = AgentIslandEngine()
+        let firstSight = row(.completed, date: now.addingTimeInterval(-4))
+        precondition(evaluate([firstSight]).t3 == .finished("a"))
+        precondition(evaluate([firstSight], date: now.addingTimeInterval(1.2)).t3 == .idle)
+        for waitingPhase: AgentThread.Phase in [.waitingForApproval, .waitingForInput] {
+            engine = AgentIslandEngine()
+            _ = evaluate([row(.running)])
+            _ = evaluate([row(waitingPhase)])
+            precondition(evaluate([row(.completed)], date: late).t3 == .finished("a"))
+            precondition(evaluate([row(.completed)], date: late.addingTimeInterval(5.2)).t3 == .idle)
+            engine = AgentIslandEngine()
+            _ = evaluate([row(waitingPhase)])
+            precondition(evaluate([row(.completed)], date: late).t3 == .finished("a"))
+        }
         let newest = row(.completed, "new", date: now.addingTimeInterval(1))
         precondition(evaluate([recent, newest], date: now.addingTimeInterval(1)).t3 == .finished("new"))
         let failed = row(.failed)
         precondition(evaluate([failed], date: now.addingTimeInterval(500)).t3 == .failed("a"))
         engine.dismissFailed(failed)
+        precondition(evaluate([failed]).t3 == .idle)
+        precondition(evaluate([failed], t3: false).t3 == .idle)
+        precondition(evaluate([failed]).t3 == .idle)
+        precondition(evaluate([]).t3 == .idle)
         precondition(evaluate([failed]).t3 == .idle)
         precondition(evaluate([row(.failed, date: now.addingTimeInterval(1))]).t3 == .failed("a"))
         let decoder = JSONDecoder()
@@ -209,6 +245,47 @@ private struct CountingRunner: AgentThreadRunning {
                      "Passes: \(counter.passes), before refresh: \(beforeVisibleRefresh)")
         counted.stop()
         countedThreads.stop()
+        let fixture = BotFixture()
+        let restartedBots = OpenBotAgentsModule(service: .init(transport: RestartTransport(fixture: fixture),
+            credentials: { try OpenBotCredentials(url: "http://127.0.0.1:12345", token: "synthetic") }))
+        let restarted = AgentIslandModule(threads: threads, bots: restartedBots, enabled: { $0 == .openBot },
+                                         availabilityChanged: {})
+        restartedBots.start()
+        await restartedBots.waitUntilIdle()
+        restarted.start()
+        restarted.setVisible(true)
+        restartedBots.stop()
+        restartedBots.start()
+        await restartedBots.waitUntilIdle()
+        fixture.waiting = true
+        let beforeBotRefresh = fixture.requests
+        var botDone = false
+        restarted.refresh { message in
+            precondition(message == .counts(waiting: 1, working: 0))
+            precondition(fixture.requests >= beforeBotRefresh + 2)
+            botDone = true
+        }
+        while !botDone { await Task.yield() }
+        restarted.stop()
+        restartedBots.stop()
+        let catalogData = try Data(contentsOf: URL(filePath: "Tinycast/Resources/Localizable.xcstrings"))
+        let catalog = try JSONSerialization.jsonObject(with: catalogData) as? [String: Any]
+        func catalogText(_ path: [String]) -> String? {
+            path.reduce(catalog as Any?) { value, key in (value as? [String: Any])?[key] } as? String
+        }
+        let localePath = ["strings", "%lld waiting, %lld working.", "localizations"]
+        for locale in ["es", "fr", "pt", "ru"] {
+            let base = localePath + [locale, "substitutions", "working", "variations", "plural"]
+            let one = catalogText(base + ["one", "stringUnit", "value"])
+            let many = catalogText(base + ["many", "stringUnit", "value"])
+            precondition(one != nil && many != nil && one != many)
+        }
+        let russian = localePath + ["ru", "substitutions", "waiting", "variations", "plural"]
+        precondition(catalogText(russian + ["one", "stringUnit", "value"])
+                     != catalogText(russian + ["many", "stringUnit", "value"]))
+        print("PASS: inflected summary words belong to their own count's plural variant")
+        print("PASS: approval/waiting transitions finish; first-sight completion expires at source time + 5.2s")
+        print("PASS: dismissed failure survives source off/on; visible command refreshes restarted OpenBot")
         print("PASS: invisible stop/refresh preserve foreign refresh completion; zero forwarded activity changes")
         print("PASS: visible status refresh runs exactly one T3 pass and no extra round after it")
         print("PASS: late completion gets 5.2 seconds from first sight; stale completion stays hidden")

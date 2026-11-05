@@ -31,12 +31,14 @@ struct AgentIslandEngine: Sendable {
         let threads = t3Enabled ? threads.sorted { $0.id < $1.id } : []
         completions = completions.filter { id, _ in threads.contains { $0.id == id && $0.phase == .completed } }
         for thread in threads where thread.phase == .completed && previous[thread.id] != .completed {
-            let wasWorking = previous[thread.id] == .running || previous[thread.id] == .starting
-            let recent = now >= thread.updatedAt && now.timeIntervalSince(thread.updatedAt) <= 30
-            if wasWorking || (previous[thread.id] == nil && recent) { completions[thread.id] = now }
+            if previous[thread.id] != nil {
+                completions[thread.id] = now
+            } else if now >= thread.updatedAt && now < thread.updatedAt.addingTimeInterval(5.2) {
+                completions[thread.id] = thread.updatedAt
+            }
         }
         previous = Dictionary(threads.map { ($0.id, $0.phase) }, uniquingKeysWith: { first, _ in first })
-        dismissed = dismissed.filter { id, value in threads.contains { $0.id == id && $0 == value } }
+        dismissed = dismissed.filter { id, value in !threads.contains { $0.id == id && $0 != value } }
         let approvals = threads.filter { $0.phase == .waitingForApproval }
             .reduce(0) { $0 + max(1, $1.pendingCount) }
         let questions = threads.filter { $0.phase == .waitingForInput }.count

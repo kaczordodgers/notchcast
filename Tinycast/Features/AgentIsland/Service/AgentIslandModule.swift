@@ -99,7 +99,6 @@ final class AgentIslandModule: NotchcastModule {
         botsReady = !enabled(.openBot)
         let refreshBots = !botsReady
         refreshing = true
-        let pausedBot = botActive
         applyVisibility()
         if !threadsReady {
             if threads.state.status != .loading {
@@ -110,7 +109,7 @@ final class AgentIslandModule: NotchcastModule {
         refreshTask = Task { [weak self, bots] in
             if refreshBots { await bots.waitUntilIdle() }
             guard let self, !Task.isCancelled, self.running, self.refreshIdentity == identity else { return }
-            if !self.botsReady && !pausedBot {
+            if !self.botsReady {
                 bots.refresh()
                 await bots.waitUntilIdle()
             }

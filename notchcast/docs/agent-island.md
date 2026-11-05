@@ -12,12 +12,13 @@
 `AgentIslandEngine` produces equality-stable T3 and OpenBot modes. Priority is approval,
 question, failed, working, finished, idle. T3 approval counts use at least one per waiting
 thread; questions count threads. Working names are sorted by item ID and capped at three,
-with the full count retained. Completed threads show for 5.2 seconds from first observation
-using the injected clock. A running/starting transition qualifies even when seen late;
-an initially completed item qualifies only when its timestamp is at most 30 seconds old.
+with the full count retained. Any observed non-completed phase transitioning to completed
+starts a 5.2-second window at the injected clock. An initially completed item instead uses
+its source timestamp and expires 5.2 seconds after that timestamp.
 The newest observed completion wins. Repeated snapshots never restart its window.
 Failures persist while the source item is unchanged; dismissal records the entire item,
-so a changed failure reappears. The summary counts all waiting and working items,
+so a changed failure reappears. A missing or disabled source preserves dismissals until a
+different version of that item is observed. The summary counts all waiting and working items,
 including those hidden by a higher-priority mode.
 
 OpenBot approvals and browser takeovers count as approval attention, prompts as questions;
@@ -33,7 +34,8 @@ finished presentations, and `setVisible(_:)` to forward source polling activity.
 
 The refresh action keeps T3 polling active and uses its first-pass completion callback.
 An already running source refresh is joined rather than cancelled. Only OpenBot polling is
-paused; its inactive transition already refreshes, so no additional explicit refresh is issued.
+paused. Every command explicitly refreshes enabled OpenBot after its existing work finishes,
+including after an external stop/start invalidates the island's remembered polling state.
 Resuming OpenBot necessarily triggers one immediate extra pass through its public API;
 avoiding that requires a source API change, outside this engine's scope. Activity is forwarded
 only when its value changes; an island that was never visible forwards no activity calls.
@@ -47,6 +49,8 @@ Show Agent Status requires only Agent Island. It refreshes enabled sources and r
 localized waiting/working summary, or “No agents active.” No source is implicitly enabled.
 Plural variations follow the interpolated-count rule in `docs/standards.md`, including locales
 whose count-neutral wording has identical variants.
+Spanish, French, Portuguese and Russian keep inflected words inside each count's plural
+variant. English, German, Japanese, Korean and Chinese use count-neutral wording.
 
 ## Cut scope
 
