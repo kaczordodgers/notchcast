@@ -141,7 +141,7 @@ struct SystemLevelRoutingTests {
         ], preferences: preferences)
         controller.run()
         await levels.service.settled()
-        check(hub.handlers.isEmpty, "No HUD presenter leaves all keys to macOS")
+        check(hub.handlers.count == 1, "Brightness stays registered without a HUD presenter")
         check(hardware.state.withLock { $0.writes } == 0, "No presenter performs no custom steps")
         keys.hudPresenterAvailable = true
         check(hub.handlers.count == 1, "One hub consumer handles both features")
@@ -201,7 +201,7 @@ struct SystemLevelRoutingTests {
         await eventually { keys.latest?.kind == .brightness }
         check(keys.latest != nil, "Brightness works with the island off")
         keys.hudPresenterAvailable = false
-        check(hub.handlers.isEmpty, "Removing the presenter restores native passthrough")
+        check(hub.handlers.count == 1, "Removing the presenter keeps brightness registered")
         check(center.activities.isEmpty, "Removing the presenter clears its activity")
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")
     }
