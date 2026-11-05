@@ -18,10 +18,10 @@ final class CleanModule: NotchcastModule {
         isOn: { [preferences] in preferences.isOn($0) },
         question: { [weak self] feature, count, bytes in
             let size = bytes.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) }
-                ?? String(localized: "Unknown")
+                ?? String(localized: "Unknown", table: "Notchcast")
             return await self?.ask(
-                title: feature == .cleanHistory ? String(localized: "Restore") : String(localized: "Move to trash"),
-                message: String(localized: "Continue with \(count) reviewed items, total size: \(size)?")) ?? false
+                title: feature == .cleanHistory ? String(localized: "Restore", table: "Notchcast") : String(localized: "Move to trash", table: "Notchcast"),
+                message: String(localized: "Continue with \(count) reviewed items, total size: \(size)?", table: "Notchcast")) ?? false
         }, optimizeQuestion: { [weak self] task in
             await self?.ask(title: task.title, message: task.question) ?? false
         }, report: { [weak self] error in
@@ -206,12 +206,12 @@ final class CleanModule: NotchcastModule {
     nonisolated private static func historyDetail(_ entry: CleanHistoryEntry) -> String {
         let status = switch entry.status {
         case .trashed: String(localized: "Moved to Trash")
-        case .restored: String(localized: "Restored")
-        case .refused: String(localized: "Refused")
-        case .failed: String(localized: "Failed")
+        case .restored: String(localized: "Restored", table: "Notchcast")
+        case .refused: String(localized: "Refused", table: "Notchcast")
+        case .failed: String(localized: "Failed", table: "Notchcast")
         }
-        let mode = entry.mode == "restore" ? String(localized: "Restore")
-            : NotchcastFeature(rawValue: entry.mode)?.title ?? String(localized: "Clean")
+        let mode = entry.mode == "restore" ? String(localized: "Restore", table: "Notchcast")
+            : NotchcastFeature(rawValue: entry.mode)?.title ?? String(localized: "Clean", table: "Notchcast")
         return "\(entry.time.formatted()) · \(mode) · \(status)"
     }
 
@@ -228,9 +228,9 @@ final class CleanModule: NotchcastModule {
         var errorDescription: String? {
             switch self {
             case .skipped(let count): String(localized: "\(count) entries skipped")
-            case .itemsChanged: String(localized: "Some items changed or could not be processed. Scan again to review them.")
-            case .helperUpdate: String(localized: "Needs the Notchcast helper update")
-            case .toolFailed: String(localized: "The Clean tool could not complete the request.")
+            case .itemsChanged: String(localized: "Some items changed or could not be processed. Scan again to review them.", table: "Notchcast")
+            case .helperUpdate: String(localized: "Needs the Notchcast helper update", table: "Notchcast")
+            case .toolFailed: String(localized: "The Clean tool could not complete the request.", table: "Notchcast")
             }
         }
     }

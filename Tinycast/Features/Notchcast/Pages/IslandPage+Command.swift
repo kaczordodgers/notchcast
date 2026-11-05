@@ -7,10 +7,10 @@ extension IslandPage {
         switch self {
         case .home:
             slug = "island-home"
-            name = String(localized: "Show Island Home")
+            name = String(localized: "Show Island Home", table: "Notchcast")
         case .day:
             slug = "island-day"
-            name = String(localized: "Show Island Day")
+            name = String(localized: "Show Island Day", table: "Notchcast")
         }
         return NotchcastCommand(
             slug: slug, name: name, sfSymbol: symbol, feature: .island,

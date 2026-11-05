@@ -30,7 +30,7 @@ final class AppearanceCoordinator: NotchcastModule {
         core.appIndex.refreshNotchcastCommands()
         if !reportedReset, !store.invalidPreferenceKeys.isEmpty {
             reportedReset = true
-            core.showMessage(String(localized: "Theme Reset"), tone: .danger)
+            core.showMessage(String(localized: "Theme Reset", table: "Notchcast"), tone: .danger)
         }
     }
 
@@ -64,7 +64,7 @@ final class AppearanceCoordinator: NotchcastModule {
         endPreview()
         do {
             try store.select(target.theme, for: target.appearance)
-            core.showMessage(String(localized: "Theme Applied"))
+            core.showMessage(String(localized: "Theme Applied", table: "Notchcast"))
         } catch {
             reportFailure()
         }
@@ -141,8 +141,8 @@ final class AppearanceCoordinator: NotchcastModule {
             do {
                 try store.resolveImport(id: request.id, choice: choice)
                 switch choice {
-                case .useTheme: core.showMessage(String(localized: "Theme Applied"))
-                case .justAdd: core.showMessage(String(localized: "Theme Added"))
+                case .useTheme: core.showMessage(String(localized: "Theme Applied", table: "Notchcast"))
+                case .justAdd: core.showMessage(String(localized: "Theme Added", table: "Notchcast"))
                 case .cancel: break
                 }
             } catch {
@@ -165,8 +165,8 @@ final class AppearanceCoordinator: NotchcastModule {
 
     private func showFailure() async {
         _ = await core.reportFailure(
-            title: String(localized: "Couldn't add the theme"),
-            message: String(localized: "The link doesn't contain a valid theme."),
+            title: String(localized: "Couldn't add the theme", table: "Notchcast"),
+            message: String(localized: "The link doesn't contain a valid theme.", table: "Notchcast"),
             symbol: "paintpalette", recovery: nil)
     }
 }

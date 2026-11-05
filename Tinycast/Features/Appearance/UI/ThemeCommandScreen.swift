@@ -12,7 +12,7 @@ struct ThemeCommandScreen: PaletteScreen {
             imported: coordinator.store.imported, query: vm.query)
     }
 
-    var primaryActionTitle: String { String(localized: "Use Theme") }
+    var primaryActionTitle: String { String(localized: "Use Theme", table: "Notchcast") }
     var landingSelection: Int { rows.firstIndex(where: \.isSelected) ?? 0 }
 
     func hasActions(at selection: Int) -> Bool { false }

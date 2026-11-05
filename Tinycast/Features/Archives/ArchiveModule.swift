@@ -139,7 +139,7 @@ final class ArchiveModule: NotchcastModule {
             } catch {
                 appliedDefaultApplication = !desiredDefaultApplication
                 if desiredDefaultApplication == enabled {
-                    defaultApplicationFailure = String(localized: "Couldn’t change the default archive application.")
+                    defaultApplicationFailure = String(localized: "Couldn’t change the default archive application.", table: "Notchcast")
                     return
                 }
             }
