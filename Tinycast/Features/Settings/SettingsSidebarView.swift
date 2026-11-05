@@ -24,7 +24,7 @@ struct SettingsSidebarView: View {
 
     private var browse: some View {
         List(selection: selection) {
-            ForEach(SettingsSection.allCases) { section in
+            ForEach(SettingsSection.allCases.filter { !$0.tabs.isEmpty }) { section in
                 Section(section.title) {
                     ForEach(section.tabs) { tab in
                         Label {

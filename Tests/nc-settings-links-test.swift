@@ -88,6 +88,13 @@ struct NotchcastSettingsLinksTests {
         for entry in SettingsSearchCatalog.notchcast {
             let module = NotchcastSettingsModule(tab: entry.tab)!
             if let anchor = entry.anchor {
+                if [.notchcastBackupSettingsFile, .notchcastBackupExport, .notchcastBackupImport].contains(anchor) {
+                    precondition(module == .backups)
+                    let source = try String(contentsOfFile:
+                        "Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift", encoding: .utf8)
+                    precondition(source.contains("SettingsSectionHeader(.notchcastBackup"))
+                    continue
+                }
                 precondition(module.groups.contains { $0.title.resolved() == anchor.title })
             }
         }

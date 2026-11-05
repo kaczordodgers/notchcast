@@ -16,7 +16,7 @@ struct NotchcastBackupGroups: View {
     var body: some View {
         Section {
             Toggle(isOn: Self.settingsFileSync(core: core)) {
-                SettingsRowTitle(.backupSettingsFile, "Sync settings file")
+                SettingsRowTitle(.notchcastBackupSettingsFile, "Sync settings file")
                 Text(BackupActions.settingsFilePath)
             }
             if core.settings.settingsFileEnabled {
@@ -28,7 +28,7 @@ struct NotchcastBackupGroups: View {
                 }
             }
         } header: {
-            SettingsSectionHeader(.backupSettingsFile)
+            SettingsSectionHeader(.notchcastBackupSettingsFile)
         }
         Section {
             LabeledContent {
@@ -38,7 +38,7 @@ struct NotchcastBackupGroups: View {
                     Button("Export…", action: runExport).disabled(exportSelection.isEmpty)
                 }
             } label: {
-                SettingsRowTitle(.backupExport, "Export Backup")
+                SettingsRowTitle(.notchcastBackupExport, "Export Backup")
                 Text("The ticked items, as one .tinycast file.")
             }
             BackupCategorySelection(selection: $exportSelection)
@@ -47,7 +47,7 @@ struct NotchcastBackupGroups: View {
                     .foregroundStyle(status.failed ? .orange : .green)
             }
         } header: {
-            SettingsSectionHeader(.backupExport)
+            SettingsSectionHeader(.notchcastBackupExport)
         }
         Section {
             LabeledContent {
@@ -60,11 +60,11 @@ struct NotchcastBackupGroups: View {
                 }
                 .disabled(importing)
             } label: {
-                SettingsRowTitle(.backupImport, "Backup File")
+                SettingsRowTitle(.notchcastBackupImport, "Backup File")
                 Text("A .tinycast file exported from Tinycast.")
             }
         } header: {
-            SettingsSectionHeader(.backupImport)
+            SettingsSectionHeader(.notchcastBackupImport)
         }
     }
 
