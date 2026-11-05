@@ -330,7 +330,6 @@ final class HotKeyManager {
             return String(localized: "Globe Dictation")
         }
         for candidate in candidateActions where candidate != action {
-            if case .notchcastCommand(let id) = candidate, !NotchcastCommandCatalog.registersHotKey(id) { continue }
             guard let other = self.binding(for: candidate) else { continue }
             let holdsModifier =
                 dictationHoldToTalk

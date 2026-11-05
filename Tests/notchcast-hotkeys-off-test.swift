@@ -90,8 +90,8 @@ extension NotchcastCommandCatalog {
         preferences.set(owner, false)
         check("switching the feature off releases its combo", !registered(action))
         check("the saved binding survives the switch", manager.binding(for: action) == combo)
-        check("a disabled command releases its combo conflict",
-              manager.conflictOwner(of: combo, excluding: .togglePalette) == nil)
+        check("a disabled command still reserves its combo",
+              manager.conflictOwner(of: combo, excluding: .togglePalette) == "Fixture")
         preferences.set(owner, true)
         check("switching the feature on registers it again", registered(action))
 
@@ -140,8 +140,8 @@ extension NotchcastCommandCatalog {
         check("an enabled command reserves its modifier tap", ModifierTapMonitor.bound.contains(modifier))
         preferences.set(owner, false)
         check("switching off releases the modifier tap", !ModifierTapMonitor.bound.contains(modifier))
-        check("switching off releases the modifier conflict",
-              relaunched.conflictOwner(of: modifier, excluding: .togglePalette) == nil)
+        check("a disabled command still reserves its modifier",
+              relaunched.conflictOwner(of: modifier, excluding: .togglePalette) == "Fixture")
         preferences.set(owner, true)
         check("switching on restores the modifier tap", ModifierTapMonitor.bound.contains(modifier))
         check("switching on restores the modifier conflict",
