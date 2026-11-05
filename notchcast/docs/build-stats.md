@@ -1,6 +1,6 @@
 # Build statistics
 
-The plain Notchcast Settings section has an opt-in switch and a local snapshot path.
+Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands.
 The path is empty by default and persists only in the channel's fork preferences.
 No collector or private snapshot ships with the app.
 

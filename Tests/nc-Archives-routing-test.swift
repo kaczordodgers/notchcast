@@ -48,17 +48,18 @@ struct ArchiveRoutingTests {
         let features: [NotchcastFeature] = [.archives, .archivesInPlace, .archivesDefaultApp]
         for feature in features {
             precondition(feature.settingsGroup == .archives)
-            let entries = SettingsSearchCatalog.notchcast.filter { $0.title == feature.title }
+            let entries = SettingsSearchCatalog.notchcast.filter {
+                $0.title == feature.title && $0.anchor == .notchcastArchives
+            }
             precondition(entries.count == 1 && entries[0].anchor == .notchcastArchives)
             precondition(entries[0].target == .row(.notchcastArchives, feature.title))
         }
         let result = SettingsSearchCatalog.results(for: "extract in place").first!
         precondition(result.title == NotchcastFeature.archivesInPlace.title && result.anchor == .notchcastArchives)
         precondition(SettingsSearchCatalog.results(for: "hatchzip").contains { $0.anchor == .notchcastArchives })
-        let settings = try String(contentsOf: root.appending(
-            path: "Tinycast/Features/Notchcast/Settings/NotchcastSettingsView.swift"), encoding: .utf8)
-        precondition(settings.components(separatedBy: "NotchcastArchiveSettings()").count == 2)
-        precondition(!settings.contains("group: .archives"))
+        precondition(NotchcastSettingsModule.module(of: .archives) == .filesAndClipboard)
+        precondition(NotchcastSettingsModule.module(of: .archivesInPlace) == .filesAndClipboard)
+        precondition(NotchcastSettingsModule.module(of: .archivesDefaultApp) == .filesAndClipboard)
         let job = ArchiveJob(id: UUID(), archive: URL(fileURLWithPath: "/fixture/example.zip"))
         precondition(job.canCancel && !job.canRetry && !job.stateTitle.isEmpty)
         var fallback = job

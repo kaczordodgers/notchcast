@@ -2,17 +2,17 @@ import Foundation
 
 enum DayCommands {
     static let weather = NotchcastCommand(
-        slug: "weather", name: String(localized: "Weather"), sfSymbol: "cloud.sun",
+        slug: "weather", name: String(localized: "Weather"), sfSymbol: "cloud.sun", feature: .dayWeather,
         isEnabled: { IslandController.shared.commandsAvailable && NotchcastPreferences.shared.isOn(.dayWeather) },
         run: { IslandController.shared.open(page: .day) })
 
     static let markets = NotchcastCommand(
-        slug: "markets", name: String(localized: "Markets"), sfSymbol: "chart.line.uptrend.xyaxis",
+        slug: "markets", name: String(localized: "Markets"), sfSymbol: "chart.line.uptrend.xyaxis", feature: .dayMarkets,
         isEnabled: { IslandController.shared.commandsAvailable && NotchcastPreferences.shared.isOn(.dayMarkets) },
         run: { IslandController.shared.open(page: .day) })
 
     static let calendar = NotchcastCommand(
-        slug: "open-day", name: String(localized: "Open Day"), sfSymbol: "calendar",
+        slug: "open-day", name: String(localized: "Open Day"), sfSymbol: "calendar", feature: .dayCalendar,
         isEnabled: { IslandController.shared.commandsAvailable && AppCore.shared.settings.calendarEnabled },
         run: { IslandController.shared.open(page: .day) })
 }
