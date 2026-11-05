@@ -92,7 +92,7 @@ final class QuitProtectionModule: NotchcastModule {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refreshLayout() }
         }, center: inputCenter)
-        observeConfiguration()
+        if let registration { observeConfiguration(registration) }
     }
 
     func stop() {
@@ -118,13 +118,13 @@ final class QuitProtectionModule: NotchcastModule {
         }
     }
 
-    private func observeConfiguration() {
+    private func observeConfiguration(_ identity: UUID) {
         withObservationTracking {
             state.value.withLock { $0.engine.configuration = store.configuration }
         } onChange: { [weak self] in
             DispatchQueue.main.async {
-                guard let self, self.registration != nil else { return }
-                self.observeConfiguration()
+                guard let self, self.registration == identity else { return }
+                self.observeConfiguration(identity)
                 self.updatePendingPress()
             }
         }
