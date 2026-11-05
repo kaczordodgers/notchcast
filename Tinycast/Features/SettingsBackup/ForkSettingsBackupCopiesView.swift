@@ -12,13 +12,12 @@ struct ForkSettingsBackupCopiesView: View {
                 LabeledContent {
                     Button("Restore") { restore(copy.name) }
                         .settingsEnabled(copy.valid)
-                        .accessibilityLabel(String(localized: "Restore") + " " + copy.date.formatted())
                 } label: {
                     Text(copy.date, format: .dateTime.year().month().day().hour().minute().second())
                     if copy.valid, let size = copy.size {
                         Text(ByteCountFormatter.string(fromByteCount: Int64(size), countStyle: .file))
                     } else {
-                        Text("Unreadable or invalid backup")
+                        Text("Unreadable or invalid backup.")
                     }
                 }
             }

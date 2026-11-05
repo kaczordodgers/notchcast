@@ -25,6 +25,7 @@ Selecting a copy validates and holds that exact file's data through confirmation
 Switches apply through `NotchcastPreferences.set`; other values use setters and store APIs.
 Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
 opening the folder has its own task. Missing backups show an empty state.
+The command reveals the backup section. Cancelling, restoring or leaving it clears the copy list.
 Open Settings Backup Folder creates and opens the folder. Both commands work with the switch off.
 Restoring weather or markets can refetch from their fixed hosts when running or visible,
 without credentials. Automatic retention is not applied.
