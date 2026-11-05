@@ -3,7 +3,7 @@ import Foundation
 extension HotKeyAction {
     /// A row's action from its ID alone; apps and panes are keyed by bundle ID instead.
     init?(entryID: String) {
-        if entryID.hasPrefix("command:nc-") || entryID == "command:toggle-island" {
+        if entryID.hasPrefix("command:nc-") || ["command:toggle-island", "command:theme"].contains(entryID) {
             self = .notchcastCommand(entryID: entryID); return
         }
         if let command = CommandID(rawValue: entryID) {
