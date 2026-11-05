@@ -10,6 +10,7 @@ import Darwin
         precondition(getuid() != 0)
         for (mode, uid, gid, accepted) in [(0o1777, 0, 80, true), (0o770, 0, 80, true),
                                           (0o777, 0, 80, false), (0o770, 501, 80, false),
+                                          (0o770, 0, 250, true), (0o772, 0, 250, false),
                                           (0o775, 0, 20, false)] {
             var info = stat()
             info.st_mode = mode_t(mode)
