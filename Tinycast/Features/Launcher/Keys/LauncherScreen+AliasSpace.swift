@@ -17,6 +17,7 @@ extension LauncherScreen {
             case .customCommand:
                 entry.argumentCount = core.customCommands.command(entryID: app.id)?.arguments.count ?? 0
             case .extensionCommand:
+                guard core.settings.extensionsEnabled else { return nil }
                 let command = core.extensions.resolve(app)?.1
                 entry.argumentCount = command?.arguments.count ?? 0
                 entry.hasRequiredArguments = command?.arguments.contains(where: \.required) ?? false
