@@ -941,6 +941,7 @@
 		805F4FD5013F5FCF75A4FE12 /* SoloistKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5476260AA4EE9A15F510658 /* SoloistKey.swift */; };
 		8090FBE343746D9D43EE2B24 /* PalettePanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA9F3FA9925873D25EAF7D03 /* PalettePanel.swift */; };
 		80B87CBA4D7284710465901D /* MeetingRowParts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2069789D62057E302322AFDB /* MeetingRowParts.swift */; };
+		80DCFB5D1512DD9B6A59E69E /* LauncherList+NumberKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD50EB8788657C76179D5A28 /* LauncherList+NumberKeys.swift */; };
 		80E0A46F1C287491BC187322 /* RoomsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B64D32132633024A8798E80 /* RoomsSection.swift */; };
 		80E77985425032856DEECDFD /* CalloutShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92AF20F1007F7F3DC1013C2A /* CalloutShape.swift */; };
 		80EE82E0FB5AA17AC2C23EBD /* ShortcutDeepLink.swift in Sources */ = {isa = PBXBuildFile; fileRef = 15276F3E4BD79C79638917E9 /* ShortcutDeepLink.swift */; };
@@ -3469,6 +3470,7 @@
 		CCCBDD92DEAD780A1DC423CA /* ExtensionScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionScreen.swift; sourceTree = "<group>"; };
 		CCDD456ECFB1459AE69AD102 /* AgentPricingSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentPricingSettingsSection.swift; sourceTree = "<group>"; };
 		CD0A6DDC1C30A6E2C6DF7E7D /* WindowManagementSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManagementSettingsView.swift; sourceTree = "<group>"; };
+		CD50EB8788657C76179D5A28 /* LauncherList+NumberKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "LauncherList+NumberKeys.swift"; sourceTree = "<group>"; };
 		CD546A1E2D98160CC5BAEC39 /* CleanModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanModule.swift; sourceTree = "<group>"; };
 		CD56F85185157A66F65C2110 /* ScrollingScreenSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingScreenSource.swift; sourceTree = "<group>"; };
 		CD6806AC059AAD07374B9B72 /* MacSetupCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacSetupCatalog.swift; sourceTree = "<group>"; };
@@ -6140,6 +6142,7 @@
 			isa = PBXGroup;
 			children = (
 				4FC1D56A01B6B84F1ED4AA68 /* LauncherAliasSpace.swift */,
+				CD50EB8788657C76179D5A28 /* LauncherList+NumberKeys.swift */,
 				AD4D66EE79BB8588DDBBC741 /* LauncherNumberKeys.swift */,
 				C2395C9DD7C4290975BCD8F6 /* LauncherScreen+AliasSpace.swift */,
 			);
@@ -10694,6 +10697,7 @@
 				40F2DB9EDB967834222B85DB /* LauncherFileFormat.swift in Sources */,
 				CC984C9647779469629461E7 /* LauncherItemsSection.swift in Sources */,
 				C05022DE7B77920ECFB177EE /* LauncherItemsTable.swift in Sources */,
+				80DCFB5D1512DD9B6A59E69E /* LauncherList+NumberKeys.swift in Sources */,
 				D1F9C28CA4048480DB818EE9 /* LauncherList.swift in Sources */,
 				AC417E6C0EC58EE665F27F80 /* LauncherMatch.swift in Sources */,
 				A24C84D432338FD20B6456CA /* LauncherNumberKeys.swift in Sources */,
