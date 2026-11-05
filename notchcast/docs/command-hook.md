@@ -45,8 +45,8 @@ The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
 The stable ID is `command:nc-<slug>`. Slugs must be unique and URL path safe.
 Execution dismisses the palette, checks availability and runs synchronously.
 
-Catalog entries flow into `CommandCatalog.entries(ownedBy:)`, so the existing
-Notchcast `FeatureCommandsSection` renders alias, shortcut and visibility controls.
+Each module page in Notchcast settings lists its feature's commands as `FeatureCommandRow`s,
+which render alias, shortcut and visibility controls.
 Shortcuts use a typed `HotKeyAction.notchcastCommand` and the ordinary binding store.
 Feature availability also gates hotkey execution. Refresh the index when availability
 changes through `AppIndex.refreshNotchcastCommands()`.
