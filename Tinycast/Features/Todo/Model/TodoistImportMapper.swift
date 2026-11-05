@@ -79,7 +79,7 @@ enum TodoistImportMapper {
                     labels[name] = id
                     return id
                 }
-                // Shared labels never appear in the export's labels array, so they arrive by name only.
+                // Shared labels are absent from the export's labels array; they arrive by name.
                 let label = TodoLabel(id: makeID(), name: name)
                 try candidate.apply(.addLabel(label))
                 commands.append(.addLabel(label))
