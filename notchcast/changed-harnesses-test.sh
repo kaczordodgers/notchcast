@@ -27,3 +27,8 @@ for support in Command HotKey; do
     if grep -qx ext-fetch-test "$scratch/selected"; then echo "FAIL: $CHANGED selected an unrelated upstream harness"; exit 1; fi
 done
 echo 'PASS: shared command and hotkey support select all consumers'
+# A harness with no extra sources must not match every change (printf of no arguments prints one empty line).
+export CHANGED="Tinycast/Features/Todo/TodoModule.swift"
+bash "$root/notchcast/changed-harnesses.sh" base head > "$scratch/selected"
+if grep -qx ext-fetch-test "$scratch/selected"; then echo 'FAIL: an unrelated change selected ext-fetch-test'; exit 1; fi
+echo 'PASS: unrelated upstream harnesses stay unselected'
