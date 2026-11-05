@@ -129,7 +129,7 @@ import Darwin
             isRegularFile: true, hasSymlinkComponent: false)
         precondition(policy.reason(for: nul) == nil)
         print("PASS: NUL path refused before syscalls and by app policy")
-        let tree = FileManager().homeDirectoryForCurrentUser.appendingPathComponent("agents")
+        let tree = URL(fileURLWithPath: "/private/tmp")
             .appendingPathComponent(UUID().uuidString)
         try FileManager().createDirectory(at: tree, withIntermediateDirectories: false,
                                          attributes: [.posixPermissions: 0o700])

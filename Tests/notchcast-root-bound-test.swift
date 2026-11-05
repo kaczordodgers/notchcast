@@ -3,7 +3,13 @@ import Foundation
 
 private final class StuckProcess: Process, @unchecked Sendable {
     override var standardInput: Any? { get { nil } set {} }
-    override var standardOutput: Any? { get { nil } set {} }
+    override var standardOutput: Any? {
+        get { nil }
+        set {
+            guard let pipe = newValue as? Pipe else { preconditionFailure("Expected stdout pipe") }
+            try? pipe.fileHandleForWriting.close()
+        }
+    }
     override var terminationHandler: (@Sendable (Process) -> Void)? { get { nil } set {} }
     override var isRunning: Bool { true }
     override func terminate() {}
