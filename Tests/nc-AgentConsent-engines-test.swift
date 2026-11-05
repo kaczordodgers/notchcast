@@ -62,6 +62,19 @@ struct AgentConsentTests {
         let recovered = try await audit.entries()
         assert(recovered == entries + [entry])
         assert(audit.skippedLineCount == 2)
+        let cancelledAudit = AgentAuditStore(directory: directory.appendingPathComponent("cancelled"))
+        let cancelled = Task {
+            withUnsafeCurrentTask { $0?.cancel() }
+            try await cancelledAudit.append(entry)
+        }
+        do {
+            try await cancelled.value
+        } catch {
+            preconditionFailure("Cancelled caller must retain its final audit record: \(error)")
+        }
+        let cancelledEntries = try await cancelledAudit.entries()
+        precondition(cancelledEntries == [entry])
+        print("PASS: cancelled caller's audit append persisted exactly once")
         print("PASS: consent, audit redaction/rotation/0600; two bad lines skipped, valid tail retained")
     }
 }
