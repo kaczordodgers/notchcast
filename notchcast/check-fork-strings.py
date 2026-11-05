@@ -22,8 +22,12 @@ def check():
                       capture_output=True).returncode:
         subprocess.check_call(['git', '-C', str(ROOT), 'fetch', '-q', '--no-tags',
                                'https://github.com/abue-ammar/tinycast.git', '+refs/heads/main:refs/remotes/upstream/main'])
+    # Upstream deletions after our base must not turn inherited strings into fork keys.
+    base = subprocess.run(['git', '-C', str(ROOT), 'merge-base', 'HEAD', 'upstream/main'],
+                          capture_output=True, text=True)
+    upstream_ref = base.stdout.strip() if base.returncode == 0 else 'upstream/main'
     upstream = json.loads(subprocess.check_output([
-        'git', '-C', str(ROOT), 'show', 'upstream/main:' + tools['LOCAL']]))['strings']
+        'git', '-C', str(ROOT), 'show', upstream_ref + ':' + tools['LOCAL']]))['strings']
     errors = ['fork key in Localizable: ' + key for key in local.keys() - upstream.keys()]
     errors += ['key in both catalogs: ' + key for key in local.keys() & fork.keys()]
     for key, entry in fork.items():
