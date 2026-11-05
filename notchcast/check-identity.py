@@ -2,6 +2,7 @@
 """Inspect added lines, metadata and bundle strings; never print matched content."""
 import argparse
 import ast
+import os
 import re
 import runpy
 import subprocess
@@ -150,7 +151,10 @@ def main():
     failed = False
     if args.mode in ("history", "diff"):
         failed |= diff(base)
-        failed |= added_lines(base)
+        additions_base = "refs/remotes/origin/main"
+        if pr_base := os.environ.get("GITHUB_BASE_REF"):
+            additions_base = git("merge-base", HEAD, f"refs/remotes/origin/{pr_base}").strip()
+        failed |= added_lines(additions_base)
     if args.mode in ("history", "metadata"):
         failed |= metadata(base)
     return failed
