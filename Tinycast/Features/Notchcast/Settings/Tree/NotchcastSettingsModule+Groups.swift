@@ -70,6 +70,7 @@ extension NotchcastSettingsModule {
                 .feature(.eventReminder, settings: []),
             ]),
             .init(title: "Tasks", items: [
+                .feature(.todoIsland, settings: []),
                 .feature(.tasks, settings: [.dayAndTasksTaskImport]),
                 .feature(.tasksSync, settings: []),
             ]),
