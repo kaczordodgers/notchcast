@@ -1,4 +1,5 @@
 {
+  "openBotAgents": "launcher command Refresh OpenBot Agents: OpenBotAgentsModule.refreshCommand, gated by openBotAgents",
   "agentThreads": "launcher commands Refresh Agent Threads / Open Waiting Agent Thread → Tinycast/Features/AgentThreads/AgentThreadsModule.swift; start and refresh read the local CLI; no page",
   "accessoryNotices": "default off: enabling starts the module and requests Bluetooth access; connections and peripheral low batteries post four-second island messages while enabled; disabling stops listening (Tinycast/Features/AccessoryNotices/AccessoryNoticesModule.swift)",
   "tasks": "launcher commands Add Task from Clipboard / Complete Next / Undo (Tinycast/Features/Todo/Commands/TodoCommands.swift:16, :19, :22; catalog NotchcastCommandCatalog+All.swift:4-6)",
