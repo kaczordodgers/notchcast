@@ -26,7 +26,9 @@ Stable page names:
 - `island-closed-{idle,timer,transfer,status}-{mba,ext}`
 - `island-closed-{volume,brightness,airpods,low-battery,wifi,tailscale,low-disk,meeting-reminder,dictation,walk,message,danger-message}-{mba,ext}`
 - `island-open-{home-empty,home-entries,day-calendar}-{mba,ext}`
-- `launcher-{root,results,number-keys,empty}-{dark,light}`
+- `launcher-{root,results,empty}-{dark,light}`
+- `launcher-number-keys-{dark,light}`
+- `launcher-shorten-link-{dark,light}`
 - `settings-notchcast-<group>-{dark,light}`
 - `settings-<SettingsTab.slug>-{dark,light}` (including hidden upstream tabs)
 
