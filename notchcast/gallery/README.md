@@ -36,6 +36,12 @@ list with fake events, without loading EventKit. Launcher fixtures use the real
 palette root, search field and launcher list. The first registry does not yet cover every palette state,
 window or editor. `inventory.md` lists gaps by area for subsequent registries.
 
+Closed fixtures follow the shipped producers: volume and brightness are status
+activities with percentage progress; meeting reminder is a status activity with an
+event title. AirPods, battery, Wi-Fi, Tailscale and disk notices use status messages;
+dictation uses its listening progress message, and walk uses its daily goal reminder.
+Both shapes support every fixture. These are sample payloads, not live device probes.
+
 Each area owns `GalleryPages+<Area>.swift`. Register explicit view types with each
 page; do not claim conditional children that the fixture does not render.
 `inventory.py` scans every Swift UI declaration in `Tinycast/`; newly added types
