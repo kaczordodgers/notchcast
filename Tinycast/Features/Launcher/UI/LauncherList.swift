@@ -3,6 +3,7 @@ import SwiftUI
 struct LauncherList: View {
 
     @Environment(\.metrics) private var metrics
+    @Environment(PaletteState.self) var numberKeyPalette
     let results: [AppEntry]
     /// The flat row id the screen has selected, not an entry id: a fallback can repeat a result.
     let selectedRowID: String?
@@ -183,7 +184,7 @@ struct LauncherList: View {
                                         app: app,
                                         selected: app.id == selectedRowID,
                                         running: runningApps.isRunning(app),
-                                        slot: nil
+                                        slot: numberSlot(for: app)
                                     )
                                     .contentShape(Rectangle())
                                     .onRowTap(drag: drag(for: app)) { onActivate(app) }
