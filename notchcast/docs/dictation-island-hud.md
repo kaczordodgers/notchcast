@@ -12,4 +12,10 @@ While dictation is active, a foreign message is immediately replaced by the dict
 
 This is text routing only. It adds no island view or audio-level visualization.
 
+Escape discards the active session through the coordinator's cancellation path, including during
+transcription; it closes the panel without delivering or copying the pending text. Return finishes
+normally. Live chunks delivered before cancellation stay in the target editor.
+
+Run `./Scripts/run-tests.sh nc-Dictation-escape-test` for fake-backed cancellation and finish checks.
+
 Run `./Scripts/run-tests.sh nc-DictationIslandHUD-routing-test` for the pure phase and switch policy.
