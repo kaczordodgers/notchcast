@@ -3,6 +3,11 @@
 
 # Notchcast
 
+[![Release](https://img.shields.io/github/v/release/kaczordodgers/notchcast)](https://github.com/kaczordodgers/notchcast/releases/latest)
+[![Sync](https://github.com/kaczordodgers/notchcast/actions/workflows/sync.yml/badge.svg)](https://github.com/kaczordodgers/notchcast/actions/workflows/sync.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](/LICENSE)
+![macOS 26+](https://img.shields.io/badge/macOS-26%2B-lightgrey)
+
 A native macOS launcher with a Dynamic Island in the notch, plus clipboard history, hotkeys, capture, dictation and system tools in one app.
 
 <!-- TODO hero image: no shipped-UI screenshot of Notchcast exists yet. Add a light and a dark capture of the
@@ -127,6 +132,14 @@ Hidden in Notchcast (the code stays): Raycast extensions, fallbacks, Apple Short
 
 Notchcast uses its own bundle id (`app.notchcast`) and URL scheme (`notchcast://`), so it can run beside Tinycast.
 
+## Quickstart
+
+1. Onboarding asks for the global shortcut that opens the launcher; change it later in **Settings → General → Global Shortcuts**.
+2. Press it and type: an app, a command such as `Clipboard History`, or a sum such as `12*7`.
+3. Open **Settings → Notchcast** and turn on the areas you want. The island appears at the top of the screen when **Island** is on.
+
+Settings can also be mirrored to `~/.config/app.notchcast/settings.json` (**Settings → Notchcast → Backups → Settings File**); see [docs/features/settings-file.md](/docs/features/settings-file.md).
+
 ## Build from source
 
 You need Xcode 27 and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
@@ -138,7 +151,32 @@ xcodegen generate
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug build
 ```
 
-The project, target and source folders keep upstream's `Tinycast` names so our commits rebase cleanly. Debug builds are `Notchcast Dev.app` (`app.notchcast.dev`). They sign with a local `Tinycast Self-Signed` identity, which keeps the Accessibility grant across rebuilds; create it once with [docs/signing.md §1](/docs/signing.md), or add `CODE_SIGNING_ALLOWED=NO` for a build-only check. Tests: `./Scripts/run-tests.sh`. More: [docs/development.md](/docs/development.md).
+The project, target and source folders keep upstream's `Tinycast` names so our commits rebase cleanly. Debug builds are `Notchcast Dev.app` (`app.notchcast.dev`). They sign with a local `Tinycast Self-Signed` identity, which keeps the Accessibility grant across rebuilds; create it once with [docs/signing.md §1](/docs/signing.md), or add `CODE_SIGNING_ALLOWED=NO` for a build-only check. More: [docs/development.md](/docs/development.md).
+
+### Tests
+
+```sh
+./Scripts/run-tests.sh            # upstream's harnesses plus ours (no XCTest)
+./Scripts/run-tests.sh calc-test  # one harness
+./Scripts/lint.sh
+```
+
+Details: [docs/testing.md](/docs/testing.md).
+
+### Project structure
+
+```text
+Tinycast/              app sources (upstream's name, kept for clean rebases)
+  Features/<Name>/     one folder per feature; Notchcast's own features live beside upstream's
+  Features/Notchcast/  shared fork code: feature switches, Settings tabs, launcher commands
+Tests/                 runnable harnesses (Tests/nc-*-test.swift are ours)
+Scripts/               upstream's build, test and lint scripts
+docs/                  upstream's developer docs
+notchcast/             fork tooling and docs: sync, landing, checks, notchcast/docs/
+project.yml            XcodeGen input for Tinycast.xcodeproj
+```
+
+Contributing: [CONTRIBUTING.md](/.github/CONTRIBUTING.md). Security reports: [SECURITY.md](/.github/SECURITY.md).
 
 ## Credits
 
