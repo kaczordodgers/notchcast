@@ -40,6 +40,13 @@ struct ShelfReceivedTest {
         _ = try await store.save(long, to: downloads)
         let collision = try await store.save(long, to: downloads)
         precondition(collision.lastPathComponent.utf8.count <= 255)
+        let longExtension = ShelfReceivedEntry(item: ShelfItem(kind: .file,
+            name: "a." + String(repeating: "x", count: 253), data: Data([1])), receivedAt: Date())
+        _ = try await store.save(longExtension, to: downloads)
+        do {
+            _ = try await store.save(longExtension, to: downloads)
+            preconditionFailure("Long extension collision accepted")
+        } catch ShelfEngine.Failure.invalidItem {}
         try await store.remove(file)
         let remaining = try await store.entries()
         precondition(remaining.count == 1 && remaining[0].item.kind == .text)
