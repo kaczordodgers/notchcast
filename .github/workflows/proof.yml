@@ -1,0 +1,57 @@
+name: Proof
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      checks:
+        description: Space-separated checks, or all
+        default: all
+permissions:
+  contents: read
+concurrency:
+  group: proof-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      checks: ${{ steps.plan.outputs.checks }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - id: plan
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          CHECKS: ${{ inputs.checks || 'all' }}
+        run: |
+          set -o pipefail
+          if [ -n "$BASE" ]; then
+            checks=$(python3 notchcast/app-proof.py plan "$BASE" HEAD | paste -sd ' ' -)
+          elif [ "$CHECKS" = all ]; then
+            checks=$(python3 -c 'import json; print(" ".join(json.load(open("notchcast/app-proofs.json"))))')
+          else
+            checks=$CHECKS
+          fi
+          echo "checks=$checks" >> "$GITHUB_OUTPUT"
+  proof:
+    needs: plan
+    if: needs.plan.outputs.checks != ''
+    runs-on: xcode-27
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: ./notchcast/actions/xcode
+      - uses: ./notchcast/actions/xcodegen
+      - name: Regenerate project
+        run: '"$XCODEGEN" generate --quiet'
+      - name: Run Release app proofs
+        env:
+          CHECKS: ${{ needs.plan.outputs.checks }}
+        run: python3 notchcast/app-proof.py run $CHECKS
