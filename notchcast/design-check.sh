@@ -27,4 +27,4 @@ python3 "$TOP/notchcast/check-kit.py" --root "$WORK/ours"
 cp "$WORK/base/.ai-design-check-baseline.json" "$WORK/ours/"
 FORMAT=()
 [ -n "${GITHUB_ACTIONS:-}" ] && FORMAT=(--format github)
-cd "$WORK/ours" && exec "${CHECK[@]}" ${FORMAT[@]+"${FORMAT[@]}"} "${DIRS[@]}"
+cd "$WORK/ours" && "${CHECK[@]}" ${FORMAT[@]+"${FORMAT[@]}"} "${DIRS[@]}"
