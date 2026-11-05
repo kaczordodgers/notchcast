@@ -6,7 +6,7 @@ enum LinkQuickFixEngine {
     }
 
     enum Action: Equatable, Sendable {
-        case copyCommand(String)
+        case copyCommand(String, cause: Cause = .mirrorStale)
         case openMirrorLog(URL)
         case openNetworkSettings
         case relinkInConnections
@@ -20,9 +20,9 @@ enum LinkQuickFixEngine {
     static func actions(for cause: Cause, configuration: Configuration) -> [Action] {
         switch cause {
         case .dnsFailure:
-            [.copyCommand("sudo tailscale set --accept-dns=false\nsudo tailscale set --accept-dns=true")]
+            [.copyCommand("sudo tailscale set --accept-dns=false\nsudo tailscale set --accept-dns=true", cause: .dnsFailure)]
         case .tailscaleStopped:
-            [.copyCommand("tailscale status\nsudo tailscale up")]
+            [.copyCommand("tailscale status\nsudo tailscale up", cause: .tailscaleStopped)]
         case .mirrorStale:
             mirrorActions(configuration)
         case .cableDown:

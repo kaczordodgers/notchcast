@@ -8,7 +8,12 @@
 // notchcast-sources: Tinycast/Features/MachBlockedDialog/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachBlockedDialog/Service/BlockedDialogWindows.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/*.swift
+// notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
+// notchcast-sources: Tinycast/Features/RemoteScreen/RemoteScreenAddress.swift
+// notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
@@ -44,11 +49,13 @@ struct AIUsageWiringTest {
         let accepted = try routed.value(as: Bool.self)
         precondition(accepted)
         var missingNotices: [String] = []
-        let unconfigured = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
-        unconfigured.start()
-        try await unconfigured.refresh()
-        precondition(missingNotices == [String(localized: "AI usage cache directory is not configured.")])
-        unconfigured.stop()
+        preferences.aiUsageCachePath = directory.path
+        let defaultCacheModule = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
+        defaultCacheModule.start()
+        try await defaultCacheModule.refresh()
+        precondition(missingNotices.isEmpty)
+        precondition(defaultCacheModule.snapshots.first?.windows.first?.used == 42)
+        defaultCacheModule.stop()
         let controller = NotchcastModuleController([
             .init(requires: [.aiUsage], module: module),
             .init(requires: [.machLink], module: link),

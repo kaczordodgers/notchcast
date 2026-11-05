@@ -30,6 +30,11 @@ private final class FakeCentral: TreadmillBluetoothCentral {
 
 @main @MainActor
 struct TreadmillTransportTests {
+    static func waitUntil(_ condition: () -> Bool, line: UInt = #line) async throws {
+        for _ in 0..<400 where !condition() { try await Task.sleep(for: .milliseconds(5)) }
+        precondition(condition(), "Timed out", line: line)
+    }
+
     static func main() async throws {
         let central = FakeCentral()
         let transport = BluetoothTreadmillTransport(central: central, timeout: .milliseconds(10))
@@ -58,9 +63,8 @@ struct TreadmillTransportTests {
         precondition(failure == nil)
         let scans = central.scans
         let stops = central.stops
-        try await Task.sleep(for: .milliseconds(30))
-        precondition(failure == .padAbsent)
-        precondition(central.scans > scans && central.stops == stops)
+        try await waitUntil { failure == .padAbsent && central.scans > scans }
+        precondition(central.stops == stops)
         try transport.open()
         central.onEvent?(.discovered)
         let connects = central.connects
@@ -68,12 +72,11 @@ struct TreadmillTransportTests {
         precondition(central.connects == connects && central.stops == stops)
         central.onEvent?(.failed)
         precondition(failure == .connectionFailed)
-        try await Task.sleep(for: .milliseconds(30))
-        precondition(central.connects == connects + 1 && central.stops == stops)
+        try await waitUntil { central.connects == connects + 1 }
+        precondition(central.stops == stops)
         central.onEvent?(.failed)
         precondition(failure == .connectionFailed)
-        try await Task.sleep(for: .milliseconds(30))
-        precondition(central.connects == connects + 2)
+        try await waitUntil { central.connects == connects + 2 }
         transport.close()
         try transport.open()
         precondition(central.scans > scans + 1)
@@ -89,8 +92,8 @@ struct TreadmillTransportTests {
         known.known = true
         let pending = BluetoothTreadmillTransport(central: known, timeout: .milliseconds(10))
         try pending.open()
-        try await Task.sleep(for: .milliseconds(30))
-        precondition(known.scans == 0 && known.connects == 1)
+        try await waitUntil { known.connects == 1 }
+        precondition(known.scans == 0)
         let setup = CoreBluetoothTreadmillCentral(defaults: UserDefaults(suiteName: "treadmill-setup-test")!)
         setup.completeSetup(success: false) { known.failSetup() }
         precondition(known.cancels == 1 && known.connects == 2)

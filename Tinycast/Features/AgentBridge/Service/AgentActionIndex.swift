@@ -23,11 +23,13 @@ final class AgentActionIndex {
     @ObservationIgnored private var actions: [String: Entry] = [:]
     @ObservationIgnored private var states: [String: StateProvider] = [:]
     @ObservationIgnored private var generation = UUID()
-    @ObservationIgnored var authorize: @MainActor (AgentAction, AgentJSON) async -> Bool = { action, _ in
-        action.danger == .harmless
+    @ObservationIgnored var authorize: @MainActor (AgentAction, AgentJSON) async -> (@MainActor () -> Void)? = { action, _ in
+        guard action.danger == .harmless else { return nil }
+        return {}
     }
     @ObservationIgnored var didComplete: @MainActor (AgentRequest, AgentReply) async -> Void = { _, _ in }
     @ObservationIgnored var readAudit: (@MainActor () async throws -> AgentJSON)?
+    @ObservationIgnored var receiveMCP: (@MainActor (AgentRequest) async throws -> AgentJSON)?
 
     func register(_ entry: Entry) throws {
         guard !entry.action.id.isEmpty, actions[entry.action.id] == nil else { throw AgentReply.Code.badRequest }
@@ -101,6 +103,7 @@ final class AgentActionIndex {
             return try await readAudit()
         case .run:
             return try await run(request, operation: operation)
+        case .mcp: return try await receiveMCP?(request) ?? { throw AgentReply.Code.notRunning }()
         }
     }
 
@@ -110,9 +113,10 @@ final class AgentActionIndex {
         }
         guard entry.isAvailable() else { throw AgentReply.Code.failed }
         if request.dryRun { return entry.action.json(available: true) }
-        let approved = await authorize(entry.action, request.parameters)
+        let completion = await authorize(entry.action, request.parameters)
+        defer { completion?() }
         try validate(operation)
-        guard approved else { throw AgentReply.Code.declined }
+        guard completion != nil else { throw AgentReply.Code.declined }
         guard entry.isAvailable() else { throw AgentReply.Code.failed }
         return try await entry.run(request.parameters)
     }

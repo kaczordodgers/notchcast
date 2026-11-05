@@ -16,6 +16,7 @@ final class VoiceAskModule: NotchcastModule {
     private let beginRecording: @MainActor () async throws -> Void
     private let finishRecording: @MainActor () async throws -> String
     private let cancelRecording: @MainActor () -> Void
+    private let message: @MainActor (String, DialogTone) -> Void
     private var task: Task<Void, Never>?
     private var identity = UUID()
     var onStart: (@MainActor () -> Void)?
@@ -23,11 +24,13 @@ final class VoiceAskModule: NotchcastModule {
 
     init(defaults: UserDefaults, begin: @escaping @MainActor () async throws -> Void,
          finish: @escaping @MainActor () async throws -> String,
-         cancel: @escaping @MainActor () -> Void) {
+         cancel: @escaping @MainActor () -> Void,
+         message: @escaping @MainActor (String, DialogTone) -> Void = { _, _ in }) {
         self.defaults = defaults
         beginRecording = begin
         finishRecording = finish
         cancelRecording = cancel
+        self.message = message
         destination = defaults.string(forKey: "voiceAsk.destination") ?? ""
         keyCode = (defaults.object(forKey: "voiceAsk.keyCode") as? Int64) ?? 105
     }
@@ -57,6 +60,7 @@ final class VoiceAskModule: NotchcastModule {
                 guard let self, identity == current, !Task.isCancelled else { return }
                 failure = error.localizedDescription
                 cancel()
+                message(error.localizedDescription, .danger)
             }
         }
     }
@@ -90,9 +94,11 @@ final class VoiceAskModule: NotchcastModule {
                 try Task.checkCancellation()
                 guard identity == current, enabled, self.destination == destination else { return }
                 result = reply
+                message(reply.firstLines.joined(separator: "\n"), reply.state == .failed ? .danger : .success)
             } catch {
                 guard identity == current, !Task.isCancelled else { return }
                 failure = error.localizedDescription
+                message(error.localizedDescription, .danger)
             }
         }
     }

@@ -16,5 +16,7 @@ enum RemoteScreenState: Equatable, Sendable {
 
     struct Availability: Codable, Sendable {
         let screenSharingEnabled: Bool
+        var host: String? = nil
+        var peerEnabled: Bool?
     }
 }

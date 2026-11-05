@@ -22,47 +22,47 @@ enum NotchcastDownloadLauncherCommands {
 
     nonisolated static let video = NotchcastCommand(
         slug: "download-video", name: String(localized: "Download Video"),
-        sfSymbol: "video", owner: .notchcast,
+        sfSymbol: "video", feature: NotchcastDownloadCommands.Action.video.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.video) }, run: { perform(.video) })
 
     nonisolated static let audio = NotchcastCommand(
         slug: "download-audio", name: String(localized: "Download Audio"),
-        sfSymbol: "waveform", owner: .notchcast,
+        sfSymbol: "waveform", feature: NotchcastDownloadCommands.Action.audio.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.audio) }, run: { perform(.audio) })
 
     nonisolated static let transcript = NotchcastCommand(
         slug: "download-youtube-transcript", name: String(localized: "Download YouTube Transcript"),
-        sfSymbol: "text.bubble", owner: .notchcast,
+        sfSymbol: "text.bubble", feature: NotchcastDownloadCommands.Action.transcript.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.transcript) }, run: { perform(.transcript) })
 
     nonisolated static let webpage = NotchcastCommand(
         slug: "save-webpage-as-markdown", name: String(localized: "Save Webpage as Markdown"),
-        sfSymbol: "doc.text", owner: .notchcast,
+        sfSymbol: "doc.text", feature: NotchcastDownloadCommands.Action.webpage.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.webpage) }, run: { perform(.webpage) })
 
     nonisolated static let addDistill = NotchcastCommand(
         slug: "add-links-to-distill", name: String(localized: "Add Links to Distill"),
-        sfSymbol: "text.badge.plus", owner: .notchcast,
+        sfSymbol: "text.badge.plus", feature: NotchcastDownloadCommands.Action.addDistill.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.addDistill) }, run: { perform(.addDistill) })
 
     nonisolated static let runDistill = NotchcastCommand(
         slug: "run-distill", name: String(localized: "Run Distill"),
-        sfSymbol: "play", owner: .notchcast,
+        sfSymbol: "play", feature: NotchcastDownloadCommands.Action.runDistill.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.runDistill) }, run: { perform(.runDistill) })
 
     nonisolated static let convert = NotchcastCommand(
         slug: "convert-distill-folder", name: String(localized: "Convert Distill Folder"),
-        sfSymbol: "doc.on.doc", owner: .notchcast,
+        sfSymbol: "doc.on.doc", feature: NotchcastDownloadCommands.Action.convert.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.convert) }, run: { perform(.convert) })
 
     nonisolated static let openDownloads = NotchcastCommand(
         slug: "open-downloads-folder", name: String(localized: "Open Downloads Folder"),
-        sfSymbol: "folder", owner: .notchcast,
+        sfSymbol: "folder", feature: NotchcastDownloadCommands.Action.openDownloads.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.openDownloads) }, run: { perform(.openDownloads) })
 
     nonisolated static let openDistill = NotchcastCommand(
         slug: "open-distill-folder", name: String(localized: "Open Distill Folder"),
-        sfSymbol: "folder", owner: .notchcast,
+        sfSymbol: "folder", feature: NotchcastDownloadCommands.Action.openDistill.requiredFeature, owner: .notchcast,
         isEnabled: { isEnabled(.openDistill) }, run: { perform(.openDistill) })
 
     static func isEnabled(_ action: NotchcastDownloadCommands.Action) -> Bool {

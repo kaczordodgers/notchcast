@@ -1,6 +1,8 @@
 {
+  "accessoryNotices": "default off: enabling starts the module and requests Bluetooth access; connections and peripheral low batteries post four-second island messages while enabled; disabling stops listening (Tinycast/Features/AccessoryNotices/AccessoryNoticesModule.swift)",
   "tasks": "launcher commands Add Task from Clipboard / Complete Next / Undo (Tinycast/Features/Todo/Commands/TodoCommands.swift:16, :19, :22; catalog NotchcastCommandCatalog+All.swift:4-6)",
   "machLink": "settings Pair/Unpair (Tinycast/Features/AIUsage/UI/AIUsageSettingsSection.swift:15) + automatic listener (Tinycast/Features/AIUsage/AIUsageLinkModule.swift:80) serving link-health, dialogs and shelf requests",
+  "linkQuickFixes": "launcher command Fix Mac Link (Tinycast/Features/LinkQuickFixes/Commands/LinkQuickFixCommands.swift:4; catalog NotchcastCommandCatalog+All.swift:4): when Mac Link is down or unpaired, offers fixes in upstream's dialog (copy Tailscale command, Network Settings, Mac Link settings) and runs the chosen one",
   "islandExternalDisplays": "automatic: panels shown on displays without a notch (Tinycast/Features/Notchcast/Island/IslandController.swift:185)",
   "islandFullScreen": "automatic: panel full-screen behaviour (Tinycast/Features/Notchcast/Island/IslandController.swift:184)",
   "islandHoverOpen": "automatic: hover-open input + delay picker (Tinycast/Features/Notchcast/Island/IslandController.swift:263, :275)",
@@ -18,10 +20,11 @@
   "dayCalendar": "island Day page lists today's events (Tinycast/Features/Notchcast/Pages/IslandDayPage.swift:26, IslandDayView) + launcher Open Day (Tinycast/Features/LiveDay/DayCommands.swift:17)",
   "agentActions": "action index served to local agents through the CLI socket (Tinycast/Features/AgentBridge/UI/AgentCLIModule.swift:22)",
   "agentCLI": "Unix socket server (Tinycast/Features/AgentBridge/UI/AgentCLIModule.swift:29) + Install button for the command line tool (Tinycast/Features/AgentBridge/UI/AgentSettingsSection.swift:10)",
-  "treadmillWalk": "launcher commands Start Walk / Stop Walk / Pause or Resume Walk / Walk Faster / Walk Slower (Tinycast/Features/Treadmill/TreadmillCommands.swift:4-8; catalog NotchcastCommandCatalog+All.swift:24-28) over the Bluetooth walking pad; agent device actions at Tinycast/Features/Treadmill/Service/TreadmillAgentActions.swift:13",
+  "voiceAsk": "hotkey: hold the Voice Ask key (default F13, key code 105; Tinycast/Features/VoiceAsk/Service/VoiceAskInput.swift:25) to dictate, release to send to the T3 thread set in Settings \"Voice Ask destination\" (VoiceAskSettingsSection.swift:12) via `t3 thread send --wait --json` (VoiceAskCLITransport.swift); the reply shows as a message (NotchcastCore+Modules.swift:101)",
   "appearance": "launcher Theme (Tinycast/Features/Appearance/UI/AppearanceCoordinator+Command.swift:8) + surface style (Tinycast/DesignSystem/GlassEffectView.swift:6) + Appearance settings section",
   "cleaningMode": "settings Start button (Tinycast/Features/Notchcast/Settings/NotchcastToolsWiringSettingsRows.swift:13 → cleaning.begin)",
   "appUpdates": "settings Check button + results list (Tinycast/Features/Notchcast/Settings/NotchcastToolsWiringSettingsRows.swift:19)",
+  "treadmillWalk": "launcher commands Start Walk / Stop Walk / Pause or Resume Walk / Walk Faster / Walk Slower (Tinycast/Features/Treadmill/TreadmillCommands.swift:4-8; catalog NotchcastCommandCatalog+All.swift:24-28) over the Bluetooth walking pad; agent device actions at Tinycast/Features/Treadmill/Service/TreadmillAgentActions.swift:13",
   "macUpdate": "settings Run/Cancel with confirmation (Tinycast/Features/Notchcast/Settings/NotchcastToolsWiringSettingsRows.swift:31)",
   "backupStatus": "automatic: watches backup status and posts \"Backup needs attention\" (Tinycast/Features/BackupStatus/Service/BackupStatusModule.swift:108) + path field",
   "linkHealth": "automatic: probes the paired Mac every 60 s and posts lost/restored (Tinycast/Features/LinkHealth/LinkHealthModule.swift:48)",
@@ -42,6 +45,7 @@
   "cleanDisk": "Settings \"Scan…\" (folder picker) / \"Move to trash\": NotchcastCleanSettingsRows.swift:31 → :92 → CleanModule.swift:105 (CleanDiskScanner)",
   "cleanPurge": "Settings \"Scan…\" (project folders) / \"Move to trash\": NotchcastCleanSettingsRows.swift:31 → :92 → CleanModule.swift:123 (CleanPurgeService)",
   "cleanOptimize": "Settings one button per optimize task: NotchcastCleanSettingsRows.swift:27 → Tinycast/Features/Clean/CleanCoordinator.swift:134 → CleanModule.swift:164 (CleanOptimizeService)",
+  "cleanSystem": "Settings \"Scan…\" / \"Move to trash\" (enabled once the root helper speaks contract 4): NotchcastCleanSettingsRows.swift:31 and :57 → CleanModule.swift:191 (CleanSystemRootClient → helper clean-system-list / clean-system-trash)",
   "settingsBackup": "automatic hourly fork-settings backup: Tinycast/Features/SettingsBackup/ForkSettingsBackupModule.swift:18; launcher commands \"Restore Settings Backup\" / \"Open Settings Backup Folder\": NotchcastCommandCatalog+All.swift:7-8",
   "showDesktop": "hotkey (key engine in ShowDesktopEngine) shows desktop via Dock notification: Tinycast/Features/ShowDesktop/Service/ShowDesktopModule.swift:48",
   "spacesOrder": "automatic: keeps Dock mru-spaces off every 30 s, restores on off: Tinycast/Features/SpacesOrder/Service/SpacesOrderModule.swift:17",
@@ -75,5 +79,8 @@
   "torrentsUseIPhone": "sub-option of torrents, aria2 multi-interface args: Tinycast/Features/Torrents/Service/TorrentModule.swift:19 → :88",
   "torrentsKeepSharing": "sub-option of torrents, seeding after download: TorrentModule.swift:62",
   "editorSpellChecking": "read when the upstream Notes editor renders: Tinycast/Features/Notes/UI/NotesView.swift:56 (NoteEditorView spellCheckingEnabled)",
-  "quickLookSpace": "key: Space on a selected File Search result opens Quick Look (Tinycast/Palette/PalettePanel.swift:180 → Tinycast/Features/Notchcast/Service/AppCore+SwitcherQuitKey.swift:7 → Tinycast/Features/MarkdownQuickLook/QuickLookSpace+Palette.swift)"
+  "quickLookSpace": "key: Space on a selected File Search result opens Quick Look (Tinycast/Palette/PalettePanel.swift:180 → Tinycast/Features/Notchcast/Service/AppCore+SwitcherQuitKey.swift:7 → Tinycast/Features/MarkdownQuickLook/QuickLookSpace+Palette.swift)",
+  "agentConfirmation": "automatic: an agent request that needs consent shows upstream's confirm dialog with Allow once / Always allow / Deny (Tinycast/Features/AgentBridge/UI/AgentBridgeModule.swift:15 → Tinycast/Features/AgentConfirm/Service/AgentConfirmationAuthorization.swift)",
+  "agentChatTools": "settings button Add Notchcast to AI chat (Tinycast/Features/AgentChatTools/Service/AgentChatToolsSettingsSection.swift:19) registers the notchcast mcp server with the chat client",
+  "agentMCPServer": "CLI verb notchcast mcp (Tinycast/Features/AgentBridge/Model/AgentRequest.swift:10), started by the chat client after Add Notchcast to AI chat; gated off with a JSON-RPC error"
 }

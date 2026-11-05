@@ -8,7 +8,7 @@ enum MicrophoneMuteCommands {
         muteCommand("unmute-microphone", name: String(localized: "Unmute Microphone"), muted: false)
 
     nonisolated private static func muteCommand(_ slug: String, name: String, muted: Bool) -> NotchcastCommand {
-        NotchcastCommand(slug: slug, name: name, sfSymbol: muted ? "mic.slash" : "mic", isEnabled: {
+        NotchcastCommand(slug: slug, name: name, sfSymbol: muted ? "mic.slash" : "mic", feature: .microphoneMute, isEnabled: {
             NotchcastPreferences.shared.isEnabled(.microphoneMute)
         }, run: {
             guard NotchcastPreferences.shared.isEnabled(.microphoneMute) else { return }
