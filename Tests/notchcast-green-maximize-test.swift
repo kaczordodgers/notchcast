@@ -36,7 +36,27 @@ struct GreenMaximizeTest {
         precondition(!hit(option: true))
         precondition(!hit(exclusions: ["test.app"]))
         testObserverTicks()
-        print("green-maximize: 19 assertions passed")
+        testEvents()
+        precondition(GreenMaximizeRefresh.buttonRect { $0 == "AXFullScreenButton" ? rect : .zero } == rect)
+        precondition(GreenMaximizeRefresh.buttonRect { $0 == "AXZoomButton" ? rect : .zero } == rect)
+        precondition(GreenMaximizeRefresh.buttonRect { _ in .zero } == nil)
+        print("green-maximize: geometry, button selection, observer and fake-event checks passed")
+    }
+
+    private static func testEvents() {
+        var session = GreenMaximizeClick.Session()
+        let hover = session.decide(.move, hit: true)
+        precondition(hover.swallow && !hover.maximize)
+        precondition(!session.decide(.move, hit: false).swallow)
+        let down = session.decide(.down, hit: true)
+        precondition(down.swallow && down.maximize)
+        precondition(session.decide(.drag, hit: false).swallow)
+        let up = session.decide(.up, hit: false)
+        precondition(up.swallow && !up.maximize)
+        precondition(!session.decide(.up, hit: true).swallow)
+        precondition(!session.decide(.down, hit: false).swallow)
+        precondition(!session.decide(.drag, hit: true).swallow)
+        precondition(!session.decide(.up, hit: true).swallow)
     }
 
     private static func testObserverTicks() {

@@ -14,7 +14,7 @@ final class GreenMaximizeModule: NotchcastModule {
 
     private struct TapState: Sendable {
         var snapshot: Snapshot?
-        var pressed = false
+        var click = GreenMaximizeClick.Session()
     }
 
     private final class SharedState: Sendable {
@@ -61,22 +61,25 @@ final class GreenMaximizeModule: NotchcastModule {
         let shared = self.shared
         registration = hub.registerSynchronous(mask:
             EventTapPolicy.mask(for: .leftMouseDown) | EventTapPolicy.mask(for: .leftMouseUp)
+                | EventTapPolicy.mask(for: .mouseMoved) | EventTapPolicy.mask(for: .leftMouseDragged)
         ) { [weak self] type, event in
             let result: (Bool, Snapshot?) = shared.value.withLock { value in
-                if type == .leftMouseUp {
-                    let swallowed = value.pressed
-                    value.pressed = false
-                    return (swallowed, nil)
+                let kind: GreenMaximizeClick.Event
+                switch type {
+                case .leftMouseDown: kind = .down
+                case .leftMouseUp: kind = .up
+                case .leftMouseDragged: kind = .drag
+                default: kind = .move
                 }
-                guard let snapshot = value.snapshot,
+                let hit = value.snapshot.map { snapshot in
                     GreenMaximizeClick.intercept(
                         point: event.location, rect: snapshot.rect,
                         age: ProcessInfo.processInfo.systemUptime - snapshot.date,
                         option: event.flags.contains(.maskAlternate),
                         bundleID: snapshot.bundleID, exclusions: [])
-                else { return (false, nil) }
-                value.pressed = true
-                return (true, snapshot)
+                } ?? false
+                let decision = value.click.decide(kind, hit: hit)
+                return (decision.swallow, decision.maximize ? value.snapshot : nil)
             }
             if let snapshot = result.1 {
                 DispatchQueue.main.async { [weak self] in self?.maximize(snapshot) }

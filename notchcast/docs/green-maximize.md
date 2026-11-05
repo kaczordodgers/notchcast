@@ -13,5 +13,10 @@ worker finishes. Snapshots expire two seconds after the read starts. A consumed 
 even if maximizing moves the button. Queued actions validate the focused window and generation.
 Stopping clears the cache, removes the tap consumer and observer, and invalidates the timer.
 
+The tap also consumes pointer motion over the green button to prevent its hover tile menu.
+An intercepted press owns dragging and release even after the button moves. Option bypasses
+hover and press interception. AX discovery prefers a valid full-screen button frame, then a
+valid zoom button frame; empty or disabled controls cannot shadow the usable control.
+
 The pure geometry and click decisions are covered by `Tests/notchcast-green-maximize-test.swift`.
 No third-party source was copied; AX access and frame writes use upstream's window-management API.

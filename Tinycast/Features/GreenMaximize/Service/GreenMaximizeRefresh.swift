@@ -23,12 +23,15 @@ nonisolated enum GreenMaximizeRefresh {
         else { return nil }
         var settable = DarwinBoolean(false)
         guard AXUIElementIsAttributeSettable(window, kAXSizeAttribute as CFString, &settable) == .success,
-            settable.boolValue,
-            let button = element(window, kAXZoomButtonAttribute) ?? element(window, "AXFullScreenButton")
+            settable.boolValue
         else { return nil }
-        AXUIElementSetMessagingTimeout(button, 0.1)
-        guard value(button, kAXEnabledAttribute) as? Bool != false,
-            let rect = frame(button) else { return nil }
+        let rect = buttonRect { attribute in
+            guard let button = element(window, attribute) else { return nil }
+            AXUIElementSetMessagingTimeout(button, 0.1)
+            guard value(button, kAXEnabledAttribute) as? Bool != false else { return nil }
+            return frame(button)
+        }
+        guard let rect else { return nil }
         let observer = newObserver(for: window, observed: observed) { () -> AXObserver? in
             var observer: AXObserver?
             guard AXObserverCreate(pid, callback, &observer) == .success, let observer else { return nil }
@@ -49,6 +52,16 @@ nonisolated enum GreenMaximizeRefresh {
     ) -> AXObserver? {
         if let observed, CFEqual(observed, window) { return nil }
         return make()
+    }
+
+    static func buttonRect(read: (String) -> CGRect?) -> CGRect? {
+        for attribute in ["AXFullScreenButton", kAXZoomButtonAttribute] {
+            if let rect = read(attribute), !rect.isEmpty, !rect.isInfinite,
+                rect.origin.x.isFinite, rect.origin.y.isFinite {
+                return rect
+            }
+        }
+        return nil
     }
 
     private static func value(_ element: AXUIElement, _ attribute: String) -> CFTypeRef? {
