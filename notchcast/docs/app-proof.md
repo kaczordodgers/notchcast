@@ -1,6 +1,6 @@
 # Release app proofs
 
-`Proof` runs named checks inside the real Release binary built on the snapshot runner (`xcode-27`, using the snapshot Xcode selection). It catches optimizer, toolchain, linker and Release-only flag failures that standalone harnesses cannot reproduce. The `proof` check-run must succeed on the exact PR head before `land.sh` lands changes to declared paths.
+`Proof` runs named checks inside the real Release binary built on the snapshot runner (`xcode-27`, using the snapshot Xcode selection). On a PR it builds the PR merged onto main, so a branch cut before a tool existed still runs it. It catches optimizer, toolchain, linker and Release-only flag failures that standalone harnesses cannot reproduce. The `proof` check-run must succeed on the exact PR head before `land.sh` lands changes to declared paths.
 
 Checks run before app startup, only with bundle ID `app.notchcast.proof` and `NOTCHCAST_PROOF` set. They must remain synchronous and free of persistence, UI, permissions, network and Keychain access. They cannot verify UI input, permission prompts, hardware (treadmill, amp or fans), notifications, network services, Keychain, another Mac over SSH or runtime app state.
 
