@@ -3,6 +3,9 @@ import Foundation
 /// One line per anchor and per entry, so branches that add rows merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
 extension SettingsAnchor {
+    static let notchcastBackupSettingsFile = Self(tab: .notchcastBackups, title: LocalizedStringResource("Settings File"))
+    static let notchcastBackupExport = Self(tab: .notchcastBackups, title: "Export")
+    static let notchcastBackupImport = Self(tab: .notchcastBackups, title: "Import")
     static func notchcast(feature: NotchcastFeature) -> Self {
         let module = NotchcastSettingsModule.module(of: feature)
         let group = module.groups.first { $0.items.contains { $0.feature == feature } }!
@@ -72,6 +75,9 @@ extension SettingsSearchCatalog {
                     }
             }
         } + [
+        .init(.notchcastBackupSettingsFile, "Sync settings file"),
+        .init(.notchcastBackupExport, "Export Backup"),
+        .init(.notchcastBackupImport, "Backup File"),
         .init(group: .notchcast(feature: .audioPriority), LocalizedStringResource("Audio device priority", table: "Notchcast"), keywords: ["sound", "outputs", "microphones"]),
         .init(group: .notchcast(feature: .cleanJunk), LocalizedStringResource("Junk", table: "Notchcast"), keywords: ["trash", "cache"]),
         .init(group: .notchcast(feature: .cleanHistory), LocalizedStringResource("Clean history", table: "Notchcast"), keywords: ["restore", "runs"]),
