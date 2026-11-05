@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: "7,27,47 * * * *"
   workflow_dispatch:
+    inputs:
+      skip_gate:
+        description: Skip only the 50-minute snapshot gate
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -32,6 +37,7 @@ jobs:
         id: plan
         env:
           GH_TOKEN: ${{ github.token }}
+          SKIP_GATE: ${{ inputs.skip_gate }}
         run: python3 notchcast/snapshot.py
   snapshot:
     needs: plan
