@@ -104,11 +104,16 @@ jobs:
         with:
           key: ${{ secrets.DEPLOY_KEY }}
       # The only history rewrite in this repo: main moves onto new upstream, guarded by a lease on what plan saw.
+      # The replaced tip is kept under refs/notchcast/synced/ (no branch, tag or workflow trigger), so land.sh can
+      # find the fork point of a PR cut before this rewrite.
       - name: Update main
         if: needs.plan.outputs.rebase == 'true'
         working-directory: src
+        env:
+          OLD: ${{ needs.plan.outputs.main }}
         run: |
-          git -c core.hooksPath=/dev/null push --force-with-lease="refs/heads/main:${{ needs.plan.outputs.main }}" "$FORK_SSH" HEAD:refs/heads/main
+          git -c core.hooksPath=/dev/null push --atomic --force-with-lease="refs/heads/main:$OLD" "$FORK_SSH" \
+            HEAD:refs/heads/main "$OLD:refs/notchcast/synced/$OLD"
           rm -f "$RUNNER_TEMP/deploy-key"
       - name: Mark the commit tested
         working-directory: src

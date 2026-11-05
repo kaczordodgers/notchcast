@@ -23,6 +23,7 @@ extension NotchcastCore {
     static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
     static let clean = CleanModule()
     static let macLink = AIUsageLinkModule()
+    static let tasksSync = TodoLinkCoordinator.live(channel: macLink.channel, preferences: .shared)
     static let github = GitHubModule()
     static let clearNotifications = ClearNotificationsModule()
     static let answers = LauncherAnswersModule()
@@ -44,6 +45,7 @@ extension NotchcastCore {
     static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
     static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents, enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) }, availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let waitingAlerts = WaitingAlertsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
@@ -138,6 +140,7 @@ extension NotchcastCore {
             .init(requires: [.smallCommands], module: smallCommands),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
+            .init(requires: [.tasksSync, .tasks, .machLink], module: tasksSync),
             .init(requires: [.urlCleaner], module: urlCleaner),
             .init(requires: [.convertFiles], module: convertFiles),
             .init(requires: [.mediaTools], module: mediaTools),
@@ -156,6 +159,7 @@ extension NotchcastCore {
             .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.openBotAgents], module: openBotAgents),
             .init(requires: [.agentThreads], module: agentThreads),
+            .init(requires: [.agentIsland], module: agentIsland),
             .init(requires: [.waitingAlerts], module: waitingAlerts),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),

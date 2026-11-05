@@ -71,6 +71,7 @@ extension NotchcastSettingsModule {
             ]),
             .init(title: "Tasks", items: [
                 .feature(.tasks, settings: [.dayAndTasksTaskImport]),
+                .feature(.tasksSync, settings: []),
             ]),
             .init(title: "Timers", items: [
                 .feature(.liveTimers, settings: [.dayAndTasksTimerOptions]),
@@ -209,6 +210,7 @@ extension NotchcastSettingsModule {
             ]),
             .init(title: "Agents", items: [
                 .feature(.agentThreads, settings: []),
+                .feature(.agentIsland, settings: []),
                 .feature(.waitingAlerts, settings: []),
                 .feature(.agentActions, settings: []),
                 .feature(.agentConfirmation, settings: []),
