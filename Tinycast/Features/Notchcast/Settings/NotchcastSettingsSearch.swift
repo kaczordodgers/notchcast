@@ -181,7 +181,7 @@ extension SettingsSearchCatalog {
         .init(group: .notchcast(feature: .screenshot), "Screenshot folder", keywords: ["directory", "desktop"]),
         .init(group: .notchcast(feature: .dictationCleanup), "AI cleanup"),
         .init(group: .notchcast(feature: .dictationHistory), "Keep dictation history"),
-        .init(group: .notchcast(feature: .dictationHistory), "Delete history"),
+        .init(group: .notchcast(feature: .dictationHistory), "Clear History"),
         .init(group: .notchcast(feature: .dictationCleanup), "Cleanup endpoint"),
         .init(group: .notchcast(feature: .dictationCleanup), "Cleanup effort"),
         .init(group: .notchcast(feature: .dictationCleanup), "Cleanup prompt addition"),

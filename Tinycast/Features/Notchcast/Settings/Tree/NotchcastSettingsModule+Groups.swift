@@ -199,6 +199,7 @@ extension NotchcastSettingsModule {
             ]),
             .init(title: "History", items: [
                 .feature(.dictationHistory, settings: []),
+                .setting(.dictationHistory),
             ]),
         ]
         case .aiAndAgents: [

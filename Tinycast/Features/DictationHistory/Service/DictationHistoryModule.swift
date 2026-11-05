@@ -1,7 +1,10 @@
 import Foundation
+import Observation
 
 @MainActor
+@Observable
 final class DictationHistoryModule: NotchcastModule {
+    private(set) var revision = 0
     private let repository: DictationHistoryRepository
     private let queue = DispatchQueue(label: "dictation-history")
     private(set) var isRunning = false
@@ -28,7 +31,10 @@ final class DictationHistoryModule: NotchcastModule {
     func enqueue(raw: String, cleaned: String) {
         guard isRunning else { return }
         schedule { module in
-            do { try await module.perform { try $0.record(raw: raw, cleaned: cleaned) } }
+            do {
+                try await module.perform { try $0.record(raw: raw, cleaned: cleaned) }
+                module.revision += 1
+            }
             catch { module.onFailure?() }
         }
     }
@@ -53,6 +59,7 @@ final class DictationHistoryModule: NotchcastModule {
         guard isRunning else { return }
         do {
             try await perform { try $0.record(raw: raw, cleaned: cleaned) }
+            revision += 1
         } catch { onFailure?() }
     }
 
@@ -62,6 +69,7 @@ final class DictationHistoryModule: NotchcastModule {
 
     func deleteAll() async throws {
         try await perform { try $0.deleteAll() }
+        revision += 1
     }
 
     private func perform<T: Sendable>(
