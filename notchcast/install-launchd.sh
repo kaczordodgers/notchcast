@@ -48,9 +48,17 @@ PLIST
 
 # Login Items shows the executable, so a job runs through a named wrapper rather than /bin/bash.
 named_job() { # name program...
+    local name=$1
     local wrapper="$HOME/Library/Application Support/notchcast/jobs/$1"; shift
     mkdir -p "$(dirname "$wrapper")"
-    printf '#!/bin/bash\nexec %s\n' "$(printf '%q ' "$@")" > "$wrapper"
+    printf '#!/bin/bash\n' > "$wrapper"
+    if [ "$name" = 'Notchcast update' ]; then
+        printf 'cd %q || exit 1\n' "$HERE/.." >> "$wrapper"
+        printf '%s\n' 'if [ "$(git branch --show-current)" = main ] && [ -z "$(git status --porcelain)" ]; then' \
+            '    git pull --ff-only --quiet || echo "checkout refresh failed; using current code"' \
+            'else echo "checkout is not clean main; using current code"; fi' >> "$wrapper"
+    fi
+    printf 'exec %s\n' "$(printf '%q ' "$@")" >> "$wrapper"
     chmod 755 "$wrapper"
     /bin/bash -n "$wrapper"
     echo "$wrapper"
