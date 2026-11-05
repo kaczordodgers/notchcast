@@ -49,6 +49,8 @@ Our commits:
 
 The new bundle id and signature need Accessibility to be granted once.
 
+Before each update run, the job fetches origin `main` and runs its `notchcast/` tooling from `~/Library/Application Support/notchcast/tools`, leaving the checkout untouched; if refresh fails, it logs and uses the last extracted copy or the checkout. After this change, run `notchcast/install-launchd.sh update` once on each Mac to rewrite the job wrapper. Replacing an installed app (including `--install`) waits for at least 300 seconds of HID idle time, polling every 30 seconds for up to 25 minutes before deferring to the next run; first installs never wait.
+
 ## Conflict-free PRs
 
 Merge only with `notchcast/land.sh <pr>`. It checks an isolated merge of the PR head into current main, runs core and affected fork harnesses, and squash-merges only that PR head after they pass. It refuses unless `build` is green on that head. Main harnesses tests the newest source push (a newer push cancels an older run) with the harnesses changed since its last green run (core only on a sync rewrite, which Sync tested). This is not an app build: switches in files no selected harness compiles, UI integration, and main moving between the check and the merge remain outside its protection; the PR build is still required.
