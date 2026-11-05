@@ -5,21 +5,21 @@ struct ShelfReceivedSection: View {
     @Environment(AppCore.self) private var core
     @State private var entries: [ShelfReceivedEntry] = []
     @State private var busy = false
-    var samples: [ShelfReceivedEntry]?
     private var store: ShelfReceivedStore { NotchcastCore.shelf.store }
 
     var body: some View {
         Group {
             if let status = NotchcastCore.shelf.linkStatus {
                 LabeledContent("Status", value: status.shelfPeerAvailable
-                    ? String(localized: "Paired") : String(localized: "Not connected"))
+                    ? String(localized: "Connected") : String(localized: "Not connected"))
             }
-            ShelfReceivedRows(entries: samples ?? entries, action: perform)
-            if !(samples ?? entries).isEmpty {
-                Button("Clear all", role: .destructive) {
+            ShelfReceivedRows(entries: entries, action: perform)
+            Group {
+                Button(String(localized: "Clear All"), role: .destructive) {
                     Task {
-                        guard await core.confirm(title: String(localized: "Clear All Received Items?"),
-                            message: nil, symbol: "tray", confirmTitle: String(localized: "Clear All")) else { return }
+                        guard await core.confirm(title: String(localized: "Clear all received items?"),
+                            message: String(localized: "This can't be undone."), symbol: "tray",
+                            confirmTitle: String(localized: "Clear All")) else { return }
                         await update { try await store.clear() }
                     }
                 }
@@ -27,17 +27,29 @@ struct ShelfReceivedSection: View {
         }
         .disabled(busy)
         .task {
-            guard samples == nil else { return }
+            var lastDate: Date?
+            var loadedOnce = false
+            var reportedError = false
             while !Task.isCancelled {
                 do {
-                    let loaded = try await store.entries()
-                    try Task.checkCancellation()
-                    if !busy { entries = loaded }
-                    try await Task.sleep(for: .seconds(2))
+                    let date = try await store.modificationDate()
+                    if !busy && (!loadedOnce || date != lastDate) {
+                        let loaded = try await store.entries()
+                        try Task.checkCancellation()
+                        if !busy {
+                            entries = loaded
+                            lastDate = date
+                            loadedOnce = true
+                        }
+                    }
+                    reportedError = false
                 } catch is CancellationError { return } catch {
-                    core.showMessage(String(localized: "Could Not Load Shelf"), tone: .danger)
-                    return
+                    if !reportedError {
+                        core.showMessage(String(localized: "Could Not Load Shelf"), tone: .danger)
+                        reportedError = true
+                    }
                 }
+                do { try await Task.sleep(for: .seconds(2)) } catch { return }
             }
         }
     }
@@ -53,7 +65,10 @@ struct ShelfReceivedSection: View {
                                                  openWithBundleID: nil, inNewWindow: false)
             } }
         case .save:
-            Task { await update { _ = try await store.save(entry, to: .downloadsDirectory) } }
+            Task { await update {
+                _ = try await store.save(entry, to: .downloadsDirectory)
+                core.showMessage(String(localized: "Saved to Downloads"))
+            } }
         case .remove:
             Task { await update { try await store.remove(entry) } }
         }
@@ -96,7 +111,7 @@ struct ShelfReceivedRows: View {
                 Spacer()
                 if entry.item.kind != .file { Button("Copy") { action(entry, .copy) } }
                 if entry.item.kind == .link { Button("Open") { action(entry, .open) } }
-                if entry.item.kind == .file { Button("Save to downloads") { action(entry, .save) } }
+                if entry.item.kind == .file { Button(String(localized: "Save to Downloads")) { action(entry, .save) } }
                 Button("Remove", role: .destructive) { action(entry, .remove) }
             }
         }
