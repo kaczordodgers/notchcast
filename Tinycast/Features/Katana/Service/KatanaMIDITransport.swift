@@ -26,7 +26,6 @@ final class KatanaMIDITransport: KatanaTransport {
 
     func start() {
         midi.changed = { [weak self] in self?.reconnect() }
-        midi.received = { [weak self] in self?.receive($0) }
         do { try midi.start(); reconnect() } catch { disconnect() }
     }
 
@@ -52,7 +51,12 @@ final class KatanaMIDITransport: KatanaTransport {
         do {
             try midi.connect(found)
             endpoint = found
-            connectionID = UUID()
+            let generation = UUID()
+            connectionID = generation
+            midi.received = { [weak self] bytes in
+                guard self?.connectionID == generation else { return }
+                self?.receive(bytes)
+            }
         } catch { disconnect() }
     }
 
