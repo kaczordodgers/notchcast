@@ -20,7 +20,8 @@ Restore validates every value before confirmation and again before writing. Any 
 including a root or nested JSON key, wrong type, unsupported choice or out-of-range value refuses
 the whole file and leaves memory and defaults unchanged. Plist booleans are distinct from numbers.
 Missing keys stay untouched. A bad newest file is refused without falling back.
-Switches apply through `NotchcastPreferences.set`; other values use setters and store APIs.
+Switches apply through `NotchcastPreferences.set`; unwired switches present in the backup are
+written as false so restore cannot enable hidden features. Other values use setters and store APIs.
 Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
 opening the folder has its own task. Missing backups show a notice.
 Open Settings Backup Folder creates and opens the folder. Both commands work with the switch off.
