@@ -14,7 +14,8 @@ One output folder contains PNGs at 2x, matching `*-layout.json`, `manifest.txt`,
 `coverage.json`, `inventory.json`, `inventory.md`, `run.log` and `layout-check.log`.
 The manifest is written before rendering. Missing PNGs or layout files, capture
 errors and offscreen-check failures make the command fail. `check-pixels.swift`
-also rejects nearly transparent or uniform PNGs, naming each failed page. It samples
+also rejects nearly transparent or uniform PNGs and byte-identical closed states within
+the same display shape, naming each failed page. It samples
 alpha coverage against the measured surface and quantized colour diversity across
 the canvas; this is a blank-output guard, not a visual correctness test. Layout findings are
 reported independently: `python3 notchcast/gallery/check-layout.py <out>` exits
