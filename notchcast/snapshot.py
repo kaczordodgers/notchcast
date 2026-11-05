@@ -21,7 +21,7 @@ def plan(releases, main, commit, now, event, skip_gate=False):
         if now < opens and not skip_gate:
             reason = f"50-minute gate closed for main {main}; opens {opens:%Y-%m-%d %H:%M:%S} UTC"
             if event == "workflow_dispatch":
-                return {"skip": reason}
+                return {"closed": reason}
             return {"wait": math.ceil((opens - now).total_seconds())}
     mirrors = [r["tagName"] for r in releases if not r["isDraft"] and version_key(r["tagName"])]
     base = max(mirrors, key=version_key)
@@ -46,8 +46,11 @@ def main():
         if "error" in result:
             print(f"::error::Snapshot skipped: {result['error']}")
             return 1
+        if "closed" in result:
+            print(f"::notice::Snapshot skipped: {result['closed']}")
+            return 0
         if "skip" in result:
-            print(f"::notice::Snapshot skipped: {result['skip']}")
+            print(f"Snapshot skipped: {result['skip']}")
             return 0
         tag = result["tag"]
         output(tag=tag, version=tag[1:], build=os.environ["GITHUB_RUN_NUMBER"], main=sha)

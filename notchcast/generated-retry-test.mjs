@@ -20,7 +20,7 @@ for (const [conclusion, steps, annotation, expected] of [
   const github = {
     paginate: async endpoint => endpoint === listJobs ? [job] : [{message: annotation}],
     rest: {
-      actions: {listJobsForWorkflowRunAttempt: listJobs, reRunWorkflowFailedJobs: async () => { retries++; }},
+      actions: {listJobsForWorkflowRunAttempt: listJobs, reRunWorkflow: async () => { retries++; }},
       checks: {listAnnotations},
     },
   };

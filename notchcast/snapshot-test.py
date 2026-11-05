@@ -81,8 +81,8 @@ class SnapshotTests(unittest.TestCase):
 
     def test_dispatch_gate_names_sha_and_open_time(self):
         result = self.plan("workflow_dispatch")
-        self.assertIn("current-main", result["skip"])
-        self.assertIn("2026-11-05 12:50:00 UTC", result["skip"])
+        self.assertIn("current-main", result["closed"])
+        self.assertIn("2026-11-05 12:50:00 UTC", result["closed"])
 
     def test_skip_gate_only_bypasses_timer(self):
         self.assertIn("tag", self.plan("workflow_dispatch", skip_gate=True))

@@ -34,5 +34,5 @@ jobs:
             if (!annotations.some(annotation => annotation.message.includes(
               'The job was not acquired by Runner of type hosted even after multiple attempts'
             ))) return;
-            await github.rest.actions.reRunWorkflowFailedJobs({...repo, run_id: run.id});
+            await github.rest.actions.reRunWorkflow({...repo, run_id: run.id});
             core.notice(`Retrying Generated files runner allocation after attempt ${run.run_attempt}`);
