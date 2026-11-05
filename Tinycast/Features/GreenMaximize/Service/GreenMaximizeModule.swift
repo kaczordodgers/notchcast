@@ -17,6 +17,7 @@ final class GreenMaximizeModule: NotchcastModule {
         var snapshot: Snapshot?
         var pointerSnapshot: Snapshot?
         var pointerGate = GreenMaximizeClick.PointerGate()
+        var exclusions: Set<String> = []
         var click = GreenMaximizeClick.Session()
     }
 
@@ -96,7 +97,7 @@ final class GreenMaximizeModule: NotchcastModule {
                         point: event.location, rect: snapshot.rect,
                         age: ProcessInfo.processInfo.systemUptime - snapshot.date,
                         option: event.flags.contains(.maskAlternate),
-                        bundleID: snapshot.bundleID, exclusions: [])
+                        bundleID: snapshot.bundleID, exclusions: value.exclusions)
                 }
                 let decision = value.click.decide(kind, hit: snapshot != nil)
                 return (decision.swallow, decision.maximize ? snapshot : nil)
@@ -141,6 +142,7 @@ final class GreenMaximizeModule: NotchcastModule {
         guard refreshID == nil else { refreshAgain = true; return }
         exclusions = Set(NotchcastPreferences.shared.greenMaximizeExcludedApps
             .split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+        shared.value.withLock { $0.exclusions = exclusions }
         guard AXIsProcessTrusted(), let app = NSWorkspace.shared.frontmostApplication,
             let bundleID = app.bundleIdentifier, !exclusions.contains(bundleID)
         else { shared.value.withLock { $0.snapshot = nil }; return }
@@ -174,7 +176,6 @@ final class GreenMaximizeModule: NotchcastModule {
         let changed = window == nil || !CFEqual(window, focused) || observedPID != pid
         if changed {
             clearObserver()
-            memory = nil
         }
         window = focused
         if observer == nil {
@@ -235,15 +236,15 @@ final class GreenMaximizeModule: NotchcastModule {
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.pointerID == id else { return }
                 self.pointerID = nil
-                self.shared.value.withLock { $0.pointerSnapshot = nil }
+                var snapshot: Snapshot?
                 let stillInside = self.shared.value.withLock { $0.pointerGate.zone != nil }
                 if stillInside, self.pointerPoint == point, let (pid, result) = result,
                     let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier,
                     !self.exclusions.contains(bundleID) {
-                    let snapshot = Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
+                    snapshot = Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
                         date: result.date, generation: self.generation, target: result)
-                    self.shared.value.withLock { $0.pointerSnapshot = snapshot }
                 }
+                self.shared.value.withLock { $0.pointerSnapshot = snapshot }
                 if let latest = self.pointerPoint, latest != point { self.refreshPointer(latest) }
             }
         }
