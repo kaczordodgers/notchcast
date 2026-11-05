@@ -6,6 +6,8 @@ rejects duplicate IDs. Parameters use a closed object schema with string, boolea
 properties, required fields, numeric bounds, allowed values and minimum string lengths. Discovery exposes the same JSON Schema used to
 validate execution. Upstream built-ins come directly from their existing catalogues and dispatch
 through the existing hotkey or system-action coordinator; success means `dispatched`.
+Fork launcher commands use their published entry IDs, live catalog availability and the existing hotkey dispatch path.
+Their danger class follows the deep-link consent policy: only Toggle Island is harmless.
 
 The Agent access and Command line tool switches are independent of the island. Both follow the
 fork's default-on switch policy. Turning Agent access off invalidates pending approvals and stops
