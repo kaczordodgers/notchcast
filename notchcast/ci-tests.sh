@@ -5,6 +5,7 @@ export CI=1
 export LIBDISPATCH_COOPERATIVE_POOL_STRICT=1 NOTCHCAST_TEST_HELPER_EXECUTABLE=1
 export TINYCAST_TEST_JOBS=${CHAD_BUILD_QUEUE_JOBS:-4}
 set -a; source "$TOOLS/notchcast/config.env"; set +a
+python3 "$TOOLS/notchcast/snapshot-test.py"
 grep -q '^    local name=\$1$' Scripts/run-tests.sh || { echo "::error::run-tests.sh changed shape; update the skip hook"; exit 1; }
 sed -i '' -E 's/^    local name=\$1$/    local name=$1; case " $CI_SKIP_TESTS " in *" $name "*) echo "skipped on the runner: $name" >\&2; return 0;; esac/' Scripts/run-tests.sh
 status=0
