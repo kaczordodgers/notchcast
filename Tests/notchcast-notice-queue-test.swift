@@ -17,9 +17,12 @@ final class FakeNoticeClock {
         for _ in 0..<100 { await Task.yield() }
     }
 
+    /// Ends every dwell armed so far, including ones a re-arm already cancelled.
     func advance() async {
         precondition(!sleepers.isEmpty)
-        sleepers.removeFirst().resume()
+        let due = sleepers
+        sleepers.removeAll()
+        due.forEach { $0.resume() }
         await settle()
     }
 }
@@ -29,74 +32,98 @@ struct NoticeQueueTests {
     static func main() async {
         let clock = FakeNoticeClock()
         let center = IslandActivityCenter(sleep: { await clock.sleep($0) })
-        var displayed: [String] = []
-        func record(_ expected: String) {
-            precondition(center.message?.text == expected)
-            displayed.append(expected)
+        func expect(_ text: String?, _ label: String) {
+            precondition(center.message?.text == text, "\(label): \(center.message?.text ?? "nil")")
         }
 
-        center.showMessage("Goal", tone: .success, dwell: 8)
-        center.showMessage("Lube", tone: .neutral, dwell: 8)
-        record("Goal")
+        center.showMessage("Goal", tone: .success, dwell: 8, id: "treadmill.goal")
+        center.showMessage("Lube", tone: .neutral, dwell: 8, id: "treadmill.lube")
         await clock.settle()
-        precondition(clock.durations == [8])
+        expect("Goal", "goal first")
         await clock.advance()
-        record("Lube")
+        expect("Lube", "lube after goal")
+        await clock.advance()
+        expect(nil, "queue drained")
         precondition(clock.durations == [8, 8])
-        await clock.advance()
-        precondition(center.message == nil)
 
-        center.showMessage("Keyboard battery", tone: .danger, dwell: 4)
-        center.showMessage("Mouse battery", tone: .danger, dwell: 4)
-        record("Keyboard battery")
+        center.showMessage("Keyboard battery", tone: .danger, dwell: 4, id: "accessory.battery.1")
+        center.showMessage("Mouse battery", tone: .danger, dwell: 4, id: "accessory.battery.2")
         await clock.settle()
+        expect("Keyboard battery", "first accessory")
         await clock.advance()
-        record("Mouse battery")
+        expect("Mouse battery", "second accessory")
         await clock.advance()
-        precondition(clock.durations == [8, 8, 4, 4])
+        expect(nil, "accessories drained")
 
-        center.showMessage("Blocker", tone: .neutral, dwell: 1)
+        center.showMessage("Blocker", tone: .neutral, dwell: 1, id: "blocker")
         center.showMessage("Old", tone: .neutral, dwell: 2, id: "device")
-        center.showMessage("Tail", tone: .neutral, dwell: 3)
+        center.showMessage("Tail", tone: .neutral, dwell: 3, id: "tail")
         center.showMessage("Latest", tone: .danger, dwell: 5, id: "device")
         await clock.settle()
         await clock.advance()
-        record("Latest")
+        expect("Latest", "waiting id coalesced in its slot")
         precondition(center.message?.tone == .danger && clock.durations.last == 5)
-        await clock.advance()
-        record("Tail")
-        await clock.advance()
-        precondition(center.message == nil)
-
-        center.showMessage("Active", tone: .neutral, dwell: 1)
-        for index in 0..<10 {
-            center.showMessage("Queued \(index)", tone: .neutral, dwell: 1)
-        }
-        record("Active")
+        let visible = center.message?.id
+        center.showMessage("Latest again", tone: .neutral, dwell: 6, id: "device")
         await clock.settle()
+        expect("Latest again", "visible id updated in place")
+        precondition(center.message?.id == visible && clock.durations.last == 6)
+        await clock.advance()
+        expect("Tail", "visible id never shown twice")
+        await clock.advance()
+        expect(nil, "coalescing drained")
+
+        center.showMessage("Active", tone: .neutral, dwell: 1, id: "active")
+        for index in 0..<10 {
+            center.showMessage("Queued \(index)", tone: .neutral, dwell: 1, id: "queued.\(index)")
+        }
+        await clock.settle()
+        expect("Active", "cap keeps visible")
         for index in 2..<10 {
             await clock.advance()
-            record("Queued \(index)")
+            expect("Queued \(index)", "eight newest kept")
         }
         await clock.advance()
-        precondition(center.message == nil)
+        expect(nil, "cap drained")
 
-        center.showMessage("Canceled", tone: .neutral, dwell: 1)
-        center.showMessage("Discarded", tone: .neutral, dwell: 1)
+        center.showMessage("Goal", tone: .success, dwell: 8, id: "treadmill.goal")
+        center.showMessage("Lube", tone: .neutral, dwell: 8, id: "treadmill.lube")
         await clock.settle()
+        center.showProgress("Rewriting…", onCancel: {})
+        center.showMessage("Battery", tone: .danger, dwell: 4, id: "accessory.battery.1")
+        precondition(center.message?.isProgress == true, "an id notice waits behind progress")
         center.dismissMessage()
-        center.showMessage("New", tone: .neutral, dwell: 2)
         await clock.settle()
+        expect("Lube", "hiding progress keeps the queue")
         await clock.advance()
-        record("New")
+        expect("Battery", "queue continues after dismissal")
         await clock.advance()
-        precondition(center.message == nil)
-        center.showProgress("Working")
-        center.showMessage("Finished", tone: .success, dwell: 2)
-        record("Finished")
+        expect(nil, "dismissal case drained")
+
+        center.showMessage("Copied path", tone: .success, dwell: 2.4)
         await clock.settle()
+        let copied = center.message?.id
+        center.showMessage("Copied path", tone: .success, dwell: 2.4)
+        await clock.settle()
+        precondition(center.message?.id == copied, "repeat replaces in place")
         await clock.advance()
-        precondition(center.message == nil)
-        print("PASS: goal/lube and accessory FIFO, durations, coalescing, eight-slot cap, stale dismissal")
+        expect(nil, "repeated text shows once")
+
+        center.showMessage("Goal", tone: .success, dwell: 8, id: "treadmill.goal")
+        center.showMessage("Lube", tone: .neutral, dwell: 8, id: "treadmill.lube")
+        await clock.settle()
+        center.showMessage("Copied text", tone: .success, dwell: 2.4)
+        await clock.settle()
+        expect("Copied text", "confirmation never waits")
+        precondition(clock.durations.last == 2.4)
+        await clock.advance()
+        expect("Lube", "queue resumes after the confirmation")
+        center.showProgress("Reading text…")
+        center.showMessage("Copied text", tone: .success, dwell: 2.4)
+        await clock.settle()
+        expect("Copied text", "result replaces progress")
+        await clock.advance()
+        expect(nil, "confirmation case drained")
+        print("PASS: id FIFO, coalescing, cap, dismissal keeps queue, id-less replace and resume")
     }
 }

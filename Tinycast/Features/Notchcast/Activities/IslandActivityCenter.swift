@@ -12,9 +12,10 @@ final class IslandActivityCenter {
     @ObservationIgnored private var dismissal: Task<Void, Never>?
     @ObservationIgnored private let sleep: @MainActor (TimeInterval) async -> Void
     @ObservationIgnored private var pending: [Notice] = []
+    @ObservationIgnored private var visibleID: String?
 
     private struct Notice {
-        let id: String
+        let id: String?
         let text: String
         let tone: IslandMessage.Tone
         let dwell: TimeInterval
@@ -54,46 +55,43 @@ final class IslandActivityCenter {
 
     func fail(_ id: UUID) { finish(id) }
 
+    /// Only an `id` waits its turn; without one a message replaces the visible one, like upstream's HUD.
     func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval, id: String? = nil) {
-        if message?.isProgress == true {
-            dismissal?.cancel()
-            message = nil
-        }
-        let notice = Notice(id: id ?? text, text: text, tone: tone, dwell: dwell)
-        if let index = pending.firstIndex(where: { $0.id == notice.id }) {
+        let notice = Notice(id: id, text: text, tone: tone, dwell: dwell)
+        guard let id, message != nil, id != visibleID else { return present(notice) }
+        if let index = pending.firstIndex(where: { $0.id == id }) {
             pending[index] = notice
         } else {
             pending.append(notice)
             if pending.count > 8 { pending.removeFirst() }
         }
-        if message == nil { presentNext() }
     }
 
-    private func presentNext() {
-        guard !pending.isEmpty else { return }
-        let notice = pending.removeFirst()
-        let presentationID = UUID()
-        message = IslandMessage(id: presentationID, tone: notice.tone, text: notice.text,
+    private func present(_ notice: Notice) {
+        dismissal?.cancel()
+        visibleID = notice.id
+        message = IslandMessage(id: message?.id ?? UUID(), tone: notice.tone, text: notice.text,
                                 isProgress: false, onCancel: nil)
         dismissal = Task { [weak self, sleep] in
             await sleep(notice.dwell)
-            guard !Task.isCancelled, let self, self.message?.id == presentationID else { return }
-            self.dismissal = nil
-            self.message = nil
-            self.presentNext()
+            guard !Task.isCancelled else { return }
+            self?.dismissMessage()
         }
     }
 
     func showProgress(_ text: String, onCancel: (() -> Void)? = nil) {
         dismissal?.cancel()
+        visibleID = nil
         message = IslandMessage(id: message?.id ?? UUID(), tone: .neutral, text: text, isProgress: true,
                                 onCancel: onCancel)
     }
 
+    /// Ends only the visible message; waiting notices keep their turn.
     func dismissMessage() {
         dismissal?.cancel()
         dismissal = nil
+        visibleID = nil
         message = nil
-        pending.removeAll()
+        if !pending.isEmpty { present(pending.removeFirst()) }
     }
 }
