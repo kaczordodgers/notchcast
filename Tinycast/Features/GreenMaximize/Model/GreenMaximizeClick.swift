@@ -1,6 +1,12 @@
 import Foundation
 
 enum GreenMaximizeClick {
+    static func target<T>(pointer: T?, frontmost: T?, hit: (T) -> Bool) -> T? {
+        if let pointer, hit(pointer) { return pointer }
+        if let frontmost, hit(frontmost) { return frontmost }
+        return nil
+    }
+
     enum Event { case down, up, move, drag }
 
     struct Session: Sendable {

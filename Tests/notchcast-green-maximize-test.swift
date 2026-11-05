@@ -37,6 +37,21 @@ struct GreenMaximizeTest {
         precondition(!hit(exclusions: ["test.app"]))
         testObserverTicks()
         testEvents()
+        let background = rect.offsetBy(dx: 100, dy: 0)
+        func target(_ point: CGPoint, age: Double = 0, option: Bool = false,
+                    exclusions: Set<String> = []) -> CGRect? {
+            GreenMaximizeClick.target(pointer: background, frontmost: rect) { candidate in
+                GreenMaximizeClick.intercept(point: point, rect: candidate, age: age,
+                    option: option, bundleID: "test.app", exclusions: exclusions)
+            }
+        }
+        precondition(target(CGPoint(x: 125, y: 25)) == background)
+        precondition(target(CGPoint(x: 25, y: 25)) == rect)
+        precondition(target(.zero) == nil)
+        precondition(target(CGPoint(x: 125, y: 25), option: true) == nil)
+        precondition(target(CGPoint(x: 125, y: 25), exclusions: ["test.app"]) == nil)
+        precondition(target(CGPoint(x: 125, y: 25), age: 2) == nil)
+        precondition(GreenMaximizeRefresh.buttonRect { _ in rect } == rect)
         precondition(GreenMaximizeRefresh.buttonRect { $0 == "AXFullScreenButton" ? rect : .zero } == rect)
         precondition(GreenMaximizeRefresh.buttonRect { $0 == "AXZoomButton" ? rect : .zero } == rect)
         precondition(GreenMaximizeRefresh.buttonRect { _ in .zero } == nil)
