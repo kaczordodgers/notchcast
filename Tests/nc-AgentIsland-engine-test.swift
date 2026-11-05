@@ -203,18 +203,14 @@ private struct CountingRunner: AgentThreadRunning {
         var visibleDone = false
         counted.refresh { _ in visibleDone = true }
         while !visibleDone { await Task.yield() }
-        try await Task.sleep(for: .milliseconds(200))
-        precondition(counter.passes == beforeVisibleRefresh + 1)
-        let deadline = ContinuousClock.now + .seconds(20)
-        while counter.passes < beforeVisibleRefresh + 2 && ContinuousClock.now < deadline {
-            try await Task.sleep(for: .milliseconds(100))
-        }
-        precondition(counter.passes == beforeVisibleRefresh + 2,
-                     "Polling passes: \(counter.passes), before refresh: \(beforeVisibleRefresh)")
+        // Agent Threads polls every 15 s; one second without a new pass proves no extra round followed.
+        try await Task.sleep(for: .seconds(1))
+        precondition(counter.passes == beforeVisibleRefresh + 1,
+                     "Passes: \(counter.passes), before refresh: \(beforeVisibleRefresh)")
         counted.stop()
         countedThreads.stop()
         print("PASS: invisible stop/refresh preserve foreign refresh completion; zero forwarded activity changes")
-        print("PASS: visible status refresh runs exactly one T3 pass, then normal 15-second polling")
+        print("PASS: visible status refresh runs exactly one T3 pass and no extra round after it")
         print("PASS: late completion gets 5.2 seconds from first sight; stale completion stays hidden")
         print("PASS: every source mapping, priority, stable ordering, name cap and combined summary/message choice")
         print("PASS: injected 5.2-second window, persistent failure, dismissal and changed failure")
