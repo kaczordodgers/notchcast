@@ -47,7 +47,9 @@ if [ "$want" != "${last_main:-} ${last_release:-}" ]; then reason="upstream chan
 elif [ $((now - ${last_at:-0})) -ge "$HEARTBEAT_SEC" ]; then reason="hourly heartbeat"
 fi
 if [ -n "$reason" ] || [ "$DRY" = 1 ]; then
-    if [ "$DRY" = 1 ]; then log "would start sync ($reason)"
+    pending="$(gh run list -R "$FORK_REPO" --workflow sync.yml --limit 100 --json status --jq '[.[] | select(.status == "queued" or .status == "pending" or .status == "waiting")] | length' 2>&1)" || fail "reading pending sync runs: $pending"
+    if [ "$pending" != 0 ]; then log "skip sync: a run is queued/pending/waiting; re-evaluate next tick"
+    elif [ "$DRY" = 1 ]; then log "would start sync ($reason)"
     else
         out="$(gh workflow run sync.yml -R "$FORK_REPO" --ref main 2>&1)" || fail "gh workflow run: $out"
         echo "$want $now" > "$STATE"
