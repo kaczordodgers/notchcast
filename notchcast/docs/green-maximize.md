@@ -15,10 +15,16 @@ Stopping clears the cache, removes the tap consumer and observer, and invalidate
 
 The tap also consumes pointer motion over the green button to prevent its hover tile menu.
 An intercepted press owns dragging and release even after the button moves. Option bypasses
-hover and press interception. AX discovery prefers a valid full-screen button frame, then a
-valid zoom button frame; empty or disabled controls cannot shadow the usable control.
+hover and press interception. AX discovery prefers a valid zoom button frame, then a
+valid full-screen button frame; empty or disabled controls cannot shadow the usable control.
 
-Mouse movement also coalesces a system-wide AX hit test on that queue. The window under the
+Pointer discovery has its own serial queue so a hung app cannot block frontmost refreshes.
+Main reads on-screen layer-0 window bounds through CGWindowListCopyWindowInfo before pointer AX.
+Only their top-left 100×40 pt zones qualify: three observed 16 pt buttons plus gaps and margins
+fit within 100 pt, with 40 pt covering the title-bar height. Outside these zones the pointer
+snapshot clears and no pointer AX read runs, including on the idle timer. The tap checks cached
+geometry only and hops to main when zone membership changes, coalescing motion within a zone.
+The window under the
 pointer supplies a second snapshot, including its exact AX handle and pid, so background traffic
 lights work without activating the app first. Actions target the captured window rather than
 requiring the focused window; stop invalidates both snapshots. Pointer snapshots have the same

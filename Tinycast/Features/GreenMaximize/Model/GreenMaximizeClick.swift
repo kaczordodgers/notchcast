@@ -1,6 +1,23 @@
 import Foundation
 
 enum GreenMaximizeClick {
+    struct PointerGate: Sendable {
+        var zones: [CGRect] = []
+        var zone: Int?
+
+        mutating func moved(to point: CGPoint) -> Bool {
+            let next = zones.firstIndex { $0.contains(point) }
+            guard next != zone else { return false }
+            zone = next
+            return true
+        }
+
+        static func zone(bounds: CGRect, layer: Int) -> CGRect? {
+            guard layer == 0, !bounds.isEmpty else { return nil }
+            return bounds.intersection(CGRect(origin: bounds.origin, size: CGSize(width: 100, height: 40)))
+        }
+    }
+
     static func target<T>(pointer: T?, frontmost: T?, hit: (T) -> Bool) -> T? {
         if let pointer, hit(pointer) { return pointer }
         if let frontmost, hit(frontmost) { return frontmost }

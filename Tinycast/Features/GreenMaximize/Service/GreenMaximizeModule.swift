@@ -16,6 +16,7 @@ final class GreenMaximizeModule: NotchcastModule {
     private struct TapState: Sendable {
         var snapshot: Snapshot?
         var pointerSnapshot: Snapshot?
+        var pointerGate = GreenMaximizeClick.PointerGate()
         var click = GreenMaximizeClick.Session()
     }
 
@@ -34,6 +35,7 @@ final class GreenMaximizeModule: NotchcastModule {
     private var timer: Timer?
     private var exclusions: Set<String> = []
     private let refreshQueue = DispatchQueue(label: "app.notchcast.green-maximize.refresh")
+    private let pointerQueue = DispatchQueue(label: "app.notchcast.green-maximize.pointer")
     private var refreshID: UUID?
     private var refreshAgain = false
     private var pointerID: UUID?
@@ -70,7 +72,14 @@ final class GreenMaximizeModule: NotchcastModule {
         ) { [weak self] type, event in
             if type == .mouseMoved {
                 let point = event.location
-                DispatchQueue.main.async { [weak self] in self?.refreshPointer(point) }
+                let changed = shared.value.withLock { value in
+                    let changed = value.pointerGate.moved(to: point)
+                    if changed { value.pointerSnapshot = nil }
+                    return changed
+                }
+                if changed {
+                    DispatchQueue.main.async { [weak self] in self?.refreshPointer(point) }
+                }
             }
             let result: (Bool, Snapshot?) = shared.value.withLock { value in
                 let kind: GreenMaximizeClick.Event
@@ -126,6 +135,7 @@ final class GreenMaximizeModule: NotchcastModule {
     }
 
     private func refresh() {
+        refreshPointerZones()
         let mouse = NSEvent.mouseLocation
         refreshPointer(CGPoint(x: mouse.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - mouse.y))
         guard refreshID == nil else { refreshAgain = true; return }
@@ -209,16 +219,25 @@ final class GreenMaximizeModule: NotchcastModule {
     private func refreshPointer(_ point: CGPoint) {
         guard registration != nil else { return }
         pointerPoint = point
+        refreshPointerZones()
+        let inside = shared.value.withLock { value in
+            value.pointerGate.zones.contains { $0.contains(point) }
+        }
+        guard inside else {
+            shared.value.withLock { $0.pointerSnapshot = nil }
+            return
+        }
         guard pointerID == nil else { return }
         let id = UUID()
         pointerID = id
-        refreshQueue.async { [weak self] in
+        pointerQueue.async { [weak self] in
             let result = GreenMaximizeRefresh.underPointer(point)
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.pointerID == id else { return }
                 self.pointerID = nil
                 self.shared.value.withLock { $0.pointerSnapshot = nil }
-                if let (pid, result) = result,
+                let stillInside = self.shared.value.withLock { $0.pointerGate.zone != nil }
+                if stillInside, self.pointerPoint == point, let (pid, result) = result,
                     let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier,
                     !self.exclusions.contains(bundleID) {
                     let snapshot = Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
@@ -228,6 +247,19 @@ final class GreenMaximizeModule: NotchcastModule {
                 if let latest = self.pointerPoint, latest != point { self.refreshPointer(latest) }
             }
         }
+    }
+
+    private func refreshPointerZones() {
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+            kCGNullWindowID) as? [[String: Any]] ?? []
+        let zones = windows.compactMap { info -> CGRect? in
+            guard let layer = info[kCGWindowLayer as String] as? Int,
+                let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                let rect = CGRect(dictionaryRepresentation: bounds)
+            else { return nil }
+            return GreenMaximizeClick.PointerGate.zone(bounds: rect, layer: layer)
+        }
+        shared.value.withLock { $0.pointerGate.zones = zones }
     }
 }
 
