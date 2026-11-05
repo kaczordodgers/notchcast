@@ -15,21 +15,24 @@ final class SystemLevelKeysModule: NotchcastModule {
     @ObservationIgnored private let preferences: NotchcastPreferences
     @ObservationIgnored private let hub: EventTapHub
     @ObservationIgnored private let present: (LevelNotice?) -> Void
+    @ObservationIgnored private let replay: @MainActor (MediaLevelKeyMonitor.Press) -> Void
     @ObservationIgnored private var running = false
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private lazy var monitor = MediaLevelKeyMonitor(
         hub: hub, prepare: { [weak self] press in
             self?.prepare(press) ?? { .cancelled }
-        }, applied: { [weak self] notice in self?.publish(notice) })
+        }, applied: { [weak self] notice in self?.publish(notice) }, replay: replay)
 
     init(hub: EventTapHub, levels: SystemLevelsModule, brightness: DisplayBrightnessModule,
          preferences: NotchcastPreferences = .shared,
-         present: @escaping (LevelNotice?) -> Void = { _ in }) {
+         present: @escaping (LevelNotice?) -> Void = { _ in },
+         replay: @escaping @MainActor (MediaLevelKeyMonitor.Press) -> Void = MediaLevelKeyMonitor.replay) {
         self.hub = hub
         self.levels = levels
         self.brightness = brightness
         self.preferences = preferences
         self.present = present
+        self.replay = replay
     }
 
     func start() {
@@ -82,18 +85,25 @@ final class SystemLevelKeysModule: NotchcastModule {
             let preferences = preferences
             guard let display = controller.displays().first(where: {
                 CGDisplayBounds($0.id.rawValue).contains(press.location)
-            }) else { return { .cancelled } }
+            }) else {
+                return {
+                    guard !Task.isCancelled, preferences.isOn(.displayBrightness) else { return .cancelled }
+                    return .fallbackToNativeKeys
+                }
+            }
             return {
                 guard !Task.isCancelled, preferences.isOn(.displayBrightness)
                 else { return .cancelled }
                 let result = await controller.step(up: press.key.isIncreasing, fine: press.fine, for: display.id)
-                guard !Task.isCancelled, preferences.isOn(.displayBrightness),
-                      BrightnessDisplayService.isAvailable(display.id),
-                      controller.displays().contains(where: { $0.id == display.id })
+                guard !Task.isCancelled, preferences.isOn(.displayBrightness)
                 else { return .cancelled }
                 switch result {
-                case .applied(let level): return .applied(LevelNotice(kind: .brightness, level: level.value))
-                case .unavailable: return display.isBuiltIn ? .fallbackToNativeKeys : .cancelled
+                case .applied(let level):
+                    guard BrightnessDisplayService.isAvailable(display.id),
+                          controller.displays().contains(where: { $0.id == display.id })
+                    else { return .cancelled }
+                    return .applied(LevelNotice(kind: .brightness, level: level.value))
+                case .unavailable: return .fallbackToNativeKeys
                 case .cancelled: return .cancelled
                 }
             }
