@@ -9,6 +9,7 @@ struct CleanDiskScan: Sendable {
         let inode: UInt64
         var allocatedSize: UInt64
         var unreadable: Bool = false
+        var subtreeFingerprint: Data = Data()
     }
 
     let id: UUID
