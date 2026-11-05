@@ -10,7 +10,9 @@ extension GalleryPages {
             let suffix = mba ? "mba" : "ext"
             let closed = ["idle", "timer", "transfer", "status", "volume", "brightness", "airpods",
                           "low-battery", "wifi", "tailscale", "low-disk", "meeting-reminder",
-                          "dictation", "walk", "message", "danger-message"].map { state in
+                          "dictation", "walk", "message", "danger-message",
+                          "music", "music-paused", "recording", "several-items", "mac-update", "speed-test",
+                          "camera", "transcribing", "agents", "two-at-once", "music-and-timer"].map { state in
                 islandPage(core, name: "island-closed-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: false)
             }
@@ -18,51 +20,103 @@ extension GalleryPages {
                 islandPage(core, name: "island-open-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: true)
             }
-            return closed + opened
+            let opening = ["start", "mid"].map { frame in
+                islandPage(core, name: "launcher-opening-\(frame)-\(suffix)",
+                           display: display, notch: notch, state: "opening-\(frame)", open: false)
+            }
+            return closed + opened + opening + [launcherEnd(core, display: display, notch: notch, suffix: suffix)]
+        } + [visualizers()]
+    }
+
+    /// The sample song for the music states: a generated cover, so the picture needs no player.
+    static let sampleMusic = IslandClosedState.Music(title: "Teardrop", artist: "Massive Attack",
+                                                     artwork: sampleArtwork(), isPlaying: true)
+
+    private static func sampleArtwork() -> NSImage {
+        let side = NotchcastTheme.Pill.artwork * 4
+        return NSImage(size: CGSize(width: side, height: side), flipped: false) { rect in
+            NSGradient(starting: NSColor(calibratedRed: 0.93, green: 0.45, blue: 0.25, alpha: 1),
+                       ending: NSColor(calibratedRed: 0.25, green: 0.20, blue: 0.55, alpha: 1))?
+                .draw(in: rect, angle: 60)
+            return true
+        }
+    }
+
+    /// The closed state a page shows: one activity per value type, the message states, the two-at-once pairs.
+    static func closedState(_ state: String) -> IslandClosedState {
+        let soon = Date().addingTimeInterval(300)
+        let timer = IslandActivity(kind: .timer, title: "Tea timer", value: .timeLeft(soon))
+        let transfer = IslandActivity(kind: .transfer, title: "Sample transfer", value: .percent(0.64))
+        switch state {
+        case "timer": return IslandClosedState(primary: timer)
+        case "transfer": return IslandClosedState(primary: transfer)
+        case "volume", "brightness":
+            let center = IslandActivityCenter()
+            let presenter = SystemLevelIslandPresenter(center: center)
+            presenter.present(LevelNotice(kind: state == "volume" ? .volume : .brightness,
+                                          level: state == "volume" ? 0.40 : 0.75))
+            let activity = center.current
+            presenter.present(nil)
+            return IslandClosedState(primary: activity)
+        case "meeting-reminder":
+            return IslandClosedState(primary: IslandActivity(kind: .status, title: "Design review", symbol: "calendar",
+                                                             value: .timeLeft(soon)))
+        case "music": return IslandClosedState(music: sampleMusic)
+        case "music-paused":
+            var paused = sampleMusic
+            paused.isPlaying = false
+            return IslandClosedState(music: paused)
+        case "recording":
+            return IslandClosedState(primary: IslandActivity(
+                kind: .status, title: "Screen recording", symbol: "record.circle",
+                value: .elapsed(since: Date().addingTimeInterval(-83))))
+        case "several-items":
+            return IslandClosedState(primary: IslandActivity(kind: .transfer, title: "Sample downloads", value: .count(2, of: 5)))
+        case "mac-update":
+            return IslandClosedState(primary: IslandActivity(kind: .status, title: "macOS update",
+                                                             symbol: "arrow.triangle.2.circlepath", value: .step(3, of: 7)))
+        case "speed-test":
+            return IslandClosedState(primary: IslandActivity(kind: .status, title: "Speed test", symbol: "speedometer",
+                                                             value: .number("184 Mb/s")))
+        case "camera":
+            return IslandClosedState(primary: IslandActivity(kind: .status, title: "Camera", symbol: "video",
+                                                             value: .onOff(true)))
+        case "transcribing":
+            return IslandClosedState(primary: IslandActivity(kind: .status, title: "Transcribing", symbol: "text.quote",
+                                                             value: .spinner))
+        case "agents":
+            return IslandClosedState(primary: IslandActivity(kind: .status, title: "Agents waiting", symbol: "person.2",
+                                                             value: .count(2, of: 4)))
+        case "two-at-once": return IslandClosedState(primary: timer, secondary: transfer)
+        case "music-and-timer": return IslandClosedState(primary: timer, music: sampleMusic)
+        default: return IslandClosedState()
         }
     }
 
     private static func islandPage(
         _ core: AppCore, name: String, display: CGRect, notch: CGRect?, state: String, open: Bool
     ) -> GalleryPage {
-        GalleryPage(name: name, types: ["IslandPanel", "IslandSurfaceView", "IslandClosedView",
-                                       "IslandContentView", "IslandHeaderView"]
-                    + (state == "day-calendar" ? ["ScheduleList"] : (open ? ["IslandHomeView"] : [])),
+        let closedTypes = ["IslandClosedView", "IslandActivityLine", "IslandMusicLine", "IslandGlyph", "IslandValueView",
+                           "IslandWord", "IslandArtwork", "IslandTrackText", "IslandLevelBars", "IslandMessageLine"]
+        return GalleryPage(name: name, types: ["IslandPanel", "IslandSurfaceView", "IslandContentView", "IslandHeaderView"]
+                    + (state == "day-calendar" ? ["ScheduleList"] : (open ? ["IslandHomeView"] : closedTypes)),
                     hardwareNotch: notch.map {
                         CGRect(x: $0.minX - (display.midX - NotchcastTheme.openMinimumWidth / 2),
-                               y: NotchcastTheme.maximumHeight - $0.height, width: $0.width, height: $0.height)
+                               y: NotchcastTheme.maximumHeight, width: $0.width, height: $0.height)
                     }, silhouette: { window in
                         (window.contentView?.layer?.mask as? CAShapeLayer)?.path ?? CGMutablePath()
                     }, makeWindow: {
             for activity in IslandActivityCenter.shared.activities { IslandActivityCenter.shared.finish(activity.id) }
-            let titles = ["timer": "Tea timer", "meeting-reminder": "Design review"]
-            var activity = IslandActivity(kind: state == "timer" ? .timer : (state == "transfer" ? .transfer : .status),
-                                          title: titles[state] ?? "Sample transfer",
-                                          progress: state == "transfer" ? 0.64 : nil,
-                                          endDate: state == "timer" ? Date().addingTimeInterval(300) : nil)
-            if state == "volume" || state == "brightness" {
-                let center = IslandActivityCenter()
-                let presenter = SystemLevelIslandPresenter(center: center)
-                presenter.present(LevelNotice(kind: state == "volume" ? .volume : .brightness,
-                                              level: state == "volume" ? 0.40 : 0.75))
-                activity = center.current!
-                presenter.present(nil)
+            if state == "home-entries" {
+                NotchcastPreferences.shared.set(.islandLiveActivities, true)
+                IslandActivityCenter.shared.begin(closedState("timer").primary!)
+                IslandActivityCenter.shared.begin(IslandActivity(kind: .status, title: "Sample export complete"))
             }
             let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
             let island = IslandController()
             let pages = IslandPagesCoordinator(core: core, island: island)
             let header = IslandHeaderView(cameraWidth: notch?.width ?? 0, height: panel.headerHeight)
                 .environment(island).environment(pages)
-            var compact = IslandController.ClosedContent()
-            if ["timer", "transfer", "volume", "brightness", "meeting-reminder"].contains(state) {
-                compact = IslandController.ClosedContent(leading: AnyView(IslandActivityGlyph(activity: activity)),
-                                                         trailing: AnyView(IslandActivityValue(activity: activity)))
-            }
-            if state == "home-entries" {
-                NotchcastPreferences.shared.set(.islandLiveActivities, true)
-                IslandActivityCenter.shared.begin(activity)
-                IslandActivityCenter.shared.begin(IslandActivity(kind: .status, title: "Sample export complete"))
-            }
             let content: AnyView
             if state == "day-calendar" {
                 let now = Date()
@@ -78,7 +132,7 @@ extension GalleryPages {
                                                scroll: ScrollIntent(kind: .top), onActivate: { _ in }, onActions: { _ in })
                     .frame(height: 200))
             } else { content = AnyView(IslandHomeView()) }
-            panel.setContent(open: AnyView(content.paletteEnvironment(core)), closed: compact,
+            panel.setContent(open: AnyView(content.paletteEnvironment(core)), closed: closedState(state),
                              header: AnyView(header.paletteEnvironment(core)))
             let messages = ["status": "Sample export complete", "airpods": "AirPods: Connected",
                             "low-battery": "Low battery: 10%", "wifi": "Wi-Fi: Connected",
@@ -92,7 +146,51 @@ extension GalleryPages {
             }
             panel.setOpen(open, animated: false)
             return panel
-        }, prepare: { window in (window as? IslandPanel)?.setOpen(open, animated: false) })
+        }, prepare: { window in
+            guard let panel = window as? IslandPanel else { return }
+            panel.setOpen(open, animated: false)
+            if state == "opening-mid" { panel.presentOpening(progress: 0.5, height: NotchcastTheme.Launcher.size.height) }
+        })
+    }
+
+    /// The end of the opening: the palette in the frame the island grew into. Beside a camera the black stays
+    /// behind it as the camera band and the frame; on a monitor the black has faded out under the glass.
+    private static func launcherEnd(_ core: AppCore, display: CGRect, notch: CGRect?, suffix: String) -> GalleryPage {
+        GalleryPage(name: "launcher-opening-end-\(suffix)", types: ["RootPaletteView", "LauncherList"], makeWindow: {
+            let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
+            panel.setLauncher(height: NotchcastTheme.Launcher.size.height, animated: false)
+            let canvas = panel.frame
+            let shape = panel.outline.path
+            let launcher = panel.launcherFrame ?? .zero
+            let local = CGRect(x: launcher.minX - canvas.minX, y: canvas.maxY - launcher.maxY,
+                               width: launcher.width, height: launcher.height)
+            NotchcastPreferences.shared.set(.smallCommands, false)
+            NotchcastPreferences.shared.set(.launcherNumberKeys, false)
+            core.appIndex.refreshNotchcastCommands()
+            core.appIndex.setCustomCommands([])
+            core.palette.prepare(mode: .launcher)
+            core.palette.noteCommandHeld(false)
+            core.palette.query = ""
+            let flip = CGAffineTransform(translationX: 0, y: canvas.height).scaledBy(x: 1, y: -1)
+            let view = ZStack(alignment: .topLeading) {
+                Color.clear
+                if notch != nil { Path(shape).transform(flip).fill(NotchcastTheme.Colors.surface) }
+                RootPaletteView().paletteEnvironment(core)
+                    .frame(width: local.width, height: local.height)
+                    .offset(x: local.minX, y: local.minY)
+            }
+            return window(view, size: canvas.size, dark: true)
+        }, settle: .milliseconds(500))
+    }
+
+    /// Both candidate levels side by side, moving, as the debug command shows them.
+    private static func visualizers() -> GalleryPage {
+        GalleryPage(name: "island-visualizers", types: ["IslandVisualizerComparisonView", "IslandSpectrumBars",
+                                                          "IslandLevelBars"], makeWindow: {
+            let view = IslandVisualizerComparisonView(isPlaying: true, visibleOverride: true)
+            let hosting = NSHostingView(rootView: view)
+            return window(view, size: hosting.fittingSize, dark: true)
+        }, settle: .milliseconds(700))
     }
 }
 #endif

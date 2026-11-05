@@ -7,10 +7,11 @@ enum NotchcastLauncherPlacement {
             && NotchcastPreferences.shared.isOn(.launcherFromIsland)
     }
 
+    /// The palette's anchor over the island grown into its frame; nil leaves upstream's own placement.
     static func anchor(on screen: NSScreen, width: CGFloat) -> CGPoint? {
-        let island = NSApp.windows.compactMap { $0 as? IslandPanel }
-            .first { $0.displayFrame == screen.frame }
+        guard isActive else { return nil }
+        let collapsed = AppCore.shared.paletteCoordinator.paletteIsCollapsed
         return NotchcastLauncherGeometry.anchor(
-            islandFrame: island?.launcherPlacementFrame, width: width, active: isActive)
+            launcherFrame: IslandController.shared.growLauncher(on: screen, collapsed: collapsed), width: width)
     }
 }

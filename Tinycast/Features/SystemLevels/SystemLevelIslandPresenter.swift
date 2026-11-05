@@ -10,6 +10,7 @@ final class SystemLevelIslandPresenter {
         self.center = center
     }
 
+    /// Glyph left, percent right (look-decisions, Volume): a muted level shows the slashed glyph and "Off".
     func present(_ notice: LevelNotice?) {
         dismissal?.cancel()
         dismissal = nil
@@ -17,10 +18,15 @@ final class SystemLevelIslandPresenter {
             center.finish(id)
             return
         }
-        let title = notice.kind == .brightness
-            ? String(localized: "Brightness", table: "Notchcast") : String(localized: "Volume")
-        center.begin(IslandActivity(id: id, kind: .status, priority: 100, title: title,
-                                   progress: notice.muted == true ? 0 : notice.percent.map { Double($0) / 100 }))
+        let title = switch notice.kind {
+        case .brightness: String(localized: "Brightness", table: "Notchcast")
+        case .microphone: String(localized: "Microphone")
+        case .volume: String(localized: "Volume")
+        }
+        let value: IslandActivity.Value? = notice.muted == true ? .onOff(false)
+            : notice.percent.map { .percent(Double($0) / 100) }
+        center.begin(IslandActivity(id: id, kind: .status, priority: 100, title: title, symbol: notice.symbol,
+                                   value: value))
         dismissal = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
             guard !Task.isCancelled, let self else { return }

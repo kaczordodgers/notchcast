@@ -34,11 +34,12 @@ final class IslandActivityCenter {
     }
 
     func update(_ id: UUID, title: String? = nil, progress: Double?? = nil,
-                endDate: Date?? = nil, priority: Int? = nil) {
+                endDate: Date?? = nil, priority: Int? = nil, value: IslandActivity.Value?? = nil) {
         guard let index = activities.firstIndex(where: { $0.id == id }) else { return }
         if let title { activities[index].title = title }
-        if let progress { activities[index].progress = progress.map { min(max($0, 0), 1) } }
-        if let endDate { activities[index].endDate = endDate }
+        if let value { activities[index].value = value.map(IslandActivity.clamped) }
+        if let progress { activities[index].value = progress.map { .percent($0) }.map(IslandActivity.clamped) }
+        if let endDate { activities[index].value = endDate.map { .timeLeft($0) } }
         if let priority { activities[index].priority = priority }
     }
 

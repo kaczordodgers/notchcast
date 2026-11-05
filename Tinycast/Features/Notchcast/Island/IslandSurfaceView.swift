@@ -3,11 +3,29 @@ import QuartzCore
 import SwiftUI
 
 final class IslandSurfaceView: NSView {
+    /// What the silhouette holds: the open pages, the closed row, or nothing while it is the launcher's black.
+    enum Content { case open, closed, launcher }
+
+    /// The silhouette's outline for one presentation.
+    struct Outline: Equatable {
+        var rect: CGRect
+        var shoulder: CGFloat = 0
+        var radius: CGFloat
+        var topRadius: CGFloat = 0
+        var bubble: CGFloat = 0
+        var bubbleGap: CGFloat = 0
+
+        var path: CGPath {
+            IslandSilhouette.path(in: rect, shoulder: shoulder, bottomRadius: radius, topRadius: topRadius,
+                                  bubble: bubble, bubbleGap: bubbleGap)
+        }
+    }
+
     private let silhouette = CAShapeLayer()
     private let openHost = HostingView(rootView: AnyView(EmptyView()))
     private let closedHost = HostingView(rootView: AnyView(EmptyView()))
     private var animationDisplayLink: CADisplayLink?
-    private var showingOpen = false
+    private var showing = Content.closed
     var onAnimationFrame: (() -> Void)?
     var onOpen: (() -> Void)?
 
@@ -33,23 +51,21 @@ final class IslandSurfaceView: NSView {
         closedHost.rootView = closed
     }
 
-    func present(
-        rect: CGRect, shoulder: CGFloat, radius: CGFloat, open: Bool, motion: IslandMotion
-    ) {
-        showingOpen = open
-        let activeHost = open ? openHost : closedHost
-        let inactiveHost = open ? closedHost : openHost
+    func present(_ outline: Outline, content: Content, motion: IslandMotion) {
+        showing = content
+        let activeHost = content == .open ? openHost : closedHost
+        let inactiveHost = content == .open ? closedHost : openHost
         activeHost.isHidden = false
-        activeHost.setAccessibilityHidden(false)
+        activeHost.setAccessibilityHidden(content == .launcher)
         inactiveHost.setAccessibilityHidden(true)
-        setAccessibilityRole(open ? .group : .button)
-        let path = IslandSilhouette.path(in: rect, shoulder: shoulder, bottomRadius: radius)
+        setAccessibilityRole(content == .closed ? .button : .group)
+        let path = outline.path
         let previousPath = silhouette.presentation()?.path ?? silhouette.path ?? path
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         silhouette.frame = bounds
         silhouette.path = path
-        if open { openHost.frame = rect } else { closedHost.frame = rect }
+        if content == .open { openHost.frame = outline.rect } else if content == .closed { closedHost.frame = outline.rect }
         CATransaction.commit()
         silhouette.removeAnimation(forKey: "islandMorph")
         if motion == .open || motion == .close {
@@ -58,11 +74,28 @@ final class IslandSurfaceView: NSView {
             animation.toValue = path
             silhouette.add(animation, forKey: "islandMorph")
         }
-        setOpacity(open ? 1 : 0, on: openHost, motion: motion)
-        setOpacity(open ? 0 : 1, on: closedHost, motion: motion)
+        setOpacity(content == .open ? 1 : 0, on: openHost, motion: motion)
+        setOpacity(content == .closed ? 1 : 0, on: closedHost, motion: motion)
         if motion == .instant { inactiveHost.isHidden = true }
         onAnimationFrame?()
         if motion != .instant { watchAnimation() }
+    }
+
+    /// The black itself: it fades out under the launcher's glass and back in when the launcher leaves.
+    func setSurfaceOpacity(_ opacity: Float, duration: TimeInterval) {
+        guard let layer else { return }
+        let previous = layer.presentation()?.opacity ?? layer.opacity
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.opacity = opacity
+        CATransaction.commit()
+        layer.removeAnimation(forKey: "islandSurface")
+        guard duration > 0, previous != opacity else { return }
+        let animation = CABasicAnimation(keyPath: "opacity")
+        animation.fromValue = previous
+        animation.toValue = opacity
+        animation.duration = duration
+        layer.add(animation, forKey: "islandSurface")
     }
 
     func containsIsland(_ point: CGPoint) -> Bool {
@@ -73,12 +106,15 @@ final class IslandSurfaceView: NSView {
     override func hitTest(_ point: NSPoint) -> NSView? {
         let localPoint = convert(point, from: superview)
         guard containsIsland(localPoint) else { return nil }
-        let host = showingOpen ? openHost : closedHost
-        return host.hitTest(localPoint) ?? self
+        switch showing {
+        case .open: return openHost.hitTest(localPoint) ?? self
+        case .closed: return closedHost.hitTest(localPoint) ?? self
+        case .launcher: return nil
+        }
     }
 
     override func accessibilityPerformPress() -> Bool {
-        guard !showingOpen else { return false }
+        guard showing == .closed else { return false }
         onOpen?()
         return true
     }
@@ -87,6 +123,7 @@ final class IslandSurfaceView: NSView {
         animationDisplayLink?.invalidate()
         animationDisplayLink = nil
         silhouette.removeAllAnimations()
+        layer?.removeAllAnimations()
         openHost.layer?.removeAllAnimations()
         closedHost.layer?.removeAllAnimations()
     }
@@ -134,7 +171,8 @@ final class IslandSurfaceView: NSView {
               closedHost.layer?.animation(forKey: "islandContent") == nil else { return }
         sender.invalidate()
         animationDisplayLink = nil
-        (showingOpen ? closedHost : openHost).isHidden = true
+        if showing != .open { openHost.isHidden = true }
+        if showing != .closed { closedHost.isHidden = true }
     }
 
     private final class HostingView: NSHostingView<AnyView> {

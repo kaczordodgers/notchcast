@@ -7,21 +7,70 @@ struct IslandActivity: Identifiable, Equatable, Sendable {
         case status
     }
 
+    /// The most exact thing a state knows, one case per row of the look table; the closed island shows nothing else.
+    enum Value: Equatable, Sendable {
+        /// A timer, a countdown, keep awake: counts down to the date.
+        case timeLeft(Date)
+        /// A recording, a walk: counts up from the date.
+        case elapsed(since: Date)
+        /// 0...1.
+        case percent(Double)
+        /// X of Y items, files or agents.
+        case count(Int, of: Int)
+        /// Step X of Y of a staged job.
+        case step(Int, of: Int)
+        /// A live reading the producer has already formatted with its unit ("184 Mb/s").
+        case number(String)
+        /// Listening, a camera in use, a watched change, keep awake without an end.
+        case onOff(Bool)
+        /// The state knows nothing better.
+        case spinner
+
+        var percent: Double? {
+            if case let .percent(fraction) = self { return fraction }
+            return nil
+        }
+
+        var endDate: Date? {
+            if case let .timeLeft(date) = self { return date }
+            return nil
+        }
+    }
+
     let id: UUID
     var kind: Kind
     var priority: Int
     var title: String
-    var progress: Double?
-    var endDate: Date?
+    /// The producer's own glyph; nil draws the kind's.
+    var symbol: String?
+    var value: Value?
 
-    init(id: UUID = UUID(), kind: Kind, priority: Int = 0, title: String,
-         progress: Double? = nil, endDate: Date? = nil) {
+    var progress: Double? { value?.percent }
+    var endDate: Date? { value?.endDate }
+
+    init(id: UUID = UUID(), kind: Kind, priority: Int = 0, title: String, symbol: String? = nil,
+         value: Value? = nil) {
         self.id = id
         self.kind = kind
         self.priority = priority
         self.title = title
-        self.progress = progress.map { min(max($0, 0), 1) }
-        self.endDate = endDate
+        self.symbol = symbol
+        self.value = value.map(Self.clamped)
+    }
+
+    init(id: UUID = UUID(), kind: Kind, priority: Int = 0, title: String, symbol: String? = nil,
+         progress: Double? = nil, endDate: Date? = nil) {
+        self.init(id: id, kind: kind, priority: priority, title: title, symbol: symbol,
+                  value: endDate.map(Value.timeLeft) ?? progress.map(Value.percent))
+    }
+
+    static func clamped(_ value: Value) -> Value {
+        switch value {
+        case let .percent(fraction): .percent(fraction.isFinite ? min(max(fraction, 0), 1) : 0)
+        case let .count(done, of: total): .count(max(0, done), of: max(0, total))
+        case let .step(done, of: total): .step(max(0, done), of: max(0, total))
+        default: value
+        }
     }
 
     func outranks(_ other: Self) -> Bool {

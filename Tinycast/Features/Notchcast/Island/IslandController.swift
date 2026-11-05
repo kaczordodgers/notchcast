@@ -5,11 +5,6 @@ import SwiftUI
 @MainActor
 @Observable
 final class IslandController: NotchcastModule {
-    struct ClosedContent {
-        var leading: AnyView?
-        var trailing: AnyView?
-    }
-
     static let shared = IslandController()
 
     private var input = IslandInputState()
@@ -22,10 +17,14 @@ final class IslandController: NotchcastModule {
     var openContent = AnyView(Color.clear.frame(height: NotchcastTheme.estimatedContentHeight)) {
         didSet { updateContent() }
     }
-    /// Builds each panel's wings or pill using its screen and notch geometry; views inherit the notch flag.
-    var closedContent: (IslandClosedContext) -> ClosedContent = { _ in ClosedContent() } {
-        didSet { updateContent() }
+    /// What every panel shows closed; the view lays it out for its own shape.
+    var closedState = IslandClosedState() {
+        didSet { if closedState != oldValue { updateContent() } }
     }
+    /// The last cover decoded, keyed by its bytes, so a tick of the track never decodes it again.
+    @ObservationIgnored private var artwork: (data: Data, image: NSImage)?
+    /// The palette grown from the island, on one panel, while it is up.
+    @ObservationIgnored private weak var launcherPanel: IslandPanel?
 
     @ObservationIgnored private var panels: [IslandPanel] = []
     @ObservationIgnored private weak var openPanel: IslandPanel?
@@ -78,12 +77,45 @@ final class IslandController: NotchcastModule {
         rebuildPanels()
         setCommandAvailable(true)
         observePreferences(identity: identity)
+        observeLauncher(identity: identity)
+    }
+
+    /// The palette summoned with Launcher from Island on: the island grows into its frame first and reports where.
+    /// The palette's own hide shrinks it back (`observeLauncher`).
+    func growLauncher(on screen: NSScreen, collapsed: Bool) -> CGRect? {
+        guard observationID != nil, NotchcastPreferences.shared.isOn(.island),
+              let panel = panels.first(where: { $0.displayFrame == screen.frame }), panel.isVisible else { return nil }
+        if isOpen { close() }
+        if launcherPanel !== panel { launcherPanel?.setLauncher(height: nil, animated: true) }
+        launcherPanel = panel
+        let height = collapsed ? Theme.Size.compactHeight : NotchcastTheme.Launcher.size.height
+        panel.setLauncher(height: height, animated: true)
+        return panel.launcherFrame
+    }
+
+    private func shrinkLauncher() {
+        launcherPanel?.setLauncher(height: nil, animated: true)
+        launcherPanel = nil
+    }
+
+    private func observeLauncher(identity: UUID) {
+        let core = AppCore.shared
+        withObservationTracking {
+            _ = core.palette.isVisible
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, observationID == identity else { return }
+                if !core.palette.isVisible { shrinkLauncher() }
+                observeLauncher(identity: identity)
+            }
+        }
     }
 
     func stop() {
         NotchcastCore.levelKeys.hudPresenterAvailable = false
         IslandActivityCenter.shared.hasPresenter = false
         close()
+        shrinkLauncher()
         setCommandAvailable(false)
         observationID = nil
         screenObservation = nil
@@ -173,8 +205,20 @@ final class IslandController: NotchcastModule {
             } else {
                 header = AnyView(Color.clear)
             }
-            panel.setContent(open: openContent, closed: closedContent(panel.closedContext), header: header)
+            panel.setContent(open: openContent, closed: closedState, header: header)
         }
+    }
+
+    /// The playing song as the closed island shows it, nil while nothing plays or the song feed is off.
+    private func music() -> IslandClosedState.Music? {
+        guard NotchcastPreferences.shared.isOn(.musicNowPlaying),
+              let track = NotchcastCore.services?.music.model.nowPlaying else { return nil }
+        var cover: NSImage?
+        if let data = track.artwork {
+            if artwork?.data != data { artwork = NSImage(data: data).map { (data, $0) } }
+            cover = artwork?.image
+        }
+        return .init(title: track.title, artist: track.artist, artwork: cover, isPlaying: track.isPlaying)
     }
 
     private func applyPreferences() {
@@ -197,14 +241,12 @@ final class IslandController: NotchcastModule {
         }
         let center = IslandActivityCenter.shared
         hasLiveActivities = !center.activities.isEmpty
-        let activity = preferences.isOn(.islandLiveActivities) ? center.current : nil
-        closedContent = { _ in ClosedContent(
-            leading: activity.map { AnyView(IslandActivityGlyph(activity: $0)) },
-            trailing: activity.map { AnyView(IslandActivityValue(activity: $0, multiple: center.activities.count > 1)) }) }
+        let live = preferences.isOn(.islandLiveActivities)
+        closedState = IslandClosedState.resolve(activities: live ? center.activities : [], music: music())
         let message = preferences.isOn(.islandStatusMessages) ? center.message : nil
         panels.forEach {
             $0.setMessage(message)
-            $0.setActivityAccessibility(activity)
+            $0.setActivityAccessibility(closedState.primary)
         }
         updatePresenter()
     }
@@ -228,8 +270,10 @@ final class IslandController: NotchcastModule {
             _ = preferences.isOn(.islandHoverOpen)
             _ = preferences.isOn(.islandLiveActivities)
             _ = preferences.isOn(.islandStatusMessages)
+            _ = preferences.isOn(.musicNowPlaying)
             _ = IslandActivityCenter.shared.activities
             _ = IslandActivityCenter.shared.message
+            _ = NotchcastCore.services?.music.model.nowPlaying
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, observationID == identity else { return }

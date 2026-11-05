@@ -78,7 +78,8 @@ final class EventReminderModule: NotchcastModule {
         active.removeAll { $0.end <= now }
         for alert in result.due {
             let expiry = now.addingTimeInterval(10)
-            let id = center.begin(IslandActivity(kind: .status, title: alert.event.title))
+            let id = center.begin(IslandActivity(kind: .status, title: alert.event.title, symbol: "calendar",
+                                                 value: alert.event.start > now ? .timeLeft(alert.event.start) : nil))
             active.append((id, expiry))
         }
         let target = ([midnight] + [result.next].compactMap { $0 } + active.map(\.end)).min()!

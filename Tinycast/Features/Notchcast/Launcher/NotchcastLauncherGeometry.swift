@@ -1,10 +1,9 @@
 import CoreGraphics
 
 enum NotchcastLauncherGeometry {
-    static let launcherGap: CGFloat = 8
-
-    static func anchor(islandFrame: CGRect?, width: CGFloat, active: Bool) -> CGPoint? {
-        guard active, let islandFrame else { return nil }
-        return CGPoint(x: islandFrame.midX - width / 2, y: islandFrame.minY - launcherGap)
+    /// The palette's top-left anchor on the frame the island grew into: the same frame, so the two read as one.
+    static func anchor(launcherFrame: CGRect?, width: CGFloat) -> CGPoint? {
+        guard let launcherFrame else { return nil }
+        return CGPoint(x: launcherFrame.midX - width / 2, y: launcherFrame.maxY)
     }
 }

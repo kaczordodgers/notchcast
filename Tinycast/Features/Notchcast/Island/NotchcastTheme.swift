@@ -1,13 +1,17 @@
 import SwiftUI
 
-/// The island kit: every size, colour, type and motion value island and page views read, measured from the
-/// references or taken from source, and on Tinycast's own `Theme` wherever Tinycast has the value.
-/// Island and page code reads these, never a literal (`notchcast/check-kit.py`).
+/// The island kit: every size, colour, type and motion value island and page views read, on Tinycast's own `Theme`
+/// wherever Tinycast has the value (`notchcast/docs/rules`: the closed island is the launcher's search row shrunk to a
+/// black capsule; opening grows it into the launcher). Island and page code reads these, never a literal
+/// (`notchcast/check-kit.py`).
 enum NotchcastTheme {
-    static let statusHeight: CGFloat = 36
-    static let statusRadius: CGFloat = 18
+    /// Every closed row is the launcher's search row: the island capsule, the strip under the camera, the bubble.
+    static let rowHeight = Theme.Size.headerHeight
+    static let statusHeight = rowHeight
+    static let statusRadius = rowHeight / 2
     static let headerGlyph: CGFloat = 16
-    static let monitorPill = CGSize(width: 180, height: Theme.Size.barButtonHeight)
+    /// The island at rest: a capsule as wide as Orion's resting pill, as tall as the search row, under the top edge.
+    static let monitorPill = CGSize(width: 180, height: rowHeight)
     static let openMinimumWidth: CGFloat = 800
     static let estimatedContentHeight: CGFloat = 96
     static let monitorHeader = Theme.Size.headerHeight
@@ -16,6 +20,7 @@ enum NotchcastTheme {
     static let closedRadius = Theme.Radius.row
     static let closedShoulder = Theme.Radius.thumbnail
     static let openShoulder = Theme.Radius.row
+    /// A notch wing holds one piece (a cover, the bars, a glyph) with the row's inset either side.
     static let minimumWing: CGFloat = 44
     /// The Home list's height allowance per activity row, kept until Home is redesigned.
     static let homeActivityRow: CGFloat = 56
@@ -36,26 +41,51 @@ enum NotchcastTheme {
         static let artwork = Theme.Radius.thumbnail
     }
 
-    /// The closed pill: on a monitor it floats under the top edge; beside a notch it is the notch's height.
+    /// The closed pill on a monitor: a capsule under the top edge; beside a notch the band is the notch's height.
     enum Pill {
-        /// A monitor pill's height when the menu bar reads none; two lines of song need it.
-        static let fallbackHeight: CGFloat = 30
-        // No width token: the pill is as wide as its content (insets + artwork + gap + text + bars).
+        /// The gap under the top edge (Orion, 2 Nov: the menu title highlight sits 4 pt from the top).
         static let topGap = Theme.Spacing.xs
+        /// The HUD pill's own inset.
         static let inset = Theme.Spacing.xl
-        static let artwork = fallbackHeight - Theme.Spacing.xs * 2
+        /// The launcher's row icon.
+        static let artwork = Theme.Size.resultRowIcon
         static let artworkGap = Theme.Spacing.md
         static let glyph = Theme.Size.menuIcon
+        /// Glyph to word, word to value: a row's own gap.
+        static let gap = Theme.Spacing.lg
+        /// The level readout's fixed slot, so 9% and 100% keep the pill still.
+        static let readout = Theme.Size.volumeReadout
+        /// The track text runs to here, then scrolls (Orion's pill text limit).
+        static let textLimit: CGFloat = 196
+        /// A second activity's round bubble: a row's height, a row's gap to its right (Orion's bubble, 6 pt).
+        static let bubble = rowHeight
+        static let bubbleGap = Theme.Spacing.sm
+        /// The scrolling title's pace and its rest at each end.
+        static let scrollSpeed: CGFloat = 30
+        static let scrollRest: TimeInterval = 1.2
     }
 
-    /// The music level beside a playing song.
+    /// The level beside a playing song: Orion's four bars (`LevelBars`), white.
     enum MusicBars {
         static let count = 4
         static let width: CGFloat = 3
         static let gap = Theme.Spacing.xxs
         static let height: CGFloat = 14
-        /// A paused level rests at this share of `height`.
+        /// A paused level rests at this share of `height`; the lowest a moving bar dips.
         static let restingLevel = 0.6
+        static let lowestLevel = 0.3
+        static let cycle: TimeInterval = 0.9
+        static let delays: [TimeInterval] = [0, -0.35, -0.6, -0.15]
+    }
+
+    /// Damian Tools' spectrum (`NotchBars`): seven thin bars on a Winamp fall, a dot each at rest.
+    enum SpectrumBars {
+        static let count = 7
+        static let width: CGFloat = 1.8
+        static let pitch: CGFloat = 1.85
+        static let height = MusicBars.height
+        static let peakHeight: CGFloat = 1
+        static let peakGap: CGFloat = 1
     }
 
     /// An open page that is not the launcher. No width token: each page is as wide as its own content,
@@ -82,6 +112,7 @@ enum NotchcastTheme {
         static let pillTitle = Font.callout.weight(.semibold)
         static let pillSubtitle = Font.subheadline
         static let activityValue = Theme.Typography.rowTrailing
+        static let activityWord = Theme.Typography.bar
         static let pageName = Theme.Typography.bar
     }
 
@@ -94,6 +125,9 @@ enum NotchcastTheme {
         static let tertiary = Theme.Colors.textTertiary
         static let selection = Theme.Colors.selection
         static let tile = Theme.Colors.cardFill
+        /// Only an error and a warning carry colour in a closed state (look-decisions, Messages).
+        static let danger = Theme.Colors.destructive
+        static let warning = Theme.Colors.warning
     }
 
     /// Tinycast's glass morph, for controls that bead out of the island.
@@ -101,5 +135,8 @@ enum NotchcastTheme {
         static let capsule = Theme.CompactBarMotion.capsule
         static let button = Theme.CompactBarMotion.button
         static let pageChange = Animation.easeOut(duration: Theme.Duration.hover)
+        /// The launcher's own fade, for the palette arriving over the grown island.
+        static let launcherEnter = Theme.Duration.enter
+        static let launcherExit = Theme.Duration.exit
     }
 }
