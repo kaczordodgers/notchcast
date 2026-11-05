@@ -4,7 +4,7 @@ import SwiftUI
 extension GalleryPages {
     static func launcher(_ core: AppCore) -> [GalleryPage] {
         [true, false].flatMap { dark in
-            ["root", "results", "empty"].map { state in
+            ["root", "results", "number-keys", "empty"].map { state in
                 GalleryPage(name: "launcher-\(state)-\(dark ? "dark" : "light")",
                             types: ["RootPaletteView", "LauncherList"]
                                 + (state == "empty" ? [] : ["SectionHeader", "AppRow", "AppIconView"]),
@@ -15,9 +15,11 @@ extension GalleryPages {
                     core.appIndex.setCustomCommands(commands)
                     core.palette.prepare(mode: .launcher)
                     core.palette.query = state == "root" ? "" : (state == "empty" ? "zzzznomatches" : "sample")
+                    NotchcastPreferences.shared.set(.launcherNumberKeys, state == "number-keys")
+                    core.palette.noteCommandHeld(state == "number-keys")
                     return window(RootPaletteView().paletteEnvironment(core),
                                   size: CGSize(width: Theme.Size.panelWidth, height: Theme.Size.panelHeight), dark: dark)
-                })
+                }, settle: .milliseconds(500))
             }
         }
     }

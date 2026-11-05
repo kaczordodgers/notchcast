@@ -1,4 +1,13 @@
 enum LauncherNumberKeys {
+    static func badgeSlot(entryIndex index: Int, query: String, enabled: Bool) -> Character? {
+        let digit = index + 1
+        guard index >= 0,
+              entryIndex(digit: digit, query: query, entryCount: digit, enabled: enabled) == index else {
+            return nil
+        }
+        return Character(String(digit))
+    }
+
     static func rowIndex(
         digit: Int, query: String, entryRows: [Int], favoriteCount: Int,
         hasLeadCard: Bool, enabled: Bool
