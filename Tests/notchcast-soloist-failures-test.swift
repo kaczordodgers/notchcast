@@ -49,7 +49,26 @@ struct NotchcastSoloistFailuresTest {
             check(failure.importMessage.hasPrefix(String(localized: "That file has no API key.", table: "Notchcast")))
             check(failure.importMessage.contains(spaced.path) && failure.importMessage.contains("15"), failure.importMessage)
             check(!failure.importMessage.contains("secret") && !failure.message.contains("secret"), "message leaked the key")
+            check(failure.importMessage.contains("space or line break"), failure.importMessage)
         }
+        // The real key's shape: 37 ASCII letters and digits with one underscore, then a newline.
+        let shaped = "Qx7mR2vK9pL4tN8wZ3bH6cJ1dF5gS0_aYeUiO"
+        check(shaped.count == 37)
+        try key.save(shaped + "\n")
+        check(stored == shaped, "a pasted key of the real shape was refused")
+        let shapedFile = root.appending(path: "shaped-key")
+        try Data((shaped + "\n").utf8).write(to: shapedFile)
+        stored = nil
+        try key.importKey(from: shapedFile)
+        check(stored == shaped, "an imported key of the real shape was refused")
+        do { try key.save("fixture\u{7}secret"); preconditionFailure("saved a key with a control character") } catch {
+            let failure = error as! SoloistFailure
+            check(failure.reason == .invalidKey && failure.message.contains("hidden character"), failure.message)
+            check(!failure.message.contains("secret"), "message leaked the key")
+        }
+        check((try? SoloistArchiveRules.check([.init(kind: "-", size: 1, name: "soloist")])) == ["soloist"])
+        check((try? SoloistArchiveRules.check([.init(kind: "-", size: 1, name: "soloist"),
+                                               .init(kind: "-", size: 1, name: "bad\u{7}name")])) == nil)
         let good = root.appending(path: "good-key")
         try Data("fixture-secret\n".utf8).write(to: good)
         try key.importKey(from: good)
