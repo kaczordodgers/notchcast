@@ -12,7 +12,7 @@
 
 `WaitingAlertsEngine` compares waiting identifiers, titles and approval/question kinds.
 Comparing waiting identifiers suppresses repeats until a thread leaves and re-enters waiting.
-New waits coalesce into one count notice; a single wait names the thread and reason.
+New waits coalesce into one notice with the total waiting count; a single new wait names the thread and reason.
 
 ## Service
 

@@ -87,7 +87,7 @@ final class WaitingAlertsModule: NotchcastModule {
                     if self.waitingCount != current.count { self.waitingCount = current.count }
                     if report {
                         self.post(WaitingAlertsEngine.countMessage(current.count))
-                    } else if let message = WaitingAlertsEngine.message(notices) { self.post(message) }
+                    } else if let message = WaitingAlertsEngine.message(notices, total: current.count) { self.post(message) }
                 } catch {
                     guard !Task.isCancelled, self.enabled, self.generation == identity else { return }
                     self.unavailable = true

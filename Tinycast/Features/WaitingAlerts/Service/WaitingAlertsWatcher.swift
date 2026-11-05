@@ -7,7 +7,8 @@ protocol WaitingAlertsWatching: AnyObject {
     func stop()
 }
 
-/// Reports changes to files directly inside `path`, where T3 keeps its state database; writes in subfolders are ignored.
+/// Reports changes to files directly inside `path`, where T3 keeps its state database.
+/// Writes in subfolders are ignored.
 @MainActor
 final class WaitingAlertsWatcher: WaitingAlertsWatching {
     private var watcher: FileSystemWatcher?
