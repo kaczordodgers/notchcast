@@ -37,11 +37,15 @@ struct IslandClosedView: View {
             }
             .padding(.horizontal, state.isEmpty && message == nil ? 0 : NotchcastTheme.Pill.inset)
             .frame(height: bandHeight)
-            if let message, !IslandMessageLine.fitsWings(message) {
+            if let message {
                 IslandMessageLine(message: message)
                     .padding(.horizontal, NotchcastTheme.Pill.inset)
                     .frame(height: NotchcastTheme.rowHeight)
-            } else if message == nil, state.hasSecond {
+            } else if let primary = state.primary, primary.action != nil {
+                IslandActivityLine(activity: primary, part: .card)
+                    .padding(.horizontal, NotchcastTheme.Pill.inset)
+                    .frame(height: NotchcastTheme.rowHeight)
+            } else if state.hasSecond {
                 secondRow
                     .padding(.horizontal, NotchcastTheme.Pill.inset)
                     .frame(height: NotchcastTheme.rowHeight)
@@ -74,9 +78,7 @@ struct IslandClosedView: View {
 
     @ViewBuilder private func wing(leading: Bool) -> some View {
         Group {
-            if let message, IslandMessageLine.fitsWings(message) {
-                IslandMessageLine(message: message, part: leading ? .glyph : .text)
-            } else if let primary = state.primary {
+            if let primary = state.primary {
                 IslandActivityLine(activity: primary, part: leading ? .glyph : .value)
             } else if let music = state.music {
                 IslandMusicLine(music: music, part: leading ? .artwork : .bars)
@@ -88,7 +90,7 @@ struct IslandClosedView: View {
         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: {
             if leading { leadingWidth = $0 } else { trailingWidth = $0 }
         }
-        .frame(width: state.isEmpty && message == nil ? 0 : wingWidth)
+        .frame(width: state.isEmpty ? 0 : wingWidth)
     }
 
     /// Whatever the primary pushed out of the band: the next activity, or the song behind an activity.

@@ -12,7 +12,8 @@ extension GalleryPages {
                           "low-battery", "wifi", "tailscale", "low-disk", "meeting-reminder",
                           "dictation", "walk", "message", "danger-message",
                           "music", "music-paused", "recording", "several-items", "mac-update", "speed-test",
-                          "camera", "transcribing", "agents", "two-at-once", "music-and-timer", "long-message"].map { state in
+                          "camera", "transcribing", "agents", "two-at-once", "two-activities", "long-message",
+                          "timer-end", "spinner"].map { state in
                 islandPage(core, name: "island-closed-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: false)
             }
@@ -32,12 +33,14 @@ extension GalleryPages {
     static let sampleMusic = IslandClosedState.Music(title: "Teardrop", artist: "Massive Attack",
                                                      artwork: sampleArtwork(), isPlaying: true)
 
+    /// The shared cover (SAME-DATA.md): a flat #2F3E46 square with a centred #F4A261 circle at half its width.
     private static func sampleArtwork() -> NSImage {
         let side = NotchcastTheme.Pill.artwork * 4
         return NSImage(size: CGSize(width: side, height: side), flipped: false) { rect in
-            NSGradient(starting: NSColor(calibratedRed: 0.93, green: 0.45, blue: 0.25, alpha: 1),
-                       ending: NSColor(calibratedRed: 0.25, green: 0.20, blue: 0.55, alpha: 1))?
-                .draw(in: rect, angle: 60)
+            NSColor(srgbRed: 0x2F / 255, green: 0x3E / 255, blue: 0x46 / 255, alpha: 1).setFill()
+            rect.fill()
+            NSColor(srgbRed: 0xF4 / 255, green: 0xA2 / 255, blue: 0x61 / 255, alpha: 1).setFill()
+            NSBezierPath(ovalIn: rect.insetBy(dx: rect.width / 4, dy: rect.height / 4)).fill()
             return true
         }
     }
@@ -46,8 +49,14 @@ extension GalleryPages {
     static func closedState(_ state: String) -> IslandClosedState {
         let soon = Date().addingTimeInterval(300)
         let timer = IslandActivity(kind: .timer, title: "Tea timer", value: .timeLeft(soon))
-        let transfer = IslandActivity(kind: .transfer, title: "Sample transfer", value: .percent(0.64))
+        let transfer = IslandActivity(kind: .transfer, title: "Photos backup", value: .percent(0.64))
         switch state {
+        case "timer-end":
+            return IslandClosedState(primary: IslandActivity(kind: .timer, title: "Tea timer", value: .number("Done"),
+                                                             action: "Stop"))
+        case "spinner":
+            return IslandClosedState(primary: IslandActivity(kind: .status, title: "Syncing", symbol: "arrow.triangle.2.circlepath",
+                                                             value: .spinner))
         case "timer": return IslandClosedState(primary: timer)
         case "transfer": return IslandClosedState(primary: transfer)
         case "volume", "brightness":
@@ -60,7 +69,7 @@ extension GalleryPages {
             return IslandClosedState(primary: activity)
         case "meeting-reminder":
             return IslandClosedState(primary: IslandActivity(kind: .status, title: "Design review", symbol: "calendar",
-                                                             value: .timeLeft(soon)))
+                                                             value: .number("in 6 min"), action: "Join"))
         case "music": return IslandClosedState(music: sampleMusic)
         case "music-paused":
             var paused = sampleMusic
@@ -87,8 +96,8 @@ extension GalleryPages {
         case "agents":
             return IslandClosedState(primary: IslandActivity(kind: .status, title: "Agents waiting", symbol: "person.2",
                                                              value: .count(2, of: 4)))
-        case "two-at-once": return IslandClosedState(primary: timer, secondary: transfer)
-        case "music-and-timer": return IslandClosedState(primary: timer, music: sampleMusic)
+        case "two-at-once": return IslandClosedState(primary: timer, music: sampleMusic)
+        case "two-activities": return IslandClosedState(primary: timer, secondary: transfer)
         default: return IslandClosedState()
         }
     }
@@ -97,7 +106,8 @@ extension GalleryPages {
         _ core: AppCore, name: String, display: CGRect, notch: CGRect?, state: String, open: Bool
     ) -> GalleryPage {
         let closedTypes = ["IslandClosedView", "IslandActivityLine", "IslandMusicLine", "IslandGlyph", "IslandValueView",
-                           "IslandWord", "IslandArtwork", "IslandTrackText", "IslandLevelBars", "IslandMessageLine"]
+                           "IslandWord", "IslandArtwork", "IslandTrackText", "IslandLevelBars", "IslandMessageLine",
+                           "IslandActionButton"]
         return GalleryPage(name: name, types: ["IslandPanel", "IslandSurfaceView", "IslandContentView", "IslandHeaderView"]
                     + (state == "day-calendar" ? ["ScheduleList"] : (open ? ["IslandHomeView"] : closedTypes)),
                     hardwareNotch: notch.map {
@@ -134,16 +144,17 @@ extension GalleryPages {
             } else { content = AnyView(IslandHomeView()) }
             panel.setContent(open: AnyView(content.paletteEnvironment(core)), closed: closedState(state),
                              header: AnyView(header.paletteEnvironment(core)))
-            let messages = ["status": "Sample export complete", "airpods": "AirPods: Connected",
+            let messages = ["status": "Exported 24 photos", "airpods": "AirPods: Connected",
                             "low-battery": "Low battery: 10%", "wifi": "Wi-Fi: Connected",
                             "tailscale": "Tailscale: Connected", "low-disk": "Low disk space: 12 GB",
                             "dictation": "Dictation listening", "walk": "Daily walking goal reached.",
-                            "message": "Nothing to Import", "danger-message": "Couldn’t read the text",
-                            "long-message": "Export finished: 24 files saved to Downloads, 3 skipped"]
+                            "message": "Nothing to Import", "danger-message": "Couldn't read the text",
+                            "long-message": "Couldn't paste some dictation into the app"]
             if let text = messages[state] {
                 let danger = ["low-battery", "low-disk", "danger-message"].contains(state)
                 panel.setMessage(IslandMessage(id: UUID(), tone: danger ? .danger : (state == "status" ? .success : .neutral),
-                                              text: text, isProgress: state == "dictation", onCancel: nil))
+                                              text: text, isProgress: state == "dictation", onCancel: nil,
+                                              detail: state == "long-message" ? "The text is on the clipboard instead" : nil))
             }
             panel.setOpen(open, animated: false)
             return panel

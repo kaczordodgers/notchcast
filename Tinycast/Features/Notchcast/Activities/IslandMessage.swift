@@ -12,4 +12,6 @@ struct IslandMessage: Identifiable {
     let text: String
     let isProgress: Bool
     let onCancel: (() -> Void)?
+    /// A second, quieter line under the text, for what to do next.
+    var detail: String? = nil
 }

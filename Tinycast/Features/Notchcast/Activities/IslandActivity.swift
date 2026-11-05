@@ -44,24 +44,32 @@ struct IslandActivity: Identifiable, Equatable, Sendable {
     /// The producer's own glyph; nil draws the kind's.
     var symbol: String?
     var value: Value?
+    /// The one thing to do about it, as a button title ("Join", "Stop"); the centre runs it.
+    var action: String?
 
     var progress: Double? { value?.percent }
     var endDate: Date? { value?.endDate }
 
     init(id: UUID = UUID(), kind: Kind, priority: Int = 0, title: String, symbol: String? = nil,
-         value: Value? = nil) {
+         value: Value? = nil, action: String? = nil) {
         self.id = id
         self.kind = kind
         self.priority = priority
         self.title = title
         self.symbol = symbol
         self.value = value.map(Self.clamped)
+        self.action = action
     }
 
+    /// The old producers' shape; one of `progress` or `endDate` is given, so a bare call takes the value init.
     init(id: UUID = UUID(), kind: Kind, priority: Int = 0, title: String, symbol: String? = nil,
-         progress: Double? = nil, endDate: Date? = nil) {
+         progress: Double?, endDate: Date? = nil) {
         self.init(id: id, kind: kind, priority: priority, title: title, symbol: symbol,
                   value: endDate.map(Value.timeLeft) ?? progress.map(Value.percent))
+    }
+
+    init(id: UUID = UUID(), kind: Kind, priority: Int = 0, title: String, symbol: String? = nil, endDate: Date?) {
+        self.init(id: id, kind: kind, priority: priority, title: title, symbol: symbol, value: endDate.map(Value.timeLeft))
     }
 
     static func clamped(_ value: Value) -> Value {

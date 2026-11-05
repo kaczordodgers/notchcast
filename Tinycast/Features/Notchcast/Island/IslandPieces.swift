@@ -175,11 +175,10 @@ struct IslandLevelBars: View {
     }
 }
 
-/// A transient message: the HUD pill's glyph and line, or either part for a notch wing. Only danger carries colour.
+/// A transient message: the HUD pill's glyph and line, a quieter second line when there is a next step. Only
+/// danger carries colour.
 struct IslandMessageLine: View {
-    enum Part { case glyph, text, row }
     let message: IslandMessage
-    var part: Part = .row
     @State private var hovered = false
 
     var body: some View {
@@ -195,37 +194,57 @@ struct IslandMessageLine: View {
         .onHover { hovered = $0 }
     }
 
-    /// A short message sits in the notch's wings, glyph left and text right, so the band stays one row; only text
-    /// past the title limit takes the row under the camera.
-    static func fitsWings(_ message: IslandMessage) -> Bool {
-        let font = NSFont.preferredFont(forTextStyle: .callout)
-        let width = (message.text as NSString).size(withAttributes: [.font: font]).width
-        return width <= NotchcastTheme.Pill.textLimit
-    }
-
     private var content: some View {
         HStack(spacing: NotchcastTheme.Pill.artworkGap) {
-            if part != .text {
-                if hovered, message.onCancel != nil {
-                    IslandGlyph(name: "xmark")
-                } else if message.isProgress {
-                    IslandSpinner()
-                } else {
-                    IslandGlyph(name: message.tone == .success ? "checkmark.circle"
-                                : (message.tone == .danger ? "exclamationmark.circle" : "info.circle"),
-                                tone: message.tone == .danger ? .danger : .plain)
-                }
+            if hovered, message.onCancel != nil {
+                IslandGlyph(name: "xmark")
+            } else if message.isProgress {
+                IslandSpinner()
+            } else {
+                IslandGlyph(name: message.tone == .success ? "checkmark.circle"
+                            : (message.tone == .danger ? "exclamationmark.circle" : "info.circle"),
+                            tone: message.tone == .danger ? .danger : .plain)
             }
-            if part != .glyph { IslandWord(text: message.text) }
+            if let detail = message.detail {
+                VStack(alignment: .leading, spacing: 0) {
+                    IslandWord(text: message.text)
+                    Text(detail)
+                        .font(NotchcastTheme.Typography.pillSubtitle)
+                        .foregroundStyle(NotchcastTheme.Colors.secondary)
+                        .lineLimit(1)
+                }
+            } else {
+                IslandWord(text: message.text)
+            }
         }
         .frame(maxWidth: Theme.Size.hudMaxWidth, alignment: .leading)
         .fixedSize(horizontal: true, vertical: false)
     }
 }
 
-/// An activity as a row: glyph, word, value; or any part of it, for a notch wing.
+/// The one button a card carries, in the bar's own capsule (the launcher footer's "Open" capsule).
+struct IslandActionButton: View {
+    let title: String
+    let run: () -> Void
+
+    var body: some View {
+        Button(action: run) {
+            Text(title)
+                .font(NotchcastTheme.Typography.activityWord)
+                .foregroundStyle(NotchcastTheme.Colors.primary)
+                .padding(.horizontal, NotchcastTheme.Pill.inset)
+                .frame(height: NotchcastTheme.Card.button)
+                .background(NotchcastTheme.Colors.tile, in: Capsule())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+    }
+}
+
+/// An activity as a row: glyph, word, value, and a card's button; or any part of it, for a notch wing or the row
+/// under the camera (`card` = word and button).
 struct IslandActivityLine: View {
-    enum Part { case glyph, value, row }
+    enum Part { case glyph, value, row, card }
     let activity: IslandActivity
     var part: Part = .row
 
@@ -238,10 +257,15 @@ struct IslandActivityLine: View {
                 }
             } else if part == .glyph {
                 IslandGlyph(name: activity.symbol ?? Self.symbol(for: activity.kind))
+            } else if part == .card {
+                IslandWord(text: activity.title)
             }
-            if part != .glyph, let value = activity.value { IslandValueView(value: value) }
+            if part == .row || part == .value, let value = activity.value { IslandValueView(value: value) }
+            if part == .row || part == .card, let action = activity.action {
+                IslandActionButton(title: action) { IslandActivityCenter.shared.perform(activity.id) }
+            }
         }
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
         .accessibilityLabel(activity.title)
     }
 

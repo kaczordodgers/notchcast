@@ -66,6 +66,11 @@ enum NotchcastTheme {
         static let scrollRest: TimeInterval = 1.2
     }
 
+    /// A card's button: the bar button's height, the bar's type, the footer capsule's fill.
+    enum Card {
+        static let button = Theme.Size.barButtonHeight
+    }
+
     /// The level beside a playing song: Orion's four bars (`LevelBars`), white.
     enum MusicBars {
         static let count = 4

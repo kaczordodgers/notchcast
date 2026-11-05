@@ -19,6 +19,9 @@ struct IslandClosedState: Equatable {
     /// An activity outranks a song: the song drops to the second slot, the second activity is not shown.
     var hasSecond: Bool { secondary != nil || (music != nil && primary != nil) }
 
+    /// Beside a camera the band holds two wings only; a button or a second thing takes the row under the camera.
+    var needsRow: Bool { hasSecond || primary?.action != nil }
+
     static func resolve(activities: [IslandActivity], music: Music?) -> Self {
         let ranked = activities.sorted { $0.outranks($1) }
         return Self(primary: ranked.first, secondary: ranked.dropFirst().first, music: music)

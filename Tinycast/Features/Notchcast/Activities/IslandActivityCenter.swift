@@ -23,15 +23,21 @@ final class IslandActivityCenter {
         }
     }
 
+    @ObservationIgnored private var handlers: [UUID: @MainActor () -> Void] = [:]
+
+    /// `perform` runs the activity's `action` button; a producer passes what the button does.
     @discardableResult
-    func begin(_ activity: IslandActivity) -> UUID {
+    func begin(_ activity: IslandActivity, perform: (@MainActor () -> Void)? = nil) -> UUID {
         if let index = activities.firstIndex(where: { $0.id == activity.id }) {
             activities[index] = activity
         } else {
             activities.append(activity)
         }
+        handlers[activity.id] = perform
         return activity.id
     }
+
+    func perform(_ id: UUID) { handlers[id]?() }
 
     func update(_ id: UUID, title: String? = nil, progress: Double?? = nil,
                 endDate: Date?? = nil, priority: Int? = nil, value: IslandActivity.Value?? = nil) {
@@ -43,7 +49,10 @@ final class IslandActivityCenter {
         if let priority { activities[index].priority = priority }
     }
 
-    func finish(_ id: UUID) { activities.removeAll { $0.id == id } }
+    func finish(_ id: UUID) {
+        activities.removeAll { $0.id == id }
+        handlers[id] = nil
+    }
 
     func fail(_ id: UUID) { finish(id) }
 
