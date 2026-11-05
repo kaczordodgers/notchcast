@@ -10,7 +10,7 @@ struct DictationHistoryRow: View {
                 Text(verbatim: entry.cleaned)
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text(entry.date, format: .dateTime.year().month().day().hour().minute())
+                Text(verbatim: Self.dateFormatter.string(from: entry.date))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -19,8 +19,16 @@ struct DictationHistoryRow: View {
                     core.showMessage(String(localized: "Could not copy to clipboard."), tone: .danger)
                 }
             }
-            .accessibilityLabel("Copy")
+            .accessibilityLabel(Text("Copy") + Text(verbatim: " " + Self.dateFormatter.string(from: entry.date)))
         }
         .accessibilityElement(children: .contain)
     }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        formatter.doesRelativeDateFormatting = true
+        return formatter
+    }()
 }

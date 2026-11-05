@@ -1,20 +1,32 @@
 import SwiftUI
 
+extension EnvironmentValues {
+    @Entry var dictationHistorySampleEntries: [DictationHistoryEntry]? = nil
+}
+
 struct DictationHistorySettingsSection: View {
     @Environment(AppCore.self) private var core
+    @Environment(\.dictationHistorySampleEntries) private var sampleEntries
     private let preferences = NotchcastPreferences.shared
     @State private var entries: [DictationHistoryEntry] = []
     @State private var isLoading = true
     @State private var isClearing = false
+    @State private var loadFailed = false
+
+    private var reloadID: String {
+        "\(preferences.isOn(.dictationHistory))-\(NotchcastCore.dictationHistory.revision)"
+    }
 
     var body: some View {
-        Toggle(isOn: Binding(
-            get: { preferences.isOn(.dictationHistory) },
-            set: { preferences.set(.dictationHistory, $0) })) {
-                SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Keep dictation history", table: "Notchcast"))
-            }
         DictationHistoryList(entries: entries)
-            .task {
+            .task(id: reloadID) {
+                if let sampleEntries {
+                    entries = sampleEntries
+                    isLoading = false
+                    return
+                }
+                isLoading = true
+                loadFailed = false
                 do {
                     let loaded = try await NotchcastCore.dictationHistory.recent(limit: 100)
                     try Task.checkCancellation()
@@ -22,7 +34,8 @@ struct DictationHistorySettingsSection: View {
                 } catch is CancellationError {
                     return
                 } catch {
-                    core.showMessage(String(localized: "Couldn’t update dictation history."), tone: .danger)
+                    loadFailed = true
+                    core.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
                 }
                 isLoading = false
             }
@@ -31,11 +44,13 @@ struct DictationHistorySettingsSection: View {
             Task {
                 defer { isClearing = false }
                 guard await core.confirm(
-                    title: String(localized: "Delete history"), message: nil,
-                    symbol: "trash", confirmTitle: String(localized: "Delete history")) else { return }
+                    title: String(localized: "Clear dictation history?", table: "Notchcast"),
+                    message: String(localized: "Every past dictation goes. This can't be undone.", table: "Notchcast"),
+                    symbol: "waveform", confirmTitle: String(localized: "Clear History")) else { return }
                 do {
                     try await NotchcastCore.dictationHistory.deleteAll()
                     entries = []
+                    loadFailed = false
                 }
                 catch {
                     core.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
@@ -44,6 +59,7 @@ struct DictationHistorySettingsSection: View {
         } label: {
             SettingsRowTitle(.notchcastCaptureAndDictation, "Clear History")
         }
-        .disabled(isLoading || isClearing || entries.isEmpty)
+        .disabled(!DictationHistoryClearPolicy.isEnabled(
+            isLoading: isLoading, isClearing: isClearing, isEmpty: entries.isEmpty, loadFailed: loadFailed))
     }
 }

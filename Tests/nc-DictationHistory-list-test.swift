@@ -23,6 +23,23 @@ struct DictationHistoryListTests {
         try repository.deleteAll()
         let cleared = try repository.recent()
         precondition(cleared.isEmpty)
+        try Data("corrupt".utf8).write(to: directory.appendingPathComponent("history.jsonl"))
+        do {
+            _ = try repository.recent()
+            preconditionFailure("Corrupt history must fail to load")
+        } catch {
+            precondition(DictationHistoryClearPolicy.isEnabled(
+                isLoading: false, isClearing: false, isEmpty: true, loadFailed: true))
+        }
+        try repository.deleteAll()
+        let recovered = try repository.recent()
+        precondition(recovered.isEmpty)
+        precondition(!DictationHistoryClearPolicy.isEnabled(
+            isLoading: false, isClearing: false, isEmpty: true, loadFailed: false))
+        precondition(!DictationHistoryClearPolicy.isEnabled(
+            isLoading: true, isClearing: false, isEmpty: true, loadFailed: true))
+        precondition(!DictationHistoryClearPolicy.isEnabled(
+            isLoading: false, isClearing: true, isEmpty: true, loadFailed: true))
         print("PASS history list: newest first, latest 100, clear empties isolated store")
     }
 }
