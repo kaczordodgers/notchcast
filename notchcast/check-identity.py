@@ -74,8 +74,8 @@ def added_lines(base):
     failed = False
     path = None
     line = None
-    patch = git("log", "-p", "--format=", "--no-ext-diff", "--no-textconv",
-                "--no-renames", "--unified=0", "--diff-merges=first-parent", f"{base}..{HEAD}")
+    patch = git("log", "-p", "--cherry-pick", "--right-only", "--format=", "--no-ext-diff", "--no-textconv",
+                "--no-renames", "--unified=0", "--diff-merges=first-parent", f"{base}...{HEAD}")
     for text in patch.splitlines():
         if text.startswith("diff --git "):
             path = None
@@ -153,7 +153,7 @@ def main():
         failed |= diff(base)
         additions_base = "refs/remotes/origin/main"
         if pr_base := os.environ.get("GITHUB_BASE_REF"):
-            additions_base = git("merge-base", HEAD, f"refs/remotes/origin/{pr_base}").strip()
+            additions_base = f"refs/remotes/origin/{pr_base}"
         failed |= added_lines(additions_base)
     if args.mode in ("history", "metadata"):
         failed |= metadata(base)
