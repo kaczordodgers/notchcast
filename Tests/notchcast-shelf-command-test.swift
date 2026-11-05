@@ -12,8 +12,17 @@ struct NotchcastCommand: Sendable {
     let name: String
     let sfSymbol: String
     let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
+    var isEnabled: @MainActor @Sendable () -> Bool = { true }
     let run: @MainActor @Sendable () -> Void
+}
+
+enum SettingsTab { case notchcastTwoMacs }
+
+@MainActor enum SettingsActionCommands {
+    static var openedShelf = false
+    static func show(_ tab: SettingsTab, _ feature: NotchcastFeature) {
+        openedShelf = feature == .shelfBetweenMacs
+    }
 }
 
 @MainActor final class NotchcastPreferences {
@@ -41,6 +50,8 @@ struct NotchcastCommand: Sendable {
         module.transport = peer
         module.linkStatus = peer
         module.start()
+        ShelfModule.showCommand.run()
+        precondition(SettingsActionCommands.openedShelf)
         let command = ShelfModule.clipboardCommand { "Test shelf text" }
         precondition(command.feature == .shelfBetweenMacs && command.isEnabled())
         NotchcastPreferences.shared.enabled = false
