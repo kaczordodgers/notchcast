@@ -11,8 +11,9 @@ extension MachRemoteModule {
         repeat with chosenItem in chosenItems
             set end of paths to POSIX path of chosenItem
         end repeat
-        set AppleScript's text item delimiters to linefeed
-        return paths as text
+        set AppleScript's text item delimiters to character id 0
+        if (count of paths) is 0 then return ""
+        return (paths as text) & (character id 0)
         """
         automation?.cancel()
         automation = Task {
@@ -24,7 +25,10 @@ extension MachRemoteModule {
                                                   table: "SendFiles"))
                 return
             }
-            NotchcastCore.sendFiles.send(result.output.split(separator: "\n").map { URL(fileURLWithPath: String($0)) })
+            let paths = result.output.split(separator: "\0", omittingEmptySubsequences: false)
+            guard paths.last == "\n" || paths.last == "",
+                  paths.dropLast().allSatisfy({ $0.hasPrefix("/") }) else { return }
+            NotchcastCore.sendFiles.send(paths.dropLast().map { URL(fileURLWithPath: String($0)) })
         }
     }
 }
