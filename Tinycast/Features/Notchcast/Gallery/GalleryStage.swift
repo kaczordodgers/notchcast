@@ -279,9 +279,11 @@ enum GalleryStage {
                     row = 0
                     black = 0
                 } else if crossfades {
-                    row = fade(since, kit.contentIn)
+                    let buds = motion?.holdsRowWhileBudding(from: previous?.outline.bubble ?? 0, to: settled.bubble) ?? false
                     let holds = handover == .holds
-                    old = 1 - fade(since, kit.contentOut, delay: holds ? kit.contentHold : 0, curve: holds ? easeInOut : easeOut)
+                    let wait = buds ? kit.grow.duration : (holds ? kit.contentHold : 0)
+                    row = fade(since, kit.contentIn, delay: buds ? wait : 0)
+                    old = 1 - fade(since, kit.contentOut, delay: wait, curve: holds ? easeInOut : easeOut)
                 }
                 host.isHidden = false
                 host.layer?.opacity = Float(row)

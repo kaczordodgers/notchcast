@@ -125,6 +125,7 @@ final class IslandSurfaceView: NSView {
             silhouette.add(animation, forKey: "islandMorph")
         }
         if motion == .change, let previous { carry(by: previous.contentMidX - outline.contentMidX) }
+        if let previous, motion.holdsRowWhileBudding(from: previous.bubble, to: outline.bubble) { holdWhileBudding() }
         setOpacity(content == .open ? 1 : 0, on: openHost, motion: motion)
         setOpacity(content == .closed ? 1 : 0, on: closedHost, motion: motion)
         if content != .closed, !outgoing.isHidden, let layer = outgoing.layer {
@@ -204,6 +205,14 @@ final class IslandSurfaceView: NSView {
             animation.isAdditive = true
             layer.add(animation, forKey: nil)
         }
+    }
+
+    /// The picture of the old row stands while the bubble grows; the new row, cover and all, arrives after it.
+    private func holdWhileBudding() {
+        guard !outgoing.isHidden, let picture = outgoing.layer, let row = closedHost.layer else { return }
+        let growth = NotchcastTheme.Motion.grow.duration
+        fade(row, from: 0, to: 1, duration: NotchcastTheme.Motion.contentIn, delay: growth)
+        fade(picture, to: 0, duration: NotchcastTheme.Motion.contentOut, delay: growth)
     }
 
     /// Every silhouette change is a spring, so an interrupted morph picks up from wherever the shape is.

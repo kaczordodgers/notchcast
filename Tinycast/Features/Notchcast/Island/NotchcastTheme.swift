@@ -51,8 +51,9 @@ enum NotchcastTheme {
         /// Glyph or cover to its text: one gap in every line (the launcher's icon-to-name gap).
         static let artworkGap = Theme.Spacing.md
         static let glyph = Theme.Size.menuIcon
-        /// The symbol in that slot: the menu row's; the HUD pill too draws text-sized marks in it.
-        static let symbol = Theme.Typography.menuSymbolSize
+        /// The symbol in that slot: four fifths of it. The menu row's 14 read thin beside a 17 pt value on the
+        /// notch (Damian's call on the v3 review); the HUD pill's text-sized mark was the lower bound.
+        static let symbol = Theme.Size.menuIcon * 0.8
         /// The symbol in an open page's row: the schedule row's share of the row icon (`ScheduleView`).
         static let rowSymbol = Theme.Size.resultRowIcon * 0.7
         /// Text to its value or bars: a row's trailing gap.

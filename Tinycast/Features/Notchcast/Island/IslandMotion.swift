@@ -26,6 +26,11 @@ enum IslandMotion: Equatable {
     /// The closed row fades back in once the island has landed; a changing row crossfades in place at once.
     var landsBeforeContent: Bool { self == .close }
 
+    /// A change that buds a bubble keeps the old row until the circle has grown, so a cover never shows half-grown.
+    func holdsRowWhileBudding(from previous: CGFloat, to bubble: CGFloat) -> Bool {
+        self == .change && previous <= 0 && bubble > 0
+    }
+
     /// Core Animation morphs a path element by element, so a missing bubble is a circle of no size to grow from.
     static func morphPath(in rect: CGRect, shoulder: CGFloat, bottomRadius: CGFloat, topRadius: CGFloat,
                           bubble: CGFloat, bubbleGap: CGFloat) -> CGPath {
@@ -37,7 +42,7 @@ enum IslandMotion: Equatable {
         path.addPath(IslandSilhouette.path(in: rect, shoulder: shoulder, bottomRadius: bottomRadius,
                                            topRadius: topRadius))
         let bud = CGPoint(x: rect.maxX - rect.height / 2, y: rect.midY)
-        path.addEllipse(in: CGRect(origin: bud, size: .zero))
+        path.addEllipse(in: CGRect(origin: bud, size: .zero), transform: IslandSilhouette.bubbleWinding(aboutY: bud.y))
         return path
     }
 

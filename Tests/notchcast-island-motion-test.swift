@@ -11,7 +11,15 @@ struct IslandMotionTests {
         everyMorphInterpolates()
         missingBubbleGrowsFromTheBody()
         rowHandsOverOnlyWhenItsLookChanges()
+        buddingBubbleHoldsTheRow()
         print("notchcast-island-motion: all checks passed")
+    }
+
+    static func buddingBubbleHoldsTheRow() {
+        expect(IslandMotion.change.holdsRowWhileBudding(from: 0, to: 36), "a change that buds a bubble holds the row")
+        expect(!IslandMotion.change.holdsRowWhileBudding(from: 36, to: 36), "a change beside a standing bubble crossfades")
+        expect(!IslandMotion.change.holdsRowWhileBudding(from: 36, to: 0), "a bubble leaving crossfades")
+        expect(!IslandMotion.close.holdsRowWhileBudding(from: 0, to: 36), "only a change buds")
     }
 
     /// Core Animation cuts a path morph whose element list differs, so every outline of one shape must match.
@@ -45,6 +53,10 @@ struct IslandMotionTests {
         let budded = path(CGRect(x: 0, y: 0, width: 222, height: 36), top: 18, radius: 18, bubble: 36)
         expect(budded.contains(CGPoint(x: 204, y: 18)) && !budded.contains(CGPoint(x: 183, y: 18)),
                "a bubble stands apart from the body, a gap to its right")
+        let overlapping = IslandSilhouette.path(in: CGRect(x: 0, y: 0, width: 180, height: 36), shoulder: 0,
+                                                bottomRadius: 18, topRadius: 18, bubble: 36, bubbleGap: -18)
+        expect(overlapping.contains(CGPoint(x: 153, y: 18), using: .winding),
+               "a bubble overlapping the body mid-morph fills the overlap instead of cutting a hole")
     }
 
     static func rowHandsOverOnlyWhenItsLookChanges() {

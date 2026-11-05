@@ -25,9 +25,16 @@ enum IslandSilhouette {
                                        height: rect.height) : rect
         path.addPath(bodyPath(in: body, shoulder: shoulder, bottomRadius: bottomRadius, topRadius: topRadius))
         if bubble > 0 {
-            path.addEllipse(in: CGRect(x: rect.maxX - bubble, y: rect.midY - bubble / 2, width: bubble, height: bubble))
+            path.addEllipse(in: CGRect(x: rect.maxX - bubble, y: rect.midY - bubble / 2, width: bubble, height: bubble),
+                            transform: bubbleWinding(aboutY: rect.midY))
         }
         return path
+    }
+
+    /// Mirrors a circle about its own centre line: the same circle, wound the body's way, so where the two overlap
+    /// in a morph the nonzero rule fills instead of cutting a hole.
+    static func bubbleWinding(aboutY y: CGFloat) -> CGAffineTransform {
+        CGAffineTransform(translationX: 0, y: y * 2).scaledBy(x: 1, y: -1)
     }
 
     private static func bodyPath(in rect: CGRect, shoulder: CGFloat, bottomRadius: CGFloat, topRadius: CGFloat) -> CGPath {
