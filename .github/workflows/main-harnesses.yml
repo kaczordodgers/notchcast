@@ -1,6 +1,7 @@
 name: Main harnesses
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     paths-ignore:
@@ -13,15 +14,15 @@ permissions:
   contents: read
   issues: write
 
-# Only the newest main is tested; it selects harnesses from the last green run, so skipped pushes stay covered.
+# Running checks finish; pending pushes select from the last green run to cover replaced pushes.
 concurrency:
-  group: main-harnesses
-  cancel-in-progress: true
+  group: main-harnesses-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   harnesses:
     runs-on: xcode-27
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
         with:
@@ -39,9 +40,12 @@ jobs:
           BEFORE: ${{ github.event.before }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          green=$(gh run list -R "$GITHUB_REPOSITORY" --workflow main-harnesses.yml --branch main --status success \
-            --limit 1 --json headSha --jq '.[0].headSha // empty') || green=
-          if [ -n "$green" ] && git merge-base --is-ancestor "$green" "$GITHUB_SHA" 2>/dev/null; then BEFORE=$green; fi
+          git fetch -q origin '+refs/notchcast/synced/*:refs/notchcast/synced/*'
+          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
+            BEFORE=$(bash notchcast/fork-point.sh origin/main HEAD)
+          else
+            BEFORE=$(bash notchcast/main-harness-base.sh "$BEFORE" "$GITHUB_SHA")
+          fi
           if [[ "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}"; then
             # A Sync rewrite: Sync tested this tree before pushing it.
             echo notchcast-core-test > "$RUNNER_TEMP/selected"
@@ -57,25 +61,18 @@ jobs:
         run: |
           export TMPDIR="$RUNNER_TEMP/main-harnesses"
           mkdir -p "$TMPDIR"
-          status=0
+          source ../tools/notchcast/config.env
+          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+          UPSTREAM=$(git merge-base "$GITHUB_SHA" upstream/main)
+          NOTCHCAST_ONLY_TESTS=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")
+          export UPSTREAM NOTCHCAST_ONLY_TESTS
+          [ -n "${NOTCHCAST_ONLY_TESTS// /}" ] || exit 0
           # run-tests.sh replays no log when bash's crash notice splits its result line, so print it here.
-          while IFS= read -r name; do
-            [ -n "$name" ] || continue
-            if ! ./Scripts/run-tests.sh "$name"; then
-              tail -n 40 "$TMPDIR/tinycast-harness/$name.log" || true
-              echo "::warning::retrying $name alone"
-              if ! ./Scripts/run-tests.sh "$name"; then
-                tail -n 40 "$TMPDIR/tinycast-harness/$name.log" || true
-                echo "::error::$name failed twice on $GITHUB_SHA"
-                status=1
-              fi
-            fi
-          done < "$RUNNER_TEMP/selected"
-          exit "$status"
+          bash ../tools/notchcast/ci-tests.sh
       # land.sh pushes its own squash with no app build on the merged tree; a red main opens the notchcast-main
       # issue, which the MBA updater turns into one alert (the next green Sync of main closes it).
       - name: Report a red main
-        if: failure()
+        if: failure() && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 tools/notchcast/ci.py issue open main "main ${GITHUB_SHA:0:7} fails its harnesses" "harnesses-$GITHUB_SHA"
