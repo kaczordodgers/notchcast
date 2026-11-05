@@ -53,10 +53,35 @@ named_job() { # name program...
     mkdir -p "$(dirname "$wrapper")"
     printf '#!/bin/bash\n' > "$wrapper"
     if [ "$name" = 'Notchcast update' ]; then
-        printf 'cd %q || exit 1\n' "$HERE/.." >> "$wrapper"
-        printf '%s\n' 'if [ "$(git branch --show-current)" = main ] && [ -z "$(git status --porcelain)" ]; then' \
-            '    git pull --ff-only --quiet || echo "checkout refresh failed; using current code"' \
-            'else echo "checkout is not clean main; using current code"; fi' >> "$wrapper"
+        printf 'repo=%q\n' "$HERE/.." >> "$wrapper"
+        cat >> "$wrapper" <<'REFRESH'
+set -o pipefail
+root="$HOME/Library/Application Support/notchcast"
+tools="$root/tools"
+stage=''
+refresh() {
+    git -C "$repo" fetch --quiet origin main 2>/dev/null || return 1
+    stage=$(mktemp -d "$root/tools.XXXXXX") || return 1
+    git -C "$repo" archive FETCH_HEAD notchcast/ 2>/dev/null | tar -xf - -C "$stage" 2>/dev/null || return 1
+    [ -f "$stage/notchcast/update.sh" ] && [ -f "$stage/notchcast/install-app.sh" ] \
+        && [ -f "$stage/notchcast/config.env" ] || return 1
+    local old
+    old=$(readlink "$tools")
+    ln -s "$stage/notchcast" "$stage/link" && mv -fh "$stage/link" "$tools" || return 1
+    stage=''
+    case "$old" in "$root"/tools.??????/notchcast) rm -rf "${old%/notchcast}" ;; esac
+}
+if ! refresh; then
+    echo 'tooling refresh failed; using previous code'
+    [ -z "$stage" ] || rm -rf "$stage"
+fi
+REFRESH
+        shift 2
+        local args=''
+        if [ "$#" -gt 0 ]; then args="$(printf '%q ' "$@")"; fi
+        printf 'if [ -f "$tools/update.sh" ]; then exec /bin/bash "$tools/update.sh" %s; fi\n' \
+            "$args" >> "$wrapper"
+        set -- /bin/bash "$HERE/update.sh" "$@"
     fi
     printf 'exec %s\n' "$(printf '%q ' "$@")" >> "$wrapper"
     chmod 755 "$wrapper"

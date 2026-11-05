@@ -31,6 +31,7 @@ python3 notchcast/check-legacy-command-ids.py
 python3 notchcast/check-legacy-command-ids-test.py
 step publish-snapshot
 bash notchcast/publish-snapshot-test.sh
+bash notchcast/install-launchd-test.sh
 bash notchcast/update-idle-test.sh
 step build
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
