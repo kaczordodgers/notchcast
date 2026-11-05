@@ -106,11 +106,11 @@ enum SettingsSearchCatalog {
     // Pane order, then section order within a pane, so this reads as a table of contents.
 
     static let entries: [SettingsSearchEntry] =
-        general + applications + systemSettings + systemActions + commands + quicklinks
+        (general + applications + systemSettings + systemActions + commands + quicklinks
         + appleShortcuts + fallbacks + clipboard + snippets + fileSearch + windowManagement
         + navigation + notes + calendar + emoji + ai + quickActions + dictation + extensions + permissions
         + backup + about
-        + notchcast
+        + notchcast).filter { !NotchcastHidden.tabs.contains($0.tab) }
 
     private static let general: [SettingsSearchEntry] = [
         .init(pane: .general, keywords: ["preferences", "settings"]),
