@@ -18,6 +18,7 @@ final class IslandPanel: NSPanel {
     var displayFrame: CGRect { frame }
     var shown = false
     var activeSpace = true
+    var closedBodyFrame = CGRect.zero
     override var isVisible: Bool { shown }
     override var isOnActiveSpace: Bool { activeSpace }
 }
@@ -46,19 +47,13 @@ struct NotchcastLauncherPlacementTests {
         let panel = IslandPanel(contentRect: .zero, styleMask: .borderless,
                                 backing: .buffered, defer: false)
         assert(panel.launcherPlacementFrame == nil)
-        panel.setFrame(CGRect(x: 200, y: 300, width: 800, height: 500), display: false)
-        let surface = NSView(frame: CGRect(x: 0, y: 0, width: 800, height: 500))
-        surface.wantsLayer = true
-        let mask = CAShapeLayer()
-        surface.layer?.mask = mask
-        panel.contentView = surface
         panel.shown = true
-        let compact = CGRect(x: 300, y: 468, width: 200, height: 32)
-        mask.path = CGPath(rect: compact, transform: nil)
-        assert(panel.launcherPlacementFrame == compact.offsetBy(dx: 200, dy: 300))
-        let grown = CGRect(x: 256, y: 432, width: 288, height: 68)
-        mask.path = CGPath(rect: grown, transform: nil)
-        assert(panel.launcherPlacementFrame == grown.offsetBy(dx: 200, dy: 300))
+        let compact = CGRect(x: 500, y: 768, width: 200, height: 32)
+        panel.closedBodyFrame = compact
+        assert(panel.launcherPlacementFrame == compact)
+        let grown = CGRect(x: 456, y: 732, width: 288, height: 68)
+        panel.closedBodyFrame = grown
+        assert(panel.launcherPlacementFrame == grown, "the launcher hangs from the closed body, never its bubble")
         panel.activeSpace = false
         assert(panel.launcherPlacementFrame == nil)
         panel.activeSpace = true

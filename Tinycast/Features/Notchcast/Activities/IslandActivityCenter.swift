@@ -23,6 +23,11 @@ final class IslandActivityCenter {
         }
     }
 
+    /// Every activity, the one that outranks the rest first.
+    var ranked: [IslandActivity] {
+        activities.sorted { $0.outranks($1) }
+    }
+
     @discardableResult
     func begin(_ activity: IslandActivity) -> UUID {
         if let index = activities.firstIndex(where: { $0.id == activity.id }) {
@@ -34,8 +39,9 @@ final class IslandActivityCenter {
     }
 
     func update(_ id: UUID, title: String? = nil, progress: Double?? = nil,
-                endDate: Date?? = nil, priority: Int? = nil) {
+                endDate: Date?? = nil, priority: Int? = nil, value: IslandValue?? = nil) {
         guard let index = activities.firstIndex(where: { $0.id == id }) else { return }
+        if let value { activities[index].value = value.map(IslandValue.clamped) }
         if let title { activities[index].title = title }
         if let progress { activities[index].progress = progress.map { min(max($0, 0), 1) } }
         if let endDate { activities[index].endDate = endDate }
@@ -47,9 +53,10 @@ final class IslandActivityCenter {
     func fail(_ id: UUID) { finish(id) }
 
     /// A message shown while another is up replaces it in place and re-arms the dwell, like upstream's HUD.
-    func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval) {
+    func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval, symbol: String? = nil) {
         dismissal?.cancel()
-        message = IslandMessage(id: message?.id ?? UUID(), tone: tone, text: text, isProgress: false, onCancel: nil)
+        message = IslandMessage(id: message?.id ?? UUID(), tone: tone, text: text, isProgress: false, onCancel: nil,
+                                symbol: symbol)
         dismissal = Task { [weak self, sleep] in
             await sleep(dwell)
             guard !Task.isCancelled else { return }

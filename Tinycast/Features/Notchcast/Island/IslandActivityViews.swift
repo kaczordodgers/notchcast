@@ -1,54 +1,26 @@
 import SwiftUI
 
+/// Home's row and the open header reuse the closed pieces, so an activity reads the same open or closed.
 struct IslandActivityGlyph: View {
     let activity: IslandActivity
 
     var body: some View {
-        SymbolImage(name: activity.progress != nil ? "progress.indicator"
-                    : (activity.kind == .timer ? "timer" : "arrow.up.arrow.down"), size: Theme.Size.menuIcon)
-            .foregroundStyle(activity.progress != nil ? Theme.Colors.progress : Theme.Colors.textPrimary)
-            .accessibilityHidden(true)
+        IslandGlyph(symbol: activity.shownSymbol, tone: activity.tone)
     }
 }
 
 struct IslandActivityValue: View {
     let activity: IslandActivity
-    var multiple = false
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.sm) {
-            if let end = activity.endDate {
-                Text(end, style: .timer)
-                    .accessibilityLabel(Text(verbatim: ""))
-                    .accessibilityValue(Text(end, style: .timer))
-            } else if let progress = activity.progress {
-                Text(progress, format: .percent.precision(.fractionLength(0)))
-                    .accessibilityLabel(Text(verbatim: ""))
-                    .accessibilityValue(Text(progress, format: .percent.precision(.fractionLength(0))))
-            } else {
-                Text(activity.title).lineLimit(1)
-            }
-            if multiple {
-                Circle().fill(Theme.Colors.textTertiary)
-                    .frame(width: Theme.Spacing.sm, height: Theme.Spacing.sm)
-            }
-        }
-        .font(Theme.Typography.rowTrailing)
-        .monospacedDigit()
+        IslandValueText(value: activity.shownValue)
     }
 }
 
+/// A message in the open island's header: its glyph and its text, cancellable while work runs.
 struct IslandStatusView: View {
     let message: IslandMessage
     @State private var hovered = false
-
-    private var tint: Color {
-        switch message.tone {
-        case .neutral: message.isProgress ? Theme.Colors.progress : Theme.Colors.textSecondary
-        case .success: Theme.Colors.success
-        case .danger: Theme.Colors.destructive
-        }
-    }
 
     var body: some View {
         Group {
@@ -64,24 +36,20 @@ struct IslandStatusView: View {
     }
 
     private var content: some View {
-        HStack(spacing: Theme.Spacing.md) {
-            Group {
-                if hovered, message.onCancel != nil {
-                    SymbolImage(name: "xmark", size: Theme.Size.menuIcon)
-                } else if message.isProgress {
-                    SymbolImage(name: "progress.indicator", size: Theme.Size.menuIcon)
-                        .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing)
-                } else {
-                    SymbolImage(name: message.tone == .success ? "checkmark"
-                                : (message.tone == .danger ? "exclamationmark" : "info"),
-                                size: Theme.Size.menuIcon)
-                }
+        HStack(spacing: NotchcastTheme.Closed.itemGap) {
+            if hovered, message.onCancel != nil {
+                IslandGlyph(symbol: "xmark")
+            } else {
+                IslandGlyph(symbol: message.shownSymbol, tone: IslandItemParts.tone(message.tone),
+                            spinning: message.isProgress)
             }
-            .foregroundStyle(tint)
-            Text(message.text).font(Theme.Typography.bar).foregroundStyle(Color.primary).lineLimit(1)
+            Text(message.text)
+                .font(NotchcastTheme.Typography.title)
+                .foregroundStyle(NotchcastTheme.Colors.primary)
+                .lineLimit(1)
         }
-        .padding(.horizontal, Theme.Spacing.xl)
-        .frame(maxWidth: Theme.Size.hudMaxWidth, alignment: .leading)
+        .padding(.horizontal, NotchcastTheme.Closed.wingInset)
+        .frame(maxWidth: NotchcastTheme.Closed.maximumWidth, alignment: .leading)
         .fixedSize(horizontal: true, vertical: false)
     }
 }

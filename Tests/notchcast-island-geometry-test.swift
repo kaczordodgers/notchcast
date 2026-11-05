@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandGeometry.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandMotion.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
+import CoreGraphics
 import Foundation
 
 @main
@@ -18,16 +19,33 @@ struct IslandGeometryTests {
 
     static func closedContext() {
         let screen = CGRect(x: 0, y: 0, width: 1512, height: 982)
-        let pill = IslandGeometry.monitorPill(screen: screen, size: CGSize(width: 180, height: 28))
+        let pill = IslandGeometry.monitorPill(screen: screen, size: CGSize(width: 120, height: 30), topGap: 4)
+        expect(pill == CGRect(x: 696, y: 948, width: 120, height: 30), "the island floats 4 points under the top edge")
         let notch = CGRect(x: 660, y: 950, width: 192, height: 32)
-        for hardware in [notch, nil] {
-            let context = IslandClosedContext(screen: screen, hardwareNotch: hardware, pill: pill)
-            expect(context.hasHardwareNotch == (hardware != nil), "context identifies the display shape")
-            expect(context.screen == screen && context.pill == pill, "context preserves display geometry")
-            expect(context.wingWidth(contentWidth: 12, minimum: 44) == (hardware == nil ? 12 : 44),
-                   "only notch wings impose the 44 point floor")
-            expect(context.wingWidth(contentWidth: 60, minimum: 44) == 60, "wide content keeps its width")
+        let launcher = CGRect(x: 381, y: 494, width: 750, height: 475)
+        let closed = IslandOutline(body: notch, shoulder: 6, bottomRadius: 10)
+        let open = IslandOutline(body: launcher, bottomRadius: 26, topRadius: 26)
+        for outline in [closed, open, IslandOutline(body: pill, bottomRadius: 15, topRadius: 15,
+                                                     bubble: CGRect(x: 826, y: 948, width: 30, height: 30))] {
+            expect(elements(IslandSilhouette.path(outline)) == elements(IslandSilhouette.path(closed)),
+                   "every outline has the same path elements, so any two morph")
         }
+        let middle = IslandOutline.interpolate(closed, open, progress: 0.5)
+        expect(middle.body.midX == notch.midX && middle.body.width == (notch.width + launcher.width) / 2
+               && middle.shoulder == 3 && middle.topRadius == 13, "the middle frame is halfway in every parameter")
+        expect(IslandOutline.interpolate(closed, open, progress: 1) == IslandOutline(
+            body: launcher, bottomRadius: 26, topRadius: 26, bubble: open.parkedBubble), "the end frame is the launcher")
+        expect(closed.parkedBubble.width == 0 && closed.body.contains(closed.parkedBubble.origin),
+               "a missing bubble parks inside the body's trailing end")
+        let capsule = IslandSilhouette.path(IslandOutline(body: pill, bottomRadius: 15, topRadius: 15))
+        expect(!capsule.contains(CGPoint(x: pill.minX + 1, y: pill.maxY - 1)), "a detached pill rounds its top too")
+        expect(capsule.contains(CGPoint(x: pill.midX, y: pill.midY)), "the pill's body takes clicks")
+    }
+
+    static func elements(_ path: CGPath) -> [Int32] {
+        var types: [Int32] = []
+        path.applyWithBlock { types.append($0.pointee.type.rawValue) }
+        return types
     }
 
     static func screenSelection() {
