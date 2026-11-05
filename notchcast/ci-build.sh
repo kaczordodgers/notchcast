@@ -26,11 +26,13 @@ fi
 step feature-shape
 python3 notchcast/check-feature-shape.py
 python3 notchcast/check-feature-shape-test.py
+python3 notchcast/replay-test.py
 step legacy-ids
 python3 notchcast/check-legacy-command-ids.py
 python3 notchcast/check-legacy-command-ids-test.py
 step publish-snapshot
 bash notchcast/publish-snapshot-test.sh
+bash notchcast/verify-signature-test.sh
 step build
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
     -jobs "${CHAD_BUILD_QUEUE_JOBS:-4}" -derivedDataPath "$RUNNER_TEMP/DerivedData" \
