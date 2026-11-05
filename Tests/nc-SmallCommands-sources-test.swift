@@ -11,6 +11,7 @@ struct NotchcastCommand: Sendable {
     let feature: NotchcastFeature
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
+    var id: String { "command:nc-" + slug }
 }
 @MainActor final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
