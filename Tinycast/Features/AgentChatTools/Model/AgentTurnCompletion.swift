@@ -18,6 +18,8 @@ struct AgentTurnCompletion: Sendable {
             of: "(?:^|[.!?]\\s+)(?:Now\\s+)?(?:Let me|I['’]ll|I will)\\s+(?:now\\s+)?"
                 + "(?:check|verify|inspect|read|open|search|look|run|test|fix|write|continue)\\b[^.!?]*[.!?]?$",
             options: [.regularExpression, .caseInsensitive]) != nil
+            && segments.range(of: "\\b(?:once|if|when|after) you\\b",
+                options: [.regularExpression, .caseInsensitive]) == nil
     }
 
     func preparing(_ request: AIRequest) -> AIRequest {

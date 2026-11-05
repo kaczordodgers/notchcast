@@ -27,11 +27,13 @@ struct CompletionTests {
             ("Let me summarize:\nThe file contains three entries.", false),
             ("Found the file. Now let me verify it.", true),
             ("I'll now inspect the file.", true),
-            ("Let me check the file. It contains three entries.", false)
+            ("Let me check the file. It contains three entries.", false),
+            ("I'll fix it once you confirm.", false),
+            ("Let me know if you need more.", false)
         ] {
             precondition(AgentTurnCompletion.isUnfinished(text) == unfinished, text)
         }
-        print("PASS: 7 detector cases")
+        print("PASS: 9 detector cases")
         for enabled in [false, true] {
             let fake = CompletionFake()
             let tool = AITool(name: "read", description: "Read", parameters: .object([:]), origin: "Test")
@@ -39,10 +41,12 @@ struct CompletionTests {
                 base: fake, tools: [tool], maxRounds: 8, completionEnabled: enabled
             ) { _ in fatalError("A tool-less continuation must not invoke tools") }
             var finished = 0
-            for try await event in provider.stream(AIRequest(messages: [.init(role: .user, text: "Check")]))
-            where event == .finished {
-                finished += 1
+            var shown = ""
+            for try await event in provider.stream(AIRequest(messages: [.init(role: .user, text: "Check")])) {
+                if event == .finished { finished += 1 }
+                if case .text(let delta) = event { shown += delta }
             }
+            precondition(!shown.contains(".Let me"), "Continued reply must not run into the first one")
             let requests = fake.requests.withLock { $0 }
             guard requests.count == (enabled ? 2 : 1) else {
                 print("FAIL: enabled=\(enabled), expected \(enabled ? 2 : 1) requests, got \(requests.count)")

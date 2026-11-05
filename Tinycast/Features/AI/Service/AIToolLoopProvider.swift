@@ -47,16 +47,20 @@ struct AIToolLoopProvider: AIProvider {
     ) async throws {
         var messages = request.messages
         var completion = AgentTurnCompletion(enabled: completionEnabled)
+        let request = completion.preparing(request)
         var spent = 0
         var carried = 0
         var rounds = 0
         while carried < Self.maxTurnHistoryBytes, maxRounds.map({ rounds < $0 }) ?? true {
             rounds += 1
             let round = try await streamRound(
-                completion.preparing(request.continuing(with: messages, tools: tools)), into: continuation)
+                request.continuing(with: messages, tools: tools), into: continuation)
             try Task.checkCancellation()
             guard !round.calls.isEmpty else {
-                if completion.resume(text: round.text, responseItems: round.responseItems, messages: &messages) { continue }
+                if completion.resume(text: round.text, responseItems: round.responseItems, messages: &messages) {
+                    continuation.yield(.text("\n\n"))
+                    continue
+                }
                 continuation.yield(.finished)
                 return
             }
