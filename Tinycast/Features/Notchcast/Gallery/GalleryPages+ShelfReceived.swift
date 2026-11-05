@@ -14,7 +14,7 @@ extension GalleryPages {
                             data: Data("Sample".utf8)), receivedAt: .now)
                     ]
                     return window(Form {
-                        Section("Shelf between Macs") {
+                        Section(String(localized: "Shelf between Macs", table: "Notchcast")) {
                             ShelfReceivedRows(entries: entries, action: { _, _ in })
                         }
                     }.formStyle(.grouped), size: CGSize(width: 800, height: 600), dark: dark)

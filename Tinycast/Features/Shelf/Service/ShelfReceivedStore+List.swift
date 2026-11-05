@@ -63,7 +63,11 @@ extension ShelfReceivedStore {
             let ending = suffix == 0 ? "" : " (\(suffix))"
             let ext = name.pathExtension.isEmpty ? "" : "." + name.pathExtension
             var base = name.deletingPathExtension
-            while (base + ending + ext).utf8.count > 255 { base.removeLast() }
+            while (base + ending + ext).utf8.count > 255 {
+                guard !base.isEmpty else { throw ShelfEngine.Failure.invalidItem }
+                base.removeLast()
+            }
+            guard !base.isEmpty else { throw ShelfEngine.Failure.invalidItem }
             let filename = base + ending + ext
             let url = destination.appendingPathComponent(filename)
             do {

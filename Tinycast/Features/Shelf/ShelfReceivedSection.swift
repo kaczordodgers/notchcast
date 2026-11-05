@@ -11,15 +11,15 @@ struct ShelfReceivedSection: View {
         Group {
             if let status = NotchcastCore.shelf.linkStatus {
                 LabeledContent("Status", value: status.shelfPeerAvailable
-                    ? String(localized: "Connected") : String(localized: "Not connected"))
+                    ? String(localized: "Connected", table: "Notchcast") : String(localized: "Not connected", table: "Notchcast"))
             }
             ShelfReceivedRows(entries: entries, action: perform)
             Group {
-                Button(String(localized: "Clear All"), role: .destructive) {
+                Button(String(localized: "Clear All", table: "Notchcast"), role: .destructive) {
                     Task {
-                        guard await core.confirm(title: String(localized: "Clear all received items?"),
+                        guard await core.confirm(title: String(localized: "Clear all received items?", table: "Notchcast"),
                             message: String(localized: "This can't be undone."), symbol: "tray",
-                            confirmTitle: String(localized: "Clear All")) else { return }
+                            confirmTitle: String(localized: "Clear All", table: "Notchcast")) else { return }
                         await update { try await store.clear() }
                     }
                 }
@@ -45,7 +45,7 @@ struct ShelfReceivedSection: View {
                     reportedError = false
                 } catch is CancellationError { return } catch {
                     if !reportedError {
-                        core.showMessage(String(localized: "Could Not Load Shelf"), tone: .danger)
+                        core.showMessage(String(localized: "Could Not Load Shelf", table: "Notchcast"), tone: .danger)
                         reportedError = true
                     }
                 }
@@ -67,7 +67,7 @@ struct ShelfReceivedSection: View {
         case .save:
             Task { await update {
                 _ = try await store.save(entry, to: .downloadsDirectory)
-                core.showMessage(String(localized: "Saved to Downloads"))
+                core.showMessage(String(localized: "Saved to Downloads", table: "Notchcast"))
             } }
         case .remove:
             Task { await update { try await store.remove(entry) } }
@@ -84,7 +84,7 @@ struct ShelfReceivedSection: View {
             try Task.checkCancellation()
             entries = loaded
         } catch is CancellationError {} catch {
-            core.showMessage(String(localized: "Could Not Update Shelf"), tone: .danger)
+            core.showMessage(String(localized: "Could Not Update Shelf", table: "Notchcast"), tone: .danger)
         }
     }
 }
@@ -97,7 +97,7 @@ struct ShelfReceivedRows: View {
 
     var body: some View {
         if entries.isEmpty {
-            Text("Items sent from the other Mac appear here.").foregroundStyle(.secondary)
+            Text("Items sent from the other Mac appear here.", tableName: "Notchcast").foregroundStyle(.secondary)
         }
         ForEach(entries) { entry in
             HStack(spacing: Theme.Spacing.lg) {
@@ -111,7 +111,7 @@ struct ShelfReceivedRows: View {
                 Spacer()
                 if entry.item.kind != .file { Button("Copy") { action(entry, .copy) } }
                 if entry.item.kind == .link { Button("Open") { action(entry, .open) } }
-                if entry.item.kind == .file { Button(String(localized: "Save to Downloads")) { action(entry, .save) } }
+                if entry.item.kind == .file { Button(String(localized: "Save to Downloads", table: "Notchcast")) { action(entry, .save) } }
                 Button("Remove", role: .destructive) { action(entry, .remove) }
             }
         }
