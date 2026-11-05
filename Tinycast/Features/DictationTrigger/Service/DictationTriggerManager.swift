@@ -62,9 +62,10 @@ final class DictationTriggerManager {
         } else if event.type == .keyDown {
             // Bare Globe emits key 179, and function keys carry fn without a Globe press.
             guard event.keyCode != 179, !event.isRepeat else { return }
-            if event.keyCode == kVK_Escape || event.keyCode == kVK_Return
-                || event.keyCode == kVK_ANSI_KeypadEnter
-            {
+            if event.keyCode == kVK_Escape {
+                guard globeDown else { return }
+                input = .cancel
+            } else if event.keyCode == kVK_Return || event.keyCode == kVK_ANSI_KeypadEnter {
                 guard globeDown else { return }
                 input = .finish
             } else {
