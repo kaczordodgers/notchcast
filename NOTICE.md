@@ -420,3 +420,7 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+# Odysseus
+
+The chat turn completion rule and trailing action-promise detection are adapted from Odysseus, AGPL-3.0-or-later, https://github.com/odysseus-dev/odysseus, `src/agent_loop.py` (dev branch). The Swift implementation uses original wording and a new expression for the same heuristic.
+
