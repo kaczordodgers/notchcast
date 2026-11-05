@@ -5,7 +5,7 @@ struct MachSSH: Sendable {
         let status: Int32
         let output: String
         var message: String? {
-            status == 255 ? String(localized: "Unable to reach the remote Mac over SSH") : nil
+            status == 255 ? String(localized: "Unable to reach the remote Mac over SSH", table: "Notchcast") : nil
         }
     }
 
@@ -51,7 +51,7 @@ struct MachSSH: Sendable {
         let command = (["/usr/bin/ssh", "-t"] + Self.options +
             [address, "cd " + Self.remotePath(directory) + " && exec /bin/zsh -l"]).map(Self.quote).joined(separator: " ")
         return command + "; rc=$?; if [ \"$rc\" -eq 255 ]; then printf '%s\\n' " +
-            Self.quote(String(localized: "Unable to reach the remote Mac over SSH")) +
+            Self.quote(String(localized: "Unable to reach the remote Mac over SSH", table: "Notchcast")) +
             "; fi; exec /bin/zsh -l"
     }
 
@@ -68,8 +68,8 @@ struct MachSSH: Sendable {
         case address, path
         var errorDescription: String? {
             switch self {
-            case .address: String(localized: "Set the remote Mac address in Settings")
-            case .path: String(localized: "Remote Mac path is not configured.")
+            case .address: String(localized: "Set the remote Mac address in Settings", table: "Notchcast")
+            case .path: String(localized: "Remote Mac path is not configured.", table: "Notchcast")
             }
         }
     }

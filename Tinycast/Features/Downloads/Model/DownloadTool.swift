@@ -10,6 +10,6 @@ struct DownloadTool: Sendable, Hashable {
     static let aria2c = DownloadTool(name: "aria2c", installCommand: "brew install aria2")
 
     var missingDetail: String {
-        String(localized: "\(name) is not installed. Install it with: \(installCommand)")
+        String(localized: "\(name) is not installed. Install it with: \(installCommand)", table: "Notchcast")
     }
 }

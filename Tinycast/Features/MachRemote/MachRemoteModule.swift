@@ -26,7 +26,7 @@ final class MachRemoteModule: NotchcastModule {
         automation = Task {
             let result = try? await MachSSHProcessRunner.run("/usr/bin/osascript", ["-e", source])
             guard !Task.isCancelled, result?.status != 0 else { return }
-            AppCore.shared.showMessage(String(localized: "Unable to open Terminal"), tone: .danger)
+            AppCore.shared.showMessage(String(localized: "Unable to open Terminal", table: "Notchcast"), tone: .danger)
         }
     }
 }
