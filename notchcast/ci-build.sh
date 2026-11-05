@@ -38,7 +38,9 @@ bash notchcast/update-idle-test.sh
 step build
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
     -jobs "${CHAD_BUILD_QUEUE_JOBS:-4}" -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-    CODE_SIGNING_ALLOWED=NO build -quiet
+    "OTHER_SWIFT_FLAGS=\$(inherited) -debug-prefix-map $HOME=/Users/builder" \
+    "OTHER_CFLAGS=\$(inherited) -fdebug-prefix-map=$HOME=/Users/builder" \
+    SWIFT_SERIALIZE_DEBUGGING_OPTIONS=NO CODE_SIGNING_ALLOWED=NO build -quiet
 step identity
 source "$TOOLS/notchcast/config.env"
 bash "$TOOLS/notchcast/check-identity.sh" app "$RUNNER_TEMP/DerivedData/Build/Products/Debug/$APP_NAME Dev.app"
