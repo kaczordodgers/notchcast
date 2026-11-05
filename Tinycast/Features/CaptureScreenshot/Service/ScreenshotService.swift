@@ -50,6 +50,7 @@ enum ScreenshotService {
         case .clipboard: url = nil
         case .file(let folder), .both(let folder): url = try await save(data, folder: folder)
         }
+        try Task.checkCancellation()
         switch destination {
         case .clipboard, .both:
             guard writeClipboard(data) else {
