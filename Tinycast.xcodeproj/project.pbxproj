@@ -785,6 +785,7 @@
 		694B7E1A8C7C2D6DF26D3BF9 /* RaycastRuntime.generated.js in Resources */ = {isa = PBXBuildFile; fileRef = 74284B4E771DA0B2869C914E /* RaycastRuntime.generated.js */; };
 		695898F8FF98200F180FC2CA /* PaletteEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 524404EF88622426B0AA4E33 /* PaletteEnvironment.swift */; };
 		6992B2526DD36215003CDC33 /* QuickAICoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 732C28E00A15CFBE3C8FAD1A /* QuickAICoordinator.swift */; };
+		69A46A511381273B00153D07 /* NotchcastHidden.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4317298489FCBE72895587BC /* NotchcastHidden.swift */; };
 		69C70F5A7AB20EBCD5454F63 /* ChatCitations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3FCA6A3F125163DD10E56564 /* ChatCitations.swift */; };
 		6A016AE71EA5D2094B8F0AFC /* MonitorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5F3D126358C8C7FBE7AD64 /* MonitorStore.swift */; };
 		6A0C45313C7B73349C7B17E0 /* ThinScrollbar.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A6748260B2DF011CCAFCEF /* ThinScrollbar.swift */; };
@@ -2447,6 +2448,7 @@
 		42BF5FF516A29ABBECBF576D /* DictationHelper.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DictationHelper.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		42CF32A3F1BFF3BCC04D15BC /* TreadmillHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreadmillHistoryStore.swift; sourceTree = "<group>"; };
 		42F4572263D9E8D7B6CFE3A4 /* TodoFilterParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoFilterParser.swift; sourceTree = "<group>"; };
+		4317298489FCBE72895587BC /* NotchcastHidden.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastHidden.swift; sourceTree = "<group>"; };
 		433D5E44E58C6759981FE7E1 /* AIChatDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatDetailView.swift; sourceTree = "<group>"; };
 		43675F37B244C5CBC293CFE2 /* ExtensionCommandMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionCommandMetadata.swift; sourceTree = "<group>"; };
 		436A4FE0EE7C009B1AF94709 /* TreadmillStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreadmillStatus.swift; sourceTree = "<group>"; };
@@ -5960,6 +5962,14 @@
 			path = AgentConfirm;
 			sourceTree = "<group>";
 		};
+		654D0F225E36AC9079B0B90B /* Hidden */ = {
+			isa = PBXGroup;
+			children = (
+				4317298489FCBE72895587BC /* NotchcastHidden.swift */,
+			);
+			path = Hidden;
+			sourceTree = "<group>";
+		};
 		6596C964CA097C37EDC43BBC /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -6846,6 +6856,7 @@
 				93AE5939BC0CDD7EFA84FD2B /* Core */,
 				A3C3466211DF1BB1E0F85CA7 /* Downloads */,
 				96E878FC0BC604224D808BA6 /* Gallery */,
+				654D0F225E36AC9079B0B90B /* Hidden */,
 				7BEF822267B0CEAAE79410C5 /* Input */,
 				738AC496215E70E696BBBE70 /* Island */,
 				1BFEE2F988B62F1206130D8E /* Launcher */,
@@ -10919,6 +10930,7 @@
 				458ED8E32A20ADA27CFE6461 /* NotchcastGrant+Settings.swift in Sources */,
 				1E3985FEA66620F98C0091D1 /* NotchcastGrantState.swift in Sources */,
 				EE04546FF29B2D82D750FA13 /* NotchcastGrantsSection.swift in Sources */,
+				69A46A511381273B00153D07 /* NotchcastHidden.swift in Sources */,
 				A434E3F9D093A781F18CA055 /* NotchcastKeyMonitor.swift in Sources */,
 				9B19276F20B240F75D09B614 /* NotchcastLauncher.swift in Sources */,
 				CE0F972D2A875779594A62E1 /* NotchcastLauncherGeometry.swift in Sources */,

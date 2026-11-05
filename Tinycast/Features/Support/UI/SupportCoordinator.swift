@@ -46,6 +46,6 @@ final class SupportCoordinator {
 
     func focusExisting() -> Bool {
         guard NotchcastHidden.supportEnabled else { return false }
-        window.focus()
+        return window.focus()
     }
 }
