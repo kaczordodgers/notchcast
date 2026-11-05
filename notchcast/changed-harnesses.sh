@@ -24,7 +24,7 @@ for path in sorted(Path('Tests').glob('*-test.swift')):
     name = path.stem
     extra = subprocess.check_output(
         ['bash', '-c', 'name=$1; shift; source notchcast/command-harness-sources.sh; printf "%s\\n" "$@"',
-         'harness-sources', name], text=True).splitlines()
+         'harness-sources', name], text=True).split()
     if not (headers or extra or name.startswith(('nc-', 'notchcast-'))):
         continue
     patterns = [token for header in headers for token in shlex.split(header)
