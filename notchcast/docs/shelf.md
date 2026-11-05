@@ -4,8 +4,8 @@ The shelf switch is off by default and requires Mac Link. No views or commands a
 
 `ShelfModule.send` accepts UTF-8 text, HTTP(S) links and binary files, up to 24 KiB each.
 Names are single path components of at most 255 UTF-8 bytes. SHA-256 of kind, name and
-content deduplicates sends within a running session and receives across restarts.
-At most 64 received envelopes are retained; a full store refuses further items without eviction.
+content deduplicates received files across restarts. Every explicit send reaches the transport.
+At most 64 received envelopes are retained; new items evict the oldest files by creation date.
 Received JSON envelopes live in the bundle-scoped user cache, independent of temporary transport files.
 They are disposable cache data, not permanent originals. Storage errors propagate to callers.
 
