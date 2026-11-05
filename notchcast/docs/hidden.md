@@ -1,0 +1,1 @@
+- Agent Answers (`agentAnswer`) is a hidden fork feature: no reply transport exists; keep its code, force it off, and omit Settings/search and command access.

@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift
@@ -6,7 +7,21 @@ import Foundation
 
 @main
 struct NotchcastSettingsTreeTests {
-    static func main() throws {
+    @MainActor static func main() throws {
+        let suite = "nc-hidden-agent-answer-" + UUID().uuidString
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set(true, forKey: NotchcastFeature.agentAnswer.rawValue)
+        let preferences = NotchcastPreferences(suiteName: suite)
+        precondition(!preferences.isEnabled(.agentAnswer), "Stored true cannot enable Agent Answers")
+        preferences.set(.agentAnswer, true)
+        precondition(!preferences.isOn(.agentAnswer), "Agent Answers stays forced off")
+        precondition(!preferences.isEnabled(.agentAnswer))
+        precondition(!NotchcastFeature.agentAnswer.isWired, "Settings and search exclude unwired features")
+        let visibleFeatures = NotchcastSettingsModule.allCases.flatMap(\.visibleGroups)
+            .flatMap(\.items).compactMap(\.feature).filter(\.isWired)
+        precondition(!visibleFeatures.contains(.agentAnswer), "Agent Answers absent from sidebar and search rows")
+        print("PASS: Agent Answers hidden from sidebar/search and forced off with stored true")
         let modules = NotchcastSettingsModule.allCases
         precondition(modules.count == 17, "Expected 17 modules")
         var featureCounts: [NotchcastFeature: Int] = [:]
