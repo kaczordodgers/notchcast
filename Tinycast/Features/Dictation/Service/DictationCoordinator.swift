@@ -5,6 +5,7 @@ import AVFoundation
 @Observable
 final class DictationCoordinator {
     static var transcriptStage: (@Sendable (String, String?) async -> String)?
+    static var transcriptObserver: ((String, String) -> Void)?
     static var englishTranscriptStage: (@Sendable (String, String?) async -> String)?
     @ObservationIgnored private var inEnglish = false
     private enum Phase { case idle, starting, listening, transcribing, stopping }
@@ -245,6 +246,7 @@ final class DictationCoordinator {
                     reset(cancelTranscription: false)
                     showMessage(String(localized: "No speech was recorded"), .danger)
                 } else {
+                    if !inEnglish { Self.transcriptObserver?(liveText, liveText) }
                     finishWithoutRemainder(destination)
                 }
                 return
@@ -253,10 +255,12 @@ final class DictationCoordinator {
                 var transcript = try await models.transcribe(
                     tail, model: model,
                     language: language)
+                let raw = transcript
                 if let stage = inEnglish ? Self.englishTranscriptStage : Self.transcriptStage {
                     transcript = await stage(transcript, language)
                 }
                 guard token == current else { return }
+                if !inEnglish, liveText.isEmpty { Self.transcriptObserver?(raw, transcript) }
                 // A mic belongs to its field: the text goes in there, never to the clipboard.
                 let context = destination.pastes ? insertionContext() : nil
                 let text = DictationTextFormatter.format(
@@ -264,6 +268,10 @@ final class DictationCoordinator {
                     adaptCapitalization: settings.dictationAdaptsCapitalization)
                 let target = self.target
                 let assembled = liveText + text
+                if !inEnglish, !liveText.isEmpty {
+                    let gap = liveText.last?.isWhitespace == false && !raw.isEmpty ? " " : ""
+                    Self.transcriptObserver?(liveText + gap + raw, assembled)
+                }
                 guard !text.isEmpty else { finishWithoutRemainder(destination); return }
                 panel.close()
                 if destination.pastes {
@@ -294,6 +302,7 @@ final class DictationCoordinator {
                 }
             } catch {
                 guard token == current else { return }
+                if !inEnglish, !liveText.isEmpty { Self.transcriptObserver?(liveText, liveText) }
                 reset(cancelTranscription: false)
                 showMessage(error.localizedDescription, .danger)
             }
