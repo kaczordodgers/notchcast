@@ -208,6 +208,7 @@ extension NotchcastSettingsModule {
                 .feature(.buildStats, settings: [.aiAndAgentsBuildSnapshot]),
             ]),
             .init(title: "Agents", items: [
+                .feature(.agentThreads, settings: []),
                 .feature(.agentActions, settings: []),
                 .feature(.agentConfirmation, settings: []),
                 .feature(.agentCLI, settings: [.aiAndAgentsCLIInstall]),

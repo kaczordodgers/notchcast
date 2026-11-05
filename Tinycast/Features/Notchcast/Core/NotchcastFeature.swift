@@ -56,6 +56,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case sendFiles
     case updateRemote
     case agentSessions
+    case agentThreads
     case agentPricing
     case pastePlain
     case finderCutPaste
@@ -240,6 +241,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dayCalendar: .activities
         case .dayWeather: .activities
         case .agentSessions: .activities
+        case .agentThreads: .activities
         case .agentPricing: .agentPricing
         case .dayMarkets: .activities
         case .cleanJunk: .clean
@@ -359,6 +361,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .katana: String(localized: "Katana")
         case .appearance: String(localized: "Custom appearance")
         case .agentSessions: String(localized: "Agent Session Logs")
+        case .agentThreads: String(localized: "Agent Threads")
         case .agentPricing: String(localized: "Agent API Value")
         case .pastePlain: String(localized: "Paste Plain Text")
         case .finderCutPaste: String(localized: "Finder Cut and Paste")
@@ -503,6 +506,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .katana: String(localized: "Katana channels, tones and USB audio.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
+        case .agentThreads: String(localized: "Read active and recently finished agent threads on this Mac.")
         case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
         case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
         case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.")
@@ -744,6 +748,7 @@ extension NotchcastFeature {
         case .machineSetupProfile: false
         case .switcherQuitKey: false
         case .agentSessions: false
+        case .agentThreads: false
         case .archives: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
@@ -861,6 +866,7 @@ extension NotchcastFeature {
         case .remoteScreen: false
         case .machMBPFans: false
         case .agentSessions: false
+        case .agentThreads: false
         case .agentPricing: false
         default: true
         }
