@@ -3,6 +3,7 @@ import SwiftUI
 @main
 enum TinycastLaunch {
     static func main() {
+        if NotchcastAppProof.runIfRequested() { return }
         #if DEBUG
         if NotchcastGallery.bootIfRequested() { return }
         #endif
