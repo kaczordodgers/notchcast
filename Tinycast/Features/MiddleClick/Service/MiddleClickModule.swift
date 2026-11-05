@@ -121,16 +121,15 @@ final class MiddleClickModule: NotchcastModule {
                 default: return .pass
                 }
                 let press = button == .down ? $0.touches.press() : .plain
-                switch $0.filter.decide(button, press: $0.dragEnabled ? .plain : press) {
+                let decision = $0.filter.decide(button, press: $0.dragEnabled ? .plain : press)
+                switch decision {
                 case .pass: return .pass
                 case .swallow: return .swallow
-                case .down: Self.post(.otherMouseDown, location: event.location)
-                case .drag: Self.post(.otherMouseDragged, location: event.location)
-                case .up:
-                    Self.post(.otherMouseUp, location: event.location)
-                    $0.touches.markMiddleClick()
+                case .down, .drag: break
+                case .up: $0.touches.markMiddleClick()
                 }
-                return .swallow
+                MiddleClickFilter.rewrite(event, for: decision)
+                return .pass
             }
         }
 
@@ -142,14 +141,15 @@ final class MiddleClickModule: NotchcastModule {
                 }
         }
 
-        private static func post(_ type: CGEventType, location: CGPoint? = nil) {
-            guard let event = CGEvent(mouseEventSource: CGEventSource(stateID: .privateState),
+        // Posted at the HID tap so WindowServer routes it to the window under the pointer.
+        private static func post(_ type: CGEventType) {
+            guard let event = CGEvent(mouseEventSource: CGEventSource(stateID: .hidSystemState),
                                       mouseType: type,
-                                      mouseCursorPosition: location ?? CGEvent(source: nil)?.location ?? .zero,
+                                      mouseCursorPosition: CGEvent(source: nil)?.location ?? .zero,
                                       mouseButton: .center) else { return }
             event.setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag)
             event.setIntegerValueField(.mouseEventClickState, value: 1)
-            event.post(tap: .cgAnnotatedSessionEventTap)
+            event.post(tap: .cghidEventTap)
         }
     }
 }

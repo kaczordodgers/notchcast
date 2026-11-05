@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/MiddleClick/Model/*.swift
 // notchcast-sources: Tinycast/Features/MiddleClick/Service/MiddleClickTouchSource.swift
+import CoreGraphics
 import Foundation
 
 @main
@@ -46,6 +47,65 @@ struct MiddleClickTests {
         precondition(MiddleClickTouchSource.isSane(fingers))
         moved[0].x = .nan
         precondition(!MiddleClickTouchSource.isSane(moved))
-        print("Middle click gesture, guards, button pairing and frame validation passed")
+        realFrames(fingers)
+        rewrite()
+        print("Middle click gesture, guards, button pairing, frame validation and event rewrite passed")
+    }
+
+    // Frame shapes MultitouchSupport delivers: staggered landings, lifting fingers kept in
+    // the frame with a non-contact state, all three lifting in one frame, then an empty frame.
+    static func realFrames(_ fingers: [TouchPoint]) {
+        let lifted = fingers.map { TouchPoint(id: $0.id, x: $0.x, y: $0.y, down: false) }
+        var gesture = ThreeFingerGesture()
+        precondition(!gesture.frame(Array(fingers.prefix(1)), at: 10))
+        precondition(!gesture.frame(Array(fingers.prefix(2)), at: 10.01))
+        precondition(!gesture.frame(fingers, at: 10.02))
+        precondition(gesture.frame(lifted, at: 10.12), "three fingers lifting in one frame are a tap")
+        precondition(!gesture.frame(lifted, at: 10.13))
+        precondition(!gesture.frame([], at: 10.14))
+
+        precondition(!gesture.frame(fingers, at: 11))
+        precondition(gesture.frame([], at: 11.1), "a frame emptied at once is a tap")
+
+        precondition(!gesture.frame(fingers, at: 12))
+        precondition(gesture.frame(Array(fingers.prefix(2)) + lifted.suffix(1), at: 12.1))
+        precondition(!gesture.frame(Array(fingers.prefix(1)) + lifted.suffix(2), at: 12.11))
+        precondition(!gesture.frame(lifted, at: 12.12), "one tap is one click")
+        precondition(!gesture.frame([], at: 12.13))
+
+        precondition(!gesture.frame(fingers, at: 13))
+        precondition(!gesture.frame(fingers, at: 13.3))
+        precondition(!gesture.frame(lifted, at: 13.31), "a rest longer than a tap is not a tap")
+        precondition(!gesture.frame([], at: 13.32))
+
+        let clock = Clock()
+        let state = ThreeFingerState(clock: { clock.now })
+        precondition(!state.frame(device: 1, touches: fingers, at: 0))
+        clock.now += 0.1
+        precondition(!state.frame(device: 1, touches: fingers, at: 0.1))
+        precondition(state.press() == .middle, "a settled three-finger press is a middle click")
+        clock.now += 0.05
+        precondition(!state.frame(device: 1, touches: lifted, at: 0.15), "the press claims the touch")
+        precondition(state.press() == .plain, "a click after the fingers lift is a plain click")
+    }
+
+    final class Clock: @unchecked Sendable {
+        var now: TimeInterval = 100
+    }
+
+    static func rewrite() {
+        for (decision, type) in [(MiddleClickFilter.Decision.down, CGEventType.otherMouseDown),
+                                 (.drag, .otherMouseDragged), (.up, .otherMouseUp)] {
+            let event = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown,
+                                mouseCursorPosition: CGPoint(x: 40, y: 50), mouseButton: .left)!
+            MiddleClickFilter.rewrite(event, for: decision)
+            precondition(event.type == type)
+            precondition(event.getIntegerValueField(.mouseEventButtonNumber) == 2)
+            precondition(event.location == CGPoint(x: 40, y: 50))
+        }
+        let untouched = CGEvent(mouseEventSource: nil, mouseType: .leftMouseDown,
+                                mouseCursorPosition: .zero, mouseButton: .left)!
+        MiddleClickFilter.rewrite(untouched, for: .pass)
+        precondition(untouched.type == .leftMouseDown)
     }
 }
