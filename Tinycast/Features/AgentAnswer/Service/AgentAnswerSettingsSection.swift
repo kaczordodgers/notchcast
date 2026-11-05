@@ -7,7 +7,7 @@ struct AgentAnswerSettingsSection: View {
         Toggle(isOn: Binding(
             get: { preferences.isOn(.agentAnswer) },
             set: { preferences.set(.agentAnswer, $0) })) {
-                SettingsRowTitle(.notchcastCaptureAndDictation, "Agent Answers")
+                SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Agent Answers", table: "Notchcast"))
                 Text(NotchcastFeature.agentAnswer.subtitle)
             }
     }

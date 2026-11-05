@@ -3,21 +3,21 @@ import AppKit
 @MainActor
 enum RecordingCommands {
     nonisolated static let screen = NotchcastCommand(
-        slug: "record-screen", name: String(localized: "Record Screen"), sfSymbol: "record.circle",
+        slug: "record-screen", name: String(localized: "Record Screen", table: "Notchcast"), sfSymbol: "record.circle",
         feature: .recording, isEnabled: { NotchcastPreferences.shared.isOn(.recording) },
         run: { NotchcastCore.recording.recordScreen() })
     nonisolated static let area = NotchcastCommand(
-        slug: "record-area", name: String(localized: "Record Area"), sfSymbol: "viewfinder",
+        slug: "record-area", name: String(localized: "Record Area", table: "Notchcast"), sfSymbol: "viewfinder",
         feature: .recording, isEnabled: { NotchcastPreferences.shared.isOn(.recording) },
         run: { NotchcastCore.recording.recordArea() })
     nonisolated static let pause = NotchcastCommand(
-        slug: "pause-recording", name: String(localized: "Pause or Resume Recording"), sfSymbol: "pause.circle",
+        slug: "pause-recording", name: String(localized: "Pause or Resume Recording", table: "Notchcast"), sfSymbol: "pause.circle",
         feature: .recording, isEnabled: {
             NotchcastPreferences.shared.isOn(.recording) && NotchcastCore.recording.isCommandActive
         },
         run: { NotchcastCore.recording.performRecordingCommand(.pause) })
     nonisolated static let stop = NotchcastCommand(
-        slug: "stop-recording", name: String(localized: "Stop Recording"), sfSymbol: "stop.circle",
+        slug: "stop-recording", name: String(localized: "Stop Recording", table: "Notchcast"), sfSymbol: "stop.circle",
         feature: .recording, isEnabled: {
             NotchcastPreferences.shared.isOn(.recording) && NotchcastCore.recording.isCommandActive
         },
@@ -67,7 +67,7 @@ extension RecordingModule {
             case .finish:
                 let url = try await finish()
                 try Task.checkCancellation()
-                report(String(localized: "Recording saved"), false)
+                report(String(localized: "Recording saved", table: "Notchcast"), false)
                 reveal(url)
             }
         } catch is CancellationError {

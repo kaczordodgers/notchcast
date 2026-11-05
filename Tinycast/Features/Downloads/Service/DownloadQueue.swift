@@ -66,7 +66,7 @@ final class DownloadQueue {
             if !available {
                 job.state = .failed
                 job.finished = now
-                job.detail = String(localized: "This download type is not available.")
+                job.detail = String(localized: "This download type is not available.", table: "Notchcast")
             }
             return job
         }

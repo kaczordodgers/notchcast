@@ -30,15 +30,15 @@ struct NotchcastActionCommandRow: View {
     private var actionTitle: LocalizedStringResource {
         switch command.slug {
         case "settings-showLibrary": "Show"
-        case "settings-revealBackup": "Reveal backup folder"
-        case "settings-checkUpdates": "Check"
+        case "settings-revealBackup": LocalizedStringResource("Reveal backup folder", table: "Notchcast")
+        case "settings-checkUpdates": LocalizedStringResource("Check", table: "Notchcast")
         case "settings-startCleaning": "Start"
         case "settings-cancelUpdate": "Cancel"
         case "settings-installCLI": "Install"
         case "settings-restrictGaming", "settings-restrictMirroring", "settings-restrictMusic", "settings-restrictBooks":
             "Install…"
-        case "settings-loadHistory": "Load history"
-        case "settings-scanJunk", "settings-scanAI", "settings-scanDisk", "settings-scanProjects": "Scan…"
+        case "settings-loadHistory": LocalizedStringResource("Load history", table: "Notchcast")
+        case "settings-scanJunk", "settings-scanAI", "settings-scanDisk", "settings-scanProjects": LocalizedStringResource("Scan…", table: "Notchcast")
         default: "Run"
         }
     }

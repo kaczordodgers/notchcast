@@ -5,7 +5,7 @@ struct NotchcastAutomaticBackupsSettingRow: View {
 
     var body: some View {
         NotchcastTweaksPreferenceSettingRow(
-            identifier: "automatic-backups", title: "Turn off iPhone auto backups",
+            identifier: "automatic-backups", title: LocalizedStringResource("Turn off iPhone auto backups", table: "Notchcast"),
             module: NotchcastCore.iPhoneBackupTweaks,
             writes: IPhoneBackupPolicy.writes(automaticBackups: false), restart: nil)
     }
@@ -23,28 +23,28 @@ struct NotchcastAppleRestrictionSettingRow: View {
 struct NotchcastGameCenterSettingRow: View {
 
     var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .gameCenter, title: "Restrict gaming")
+        NotchcastAppleRestrictionSettingRow(restriction: .gameCenter, title: LocalizedStringResource("Restrict gaming", table: "Notchcast"))
     }
 }
 
 struct NotchcastIPhoneMirroringSettingRow: View {
 
     var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .iPhoneMirroring, title: "Restrict iPhone mirroring")
+        NotchcastAppleRestrictionSettingRow(restriction: .iPhoneMirroring, title: LocalizedStringResource("Restrict iPhone mirroring", table: "Notchcast"))
     }
 }
 
 struct NotchcastMusicServiceSettingRow: View {
 
     var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .musicService, title: "Restrict music service")
+        NotchcastAppleRestrictionSettingRow(restriction: .musicService, title: LocalizedStringResource("Restrict music service", table: "Notchcast"))
     }
 }
 
 struct NotchcastBookstoreSettingRow: View {
 
     var body: some View {
-        NotchcastAppleRestrictionSettingRow(restriction: .bookstore, title: "Restrict book store")
+        NotchcastAppleRestrictionSettingRow(restriction: .bookstore, title: LocalizedStringResource("Restrict book store", table: "Notchcast"))
     }
 }
 

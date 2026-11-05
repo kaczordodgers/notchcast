@@ -17,7 +17,7 @@ final class DictationCapture {
                 String(localized: "Allow Tinycast to use the microphone in System Settings.")
             case .captureUnavailable: String(localized: "Couldn't start recording from this microphone.")
             case .coreAudioUnresponsive:
-                String(localized: "Core Audio isn't responding (coreaudiod); restart it or your Mac.")
+                String(localized: "Core Audio isn't responding (coreaudiod); restart it or your Mac.", table: "Notchcast")
             }
         }
     }
