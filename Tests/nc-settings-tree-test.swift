@@ -65,10 +65,14 @@ struct NotchcastSettingsTreeTests {
             precondition(module.visibleGroups.contains { $0.items.contains { $0.feature == feature } })
         }
         precondition(!SettingsSection.features.tabs.contains(.notchcast), "Island moved out of Features")
-        let data = try Data(contentsOf: URL(filePath: "Tinycast/Resources/Localizable.xcstrings"))
-        let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
-        guard let strings = catalog?["strings"] as? [String: [String: Any]] else {
-            fatalError("Missing string catalog")
+        var strings: [String: [String: Any]] = [:]
+        for table in ["Localizable", "Notchcast"] {
+            let data = try Data(contentsOf: URL(filePath: "Tinycast/Resources/\(table).xcstrings"))
+            let catalog = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+            guard let entries = catalog?["strings"] as? [String: [String: Any]] else {
+                fatalError("Missing string catalog: \(table)")
+            }
+            strings.merge(entries) { current, _ in current }
         }
         let titles = modules.map(\.title) + modules.flatMap(\.groups).map { $0.title.key }
         for title in Set(titles) {
