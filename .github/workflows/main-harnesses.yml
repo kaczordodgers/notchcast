@@ -62,7 +62,8 @@ jobs:
         run: |
           export TMPDIR="$RUNNER_TEMP/main-harnesses"
           mkdir -p "$TMPDIR"
-          git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
+          source ../tools/notchcast/config.env
+          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
           UPSTREAM=$(git merge-base "$GITHUB_SHA" upstream/main)
           NOTCHCAST_ONLY_TESTS=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")
           export UPSTREAM NOTCHCAST_ONLY_TESTS
@@ -71,7 +72,7 @@ jobs:
       # land.sh pushes its own squash with no app build on the merged tree; a red main opens the notchcast-main
       # issue, which the MBA updater turns into one alert (the next green Sync of main closes it).
       - name: Report a red main
-        if: failure()
+        if: failure() && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 tools/notchcast/ci.py issue open main "main ${GITHUB_SHA:0:7} fails its harnesses" "harnesses-$GITHUB_SHA"
