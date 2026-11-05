@@ -81,7 +81,6 @@
   "urlCleaner": "automatic: strips tracking parameters from copied links: Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift:109 → Tinycast/Features/URLCleaner/Service/URLCleanerModule.swift:37",
   "convertFiles": "launcher command \"Convert Files\" on the Finder selection: NotchcastCommandCatalog+All.swift:27 → Tinycast/Features/Notchcast/Tools/NotchcastToolsCommands+Core.swift:24",
   "mediaTools": "launcher commands Compress Video, Make GIF, Compress/Resize Image, Extract Text: NotchcastCommandCatalog+All.swift:28-32 → NotchcastToolsCommands+Core.swift:56",
-  "commandRunner": "launcher commands Run Host Command / List Commands: NotchcastCommandCatalog+All.swift:33-34 → NotchcastToolsCommands+Core.swift:39",
   "archives": "launcher commands Extract Archive… / Cancel All Extractions: NotchcastCommandCatalog+All.swift:48-49 → Tinycast/Features/Archives/Commands/ArchiveCommands.swift:25 (module.open); opened files: Tinycast/App/AppCore.swift:501",
   "archivesInPlace": "sub-option of archives, extraction mode: Tinycast/Features/Archives/ArchiveModule.swift:82",
   "archivesDefaultApp": "sub-option: claims default app for archives, ArchiveModule.swift:74/:113; opened archives then route via AppCore.swift:501",
