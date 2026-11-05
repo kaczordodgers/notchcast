@@ -118,7 +118,7 @@ enum GalleryStage {
         print("stage: open spring SwiftUI mass \(swiftUI.mass) stiffness \(swiftUI.stiffness) damping \(swiftUI.damping)"
               + " settling \(swiftUI.settlingDuration)")
         print("stage: close easeInEaseOut \(IslandMotion.close.duration), content fade \(IslandMotion.fade.duration),"
-              + " monitor black fade \(NotchcastTheme.Motion.launcherEnter) / \(NotchcastTheme.Motion.launcherExit)")
+              + " black fade \(NotchcastTheme.Motion.launcherEnter) / \(NotchcastTheme.Motion.launcherExit)")
     }
 
     /// A transition between two settled outlines, as the surface plays it (`IslandPanel.present`): the spring into
@@ -155,7 +155,6 @@ enum GalleryStage {
               let host = surface.subviews.compactMap({ $0 as? NSHostingView<AnyView> }).last else {
             throw GalleryFailure.capture("no closed host")
         }
-        surface.layer?.backgroundColor = nil
         var frame = 0
         var time: TimeInterval = 0
         var previous: IslandSurfaceView.Outline?
@@ -169,6 +168,7 @@ enum GalleryStage {
                              header: AnyView(EmptyView()))
             panel.setMessage(step.message.flatMap { messages[$0] })
             panel.setLauncher(height: step.launcher ? launcherHeight : nil, animated: false)
+            surface.layer?.backgroundColor = nil
             base = host.rootView
             host.rootView = AnyView(base.environment(\.islandStillTime, musicStart.map { moment - $0 } ?? 0))
         }
@@ -214,18 +214,18 @@ enum GalleryStage {
                 host.layer?.opacity = 1
                 let outline = transition?.outline(at: since) ?? settled
                 // The closed content fades over `fade` only when the launcher takes the black or gives it back;
-                // on a monitor the black itself fades out under the glass and back (`IslandPanel.setLauncher`).
+                // the black fades out and back too, all but the camera band (`IslandPanel.setLauncher`).
                 var content: CGFloat = 1
                 var black: CGFloat = 1
                 if launcherOpens {
                     content = 1 - fade(since, IslandMotion.fade.duration)
-                    if shape.notch == nil { black = 1 - fade(since, NotchcastTheme.Motion.launcherEnter) }
+                    black = 1 - fade(since, NotchcastTheme.Motion.launcherEnter)
                 } else if launcherCloses {
                     content = fade(since, IslandMotion.fade.duration)
-                    if shape.notch == nil { black = fade(since, NotchcastTheme.Motion.launcherExit) }
+                    black = fade(since, NotchcastTheme.Motion.launcherExit)
                 } else if step.launcher {
                     content = 0
-                    if shape.notch == nil { black = 0 }
+                    black = 0
                 }
                 frame += 1
                 try write(frame: frame, into: folder) { graphics in
@@ -236,9 +236,13 @@ enum GalleryStage {
                         graphics.setFillColor(NSColor.black.withAlphaComponent(black).cgColor)
                         graphics.addPath(path)
                         graphics.fillPath()
-                        guard content > 0, let layer = surface.layer else { return }
                         graphics.addPath(path)
                         graphics.clip()
+                        if let band = panel.cameraBand {
+                            graphics.setFillColor(NSColor.black.cgColor)
+                            graphics.fill(band)
+                        }
+                        guard content > 0, let layer = surface.layer else { return }
                         graphics.setAlpha(content * black)
                         graphics.beginTransparencyLayer(auxiliaryInfo: nil)
                         layer.displayIfNeeded()

@@ -22,21 +22,29 @@ final class IslandSurfaceView: NSView {
     }
 
     private let silhouette = CAShapeLayer()
+    private let fill = NSColor.black.cgColor
+    /// The strip beside a camera that stays black while the rest of the black fades under the launcher.
+    private let band = NSView()
     private let openHost = HostingView(rootView: AnyView(EmptyView()))
     private let closedHost = HostingView(rootView: AnyView(EmptyView()))
     private var animationDisplayLink: CADisplayLink?
     private var showing = Content.closed
+    private var presented: Outline?
     var onAnimationFrame: (() -> Void)?
     var onOpen: (() -> Void)?
 
     override init(frame: NSRect) {
         super.init(frame: frame)
         wantsLayer = true
-        layer?.backgroundColor = NSColor.black.cgColor
+        layer?.backgroundColor = fill
         layer?.mask = silhouette
         setAccessibilityElement(true)
         setAccessibilityRole(.group)
         setAccessibilityLabel(String(localized: "Island", table: "Notchcast"))
+        band.wantsLayer = true
+        band.layer?.backgroundColor = fill
+        band.isHidden = true
+        addSubview(band)
         for host in [openHost, closedHost] {
             host.sizingOptions = []
             host.wantsLayer = true
@@ -46,12 +54,24 @@ final class IslandSurfaceView: NSView {
 
     required init?(coder: NSCoder) { nil }
 
-    func setContent(open: AnyView, closed: AnyView) {
-        openHost.rootView = open
-        closedHost.rootView = closed
+    func setOpenContent(_ view: AnyView) {
+        openHost.rootView = view
+    }
+
+    func setClosedContent(_ view: AnyView) {
+        closedHost.rootView = view
+    }
+
+    /// The camera band's height from the top edge; zero on a monitor, where nothing stays black.
+    func setBand(height: CGFloat) {
+        band.frame = CGRect(x: 0, y: bounds.height - height, width: bounds.width, height: height)
+        band.isHidden = height <= 0
     }
 
     func present(_ outline: Outline, content: Content, motion: IslandMotion) {
+        // A repeat of the settled target must not restart an in-flight morph from rest.
+        guard motion == .instant || outline != presented || content != showing else { return }
+        presented = outline
         showing = content
         let activeHost = content == .open ? openHost : closedHost
         let inactiveHost = content == .open ? closedHost : openHost
@@ -81,19 +101,19 @@ final class IslandSurfaceView: NSView {
         if motion != .instant { watchAnimation() }
     }
 
-    /// The black itself: it fades out under the launcher's glass and back in when the launcher leaves.
+    /// The black itself, all but the camera band: it fades out under the launcher and back in when it leaves.
     func setSurfaceOpacity(_ opacity: Float, duration: TimeInterval) {
-        guard let layer else { return }
-        let previous = layer.presentation()?.opacity ?? layer.opacity
+        guard let layer, let color = fill.copy(alpha: CGFloat(opacity)) else { return }
+        let previous = layer.presentation()?.backgroundColor ?? layer.backgroundColor
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        layer.opacity = opacity
+        layer.backgroundColor = color
         CATransaction.commit()
         layer.removeAnimation(forKey: "islandSurface")
-        guard duration > 0, previous != opacity else { return }
-        let animation = CABasicAnimation(keyPath: "opacity")
+        guard duration > 0, previous?.alpha != color.alpha else { return }
+        let animation = CABasicAnimation(keyPath: "backgroundColor")
         animation.fromValue = previous
-        animation.toValue = opacity
+        animation.toValue = color
         animation.duration = duration
         layer.add(animation, forKey: "islandSurface")
     }

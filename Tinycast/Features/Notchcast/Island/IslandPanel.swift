@@ -17,19 +17,26 @@ final class IslandPanel: NSPanel {
     private var compactWidth: CGFloat = 0
     private var message: IslandMessage?
     private var closed = IslandClosedState()
-    private var expandedContent = AnyView(EmptyView())
-    private var headerContent = AnyView(EmptyView())
     var onOpen: (() -> Void)?
     var onKey: ((NSEvent) -> Bool)?
     var onFocus: ((Bool) -> Void)?
+    /// Never while grown into the launcher, so the launcher's area cannot hover the island open.
     var containsPointer: Bool {
-        surface.containsIsland(surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil))
+        launcherFrame == nil
+            && surface.containsIsland(surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil))
+    }
+    /// The black that stays under the launcher, in panel coordinates; nil on a monitor.
+    var cameraBand: CGRect? {
+        hardwareNotch.map { CGRect(x: 0, y: frame.height - $0.height, width: frame.width, height: $0.height) }
     }
 
     convenience init(screen: NSScreen) {
-        self.init(screenFrame: screen.frame, hardwareNotch: IslandGeometry.notchRect(
-            screen: screen.frame, safeAreaTop: screen.safeAreaInsets.top,
-            leftArea: screen.auxiliaryTopLeftArea, rightArea: screen.auxiliaryTopRightArea))
+        self.init(screenFrame: screen.frame, hardwareNotch: Self.hardwareNotch(on: screen))
+    }
+
+    static func hardwareNotch(on screen: NSScreen) -> CGRect? {
+        IslandGeometry.notchRect(screen: screen.frame, safeAreaTop: screen.safeAreaInsets.top,
+                                 leftArea: screen.auxiliaryTopLeftArea, rightArea: screen.auxiliaryTopRightArea)
     }
 
     init(screenFrame: CGRect, hardwareNotch: CGRect?) {
@@ -56,6 +63,7 @@ final class IslandPanel: NSPanel {
         level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         contentView = surface
+        surface.setBand(height: hardwareNotch?.height ?? 0)
         surface.onOpen = { [weak self] in self?.onOpen?() }
         surface.onAnimationFrame = { [weak self] in
             self?.updateMousePassthrough()
@@ -91,9 +99,11 @@ final class IslandPanel: NSPanel {
     }
 
     func setContent(open: AnyView, closed: IslandClosedState, header: AnyView) {
-        self.closed = closed
-        expandedContent = open
-        headerContent = header
+        setOpenContent(open, header: header)
+        setClosed(closed)
+    }
+
+    func setOpenContent(_ open: AnyView, header: AnyView) {
         let expanded = IslandContentView(content: open, header: header, headerHeight: headerHeight) { [weak self] height in
             guard let self else { return }
             let height = max(0, height.rounded(.up))
@@ -101,6 +111,11 @@ final class IslandPanel: NSPanel {
             contentHeight = height
             if self.open { present(animated: true) }
         }
+        surface.setOpenContent(AnyView(expanded))
+    }
+
+    func setClosed(_ closed: IslandClosedState) {
+        self.closed = closed
         let compact = IslandClosedView(context: closedContext, state: closed, cameraWidth: hardwareNotch?.width ?? 0,
                                        bandHeight: hardwareNotch?.height ?? NotchcastTheme.rowHeight,
                                        message: message) { [weak self] width in
@@ -110,14 +125,17 @@ final class IslandPanel: NSPanel {
             compactWidth = width
             if !self.open, launcherFrame == nil { present(animated: true) }
         }
-        surface.setContent(open: AnyView(expanded), closed: AnyView(compact
-            .environment(\.hasHardwareNotch, closedContext.hasHardwareNotch)))
+        surface.setClosedContent(AnyView(compact.environment(\.hasHardwareNotch, closedContext.hasHardwareNotch)))
         present(animated: true)
     }
 
+    /// Unchanged, it rebuilds nothing: the controller pushes it again on every observed change.
     func setMessage(_ message: IslandMessage?) {
+        let old = self.message
+        guard message?.id != old?.id || message?.text != old?.text || message?.detail != old?.detail
+            || message?.tone != old?.tone || message?.isProgress != old?.isProgress else { return }
         self.message = message
-        setContent(open: expandedContent, closed: closed, header: headerContent)
+        setClosed(closed)
     }
 
     func setActivityAccessibility(_ activity: IslandActivity?) {
@@ -133,13 +151,11 @@ final class IslandPanel: NSPanel {
         present(animated: animated)
     }
 
-    /// Grows the black into the launcher's frame, or shrinks it back; the palette draws over it meanwhile. On a
-    /// monitor the black then fades out under the palette's glass; beside a notch it stays, as the notch is black.
+    /// Grows into the launcher's frame; the panel sits above the palette, so all but `cameraBand` fades.
     func setLauncher(height: CGFloat?, animated: Bool) {
         launcherFrame = height.map { launcherFrame(height: $0) }
         present(animated: animated)
-        let fades = hardwareNotch == nil
-        surface.setSurfaceOpacity(launcherFrame != nil && fades ? 0 : 1,
+        surface.setSurfaceOpacity(launcherFrame != nil ? 0 : 1,
                                   duration: animated ? Motion.duration(launcherFrame != nil
                                       ? NotchcastTheme.Motion.launcherEnter : NotchcastTheme.Motion.launcherExit) : 0)
     }
