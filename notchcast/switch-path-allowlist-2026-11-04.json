@@ -7,7 +7,6 @@
   "inUseMarks": "closed-island camera/mic mark view reading InUseMarks",
   "treadmillWalk": "transport + controls UI or agent registration",
   "treadmillHistory": "totals/goals/lubrication view and reminder posting",
-  "katana": "channel/tone commands or a production AgentDeviceActions.register(.katana) call",
   "agentPricing": "same sessions view showing pricingReport",
   "captureTrimmer": "trimmer UI (opened after a recording) calling save",
   "captureEditor": "editor view in the open notch, then unhide",
