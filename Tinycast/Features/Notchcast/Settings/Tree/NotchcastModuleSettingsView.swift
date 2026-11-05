@@ -7,6 +7,7 @@ struct NotchcastModuleSettingsView: View {
 
     var body: some View {
         Form {
+            if module == .backups { NotchcastBackupGroups() }
             ForEach(module.visibleGroups) { group in
                 let anchor = SettingsAnchor(tab: module.tab, title: group.title)
                 Section {
