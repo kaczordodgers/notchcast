@@ -1395,6 +1395,7 @@
 		C1236C0EB496068BFC0DB18C /* ClaudeMCPLaunch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 134523530108C7EE37EB5B18 /* ClaudeMCPLaunch.swift */; };
 		C14606FC532523321D6E48C8 /* MachRemoteModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A256E304848039ABE95E7A /* MachRemoteModule.swift */; };
 		C19AE02F791ABE3758567883 /* DictationHistorySettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = E44B9DC4AE95AAEC47311686 /* DictationHistorySettingsSection.swift */; };
+		C1B14E8B53794B91AEAE6F81 /* RecordingCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2A4A8F93AAF03B69714EC87 /* RecordingCommands.swift */; };
 		C1F9A97A12B7DA0A0DF6C55C /* LevelNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECADE14DEB12279E53817B2F /* LevelNotice.swift */; };
 		C1FC3507BFC408DCD7F142D8 /* ExtensionCommandMetadataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4C0743DE901F5E248991B4 /* ExtensionCommandMetadataStore.swift */; };
 		C215695FE671BC591DC99C2B /* DialogPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB241B179A08518424F7C1B /* DialogPanel.swift */; };
@@ -3691,6 +3692,7 @@
 		F27C82F708D73D90D03A18FB /* KeepAwakePolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeepAwakePolicy.swift; sourceTree = "<group>"; };
 		F2960A04D852678D8E23895C /* AIModelOption.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIModelOption.swift; sourceTree = "<group>"; };
 		F2A256E304848039ABE95E7A /* MachRemoteModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachRemoteModule.swift; sourceTree = "<group>"; };
+		F2A4A8F93AAF03B69714EC87 /* RecordingCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecordingCommands.swift; sourceTree = "<group>"; };
 		F31FB61E6F6969851D3874FA /* CodexMCPLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexMCPLaunch.swift; sourceTree = "<group>"; };
 		F3694698577EB0EA4C5ED3AD /* RandomPasswordService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RandomPasswordService.swift; sourceTree = "<group>"; };
 		F389C53D0B272ABE7DB68BFE /* TodoRecurrence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoRecurrence.swift; sourceTree = "<group>"; };
@@ -4881,6 +4883,7 @@
 		37DF78A2F5104534914C6563 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				F2A4A8F93AAF03B69714EC87 /* RecordingCommands.swift */,
 				FF5A04B4237A1B6BAB703F58 /* RecordingFiles.swift */,
 				C2E2F04F1ECA4BAC7DEECF65 /* RecordingModule.swift */,
 				0C74B9224477C2A1AB06F533 /* RecordingSource.swift */,
@@ -10876,6 +10879,7 @@
 				89BFE7B140405AE075040CDE /* RaycastTheme.swift in Sources */,
 				6B8A441BA5CDB5FF14C3D787 /* RaycastThemeCatalog.swift in Sources */,
 				D48469F68583610C716B2E40 /* RaycastThemeLink.swift in Sources */,
+				C1B14E8B53794B91AEAE6F81 /* RecordingCommands.swift in Sources */,
 				88E8BEF8F27C06C6DD9AEF55 /* RecordingFiles.swift in Sources */,
 				9ABB85BD04A894BCD26279AB /* RecordingFormat.swift in Sources */,
 				B78EA3642FA07D6AE72E89F1 /* RecordingModule.swift in Sources */,
