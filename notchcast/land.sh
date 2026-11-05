@@ -77,14 +77,17 @@ mkdir "$scratch/tmp"
 top=$(pwd)
 # Sync's rebase rewrites main, so a PR cut before it shares only upstream with the new main, and a plain merge sees
 # every one of our commits twice. sync.yml records each replaced main tip under refs/notchcast/synced/; the PR's
-# fork point is its merge base with the newest such tip whose shared history main no longer has.
+# fork point is its merge base with the newest such tip whose shared history main no longer has. A PR that merged
+# the new main since ("Update branch") has a plain merge base outside that tip and keeps the plain merge.
 fork_point() {
-    local tip shared
+    local tip shared plain
+    plain=$(git merge-base "$1" "$head")
     for tip in $(git for-each-ref --sort=-committerdate --format='%(objectname)' refs/notchcast/synced/); do
+        git merge-base --is-ancestor "$plain" "$tip" || continue
         shared=$(git merge-base "$tip" "$head") || continue
         git merge-base --is-ancestor "$shared" "$1" || { echo "$shared"; return; }
     done
-    git merge-base "$1" "$head"
+    echo "$plain"
 }
 # Merges $head onto $1 in a fresh scratch tree and runs the cheap checks; any real conflict is refused.
 merge_onto() {
@@ -159,7 +162,7 @@ if [ "$check" -eq 0 ]; then
     for attempt in 1 2 3 4 5 6; do
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"
-        git fetch --quiet origin main
+        git fetch --quiet origin main '+refs/notchcast/synced/*:refs/notchcast/synced/*'
         moved_to=$(git rev-parse origin/main)
         [ "$moved_to" != "$base" ] || refuse "push to main failed and main did not move from ${base:0:8}"
         overlap=$(comm -12 <(git diff --name-only "$base" "$moved_to" | grep -vxF -f <(printf '%s\n' "${generated[@]}") | sort -u) \

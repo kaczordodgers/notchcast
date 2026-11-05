@@ -110,6 +110,15 @@ status=0
 "$root/notchcast/land.sh" --check "$new" "$conflict" > "$scratch/fork.log" 2>&1 || status=$?
 [ "$status" -eq 1 ] && grep -q 'REFUSED: merge conflict: notchcast/upstream.fixture' "$scratch/fork.log"
 echo 'PASS: a real conflict from the recorded fork point still refuses'
+git switch --quiet -c fork-updated "$old"
+git merge --quiet --no-edit "$new"
+fixture_commit pr updated
+updated=$(git rev-parse HEAD)
+git switch --quiet -c fork-newer "$new"
+fixture_commit upstream newer
+"$root/notchcast/land.sh" --check HEAD "$updated" > "$scratch/fork.log" 2>&1 || { cat "$scratch/fork.log"; exit 1; }
+if grep -q 'merging from' "$scratch/fork.log"; then cat "$scratch/fork.log"; exit 1; fi
+echo 'PASS: a PR from before the rewrite that merged the new main lands by a plain merge'
 git for-each-ref --format='delete %(refname)' refs/notchcast/synced/ | git update-ref --stdin
 if [ "${1:-}" = --fork ]; then exit 0; fi
 git switch --quiet -c fixture-a
