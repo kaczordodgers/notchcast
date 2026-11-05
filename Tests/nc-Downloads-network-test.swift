@@ -1,6 +1,12 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Distill/Model/*.swift Tinycast/Features/Distill/Service/DistillRunner.swift
+// notchcast-sources: Tinycast/Features/Distill/Service/DistillTranscriber.swift
+// notchcast-sources: Tinycast/Features/Distill/Service/DownloadRunContext+Distill.swift
+// notchcast-sources: Tinycast/Features/Dictation/Model/DictationAudioChunks.swift
+// notchcast-sources: Tinycast/Features/Dictation/Model/DictationModel.swift
+// notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
 import Foundation
 
 @main
@@ -44,6 +50,49 @@ struct MediaNetworkTest {
             try await run(enabled: enabled, interfaces: interfaces, size: size, probes: probes, merged: merged)
         }
         print("Media network: small, big, missing iPhone, disabled and unknown sizes passed")
+        try await transcripts()
+    }
+
+    private static func transcripts() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let tool = root.appending(path: "yt-dlp")
+        let script = """
+        #!/bin/sh
+        dest=''
+        while [ "$#" -gt 0 ]; do
+          case "$1" in
+            --print) echo en; exit 0;;
+            --paths) shift; dest="$1";;
+          esac
+          shift
+        done
+        printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\n' > "$dest/same.en.vtt"
+        /usr/bin/yes caption | /usr/bin/head -c 1000000 >> "$dest/same.en.vtt"
+        """
+        try script.write(to: tool, atomically: false, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: tool.path)
+        for round in 0..<12 {
+            let folder = root.appending(path: "round-\(round)")
+            let context = DownloadRunContext(destination: folder, tools: DownloadToolLookup(directories: [root]))
+            let outputs = try await withThrowingTaskGroup(of: URL.self) { group in
+                for _ in 0..<12 {
+                    group.addTask {
+                        let job = DownloadJob(id: UUID().uuidString, kind: "transcript", source: "fixture",
+                            title: "Same", state: .waiting, created: Date(), options: [:])
+                        return try await TranscriptDownloadRunner().run(job, context: context)!
+                    }
+                }
+                var urls = [URL]()
+                for try await url in group { urls.append(url) }
+                return urls
+            }
+            precondition(Set(outputs).count == 12, "Concurrent transcripts overwrote each other")
+            let files = try FileManager.default.contentsOfDirectory(atPath: folder.path)
+            precondition(files.count == 12)
+        }
+        print("PASS: concurrent transcript jobs preserve every output")
     }
 
     private static func run(enabled: Bool, interfaces: [NetMergePolicy.Interface],
