@@ -81,8 +81,8 @@ struct BatteryOwnershipJournal: Codable, Sendable, Equatable {
     }
 
     func userChangedLimit(_ current: Int?) -> Bool {
-        guard let current, let effect = effects["charge-limit"] else { return false }
-        let value = "charge-limit-\(current)"
+        guard let effect = effects["charge-limit"] else { return false }
+        let value = current.map { "charge-limit-\($0)" } ?? "charge-limit-off"
         return value != effect.applied && value != effect.intent
     }
 }
