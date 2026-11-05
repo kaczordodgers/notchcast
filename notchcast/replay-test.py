@@ -16,7 +16,7 @@ CATALOG = "Tinycast/Resources/Localizable.xcstrings"
 
 
 class ReplayTests(unittest.TestCase):
-    def scenario(self, column_zero=False, conflict=None, later_conflict=False):
+    def scenario(self, column_zero=False, conflict=None, later_conflict=False, fix=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):
@@ -43,6 +43,9 @@ class ReplayTests(unittest.TestCase):
             if conflict == "other":
                 (root / "other").write_text("ours\n")
             commit("ours")
+            (root / "clean").write_text("clean cherry-pick result\n")
+            git("add", "clean")
+            git("commit", "--amend", "--no-edit", "-q")
             if later_conflict:
                 (root / "other").write_text("ours\n")
                 commit("later conflict")
@@ -60,7 +63,13 @@ class ReplayTests(unittest.TestCase):
             upstream = git("rev-parse", "HEAD")
             git("update-ref", "refs/remotes/upstream/main", upstream)
             git("checkout", "-q", "--detach", ours)
-            if conflict or later_conflict:
+            if fix:
+                path = root / "notchcast/replay-fixes/ours.patch"
+                path.parent.mkdir(parents=True)
+                path.write_text("diff --git a/other b/other\n--- a/other\n+++ b/other\n"
+                                "@@ -1 +1,2 @@\n upstream\n+ours\n" if fix == "valid" else "invalid patch\n")
+                commit("stored fix")
+            if (conflict or later_conflict) and fix != "valid":
                 with self.assertRaises(CI.Conflict) as caught:
                     CI.replay(root, upstream, check=True)
                 self.assertEqual(caught.exception.subject, "later conflict" if later_conflict else "ours")
@@ -71,6 +80,15 @@ class ReplayTests(unittest.TestCase):
                 self.assertEqual(set(json.loads((root / CATALOG).read_text())["strings"]),
                                  {"a", "ours", "upstream", "z"})
                 self.assertEqual(git("diff", "--name-only", "--diff-filter=U"), "")
+                self.assertEqual((root / "clean").read_text(), "clean cherry-pick result\n")
+                if fix == "valid":
+                    self.assertEqual((root / "other").read_text(), "upstream\nours\n")
+
+    def test_per_file_fix_preserves_clean_results_and_catalog(self):
+        self.scenario(conflict="other", fix="valid")
+
+    def test_invalid_fix_raises_conflict(self):
+        self.scenario(conflict="other", fix="invalid")
 
     def test_adjacent_additions(self):
         self.scenario()
