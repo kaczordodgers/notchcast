@@ -1,6 +1,12 @@
 # Task island feed
 
-Engine hook only: no island registration or visual surface exists yet.
+Engine hook only: no island registration or visual surface exists yet. The default-off
+`todoIsland` switch requires `.tasks` and belongs to the Tasks settings group. It stays in
+`NotchcastFeature.unwired` (hidden, forced off) until the island page lands; unhiding is one line.
+`NotchcastServices` injects its preference into `TodoModule`.
+The module owns the feed while its store is open and the switch is enabled, exposes
+`islandSnapshot` through Observation, and stops and releases the feed on switch-off,
+store close or module stop. Its snapshot file is `Todo/island.json`; switching off deletes it.
 
 `TodoIslandSnapshot(state:now:calendar:)` is a Codable, Sendable value. It uses
 `TodoViews.today()` for overdue and today's incomplete tasks and its Upcoming query for tomorrow.
@@ -22,4 +28,4 @@ Unsupported recurrence throws `.unsupportedRecurrence` without modifying the tas
 `TodoIslandPresenting.update(_:)` is the typed presentation seam; nothing implements it here.
 
 The later look still needs approved design, page and completion controls, quick add, a count-free
-attention mark, hover/hotkey opening, pin/refresh bindings, and module ownership/switch wiring.
+attention mark, hover/hotkey opening, and pin/refresh bindings.
