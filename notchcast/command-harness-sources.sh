@@ -1,4 +1,6 @@
 case "$name" in
+    deeplink-test)
+        set -- "$@" Tests/NotchcastLegacyEntryIDHarnessSupport.swift ;;
     app-installation-test|launcher-settings-file-test)
         set -- "$@" Tests/NotchcastCommandHarnessSupport.swift ;;
     hotkey-dispatch-test)

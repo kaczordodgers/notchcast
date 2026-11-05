@@ -6,6 +6,8 @@
 // notchcast-sources: Tinycast/Features/Launcher/Model/CommandCatalog.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction.swift
 // notchcast-sources: Tinycast/Features/HotKeys/Model/HotKeyAction+EntryID.swift
+// notchcast-sources: Tinycast/Features/DeepLinks/Model/DeepLink.swift
+// notchcast-sources: Tinycast/Features/DeepLinks/Model/DeepLinkInput.swift
 import Foundation
 
 enum SettingsTab: CaseIterable, Sendable {
@@ -64,7 +66,9 @@ extension FixtureEntry {
     static var entryIDPrefix: String { "fixture:" }
     static func id(fromEntryID: String) -> UUID? { nil }
 }
-enum CustomWindowSize: FixtureEntry {}
+struct CustomWindowSize: FixtureEntry, Equatable, Sendable {
+    init?(linkFields: [String: String]) { return nil }
+}
 enum WindowLayout: FixtureEntry {}
 enum Room: FixtureEntry {}
 enum CustomQuickAction: FixtureEntry {}
@@ -98,6 +102,8 @@ enum AgentSessionsModule {
 
 extension NotchcastCommandCatalog {
     static let all: [NotchcastCommand] = [
+        NotchcastCommand(slug: "theme", name: "Theme", sfSymbol: "test", legacyID: "command:theme", run: {}),
+        NotchcastCommand(slug: "future", name: "Future", sfSymbol: "test", legacyID: "command:future-legacy", run: {}),
         NotchcastCommand(
             slug: "toggle-island", name: "Test command", sfSymbol: "test",
             feature: .island,
@@ -147,16 +153,33 @@ extension NotchcastCommandCatalog {
 @main @MainActor struct NotchcastCommandsTest {
     static func main() {
         let commands = NotchcastCommandCatalog.all
+        var failures = 0
+        for entry in NotchcastCommandCatalog.entries {
+            let expected = HotKeyAction.notchcastCommand(entryID: entry.id)
+            if HotKeyAction(entryID: entry.id) != expected {
+                print("FAIL: catalog row \(entry.id) must resolve to notchcastCommand")
+                failures += 1
+            }
+            assert(expected.defaultsKey == "hotkey." + entry.id)
+        }
+        let themeURL = URL(string: "notchcast://command/theme")!
+        if DeepLink(url: themeURL, scheme: "notchcast") != .entry(.notchcastCommand(entryID: "command:theme"), .none) {
+            print("FAIL: notchcast://command/theme must parse as a fork command")
+            failures += 1
+        }
+        if failures > 0 { exit(1) }
+        print("PASS: every catalog row resolves, legacy defaults keys preserved, Theme deeplink parses")
         assert(Set(commands.map(\.id)).count == commands.count)
         assert(commands.allSatisfy { $0.id.hasPrefix("command:nc-") })
         assert(commands.allSatisfy { command in CommandCatalog.all.contains { $0.id == command.entry.id } })
         assert(CommandCatalog.entries(ownedBy: .notchcast).count == commands.count + SettingsTab.notchcast.ownedCommands.count)
         assert(CommandCatalog.entries(ownedBy: .notchcast).allSatisfy { $0.hotKeyAction != nil })
         assert(commands.allSatisfy { $0.entry.symbolName == $0.sfSymbol })
-        let action = HotKeyAction.notchcastCommand(entryID: commands[0].entry.id)
+        let islandCommand = commands.first { $0.legacyID == "command:toggle-island" }!
+        let action = HotKeyAction.notchcastCommand(entryID: islandCommand.entry.id)
         assert(action.defaultsKey == "hotkey.command:toggle-island")
-        assert(HotKeyAction(entryID: commands[0].entry.id) == action)
-        assert(action.entryID == commands[0].entry.id)
+        assert(HotKeyAction(entryID: islandCommand.entry.id) == action)
+        assert(action.entryID == islandCommand.entry.id)
         let island = CommandFixture.shared
         var dismissed = 0
         assert(NotchcastCommandCatalog.dispatch("command:toggle-island", dismiss: { dismissed += 1 }))
@@ -169,15 +192,15 @@ extension NotchcastCommandCatalog {
         assert(!NotchcastCommandCatalog.dispatch("command:unknown", dismiss: {}))
         island.commandsAvailable = true
         let palette = AppCore.shared.paletteCoordinator
-        NotchcastCommandCatalog.perform(commands[0].entry.id)
+        NotchcastCommandCatalog.perform(islandCommand.entry.id)
         assert(palette.hideCalls == 0 && island.runs == 2)
         palette.isVisible = true
-        assert(NotchcastCommandCatalog.dispatch(commands[0].id, dismiss: {
+        assert(NotchcastCommandCatalog.dispatch(islandCommand.id, dismiss: {
             palette.hidePalette(restoreFocus: false)
         }))
         assert(palette.hideCalls == 1 && !palette.restoredFocus && island.runs == 3)
         palette.isVisible = true
-        NotchcastCommandCatalog.perform(commands[0].entry.id)
+        NotchcastCommandCatalog.perform(islandCommand.entry.id)
         assert(palette.hideCalls == 2 && !palette.restoredFocus && island.runs == 4)
         print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility and dispatch")
     }
