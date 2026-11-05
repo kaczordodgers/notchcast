@@ -12,10 +12,11 @@ struct AITrash: CleanTrashTransport {
 
 struct AIGit: CleanAIDataGitReader {
     let receipt: URL
-    func prune(_ repository: URL) throws {
+    func removeWorktreeMetadata(_ directory: URL, worktree: URL) throws {
         precondition(!FileManager().fileExists(atPath:
             receipt.deletingLastPathComponent().appendingPathComponent("fixture/agents/wt/clean").path))
-        try Data(repository.path.utf8).write(to: receipt)
+        try CleanAIDataWorktreeMetadata.remove(directory, worktree: worktree)
+        try Data(directory.path.utf8).write(to: receipt)
     }
     func inspect(_ path: URL) throws -> CleanAIDataGitState? {
         let name = path.lastPathComponent
@@ -37,6 +38,9 @@ struct CleanAIDataTest {
         let base = temp.resolvingSymlinksInPath()
         defer { try? manager.removeItem(at: base) }
         let home = base.appendingPathComponent("fixture")
+        let metadataRoot = base.appendingPathComponent("repo/.git/worktrees")
+        let sibling = metadataRoot.appendingPathComponent("missing-sibling")
+        try manager.createDirectory(at: sibling, withIntermediateDirectories: true)
         let receipts = base.appendingPathComponent("receipts")
         try manager.createDirectory(at: receipts, withIntermediateDirectories: true)
         let sentinel = base.appendingPathComponent("sentinel")
@@ -54,7 +58,11 @@ struct CleanAIDataTest {
         for name in ["clean", "dirty", "unpushed", "locked", "unknown", "recent"] {
             let tree = home.appendingPathComponent("agents/wt/" + name)
             try manager.createDirectory(at: tree, withIntermediateDirectories: true)
-            try Data("gitdir: /fixture/repo/.git/worktrees/\(name)".utf8)
+            let metadata = metadataRoot.appendingPathComponent(name)
+            try manager.createDirectory(at: metadata, withIntermediateDirectories: true)
+            try Data(tree.appendingPathComponent(".git").path.utf8)
+                .write(to: metadata.appendingPathComponent("gitdir"))
+            try Data("gitdir: \(metadata.path)".utf8)
                 .write(to: tree.appendingPathComponent(".git"))
             try manager.setAttributes([.modificationDate: old], ofItemAtPath: tree.appendingPathComponent(".git").path)
             try manager.setAttributes([.modificationDate: name == "recent" ? clock : old],
@@ -100,7 +108,31 @@ struct CleanAIDataTest {
         precondition(outcomes.filter { $0.status == .trashed }.count == 1)
         precondition(outcomes.filter { $0.status == .refused }.count == 4)
         let pruned = try String(contentsOf: pruneReceipt, encoding: .utf8)
-        precondition(pruned == "/fixture/repo/.git")
+        precondition(pruned == metadataRoot.appendingPathComponent("clean").path)
+        precondition(!manager.fileExists(atPath: pruned))
+        precondition(manager.fileExists(atPath: sibling.path))
+        for name in ["wrong", "symlink", "locked", "relative"] {
+            let directory = metadataRoot.appendingPathComponent(name)
+            try manager.createDirectory(at: directory, withIntermediateDirectories: true)
+            let tree = base.appendingPathComponent("checkout")
+            let backPointer = name == "relative" ? "../../../../checkout/.git"
+                : (name == "wrong" ? "/wrong/.git" : tree.appendingPathComponent(".git").path)
+            try Data(backPointer.utf8).write(to: directory.appendingPathComponent("gitdir"))
+            if name == "locked" { try Data().write(to: directory.appendingPathComponent("locked")) }
+            let target: URL
+            if name == "symlink" {
+                target = metadataRoot.appendingPathComponent("link")
+                try manager.createSymbolicLink(at: target, withDestinationURL: directory)
+            } else { target = directory }
+            do {
+                try CleanAIDataWorktreeMetadata.remove(target, worktree: tree)
+                precondition(name == "relative")
+            } catch {
+                precondition(name != "relative")
+                precondition(manager.fileExists(atPath: directory.path))
+                print("PASS: reported unsafe metadata: \(name)")
+            }
+        }
         let recovering = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
             git: AIGit(receipt: pruneReceipt), now: { clock }, chatIdle: { _ in true }, copy: {
                 try FileManager().copyItem(at: $0, to: $1)
@@ -117,7 +149,7 @@ struct CleanAIDataTest {
         }, String(describing: sidecarScan))
         let surviving = try Data(contentsOf: sentinel)
         precondition(surviving == Data("safe".utf8))
-        print("PASS: trash then prune owning repo; dirty/unpushed/locked refused")
+        print("PASS: only trashed metadata removed; missing sibling preserved; relative gitdir accepted")
         print("PASS: indexed stores and sidecars refused; recovery verified; unsafe paths refused")
     }
 }
