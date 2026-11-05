@@ -19,6 +19,24 @@ def catalog(**strings):
 
 
 class CatalogTests(unittest.TestCase):
+    def test_migration_current_contexts(self):
+        rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
+        source = ('SettingsFilterField(prompt: "Fork", query: $query)\n'
+                  'Section("Fork") {}\n.help("Fork")\n')
+        result, count = rewrite(source, {'Fork'})
+        self.assertEqual(count, 3)
+        self.assertEqual(rewrite(result, {'Fork'}), (result, 0))
+        source = ('Logger(subsystem: "app", category: "Recording")\n'
+                  'NSError(domain: "Distill")\nDownloadTool(name: "aria2c")\n'
+                  'url.appending(path: "Downloads")\n'
+                  'url.appendingPathComponent("Downloads")\n'
+                  '"com.apple.Battery-Settings.extension": "Battery"\n'
+                  'entry(keywords: ["Remote Mac address"])\n'
+                  'let script = """\n tell application "Finder"\n """')
+        keys = {'Recording', 'Distill', 'aria2c', 'Downloads', 'Battery',
+                'Remote Mac address', 'Finder'}
+        self.assertEqual(rewrite(source, keys), (source, 0))
+
     def test_migration_rewrites_and_is_idempotent(self):
         rewrite = runpy.run_path(str(ROOT / 'move-fork-strings.py'))['rewrite']
         source = ('Text("Fork")\nString(localized: "Fork")\n'
