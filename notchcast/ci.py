@@ -269,7 +269,7 @@ def pruned(tree):
 
 
 def regenerate(tree, onto):
-    """Write GENERATED in tree: our README as README.md, the Xcode project from project.yml ($XCODEGEN), and the
+    """Write GENERATED in tree: notchcast/README.public.md as README.md, the Xcode project from project.yml ($XCODEGEN), and the
     extension runtime bundle when our commits change its sources. Also stage the removal of every path in
     notchcast/prune-paths.txt (upstream files the app does not need), so the removal rides in the generated-files
     commit, which a replay never picks and so never conflicts."""
@@ -277,7 +277,7 @@ def regenerate(tree, onto):
     paths = pruned(tree)
     if paths:
         run("git", "rm", "-r", "-q", "--ignore-unmatch", "--", *paths, cwd=tree)
-    (tree / "README.md").write_text((tree / "notchcast/README.md").read_text())
+    (tree / "README.md").write_text((tree / "notchcast/README.public.md").read_text())
     if os.environ.get("XCODEGEN"):
         run(os.environ["XCODEGEN"], "generate", "--quiet", cwd=tree)
     elif subprocess.run(["git", "diff", "--quiet", onto, "HEAD", "--", "project.yml"], cwd=tree).returncode:

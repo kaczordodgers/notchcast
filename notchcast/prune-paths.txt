@@ -9,6 +9,7 @@ CONTRIBUTOR_LICENSE_AND_FEEDBACK_AGREEMENT.md
 SECURITY.md
 .vscode/
 .github/ISSUE_TEMPLATE/
+.github/FUNDING.yml
 Scripts/gen-countries.js
 Scripts/gen-currencies.js
 Scripts/gen-emoji.js

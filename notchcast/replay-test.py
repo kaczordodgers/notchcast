@@ -153,7 +153,7 @@ class ReplayTests(unittest.TestCase):
             write("Scripts/lint.sh", "kept\n")
             commit("base")
             base = git("rev-parse", "HEAD")
-            write("notchcast/README.md", "ours\n")
+            write("notchcast/README.public.md", "ours\n")
             write("notchcast/prune-paths.txt",
                   "# one path per line\n\nwebsite/\ndocs/screenshot.png\nREADME.upstream.md\nScripts/gen-emoji.js\n")
             write("feature.swift", "ours\n")
