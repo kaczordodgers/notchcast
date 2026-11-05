@@ -522,7 +522,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentCLI: String(localized: "Accept local commands over a private Unix socket.")
         case .treadmillWalk: String(localized: "Walking pad controls are not available yet.")
         case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.")
-        case .katana: String(localized: "Katana channels, tones and USB audio.")
+        case .katana: String(localized: "Switch Katana amp channels from the launcher.")
         case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.")
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
         case .openBotAgents: String(localized: "Read waiting items from local OpenBot agents.")
@@ -716,7 +716,6 @@ extension NotchcastFeature {
         .killProcess,
         .launcherAnswers,
         .treadmillWalk,
-        .katana,
         .agentAnswer,
         .remoteScreen,
         .machMBPFans,

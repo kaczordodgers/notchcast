@@ -60,9 +60,9 @@ struct NotchcastSettingsTreeTests {
         precondition(NotchcastSettingsModule.module(of: .katana) == .musicAndSound)
         precondition(NotchcastSettingsModule.module(of: .treadmillWalk) == .monitorAndFans)
         precondition(NotchcastSettingsModule.module(of: .treadmillHistory) == .monitorAndFans)
-        for feature: NotchcastFeature in [.katana, .treadmillWalk, .treadmillHistory] {
+        for feature: NotchcastFeature in [.katana, .treadmillWalk, .treadmillHistory] where feature.isWired {
             let module = NotchcastSettingsModule.module(of: feature)
-            precondition(!module.visibleGroups.contains { $0.items.contains { $0.feature == feature } })
+            precondition(module.visibleGroups.contains { $0.items.contains { $0.feature == feature } })
         }
         precondition(!SettingsSection.features.tabs.contains(.notchcast), "Island moved out of Features")
         let data = try Data(contentsOf: URL(filePath: "Tinycast/Resources/Localizable.xcstrings"))
