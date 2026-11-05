@@ -45,13 +45,23 @@ final class MediaLevelKeyMonitor {
         guard !keys.isEmpty else { return }
         let epoch = generation
         let policy = Mutex(MediaLevelKeyPolicy())
-        let mask: CGEventMask = 1 << NSEvent.EventType.systemDefined.rawValue
+        var mask: CGEventMask = 1 << NSEvent.EventType.systemDefined.rawValue
+        if keys.contains(.brightnessUp) || keys.contains(.brightnessDown) {
+            mask |= (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+        }
         registration = hub.registerSynchronous(mask: mask) { [weak self] type, event in
-            guard type.rawValue == NSEvent.EventType.systemDefined.rawValue,
-                  event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag,
-                  let decoded = NSEvent(cgEvent: event) else { return .pass }
+            guard event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag else { return .pass }
+            let decoded = type.rawValue == NSEvent.EventType.systemDefined.rawValue
+                ? NSEvent(cgEvent: event) : nil
             let decision = policy.withLock {
-                $0.decide(subtype: Int(decoded.subtype.rawValue), data: decoded.data1,
+                if type == .keyDown || type == .keyUp {
+                    return $0.decide(keyCode: Int(event.getIntegerValueField(.keyboardEventKeycode)),
+                                     isDown: type == .keyDown,
+                                     isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
+                                     modifiers: event.flags.rawValue, enabled: keys)
+                }
+                guard let decoded else { return .pass }
+                return $0.decide(subtype: Int(decoded.subtype.rawValue), data: decoded.data1,
                           modifiers: event.flags.rawValue, enabled: keys)
             }
             switch decision {
@@ -59,7 +69,9 @@ final class MediaLevelKeyMonitor {
             case .swallow: return .swallow
             case .press(let key, let fine):
                 let press = Press(key: key, fine: fine, modifiers: event.flags.rawValue,
-                                  location: event.location, isRepeat: decoded.data1 & 1 != 0)
+                                  location: event.location, isRepeat: type == .keyDown
+                                    ? event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+                                    : (decoded?.data1 ?? 0) & 1 != 0)
                 DispatchQueue.main.async { [weak self] in
                     guard let self, self.generation == epoch else { return }
                     self.enqueue(press)
