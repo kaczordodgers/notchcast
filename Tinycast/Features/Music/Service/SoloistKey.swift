@@ -35,7 +35,10 @@ final class SoloistKey {
     }
 
     func save(_ pasted: String) throws {
-        let key = try SoloistKeyValidation.validated(pasted)
+        let key: String
+        do { key = try SoloistKeyValidation.validated(pasted) } catch {
+            throw Self.failure(.invalidKey, "\(pasted.count) characters, \(SoloistFailure.describe(error))")
+        }
         do { try write(key) } catch { throw Self.failure(.keyNotSaved, error) }
         onChange?()
     }
@@ -52,7 +55,9 @@ final class SoloistKey {
         guard data.count <= SoloistKeyValidation.maximumBytes, let text = String(data: data, encoding: .utf8) else {
             throw Self.failure(.keyFileUnreadable, found)
         }
-        do { try save(text) } catch SoloistFailure.invalidKey { throw Self.failure(.invalidKey, found) }
+        do { try save(text) } catch let failure as SoloistFailure where failure.reason == .invalidKey {
+            throw Self.failure(.invalidKey, "\(found), \(SoloistFailure.describe(failure))")
+        }
     }
 
     func remove() throws {
