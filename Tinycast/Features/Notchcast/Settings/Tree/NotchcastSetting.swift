@@ -29,6 +29,7 @@ enum NotchcastSetting: String, CaseIterable, Sendable {
     case captureColorFormat
     case captureRecordingOptions
     case dictationCleanup
+    case dictationHistory
     case aiAndAgentsUsageCache
     case aiAndAgentsBuildSnapshot
     case aiAndAgentsCLIInstall
