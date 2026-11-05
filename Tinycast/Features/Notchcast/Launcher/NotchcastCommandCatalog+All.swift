@@ -56,6 +56,7 @@ extension NotchcastCommandCatalog {
         AgentSessionsModule.refreshCommand,
         OpenBotAgentsModule.refreshCommand,
         AgentThreadsModule.refreshCommand,
+        FleetPanelModule.command,
         AgentThreadsModule.waitingCommand,
         AgentIslandModule.command,
         WaitingAlertsModule.command,
