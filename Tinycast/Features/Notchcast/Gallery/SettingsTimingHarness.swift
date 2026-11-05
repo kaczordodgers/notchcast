@@ -1,4 +1,4 @@
-#if SETTINGS_TIMING_HARNESS
+#if DEBUG && SETTINGS_TIMING_HARNESS
 import AppKit
 import SwiftUI
 
