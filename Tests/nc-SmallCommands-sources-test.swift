@@ -27,22 +27,24 @@ struct NotchcastCommand: Sendable {
         let module = SmallCommandsModule()
         module.start()
         defer { module.stop() }
-        for source in ["https://example.com/browser", "Read https://example.com/selection", "invalid", ""] {
-            let expected = source.contains("browser") ? "https://example.com/browser"
-                : source.contains("selection") ? "https://example.com/selection" : "https://example.com/clipboard"
-            let service = ShortenLinkService { request in
-                let actual = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
-                    .queryItems!.first!.value!
-                guard actual == expected else {
-                    FileHandle.standardError.write(Data("FAIL: expected \(expected), got \(actual)\n".utf8))
-                    exit(1)
+        for argument in ["", "https://example.com/typed"] {
+            for source in ["https://example.com/browser", "Read https://example.com/selection", "invalid", ""] {
+                let expected = !argument.isEmpty ? argument : source.contains("browser") ? "https://example.com/browser"
+                    : source.contains("selection") ? "https://example.com/selection" : "https://example.com/clipboard"
+                let service = ShortenLinkService { request in
+                    let actual = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)!
+                        .queryItems!.first!.value!
+                    guard actual == expected else {
+                        FileHandle.standardError.write(Data("FAIL: expected \(expected), got \(actual)\n".utf8))
+                        exit(1)
+                    }
+                    return (Data("https://tinyurl.com/fake".utf8), 200)
                 }
-                return (Data("https://tinyurl.com/fake".utf8), 200)
+                let result = try await module.perform(.shorten, argument: argument, frontAddress: { source },
+                    clipboard: { "https://example.com/clipboard" }, service: service)
+                precondition(result == "https://tinyurl.com/fake")
             }
-            let result = try await module.perform(.shorten, frontAddress: { source },
-                clipboard: { "https://example.com/clipboard" }, service: service)
-            precondition(result == "https://tinyurl.com/fake")
         }
-        print("PASS: front browser/selection precedes clipboard; missing or invalid source falls back")
+        print("PASS: typed argument wins; empty argument uses front browser/selection then clipboard")
     }
 }
