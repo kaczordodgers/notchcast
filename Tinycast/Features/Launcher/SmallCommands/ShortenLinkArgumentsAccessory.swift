@@ -2,6 +2,11 @@ import SwiftUI
 
 @MainActor
 enum ShortenLinkArgumentsAccessory {
+    /// Alias Space focuses this field instead of running the command with nothing typed.
+    static func argumentCount(entryID: String) -> Int {
+        entryID == SmallCommandsModule.shortenCommand.id ? 1 : 0
+    }
+
     static func make(
         entry: AppEntry, vm: PaletteState, metrics: InterfaceMetrics,
         focus: FocusState<String?>.Binding, onSubmit: @escaping () -> Void
