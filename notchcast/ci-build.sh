@@ -35,7 +35,7 @@ step publish-snapshot
 bash notchcast/publish-snapshot-test.sh
 bash notchcast/verify-signature-test.sh
 bash notchcast/install-launchd-test.sh
-bash notchcast/update-idle-test.sh
+bash notchcast/update-install-test.sh
 step build
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
     -jobs "${CHAD_BUILD_QUEUE_JOBS:-4}" -derivedDataPath "$RUNNER_TEMP/DerivedData" \
