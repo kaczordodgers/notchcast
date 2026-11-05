@@ -55,10 +55,7 @@ def main():
             if not os.environ.get("GITHUB_ACTIONS") and queue.exists():
                 build = ["python3", str(queue), "hold", "--", *build]
             command(build)
-            apps = list((scratch / "DerivedData/Build/Products/Release").glob("*.app"))
-            if len(apps) != 1:
-                parser.error("expected exactly one built app")
-            app = apps[0]
+            app = scratch / "DerivedData/Build/Products/Release/Notchcast.app"
         info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
         if info["CFBundleIdentifier"] != "app.notchcast.proof":
             parser.error("built app has the wrong proof identity")
