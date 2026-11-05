@@ -25,6 +25,7 @@ let directory = URL(filePath: CommandLine.arguments[1])
 let pages = try String(contentsOf: directory.appending(path: "manifest.txt"), encoding: .utf8)
     .split(separator: "\n").map(String.init)
 var failures = 0
+var closedImages: [String: [(String, Data)]] = [:]
 for page in pages {
     guard URL(filePath: page).lastPathComponent == page,
           let data = try? Data(contentsOf: directory.appending(path: page)),
@@ -32,6 +33,14 @@ for page in pages {
         print("FAIL \(page): invalid PNG")
         failures += 1
         continue
+    }
+    if page.hasPrefix("island-closed-"), let shape = page.split(separator: "-").last {
+        let key = String(shape)
+        if let duplicate = closedImages[key]?.first(where: { $0.1 == data }) {
+            print("FAIL \(page): identical closed state to \(duplicate.0)")
+            failures += 1
+        }
+        closedImages[key, default: []].append((page, data))
     }
     var opaque = 0
     var colors: [Int: Int] = [:]
