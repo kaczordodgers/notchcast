@@ -50,7 +50,7 @@ final class DictationCoordinator {
         self.confirmEnable = confirmEnable
         self.showMessage = showMessage
         panel.onAccept = { [weak self] in self?.accept() }
-        panel.onCancel = { [weak self] in self?.finish() }
+        panel.onCancel = { [weak self] in self?.cancel() }
         capture.onLevels = { [weak self] in
             guard let self else { return }
             panel.state.levels = $0
