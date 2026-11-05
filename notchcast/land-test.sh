@@ -16,13 +16,14 @@ sync_wait_tests() (
             [ "$scenario" != none ] && echo 123
             return 0
         fi
-        [[ "$*" == *'--json jobs'* ]] || exit 1
+        [[ "$*" == *'--json jobs --jq '* ]] || exit 1
+        [ "$scenario" != broken ] || return 1
         case "$scenario" in
             main) echo '{"jobs":[{"name":"main","status":"in_progress"}]}' ;;
             gone) if [ "$sleeps" -eq 0 ]; then echo '{"jobs":[{"name":"replay","status":"in_progress"}]}'; else echo '{"jobs":[]}'; fi ;;
             queued) echo '{"jobs":[{"name":"replay","status":"queued"}]}' ;;
             *) echo '{"jobs":[{"name":"replay","status":"in_progress"}]}' ;;
-        esac
+        esac | jq "${@: -1}"
     }
     for scenario in none main gone; do
         sleeps=0
@@ -36,6 +37,10 @@ sync_wait_tests() (
         [[ "$output" == *'REFUSED: Sync replay 123 still running after 40 min; run land.sh 42 again'* ]]
         echo "PASS: Sync $scenario refuses at limit"
     done
+    scenario=broken
+    output=$(wait_for_sync) && exit 1
+    [[ "$output" == *'REFUSED: could not read Sync run 123'* ]]
+    echo 'PASS: Sync unreadable run refuses'
 )
 pr=42
 sync_wait_tests

@@ -16,10 +16,10 @@ wait_for_sync() {
                 --json databaseId --jq '.[].databaseId' || exit 1
         done) || refuse 'could not list Sync runs'
         for run in $runs; do
-            jobs=$(gh run view "$run" -R kaczordodgers/notchcast --json jobs) \
+            jobs=$(gh run view "$run" -R kaczordodgers/notchcast --json jobs \
+                --jq 'any(.jobs[]; .name == "replay" and (.status == "queued" or .status == "in_progress"))') \
                 || refuse "could not read Sync run $run"
-            if jq -e 'any(.jobs[]; .name == "replay" and (.status == "queued" or .status == "in_progress"))' \
-                <<< "$jobs" >/dev/null; then
+            if [ "$jobs" = true ]; then
                 replay=$run
                 break
             fi
@@ -136,6 +136,7 @@ if [ "$check" -eq 0 ]; then
     commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
+    wait_for_sync
     [ "$(gh pr view "$pr" -R kaczordodgers/notchcast --json headRefOid --jq .headRefOid)" = "$head" ] \
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
@@ -143,7 +144,6 @@ if [ "$check" -eq 0 ]; then
     # main and retries. Harnesses rerun only when the new commits touch a file the PR touches; otherwise the clean
     # merge is the same proof GitHub's merge button gives.
     pr_files=$(git diff --name-only "$(git merge-base "$base" "$head")" "$head" | sort -u)
-    wait_for_sync
     for attempt in 1 2 3 4 5 6; do
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"
