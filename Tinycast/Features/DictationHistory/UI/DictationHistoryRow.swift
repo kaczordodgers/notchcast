@@ -16,7 +16,7 @@ struct DictationHistoryRow: View {
             }
             Button("Copy") {
                 if !Paster.copyPlainText(entry.cleaned) {
-                    core.showMessage(String(localized: "Could not copy to clipboard."), tone: .danger)
+                    core.showMessage(String(localized: "Could not copy to clipboard.", table: "Notchcast"), tone: .danger)
                 }
             }
             .accessibilityLabel(Text("Copy") + Text(verbatim: " " + Self.dateFormatter.string(from: entry.date)))
