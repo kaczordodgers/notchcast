@@ -22,19 +22,24 @@ sync_wait_tests() (
             main) echo '{"jobs":[{"name":"main","status":"in_progress"}]}' ;;
             gone) if [ "$sleeps" -eq 0 ]; then echo '{"jobs":[{"name":"replay","status":"in_progress"}]}'; else echo '{"jobs":[]}'; fi ;;
             queued) echo '{"jobs":[{"name":"replay","status":"queued"}]}' ;;
+            plan-queued) echo '{"jobs":[{"name":"plan","status":"queued"}]}' ;;
+            planning) if [ "$sleeps" -eq 0 ]; then echo '{"jobs":[{"name":"plan","status":"in_progress"}]}'
+                else echo '{"jobs":[{"name":"plan","status":"completed","conclusion":"success"},{"name":"main","status":"in_progress"}]}'; fi ;;
+            planned) if [ "$sleeps" -eq 0 ]; then echo '{"jobs":[{"name":"plan","status":"completed","conclusion":"success"}]}'
+                else echo '{"jobs":[{"name":"plan","status":"completed","conclusion":"success"},{"name":"replay","status":"completed"}]}'; fi ;;
             *) echo '{"jobs":[{"name":"replay","status":"in_progress"}]}' ;;
         esac | jq "${@: -1}"
     }
-    for scenario in none main gone; do
+    for scenario in none main gone plan-queued planning planned; do
         sleeps=0
         wait_for_sync
-        if [ "$scenario" = gone ]; then [ "$sleeps" -eq 1 ]; else [ "$sleeps" -eq 0 ]; fi
+        case "$scenario" in gone|planning|planned) [ "$sleeps" -eq 1 ] ;; *) [ "$sleeps" -eq 0 ] ;; esac
         echo "PASS: Sync $scenario"
     done
     for scenario in forever queued; do
         sleeps=0
         output=$(wait_for_sync) && exit 1
-        [[ "$output" == *'REFUSED: Sync replay 123 still running after 40 min; run land.sh 42 again'* ]]
+        [[ "$output" == *'REFUSED: Sync run 123 (plan or replay) still running after 40 min; run land.sh 42 again'* ]]
         echo "PASS: Sync $scenario refuses at limit"
     done
     scenario=broken
