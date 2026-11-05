@@ -85,7 +85,8 @@ extension SmallCommandsModule {
     }
 
     static func frontAddress() async -> String? {
-        guard let app = NSWorkspace.shared.menuBarOwningApplication, app != .current else { return nil }
+        guard let app = NSWorkspace.shared.menuBarOwningApplication,
+              app.processIdentifier != ProcessInfo.processInfo.processIdentifier else { return nil }
         let target = CopyPathTarget(processID: app.processIdentifier, bundleID: app.bundleIdentifier)
         if target.browser != nil,
            let addresses = try? await CopyPathSystemReader.read(.browser(target)),
