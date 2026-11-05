@@ -9,21 +9,17 @@ struct IslandActivityGlyph: View {
     }
 }
 
+/// A row's value in the meeting countdown's chip; nothing without one, as the row's title names it.
 struct IslandActivityValue: View {
     let activity: IslandActivity
-    var multiple = false
 
     var body: some View {
-        HStack(spacing: Theme.Spacing.sm) {
-            if let value = activity.value {
-                IslandValueView(value: value)
-            } else {
-                IslandWord(text: activity.title)
-            }
-            if multiple {
-                Circle().fill(NotchcastTheme.Colors.tertiary)
-                    .frame(width: Theme.Spacing.sm, height: Theme.Spacing.sm)
-            }
+        if let value = activity.value {
+            IslandValueView(value: value, font: Theme.Typography.rowTrailing.weight(.medium))
+                .padding(.horizontal, Theme.Spacing.sm)
+                .padding(.vertical, Theme.Spacing.xxs)
+                .background(NotchcastTheme.Colors.control,
+                            in: RoundedRectangle(cornerRadius: Theme.Radius.keyCap, style: .continuous))
         }
     }
 }

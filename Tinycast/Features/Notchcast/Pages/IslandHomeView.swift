@@ -27,7 +27,7 @@ struct IslandHomeView: View {
                                         atOrigin: selection != nil && selection == activities.first?.id, proxy: proxy)
             }
             .frame(height: min(NotchcastTheme.maximumHeight - NotchcastTheme.monitorHeader,
-                               CGFloat(activities.count) * NotchcastTheme.homeActivityRow))
+                               CGFloat(activities.count) * rowPitch + metrics.spacing.md * 2))
         } else {
         VStack(spacing: metrics.spacing.md) {
             SymbolImage(name: "house", size: metrics.size.dialogIcon)
@@ -40,6 +40,9 @@ struct IslandHomeView: View {
         .padding(metrics.spacing.xxl)
         }
     }
+
+    /// The launcher's row pitch: the row icon with the row's vertical inset.
+    private var rowPitch: CGFloat { metrics.size.resultRowIcon + metrics.spacing.sm * 2 }
 }
 
 private struct IslandActivityRow: View {
@@ -56,20 +59,20 @@ private struct IslandActivityRow: View {
 
     var body: some View {
         HStack(spacing: metrics.spacing.lg) {
-            IslandActivityGlyph(activity: activity).frame(width: metrics.size.resultRowIcon)
-            Text(activity.title).font(metrics.typography.rowTitle)
+            IslandActivityGlyph(activity: activity)
+                .frame(width: metrics.size.resultRowIcon, height: metrics.size.resultRowIcon)
+            Text(activity.title).font(metrics.typography.rowTitle).lineLimit(1)
             Spacer()
             IslandActivityValue(activity: activity)
-                .padding(.horizontal, metrics.spacing.md)
-                .padding(.vertical, metrics.spacing.xxs)
-                .background(Theme.Colors.controlSurface, in: RoundedRectangle(cornerRadius: Theme.Radius.keyCap))
             if let action = activity.action {
                 IslandActionButton(title: action) { IslandActivityCenter.shared.perform(activity.id) }
             }
         }
+        // The icon's height, so a card's taller button keeps the launcher's pitch.
+        .frame(height: metrics.size.resultRowIcon)
         .padding(.horizontal, metrics.spacing.md)
         .padding(.vertical, metrics.spacing.sm)
-        .background(fill, in: RoundedRectangle(cornerRadius: Theme.Radius.row))
+        .background(fill, in: RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous))
         .armedHover($hovered)
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(selected ? .isSelected : [])

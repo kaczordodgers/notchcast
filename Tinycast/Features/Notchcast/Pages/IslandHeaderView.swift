@@ -43,6 +43,7 @@ struct IslandHeaderView: View {
                     island.togglePin()
                 } label: {
                     SymbolImage(name: island.isPinned ? "pin.fill" : "pin", size: NotchcastTheme.headerGlyph)
+                        .frame(width: NotchcastTheme.headerGlyph, height: NotchcastTheme.headerGlyph)
                 }
                 .overlay { focusOutline(pages.pages.count) }
                 .tooltip(keyCaps: ["⌘", "P"])
@@ -51,6 +52,7 @@ struct IslandHeaderView: View {
                 .accessibilityAddTraits(island.isPinned ? .isSelected : [])
                 BarButton(chrome: .rounded, isCompact: true, action: pages.showSettings) {
                     SymbolImage(name: "gearshape", size: NotchcastTheme.headerGlyph)
+                        .frame(width: NotchcastTheme.headerGlyph, height: NotchcastTheme.headerGlyph)
                 }
                 .overlay { focusOutline(pages.pages.count + 1) }
                 .tooltip(String(localized: "Notchcast Settings", table: "Notchcast"), edge: .bottom)
@@ -58,7 +60,8 @@ struct IslandHeaderView: View {
             }
             .frame(maxWidth: .infinity)
         }
-        .padding(.horizontal, Theme.Spacing.xl)
+        // The list's own inset, so a tab's fill and the gear's line up with the rows' fills below.
+        .padding(.horizontal, Theme.Spacing.md)
         .frame(height: height)
     }
 

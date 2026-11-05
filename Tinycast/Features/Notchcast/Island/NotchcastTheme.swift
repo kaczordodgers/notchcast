@@ -9,7 +9,8 @@ enum NotchcastTheme {
     static let rowHeight = Theme.Size.headerHeight
     static let statusHeight = rowHeight
     static let statusRadius = rowHeight / 2
-    static let headerGlyph: CGFloat = 16
+    /// A compact `BarButton`'s glyph: the size that makes it a square as tall as the bar.
+    static let headerGlyph = Theme.Size.noteGlyph
     /// The island at rest: a capsule as wide as Orion's resting pill, as tall as the search row, under the top edge.
     static let monitorPill = CGSize(width: 180, height: rowHeight)
     static let openMinimumWidth: CGFloat = 800
@@ -22,8 +23,6 @@ enum NotchcastTheme {
     static let openShoulder = Theme.Radius.row
     /// A notch wing holds one piece (a cover, the bars, a glyph) with the row's inset either side.
     static let minimumWing: CGFloat = 44
-    /// The Home list's height allowance per activity row, kept until Home is redesigned.
-    static let homeActivityRow: CGFloat = 56
 
     /// The silhouette's corners follow its height, so a strip as tall as the camera keeps the cutout's own small
     /// corners and the open island reaches the caps (rule: `IslandSilhouette.shoulder` / `bottomRadius`).
