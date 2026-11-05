@@ -206,6 +206,13 @@ struct KatanaTests {
     }
 
     static func imports() throws {
+        for value in [String(Int.min), String(Int.max), "-65536", "65536"] {
+            let object: [String: Any] = ["name": "fixture", "raw": ["68": ["00"]],
+                "set": ["reverb": ["time": value]]]
+            let data = try JSONSerialization.data(withJSONObject: object)
+            expect((try? KatanaToneImporter.read(data, fileExtension: "json")) == nil,
+                   "Out-of-range string number rejected: \(value)")
+        }
         let tone = try tone()
         let partial = try KatanaTone(regions: tone.regions.filter { KatanaPatchRegion.essential.contains($0.region) },
                                      knob: tone.knob, knobSolo: tone.knobSolo)
@@ -319,7 +326,7 @@ struct KatanaTests {
         fake.pause = nil
         do { try await task.value; fatalError("Stale operation succeeded") } catch is CancellationError {}
         expect(client.channel == nil && !client.isEnabled, "Stop rejects stale result")
-        let disconnected = KatanaClient()
+        let disconnected = KatanaClient(transport: KatanaMIDITransport(midi: SilentKatanaMIDI()))
         disconnected.start()
         await rejects(.unavailable) { try await disconnected.refresh() }
         client.start()
