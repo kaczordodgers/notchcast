@@ -139,6 +139,31 @@ struct ConfirmationWiringTests {
         try? await Task.sleep(for: .milliseconds(30))
         authorization.stop()
         timeout.stop()
+        var held: CheckedContinuation<Int, Never>?
+        var dismissed = false
+        let expiring = AgentConfirmationAuthorization(grants: grants, isEnabled: { true },
+            timeout: .milliseconds(50)) { _, _, _ in
+            let result = await withCheckedContinuation { held = $0 }
+            dismissed = true
+            return result
+        }
+        let expirations = (0..<20).map { _ in
+            Task { await expiring.authorize(dangerous, parameters: .null) }
+        }
+        for task in expirations {
+            let result = await task.value
+            precondition(result == nil)
+        }
+        precondition(held != nil)
+        held?.resume(returning: 1)
+        while !dismissed { await Task.yield() }
+        for child in Mirror(reflecting: expiring).children {
+            guard let label = child.label, ["actions", "messages", "timers"].contains(label) else { continue }
+            precondition(Mirror(reflecting: child.value).children.isEmpty,
+                         "Expired request bookkeeping retained: \(label)")
+        }
+        expiring.stop()
+        print("PASS: 20 expired requests leave actions, messages and timers empty")
         print("PASS: queue held through upstream confirm; parameterized stored grants prompt; parameterless Always allow")
     }
 }
