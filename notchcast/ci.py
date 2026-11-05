@@ -220,8 +220,12 @@ def replay(tree, onto, check=False):
                     ["git", "show", f"{main}:notchcast/replay-fixes/{name}.patch"],
                     cwd=tree, text=True, capture_output=True)
                 applied = None
-                if set(conflicts) - set(GENERATED) - {catalog} and patch.returncode == 0:
-                    for path in set(conflicts) - set(GENERATED) - {catalog}:
+                expected = set(conflicts) - set(GENERATED) - {catalog}
+                paths = subprocess.run(["git", "apply", "--numstat", "-z", "-"], input=patch.stdout,
+                                       cwd=tree, text=True, capture_output=True)
+                covered = {entry.split("\t", 2)[2] for entry in paths.stdout.split("\0") if entry}
+                if expected and patch.returncode == 0 and paths.returncode == 0 and covered == expected:
+                    for path in expected:
                         if subprocess.run(["git", "cat-file", "-e", f"HEAD:{path}"], cwd=tree,
                                           stderr=subprocess.DEVNULL).returncode == 0:
                             run("git", "checkout", "HEAD", "--", path, cwd=tree)
