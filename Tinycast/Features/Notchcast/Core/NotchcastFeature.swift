@@ -59,6 +59,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case agentSessions
     case openBotAgents
     case agentThreads
+    case agentIsland
     case waitingAlerts
     case agentPricing
     case pastePlain
@@ -248,6 +249,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentSessions: .activities
         case .openBotAgents: .activities
         case .agentThreads: .activities
+        case .agentIsland: .activities
         case .waitingAlerts: .activities
         case .agentPricing: .agentPricing
         case .dayMarkets: .activities
@@ -371,6 +373,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentSessions: String(localized: "Agent Session Logs")
         case .openBotAgents: String(localized: "OpenBot Agents")
         case .agentThreads: String(localized: "Agent Threads")
+        case .agentIsland: String(localized: "Agent Island")
         case .waitingAlerts: String(localized: "Waiting-for-you alerts")
         case .agentPricing: String(localized: "Agent API Value")
         case .pastePlain: String(localized: "Paste Plain Text")
@@ -519,6 +522,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.")
         case .openBotAgents: String(localized: "Read waiting items from local OpenBot agents.")
         case .agentThreads: String(localized: "Read active and recently finished agent threads on this Mac.")
+        case .agentIsland: String(localized: "Summarize waiting and working agents.")
         case .waitingAlerts: String(localized: "Notify when an agent needs approval or an answer.")
         case .agentPricing: String(localized: "Estimate API value from local agent token usage.")
         case .pastePlain: String(localized: "Paste text without formatting from the launcher.")
@@ -764,6 +768,7 @@ extension NotchcastFeature {
         case .agentSessions: false
         case .openBotAgents: false
         case .agentThreads: false
+        case .agentIsland: false
         case .waitingAlerts: false
         case .archives: false
         case .archivesInPlace: false
@@ -885,6 +890,7 @@ extension NotchcastFeature {
         case .agentSessions: false
         case .openBotAgents: false
         case .agentThreads: false
+        case .agentIsland: false
         case .waitingAlerts: false
         case .agentPricing: false
         default: true
