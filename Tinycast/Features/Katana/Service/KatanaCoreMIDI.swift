@@ -10,6 +10,7 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
     private var output: MIDIPortRef = 0
     private var source: MIDIEndpointRef = 0
     private var destination: MIDIEndpointRef = 0
+    private(set) var generation: UInt = 1
 
     private func name(_ endpoint: MIDIEndpointRef) -> String {
         var value: Unmanaged<CFString>?
@@ -32,7 +33,8 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
         }
         guard MIDIOutputPortCreate(client, "Katana Output" as CFString, &output) == noErr,
               MIDIInputPortCreateWithProtocol(client, "Katana Input" as CFString, ._1_0, &input,
-                { @Sendable [weak self] list, _ in
+                { @Sendable [weak self] list, context in
+                    let generation = UInt(bitPattern: context)
                     var bytes: [UInt8] = []
                     do {
                         let first = UnsafeRawPointer(list)
@@ -64,17 +66,24 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
                         }
                     }
                     let received = bytes
-                    Task { @MainActor in self?.received?(received) }
+                    Task { @MainActor in self?.deliver(received, generation: generation) }
                 }) == noErr else { stop(); throw KatanaError.unavailable }
     }
 
     func connect(_ target: String) throws {
+        generation &+= 1
         if source != 0 { MIDIPortDisconnectSource(input, source) }
         source = (0..<MIDIGetNumberOfSources()).map { MIDIGetSource($0) }.first { name($0) == target } ?? 0
         destination = (0..<MIDIGetNumberOfDestinations()).map { MIDIGetDestination($0) }
             .first { name($0) == target } ?? 0
         guard source != 0, destination != 0,
-              MIDIPortConnectSource(input, source, nil) == noErr else { throw KatanaError.unavailable }
+              MIDIPortConnectSource(input, source, UnsafeMutableRawPointer(bitPattern: generation)) == noErr
+        else { throw KatanaError.unavailable }
+    }
+
+    func deliver(_ bytes: [UInt8], generation: UInt) {
+        guard generation == self.generation else { return }
+        received?(bytes)
     }
 
     func send(_ bytes: [UInt8]) throws {
@@ -102,6 +111,7 @@ final class KatanaCoreMIDI: KatanaMIDILayer {
     }
 
     func stop() {
+        generation &+= 1
         if source != 0 { MIDIPortDisconnectSource(input, source) }
         if input != 0 { MIDIPortDispose(input) }
         if output != 0 { MIDIPortDispose(output) }
