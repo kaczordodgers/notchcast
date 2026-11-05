@@ -49,8 +49,11 @@ struct DictationTriggerTest {
         _ = engine.handle(.down(isRecording: true), at: 1)
         expect(engine.handle(.otherInput, at: 1.1) == nil, "A chord preserves a prior toggled recording")
         _ = engine.handle(.down(isRecording: false), at: 2)
-        expect(engine.handle(.finish, at: 2.2) == .finish, "Escape finishes instead of discarding")
-        expect(engine.handle(.up, at: 2.3) == nil, "Escape consumes the pending release")
+        expect(engine.handle(.finish, at: 2.2) == .finish, "Return finishes the session")
+        expect(engine.handle(.up, at: 2.3) == nil, "Return consumes the pending release")
+        _ = engine.handle(.down(isRecording: false), at: 2.4)
+        expect(engine.handle(.cancel, at: 2.5) == .cancel, "Escape discards the session")
+        expect(engine.handle(.up, at: 2.6) == nil, "Escape consumes the pending release")
         _ = engine.handle(.down(isRecording: false), at: 3)
         expect(engine.handle(.reset, at: 0) == nil, "Pausing a provisional press has no capture effects")
         expect(engine.handle(.up, at: 4) == nil, "Pause drops a stale release")
@@ -103,7 +106,8 @@ struct DictationTriggerTest {
             try await wait { actions == [.start] }
             hub.send(.keyDown, key: key, at: 5.1)
             hub.send(.flagsChanged, key: kVK_Function, flags: [], at: 5.2)
-            expect(actions == [.start, .finish], "Finish keys preserve audio and suppress release toggling")
+            let expected: DictationTriggerEngine.Action = key == kVK_Escape ? .cancel : .finish
+            expect(actions == [.start, expected], "Escape cancels, Return finishes, release cannot toggle")
         }
         actions = []
         hub.send(.flagsChanged, key: kVK_Function, flags: .maskSecondaryFn, at: 6)
