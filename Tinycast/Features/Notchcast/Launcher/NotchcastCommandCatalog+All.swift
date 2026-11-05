@@ -97,6 +97,7 @@ extension NotchcastCommandCatalog {
         ScrollingCaptureModule.launcherCommand,
         BlockedDialogModule.checkCommand,
         ShelfModule.sendCommand,
+        ShelfModule.showCommand,
         TweakProfileCommands.ai,
         TweakProfileCommands.privacy,
         SettingsActionCommands.scanJunk,
