@@ -16,6 +16,8 @@ final class SoloistSource: NowPlayingSource {
     private var socket: URLSessionWebSocketTask?
     private var worker: Task<Void, Never>?
     private var sender: Task<Void, Never>?
+    private var refreshTask: Task<Void, Never>?
+    private var refresh = SoloistRefreshState()
     private var coverTask: Task<Void, Never>?
     private var coverURL: URL?
     private var failedCoverURL: URL?
@@ -33,6 +35,7 @@ final class SoloistSource: NowPlayingSource {
     isolated deinit {
         worker?.cancel()
         sender?.cancel()
+        refreshTask?.cancel()
         coverTask?.cancel()
         socket?.cancel(with: .goingAway, reason: nil)
         session.invalidateAndCancel()
@@ -42,6 +45,8 @@ final class SoloistSource: NowPlayingSource {
         guard port != self.port else { return }
         worker?.cancel()
         sender?.cancel()
+        refreshTask?.cancel()
+        refresh = SoloistRefreshState()
         coverTask?.cancel()
         socket?.cancel(with: .goingAway, reason: nil)
         socket = nil
@@ -62,6 +67,7 @@ final class SoloistSource: NowPlayingSource {
                 do {
                     try await socket.send(.string(SoloistProtocol.getAuthState))
                     try await socket.send(.string(SoloistProtocol.getState))
+                    try await socket.send(.string(SoloistProtocol.getQueue))
                     while !Task.isCancelled {
                         let message = try await socket.receive()
                         guard let owner = self, owner.socket === socket, !Task.isCancelled else { return }
@@ -77,6 +83,8 @@ final class SoloistSource: NowPlayingSource {
                 } catch {
                     guard !Task.isCancelled, self?.socket === socket else { return }
                     self?.isConnected = false
+                    self?.refreshTask?.cancel()
+                    self?.refresh = SoloistRefreshState()
                     self?.authState = nil
                     self?.state = nil
                     self?.queue = nil
@@ -104,21 +112,16 @@ final class SoloistSource: NowPlayingSource {
             failure = nil
             switch try SoloistProtocol.parse(text, now: Date()) {
             case .auth(let auth):
+                let paired = auth.loggedIn && authState?.loggedIn == false
                 authState = auth
-                if auth.loggedIn {
-                    enqueue(SoloistProtocol.getState)
-                    enqueue(SoloistProtocol.getQueue)
-                } else { queue = nil }
+                if !auth.loggedIn { queue = nil }
+                if paired { requestRefresh(queue: true) }
             case .failure(let message): failure = .command(message)
-            case .changed:
-                enqueue(SoloistProtocol.getState)
-                let object = try JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any]
-                if object?["type"] as? String == "queue_changed" {
-                    enqueue(SoloistProtocol.getQueue)
-                }
+            case .changed(let queue): requestRefresh(queue: queue)
             case .options(let shuffle, let repeatMode):
                 if let shuffle { state?.shuffle = shuffle }
                 if let repeatMode { state?.repeatMode = repeatMode }
+                requestRefresh(queue: true)
             case .queue(let items):
                 queue = items
             case .state(let track, let cover):
@@ -129,6 +132,24 @@ final class SoloistSource: NowPlayingSource {
             }
         } catch { failure = .malformedFrame }
         onChange?()
+    }
+
+    private func requestRefresh(queue: Bool) {
+        refresh.event(queue: queue, now: ProcessInfo.processInfo.systemUptime).forEach(enqueue)
+        scheduleRefresh()
+    }
+
+    private func scheduleRefresh() {
+        refreshTask?.cancel()
+        guard let deadline = refresh.deadline, let socket else { return }
+        refreshTask = Task { [weak self] in
+            do {
+                try await Task.sleep(for: .seconds(max(0, deadline - ProcessInfo.processInfo.systemUptime)))
+            } catch { return }
+            guard let self, !Task.isCancelled, self.socket === socket else { return }
+            self.refresh.flush(now: ProcessInfo.processInfo.systemUptime).forEach(self.enqueue)
+            self.scheduleRefresh()
+        }
     }
 
     private func loadCover(_ url: URL?) {
