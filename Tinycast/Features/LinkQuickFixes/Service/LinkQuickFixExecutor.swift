@@ -11,7 +11,7 @@ struct LinkQuickFixExecutor {
         switch action {
         case let .copyCommand(command, _):
             copy(command)
-            message(String(localized: "Command copied."))
+            message(String(localized: "Command copied.", table: "Notchcast"))
         case .openNetworkSettings:
             open(URL(string: "x-apple.systempreferences:com.apple.Network-Settings.extension")!)
         case .relinkInConnections:

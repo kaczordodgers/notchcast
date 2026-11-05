@@ -8,14 +8,14 @@ final class WebpageExtractor: NSObject, WKNavigationDelegate {
 
         var errorDescription: String? {
             switch self {
-            case .inUse: String(localized: "A webpage is already being saved.")
-            case .unavailable(let status): String(localized: "The webpage returned HTTP status \(status).")
-            case .unsupportedContent: String(localized: "This URL does not contain an HTML webpage.")
-            case .blocked: String(localized: "The webpage requires sign-in or a bot check.")
-            case .noContent: String(localized: "The webpage contains no readable article.")
-            case .tooLarge: String(localized: "The webpage is too large to save.")
-            case .timedOut: String(localized: "The webpage took too long to load.")
-            case .renderFailed: String(localized: "The webpage could not be rendered.")
+            case .inUse: String(localized: "A webpage is already being saved.", table: "Notchcast")
+            case .unavailable(let status): String(localized: "The webpage returned HTTP status \(status).", table: "Notchcast")
+            case .unsupportedContent: String(localized: "This URL does not contain an HTML webpage.", table: "Notchcast")
+            case .blocked: String(localized: "The webpage requires sign-in or a bot check.", table: "Notchcast")
+            case .noContent: String(localized: "The webpage contains no readable article.", table: "Notchcast")
+            case .tooLarge: String(localized: "The webpage is too large to save.", table: "Notchcast")
+            case .timedOut: String(localized: "The webpage took too long to load.", table: "Notchcast")
+            case .renderFailed: String(localized: "The webpage could not be rendered.", table: "Notchcast")
             }
         }
     }

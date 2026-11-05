@@ -18,9 +18,9 @@ final class AgentBridgeModule: NotchcastModule {
                 await core.choose(title: action.title, message: message,
                     symbol: "checkmark.shield", options: choices.map { choice in
                         switch choice {
-                        case .allowOnce: DialogAction(title: String(localized: "Allow once"))
-                        case .alwaysAllow: DialogAction(title: String(localized: "Always allow"))
-                        case .deny: DialogAction(title: String(localized: "Deny"), role: .cancel)
+                        case .allowOnce: DialogAction(title: String(localized: "Allow once", table: "Notchcast"))
+                        case .alwaysAllow: DialogAction(title: String(localized: "Always allow", table: "Notchcast"))
+                        case .deny: DialogAction(title: String(localized: "Deny", table: "Notchcast"), role: .cancel)
                         }
                     }, defaultIndex: choices.count - 1)
             }
@@ -41,7 +41,7 @@ final class AgentBridgeModule: NotchcastModule {
             try AgentBuiltInActions.register(in: index, core: core)
             NotchcastCore.katana.configure(index: index)
             NotchcastCore.treadmill.configure(index: index)
-            try index.register(.init(id: "notchcast.features", title: String(localized: "Notchcast"), read: {
+            try index.register(.init(id: "notchcast.features", title: String(localized: "Notchcast", table: "Notchcast"), read: {
                 .object(Dictionary(uniqueKeysWithValues: NotchcastFeature.allCases.map {
                     ($0.rawValue, AgentJSON.bool(NotchcastPreferences.shared.isOn($0)))
                 }))

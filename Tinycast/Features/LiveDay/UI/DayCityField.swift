@@ -11,8 +11,8 @@ struct DayCityField: View {
     @State private var searching = false
 
     var body: some View {
-        TextField("Search for a city", text: $query)
-            .accessibilityLabel(Text("City"))
+        TextField(String(localized: "Search for a city", table: "Notchcast"), text: $query)
+            .accessibilityLabel(Text("City", tableName: "Notchcast"))
             .onSubmit { submitted = query; request = UUID() }
             .onChange(of: query) { _, _ in
                 submitted = nil
@@ -26,12 +26,12 @@ struct DayCityField: View {
             LabeledContent {
                 Text(place.name)
             } label: {
-                SettingsRowTitle(.notchcastDay, "City")
+                SettingsRowTitle(.notchcastDay, LocalizedStringResource("City", table: "Notchcast"))
             }
         }
-        if searching { ProgressView().accessibilityLabel(Text("Search for a city")) }
+        if searching { ProgressView().accessibilityLabel(Text("Search for a city", tableName: "Notchcast")) }
         if failed {
-            Text("Couldn’t search for cities.").foregroundStyle(.secondary)
+            Text("Couldn’t search for cities.", tableName: "Notchcast").foregroundStyle(.secondary)
         } else if let submitted, !submitted.isEmpty, !searching, results.isEmpty {
             Text(noResults).foregroundStyle(.secondary)
         }

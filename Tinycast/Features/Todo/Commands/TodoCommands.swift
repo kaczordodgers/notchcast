@@ -11,13 +11,13 @@ enum TodoCommands {
     nonisolated static func commands(
         context: @escaping @MainActor @Sendable () -> TodoCommandContext
     ) -> [NotchcastCommand] {
-        [NotchcastCommand(slug: "add-task-from-clipboard", name: String(localized: "Add Task from Clipboard"),
+        [NotchcastCommand(slug: "add-task-from-clipboard", name: String(localized: "Add Task from Clipboard", table: "Notchcast"),
                          sfSymbol: "clipboard", feature: .tasks,
                          isEnabled: { context().isEnabled() }, run: { context().add() }),
-         NotchcastCommand(slug: "complete-next-task", name: String(localized: "Complete Next Task"),
+         NotchcastCommand(slug: "complete-next-task", name: String(localized: "Complete Next Task", table: "Notchcast"),
                          sfSymbol: "checkmark.circle", feature: .tasks,
                          isEnabled: { context().isEnabled() }, run: { context().complete() }),
-         NotchcastCommand(slug: "undo-last-task-change", name: String(localized: "Undo Last Task Change"),
+         NotchcastCommand(slug: "undo-last-task-change", name: String(localized: "Undo Last Task Change", table: "Notchcast"),
                          sfSymbol: "arrow.uturn.backward", feature: .tasks,
                          isEnabled: { context().isEnabled() }, run: { context().undo() })]
     }

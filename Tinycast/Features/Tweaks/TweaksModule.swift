@@ -73,8 +73,8 @@ final class TweaksModule: NotchcastModule {
         guard let core, !store.busy else { return }
         if !enabled, !store.plans.isEmpty {
             guard await core.confirm(title: feature.title,
-                message: String(localized: "Restore the captured preferences before disabling this feature?"),
-                symbol: "arrow.uturn.backward", confirmTitle: String(localized: "Restore")) else { return }
+                message: String(localized: "Restore the captured preferences before disabling this feature?", table: "Notchcast"),
+                symbol: "arrow.uturn.backward", confirmTitle: String(localized: "Restore", table: "Notchcast")) else { return }
         }
         NotchcastPreferences.shared.set(feature, enabled)
     }
@@ -117,8 +117,8 @@ final class TweaksModule: NotchcastModule {
 
     func showLibrary() async {
         guard let core, store.enabled, !store.busy,
-              await core.confirm(title: String(localized: "Show library"),
-                  message: String(localized: "Make your Library folder visible in Finder."),
+              await core.confirm(title: String(localized: "Show library", table: "Notchcast"),
+                  message: String(localized: "Make your Library folder visible in Finder.", table: "Notchcast"),
                   symbol: "folder", confirmTitle: String(localized: "Apply")), store.enabled else { return }
         do {
             try await store.apply("show-library") {
@@ -132,9 +132,9 @@ final class TweaksModule: NotchcastModule {
 
     func handOffProfile(_ restriction: AppleAppsPolicy.Restriction) async {
         guard let core, store.enabled, !store.busy,
-              await core.confirm(title: String(localized: "Review configuration profile"),
+              await core.confirm(title: String(localized: "Review configuration profile", table: "Notchcast"),
                   message: String(localized:
-                    "macOS requires your approval to install this restriction; remove it in System Settings."),
+                    "macOS requires your approval to install this restriction; remove it in System Settings.", table: "Notchcast"),
                   symbol: "gearshape", confirmTitle: String(localized: "Open…")),
               store.enabled else { return }
         do {

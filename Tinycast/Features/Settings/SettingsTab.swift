@@ -112,7 +112,7 @@ enum SettingsSection: CaseIterable, Identifiable {
         case .general: return String(localized: "General")
         case .launcher: return String(localized: "Launcher")
         case .features: return String(localized: "Features")
-        case .notchcast: return String(localized: "Notchcast")
+        case .notchcast: return String(localized: "Notchcast", table: "Notchcast")
         case .advanced: return String(localized: "Advanced")
         }
     }
