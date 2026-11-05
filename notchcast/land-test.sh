@@ -1,6 +1,50 @@
 #!/bin/bash
 set -euo pipefail
 root=$(git rev-parse --show-toplevel)
+sync_wait_tests() (
+    set -euo pipefail
+    eval "$(sed -n '/^wait_for_sync() {$/,/^}$/p' "$root/notchcast/land.sh")"
+    declare -f wait_for_sync >/dev/null || { echo 'FAIL: Sync wait helper missing'; exit 1; }
+    refuse() { echo "REFUSED: $*"; exit 1; }
+    export NOTCHCAST_TEST_SYNC_POLL_SECONDS=1 NOTCHCAST_TEST_SYNC_LIMIT_SECONDS=2
+    sleeps=0
+    sleep() { sleeps=$((sleeps + 1)); SECONDS=$((SECONDS + $1)); }
+    gh() {
+        if [ "$2" = list ]; then
+            [[ "$*" == *'--workflow sync.yml'* ]] || exit 1
+            [[ "$*" == *'--status queued'* || "$*" == *'--status in_progress'* ]] || exit 1
+            [ "$scenario" != none ] && echo 123
+            return 0
+        fi
+        [[ "$*" == *'--json jobs --jq '* ]] || exit 1
+        [ "$scenario" != broken ] || return 1
+        case "$scenario" in
+            main) echo '{"jobs":[{"name":"main","status":"in_progress"}]}' ;;
+            gone) if [ "$sleeps" -eq 0 ]; then echo '{"jobs":[{"name":"replay","status":"in_progress"}]}'; else echo '{"jobs":[]}'; fi ;;
+            queued) echo '{"jobs":[{"name":"replay","status":"queued"}]}' ;;
+            *) echo '{"jobs":[{"name":"replay","status":"in_progress"}]}' ;;
+        esac | jq "${@: -1}"
+    }
+    for scenario in none main gone; do
+        sleeps=0
+        wait_for_sync
+        if [ "$scenario" = gone ]; then [ "$sleeps" -eq 1 ]; else [ "$sleeps" -eq 0 ]; fi
+        echo "PASS: Sync $scenario"
+    done
+    for scenario in forever queued; do
+        sleeps=0
+        output=$(wait_for_sync) && exit 1
+        [[ "$output" == *'REFUSED: Sync replay 123 still running after 40 min; run land.sh 42 again'* ]]
+        echo "PASS: Sync $scenario refuses at limit"
+    done
+    scenario=broken
+    output=$(wait_for_sync) && exit 1
+    [[ "$output" == *'REFUSED: could not read Sync run 123'* ]]
+    echo 'PASS: Sync unreadable run refuses'
+)
+pr=42
+sync_wait_tests
+if [ "${1:-}" = --sync ]; then exit 0; fi
 mkdir -p "$HOME/agents/nc-local-ci"
 scratch=$(mktemp -d "$HOME/agents/nc-local-ci/land-test.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT
