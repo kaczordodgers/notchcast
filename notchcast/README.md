@@ -49,6 +49,8 @@ Our commits:
 
 The new bundle id and signature need Accessibility to be granted once.
 
+Before each update run, the job fast-forwards its checkout only on clean `main`; otherwise it logs and uses the current code. Replacing an installed app (including `--install`) waits for at least 300 seconds of HID idle time, polling every 30 seconds for up to 25 minutes before deferring to the next run; first installs never wait.
+
 ## Conflict-free PRs
 
 Merge only with `notchcast/land.sh <pr>`. It checks an isolated merge of the PR head into current main, runs core and affected fork harnesses, and squash-merges only that PR head after they pass. It refuses unless `build` is green on that head. Main harnesses checks every source push (core only on a sync rewrite, which Sync tested). This is not an app build: switches in files no selected harness compiles, UI integration, and main moving between the check and the merge remain outside its protection; the PR build is still required.
