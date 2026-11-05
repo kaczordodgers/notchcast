@@ -1,12 +1,13 @@
 # Media tools engine
 
 On-demand native compression, GIF creation and text extraction. No files are overwritten:
-each operation stages beside its input and publishes with an exclusive hard link. Cancelling
-or disabling the module cancels its owned task and discards staged output. No polling or
-media objects remain while idle.
+each operation stages beside its input and publishes with an exclusive hard link. The tools
+command controller owns cancellation and discards staged output. No polling or media objects
+remain while idle.
 
-`MediaToolsRunner.run(_:tool:)` returns the published URL. `MediaToolsModule.run(_:tool:post:)`
-reports the resulting path or localized failure through its main-actor closure. Video uses
+`MediaToolsRunner.run(_:tool:)` returns the published URL.
+`MediaToolsModule.process(_:tool:isCurrent:post:)` reports each resulting path through its
+main-actor closure and propagates failures to the caller. Video uses
 H.264 quality 0.68, longest side at most 1280 pixels and at most 30 fps, retaining the first
 audio track as AAC. Target mode retries lower bitrates and publishes only measured output
 within the requested bytes; impossible targets fail. Images are JPEG quality 0.72 with a
