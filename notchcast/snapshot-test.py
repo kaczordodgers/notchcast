@@ -75,14 +75,19 @@ class SnapshotTests(unittest.TestCase):
     releases = [{"tagName": "v1.0.0", "isDraft": False},
                 {"tagName": "v1.0.0.snapshot.20261105120000", "isDraft": False}]
 
-    def plan(self, event="push", minute=30, commit="old"):
+    def plan(self, event="push", minute=30, commit="old", skip_gate=False):
         return snapshot.plan(self.releases, "current-main", lambda tag: commit,
-                             datetime(2026, 11, 5, 12, minute, tzinfo=timezone.utc), event)
+                             datetime(2026, 11, 5, 12, minute, tzinfo=timezone.utc), event, skip_gate)
 
     def test_dispatch_gate_names_sha_and_open_time(self):
         result = self.plan("workflow_dispatch")
-        self.assertIn("current-main", result["error"])
-        self.assertIn("2026-11-05 12:50:00 UTC", result["error"])
+        self.assertIn("current-main", result["closed"])
+        self.assertIn("2026-11-05 12:50:00 UTC", result["closed"])
+
+    def test_skip_gate_only_bypasses_timer(self):
+        self.assertIn("tag", self.plan("workflow_dispatch", skip_gate=True))
+        self.assertEqual(self.plan("workflow_dispatch", commit="current-main", skip_gate=True),
+                         {"error": "unchanged main current-main"})
 
     def test_dispatch_unchanged_is_error(self):
         self.assertEqual(self.plan("workflow_dispatch", commit="current-main"),
@@ -105,17 +110,17 @@ class SnapshotTests(unittest.TestCase):
         clock = unittest.mock.Mock()
         clock.now.return_value = datetime(2026, 11, 5, 12, 30, tzinfo=timezone.utc)
         stream = io.StringIO()
-        with patch.dict(os.environ, GITHUB_EVENT_NAME=event), patch.object(snapshot, "run", side_effect=replies), \
+        with patch.dict(os.environ, GITHUB_EVENT_NAME=event, SKIP_GATE="false"), patch.object(snapshot, "run", side_effect=replies), \
                 patch.object(snapshot, "datetime", clock), patch.object(snapshot.time, "sleep") as sleep, \
                 contextlib.redirect_stdout(stream):
             clock.strptime = datetime.strptime
             status = snapshot.main()
         return status, stream.getvalue(), sleep
 
-    def test_dispatch_gate_exits_red_with_annotation(self):
+    def test_dispatch_gate_exits_green_with_notice(self):
         status, log, sleep = self.run_main("workflow_dispatch", ["old"])
-        self.assertEqual(status, 1)
-        self.assertIn("::error::", log)
+        self.assertEqual(status, 0)
+        self.assertIn("::notice::", log)
         self.assertIn("current-main", log)
         self.assertIn("2026-11-05 12:50:00 UTC", log)
         sleep.assert_not_called()
