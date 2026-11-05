@@ -6,6 +6,13 @@ import Synchronization
 
 @main
 struct ArchiveChildCancelTest {
+    static func require(_ condition: Bool, _ message: String) {
+        guard condition else {
+            FileHandle.standardError.write(Data("FAIL: \(message)\n".utf8))
+            exit(1)
+        }
+    }
+
     static func main() async throws {
         try await check(escaped: false)
         try await check(escaped: true)
@@ -35,7 +42,7 @@ struct ArchiveChildCancelTest {
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
         for status: Int32 in [0, 5] {
             let result = try await ArchiveProcess.run(tool: script, arguments: [String(status)])
-            precondition(result.status == status, "Extractor exit status changed")
+            require(result.status == status, "Extractor exit status changed: \(result.status), expected \(status)")
         }
         let completed = Mutex(false)
         let task = Task {
@@ -49,7 +56,8 @@ struct ArchiveChildCancelTest {
         }
         guard let text = try? String(contentsOf: pidFile, encoding: .utf8),
               let child = Int32(text.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-            preconditionFailure("Extractor never reported its child pid")
+            require(false, "Extractor never reported its child pid, escaped=\(escaped)")
+            return
         }
         defer { kill(child, SIGKILL) }
         try await Task.sleep(for: .milliseconds(200))
@@ -59,10 +67,11 @@ struct ArchiveChildCancelTest {
         let childStopped = kill(child, 0) == -1 && errno == ESRCH
         kill(child, SIGKILL)
         let result = await task.result
-        precondition(finished, "Cancellation hung after extractor parent exited")
-        precondition(escaped || childStopped, "Cancellation left the extractor child running")
+        require(finished, "Cancellation hung after extractor parent exited, escaped=\(escaped)")
+        require(escaped || childStopped, "Cancellation left the extractor child running, pid=\(child)")
         guard case .failure(let error) = result, error is CancellationError else {
-            preconditionFailure("Cancelled extractor reported success")
+            require(false, "Cancelled extractor reported success: \(result)")
+            return
         }
         print("PASS: child pipe cancellation, escaped=\(escaped)")
     }
