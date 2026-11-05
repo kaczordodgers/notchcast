@@ -3,7 +3,7 @@ set -euo pipefail
 root=$(git rev-parse --show-toplevel)
 sync_wait_tests() (
     set -euo pipefail
-    eval "$(sed -n '/^wait_for_sync() {$/,/^}$/p' "$root/notchcast/land.sh")"
+    source "$root/notchcast/sync-wait.sh"
     declare -f wait_for_sync >/dev/null || { echo 'FAIL: Sync wait helper missing'; exit 1; }
     refuse() { echo "REFUSED: $*"; exit 1; }
     export NOTCHCAST_TEST_SYNC_POLL_SECONDS=1 NOTCHCAST_TEST_SYNC_LIMIT_SECONDS=2
@@ -39,7 +39,7 @@ sync_wait_tests() (
     for scenario in forever queued; do
         sleeps=0
         output=$(wait_for_sync) && exit 1
-        [[ "$output" == *'REFUSED: Sync run 123 (plan or replay) still running after 40 min; run land.sh 42 again'* ]]
+        [[ "$output" == *'REFUSED: Sync run 123 (plan or replay) still running after 40 min; try again'* ]]
         echo "PASS: Sync $scenario refuses at limit"
     done
     scenario=broken
@@ -78,6 +78,40 @@ cd "$scratch/repo"
 git config user.name Damian
 git config user.email 336236323+kaczordodgers@users.noreply.github.com
 base=$(git rev-parse HEAD)
+# A Sync rewrite: old main has our commit; new main is upstream's next commit plus the same change replayed.
+fixture_commit() {
+    printf '%s\n' "$2" > "notchcast/$1.fixture"
+    git add "notchcast/$1.fixture"
+    git commit --quiet -m "Fixture: $1 $2"
+}
+git switch --quiet -c fork-old "$base"
+fixture_commit ours old
+old=$(git rev-parse HEAD)
+git switch --quiet -c fork-new "$base"
+fixture_commit upstream new
+fixture_commit ours old
+new=$(git rev-parse HEAD)
+git switch --quiet -c fork-clean "$old"
+fixture_commit ours edited
+clean=$(git rev-parse HEAD)
+git switch --quiet -c fork-conflict "$old"
+fixture_commit upstream pr
+conflict=$(git rev-parse HEAD)
+status=0
+"$root/notchcast/land.sh" --check "$new" "$clean" > "$scratch/fork.log" 2>&1 || status=$?
+[ "$status" -eq 1 ] && grep -q 'REFUSED: merge conflict: notchcast/ours.fixture' "$scratch/fork.log"
+echo 'PASS: without a recorded tip, a PR from before the rewrite conflicts with its own replayed commit'
+git update-ref "refs/notchcast/synced/$old" "$old"
+git update-ref "refs/notchcast/synced/$new" "$new"
+"$root/notchcast/land.sh" --check "$new" "$clean" > "$scratch/fork.log" 2>&1 || { cat "$scratch/fork.log"; exit 1; }
+grep -q "merging from ${old:0:8}" "$scratch/fork.log"
+echo 'PASS: a PR from before the rewrite lands from its recorded fork point, past a newer recorded tip'
+status=0
+"$root/notchcast/land.sh" --check "$new" "$conflict" > "$scratch/fork.log" 2>&1 || status=$?
+[ "$status" -eq 1 ] && grep -q 'REFUSED: merge conflict: notchcast/upstream.fixture' "$scratch/fork.log"
+echo 'PASS: a real conflict from the recorded fork point still refuses'
+git for-each-ref --format='delete %(refname)' refs/notchcast/synced/ | git update-ref --stdin
+if [ "${1:-}" = --fork ]; then exit 0; fi
 git switch --quiet -c fixture-a
 python3 - <<'PY'
 from pathlib import Path
