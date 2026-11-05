@@ -8,7 +8,7 @@ enum SettingsTab: CaseIterable, Identifiable {
     var id: Self { self }
 
     init?(slug: String) {
-        guard let tab = Self.allCases.first(where: { $0 != .extensions && $0.slug == slug }) else { return nil }
+        guard let tab = Self.allCases.first(where: { !NotchcastHidden.tabs.contains($0) && $0.slug == slug }) else { return nil }
         self = tab
     }
 
@@ -118,6 +118,10 @@ enum SettingsSection: CaseIterable, Identifiable {
     }
 
     var tabs: [SettingsTab] {
+        unfilteredTabs.filter { !NotchcastHidden.tabs.contains($0) }
+    }
+
+    private var unfilteredTabs: [SettingsTab] {
         switch self {
         case .general: return [.general, .permissions]
         case .launcher:
@@ -129,7 +133,7 @@ enum SettingsSection: CaseIterable, Identifiable {
             // Everyday tools first; AI and extensions are opt-in extras.
             return [
                 .clipboard, .snippets, .fileSearch, .windowManagement, .navigation, .notes,
-                .calendar, .emoji, .dictation, .ai, .quickActions
+                .calendar, .emoji, .dictation, .ai, .quickActions, .extensions
             ]
         case .notchcast: return NotchcastSettingsModule.allCases.map(\.tab)
         case .advanced: return [.backup, .about]

@@ -180,7 +180,10 @@ final class HotKeyManager {
         }
     }
 
-    func binding(for action: HotKeyAction) -> HotKeyBinding? { bindings[action] }
+    func binding(for action: HotKeyAction) -> HotKeyBinding? {
+        if case .command(let id) = action, NotchcastHidden.commands.contains(id.rawValue) { return nil }
+        return bindings[action]
+    }
 
     private func storedBinding(for action: HotKeyAction) -> HotKeyBinding? {
         guard

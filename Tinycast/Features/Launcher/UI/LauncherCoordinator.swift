@@ -166,6 +166,7 @@ final class LauncherCoordinator {
 
     /// The one funnel a built-in command runs through, from a palette row or its global shortcut.
     func runCommand(_ id: CommandID) {
+        guard !NotchcastHidden.commands.contains(id.rawValue) else { return }
         switch id {
         case .quickAI:
             core.quickAICoordinator.show()
@@ -314,6 +315,7 @@ final class LauncherCoordinator {
     }
 
     func deepLink(for app: AppEntry) -> URL? {
+        guard !NotchcastHidden.commands.contains(app.id) else { return nil }
         guard app.kind != .extensionCommand || core.settings.extensionsEnabled else { return nil }
         let values = argumentValues(for: app)
         guard app.kind != .extensionCommand else {
@@ -323,6 +325,7 @@ final class LauncherCoordinator {
     }
 
     func deepLink(for action: HotKeyAction) -> URL? {
+        if case .command(let id) = action, NotchcastHidden.commands.contains(id.rawValue) { return nil }
         if case .extensionCommand = action, !core.settings.extensionsEnabled { return nil }
         if case .extensionCommand(let entryID) = action {
             return extensionCoordinator.deepLink(forEntryID: entryID, arguments: [:])

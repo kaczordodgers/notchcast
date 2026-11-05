@@ -223,9 +223,6 @@ struct RootPaletteView: View {
                 PopoverMenuItem(title: String(localized: "About Tinycast"), systemImage: "info.circle") {
                     core.settingsCoordinator.showAbout()
                 },
-                PopoverMenuItem(title: String(localized: "Support Tinycast"), systemImage: "heart") {
-                    core.supportCoordinator.showSupport()
-                },
                 PopoverMenuItem(
                     title: String(localized: "Settings"), systemImage: "gearshape", shortcut: "⌘,"
                 ) {

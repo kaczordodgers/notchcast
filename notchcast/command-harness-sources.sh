@@ -15,7 +15,8 @@ if [[ " $* " == *" Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.
 fi
 
 if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
-    for source in Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
+    for source in Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift \
+        Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
         Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift \
         Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift; do
         [[ " $* " == *" $source "* ]] || set -- "$@" "$source"

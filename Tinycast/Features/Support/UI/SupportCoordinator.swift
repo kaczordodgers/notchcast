@@ -20,6 +20,7 @@ final class SupportCoordinator {
     }
 
     func showSupport() {
+        guard NotchcastHidden.supportEnabled else { return }
         store.markAsked()
         window.show {
             SupportWindowView(support: self)
@@ -44,6 +45,7 @@ final class SupportCoordinator {
     }
 
     func focusExisting() -> Bool {
+        guard NotchcastHidden.supportEnabled else { return false }
         window.focus()
     }
 }
