@@ -27,7 +27,7 @@ extension SmallCommandsModule {
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
         run: { NotchcastCore.smallCommands.runFromLauncher(.airDrop) })
 
-    func runFromLauncher(_ action: Action,
+    func runFromLauncher(_ action: Action, argument: String = "",
                          execute: ((Action) async throws -> String?)? = nil,
                          copy: @escaping (String) -> Bool = {
                              NSPasteboard.general.clearContents()
@@ -41,7 +41,7 @@ extension SmallCommandsModule {
         commandTask = Task { [weak self] in
             guard let self else { return }
             do {
-                let text = try await (execute ?? { try await self.perform($0) })(action)
+                let text = try await (execute ?? { try await self.perform($0, argument: argument) })(action)
                 guard !Task.isCancelled, isRunning else { return }
                 if let text {
                     report(copy(text) ? String(localized: "Copied") : String(localized: "Could not copy to clipboard.", table: "Notchcast"))
@@ -56,7 +56,7 @@ extension SmallCommandsModule {
         }
     }
 
-    func perform(_ action: Action,
+    func perform(_ action: Action, argument: String = "",
                  frontAddress: () async -> String? = SmallCommandsModule.frontAddress,
                  clipboard: () -> String? = { NSPasteboard.general.string(forType: .string) },
                  service: ShortenLinkService? = nil) async throws -> String? {
@@ -67,7 +67,7 @@ extension SmallCommandsModule {
             let front = await frontAddress()
             try Task.checkCancellation()
             guard let shortener = service ?? shortener,
-                  let address = ShortenLinkService.pick(argument: "", frontAddress: front,
+                  let address = ShortenLinkService.pick(argument: argument, frontAddress: front,
                     clipboard: clipboard()) else { throw Failure.disabled }
             return try await shortener.shorten(address)
         case .noise:
