@@ -82,6 +82,7 @@ private struct NotchcastModuleFeatureRows: View {
                 .onDisappear { NotchcastCore.settingsBackupRestore.cancelChoosing() }
         }
         if preferences.isEnabled(feature) && feature.settingsAvailable {
+            if feature == .shelfBetweenMacs { ShelfReceivedSection() }
             ForEach(commands, id: \.id) { command in
                 if command.slug.hasPrefix("settings-") {
                     NotchcastActionCommandRow(command: command)
