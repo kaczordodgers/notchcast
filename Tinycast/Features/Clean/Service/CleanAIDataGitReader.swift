@@ -20,8 +20,8 @@ struct CleanAIDataWorktreeMetadata {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !text.contains("\n"), !text.contains("\0"),
               URL(fileURLWithPath: text, relativeTo: URL(fileURLWithPath: directory.path, isDirectory: true))
-                .standardizedFileURL.path
-                == worktree.appendingPathComponent(".git").standardizedFileURL.path else {
+                .standardized.path
+                == worktree.appendingPathComponent(".git").standardized.path else {
             throw CocoaError(.fileReadCorruptFile)
         }
     }
