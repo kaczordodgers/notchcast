@@ -371,6 +371,7 @@
 		32E151D0C1A3EB1979EE1E53 /* BackupArchive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DCCA01C368B2F38617A80DB /* BackupArchive.swift */; };
 		330540BBA991E36DD4C4BF53 /* ExtensionsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46762A28D73339953019C0AA /* ExtensionsSettingsView.swift */; };
 		330AFCA575D718AD10430FBD /* MenuSearchShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = 730BF08D764698989DF963A0 /* MenuSearchShortcut.swift */; };
+		3362FABE7FC816398AE6FD61 /* CoreBluetoothTreadmillCentral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A0776B3916C7707E8FDF902 /* CoreBluetoothTreadmillCentral.swift */; };
 		337FAC7FB0687BFB3B7B23CD /* AgentPricingSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCDD456ECFB1459AE69AD102 /* AgentPricingSettingsSection.swift */; };
 		339373BF309C9373683047ED /* AgentDeviceActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E429CA7ABF7AC45912426FB /* AgentDeviceActions.swift */; };
 		33CDC9C90C19C0B87F37C7AA /* DictationTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3514AC5995904AFF15855E68 /* DictationTokenizer.swift */; };
@@ -381,6 +382,7 @@
 		3434E1145AB3F7EA0219C502 /* FavoriteActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C5FA7F5281B81B20C33DC89 /* FavoriteActions.swift */; };
 		345D1FCC2085BD0D699DD236 /* FileSearchCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF64F5FCB3872996AE57FDBB /* FileSearchCoordinator.swift */; };
 		3480CA5169BDCEA7263DBFE1 /* BackupStatusModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 937D75FF9F38ECFFAB03E5DE /* BackupStatusModule.swift */; };
+		34AE92300E4386B14B367566 /* BluetoothTreadmillTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBFB44743E90939473666769 /* BluetoothTreadmillTransport.swift */; };
 		3595AE625CAE6F4BFDAAA9B0 /* MachSSH.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED1EFB19404DAB4E707E6E3 /* MachSSH.swift */; };
 		359FBB7F7BE95911B07AE9E2 /* DictationModelDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B324E12A254BAD39A13EDD9 /* DictationModelDownloader.swift */; };
 		35C3D2131DF49D2B684C1573 /* NotificationCleanupObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86774A7A45963919502CC9B2 /* NotificationCleanupObserver.swift */; };
@@ -1283,6 +1285,7 @@
 		B11EFB5B8F119CD821E2D384 /* BackupManifest.swift in Sources */ = {isa = PBXBuildFile; fileRef = C912B42A1A02481AFD95B2D6 /* BackupManifest.swift */; };
 		B121F5D28C00D7B21C03FE60 /* DictationModelStore+Distill.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C1767571D1EDF31998AC566 /* DictationModelStore+Distill.swift */; };
 		B14E6E549C38E9D4099916E2 /* MusicLastPlayerModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44BB809002B6D17C8D6B0A8E /* MusicLastPlayerModule.swift */; };
+		B1592750790B497077FE0D7C /* TreadmillAgentActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F47C866FAD132A3A29F3AE5B /* TreadmillAgentActions.swift */; };
 		B15CF5D63FED5BC8AF375400 /* MenuSearchItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90DEF8D0211CA35DF44537B2 /* MenuSearchItem.swift */; };
 		B17B6FE6F8DE23D815E3C5BB /* InstalledCLIProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = E08F20B0B823443E176F1566 /* InstalledCLIProvider.swift */; };
 		B18974C91E59A80C182B72CE /* TemperatureSensorPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF5FAE8A5472A8A09E233984 /* TemperatureSensorPolicy.swift */; };
@@ -2359,6 +2362,7 @@
 		39C25B91C15EDB8D37D8DDB9 /* ScreenshotModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotModule.swift; sourceTree = "<group>"; };
 		39EF327E9EFB308B858B58B8 /* FormTextInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormTextInput.swift; sourceTree = "<group>"; };
 		3A068600862BC729F0565D67 /* ColorDot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorDot.swift; sourceTree = "<group>"; };
+		3A0776B3916C7707E8FDF902 /* CoreBluetoothTreadmillCentral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreBluetoothTreadmillCentral.swift; sourceTree = "<group>"; };
 		3A208D9743D18FC7017CC3EC /* AIUsageModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIUsageModule.swift; sourceTree = "<group>"; };
 		3A383EB4AC59E07074FE3FBF /* NoteWindowPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteWindowPlacement.swift; sourceTree = "<group>"; };
 		3A5D8DD69E6E38D96B13D1A6 /* WindowLayoutPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutPlan.swift; sourceTree = "<group>"; };
@@ -3287,6 +3291,7 @@
 		BB6AB8B7A126DB45BEF7E599 /* BatteryPeripheralReading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryPeripheralReading.swift; sourceTree = "<group>"; };
 		BBE8149D018E44AD3E13F642 /* SteadySegmentedPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SteadySegmentedPicker.swift; sourceTree = "<group>"; };
 		BBEE123005C9D61D778B1151 /* BatteryModule+Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "BatteryModule+Command.swift"; sourceTree = "<group>"; };
+		BBFB44743E90939473666769 /* BluetoothTreadmillTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BluetoothTreadmillTransport.swift; sourceTree = "<group>"; };
 		BC0AA95CA13E86370661D01C /* CalendarSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarSettingsView.swift; sourceTree = "<group>"; };
 		BC4D9E513B72788EEDA95B96 /* DictationCleanup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationCleanup.swift; sourceTree = "<group>"; };
 		BC5A51755634710649DC27B1 /* NoteFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteFormatting.swift; sourceTree = "<group>"; };
@@ -3699,6 +3704,7 @@
 		F426E8455CBB7A3A2C0D5853 /* AppearanceThemeBrowser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppearanceThemeBrowser.swift; sourceTree = "<group>"; };
 		F427CF5309F2CD9834FE921E /* SoloistSpeaker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SoloistSpeaker.swift; sourceTree = "<group>"; };
 		F42BECB8234FEA49797B68F6 /* WindowSwitchQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowSwitchQuery.swift; sourceTree = "<group>"; };
+		F47C866FAD132A3A29F3AE5B /* TreadmillAgentActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreadmillAgentActions.swift; sourceTree = "<group>"; };
 		F48B29149B7A9300CDBF5D64 /* PowerRegistryAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PowerRegistryAccess.swift; sourceTree = "<group>"; };
 		F4CAADF56E253010916235EF /* NotchcastModuleSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastModuleSettingsView.swift; sourceTree = "<group>"; };
 		F4E1C572A58423ACFB8D255F /* ClearNotificationsRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearNotificationsRunner.swift; sourceTree = "<group>"; };
@@ -7732,6 +7738,9 @@
 		AFB874F6EB272C10D5710FF4 /* Service */ = {
 			isa = PBXGroup;
 			children = (
+				BBFB44743E90939473666769 /* BluetoothTreadmillTransport.swift */,
+				3A0776B3916C7707E8FDF902 /* CoreBluetoothTreadmillCentral.swift */,
+				F47C866FAD132A3A29F3AE5B /* TreadmillAgentActions.swift */,
 				0E51427E9961BA12AC95AEE1 /* TreadmillCoordinator.swift */,
 				42CF32A3F1BFF3BCC04D15BC /* TreadmillHistoryStore.swift */,
 				976514A34CD91A9755167B5A /* TreadmillPreferences.swift */,
@@ -9782,6 +9791,7 @@
 				FB8556BD4ADA7F89B608052C /* BlockedDialogModule+Link.swift in Sources */,
 				DCEE557F5891579CCA8BF375 /* BlockedDialogModule.swift in Sources */,
 				78EB2C22F0F74376E12BB729 /* BlockedDialogWindows.swift in Sources */,
+				34AE92300E4386B14B367566 /* BluetoothTreadmillTransport.swift in Sources */,
 				4DACF6209BCCDED25E2BEE77 /* BrightnessController.swift in Sources */,
 				61AAD8D4D681EC19C31CFABC /* BrightnessDDC.swift in Sources */,
 				8A7176914EF4A2411CB7DA47 /* BrightnessDisplay.swift in Sources */,
@@ -9995,6 +10005,7 @@
 				B4D39E9ED85FCC9D43E525F3 /* CopyPathTarget.swift in Sources */,
 				B6DB6AD3EBC65B70659E6E28 /* CoreAudioLevelAccess.swift in Sources */,
 				CAE125841FEF02A9A0443BD8 /* CoreAudioPriorityTransport.swift in Sources */,
+				3362FABE7FC816398AE6FD61 /* CoreBluetoothTreadmillCentral.swift in Sources */,
 				2B1DB55D4CFEA1901B2FBCEE /* CoreMicrophoneAudio.swift in Sources */,
 				A024F68213FEB918BEF31255 /* CountryZoneData.generated.swift in Sources */,
 				2EBB42C7EB17F37628765B17 /* CurrencyData.generated.swift in Sources */,
@@ -11201,6 +11212,7 @@
 				2432E52540508F94B8465C26 /* TouchIDRootVerbs.swift in Sources */,
 				DE384108EE2DF0D6787FAF58 /* TouchIDService.swift in Sources */,
 				A439D7FB04FB97F3543C9237 /* TranscriptDownloadRunner.swift in Sources */,
+				B1592750790B497077FE0D7C /* TreadmillAgentActions.swift in Sources */,
 				93F0D33777E93858CBA3ED14 /* TreadmillArchive.swift in Sources */,
 				9544CCA92ECCCFBC1A3D122E /* TreadmillCoordinator.swift in Sources */,
 				F7298CA93AC3A7DFBE73678E /* TreadmillFailure.swift in Sources */,
