@@ -77,11 +77,20 @@ enum CleanSystem {
         let source = try directory((entry.path as NSString).deletingLastPathComponent,
                                    owner: sourceOwner, protected: true)
         defer { close(source) }
-        try validate(entry, policy: policy)
-        guard try inspect(entry.path, owner: sourceOwner) == entry else { throw Failure.refused }
+        var info = stat()
+        guard fstatat(source, (entry.path as NSString).lastPathComponent, &info, AT_SYMLINK_NOFOLLOW) == 0,
+              matches(info, entry: entry, owner: sourceOwner) else { throw Failure.refused }
         let name = UUID().uuidString + "-" + (entry.path as NSString).lastPathComponent
         guard renameatx_np(source, (entry.path as NSString).lastPathComponent,
                            destination, name, UInt32(RENAME_EXCL)) == 0 else { throw Failure.refused }
+    }
+
+    static func matches(_ info: stat, entry: CleanSystemEntry, owner: uid_t) -> Bool {
+        info.st_uid == owner && info.st_mode & S_IFMT == S_IFREG && info.st_nlink == 1
+            && entry.isRegularFile && !entry.hasSymlinkComponent && info.st_size == entry.size
+            && Date(timeIntervalSince1970: Double(info.st_mtimespec.tv_sec)
+                + Double(info.st_mtimespec.tv_nsec) / 1_000_000_000) == entry.modified
+            && "\(info.st_dev):\(info.st_ino):\(info.st_ctimespec.tv_sec):\(info.st_ctimespec.tv_nsec)" == entry.identity
     }
 
     static func acceptsParent(_ info: stat, owner: uid_t) -> Bool {

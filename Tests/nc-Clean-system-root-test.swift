@@ -26,6 +26,26 @@ import Darwin
         let file = folder.appendingPathComponent("cache")
         try Data("test".utf8).write(to: file)
         let entry = try CleanSystem.inspect(file.path)
+        var snapshot = stat()
+        precondition(lstat(file.path, &snapshot) == 0)
+        precondition(CleanSystem.matches(snapshot, entry: entry, owner: getuid()))
+        precondition(!CleanSystem.matches(snapshot, entry: entry, owner: getuid() + 1))
+        var replaced = snapshot
+        replaced.st_ino += 1
+        precondition(!CleanSystem.matches(replaced, entry: entry, owner: getuid()))
+        replaced = snapshot
+        replaced.st_mode = S_IFLNK
+        precondition(!CleanSystem.matches(replaced, entry: entry, owner: getuid()))
+        replaced = snapshot
+        replaced.st_size += 1
+        precondition(!CleanSystem.matches(replaced, entry: entry, owner: getuid()))
+        replaced = snapshot
+        replaced.st_mtimespec.tv_sec += 1
+        precondition(!CleanSystem.matches(replaced, entry: entry, owner: getuid()))
+        replaced = snapshot
+        replaced.st_nlink += 1
+        precondition(!CleanSystem.matches(replaced, entry: entry, owner: getuid()))
+        print("PASS: handle snapshot rejects changed owner, inode, type, size, mtime and hard links")
         do {
             _ = try CleanSystem.inspect(file.path, owner: 0)
             fatalError("Non-root entry accepted")
