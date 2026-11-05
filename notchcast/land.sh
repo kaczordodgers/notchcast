@@ -32,10 +32,16 @@ if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     head=$(git rev-parse --verify "$3^{commit}")
 elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
-    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName)
+    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName,baseRefName)
+    [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
     git fetch origin main "refs/pull/$pr/head" '+refs/notchcast/synced/*:refs/notchcast/synced/*'
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
+    for name in design leaks; do
+        verdict=$(gh api "repos/kaczordodgers/notchcast/commits/$head/check-runs?check_name=$name&filter=all" \
+            --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end')
+        [ "$verdict" = none ] || [ "$verdict" = success ] || refuse "$name is $verdict on ${head:0:8}; wait for success"
+    done
     # Check runs on the commit, not the PR's statusCheckRollup: the rollup omits dispatched runs, and a PR
     # GitHub calls conflicting gets no pull_request run at all. The newest run wins over a cancelled one.
     build() {
