@@ -11,7 +11,6 @@ enum CommandCatalog {
 
     nonisolated static func entries(ownedBy owner: SettingsTab) -> [AppEntry] {
         owner.ownedCommands.map { makeEntry($0) }
-            .appendingNotchcastCommands(ownedBy: owner)
     }
 
     static func command(for entry: AppEntry) -> CommandID? {
@@ -68,7 +67,6 @@ extension SettingsTab {
         case .emoji: [.searchEmoji]
         case .calendar:
             [.joinNextMeeting, .mySchedule, .createEvent, .copyMeetingLink, .openInCalendar]
-        case .notchcast: []
         default: []
         }
     }
