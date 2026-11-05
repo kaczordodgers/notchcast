@@ -4,6 +4,33 @@ source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
 refuse() { echo "REFUSED: $*" >&2; exit 1; }
+wait_for_sync() {
+    local run runs jobs replay deadline status
+    local poll=${NOTCHCAST_TEST_SYNC_POLL_SECONDS:-30}
+    local limit=${NOTCHCAST_TEST_SYNC_LIMIT_SECONDS:-2400}
+    deadline=$((SECONDS + limit))
+    while :; do
+        replay=
+        runs=$(for status in queued in_progress; do
+            gh run list -R kaczordodgers/notchcast --workflow sync.yml --status "$status" --limit 1000 \
+                --json databaseId --jq '.[].databaseId' || exit 1
+        done) || refuse 'could not list Sync runs'
+        for run in $runs; do
+            jobs=$(gh run view "$run" -R kaczordodgers/notchcast --json jobs \
+                --jq 'any(.jobs[]; .name == "replay" and (.status == "queued" or .status == "in_progress"))') \
+                || refuse "could not read Sync run $run"
+            if [ "$jobs" = true ]; then
+                replay=$run
+                break
+            fi
+        done
+        [ -n "$replay" ] || return 0
+        [ "$SECONDS" -lt "$deadline" ] \
+            || refuse "Sync replay $replay still running after 40 min; run land.sh $pr again"
+        echo "Waiting for Sync replay $replay: landing would invalidate its main lease"
+        sleep "$((poll < deadline - SECONDS ? poll : deadline - SECONDS))"
+    done
+}
 check=0
 if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     check=1
@@ -109,6 +136,7 @@ if [ "$check" -eq 0 ]; then
     commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
+    wait_for_sync
     [ "$(gh pr view "$pr" -R kaczordodgers/notchcast --json headRefOid --jq .headRefOid)" = "$head" ] \
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
