@@ -3,6 +3,8 @@ case "$name" in
         set -- "$@" Tests/NotchcastCommandHarnessSupport.swift ;;
     hotkey-dispatch-test)
         set -- "$@" Tests/NotchcastHotKeyHarnessSupport.swift ;;
+    settings-history-test)
+        set -- "$@" Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift ;;
 esac
 
 if [[ " $* " == *" Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift "* ]]; then
