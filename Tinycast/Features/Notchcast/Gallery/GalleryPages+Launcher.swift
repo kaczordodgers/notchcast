@@ -33,7 +33,7 @@ extension GalleryPages {
                 NotchcastPreferences.shared.set(.smallCommands, true)
                 core.appIndex.refreshNotchcastCommands()
                 core.palette.prepare(mode: .launcher)
-                core.palette.query = "Shorten Link"
+                core.palette.query = "shorten link"
                 return window(RootPaletteView().paletteEnvironment(core),
                               size: CGSize(width: Theme.Size.panelWidth, height: Theme.Size.panelHeight), dark: dark)
             }, settle: .milliseconds(500))
