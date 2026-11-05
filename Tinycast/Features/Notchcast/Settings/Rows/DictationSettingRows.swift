@@ -9,7 +9,7 @@ struct DictationCleanupEndpointSettingRow: View {
             updated.baseURL = $0
             module.save(updated)
         })) {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup endpoint")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Cleanup endpoint", table: "Notchcast"))
         }
         .textFieldStyle(.roundedBorder)
     }
@@ -28,7 +28,7 @@ struct DictationCleanupEffortSettingRow: View {
             Text("Medium").tag(DictationCleanupSettings.Effort.medium)
             Text("High").tag(DictationCleanupSettings.Effort.high)
         } label: {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup effort")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Cleanup effort", table: "Notchcast"))
         }
     }
 }
@@ -42,7 +42,7 @@ struct DictationCleanupPromptSettingRow: View {
             updated.promptAddition = $0
             module.save(updated)
         }), axis: .vertical) {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup prompt addition")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Cleanup prompt addition", table: "Notchcast"))
         }
         .textFieldStyle(.roundedBorder)
     }
@@ -54,8 +54,8 @@ struct DictationCleanupVocabularySettingRow: View {
 
     var body: some View {
         TextField(text: vocabulary, axis: .vertical) {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup vocabulary")
-            Text("One spelling per line; separate misheard forms with |.")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Cleanup vocabulary", table: "Notchcast"))
+            Text("One spelling per line; separate misheard forms with |.", tableName: "Notchcast")
         }
         .textFieldStyle(.roundedBorder)
         .onAppear {
@@ -87,7 +87,7 @@ struct DictationCleanupAPIKeySettingRow: View {
             Button("Save") { module.saveAPIKey(key) }
                 .disabled(!keyLoaded)
         } label: {
-            SettingsRowTitle(.notchcastCaptureAndDictation, "Cleanup API key")
+            SettingsRowTitle(.notchcastCaptureAndDictation, LocalizedStringResource("Cleanup API key", table: "Notchcast"))
         }
         .onAppear {
             if let loaded = module.apiKey() {

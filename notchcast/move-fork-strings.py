@@ -99,6 +99,9 @@ def rewrite(source, keys):
             continue
         if re.search(r'"com\.apple\.[^"]+":\s*$', before):
             continue
+        # A command("slug", "Name") helper localizes the name with the fork table itself.
+        if re.search(r'\bcommand\(\s*"[^"]+",\s*$', before):
+            continue
         # Plain dictionary values (gallery sample text) are not localized, so there is nothing to route.
         if re.search(r'"[\w-]+":\s*$', before):
             continue

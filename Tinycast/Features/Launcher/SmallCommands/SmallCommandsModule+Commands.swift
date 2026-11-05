@@ -9,20 +9,20 @@ extension SmallCommandsModule {
     }
 
     nonisolated static let passwordCommand = NotchcastCommand(
-        slug: "generate-password", name: String(localized: "Generate Password"), sfSymbol: "key", feature: .smallCommands,
+        slug: "generate-password", name: String(localized: "Generate Password", table: "Notchcast"), sfSymbol: "key", feature: .smallCommands,
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
         run: { NotchcastCore.smallCommands.runFromLauncher(.password) })
     nonisolated static let shortenCommand = NotchcastCommand(
-        slug: "shorten-link", name: String(localized: "Shorten Link"), sfSymbol: "link", feature: .smallCommands,
+        slug: "shorten-link", name: String(localized: "Shorten Link", table: "Notchcast"), sfSymbol: "link", feature: .smallCommands,
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
         run: { NotchcastCore.smallCommands.runFromLauncher(.shorten) })
     nonisolated static let noiseCommand = NotchcastCommand(
-        slug: "switch-noise-control", name: String(localized: "Switch Noise Control"),
+        slug: "switch-noise-control", name: String(localized: "Switch Noise Control", table: "Notchcast"),
         sfSymbol: "airpodspro", feature: .smallCommands,
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
         run: { NotchcastCore.smallCommands.runFromLauncher(.noise) })
     nonisolated static let airDropCommand = NotchcastCommand(
-        slug: "airdrop-selection", name: String(localized: "AirDrop Selected Files"),
+        slug: "airdrop-selection", name: String(localized: "AirDrop Selected Files", table: "Notchcast"),
         sfSymbol: "airplayaudio", feature: .smallCommands,
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
         run: { NotchcastCore.smallCommands.runFromLauncher(.airDrop) })
@@ -44,7 +44,7 @@ extension SmallCommandsModule {
                 let text = try await (execute ?? perform)(action)
                 guard !Task.isCancelled, isRunning else { return }
                 if let text {
-                    report(copy(text) ? String(localized: "Copied") : String(localized: "Could not copy to clipboard."))
+                    report(copy(text) ? String(localized: "Copied") : String(localized: "Could not copy to clipboard.", table: "Notchcast"))
                 } else {
                     report(String(localized: "Done"))
                 }

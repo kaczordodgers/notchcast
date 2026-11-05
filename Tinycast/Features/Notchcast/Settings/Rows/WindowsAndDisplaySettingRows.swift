@@ -8,7 +8,7 @@ struct ExcludedBundleIDsSettingRow: View {
         TextField(text: Binding(
             get: { preferences.greenMaximizeExcludedApps },
             set: { preferences.greenMaximizeExcludedApps = $0 })) {
-            SettingsRowTitle(.notchcastSystem, "Excluded app bundle IDs (comma-separated)")
+            SettingsRowTitle(.notchcastSystem, LocalizedStringResource("Excluded app bundle IDs (comma-separated)", table: "Notchcast"))
         }
         .textFieldStyle(.roundedBorder)
     }
@@ -19,10 +19,10 @@ struct QuitProtectionModeSettingRow: View {
 
     var body: some View {
         Picker(selection: $store.configuration.mode) {
-            Text("Holding ⌘Q").tag(QuitProtectionEngine.Mode.hold)
-            Text("Pressing ⌘Q twice").tag(QuitProtectionEngine.Mode.doublePress)
+            Text("Holding ⌘Q", tableName: "Notchcast").tag(QuitProtectionEngine.Mode.hold)
+            Text("Pressing ⌘Q twice", tableName: "Notchcast").tag(QuitProtectionEngine.Mode.doublePress)
         } label: {
-            SettingsRowTitle(.notchcastQuitProtection, "Confirm by")
+            SettingsRowTitle(.notchcastQuitProtection, LocalizedStringResource("Confirm by", table: "Notchcast"))
         }
     }
 }
@@ -32,8 +32,8 @@ struct QuitProtectionCloseSettingRow: View {
 
     var body: some View {
         Toggle(isOn: $store.configuration.closeEnabled) {
-            SettingsRowTitle(.notchcastQuitProtection, "Protect ⌘W")
-            Text("Same confirmation before closing a window.")
+            SettingsRowTitle(.notchcastQuitProtection, LocalizedStringResource("Protect ⌘W", table: "Notchcast"))
+            Text("Same confirmation before closing a window.", tableName: "Notchcast")
         }
     }
 }
@@ -42,7 +42,7 @@ struct QuitProtectionExceptionsSettingRow: View {
     @Bindable var store: QuitProtectionStore
 
     var body: some View {
-        Text("These apps quit and close without asking.")
+        Text("These apps quit and close without asking.", tableName: "Notchcast")
         if store.configuration.exceptions.isEmpty {
             Text("Nothing here yet.").foregroundStyle(.secondary)
         }
@@ -55,7 +55,7 @@ struct QuitProtectionExceptionsSettingRow: View {
 }
 
 struct QuitProtectionAddAppSettingRow: View {
-    private let addApp: LocalizedStringResource = "Add App…"
+    private let addApp: LocalizedStringResource = LocalizedStringResource("Add App…", table: "Notchcast")
     @Bindable var store: QuitProtectionStore
 
     var body: some View {
@@ -84,7 +84,7 @@ struct DisplayBrightnessSettingRow: View {
 
     var body: some View {
         if controller.currentDisplays.isEmpty {
-            Text("No display can be controlled.").foregroundStyle(.secondary)
+            Text("No display can be controlled.", tableName: "Notchcast").foregroundStyle(.secondary)
         }
         ForEach(controller.currentDisplays) { display in
             BrightnessDisplayRow(display: display, controller: controller)

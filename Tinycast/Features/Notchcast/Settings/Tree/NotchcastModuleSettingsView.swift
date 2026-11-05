@@ -53,7 +53,7 @@ private struct NotchcastModuleFeatureRows: View {
         Toggle(isOn: Binding(get: { preferences.isOn(feature) }, set: { feature.setFromSettings($0) })) {
             SettingsRowTitle(anchor, verbatim: feature.title)
             if feature.helperLocked {
-                Text("Needs the Notchcast helper update")
+                Text("Needs the Notchcast helper update", tableName: "Notchcast")
             } else {
                 // One Text, so a second caption line keeps the description's size.
                 Text([feature.subtitle, detail].compactMap(\.self).joined(separator: "\n"))
@@ -92,9 +92,9 @@ private struct NotchcastModuleFeatureRows: View {
 
     private var detail: String? {
         switch feature {
-        case .dockTweaks: String(localized: "Changes screenshot preferences and restarts SystemUIServer after confirmation.")
-        case .cleaningMode: String(localized: "Media keys still work.")
-        case .cleanAIData: String(localized: "Codex and OpenCode are report-only.")
+        case .dockTweaks: String(localized: "Changes screenshot preferences and restarts SystemUIServer after confirmation.", table: "Notchcast")
+        case .cleaningMode: String(localized: "Media keys still work.", table: "Notchcast")
+        case .cleanAIData: String(localized: "Codex and OpenCode are report-only.", table: "Notchcast")
         default: nil
         }
     }

@@ -10,12 +10,12 @@ extension NotchcastToolsCommands {
             case .convertFiles:
                 guard NotchcastPreferences.shared.isOn(.downloads),
                       let downloads = NotchcastDownloadLauncherCommands.downloads else {
-                    Self.post(String(localized: "Enable Downloads to convert files.")); return
+                    Self.post(String(localized: "Enable Downloads to convert files.", table: "Notchcast")); return
                 }
                 await downloads.state.settle()
                 guard valid(), NotchcastPreferences.shared.isOn(.downloads) else { return }
                 guard let queue = downloads.state.queue else {
-                    Self.post(String(localized: "Downloads is not ready.")); return
+                    Self.post(String(localized: "Downloads is not ready.", table: "Notchcast")); return
                 }
                 let formats = ["pdf", "png", "jpg", "txt", "zip", "mp3", "mp4"]
                 guard let index = await Self.choose(core, title: action.name, values: formats), valid(),
@@ -27,7 +27,7 @@ extension NotchcastToolsCommands {
                     file: AppPaths.applicationSupport().appending(path: "Notchcast/host-commands.json"))
                 guard valid() else { return }
                 guard !entries.isEmpty else {
-                    Self.post(String(localized: "No host commands configured.")); return
+                    Self.post(String(localized: "No host commands configured.", table: "Notchcast")); return
                 }
                 if action == .listCommands {
                     await core.showNotice(title: action.name, message: entries.map(\.title).joined(separator: "\n"),
@@ -38,8 +38,8 @@ extension NotchcastToolsCommands {
                       valid() else { return }
                 let result = try await CatalogShellCommandRunner(processRunner: CommandProcessRunner.run).run(entries[index])
                 guard valid() else { return }
-                Self.post(result.succeeded ? String(localized: "Host command completed.")
-                          : String(localized: "Host command failed."))
+                Self.post(result.succeeded ? String(localized: "Host command completed.", table: "Notchcast")
+                          : String(localized: "Host command failed.", table: "Notchcast"))
             default:
                 let tool: MediaToolsRunner.Tool
                 switch action {

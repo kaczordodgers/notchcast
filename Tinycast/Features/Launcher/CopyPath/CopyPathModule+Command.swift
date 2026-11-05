@@ -26,14 +26,14 @@ extension CopyPathModule {
                 guard !Task.isCancelled, self?.isRunning == true else { return }
                 switch result {
                 case .path(let text), .link(let text):
-                    report(copy(text) ? String(localized: "Copied path") : String(localized: "Could not copy to clipboard."))
+                    report(copy(text) ? String(localized: "Copied path") : String(localized: "Could not copy to clipboard.", table: "Notchcast"))
                 case .nothing:
                     report(String(localized: "Unavailable"))
                 }
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled, self?.isRunning == true else { return }
-                report(String(localized: "Could not copy to clipboard."))
+                report(String(localized: "Could not copy to clipboard.", table: "Notchcast"))
             }
         }
     }
