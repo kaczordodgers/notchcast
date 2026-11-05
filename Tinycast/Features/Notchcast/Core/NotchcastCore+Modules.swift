@@ -44,6 +44,7 @@ extension NotchcastCore {
     static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
     static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let waitingAlerts = WaitingAlertsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
@@ -155,6 +156,7 @@ extension NotchcastCore {
             .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.openBotAgents], module: openBotAgents),
             .init(requires: [.agentThreads], module: agentThreads),
+            .init(requires: [.waitingAlerts], module: waitingAlerts),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: plainPasteModule),
