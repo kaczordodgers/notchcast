@@ -47,7 +47,9 @@ struct ArchiveChildCancelTest {
         let completed = Mutex(false)
         let task = Task {
             defer { completed.withLock { $0 = true } }
-            return try await ArchiveProcess.run(tool: script, arguments: [])
+            return try await ArchiveProcess.run(tool: script, arguments: [], progress: {
+                await Task.yield()
+            })
         }
         // A cold python3 on a loaded CI runner can take seconds to start.
         for _ in 0..<1000 {
