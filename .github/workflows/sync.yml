@@ -8,12 +8,16 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    paths-ignore:
+      - Tinycast.xcodeproj/project.pbxproj
+      - Tinycast/Resources/RaycastRuntime.generated.js
+      - README.md
 
 permissions:
   contents: read
 
-# One run at a time; a newer trigger replaces a pending one, never a running build. A main commit replaced that
-# way is still tested: plan tests any main without a green `notchcast/tested` status.
+# One run at a time; kick skips queued runs, which read current upstream and main when they start.
+# Pushes can still replace a pending run; plan tests any main without a green `notchcast/tested` status.
 concurrency:
   group: sync
   cancel-in-progress: false
