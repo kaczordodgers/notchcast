@@ -1637,6 +1637,7 @@
 		E021B4FA0783797FB23C4549 /* TypingPreferenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF3C227305E6114F78165AC2 /* TypingPreferenceService.swift */; };
 		E054305CE656387C446312C0 /* TodoModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70173E25B6850B54463FC6E2 /* TodoModule.swift */; };
 		E06AA23D307A8FBA62C950BA /* MCPOAuthRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19E96BEA3A5436619297675B /* MCPOAuthRequest.swift */; };
+		E071FDE210C1186962441418 /* ShortenLinkArgumentsAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A8E49D8BD1BEB0CDD745AE4 /* ShortenLinkArgumentsAccessory.swift */; };
 		E078243555477EA5F02C9119 /* MenuSearchTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DFF1EF5B5DA85F78C040BD1 /* MenuSearchTarget.swift */; };
 		E0B92DB560245AB5B36C9AD5 /* CleaningModeModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA495C19C5B48B02E280D2B7 /* CleaningModeModule.swift */; };
 		E0BD4D34463C8B2C841E34BA /* UpdateRemoteProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DED1964CA1F02325C693F73 /* UpdateRemoteProgress.swift */; };
@@ -2397,6 +2398,7 @@
 		3A208D9743D18FC7017CC3EC /* AIUsageModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIUsageModule.swift; sourceTree = "<group>"; };
 		3A383EB4AC59E07074FE3FBF /* NoteWindowPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteWindowPlacement.swift; sourceTree = "<group>"; };
 		3A5D8DD69E6E38D96B13D1A6 /* WindowLayoutPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayoutPlan.swift; sourceTree = "<group>"; };
+		3A8E49D8BD1BEB0CDD745AE4 /* ShortenLinkArgumentsAccessory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortenLinkArgumentsAccessory.swift; sourceTree = "<group>"; };
 		3A97F816CB516A9203224A17 /* DictationAudioChunks.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationAudioChunks.swift; sourceTree = "<group>"; };
 		3AA3385A84985A52E2DA3596 /* Quicklink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Quicklink.swift; sourceTree = "<group>"; };
 		3AB43CBA418E6652F425570A /* OpenBotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenBotService.swift; sourceTree = "<group>"; };
@@ -6481,6 +6483,7 @@
 			children = (
 				D2F4DAF890DEA68B6AA3726A /* Model */,
 				62F19B9F4FEE7820785E96E0 /* Service */,
+				3A8E49D8BD1BEB0CDD745AE4 /* ShortenLinkArgumentsAccessory.swift */,
 				33EE6598E58454F0314EA950 /* SmallCommandsModule.swift */,
 				1911C4634D2F72DAF3223E75 /* SmallCommandsModule+Commands.swift */,
 			);
@@ -11243,6 +11246,7 @@
 				80EE82E0FB5AA17AC2C23EBD /* ShortcutDeepLink.swift in Sources */,
 				5FED92BC16B1463EBDE38D77 /* ShortcutRecorder.swift in Sources */,
 				54FC1A629F03AE0F234A01B2 /* ShortcutRecorderPopover.swift in Sources */,
+				E071FDE210C1186962441418 /* ShortenLinkArgumentsAccessory.swift in Sources */,
 				A2AFEE7BD0773F0607D1C67A /* ShortenLinkService.swift in Sources */,
 				2198836D1C4CC5FA615381DA /* ShowDesktopEngine.swift in Sources */,
 				145DDBE3415AE73D913C49D9 /* ShowDesktopModule.swift in Sources */,
