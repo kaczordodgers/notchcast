@@ -5,6 +5,8 @@ Resolver worker, before pushing a conflict-resolution branch: python3 notchcast/
 """
 
 import argparse
+import os
+from pathlib import Path
 import re
 import subprocess
 import sys
@@ -43,7 +45,11 @@ def main():
     args = parser.parse_args()
     result, ours, theirs = (git("rev-parse", "--verify", f"{rev}^{{commit}}")
                             for rev in (args.result, args.ours, args.theirs))
-    base = git("rev-parse", "--verify", f"{args.base}^{{commit}}") if args.base else git("merge-base", ours, theirs)
+    if not args.base:
+        subprocess.run(["git", "fetch", "-q", "origin", "+refs/notchcast/synced/*:refs/notchcast/synced/*"],
+                       env={**os.environ, "GIT_TERMINAL_PROMPT": "0"}, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    base = git("rev-parse", "--verify", f"{args.base}^{{commit}}") if args.base else subprocess.check_output(
+        ["bash", str(Path(__file__).with_name("fork-point.sh")), ours, theirs], text=True).strip()
     dropped = 0
     for path in dict.fromkeys((*FILES, *args.file)):
         b, o, t, r = (entries(rev, path) for rev in (base, ours, theirs, result))
