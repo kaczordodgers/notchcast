@@ -6,6 +6,7 @@ trap 'rm -rf "$scratch"' EXIT
 mkdir -p "$scratch/repo/notchcast" "$scratch/bin"
 cp "${LAND_SCRIPT:-$root/notchcast/land.sh}" "$scratch/repo/notchcast/land.sh"
 cp "$root/notchcast/local-build-status.sh" "$root/notchcast/sync-wait.sh" "$root/notchcast/hold.sh" "$scratch/repo/notchcast/"
+cp "$root/notchcast/app-proof.py" "$root/notchcast/app-proofs.json" "$scratch/repo/notchcast/"
 cat > "$scratch/bin/gh" <<'STUB'
 #!/bin/bash
 case "$*" in
@@ -16,6 +17,7 @@ case "$*" in
             *check_name=build*) echo "$BUILD" ;;
             *check_name=design*) echo "$DESIGN" ;;
             *check_name=leaks*) echo "$LEAKS" ;;
+            *check_name=proof*) echo "$PROOF" ;;
             *) echo none ;;
         esac ;;
     *statuses*)
@@ -35,6 +37,8 @@ case "$1" in
     fetch|cat-file) exit 0 ;;
     worktree) exit 0 ;;
     push) echo 'unexpected push' >&2; exit 99 ;;
+    merge-base) echo fixture-base; exit 0 ;;
+    diff) printf '%s\0' "${CHANGED_PATH:-unrelated.txt}"; exit 0 ;;
     rev-parse)
         if [ "$2" = origin/main ]; then echo 'REACHED_MERGE' >&2; exit 77; fi ;;
 esac
@@ -47,6 +51,7 @@ git init -q
 export PATH="$scratch/bin:$PATH" HEAD_SHA=0123456789012345678901234567890123456789
 # The script under test runs as is, not origin/main's copy.
 export NOTCHCAST_LAND_TOOLS=test CALLS="$scratch/calls" BASE_NAME=main BUILD=success DESIGN=success LEAKS=success LOCAL_BUILD=none
+export PROOF=none
 run() {
     : > "$CALLS"
     status=0
@@ -83,6 +88,23 @@ run
 [ "$status" -eq 77 ]
 grep -q REACHED_MERGE "$scratch/output"
 echo 'PASS: green checks reach merged-tree validation'
+export CHANGED_PATH=Tinycast/Features/Music/Model/SoloistKeyValidation.swift
+for verdict in none pending failure cancelled; do
+    export PROOF=$verdict
+    run
+    grep -q "REFUSED: real-app proof (spotify-key) is $verdict" "$scratch/output"
+    grep -q "commits/$HEAD_SHA/check-runs?check_name=proof" "$CALLS"
+    echo "PASS: declared path with proof $verdict refused on captured head"
+done
+export PROOF=success
+run
+[ "$status" -eq 77 ]
+echo 'PASS: declared path with successful proof reaches merge'
+export CHANGED_PATH=unrelated.txt PROOF=none
+run
+[ "$status" -eq 77 ]
+! grep -q check_name=proof "$CALLS"
+echo 'PASS: undeclared path needs no proof'
 later=$(($(date +%s) + 600))
 export HOLD="330 $later"
 run
