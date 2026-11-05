@@ -42,8 +42,12 @@ final class FakeFans {
 @MainActor
 final class SampleProbe {
     var count = 0
+    var pending: CheckedContinuation<MonitorSnapshot, Never>?
     let percent: Double
     init(percent: Double = 25) { self.percent = percent }
+    func gatedSample() async -> MonitorSnapshot {
+        await withCheckedContinuation { pending = $0 }
+    }
     func sample() -> MonitorSnapshot {
         count += 1
         return MonitorSnapshot(cpu: CPUReading(
@@ -60,6 +64,44 @@ struct MonitorStoreTests {
     }
 
     static func main() async {
+        let wakeProbe = SampleProbe()
+        let wakeAlerts = SampleProbe(percent: 95)
+        let waking = MonitorStore(sample: { await wakeProbe.sample() },
+                                  alertSample: { await wakeAlerts.sample() })
+        waking.start()
+        let wakeBackground = waking.beginDemand(alertsOnly: true)
+        try? await Task.sleep(for: .milliseconds(100))
+        precondition(waking.latest.cpu?.usage?.totalPercent == 95)
+        let wakePage = waking.beginDemand()
+        precondition(waking.latest.cpu?.usage?.totalPercent != 95)
+        try? await Task.sleep(for: .milliseconds(300))
+        precondition(wakeProbe.count > 0, "page must wake full sampler within 300 ms")
+        precondition(waking.latest.cpu?.usage?.totalPercent == 25)
+        wakePage.cancel()
+        wakeBackground.cancel()
+        waking.stop()
+
+        let gated = SampleProbe()
+        let racing = MonitorStore(sample: { await wakeProbe.sample() }, alertSample: {
+            await gated.gatedSample()
+        })
+        racing.start()
+        let raceBackground = racing.beginDemand(alertsOnly: true)
+        while gated.pending == nil { await Task.yield() }
+        let racePage = racing.beginDemand()
+        gated.pending?.resume(returning: wakeAlerts.sample())
+        for _ in 0..<200 {
+            await Task.yield()
+            precondition(racing.latest.cpu?.usage?.totalPercent != 95,
+                         "in-flight alerts reading must never reach visible page")
+        }
+        try? await Task.sleep(for: .milliseconds(300))
+        precondition(racing.latest.cpu?.usage?.totalPercent == 25)
+        racePage.cancel()
+        raceBackground.cancel()
+        racing.stop()
+        print("PASS: page wakes within 300 ms and rejects in-flight alerts-only readings")
+
         let probe = SampleProbe()
         let alertProbe = SampleProbe(percent: 95)
         let store = MonitorStore(sample: { await probe.sample() },
