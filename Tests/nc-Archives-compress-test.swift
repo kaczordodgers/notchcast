@@ -12,13 +12,19 @@ import Foundation
         try Data("nested".utf8).write(to: source.appending(path: "Łódź/ŚĆIEŻKA.md"))
         try Data().write(to: source.appending(path: "Łódź/nested/empty"))
         let output = root.appending(path: "fixture.zip")
-        precondition(ArchiveCompression.zip.arguments(sources: [source], output: output) == ["-c", "-k", "--sequesterRsrc", "--keepParent", source.path, output.path])
-        precondition(ArchiveCompression.small.arguments(sources: [source], output: output) == ["a", "-t7z", "-mx=9", output.path, "--", source.path])
+        precondition(ArchiveCompression.zip.arguments(sources: [source], output: output)
+            == ["-c", "-k", "--sequesterRsrc", "--keepParent", source.path, output.path])
+        precondition(ArchiveCompression.small.arguments(sources: [source], output: output)
+            == ["a", "-t7z", "-mx=9", output.path, "--", source.path])
         let zstd = URL(filePath: "/opt/homebrew/bin/zstd")
-        precondition(ArchiveCompression.fast.arguments(sources: [source], output: output, zstd: zstd) == ["--use-compress-program", zstd.path + " -T0", "-cf", output.path, "-C", root.path, "./fixture"])
-        precondition(ArchiveCompression.zip.output(sources: [source], exists: { $0 == output }).lastPathComponent == "fixture 2.zip")
-        precondition(ArchiveCompression.zip.output(sources: [source, root.appending(path: "other")], exists: { _ in false }).lastPathComponent == root.lastPathComponent + ".zip")
-        precondition(ArchiveCompression.zip.output(sources: [source, URL(filePath: "/elsewhere/other")], exists: { _ in false }).lastPathComponent == "Archive.zip")
+        precondition(ArchiveCompression.fast.arguments(sources: [source], output: output, zstd: zstd)
+            == ["--use-compress-program", zstd.path + " -T0", "-cf", output.path, "-C", root.path, "./fixture"])
+        precondition(ArchiveCompression.zip.output(sources: [source], exists: { $0 == output })
+            .lastPathComponent == "fixture 2.zip")
+        precondition(ArchiveCompression.zip.output(sources: [source, root.appending(path: "other")], exists: { _ in false })
+            .lastPathComponent == root.lastPathComponent + ".zip")
+        precondition(ArchiveCompression.zip.output(sources: [source, URL(filePath: "/elsewhere/other")], exists: { _ in false })
+            .lastPathComponent == "Archive.zip")
         let failing = ArchiveCompressor(run: { _, arguments in
             try Data().write(to: URL(filePath: arguments.last!))
             return 1
@@ -59,7 +65,8 @@ import Foundation
             }
             let extraction = try await ArchiveProcess.run(tool: tool, arguments: arguments)
             precondition(extraction.status == 0)
-            let diff = try await ArchiveProcess.run(tool: URL(filePath: "/usr/bin/diff"), arguments: ["-r", source.path, destination.appending(path: "fixture").path])
+            let diff = try await ArchiveProcess.run(tool: URL(filePath: "/usr/bin/diff"),
+                arguments: ["-r", source.path, destination.appending(path: "fixture").path])
             precondition(diff.status == 0)
             print("PASS: \(format.suffix) Polish filenames, nested directories, empty file; diff -r empty (exit 0)")
         }
