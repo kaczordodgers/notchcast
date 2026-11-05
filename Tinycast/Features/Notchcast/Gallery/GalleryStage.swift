@@ -213,8 +213,7 @@ enum GalleryStage {
                 host.isHidden = false
                 host.layer?.opacity = 1
                 let outline = transition?.outline(at: since) ?? settled
-                // The closed content fades over `fade` only when the launcher takes the black or gives it back;
-                // the black fades out and back too, all but the camera band (`IslandPanel.setLauncher`).
+                // Content and black fade only when the launcher takes the black or gives it back.
                 var content: CGFloat = 1
                 var black: CGFloat = 1
                 if launcherOpens {

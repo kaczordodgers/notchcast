@@ -182,7 +182,7 @@ final class IslandController: NotchcastModule {
         if !isOpen { close() }
     }
 
-    /// Screen parameters also change on wake and Dock moves; same displays keep their panels and state.
+    /// Screen parameters change on wake and Dock moves too; unchanged displays keep their panels.
     private func rebuildPanels() {
         let screens = NSScreen.screens
         guard panels.map(\.displayFrame) != screens.map(\.frame)

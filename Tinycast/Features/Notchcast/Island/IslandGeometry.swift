@@ -16,7 +16,7 @@ enum IslandGeometry {
         frames.firstIndex { $0.contains(point) }
     }
 
-    /// The shown panel on the display under `point`, else the first shown one, so a shortcut works anywhere.
+    /// The shown panel under `point`, else the first shown one, so a shortcut works on any display.
     static func panelIndex(containing point: CGPoint, frames: [CGRect], visible: [Bool]) -> Int? {
         if let index = screenIndex(containing: point, frames: frames), visible[index] { return index }
         return visible.firstIndex(of: true)

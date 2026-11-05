@@ -151,7 +151,7 @@ final class IslandPanel: NSPanel {
         present(animated: animated)
     }
 
-    /// Grows into the launcher's frame; the panel sits above the palette, so all but `cameraBand` fades.
+    /// Grows into the launcher's frame; the panel is above the palette, so all but the band fades.
     func setLauncher(height: CGFloat?, animated: Bool) {
         launcherFrame = height.map { launcherFrame(height: $0) }
         present(animated: animated)

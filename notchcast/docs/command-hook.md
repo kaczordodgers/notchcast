@@ -70,8 +70,8 @@ changes refresh command availability in the index.
 The shorter `/command/<slug>` spelling is deferred: resolving it needs a catalog
 dependency in the pure deep-link parser. Toggle Island's legacy link still works.
 
-`NotchcastLauncher.open()` intentionally remains without a caller. Global shortcuts
-already use upstream `togglePalette`; any new island action needs a design decision.
+There is no fork entry point for opening the palette: global shortcuts use upstream
+`togglePalette`, and any new island action needs a design decision first.
 
 `notchcast-commands-test` compiles the shipped catalog logic and hotkey mapping with
 its own test commands in an extension. It excludes `NotchcastCommandCatalog+All.swift`

@@ -23,7 +23,7 @@ final class IslandSurfaceView: NSView {
 
     private let silhouette = CAShapeLayer()
     private let fill = NSColor.black.cgColor
-    /// The strip beside a camera that stays black while the rest of the black fades under the launcher.
+    /// The strip beside a camera that stays black while the rest fades under the launcher.
     private let band = NSView()
     private let openHost = HostingView(rootView: AnyView(EmptyView()))
     private let closedHost = HostingView(rootView: AnyView(EmptyView()))
@@ -102,7 +102,7 @@ final class IslandSurfaceView: NSView {
         if motion != .instant { watchAnimation() }
     }
 
-    /// The black itself, all but the camera band: it fades out under the launcher and back in when it leaves.
+    /// The black itself, all but the band: out under the launcher, back in when it leaves.
     func setSurfaceOpacity(_ opacity: Float, duration: TimeInterval) {
         guard let layer, let color = fill.copy(alpha: CGFloat(opacity)) else { return }
         let previous = layer.presentation()?.backgroundColor ?? layer.backgroundColor
