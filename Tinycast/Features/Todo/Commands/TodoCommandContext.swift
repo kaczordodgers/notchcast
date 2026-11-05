@@ -57,7 +57,7 @@ struct TodoCommandContext {
                 report(String(localized: "There are no tasks due today."))
                 return
             }
-            try store.perform(.completeTask(id: task.id, at: instant))
+            try store.perform(TodoCompletion.command(id: task.id, state: store.state, now: instant, calendar: calendar))
             report(String(localized: "Next task completed."))
         }
     }
