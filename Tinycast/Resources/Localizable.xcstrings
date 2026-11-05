@@ -1,6 +1,30 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Exchange tasks with your paired Mac over Mac Link." : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufgaben über Mac Link mit deinem gekoppelten Mac austauschen." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Intercambia tareas con tu Mac enlazado a través de Mac Link." } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Échangez des tâches avec votre Mac jumelé via Mac Link." } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Mac Link経由でペアリング済みのMacとタスクを交換します。" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac Link를 통해 페어링된 Mac과 작업을 교환합니다." } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Troque tarefas com seu Mac emparelhado pelo Mac Link." } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Обменивайтесь задачами с сопряжённым Mac через Mac Link." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通过 Mac Link 与已配对的 Mac 交换任务。" } }
+      }
+    },
+    "Sync tasks between Macs" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Aufgaben zwischen Macs synchronisieren" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sincronizar tareas entre Macs" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Synchroniser les tâches entre les Mac" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Mac間でタスクを同期" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Mac 간 작업 동기화" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Sincronizar tarefas entre Macs" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Синхронизировать задачи между Mac" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在 Mac 之间同步任务" } }
+      }
+    },
     "A recording is already in progress." : {
       "localizations" : {
         "de" : {

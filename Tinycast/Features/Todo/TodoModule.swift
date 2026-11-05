@@ -9,6 +9,8 @@ final class TodoModule: NotchcastModule {
     @ObservationIgnored private let showFailure: (String) -> Void
     @ObservationIgnored private var loading: Task<Void, Never>?
     @ObservationIgnored private var operationID: UUID?
+    @ObservationIgnored var storeDidOpen: ((TodoStore) -> Void)?
+    @ObservationIgnored var storeWillClose: (() -> Void)?
 
     init(directory: URL, showFailure: @escaping (String) -> Void) {
         self.directory = directory
@@ -30,6 +32,7 @@ final class TodoModule: NotchcastModule {
                     return
                 }
                 self.store = store
+                self.storeDidOpen?(store)
                 self.loading = nil
                 if !store.loadWarnings.isEmpty {
                     self.showFailure(String(localized: "The last task change was interrupted and could not be restored."))
@@ -46,6 +49,7 @@ final class TodoModule: NotchcastModule {
     }
 
     func stop() {
+        storeWillClose?()
         operationID = nil
         loading?.cancel()
         loading = nil
