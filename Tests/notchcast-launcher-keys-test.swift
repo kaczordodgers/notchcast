@@ -7,6 +7,29 @@ import Foundation
 @main
 struct LauncherKeysTest {
     static func main() {
+        for query in ["", "a", " "] {
+            for enabled in [false, true] {
+                for hasLeadCard in [false, true] {
+                    for count in [0, 3, 9, 12] {
+                        let entryRows = (0..<count).map { $0 + (hasLeadCard ? 1 : 0) }
+                        for index in 0..<count {
+                            let slot = LauncherNumberKeys.badgeSlot(
+                                entryIndex: index, query: query, enabled: enabled)
+                            if enabled && !query.isEmpty && index < 9 {
+                                precondition(slot == Character(String(index + 1)))
+                                let launched = LauncherNumberKeys.rowIndex(
+                                    digit: Int(String(slot!))!, query: query, entryRows: entryRows,
+                                    favoriteCount: 0, hasLeadCard: hasLeadCard, enabled: enabled)
+                                precondition(launched == entryRows[index])
+                            } else {
+                                precondition(slot == nil)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        precondition(LauncherNumberKeys.badgeSlot(entryIndex: -1, query: "a", enabled: true) == nil)
         for digit in 1...9 {
             precondition(LauncherNumberKeys.entryIndex(digit: digit, query: "a", entryCount: 12, enabled: true) == digit - 1)
             precondition(LauncherNumberKeys.entryIndex(digit: digit, query: "", entryCount: 12, enabled: true) == nil)
