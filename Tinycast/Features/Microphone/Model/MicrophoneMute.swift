@@ -4,7 +4,7 @@ import Observation
 @MainActor @Observable
 final class MicrophoneMute {
     private enum Record: Codable {
-        case mute
+        case mute([MicrophoneInput.Level]? = nil)
         case volume([MicrophoneInput.Level])
     }
 
@@ -31,6 +31,7 @@ final class MicrophoneMute {
                 validPersistence = records.allSatisfy { uid, record in
                     guard !uid.isEmpty else { return false }
                     if case .volume(let levels) = record { return MicrophoneInput.valid(levels) }
+                    if case .mute(let levels?) = record { return MicrophoneInput.valid(levels) }
                     return true
                 }
             } catch {
@@ -108,7 +109,7 @@ final class MicrophoneMute {
         }
         if !input.mute.isEmpty {
             if records[input.uid] == nil {
-                records[input.uid] = .mute
+                records[input.uid] = .mute(input.mute)
                 saveRecords()
             }
             do {
@@ -135,28 +136,40 @@ final class MicrophoneMute {
     }
 
     private func restore(_ input: MicrophoneInput) throws(MicrophoneInput.Failure) {
+        if case .mute(let levels?) = records[input.uid] {
+            try restore(levels, control: .mute, on: input)
+            return
+        }
         if !input.mute.isEmpty {
             try write(input.mute.map { .init(element: $0.element, value: 0) }, control: .mute, on: input)
         } else if case .mute = records[input.uid] {
             throw .unsupported(input.uid)
         }
         if case .volume(let levels) = records[input.uid] {
-            guard Set(levels.map(\.element)) == Set(input.volume.map(\.element)) else {
-                throw .changedControls(input.uid)
-            }
-            try write(levels, control: .volume, on: input)
+            try restore(levels, control: .volume, on: input)
         }
+    }
+
+    private func restore(_ levels: [MicrophoneInput.Level], control: MicrophoneInput.Control,
+                         on input: MicrophoneInput) throws(MicrophoneInput.Failure) {
+        let current = control == .mute ? input.mute : input.volume
+        guard Set(levels.map(\.element)) == Set(current.map(\.element)) else {
+            throw .changedControls(input.uid)
+        }
+        try write(levels, control: control, on: input)
     }
 
     private func clearRestoredRecords(_ inputs: [MicrophoneInput]) {
         var changed = false
         for input in inputs {
-            guard let record = records[input.uid], input.mute.allSatisfy({ $0.value == 0 }) else { continue }
+            guard let record = records[input.uid] else { continue }
             switch record {
-            case .mute:
-                guard !input.mute.isEmpty else { continue }
+            case .mute(let saved?):
+                guard input.mute == saved else { continue }
+            case .mute(nil):
+                guard !input.mute.isEmpty, input.mute.allSatisfy({ $0.value == 0 }) else { continue }
             case .volume(let saved):
-                guard input.volume == saved else { continue }
+                guard input.volume == saved, input.mute.allSatisfy({ $0.value == 0 }) else { continue }
             }
             records[input.uid] = nil
             changed = true
