@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/Shelf/Model/*.swift Tinycast/Features/Shelf/Service/ShelfReceivedStore*.swift
 import Foundation
+import Darwin
 
 @main
 struct ShelfReceivedTest {
@@ -26,12 +27,30 @@ struct ShelfReceivedTest {
         let savedData = try Data(contentsOf: saved)
         precondition(originalData == Data("Original".utf8))
         precondition(savedData == file.item.data)
+        precondition(getxattr(saved.path, "com.apple.quarantine", nil, 0, 0, 0) > 0)
+        for name in [".zshrc", "safe\u{202E}txt"] {
+            let unsafe = ShelfReceivedEntry(item: ShelfItem(kind: .file, name: name, data: Data([1])), receivedAt: Date())
+            do {
+                _ = try await store.save(unsafe, to: downloads)
+                preconditionFailure("Unsafe filename accepted")
+            } catch ShelfEngine.Failure.invalidItem {}
+        }
+        let long = ShelfReceivedEntry(item: ShelfItem(kind: .file,
+            name: String(repeating: "a", count: 251) + ".txt", data: Data([1])), receivedAt: Date())
+        _ = try await store.save(long, to: downloads)
+        let collision = try await store.save(long, to: downloads)
+        precondition(collision.lastPathComponent.utf8.count <= 255)
         try await store.remove(file)
         let remaining = try await store.entries()
         precondition(remaining.count == 1 && remaining[0].item.kind == .text)
+        try Data("broken".utf8).write(to: store.directory.appendingPathComponent("broken.json"))
+        let readable = try await store.entries()
+        precondition(readable.count == 1)
         try await store.clear()
+        let files = try FileManager.default.contentsOfDirectory(atPath: store.directory.path)
+        precondition(files.isEmpty)
         let cleared = try await store.entries()
         precondition(cleared.isEmpty)
-        print("Shelf received: ordering, remove, clear and save without overwrite passed")
+        print("Shelf received: quarantine, unsafe names, 255-byte collisions, corrupt entries, clear passed")
     }
 }
