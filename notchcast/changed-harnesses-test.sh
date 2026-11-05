@@ -23,5 +23,7 @@ for support in Command HotKey; do
             grep -qx "$name" "$scratch/selected" || { echo "FAIL: $CHANGED omitted $name"; exit 1; }
         fi
     done
+    # An empty path once matched an empty pattern and selected every harness, upstream ones included.
+    if grep -qx ext-fetch-test "$scratch/selected"; then echo "FAIL: $CHANGED selected an unrelated upstream harness"; exit 1; fi
 done
 echo 'PASS: shared command and hotkey support select all consumers'
