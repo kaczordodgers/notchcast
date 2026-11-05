@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeEngine.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/GreenMaximizeClick.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Service/GreenMaximizeRefresh.swift
+import ApplicationServices
 import CoreGraphics
 import Foundation
 
@@ -34,6 +35,26 @@ struct GreenMaximizeTest {
         precondition(!hit(age: -1))
         precondition(!hit(option: true))
         precondition(!hit(exclusions: ["test.app"]))
-        print("green-maximize: 16 assertions passed")
+        testObserverTicks()
+        print("green-maximize: 19 assertions passed")
+    }
+
+    private static func testObserverTicks() {
+        var created = 0
+        var observed: AXUIElement?
+        for _ in 0..<3_600 {
+            let focused = AXUIElementCreateApplication(getpid())
+            _ = GreenMaximizeRefresh.newObserver(for: focused, observed: observed) { created += 1; return nil }
+            observed = focused
+        }
+        precondition(created == 1, "An hour of ticks on one window registers one observer, got \(created)")
+        _ = GreenMaximizeRefresh.newObserver(for: AXUIElementCreateApplication(1), observed: observed) {
+            created += 1; return nil
+        }
+        precondition(created == 2, "A newly focused window registers its own observer")
+        _ = GreenMaximizeRefresh.newObserver(for: AXUIElementCreateApplication(1), observed: nil) {
+            created += 1; return nil
+        }
+        precondition(created == 3, "A failed or cleared observer is created again")
     }
 }

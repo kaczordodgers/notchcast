@@ -118,9 +118,11 @@ final class GreenMaximizeModule: NotchcastModule {
         let id = UUID()
         refreshID = id
         let pid = app.processIdentifier
+        let observed = observer != nil && observedPID == pid ? window : nil
         let context = UInt(bitPattern: Unmanaged.passUnretained(self).toOpaque())
         refreshQueue.async { [weak self] in
-            let result = GreenMaximizeRefresh.read(pid: pid, callback: Self.observerCallback, context: context)
+            let result = GreenMaximizeRefresh.read(
+                pid: pid, observed: observed, callback: Self.observerCallback, context: context)
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.refreshID == id else { return }
                 self.refreshID = nil
