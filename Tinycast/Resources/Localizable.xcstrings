@@ -209,54 +209,54 @@
       }
     }
   },
-  "T3 data folder is unavailable.": {
+  "T3 data is unavailable.": {
     "localizations": {
       "de": {
         "stringUnit": {
           "state": "translated",
-          "value": "Der T3-Datenordner ist nicht verfügbar."
+          "value": "T3-Daten sind nicht verfügbar."
         }
       },
       "es": {
         "stringUnit": {
           "state": "translated",
-          "value": "La carpeta de datos de T3 no está disponible."
+          "value": "Los datos de T3 no están disponibles."
         }
       },
       "fr": {
         "stringUnit": {
           "state": "translated",
-          "value": "Le dossier de données T3 est indisponible."
+          "value": "Les données T3 sont indisponibles."
         }
       },
       "ja": {
         "stringUnit": {
           "state": "translated",
-          "value": "T3のデータフォルダを利用できません。"
+          "value": "T3のデータを利用できません。"
         }
       },
       "ko": {
         "stringUnit": {
           "state": "translated",
-          "value": "T3 데이터 폴더를 사용할 수 없습니다."
+          "value": "T3 데이터를 사용할 수 없습니다."
         }
       },
       "pt": {
         "stringUnit": {
           "state": "translated",
-          "value": "A pasta de dados do T3 está indisponível."
+          "value": "Os dados do T3 estão indisponíveis."
         }
       },
       "ru": {
         "stringUnit": {
           "state": "translated",
-          "value": "Папка данных T3 недоступна."
+          "value": "Данные T3 недоступны."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "T3 数据文件夹不可用。"
+          "value": "T3 数据不可用。"
         }
       }
     }

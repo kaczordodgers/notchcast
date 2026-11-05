@@ -8,14 +8,6 @@ struct WaitingAlert: Equatable, Sendable {
 }
 
 enum WaitingAlertsEngine {
-    static func waiting(in threads: [AgentThread]) -> [WaitingAlert] {
-        threads.compactMap { thread in
-            guard thread.phase.waiting else { return nil }
-            return WaitingAlert(id: thread.id, title: thread.title,
-                                kind: thread.phase == .waitingForApproval ? .approval : .question)
-        }
-    }
-
     static func notices(previous: [WaitingAlert]?, current: [WaitingAlert]) -> [WaitingAlert] {
         guard let previous else { return [] }
         let ids = Set(previous.map(\.id))

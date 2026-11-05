@@ -154,7 +154,7 @@ extension NotchcastCore {
             .init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: blockedDialogs),
             .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.agentThreads], module: agentThreads),
-            .init(requires: [.agentThreads, .waitingAlerts], module: waitingAlerts),
+            .init(requires: [.waitingAlerts], module: waitingAlerts),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: plainPasteModule),

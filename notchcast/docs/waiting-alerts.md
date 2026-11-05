@@ -2,7 +2,7 @@
 
 ## Invariants
 
-- Off by default, visible under Agents; requires Agent Threads and Waiting-for-you alerts.
+- Off by default, visible under Agents; requires only Waiting-for-you alerts.
 - Engine only: uses the existing neutral message HUD, without a view or island activity.
 - The first successful read counts existing waits silently. Each later entry into waiting posts once.
 - A change between approval and question while still waiting does not begin a new wait.
@@ -10,26 +10,33 @@
 
 ## Model
 
-`WaitingAlertsEngine` projects Agent Threads snapshots into identifiers, titles and approval/question
-kinds. Comparing waiting identifiers suppresses repeats until a thread leaves and re-enters waiting.
+`WaitingAlertsEngine` compares waiting identifiers, titles and approval/question kinds.
+Comparing waiting identifiers suppresses repeats until a thread leaves and re-enters waiting.
 New waits coalesce into one count notice; a single wait names the thread and reason.
 
 ## Service
 
-`WaitingAlertsModule` reads `NotchcastCore.agentThreads.state` through its existing public API.
-No Agent Threads behavior or access level changes. FSEvents observes the local userdata directory
-with 2.5-second latency. It never writes there. Missing directories create no stream and the command
-reports unavailability. Enabling again retries watcher creation.
+`WaitingAlertsReader` opens `~/.t3/userdata/statev2.sqlite` with `SQLITE_OPEN_READONLY` and a
+500 ms busy timeout, off the main actor. Each read executes one grouped query joining runtime
+requests to threads, excluding resolved requests and archived or deleted threads. `user_input`
+means question; every other kind means approval. Approval wins when both occur on a thread.
+The connection closes after each read. No CLI process or Agent Threads dependency is involved.
 
-An injected monotonic clock and cancellable one-shot sleep enforce ten seconds between refresh
-starts. Changes during work or the gap coalesce into one trailing refresh; work never overlaps.
+T3's internal schema is not a public contract. If an update changes it, a missing table or SQL error
+sets the failure state and the command reports “T3 data is unavailable.” Nothing crashes.
+Missing database files fail without creating a file.
+
+FSEvents observes the local userdata directory with 2.5-second latency, providing coalescing without
+a timer or throttle. Missing directories create no stream; enabling again retries watcher creation.
+Changes during a read coalesce into exactly one trailing read; reads never overlap.
 Stop closes the stream, cancels its owned task and invalidates late callbacks and results.
 Failed reads preserve the previous successful snapshot; explicit commands report failure.
 
 ## Commands
 
-Show Waiting Agents requests a refresh through the same throttle and reports zero, the localized
-waiting count, or failure. Both switches gate the command. Module start/stop refresh command availability.
+Show Waiting Agents reads immediately and reports zero, the localized waiting count, or failure.
+If a read is in flight, the command queues a read immediately after it. Only the Waiting-for-you
+alerts switch gates the command. Module start/stop refresh command availability.
 
 ## Cuts
 
@@ -41,5 +48,6 @@ wait for Damian.
 ## Verification
 
 `./Scripts/run-tests.sh nc-WaitingAlerts-engine-test` uses synthetic snapshots, watcher events,
-clock and suspended reads. It compiles the production module with the exact hook closure and
-Swift 6 complete strict concurrency. It never watches the real userdata directory.
+suspended reads and SQLite databases in the system temp folder, including a schema-missing database.
+It compiles the production module with the exact hook closure and Swift 6 complete strict concurrency.
+It never watches the real userdata directory or opens the real database.
