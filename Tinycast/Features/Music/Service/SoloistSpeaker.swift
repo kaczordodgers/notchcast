@@ -163,7 +163,7 @@ final class SoloistSpeaker {
         peerWatches = []
         do {
             guard try key.value() != nil else { state = .noKey; return }
-        } catch { state = .failed(reason: .keyUnavailable); return }
+        } catch { state = .failed(reason: (error as? SoloistFailure) ?? .keyUnavailable); return }
         guard retiring.isEmpty else { restartWhenStopped = true; state = .starting; return }
         guard !waitForPeers() else { return }
         preparing?.cancel()
