@@ -7,7 +7,7 @@
 # The in-app updater stays inert for app.notchcast (ReleaseChannel: development), so this is the update path.
 # Leads run notchcast/update.sh --install at each milestone end on both Macs, even with automatic updates off.
 # Usage: update.sh [--install] [--retry] [--dry-run] (any order)
-# Existing installs, including --install, wait for five idle minutes, deferring after 25 minutes.
+# A newer release installs and restarts the app at once, whether or not the Mac is in use.
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin"
 
@@ -118,33 +118,6 @@ fi
 log "preparing $TAG over ${INSTALLED:-nothing} ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
 [ "$DRY" = 1 ] && exit 0
 
-read_idle() {
-    IDLE="$(if [ -n "${NOTCHCAST_IDLE_COMMAND:-}" ]; then
-        "$NOTCHCAST_IDLE_COMMAND"
-    else
-        ioreg -c IOHIDSystem | awk '/"HIDIdleTime"/ {printf "%.0f\n", int($NF / 1000000000); exit}'
-    fi)" || IDLE=0
-    case "$IDLE" in ''|*[!0-9]*) IDLE=0 ;; esac
-}
-
-if [ -d "$APP" ]; then
-    POLLS=0
-    while true; do
-        read_idle
-        if [ "$IDLE" -ge 300 ]; then
-            log "installing $TAG (idle $IDLE s)"
-            break
-        fi
-        if [ "$POLLS" -ge "${NOTCHCAST_IDLE_POLL_LIMIT:-50}" ]; then
-            log "Mac in use; installing at the next run"
-            exit 0
-        fi
-        [ "$POLLS" != 0 ] || log "waiting for Mac to be idle (idle $IDLE s)"
-        sleep "${NOTCHCAST_IDLE_POLL_SECONDS:-30}"
-        POLLS=$((POLLS + 1))
-    done
-fi
-
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/notchcast-update.XXXXXX")"
 trap 'rm -rf "$WORK"' EXIT
 gh release download "$TAG" -R "$FORK_REPO" -D "$WORK" -p "$APP_NAME-${WANT}.zip"
@@ -157,14 +130,6 @@ codesign --verify --deep --strict "$NEW"
 [ "$(plist "$NEW" CFBundleIdentifier)" = "$BUNDLE_ID" ] || { log "bundle id mismatch; refusing"; exit 1; }
 [ "$(plist "$NEW" CFBundleShortVersionString)" = "$WANT" ] || { log "version mismatch; refusing"; exit 1; }
 [ "$(leaf_sha1 "$NEW")" = "$SIGN_SHA1" ] || { log "not signed by $SIGN_IDENTITY; refusing"; exit 1; }
-
-if [ -d "$APP" ]; then
-    read_idle
-    if [ "$IDLE" -lt 300 ]; then
-        log "Mac in use; installing at the next run"
-        exit 0
-    fi
-fi
 
 STATUS=0
 "$HERE/install-app.sh" "$NEW" || STATUS=$?
