@@ -5,6 +5,7 @@ import importlib.util
 import json
 import re
 import sys
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -59,6 +60,15 @@ def check(root):
     allowed = json.loads((root / ALLOWLIST).read_text())
     declared = json.loads((root / PATHS).read_text())
     errors = []
+    unwired_body = re.search(r"\bstatic\s+let\s+unwired\s*:[^=]+?=\s*\[([^]]*)\]", code)
+    if unwired_body is None:
+        return ["switch paths: no unwired list found"]
+    unwired = Counter(re.findall(r"\.(\w+)\b", unwired_body[1]))
+    for name, count in sorted(unwired.items()):
+        if count > 1:
+            errors.append(f"{name}: duplicate unwired entry")
+        if name in declared:
+            errors.append(f"{name}: declared user path remains unwired")
     for label, records in (("allowlist", allowed), ("declared paths", declared)):
         for name, reason in records.items():
             if name not in features:
