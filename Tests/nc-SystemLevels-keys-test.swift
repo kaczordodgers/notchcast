@@ -113,7 +113,8 @@ struct MediaLevelKeysTests {
             }
         }, applied: { notices.append($0) }, replay: { replays.append($0) })
         monitor.setEnabled([.volumeUp, .volumeDown, .mute])
-        check(hub.handlers.count == 1 && hub.masks == [1 << 14], "Only system-defined events are registered")
+        check(hub.handlers.count == 1 && hub.masks == [(1 << 14) | (1 << 10) | (1 << 11)],
+              "Media and brightness keycode events are registered")
         let handler = hub.handlers.values.first!
         let system = CGEventType(rawValue: 14)!
         check(handler(system, event(.brightnessUp)) == .pass, "Other feature passes")
