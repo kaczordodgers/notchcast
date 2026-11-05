@@ -82,9 +82,13 @@ struct TodoIslandTests {
         for _ in 0..<20 { await Task.yield() }
         weak var released = module.islandFeed
         precondition(released != nil && module.islandSnapshot != nil)
+        let islandFile = root.appending(path: "module/island.json").path
+        for _ in 0..<500 where !FileManager.default.fileExists(atPath: islandFile) { try await Task.sleep(for: .milliseconds(10)) }
+        precondition(FileManager.default.fileExists(atPath: islandFile))
         toggle.enabled = false
         for _ in 0..<20 { await Task.yield() }
         precondition(released == nil && module.islandSnapshot == nil)
+        precondition(!FileManager.default.fileExists(atPath: islandFile), "switching off deletes the snapshot file")
         module.stop()
         toggle.enabled = true
         module.start()

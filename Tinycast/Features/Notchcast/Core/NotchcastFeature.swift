@@ -675,6 +675,7 @@ extension NotchcastFeature {
     /// Switches kept out of Settings until a user can reach them; the code stays.
     /// Each reason is in notchcast/switch-path-allowlist-*.json. Unhide = delete its line.
     static let unwired: Set<Self> = [
+        .todoIsland,
         .githubSearch,
         .aiUsage,
         .aiUsageOtherMac,

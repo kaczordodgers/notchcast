@@ -80,6 +80,8 @@ final class TodoModule: NotchcastModule {
         } else {
             islandFeed?.stop()
             islandFeed = nil
+            // Switched off: drop the last snapshot so task titles do not linger on disk.
+            if !islandEnabled() { try? FileManager.default.removeItem(at: directory.appending(path: "island.json")) }
         }
     }
 }
