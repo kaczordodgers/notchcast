@@ -10,11 +10,15 @@ final class GreenMaximizeModule: NotchcastModule {
         let bundleID: String
         let date: TimeInterval
         let generation: UUID
+        let target: GreenMaximizeRefresh.Result
     }
 
     private struct TapState: Sendable {
         var snapshot: Snapshot?
-        var pressed = false
+        var pointerSnapshot: Snapshot?
+        var pointerGate = GreenMaximizeClick.PointerGate()
+        var exclusions: Set<String> = []
+        var click = GreenMaximizeClick.Session()
     }
 
     private final class SharedState: Sendable {
@@ -32,8 +36,12 @@ final class GreenMaximizeModule: NotchcastModule {
     private var timer: Timer?
     private var exclusions: Set<String> = []
     private let refreshQueue = DispatchQueue(label: "app.notchcast.green-maximize.refresh")
+    private let pointerQueue = DispatchQueue(label: "app.notchcast.green-maximize.pointer")
     private var refreshID: UUID?
     private var refreshAgain = false
+    private var pointerID: UUID?
+    private var pointerPoint: CGPoint?
+    private var memoryWindow: AXUIElement?
 
     nonisolated private static let observerCallback: AXObserverCallback = { _, _, _, context in
         guard let context else { return }
@@ -61,22 +69,38 @@ final class GreenMaximizeModule: NotchcastModule {
         let shared = self.shared
         registration = hub.registerSynchronous(mask:
             EventTapPolicy.mask(for: .leftMouseDown) | EventTapPolicy.mask(for: .leftMouseUp)
+                | EventTapPolicy.mask(for: .mouseMoved) | EventTapPolicy.mask(for: .leftMouseDragged)
         ) { [weak self] type, event in
-            let result: (Bool, Snapshot?) = shared.value.withLock { value in
-                if type == .leftMouseUp {
-                    let swallowed = value.pressed
-                    value.pressed = false
-                    return (swallowed, nil)
+            if type == .mouseMoved {
+                let point = event.location
+                let changed = shared.value.withLock { value in
+                    let changed = value.pointerGate.moved(to: point)
+                    if changed { value.pointerSnapshot = nil }
+                    return changed
                 }
-                guard let snapshot = value.snapshot,
+                if changed {
+                    DispatchQueue.main.async { [weak self] in self?.refreshPointer(point) }
+                }
+            }
+            let result: (Bool, Snapshot?) = shared.value.withLock { value in
+                let kind: GreenMaximizeClick.Event
+                switch type {
+                case .leftMouseDown: kind = .down
+                case .leftMouseUp: kind = .up
+                case .leftMouseDragged: kind = .drag
+                default: kind = .move
+                }
+                let snapshot = GreenMaximizeClick.target(
+                    pointer: value.pointerSnapshot, frontmost: value.snapshot
+                ) { snapshot in
                     GreenMaximizeClick.intercept(
                         point: event.location, rect: snapshot.rect,
                         age: ProcessInfo.processInfo.systemUptime - snapshot.date,
                         option: event.flags.contains(.maskAlternate),
-                        bundleID: snapshot.bundleID, exclusions: [])
-                else { return (false, nil) }
-                value.pressed = true
-                return (true, snapshot)
+                        bundleID: snapshot.bundleID, exclusions: value.exclusions)
+                }
+                let decision = value.click.decide(kind, hit: snapshot != nil)
+                return (decision.swallow, decision.maximize ? snapshot : nil)
             }
             if let snapshot = result.1 {
                 DispatchQueue.main.async { [weak self] in self?.maximize(snapshot) }
@@ -98,6 +122,9 @@ final class GreenMaximizeModule: NotchcastModule {
         generation = UUID()
         refreshID = nil
         refreshAgain = false
+        pointerID = nil
+        pointerPoint = nil
+        memoryWindow = nil
     }
 
     private func clearObserver() {
@@ -109,9 +136,13 @@ final class GreenMaximizeModule: NotchcastModule {
     }
 
     private func refresh() {
+        refreshPointerZones()
+        let mouse = NSEvent.mouseLocation
+        refreshPointer(CGPoint(x: mouse.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - mouse.y))
         guard refreshID == nil else { refreshAgain = true; return }
         exclusions = Set(NotchcastPreferences.shared.greenMaximizeExcludedApps
             .split(separator: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+        shared.value.withLock { $0.exclusions = exclusions }
         guard AXIsProcessTrusted(), let app = NSWorkspace.shared.frontmostApplication,
             let bundleID = app.bundleIdentifier, !exclusions.contains(bundleID)
         else { shared.value.withLock { $0.snapshot = nil }; return }
@@ -145,8 +176,6 @@ final class GreenMaximizeModule: NotchcastModule {
         let changed = window == nil || !CFEqual(window, focused) || observedPID != pid
         if changed {
             clearObserver()
-            memory = nil
-            generation = UUID()
         }
         window = focused
         if observer == nil {
@@ -157,18 +186,21 @@ final class GreenMaximizeModule: NotchcastModule {
             }
         }
         let snapshot = Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
-            date: result.date, generation: generation)
+            date: result.date, generation: generation, target: result)
         shared.value.withLock { $0.snapshot = snapshot }
     }
 
     private func maximize(_ snapshot: Snapshot) {
         guard registration != nil, snapshot.generation == generation,
-            NSWorkspace.shared.frontmostApplication?.processIdentifier == snapshot.pid,
-            let window, let focused = AXWindowAccess.element(
-                AXWindowAccess.application(for: snapshot.pid, timeout: 0.1), kAXFocusedWindowAttribute),
-            CFEqual(window, focused), !AXWindowAccess.isFullScreen(window),
+            ProcessInfo.processInfo.systemUptime - snapshot.date < 2,
+            !exclusions.contains(snapshot.bundleID)
+        else { return }
+        let window = snapshot.target.window
+        guard !AXWindowAccess.isFullScreen(window),
             let current = AXWindowAccess.frame(of: window)
         else { return }
+        if memoryWindow == nil || !CFEqual(memoryWindow, window) { memory = nil }
+        memoryWindow = window
         let screens = NSScreen.screens
         let geometry = AXGeometry(screens: screens)
         guard let screen = screens.max(by: {
@@ -183,6 +215,52 @@ final class GreenMaximizeModule: NotchcastModule {
         guard let applied = AXWindowAccess.write(target, anchor: .centered, to: window,
             current: current, canResize: true, canvas: nil) else { return }
         memory = GreenMaximizeEngine.memory(original: current, requested: target, applied: applied)
+    }
+
+    private func refreshPointer(_ point: CGPoint) {
+        guard registration != nil else { return }
+        pointerPoint = point
+        refreshPointerZones()
+        let inside = shared.value.withLock { value in
+            value.pointerGate.zones.contains { $0.contains(point) }
+        }
+        guard inside else {
+            shared.value.withLock { $0.pointerSnapshot = nil }
+            return
+        }
+        guard pointerID == nil else { return }
+        let id = UUID()
+        pointerID = id
+        pointerQueue.async { [weak self] in
+            let result = GreenMaximizeRefresh.underPointer(point)
+            DispatchQueue.main.async { [weak self] in
+                guard let self, self.pointerID == id else { return }
+                self.pointerID = nil
+                var snapshot: Snapshot?
+                let stillInside = self.shared.value.withLock { $0.pointerGate.zone != nil }
+                if stillInside, self.pointerPoint == point, let (pid, result) = result,
+                    let bundleID = NSRunningApplication(processIdentifier: pid)?.bundleIdentifier,
+                    !self.exclusions.contains(bundleID) {
+                    snapshot = Snapshot(rect: result.rect, pid: pid, bundleID: bundleID,
+                        date: result.date, generation: self.generation, target: result)
+                }
+                self.shared.value.withLock { $0.pointerSnapshot = snapshot }
+                if let latest = self.pointerPoint, latest != point { self.refreshPointer(latest) }
+            }
+        }
+    }
+
+    private func refreshPointerZones() {
+        let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements],
+            kCGNullWindowID) as? [[String: Any]] ?? []
+        let zones = windows.compactMap { info -> CGRect? in
+            guard let layer = info[kCGWindowLayer as String] as? Int,
+                let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                let rect = CGRect(dictionaryRepresentation: bounds)
+            else { return nil }
+            return GreenMaximizeClick.PointerGate.zone(bounds: rect, layer: layer)
+        }
+        shared.value.withLock { $0.pointerGate.zones = zones }
     }
 }
 
