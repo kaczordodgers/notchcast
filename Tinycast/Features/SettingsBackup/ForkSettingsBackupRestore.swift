@@ -22,7 +22,7 @@ enum ForkSettingsBackupRestore {
     static func apply(_ values: [String: Any], to preferences: NotchcastPreferences) throws {
         try ForkSettingsBackupEngine.validate(values)
         for feature in NotchcastFeature.allCases {
-            if let enabled = values[feature.rawValue] as? Bool { preferences.set(feature, enabled) }
+            if let enabled = values[feature.rawValue] as? Bool { preferences.set(feature, feature.isWired && enabled) }
         }
         if let value = values["greenMaximizeExcludedApps"] as? String { preferences.greenMaximizeExcludedApps = value }
         if let value = values["buildStatsPath"] as? String { preferences.buildStatsPath = value }
