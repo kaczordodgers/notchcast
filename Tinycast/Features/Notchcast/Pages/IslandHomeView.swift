@@ -7,9 +7,9 @@ struct IslandHomeView: View {
            !IslandActivityCenter.shared.activities.isEmpty {
             ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(IslandActivityCenter.shared.activities) { activity in
+                    ForEach(IslandActivityCenter.shared.ranked) { activity in
                         IslandActivityRow(activity: activity,
-                                          selected: activity.id == IslandActivityCenter.shared.activities.first?.id)
+                                          selected: activity.id == IslandActivityCenter.shared.ranked.first?.id)
                     }
                 }
                 .padding(metrics.spacing.md)

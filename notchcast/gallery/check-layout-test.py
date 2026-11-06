@@ -30,7 +30,7 @@ class LayoutTests(unittest.TestCase):
         layout = fixture()
         layout["surface"] = {"x": 30, "y": 0, "width": 40, "height": 40}
         layout["elements"] = [{"role": "AXGroup", "label": "", "frame": layout["canvas"]}]
-        self.assertEqual(checker.problems(layout), [])
+        self.assertEqual(checker.problems(layout), ["accessibility tree has no measured elements"])
 
     def test_only_root_container_is_exempt(self):
         for role, label, index in [("AXButton", "", 0), ("AXGroup", "Island", 0), ("AXGroup", "", 1)]:
@@ -40,6 +40,11 @@ class LayoutTests(unittest.TestCase):
                 element = {"role": role, "label": label, "frame": layout["canvas"]}
                 layout["elements"] = ([fixture()["elements"][0]] if index else []) + [element]
                 self.assertTrue(any("outside surface" in issue for issue in checker.problems(layout)))
+
+    def test_root_with_measured_child(self):
+        layout = fixture()
+        layout["elements"].insert(0, {"role": "AXGroup", "label": "", "frame": layout["canvas"]})
+        self.assertEqual(checker.problems(layout), [])
 
     def test_surface(self):
         self.assertIn("fixture: outside surface", checker.problems(fixture(x=-1)))

@@ -33,8 +33,7 @@ def problems(layout):
     if not inside(surface, canvas):
         found.append("surface outside canvas")
     elements = layout["elements"]
-    if not elements:
-        found.append("accessibility tree has no measured elements")
+    measured = 0
     notch = layout.get("hardwareNotch")
     closed_mba = layout["page"].startswith("island-closed-") and layout["page"].endswith("-mba")
     containers = {"AXGroup", "AXScrollArea", "AXList", "AXLayoutArea", "AXUnknown"}
@@ -43,6 +42,7 @@ def problems(layout):
         name = element.get("label") or f'{element["role"]}[{index}]'
         if index == 0 and element["role"] == "AXGroup" and not element.get("label") and frame == canvas:
             continue
+        measured += 1
         if not inside(frame, surface):
             found.append(f"{name}: outside surface")
         x, y, width, height = frame
@@ -50,6 +50,8 @@ def problems(layout):
             found.append(f"{name}: edge between 2x pixels")
         if closed_mba and notch and element["role"] not in containers and overlaps(frame, rect(notch)):
             found.append(f"{name}: under hardware notch")
+    if measured == 0:
+        found.append("accessibility tree has no measured elements")
     return found
 
 

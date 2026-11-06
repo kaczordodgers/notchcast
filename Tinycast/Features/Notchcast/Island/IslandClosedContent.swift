@@ -25,6 +25,6 @@ struct IslandClosedContent: View {
         .padding(.horizontal, NotchcastTheme.Closed.contentInset)
         .frame(height: NotchcastTheme.Closed.row)
         .fixedSize()
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 }

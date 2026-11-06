@@ -209,6 +209,7 @@ struct IslandArtwork: View {
 struct IslandCardButton: View {
     let title: LocalizedStringKey
     let action: () -> Void
+    var onFrame: (CGRect) -> Void = { _ in }
     @State private var hovered = false
 
     var body: some View {
@@ -221,6 +222,8 @@ struct IslandCardButton: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(IslandCardButtonStyle(hovered: hovered))
+        .accessibilityLabel(Text(title))
+        .onGeometryChange(for: CGRect.self) { $0.frame(in: .named("islandClosed")) } action: { onFrame($0) }
         .onHover { hovered = $0 }
         .animation(NotchcastTheme.Motion.swap, value: hovered)
     }

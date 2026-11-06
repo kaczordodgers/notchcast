@@ -10,6 +10,7 @@ final class IslandPanel: NSPanel {
     private var contentHeight = NotchcastTheme.estimatedContentHeight
     private var closedSize = CGSize.zero
     private var state = IslandClosedState.idle
+    var cardButtonFrame = CGRect.zero
     private var expandedContent = AnyView(EmptyView())
     private var headerContent = AnyView(EmptyView())
     /// The launcher this island grew into, while it is up.
@@ -124,8 +125,13 @@ final class IslandPanel: NSPanel {
 
     /// A card's button takes the click; the rest of a card still opens the island.
     private var hasCard: Bool {
+        let point = surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil)
+        return cardTakesClick(at: point)
+    }
+
+    func cardTakesClick(at point: CGPoint) -> Bool {
         guard case .card = state.main else { return false }
-        return surface.hitTest(surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil)) !== surface
+        return cardButtonFrame.contains(CGPoint(x: point.x, y: surface.bounds.height - point.y))
     }
 
     func setContent(open: AnyView, closed: IslandClosedState, header: AnyView) {
@@ -141,13 +147,13 @@ final class IslandPanel: NSPanel {
             contentHeight = height
             if self.open { present(animated: true) }
         }
-        let compact = IslandClosedView(hardwareNotch: hardwareNotch, state: closed) { [weak self] size in
+        let compact = IslandClosedView(hardwareNotch: hardwareNotch, state: closed, onSize: { [weak self] size in
             guard let self else { return }
             let size = CGSize(width: size.width.rounded(.up), height: size.height.rounded(.up))
             guard closedSize != size else { return }
             closedSize = size
             if !self.open { present(animated: true) }
-        }
+        }, onButtonFrame: { [weak self] frame in self?.cardButtonFrame = frame })
         surface.setContent(open: AnyView(expanded), closed: AnyView(compact
             .environment(\.hasHardwareNotch, hardwareNotch != nil)), handover: handover)
         surface.setAccessibilityValue(closed.spokenSummary)

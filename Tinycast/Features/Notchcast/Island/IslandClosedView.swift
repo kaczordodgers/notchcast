@@ -11,6 +11,7 @@ struct IslandClosedView: View {
     var state: IslandClosedState
     /// The body's size: the pill on a monitor, the whole black shape beside a notch.
     var onSize: (CGSize) -> Void
+    var onButtonFrame: (CGRect) -> Void = { _ in }
     @State private var leadingWidth: CGFloat = 0
     @State private var trailingWidth: CGFloat = 0
     @State private var titleWidth: CGFloat = 0
@@ -22,7 +23,8 @@ struct IslandClosedView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .foregroundStyle(NotchcastTheme.Colors.primary)
         .environment(\.colorScheme, .dark)
-        .transaction { $0.animation = nil; $0.disablesAnimations = true }
+        .coordinateSpace(name: "islandClosed")
+        .transaction(value: state.key) { $0.animation = nil; $0.disablesAnimations = true }
         .motionScope()
     }
 
@@ -32,7 +34,7 @@ struct IslandClosedView: View {
     private var island: some View {
         Group {
             if let main = state.main {
-                IslandClosedContent(parts: IslandItemParts(item: main))
+                IslandClosedContent(parts: IslandItemParts(item: main, onButtonFrame: onButtonFrame))
             } else {
                 Color.clear.frame(height: NotchcastTheme.Closed.row)
             }
@@ -54,7 +56,7 @@ struct IslandClosedView: View {
     private func notch(_ camera: CGRect) -> some View {
         VStack(spacing: 0) {
             if let main = state.main {
-                let parts = IslandItemParts(item: main)
+                let parts = IslandItemParts(item: main, onButtonFrame: onButtonFrame)
                 HStack(spacing: 0) {
                     wing { if !needsLines(main) { parts.leading } }
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { leadingWidth = $0 }
@@ -94,7 +96,9 @@ struct IslandClosedView: View {
     private func needsLines(_ item: IslandClosedItem) -> Bool {
         switch item {
         case .music: false
-        case .activity(let activity): !IslandItemParts.hasValue(activity) && titleWidth > NotchcastTheme.Closed.wingTextLimit
+        case .activity(let activity):
+            activity.kind == .transfer || (!IslandItemParts.hasValue(activity)
+                && titleWidth > NotchcastTheme.Closed.wingTextLimit)
         case .card: true
         case .message(let message):
             message.value == nil && (message.detail != nil || titleWidth > NotchcastTheme.Closed.wingTextLimit)
@@ -105,8 +109,10 @@ struct IslandClosedView: View {
     private func notchTrailing(_ parts: IslandItemParts) -> some View {
         switch parts.item {
         case .activity, .message:
-            if !parts.hasTrailing {
-                if !needsLines(parts.item) { titleText(parts.title) }
+            if needsLines(parts.item) {
+                EmptyView()
+            } else if !parts.hasTrailing {
+                titleText(parts.title)
             } else {
                 parts.trailing(compact: true)
             }

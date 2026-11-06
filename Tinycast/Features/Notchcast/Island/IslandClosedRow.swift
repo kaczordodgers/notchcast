@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 struct IslandItemParts {
     let item: IslandClosedItem
+    var onButtonFrame: (CGRect) -> Void = { _ in }
 
     /// How tall the leading mark is, so the pill's end centres it on its cap.
     var leadingHeight: CGFloat {
@@ -82,8 +83,8 @@ struct IslandItemParts {
         case .card(let card):
             if let action = card.action {
                 switch card.kind {
-                case .meeting: IslandCardButton(title: "Join", action: action)
-                case .timerEnd: IslandCardButton(title: "Stop", action: action)
+                case .meeting: IslandCardButton(title: "Join", action: action, onFrame: onButtonFrame)
+                case .timerEnd: IslandCardButton(title: "Stop", action: action, onFrame: onButtonFrame)
                 }
             }
         }
