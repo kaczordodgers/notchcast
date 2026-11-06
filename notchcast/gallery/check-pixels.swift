@@ -68,8 +68,10 @@ for page in pages {
     if coverage < minimumCoverage || diversity < 0.001 {
         print("FAIL \(page): blank pixels (coverage \(coverage), diversity \(diversity))")
         failures += 1
-    } else if page.hasPrefix("island-"), !page.hasPrefix("island-closed-idle-"), !hasContent(image) {
+    } else if page.hasPrefix("island-"), !page.hasPrefix("island-closed-idle-"),
+              !page.hasPrefix("island-opening-middle-"), !page.hasPrefix("island-opening-end-"), !hasContent(image) {
         // The capture fills the island outline black before drawing, so a failed draw is a black shape: require lit pixels.
+        // The opening's middle and end are the black alone by design: the closed content has faded before them.
         print("FAIL \(page): island surface without content (no lit pixel)")
         failures += 1
     }
