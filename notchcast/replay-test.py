@@ -15,6 +15,31 @@ SPEC.loader.exec_module(CI)
 CATALOG = "Tinycast/Resources/Localizable.xcstrings"
 
 
+class RebaseHoldTests(unittest.TestCase):
+    PR = {"number": 411, "isDraft": False, "isCrossRepository": False}
+
+    def test_open_pr_holds_rebase(self):
+        self.assertEqual(CI.rebase_hold([self.PR], 0, 8.8 * 3600),
+                         (True, "open PRs #411; 3.2 h of 12 left"))
+
+    def test_expired_hold_allows_rebase_with_warning(self):
+        for hours in (12, 13):
+            with self.subTest(hours=hours):
+                self.assertEqual(CI.rebase_hold([self.PR], 0, hours * 3600),
+                                 (False, "::warning::main: 12-hour hold expired with PRs #411 still open"))
+
+    def test_no_open_pr_allows_rebase(self):
+        self.assertEqual(CI.rebase_hold([], 0, 3600), (False, ""))
+
+    def test_drafts_and_cross_repository_prs_do_not_hold(self):
+        self.assertEqual(CI.rebase_hold([dict(self.PR, isDraft=True),
+                                        dict(self.PR, isCrossRepository=True)], 0, 3600), (False, ""))
+
+    def test_message_names_all_eligible_prs(self):
+        self.assertEqual(CI.rebase_hold([dict(self.PR, number=412), self.PR], 0, 0),
+                         (True, "open PRs #411, #412; 12.0 h of 12 left"))
+
+
 class ReplayTests(unittest.TestCase):
     def scenario(self, column_zero=False, conflict=None, later_conflict=False, fix=None):
         with tempfile.TemporaryDirectory() as directory:
