@@ -15,6 +15,7 @@ extension NotchcastCommandCatalog {
         ForkSettingsBackupCoordinator.openCommand,
         ColorPickerModule.launcherCommand,
         ScreenshotModule.launcherCommand,
+        ScreenshotModule.areaCommand,
         RecordingCommands.screen,
         RecordingCommands.area,
         RecordingCommands.pause,
