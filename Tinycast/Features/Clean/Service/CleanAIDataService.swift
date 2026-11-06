@@ -116,8 +116,7 @@ struct CleanAIDataService: Sendable {
         guard !value.isEmpty, !value.contains("\n"), !value.contains("\0") else {
             throw CocoaError(.fileReadCorruptFile)
         }
-        let directory = URL(fileURLWithPath: value,
-            relativeTo: URL(fileURLWithPath: path.path, isDirectory: true)).standardized
+        let directory = URL(filePath: value, directoryHint: .isDirectory, relativeTo: path).standardized
         guard directory.deletingLastPathComponent().lastPathComponent == "worktrees" else {
             throw CocoaError(.fileReadCorruptFile)
         }

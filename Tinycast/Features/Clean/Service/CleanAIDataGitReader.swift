@@ -18,11 +18,16 @@ struct CleanAIDataWorktreeMetadata {
         let pointer = directory.appendingPathComponent("gitdir")
         let text = try String(contentsOf: pointer, encoding: .utf8)
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, !text.contains("\n"), !text.contains("\0"),
-              URL(fileURLWithPath: text, relativeTo: URL(fileURLWithPath: directory.path, isDirectory: true))
-                .resolvingSymlinksInPath().path
-                == worktree.appendingPathComponent(".git").resolvingSymlinksInPath().path else {
+        guard !text.isEmpty, !text.contains("\n"), !text.contains("\0") else {
             throw CocoaError(.fileReadCorruptFile)
+        }
+        let base = URL(filePath: directory.path, directoryHint: .isDirectory)
+        let backlink = URL(filePath: text, directoryHint: .notDirectory, relativeTo: base).standardized.path
+        let expected = worktree.appending(path: ".git", directoryHint: .notDirectory).standardized.path
+        guard backlink == expected else {
+            throw CocoaError(.fileReadCorruptFile, userInfo: [
+                NSDebugDescriptionErrorKey: "Worktree backlink \(backlink) differs from \(expected)"
+            ])
         }
     }
 
