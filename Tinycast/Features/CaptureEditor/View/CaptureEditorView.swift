@@ -9,7 +9,7 @@ struct CaptureEditorView: View {
     var body: some View {
         VStack(spacing: metrics.spacing.md) {
             HStack {
-                Button(String(localized: "Close", table: "Notchcast")) { coordinator.close() }
+                Button(String(localized: "Close")) { coordinator.close() }
                     .buttonStyle(.modalAction(.cancel, fillsWidth: false))
                 Spacer()
                 BarButton(action: document.undo) { SymbolImage(name: "arrow.uturn.backward", size: metrics.size.barBrandIcon) }
@@ -18,7 +18,7 @@ struct CaptureEditorView: View {
                 BarButton(action: document.redo) { SymbolImage(name: "arrow.uturn.forward", size: metrics.size.barBrandIcon) }
                     .disabled(!document.canRedo)
                     .accessibilityLabel(String(localized: "Redo", table: "Notchcast"))
-                Button(String(localized: "Copy", table: "Notchcast")) { coordinator.requestCopy() }
+                Button(String(localized: "Copy")) { coordinator.requestCopy() }
                     .buttonStyle(.modalAction(.primary, fillsWidth: false))
             }
             HStack(spacing: metrics.spacing.md) {
@@ -37,7 +37,7 @@ struct CaptureEditorView: View {
                             .accessibilityAddTraits(document.color == color ? .isSelected : [])
                     }
                 }
-                CaptureEditorCanvas(document: document, image: image)
+                CaptureEditorCanvas(document: document, image: image, coordinator: coordinator)
             }
         }
         .padding(metrics.spacing.lg)
@@ -50,7 +50,7 @@ struct CaptureEditorView: View {
 private struct CaptureEditorCanvas: View {
     @Bindable var document: CaptureEditorDocument
     let image: CaptureEditorImage
-    @State private var preview: NSImage?
+    let coordinator: CaptureEditorCoordinator
     @State private var dragging = false
     @FocusState private var editingText: Bool
 
@@ -58,11 +58,24 @@ private struct CaptureEditorCanvas: View {
         GeometryReader { geometry in
             let scale = min(geometry.size.width / image.points.width, geometry.size.height / image.points.height)
             ZStack(alignment: .topLeading) {
-                Image(nsImage: preview ?? NSImage(cgImage: image.pixels, size: image.points))
+                Image(decorative: image.pixels, scale: 1)
                     .resizable()
                     .accessibilityLabel(String(localized: "Capture Editor", table: "Notchcast"))
+                Canvas { context, _ in
+                    context.withCGContext { graphics in
+                        graphics.scaleBy(x: scale, y: scale)
+                        do {
+                            for mark in document.marks {
+                                try CaptureEditorRender.draw(mark, over: image, in: graphics)
+                            }
+                        } catch {
+                            coordinator.reportRenderFailure(error)
+                        }
+                    }
+                }
+                .allowsHitTesting(false)
                 if document.textEdit != nil {
-                    TextField(String(localized: "Text", table: "Notchcast"), text: Binding(
+                    TextField(String(localized: "Text"), text: Binding(
                         get: { document.textEdit?.string ?? "" },
                         set: { document.textEdit?.string = $0 }))
                         .focused($editingText)
@@ -84,16 +97,6 @@ private struct CaptureEditorCanvas: View {
                 document.dragged(to: CGPoint(x: value.location.x / scale, y: value.location.y / scale))
             }.onEnded { _ in document.released(); dragging = false })
         }
-        .task(id: document.marks) {
-            do {
-                let png = try await CaptureEditorRender.png(image, marks: document.marks)
-                try Task.checkCancellation()
-                preview = NSImage(data: png)
-            } catch is CancellationError {
-            } catch {
-                preview = nil
-            }
-        }
     }
 }
 
@@ -101,7 +104,7 @@ private extension CaptureEditorTool {
     var title: String {
         switch self {
         case .arrow: String(localized: "Arrow", table: "Notchcast")
-        case .text: String(localized: "Text", table: "Notchcast")
+        case .text: String(localized: "Text")
         case .rectangle: String(localized: "Rectangle", table: "Notchcast")
         case .ellipse: String(localized: "Ellipse", table: "Notchcast")
         case .blur: String(localized: "Blur", table: "Notchcast")
@@ -112,10 +115,10 @@ private extension CaptureEditorTool {
 private extension CaptureEditorMark.Color {
     var title: String {
         switch self {
-        case .red: String(localized: "Red", table: "Notchcast")
-        case .yellow: String(localized: "Yellow", table: "Notchcast")
-        case .green: String(localized: "Green", table: "Notchcast")
-        case .blue: String(localized: "Blue", table: "Notchcast")
+        case .red: String(localized: "Red")
+        case .yellow: String(localized: "Yellow")
+        case .green: String(localized: "Green")
+        case .blue: String(localized: "Blue")
         case .white: String(localized: "White", table: "Notchcast")
         }
     }

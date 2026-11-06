@@ -29,6 +29,7 @@ final class CaptureEditorWindowController: CaptureEditorCoordinator.Host {
         window?.orderOut(nil)
         window = panel
         panel.center()
+        NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
     }
 

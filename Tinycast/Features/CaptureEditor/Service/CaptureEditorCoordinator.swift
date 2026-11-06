@@ -94,10 +94,10 @@ final class CaptureEditorCoordinator: NotchcastModule {
     }
 
     func openCapture(url: URL?, clipboard: Bool) throws {
-        if clipboard {
-            try openFromClipboardOrLast()
-        } else if let url, let image = NSImage(contentsOf: url) {
+        if let url, let image = NSImage(contentsOf: url) {
             try open(image: image)
+        } else if url == nil, clipboard {
+            try openFromClipboardOrLast()
         } else {
             throw Failure.noImage
         }
@@ -110,6 +110,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
         guard isOpen else { return }
         session?.document.released()
         session?.document.commitText()
+        session = nil
         isOpen = false
         host?.closeEditor()
     }
@@ -172,10 +173,14 @@ final class CaptureEditorCoordinator: NotchcastModule {
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled else { return }
-                copyFailure = error
-                reportFailure?(error)
+                reportRenderFailure(error)
             }
         }
+    }
+
+    func reportRenderFailure(_ error: any Error) {
+        copyFailure = error
+        reportFailure?(error)
     }
 
     private func makeSession(image: CaptureEditorImage, source: NSImage?, clipboardCount: Int?) -> Session {

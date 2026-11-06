@@ -52,9 +52,24 @@ struct MenuThumbnail: View {
         let source = NSImage(cgImage: context.makeImage()!, size: CGSize(width: 320, height: 200))
         try coordinator.open(image: source)
         precondition(host.window?.isVisible == true && coordinator.isOpen)
+        let viewSource = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Tinycast/Features/CaptureEditor/View/CaptureEditorView.swift")
+        let viewCode = try String(contentsOf: viewSource, encoding: .utf8)
+        precondition(!viewCode.contains("CaptureEditorRender.png") && !viewCode.contains("CaptureEditorRender.flatten"))
         let document = coordinator.document!
         document.pressed(at: CGPoint(x: 20, y: 40), slack: 2)
         document.dragged(to: CGPoint(x: 180, y: 40))
+        let clock = ContinuousClock()
+        let elapsed = clock.measure {
+            for offset in 0..<20 {
+                document.dragged(to: CGPoint(x: 180 + offset, y: 40))
+                let content = host.window!.contentView!
+                content.layoutSubtreeIfNeeded()
+                let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds)!
+                content.cacheDisplay(in: content.bounds, to: bitmap)
+            }
+        }
+        print("PASS: 20 live overlay drag redraws in \(elapsed); view has no flatten or PNG call")
         document.released()
         document.pick(.text)
         document.pressed(at: CGPoint(x: 30, y: 100), slack: 2)
@@ -62,7 +77,10 @@ struct MenuThumbnail: View {
         document.commitText()
         if let folder = ProcessInfo.processInfo.environment["CAPTURE_EDITOR_SNAPSHOTS"] {
             let panel = host.window!
-            let screen = NSScreen.screens.first { $0.localizedName.contains("Orion Test") }!
+            let screen = NSScreen.screens.first {
+                let id = ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! NSNumber).uint32Value
+                return CGDisplayVendorNumber(id) == 0x0D17
+            }!
             panel.setFrameOrigin(screen.visibleFrame.origin)
             for (name, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
                 panel.appearance = NSAppearance(named: appearance)
@@ -91,9 +109,13 @@ struct MenuThumbnail: View {
         defer { try? FileManager.default.removeItem(at: folder) }
         let file = folder.appendingPathComponent("capture.png")
         try png.write(to: file)
-        try coordinator.openCapture(url: file, clipboard: false)
+        board.clearContents()
+        precondition(board.writeObjects([NSImage(size: CGSize(width: 16, height: 16))]))
+        try coordinator.openCapture(url: file, clipboard: true)
+        precondition(coordinator.document?.size == CGSize(width: 320, height: 200))
         precondition(host.window?.isVisible == true)
         coordinator.close()
+        precondition(coordinator.document == nil)
         try coordinator.open(image: source)
         let panel = host.window!
         panel.sendEvent(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [],
