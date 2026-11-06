@@ -38,7 +38,7 @@ struct MenuThumbnail: View {
 
 @main struct CaptureEditorViewTest {
     @MainActor static func main() async throws {
-        _ = NSApplication.shared
+        NSApplication.shared.setActivationPolicy(.accessory)
         let board = NSPasteboard.withUniqueName()
         defer { board.releaseGlobally() }
         let host = CaptureEditorWindowController()
@@ -136,7 +136,67 @@ struct MenuThumbnail: View {
             timestamp: 0, windowNumber: panel.windowNumber, context: nil, characters: "\u{1b}",
             charactersIgnoringModifiers: "\u{1b}", isARepeat: false, keyCode: 53)!)
         precondition(!coordinator.isOpen && host.window == nil)
+        try typeText(coordinator: coordinator, host: host, source: source)
+        try placement(coordinator: coordinator, host: host, source: source)
         coordinator.stop()
         print("PASS: Host window opens/closes; arrow + OK Copy PNG 320x200 with red arrow pixel; Esc closes")
+    }
+
+    @MainActor static func settle() {
+        RunLoop.main.run(until: .now.addingTimeInterval(0.2))
+    }
+
+    @MainActor static func typeText(coordinator: CaptureEditorCoordinator, host: CaptureEditorWindowController,
+                                    source: NSImage) throws {
+        try coordinator.open(image: source)
+        let panel = host.window!
+        let document = coordinator.document!
+        document.pick(.text)
+        panel.styleMask.insert(.nonactivatingPanel)
+        panel.makeKeyAndOrderFront(nil)
+        settle()
+        precondition(panel.isKeyWindow)
+        let point = CGPoint(x: 300, y: panel.frame.height - 200)
+        for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+            panel.sendEvent(NSEvent.mouseEvent(with: type, location: point, modifierFlags: [],
+                timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: panel.windowNumber, context: nil,
+                eventNumber: 0, clickCount: 1, pressure: type == .leftMouseDown ? 1 : 0)!)
+            settle()
+        }
+        precondition(document.textEdit != nil, "Text-tool click opened no text edit")
+        for (characters, keyCode) in [("O", UInt16(31)), ("K", 40), ("\r", 36)] {
+            for type in [NSEvent.EventType.keyDown, .keyUp] {
+                panel.sendEvent(NSEvent.keyEvent(with: type, location: .zero, modifierFlags: [],
+                    timestamp: ProcessInfo.processInfo.systemUptime, windowNumber: panel.windowNumber, context: nil,
+                    characters: characters, charactersIgnoringModifiers: characters, isARepeat: false,
+                    keyCode: keyCode)!)
+            }
+            settle()
+        }
+        let typed = document.marks.contains {
+            if case .text(_, "OK") = $0.shape { true } else { false }
+        }
+        precondition(document.textEdit == nil && typed,
+            "typed text not committed: edit=\(String(describing: document.textEdit)) "
+                + "responder=\(String(describing: panel.firstResponder))")
+        coordinator.close()
+        print("PASS: reopened editor takes a Text-tool click, typed OK + Return commits a text mark")
+    }
+
+    @MainActor static func placement(coordinator: CaptureEditorCoordinator, host: CaptureEditorWindowController,
+                                     source: NSImage) throws {
+        for screen in NSScreen.screens {
+            host.pointerLocation = { CGPoint(x: screen.frame.midX, y: screen.frame.midY) }
+            try coordinator.open(image: source)
+            let frame = host.window!.frame
+            precondition(screen.frame.contains(frame), "panel \(frame) outside screen \(screen.frame)")
+            precondition(abs(frame.midX - screen.visibleFrame.midX) < 1 && abs(frame.midY - screen.visibleFrame.midY) < 1)
+            coordinator.close()
+        }
+        host.pointerLocation = { CGPoint(x: -100_000, y: -100_000) }
+        try coordinator.open(image: source)
+        precondition(NSScreen.main!.frame.contains(host.window!.frame))
+        coordinator.close()
+        print("PASS: editor centres on the pointer's screen across \(NSScreen.screens.count) screens; off-screen uses main")
     }
 }
