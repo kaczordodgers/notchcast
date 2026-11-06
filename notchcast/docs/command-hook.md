@@ -65,8 +65,15 @@ consent when it carries no input. Hotkeys and launcher execution do not ask.
 
 Page commands live beside `IslandPage`, with one catalog line per page. `island-home`
 and `island-day` open the requested page with key focus, including Home without live
-activities. Both require the island; Day also requires weather or markets. Preference
+activities. Both require the island; Day also requires calendar, weather or markets. Preference
 changes refresh command availability in the index.
+
+A command that opens a palette screen (Theme) sets `keepsPalette`. The launcher then stays up and
+pushes the screen, so Escape steps back to the results and the island does not replay its opening.
+Every other command hides the palette before it runs.
+
+The launcher shows upstream's Settings, About and Quit rows under the Notchcast name
+(`AppEntry+NotchcastCommands.swift`); the Tinycast names stay alternate titles for search.
 The shorter `/command/<slug>` spelling is deferred: resolving it needs a catalog
 dependency in the pure deep-link parser. Toggle Island's legacy link still works.
 
