@@ -77,6 +77,7 @@ final class MonitorStore {
     @ObservationIgnored private let alertSample: (@Sendable () async -> MonitorSnapshot)?
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private var samplingSleep: Task<Void, Never>?
+    @ObservationIgnored private var latestIsAlertsOnly = false
     @ObservationIgnored private let sample: (@Sendable () async -> MonitorSnapshot)?
     @ObservationIgnored private let measureSpeed: @Sendable (SpeedTestPhase) async throws -> SpeedTestResult.Measurement
     @ObservationIgnored private let lookupPublicIP: @Sendable () async -> String?
@@ -186,7 +187,8 @@ final class MonitorStore {
     private func update() {
         let alertsOnly = visibleDemand == 0
         if samplingAlertsOnly == true, !alertsOnly {
-            latest = MonitorSnapshot()
+            if latestIsAlertsOnly { latest = MonitorSnapshot() }
+            latestIsAlertsOnly = false
             samplingSleep?.cancel()
         }
         samplingAlertsOnly = alertsOnly
@@ -231,8 +233,11 @@ final class MonitorStore {
                         }
                         guard !Task.isCancelled else { break }
                         continuation.yield((reading, alertsOnly))
-                        await self?.waitForSample(interval: cadence.interval, alertsOnly: alertsOnly,
-                                                  identity: identity)
+                        // The store hands out the nap and is released while it runs, so it can deinit.
+                        guard let nap = await self?.samplingNap(interval: cadence.interval,
+                                                                alertsOnly: alertsOnly, identity: identity)
+                        else { break }
+                        await withTaskCancellationHandler { await nap.value } onCancel: { nap.cancel() }
                     }
                     continuation.finish()
                 }
@@ -243,6 +248,7 @@ final class MonitorStore {
                       self.enabled, self.demand > 0 else { break }
                 guard !alertsOnly || self.visibleDemand == 0 else { continue }
                 self.latest = reading
+                self.latestIsAlertsOnly = alertsOnly
                 for (key, value) in alertsOnly ? [:] : reading.series {
                     self.histories[key, default: MonitorHistory()].append(value)
                 }
@@ -250,16 +256,12 @@ final class MonitorStore {
         }
     }
 
-    private func waitForSample(interval: TimeInterval, alertsOnly: Bool, identity: Int) async {
-        guard generation == identity, samplingAlertsOnly == alertsOnly, !Task.isCancelled else { return }
+    /// A mode change since the sample, or a stale worker, gets no nap so the next sample runs at once.
+    private func samplingNap(interval: TimeInterval, alertsOnly: Bool, identity: Int) -> Task<Void, Never> {
+        guard generation == identity, samplingAlertsOnly == alertsOnly else { return Task {} }
         let sleep = sleep
         let task = Task.detached { _ = try? await sleep(.seconds(interval)) }
         samplingSleep = task
-        await withTaskCancellationHandler {
-            await task.value
-        } onCancel: {
-            task.cancel()
-        }
-        if generation == identity { samplingSleep = nil }
+        return task
     }
 }
