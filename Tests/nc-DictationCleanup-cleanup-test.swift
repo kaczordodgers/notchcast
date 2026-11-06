@@ -167,10 +167,37 @@ struct CleanupTests {
         defer { defaults.removePersistentDomain(forName: suite) }
         let store = DictationCleanupSettingsStore(defaults: defaults, bundleIdentifier: suite)
         expect(try store.read() == DictationCleanupSettings())
+        defaults.set(true, forKey: "dictationCleanup")
         try store.save(settings)
+        expect(defaults.bool(forKey: "dictationCleanup"), "Saving settings disabled the switch")
+        defaults.set(false, forKey: "dictationCleanup")
+        defaults.set(true, forKey: "dictationCleanup")
         expect(try store.read() == settings)
         expect(defaults.dictionaryRepresentation().values.allSatisfy { !String(describing: $0).contains("fixture-key") })
+        for enabled in [false, true] {
+            defaults.removeObject(forKey: "dictationCleanupSettings")
+            settings.isEnabled = enabled
+            let legacy = try JSONEncoder().encode(settings)
+            defaults.set(legacy, forKey: "dictationCleanup")
+            expect(try store.read() == settings)
+            expect(defaults.data(forKey: "dictationCleanupSettings") == legacy)
+            expect(defaults.object(forKey: "dictationCleanup") as? Bool == enabled)
+            expect(try store.read() == settings)
+        }
+        for enabled in [false, true] {
+            defaults.removeObject(forKey: "dictationCleanupSettings")
+            defaults.set(enabled, forKey: "dictationCleanup")
+            expect(try store.read() == DictationCleanupSettings())
+            expect(defaults.object(forKey: "dictationCleanup") as? Bool == enabled)
+        }
         defaults.set(Data("invalid".utf8), forKey: "dictationCleanup")
+        expect(try store.read() == DictationCleanupSettings())
+        expect(defaults.object(forKey: "dictationCleanup") == nil)
+        expect(defaults.object(forKey: "dictationCleanupSettings") == nil)
+        try store.save(settings)
+        defaults.set(try JSONEncoder().encode(DictationCleanupSettings()), forKey: "dictationCleanup")
+        expect(try store.read() == settings, "Legacy data overwrote existing settings")
+        defaults.set(Data("invalid".utf8), forKey: "dictationCleanupSettings")
         do {
             _ = try store.read()
             preconditionFailure("Accepted invalid settings")
