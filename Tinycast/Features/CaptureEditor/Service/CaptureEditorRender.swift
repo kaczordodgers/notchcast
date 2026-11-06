@@ -56,7 +56,7 @@ enum CaptureEditorRender {
                   bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
     }
 
-    private static func draw(_ mark: CaptureEditorMark, over image: CaptureEditorImage, in context: CGContext) throws {
+    static func draw(_ mark: CaptureEditorMark, over image: CaptureEditorImage, in context: CGContext) throws {
         context.saveGState()
         defer { context.restoreGState() }
         context.setStrokeColor(color(mark.color))
