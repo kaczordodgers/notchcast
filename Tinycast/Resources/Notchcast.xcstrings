@@ -1,6 +1,58 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "The setup rollback journal was corrupt and has been set aside. Retry to start a new journal." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Rollback-Protokoll der Einrichtung war beschädigt und wurde beiseitegelegt. Versuche es erneut, um ein neues Protokoll zu starten."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El registro de reversión de la configuración estaba dañado y se ha apartado. Vuelve a intentarlo para iniciar un registro nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le journal de restauration de la configuration était corrompu et a été mis de côté. Réessayez pour créer un nouveau journal."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "設定のロールバック履歴が破損していたため、別の場所に移動しました。再試行して新しい履歴を開始してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "설정 롤백 기록이 손상되어 별도로 보관했습니다. 다시 시도하여 새 기록을 시작하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O registro de reversão da configuração estava corrompido e foi separado. Tente novamente para iniciar um novo registro."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Журнал отката настройки был повреждён и перемещён отдельно. Повторите попытку, чтобы создать новый журнал."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置回滚日志已损坏，已将其移至一旁。请重试以创建新日志。"
+          }
+        }
+      }
+    },
     "Show Shelf" : {
       "localizations" : {
         "de" : {

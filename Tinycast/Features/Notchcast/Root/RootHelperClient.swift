@@ -87,32 +87,6 @@ struct RootHelperClient: Sendable {
         return reply
     }
 
-    func run(_ command: RootContract.Command, process: Process, exit: ProcessExit,
-             output: Pipe, timeout: Duration) async throws -> RootContract.Reply {
-        do {
-            try await Self.wait(for: process, exit: exit, timeout: timeout)
-        } catch {
-            Self.abandoned.withLock { $0.append(process) }
-            throw error
-        }
-        guard process.terminationReason == .exit else {
-            throw Failure.executionFailed(process.terminationStatus)
-        }
-        try Self.validateExitStatus(process.terminationStatus)
-        let data: Data
-        do {
-            data = try output.fileHandleForReading.read(upToCount: 4_097) ?? Data()
-        } catch {
-            throw Failure.invalidResponse
-        }
-        guard data.count <= 4_096,
-              let text = String(bytes: data, encoding: .utf8),
-              let reply = RootContract.Reply(command: command, output: text)
-        else { throw Failure.invalidResponse }
-        try Task.checkCancellation()
-        return reply
-    }
-
     static func validateExitStatus(_ status: Int32) throws {
         switch status {
         case 0: return

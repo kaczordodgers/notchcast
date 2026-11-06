@@ -2,8 +2,18 @@
 import Foundation
 
 private final class StuckProcess: Process, @unchecked Sendable {
+    override var standardInput: Any? { get { nil } set {} }
+    override var standardOutput: Any? {
+        get { nil }
+        set {
+            guard let pipe = newValue as? Pipe else { preconditionFailure("Expected stdout pipe") }
+            try? pipe.fileHandleForWriting.close()
+        }
+    }
+    override var terminationHandler: (@Sendable (Process) -> Void)? { get { nil } set {} }
     override var isRunning: Bool { true }
     override func terminate() {}
+    override func run() throws {}
 }
 
 @main
@@ -17,8 +27,8 @@ struct RootBoundTest {
         let clock = ContinuousClock()
         let start = clock.now
         do {
-            _ = try await RootHelperClient().run(.ping, process: StuckProcess(), exit: ProcessExit(),
-                                                output: Pipe(), timeout: .milliseconds(50))
+            _ = try await RootHelperClient().exchange(process: StuckProcess(), input: Data(),
+                                                     timeout: .milliseconds(50))
             preconditionFailure("Expected timeout")
         } catch RootHelperClient.Failure.timedOut {}
         precondition(start.duration(to: clock.now) < .milliseconds(500))
@@ -29,8 +39,8 @@ struct RootBoundTest {
         } catch RootHelperClient.Failure.timedOut {}
         print("PASS: no new root tool starts while an abandoned one runs")
         let task = Task {
-            _ = try await RootHelperClient().run(.ping, process: StuckProcess(), exit: ProcessExit(),
-                                                output: Pipe(), timeout: .seconds(60))
+            _ = try await RootHelperClient().exchange(process: StuckProcess(), input: Data(),
+                                                     timeout: .seconds(60))
         }
         try await Task.sleep(for: .milliseconds(20))
         let cancelled = clock.now
