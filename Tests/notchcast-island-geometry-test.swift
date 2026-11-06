@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandGeometry.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandMotion.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandSilhouette.swift
+import CoreGraphics
 import Foundation
 
 @main
@@ -18,16 +19,33 @@ struct IslandGeometryTests {
 
     static func closedContext() {
         let screen = CGRect(x: 0, y: 0, width: 1512, height: 982)
-        let pill = IslandGeometry.monitorPill(screen: screen, size: CGSize(width: 180, height: 28))
+        let pill = IslandGeometry.monitorPill(screen: screen, size: CGSize(width: 120, height: 30), topGap: 4)
+        expect(pill == CGRect(x: 696, y: 948, width: 120, height: 30), "the island floats 4 points under the top edge")
         let notch = CGRect(x: 660, y: 950, width: 192, height: 32)
-        for hardware in [notch, nil] {
-            let context = IslandClosedContext(screen: screen, hardwareNotch: hardware, pill: pill)
-            expect(context.hasHardwareNotch == (hardware != nil), "context identifies the display shape")
-            expect(context.screen == screen && context.pill == pill, "context preserves display geometry")
-            expect(context.wingWidth(contentWidth: 12, minimum: 44) == (hardware == nil ? 12 : 44),
-                   "only notch wings impose the 44 point floor")
-            expect(context.wingWidth(contentWidth: 60, minimum: 44) == 60, "wide content keeps its width")
+        let launcher = CGRect(x: 381, y: 494, width: 750, height: 475)
+        let closed = IslandOutline(body: notch, shoulder: 6, bottomRadius: 10)
+        let open = IslandOutline(body: launcher, bottomRadius: 26, topRadius: 26)
+        for outline in [closed, open, IslandOutline(body: pill, bottomRadius: 15, topRadius: 15,
+                                                     bubble: CGRect(x: 826, y: 948, width: 30, height: 30))] {
+            expect(elements(IslandSilhouette.path(outline)) == elements(IslandSilhouette.path(closed)),
+                   "every outline has the same path elements, so any two morph")
         }
+        let middle = IslandOutline.interpolate(closed, open, progress: 0.5)
+        expect(middle.body.midX == notch.midX && middle.body.width == (notch.width + launcher.width) / 2
+               && middle.shoulder == 3 && middle.topRadius == 13, "the middle frame is halfway in every parameter")
+        expect(IslandOutline.interpolate(closed, open, progress: 1) == IslandOutline(
+            body: launcher, bottomRadius: 26, topRadius: 26, bubble: open.parkedBubble), "the end frame is the launcher")
+        expect(closed.parkedBubble.width == 0 && closed.body.contains(closed.parkedBubble.origin),
+               "a missing bubble parks inside the body's trailing end")
+        let capsule = IslandSilhouette.path(IslandOutline(body: pill, bottomRadius: 15, topRadius: 15))
+        expect(!capsule.contains(CGPoint(x: pill.minX + 1, y: pill.maxY - 1)), "a detached pill rounds its top too")
+        expect(capsule.contains(CGPoint(x: pill.midX, y: pill.midY)), "the pill's body takes clicks")
+    }
+
+    static func elements(_ path: CGPath) -> [Int32] {
+        var types: [Int32] = []
+        path.applyWithBlock { types.append($0.pointee.type.rawValue) }
+        return types
     }
 
     static func screenSelection() {
@@ -112,22 +130,54 @@ struct IslandGeometryTests {
     }
 
     static func motionPolicy() {
-        expect(IslandMotion.choice(opening: true, reduceMotion: false, animationsEnabled: true) == .open,
-               "opening uses the zero-bounce spring")
-        expect(IslandMotion.choice(opening: false, reduceMotion: false, animationsEnabled: true) == .close,
-               "closing uses ease-in-out")
-        expect(IslandMotion.open.duration == 0.28 && IslandMotion.close.duration == 0.20,
-               "the morph uses the specified open and close timings")
+        let notch = IslandOutline(body: CGRect(x: 660, y: 950, width: 192, height: 32), bottomRadius: 10)
+        let music = IslandOutline(body: CGRect(x: 600, y: 950, width: 312, height: 32), shoulder: 6, bottomRadius: 10)
+        let open = IslandOutline(body: CGRect(x: 381, y: 600, width: 750, height: 382), shoulder: 14, bottomRadius: 26)
+        func choice(_ from: IslandOutline?, _ to: IslandOutline, opening: Bool = false, reduceMotion: Bool = false,
+                    animationsEnabled: Bool = true) -> IslandMotion {
+            IslandMotion.choice(from: from, to: to, opening: opening, reduceMotion: reduceMotion,
+                                animationsEnabled: animationsEnabled)
+        }
+        expect(choice(notch, open, opening: true) == .open, "opening grows")
+        expect(choice(notch, music) == .grow, "a closed state widening grows")
+        expect(IslandMotion.open.spring == IslandMotion.grow.spring, "opening and widening share the one grow spring")
+        expect(choice(music, notch) == .shrink && choice(open, notch) == .shrink, "back to rest never swings")
+        expect(choice(nil, notch) == .shrink, "the first outline has nothing to grow from")
+        let bubble = IslandOutline(body: music.body, bottomRadius: 15, topRadius: 15,
+                                   bubble: CGRect(x: 922, y: 950, width: 32, height: 32))
+        expect(choice(IslandOutline(body: music.body, bottomRadius: 15, topRadius: 15), bubble) == .grow,
+               "a bubble beading out grows")
         for opening in [true, false] {
-            expect(IslandMotion.choice(opening: opening, reduceMotion: true, animationsEnabled: true) == .fade,
+            expect(choice(notch, music, opening: opening, reduceMotion: true) == .fade,
                    "Reduce Motion removes geometry movement in either direction")
             for reduceMotion in [true, false] {
-                expect(IslandMotion.choice(opening: opening, reduceMotion: reduceMotion,
-                                           animationsEnabled: false) == .instant,
-                       "the global animation switch takes precedence")
+                expect(choice(notch, music, opening: opening, reduceMotion: reduceMotion,
+                              animationsEnabled: false) == .instant, "the global animation switch takes precedence")
             }
         }
-        expect(IslandMotion.fade.duration == 0.12, "Reduce Motion fades for 120 ms")
+        expect(IslandMotion.fade.spring == nil && IslandMotion.instant.spring == nil, "nothing moves without motion")
+        expect(IslandMotion.crossFade == 0.12, "Reduce Motion cross-fades for 120 ms")
+        springTiming()
+    }
+
+    /// The springs the silhouette runs, solved the way Core Animation runs them.
+    static func springTiming() {
+        let open = IslandMotion.growing.curve()
+        let shrink = IslandMotion.shrinking.curve()
+        let samples = stride(from: 0.0, through: 1.5, by: 0.005)
+        expect(zip(samples, samples.dropFirst()).allSatisfy { open($0) <= open($1) && shrink($0) <= shrink($1) },
+               "the growing and shrinking springs never turn back")
+        expect(samples.allSatisfy { open($0) <= 1 && shrink($0) <= 1 },
+               "no island spring overshoots: the row would leave the notch's edge")
+        expect(abs(shrink(1.5) - 1) < 0.001 && abs(open(1.5) - 1) < 0.001, "every spring settles")
+        let handoff = IslandMotion.growing.time(reaching: 0.95)
+        expect(handoff > 0.18 && handoff < IslandMotion.growing.duration,
+               "the dissolve hands off before the perceptual duration (\(handoff))")
+        expect(open(handoff) >= 0.95 && open(handoff - 0.001) < 0.95, "the handoff is the first moment at 95%")
+        expect(IslandMotion.growing.time(reaching: 2) <= Double(IslandMotion.growing.animation.settlingDuration),
+               "an unreachable progress stops at the settling time")
+        expect(IslandMotion.shrinking.duration < IslandMotion.growing.duration,
+               "back to rest is quicker than the opening")
     }
 
     static func silhouetteHitRegion() {
@@ -151,8 +201,7 @@ struct IslandGeometryTests {
                && IslandSilhouette.bottomRadius(height: 475, cap: 26) == 26, "a tall island stops at the caps")
         expect(IslandSilhouette.shoulder(height: -4, cap: 14) == 0
                && IslandSilhouette.bottomRadius(height: 32, cap: -1) == 0, "negative input never inverts a corner")
-        expect(IslandMotion.shrinkWidth.bounce == 0 && IslandMotion.shrinkHeight.bounce == 0
-               && IslandMotion.growWidth.bounce > 0, "only growing sides swing")
+        expect(IslandMotion.shrinking.bounce == 0 && IslandMotion.growing.bounce == 0, "no island spring bounces")
     }
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {

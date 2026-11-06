@@ -7,10 +7,25 @@ enum NotchcastLauncherPlacement {
             && NotchcastPreferences.shared.isOn(.launcherFromIsland)
     }
 
+    /// Resolved once per summon, before the palette is ordered front, so it also dresses the palette for the island.
     static func anchor(on screen: NSScreen, width: CGFloat) -> CGPoint? {
-        let island = NSApp.windows.compactMap { $0 as? IslandPanel }
-            .first { $0.displayFrame == screen.frame }
-        return NotchcastLauncherGeometry.anchor(
-            islandFrame: island?.launcherPlacementFrame, width: width, active: isActive)
+        let frame = NotchcastLauncherSurface.preferredScreen?.frame ?? screen.frame
+        let island = NSApp.windows.compactMap { $0 as? IslandPanel }.first { $0.displayFrame == frame }
+        let anchor = NotchcastLauncherGeometry.anchor(
+            attachment: island?.launcherAttachment, width: width, active: isActive)
+        NotchcastLauncherSurface.shared.prepare(attached: anchor != nil)
+        return anchor
+    }
+
+    /// The island a launcher at `frame` hangs from, by the same rule `anchor` placed it with.
+    static func island(hosting frame: CGRect, among panels: [IslandPanel]) -> IslandPanel? {
+        guard isActive else { return nil }
+        let center = CGPoint(x: frame.midX, y: frame.midY)
+        return panels.first { $0.displayFrame.contains(center) && $0.launcherAttachment != nil }
+    }
+
+    /// An open island gives way to a launcher hung from it or one it covers or touches; elsewhere it stays.
+    static func displaces(_ island: IslandPanel, launcher: CGRect, host: IslandPanel?) -> Bool {
+        island === host || !island.openBodyFrame.intersection(launcher).isNull
     }
 }
