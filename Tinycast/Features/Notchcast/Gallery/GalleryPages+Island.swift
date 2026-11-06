@@ -176,12 +176,15 @@ extension GalleryPages {
                 meeting: .init(start: now.addingTimeInterval(300), tint: [0.4, 0.6, 1],
                                link: URL(string: "https://meet.google.com/abc-defg-hij")))]
         case "dictation": shown.message = message("Dictation listening", progress: true)
-        case "walk": shown.message = message("Daily walking goal reached", symbol: "figure.walk")
+        case "walk":
+            shown.message = message(String(localized: "Daily walking goal reached", table: "Notchcast"),
+                                    symbol: "figure.walk")
         case "message": shown.message = message("Nothing to Import")
         case "danger-message": shown.message = message("Couldn't read the text", .danger)
         case "music", "music-paused": shown.track = track
         case "recording":
-            shown.activities = [activity("Recording", symbol: "record.circle", value: .elapsed(since: now - 83))]
+            shown.activities = [activity(String(localized: "Recording", table: "Notchcast"), symbol: "record.circle",
+                                         value: .elapsed(since: now - 83))]
         case "count": shown.activities = [activity("Copying files", symbol: "doc.on.doc", value: .count(3, of: 12))]
         case "agents":
             shown.activities = [activity("Agents waiting", symbol: "person.2", value: .count(2, of: 4))]
@@ -196,9 +199,12 @@ extension GalleryPages {
             shown.activities = [tea, IslandActivity(kind: .transfer, title: "Photos backup", progress: 0.64)]
         case "step": shown.activities = [activity("Installing update", symbol: "shippingbox", value: .step(2, of: 5))]
         case "speed":
-            shown.activities = [activity("Downloading", symbol: "arrow.down.circle",
+            shown.activities = [activity(String(localized: "Downloading", table: "Notchcast"),
+                                         symbol: "arrow.down.circle",
                                          value: .live(24.6, .megabitsPerSecond))]
-        case "toggle": shown.activities = [activity("Keep Awake", symbol: "cup.and.saucer", value: .toggle(true))]
+        case "toggle":
+            shown.activities = [activity(String(localized: "Keep Awake", table: "Notchcast"), symbol: "cup.and.saucer",
+                                         value: .toggle(true))]
         case "level": shown.activities = [activity("Microphone", symbol: "mic", value: .level(0.6))]
         case "spinner": shown.activities = [activity("Syncing", symbol: "arrow.triangle.2.circlepath", value: .spinner)]
         case "calibration":
