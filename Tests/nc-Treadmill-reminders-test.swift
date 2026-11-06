@@ -47,7 +47,7 @@ private struct ReminderTests {
         try coordinator.startWalk()
         transport.emit()
         transport.emit()
-        precondition(messages == ["Daily walking goal reached."],
+        precondition(messages == ["Daily walking goal reached"],
                      "Goal once; no lube below 200: \(messages), \(String(describing: coordinator.engine.walk))")
         transport.emit(1)
         now.addTimeInterval(86400)
