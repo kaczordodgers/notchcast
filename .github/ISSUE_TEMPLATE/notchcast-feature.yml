@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest a feature or a change for Notchcast.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you are trying to do and what gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: How Notchcast could help. Mention the Settings → Notchcast tab it belongs to, if you know.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Optional. Other apps or workarounds you use today.

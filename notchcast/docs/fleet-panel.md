@@ -3,7 +3,7 @@
 ## Invariants
 
 - Off by default, visible in Agents; switching off removes Show Fleet and cancels owned work.
-- Engine only: no page, view, or island activity. Visible design waits for Damian.
+- Engine only: no page, view, or island activity. Visible design waits for an approved mockup.
 - Reads on start and explicit refresh only. No periodic reads or activation of Agent Threads polling.
 - Local and remote reads begin in parallel; stopped and superseded operations cannot publish.
 - Failures are column states, never successful empty lists.

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-ROOT="$HOME/agents/nc-ci-guard/install-test"
+ROOT="${NOTCHCAST_SCRATCH:-$HOME/Library/Caches/notchcast}/install-test"
 mkdir -p "$ROOT"
 WORK="$(mktemp -d "$ROOT/run.XXXXXX")"
 export NOTCHCAST_APP="$WORK/Installed.app"

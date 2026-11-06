@@ -50,8 +50,8 @@ sync_wait_tests() (
 pr=42
 sync_wait_tests
 if [ "${1:-}" = --sync ]; then exit 0; fi
-mkdir -p "$HOME/agents/nc-local-ci"
-scratch=$(mktemp -d "$HOME/agents/nc-local-ci/land-test.XXXXXX")
+mkdir -p "${NOTCHCAST_SCRATCH:=$HOME/Library/Caches/notchcast}"
+scratch=$(mktemp -d "$NOTCHCAST_SCRATCH/land-test.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT
 source "$root/notchcast/local-build-status.sh"
 gh() { jq -s "${@: -1}" "$status_fixture"; }

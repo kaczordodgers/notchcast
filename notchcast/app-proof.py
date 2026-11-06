@@ -53,9 +53,10 @@ def main():
             command(["codesign", "--force", "--deep", "--sign", "-", str(app)])
         else:
             build = ["xcodebuild", "-project", "Tinycast.xcodeproj", "-scheme", "Tinycast", "-configuration", "Release", "-derivedDataPath", str(scratch / "DerivedData"), "ARCHS=arm64", "ONLY_ACTIVE_ARCH=NO", "PRODUCT_BUNDLE_IDENTIFIER=app.notchcast.proof", "CODE_SIGN_STYLE=Manual", "CODE_SIGN_IDENTITY=-", "CODE_SIGNING_ALLOWED=YES", "OTHER_CODE_SIGN_FLAGS=--timestamp=none", "build", "-quiet"]
-            queue = Path.home() / "chad/bin/build-queue.py"
-            if not os.environ.get("GITHUB_ACTIONS") and queue.exists():
-                build = ["python3", str(queue), "hold", "--", *build]
+            # NOTCHCAST_BUILD_QUEUE: an optional machine-wide build queue (notchcast/README.md, "Private hooks").
+            queue = os.environ.get("NOTCHCAST_BUILD_QUEUE", "").split()
+            if not os.environ.get("GITHUB_ACTIONS") and queue:
+                build = [*queue, "hold", "--", *build]
             command(build)
             app = scratch / "DerivedData/Build/Products/Release/Notchcast.app"
         info = plistlib.loads((app / "Contents/Info.plist").read_bytes())

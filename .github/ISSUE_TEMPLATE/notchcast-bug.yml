@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in Notchcast does not work as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bugs in upstream Tinycast features (launcher, clipboard, snippets, window management, AI chat, ...) that also happen in Tinycast belong in [Tinycast's issues](https://github.com/abue-ammar/tinycast/issues). Security problems: use [private reporting](https://github.com/kaczordodgers/notchcast/security/advisories/new) instead.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Turn on Settings → Notchcast → Island
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Notchcast version
+      description: From About Notchcast in the menu bar, or the release tag.
+      placeholder: v0.12.8.snapshot.20261105211139
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and Mac
+      placeholder: macOS 26.1, a Mac with a notch, one external display
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Optional. Remove anything private first.

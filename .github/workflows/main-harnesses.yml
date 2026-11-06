@@ -70,7 +70,7 @@ jobs:
           # run-tests.sh replays no log when bash's crash notice splits its result line, so print it here.
           bash ../tools/notchcast/ci-tests.sh
       # land.sh pushes its own squash with no app build on the merged tree; a red main opens the notchcast-main
-      # issue, which the MBA updater turns into one alert (the next green Sync of main closes it).
+      # issue, which the maintainer's updater turns into one alert (the next green Sync of main closes it).
       - name: Report a red main
         if: failure() && github.ref == 'refs/heads/main'
         env:

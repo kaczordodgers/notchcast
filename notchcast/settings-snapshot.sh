@@ -4,7 +4,8 @@ set -euo pipefail
 here=${0:A:h}
 bundle=${1:A}
 out=${2:A}
-scratch=$(mktemp -d ~/agents/nc-settings/snap.XXXXXX)
+mkdir -p "${NOTCHCAST_SCRATCH:=$HOME/Library/Caches/notchcast}"
+scratch=$(mktemp -d "$NOTCHCAST_SCRATCH/settings-snap.XXXXXX")
 identifier=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$bundle/Contents/Info.plist")
 [[ $identifier == app.notchcast.dev ]] || { echo 'Debug app required'; exit 2; }
 executable=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleExecutable' "$bundle/Contents/Info.plist")
