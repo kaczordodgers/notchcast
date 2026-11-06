@@ -40,7 +40,7 @@ extension GalleryPages {
     private static func visualizerLab() -> GalleryPage {
         GalleryPage(name: "island-visualizers", types: ["IslandVisualizerComparisonView", "IslandVisualizer"],
                     makeWindow: {
-            let view = IslandVisualizerComparisonView()
+            let view = IslandVisualizerComparisonView().motionScope()
             return window(view, size: NSHostingView(rootView: view).fittingSize, dark: true)
         })
     }
@@ -67,7 +67,7 @@ extension GalleryPages {
                     .frame(width: local.width, height: local.height)
                     .offset(x: local.minX, y: local.minY)
             }
-            return window(view, size: canvas.size, dark: true)
+            return window(view.motionScope(), size: canvas.size, dark: true)
         }, settle: .milliseconds(500), finish: { core.settings.interfaceSize = .standard })
     }
 
