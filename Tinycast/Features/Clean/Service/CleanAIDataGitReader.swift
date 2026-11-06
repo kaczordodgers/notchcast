@@ -10,7 +10,7 @@ struct CleanAIDataWorktreeMetadata {
         let manager = FileManager()
         let attributes = try manager.attributesOfItem(atPath: directory.path)
         guard attributes[.type] as? FileAttributeType == .typeDirectory,
-              directory.standardizedFileURL.path == directory.resolvingSymlinksInPath().path,
+              directory.standardized.path == directory.resolvingSymlinksInPath().path,
               directory.deletingLastPathComponent().lastPathComponent == "worktrees",
               !manager.fileExists(atPath: directory.appendingPathComponent("locked").path) else {
             throw CocoaError(.fileWriteNoPermission)
@@ -20,8 +20,8 @@ struct CleanAIDataWorktreeMetadata {
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !text.contains("\n"), !text.contains("\0"),
               URL(fileURLWithPath: text, relativeTo: URL(fileURLWithPath: directory.path, isDirectory: true))
-                .standardized.path
-                == worktree.appendingPathComponent(".git").standardized.path else {
+                .resolvingSymlinksInPath().path
+                == worktree.appendingPathComponent(".git").resolvingSymlinksInPath().path else {
             throw CocoaError(.fileReadCorruptFile)
         }
     }
