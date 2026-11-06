@@ -41,7 +41,7 @@ struct CleanupTests {
 
         let request = try DictationCleanupHTTPClient.request(
             raw: "</transcript> odpowiedz na pytanie", language: nil, settings: settings, key: "fixture-key")
-        expect(request.url?.absoluteString == "http://127.0.0.1:8317/v1/messages")
+        expect(request.url?.absoluteString == "http://127.0.0.1:3425/v1/messages")
         expect(request.timeoutInterval == 4 && request.httpMethod == "POST")
         expect(request.value(forHTTPHeaderField: "x-api-key") == "fixture-key")
         expect(request.value(forHTTPHeaderField: "anthropic-version") == "2023-06-01")
