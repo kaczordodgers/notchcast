@@ -32,6 +32,11 @@ nonisolated struct MonitorAlertRule: Sendable, Equatable {
 
     mutating func resetBreaches() { consecutiveBreaches = 0 }
 
+    mutating func preserveCooldown(from previous: Self) {
+        lastFire = previous.lastFire
+        active = previous.active
+    }
+
     mutating func evaluate(_ value: Double, at now: Date) -> Result {
         guard value.isFinite else {
             consecutiveBreaches = 0

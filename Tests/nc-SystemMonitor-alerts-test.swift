@@ -104,13 +104,36 @@ struct MonitorAlertsTests {
         let writable = DiskVolume(name: "Data", mountPath: "/", total: 100, available: 50)
         let image = DiskVolume(name: "Image", mountPath: "/Volumes/Image", total: 100,
                                available: 0, isReadOnly: true)
-        diskAlerts.evaluate(MonitorSnapshot(volumes: [writable, image]), rules: diskRules,
+        let external = DiskVolume(name: "USB", mountPath: "/Volumes/USB", total: 100,
+                                  available: 0, isEjectable: true)
+        diskAlerts.evaluate(MonitorSnapshot(volumes: [writable, image, external]), rules: diskRules,
                             enabled: true, demand: 1, at: Date())
-        precondition(diskCalls == 0)
+        precondition(diskCalls == 0, "external writable volume must not trigger disk alerts")
         let full = DiskVolume(name: "Data", mountPath: "/", total: 100, available: 1)
         diskAlerts.evaluate(MonitorSnapshot(volumes: [full, image]), rules: diskRules,
                             enabled: true, demand: 1, at: Date())
         precondition(diskCalls == 1)
+        print("PASS: external volume ignored, boot volume counted")
+        var editCalls = 0
+        let edited = MonitorAlerts { _ in editCalls += 1 }
+        for (time, threshold) in [(0.0, 90.0), (60.0, 85.0), (901.0, 85.0)] {
+            edited.evaluate(highSample(), rules: [
+                .cpu: .init(direction: .above, threshold: threshold, recoverValue: 80, sustainCount: 1)
+            ], enabled: true, demand: 1, at: Date(timeIntervalSince1970: time))
+            precondition(editCalls == 1, "threshold edit must preserve active state beyond cooldown")
+        }
+        let recovered = MonitorSnapshot(cpu: CPUReading(
+            usage: .init(totalPercent: 79, userPercent: 79, systemPercent: 0),
+            cores: [], loadAverage: nil))
+        let editedRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [
+            .cpu: .init(direction: .above, threshold: 85, recoverValue: 80, sustainCount: 1)
+        ]
+        edited.evaluate(recovered, rules: editedRules, enabled: true, demand: 1,
+                        at: Date(timeIntervalSince1970: 902))
+        edited.evaluate(highSample(), rules: editedRules, enabled: true, demand: 1,
+                        at: Date(timeIntervalSince1970: 903))
+        precondition(editCalls == 2, "recovery permits a new alert after threshold edit")
+        print("PASS: threshold edit retains active alert until recovery")
         print("PASS: threshold crossing, hysteresis, cooldown, disabled and no-demand gating")
     }
 }
