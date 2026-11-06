@@ -55,7 +55,7 @@ final class MonitorModule: NotchcastModule {
         withObservationTracking {
             let enabled = preferences.isOn(.systemMonitor) && preferences.isOn(.monitorAlerts)
             if enabled != (alertDemand != nil) {
-                if enabled { alertDemand = store.beginDemand() } else {
+                if enabled { alertDemand = store.beginDemand(alertsOnly: true) } else {
                     alertDemand?.cancel()
                     alertDemand = nil
                 }
