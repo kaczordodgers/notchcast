@@ -44,6 +44,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     private let pasteboard: NSPasteboard
     private let render: @MainActor (CaptureEditorImage, [CaptureEditorMark]) async throws -> Data
     private var session: Session?
+    private var previewFailing = false
     private var operation: UUID?
     private var copyTask: Task<Void, Never>?
     private let reportFailure: (@MainActor (any Error) -> Void)?
@@ -66,6 +67,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     func stop() {
         enabled = false
         close()
+        session = nil
     }
 
     func open(image: NSImage) throws {
@@ -75,7 +77,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
             return
         }
         guard let editable = CaptureEditorImage(image) else { throw Failure.noImage }
-        present(makeSession(image: editable, source: image, clipboardCount: nil))
+        present(makeSession(image: editable, source: image, clipboardCount: pasteboard.changeCount))
     }
 
     func openFromClipboardOrLast() throws {
@@ -110,7 +112,6 @@ final class CaptureEditorCoordinator: NotchcastModule {
         guard isOpen else { return }
         session?.document.released()
         session?.document.commitText()
-        session = nil
         isOpen = false
         host?.closeEditor()
     }
@@ -183,6 +184,14 @@ final class CaptureEditorCoordinator: NotchcastModule {
         reportFailure?(error)
     }
 
+    func reportPreviewFailure(_ error: any Error) {
+        guard !previewFailing else { return }
+        previewFailing = true
+        reportRenderFailure(error)
+    }
+
+    func previewSucceeded() { previewFailing = false }
+
     private func makeSession(image: CaptureEditorImage, source: NSImage?, clipboardCount: Int?) -> Session {
         Session(document: CaptureEditorDocument(size: image.points, markScale: image.markScale,
             textSize: { CaptureEditorRender.textSize($0, markScale: image.markScale) }),
@@ -190,6 +199,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     }
 
     private func present(_ session: Session) {
+        previewFailing = false
         copyTask?.cancel()
         copyTask = nil
         operation = nil
