@@ -3,6 +3,12 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
 import AppKit
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
+
+@MainActor final class CaptureAreaService {
+    func start(completion: @escaping (CaptureAreaSelection?) -> Void) throws {}
+    func stop() {}
+}
 
 struct NotchcastCommand: Sendable {
     let slug: String
