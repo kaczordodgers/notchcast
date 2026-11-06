@@ -12,6 +12,7 @@ struct NotchcastCommand: Sendable {
     let feature: NotchcastFeature
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
+    var id: String { "command:nc-" + slug }
 }
 @MainActor final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
@@ -25,6 +26,11 @@ struct NotchcastCommand: Sendable {
 }
 @main struct SmallTests {
     @MainActor static func main() async {
+        precondition(SmallCommandsModule.argumentCount(entryID: SmallCommandsModule.shortenCommand.id) == 1)
+        for command in [SmallCommandsModule.passwordCommand, SmallCommandsModule.noiseCommand,
+                        SmallCommandsModule.airDropCommand] {
+            precondition(SmallCommandsModule.argumentCount(entryID: command.id) == 0)
+        }
         let module = SmallCommandsModule()
         module.start()
         var calls = 0
