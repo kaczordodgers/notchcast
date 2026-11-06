@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Command.swift
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
 import AppKit
 
 struct NotchcastCommand: Sendable {
@@ -14,6 +16,8 @@ struct NotchcastCommand: Sendable {
 }
 
 @MainActor final class ScreenshotModule {
+    let enabled = true
+    let area = CaptureAreaService()
     var commandTask: Task<Void, Never>?
     func capture(_ request: ScreenshotRequest) async throws -> URL? { nil }
 }
