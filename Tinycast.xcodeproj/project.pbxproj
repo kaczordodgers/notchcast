@@ -172,6 +172,7 @@
 		15EA60DECFABBB595BAD39C9 /* DistillConvertRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1762593AE39A13A73DD81538 /* DistillConvertRunner.swift */; };
 		16381A012A621F1C61B95402 /* TodoDateParse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C14DA75DE34D46F3880E5D9 /* TodoDateParse.swift */; };
 		163C9DFF6B22C76F41CE9FD3 /* WindowManagementFileFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49E8194DC4F75C103DA35F3D /* WindowManagementFileFormat.swift */; };
+		164526036B858730D06E9B0D /* CaptureEditorModule+Command.swift in Sources */ = {isa = PBXBuildFile; fileRef = 483FDDDD60F024B2C82E6A3E /* CaptureEditorModule+Command.swift */; };
 		166083762458929B333742ED /* CleanOptimizeTask+Presentation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA4CCA9245697FCF138813D /* CleanOptimizeTask+Presentation.swift */; };
 		1686A2EE090927893D4BBFB6 /* CustomCommandEditorScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD6FEDC16D215918AD2DA76D /* CustomCommandEditorScreen.swift */; };
 		168B2B19A2BB53A125149242 /* MonitorHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 528751899D209F1ECDD3549C /* MonitorHistory.swift */; };
@@ -430,6 +431,7 @@
 		3A2B91CE53DD84DE9EF5ECB8 /* UpcomingWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F97240A718D95DFD9343DB /* UpcomingWindow.swift */; };
 		3A6C29C0F7B207F8EC02310B /* AudioPriorityModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823B38EBCF5CD25D1EE326EE /* AudioPriorityModule.swift */; };
 		3A7547320F171F56EC5944A9 /* SoloistSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 804A190C35819B63D47C6586 /* SoloistSource.swift */; };
+		3A78336E330964D592638089 /* CaptureEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02540B7FCAE2749B30E643D4 /* CaptureEditorView.swift */; };
 		3A7F96CFC0967AD3988285DA /* FormRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9ADA31FFE27C333DDAF33F9D /* FormRow.swift */; };
 		3A84EFB6F8616AAC5730A1CB /* TodoSyncTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F05B25B07783D79AE72A705 /* TodoSyncTransport.swift */; };
 		3A9F1B5252E8514859C63632 /* NotchcastModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = E62C614AFCF22DEB2C7B5BF8 /* NotchcastModule.swift */; };
@@ -1711,6 +1713,7 @@
 		E1A4034E82A837334F5A1E00 /* CPUTicks.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D92111CB391F3D8177D8A68 /* CPUTicks.swift */; };
 		E1A4472391E5AD3EE828202E /* RedactedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BEA1E122A8139A21E646FE2 /* RedactedText.swift */; };
 		E1A4A8EE48CC3BC03D5B0F41 /* BlockedDialogEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADEE3245081A3D728B4EF039 /* BlockedDialogEngine.swift */; };
+		E1B2685FBFCAEEF181D48C8E /* CaptureEditorWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 195F72A1315CA4BFD5585DEF /* CaptureEditorWindowController.swift */; };
 		E2208FE9C4A925BC4263AADA /* CaptureTrim.swift in Sources */ = {isa = PBXBuildFile; fileRef = 76961981F09BB32A1089B414 /* CaptureTrim.swift */; };
 		E268D74F0DEFFA598E2D02AA /* OnboardingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE6972F177922B1EB8831735 /* OnboardingCard.swift */; };
 		E27CD5BE2627497377C126B0 /* CalcNumberForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B02ADC86967316A8E8A056D /* CalcNumberForm.swift */; };
@@ -2041,6 +2044,7 @@
 		01AEF76EBCE0D99F4D23D946 /* DictationTriggerModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationTriggerModule.swift; sourceTree = "<group>"; };
 		01C7C7F9090C7E2F204770A0 /* NotchcastSettingsSearch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastSettingsSearch.swift; sourceTree = "<group>"; };
 		022AF0052CB832C6E5FCDA6B /* AgentIslandEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentIslandEngine.swift; sourceTree = "<group>"; };
+		02540B7FCAE2749B30E643D4 /* CaptureEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEditorView.swift; sourceTree = "<group>"; };
 		025D7D760DE2FD02C0D7D9D2 /* ColorFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorFormat.swift; sourceTree = "<group>"; };
 		0266BAF4643A4B5C41B600DE /* ExtensionColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionColors.swift; sourceTree = "<group>"; };
 		026CC969138701EA2684820E /* SpotifyStatusRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyStatusRow.swift; sourceTree = "<group>"; };
@@ -2220,6 +2224,7 @@
 		1902BBFD0DEDEC6DDAA9171C /* TorrentManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentManager.swift; sourceTree = "<group>"; };
 		1911C4634D2F72DAF3223E75 /* SmallCommandsModule+Commands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SmallCommandsModule+Commands.swift"; sourceTree = "<group>"; };
 		19148B2CB35EA0D137237FCA /* RemoteShellRunning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteShellRunning.swift; sourceTree = "<group>"; };
+		195F72A1315CA4BFD5585DEF /* CaptureEditorWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureEditorWindowController.swift; sourceTree = "<group>"; };
 		197035E213BEBA67DDA3377B /* ClipboardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardManager.swift; sourceTree = "<group>"; };
 		198E4EC8AECAAD0D90C4BA50 /* ReleaseChannel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseChannel.swift; sourceTree = "<group>"; };
 		19A6FEDF2C073108B3AAA763 /* AgentMCPIndexBackend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentMCPIndexBackend.swift; sourceTree = "<group>"; };
@@ -2573,6 +2578,7 @@
 		47B4E3146143B6120340EC01 /* ExtensionLaunchType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionLaunchType.swift; sourceTree = "<group>"; };
 		47F1E4022145C440C5E43A8A /* DictationCleanup+Installation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DictationCleanup+Installation.swift"; sourceTree = "<group>"; };
 		47F85A1EC4EF888CA0379A0C /* DownloadsSettingRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsSettingRows.swift; sourceTree = "<group>"; };
+		483FDDDD60F024B2C82E6A3E /* CaptureEditorModule+Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CaptureEditorModule+Command.swift"; sourceTree = "<group>"; };
 		487E7A6C4F2366E135B9A5E7 /* WindowManagementSettingsFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowManagementSettingsFile.swift; sourceTree = "<group>"; };
 		48842F5ED281D3FC5E8E768D /* CleanAndUpdatesSettingRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanAndUpdatesSettingRows.swift; sourceTree = "<group>"; };
 		48AC50F8B9296AFEDD75E031 /* FinderToolsCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderToolsCoordinator.swift; sourceTree = "<group>"; };
@@ -5920,6 +5926,15 @@
 			path = Uninstall;
 			sourceTree = "<group>";
 		};
+		5EE6AC6D0EDDC98C93300FDF /* View */ = {
+			isa = PBXGroup;
+			children = (
+				02540B7FCAE2749B30E643D4 /* CaptureEditorView.swift */,
+				195F72A1315CA4BFD5585DEF /* CaptureEditorWindowController.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
 		5EF7345B634769E31DAC4F1A /* Model */ = {
 			isa = PBXGroup;
 			children = (
@@ -6553,6 +6568,8 @@
 			children = (
 				373240DD3E64DE3AF1EE7C43 /* Model */,
 				518BA637700D5036FF41B30B /* Service */,
+				5EE6AC6D0EDDC98C93300FDF /* View */,
+				483FDDDD60F024B2C82E6A3E /* CaptureEditorModule+Command.swift */,
 			);
 			path = CaptureEditor;
 			sourceTree = "<group>";
@@ -10310,8 +10327,11 @@
 				B89285EEE66434DC245E5783 /* CaptureEditorImage.swift in Sources */,
 				2B19AB740C6DA49B0BEE6599 /* CaptureEditorKeyAction.swift in Sources */,
 				3B7B80CD84B25AD5D69DA787 /* CaptureEditorMark.swift in Sources */,
+				164526036B858730D06E9B0D /* CaptureEditorModule+Command.swift in Sources */,
 				11D903028A5EA89C1DD85A40 /* CaptureEditorRender.swift in Sources */,
 				B31113323CDD1F3BEC25ADE9 /* CaptureEditorTool.swift in Sources */,
+				3A78336E330964D592638089 /* CaptureEditorView.swift in Sources */,
+				E1B2685FBFCAEEF181D48C8E /* CaptureEditorWindowController.swift in Sources */,
 				89CB4A0A089A815BB9120C7B /* CaptureGIFWriter.swift in Sources */,
 				30386E9A20A3AB5F54F1530C /* CaptureSettingRows.swift in Sources */,
 				E2208FE9C4A925BC4263AADA /* CaptureTrim.swift in Sources */,
