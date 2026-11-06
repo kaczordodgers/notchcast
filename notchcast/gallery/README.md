@@ -33,7 +33,7 @@ Stable page names:
 - `settings-notchcast-backups-{dark,light}` includes the settings file sync and backup actions.
 - `settings-<SettingsTab.slug>-{dark,light}` (including hidden upstream tabs)
 
-The MBA fixture is 1470 × 956 with a centered 184 × 32 hardware notch; the
+The notched laptop fixture (`mba`) is 1470 × 956 with a centered 184 × 32 hardware notch; the
 external fixture is 1920 × 1080. Island images use the real panel and its real
 surface, closed view, content wrapper and silhouette. Day uses the real schedule
 list with fake events, without loading EventKit. Launcher fixtures use the real
@@ -78,7 +78,7 @@ generic-password query isolation, not every Security framework operation.
 Layout coordinates are AppKit bottom-left points within the canvas. The JSON
 records raw accessibility frames and roles/labels, the silhouette bounding
 rectangle, hardware notch and canvas. Accessibility-hidden decoration is absent
-by design. The checker tests containment, hardware-notch overlap for closed MBA
+by design. The checker tests containment, hardware-notch overlap for closed `mba`
 content, and all four edges on the 2x pixel grid. Container frames may span the
 hardware notch; content frames may not. It does not round measurements or repair
 existing UI defects. Run its fixtures with
