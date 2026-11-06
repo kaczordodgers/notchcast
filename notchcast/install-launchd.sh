@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install Notchcast for this user. Usage: install-launchd.sh all|update|app|kick [--auto-install]
+# Install Notchcast for this user. Usage: install-launchd.sh all|update|app|kick|prune [--auto-install]
 #   all     first install: update.sh installs /Applications/Notchcast.app, migrate.sh copies the old Tinycast data once,
 #           the old Tinycast .app goes to the Trash (its data stays), then both agents below are loaded.
 #   update  notchcast.update runs notchcast/update.sh every 30 min (needs gh logged in).
@@ -19,7 +19,7 @@ UPDATE_ARG=""
 case "${2:-}" in
     --auto-install) UPDATE_ARG=--install ;;
     "") ;;
-    *) echo "usage: $0 all|update|app|kick [--auto-install]" >&2; exit 2 ;;
+    *) echo "usage: $0 all|update|app|kick|prune [--auto-install]" >&2; exit 2 ;;
 esac
 [ "$#" -le 2 ] || { echo "too many arguments" >&2; exit 2; }
 mkdir -p "$LOGS" "$HOME/Library/LaunchAgents"
@@ -34,7 +34,7 @@ agent() { # label log-name extra-plist-keys program...
 <plist version="1.0"><dict>
 <key>Label</key><string>$label</string>
 <key>ProgramArguments</key><array>$args</array>
-<key>RunAtLoad</key><true/>
+<key>RunAtLoad</key><${RUN_AT_LOAD:-true}/>
 $extra
 <key>StandardOutPath</key><string>$LOGS/$name.log</string>
 <key>StandardErrorPath</key><string>$LOGS/$name.log</string>
@@ -105,6 +105,22 @@ install_kick() {
         "$(named_job 'Notchcast sync check' /bin/bash "$HERE/kick.sh")"
 }
 
+install_prune() {
+    local roots=() root args=()
+    if [ -f "$HOME/.config/notchcast/private.env" ]; then
+        source "$HOME/.config/notchcast/private.env"
+    fi
+    IFS=: read -r -a roots <<< "${NOTCHCAST_WORKTREE_ROOTS:-}"
+    for root in "${roots[@]}"; do
+        [ -z "$root" ] || args+=(--worktree-root "$root")
+    done
+    RUN_AT_LOAD=false agent notchcast.prune prune \
+        '<key>StartCalendarInterval</key><dict><key>Weekday</key><integer>0</integer><key>Hour</key><integer>4</integer><key>Minute</key><integer>0</integer></dict>
+<key>WorkingDirectory</key><string>'"$HERE/.."'</string>
+<key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>' \
+        "$(named_job 'Notchcast prune' /usr/bin/env python3 "$HERE/prune-branches.py" --remote --local --log "$LOGS/pruned-branches.tsv" "${args[@]}")"
+}
+
 install_app() {
     local exe
     [ "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist")" = "$BUNDLE_ID" ] \
@@ -143,5 +159,6 @@ case "${1:-}" in
     update) install_update ;;
     kick) install_kick ;;
     app) install_app ;;
-    *) echo "usage: $0 all|update|app|kick [--auto-install]" >&2; exit 2 ;;
+    prune) install_prune ;;
+    *) echo "usage: $0 all|update|app|kick|prune [--auto-install]" >&2; exit 2 ;;
 esac
