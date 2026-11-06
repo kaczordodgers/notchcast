@@ -144,6 +144,10 @@ def main():
                 print(f'Warning: remote delete batch failed, nothing in it deleted: {pushed.stderr.strip()}')
                 kept['remove failed'] += len(batch)
         for name, sha, trees in candidates['local']:
+            # A commit made since selection keeps both the branch and its worktree.
+            if git('rev-parse', 'refs/heads/' + name) != sha:
+                print(f'Kept moved local branch: {name}')
+                continue
             for tree in trees:
                 record(name, sha, 'worktree', tree['worktree'])
                 removed = run('git', 'worktree', 'remove', tree['worktree'], check=False)
@@ -152,9 +156,6 @@ def main():
                     kept['remove failed'] += 1
                     break
             else:
-                if git('rev-parse', 'refs/heads/' + name) != sha:
-                    print(f'Kept moved local branch: {name}')
-                    continue
                 record(name, sha, 'local')
                 removed = run('git', 'branch', '-D', '--', name, check=False)
                 if removed.returncode:
