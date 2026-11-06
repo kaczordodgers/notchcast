@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Compress the Finder selection as ZIP, as a smaller 7z or as a faster tar.zst, from Finder's Services menu or the launcher. [#398](https://github.com/kaczordodgers/notchcast/pull/398)
+- Archives unpack more formats, such as xz, bz2, zstd and other formats that bsdtar or unar can read, and ZIP files with non-Unicode Polish file names keep their names. [#400](https://github.com/kaczordodgers/notchcast/pull/400)
+
+### Changed
+
+- New island and launcher design: content centered under the notch, circled status glyphs, long messages shown in full, rounded cover art, the Day calendar grouped by day, a launcher that grows out of the island, and smoother content changes. [#403](https://github.com/kaczordodgers/notchcast/pull/403)
+- AI cleanup of dictation uses a local gateway at 127.0.0.1:3425 by default. A saved URL is kept. [#399](https://github.com/kaczordodgers/notchcast/pull/399)
+
+### Fixed
+
+- Spotify Connect Speaker Off no longer hides Speaker On, and On starts the speaker directly. [#397](https://github.com/kaczordodgers/notchcast/pull/397)
+- Typing the Shorten Link alias and Space moves to its Link field instead of running it without a link. [#390](https://github.com/kaczordodgers/notchcast/pull/390)
+- Clean System finds system caches and diagnostic reports. [#394](https://github.com/kaczordodgers/notchcast/pull/394)
+- The low disk alert checks only the startup disk, alerts use light sampling while the Monitor page is closed, and changing a threshold no longer repeats an alert within its cooldown. [#393](https://github.com/kaczordodgers/notchcast/pull/393)
+- Saving dictation cleanup settings no longer turns the feature off after relaunch. A cleanup API key saved before this change must be pasted again. [#402](https://github.com/kaczordodgers/notchcast/pull/402)
+
 ## [v0.12.8.snapshot.20261105211139] - 2026-11-05
 
 ### Fixed
