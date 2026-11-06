@@ -29,7 +29,7 @@ STUB
 chmod +x "$scratch/bin/"*
 export PATH="$scratch/bin:$PATH" HOME="$scratch/home" EVENTS="$scratch/events"
 export HOLD_FILE="$scratch/hold" QUEUE_CALLS="$scratch/queue" NOTCHCAST_HOLD_POLL_SECONDS=1
-unset T3CODE_THREAD_ID
+export NOTCHCAST_BUILD_QUEUE="python3 $scratch/build-queue.py" NOTCHCAST_LOCAL_CI_DIR="$scratch/local-ci"
 script=${LOCAL_CI_SCRIPT:-$tools/local-ci.sh}
 RUN=one bash "$script" 1 > "$scratch/one" 2>&1 &
 one=$!
@@ -40,8 +40,8 @@ wait "$one" || status=1
 wait "$two" || status=1
 [ "$status" -eq 0 ] || { cat "$scratch/one" "$scratch/two"; exit 1; }
 [ "$(sort -u "$EVENTS" | wc -l | tr -d ' ')" -eq 2 ] || { echo 'FAIL: concurrent runs share a worktree'; exit 1; }
-grep -q 'builder' "$HOME/agents/nc-local-ci/logs/fixture.log"
-[ -z "$(find "$HOME/agents/nc-local-ci" -name 'build.*' -print)" ]
+grep -q 'builder' "$NOTCHCAST_LOCAL_CI_DIR/logs/fixture.log"
+[ -z "$(find "$NOTCHCAST_LOCAL_CI_DIR" -name 'build.*' -print)" ]
 echo 'PASS: concurrent same-head runs use distinct worktrees and retain the stable log'
 grep -q '^one: .*build-queue.py hold -- bash ' "$QUEUE_CALLS" || { cat "$QUEUE_CALLS"; echo 'FAIL: no hold, normal lane'; exit 1; }
 # During a landing hold the owner's build takes the priority lane and every other PR's local CI waits.

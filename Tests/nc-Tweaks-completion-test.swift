@@ -6,7 +6,7 @@ struct TweakCompletionTests {
         let home = URL(fileURLWithPath: "/example")
         let entries = MacSetupPresetCatalog.entries(home: home)
         precondition(entries.count == 96 && Set(entries.map(\.id)).count == 96)
-        let selected = MacSetupPresetCatalog.selection(.damian, home: home)
+        let selected = MacSetupPresetCatalog.selection(.full, home: home)
         precondition(!selected.contains { $0.id == "autocorrect" || $0.id == "key-repeat" })
         precondition(selected.contains { $0.id == "tinting" })
         for group in AIOffDaemonPlan.Group.allCases {
