@@ -129,11 +129,9 @@ struct CleanAIDataService: Sendable {
     }
 
     private func safe(_ path: URL) -> Bool {
-        let home = policy.home.standardizedFileURL
-        guard home == home.resolvingSymlinksInPath(),
-              path.standardizedFileURL.path.hasPrefix(home.path + "/") else { return false }
-        var cursor = path.standardizedFileURL
-        while cursor.path != home.path {
+        guard path.path.hasPrefix(policy.home.path + "/") else { return false }
+        var cursor = path
+        while cursor.path != "/" {
             guard let attributes = try? FileManager().attributesOfItem(atPath: cursor.path),
                   attributes[.type] as? FileAttributeType != .typeSymbolicLink else { return false }
             let parent = cursor.deletingLastPathComponent()

@@ -7,27 +7,39 @@ protocol CleanAIDataGitReader: Sendable {
 
 struct CleanAIDataWorktreeMetadata {
     static func verify(_ directory: URL, worktree: URL) throws {
-        let manager = FileManager()
-        let attributes = try manager.attributesOfItem(atPath: directory.path)
-        guard attributes[.type] as? FileAttributeType == .typeDirectory,
-              directory.standardized.path == directory.resolvingSymlinksInPath().path,
-              directory.deletingLastPathComponent().lastPathComponent == "worktrees",
-              !manager.fileExists(atPath: directory.appendingPathComponent("locked").path) else {
-            throw CocoaError(.fileWriteNoPermission)
-        }
+        try Self.verifyDirectory(directory)
         let pointer = directory.appendingPathComponent("gitdir")
-        let text = try String(contentsOf: pointer, encoding: .utf8)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, !text.contains("\n"), !text.contains("\0") else {
+        let backlink = try Data(contentsOf: pointer)
+        guard let text = String(data: backlink, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines),
+              !text.isEmpty, !text.contains("\n"), !text.contains("\0") else {
             throw CocoaError(.fileReadCorruptFile)
         }
         let base = URL(filePath: directory.path, directoryHint: .isDirectory)
-        let backlink = URL(filePath: text, directoryHint: .notDirectory, relativeTo: base).standardized.path
-        let expected = worktree.appending(path: ".git", directoryHint: .notDirectory).standardized.path
-        guard backlink == expected else {
+        let target = URL(filePath: text, directoryHint: .notDirectory, relativeTo: base)
+            .standardized.path
+        let expected = worktree.appending(path: ".git", directoryHint: .notDirectory)
+            .standardized.path
+        guard target == expected else {
             throw CocoaError(.fileReadCorruptFile, userInfo: [
-                NSDebugDescriptionErrorKey: "Worktree backlink \(backlink) differs from \(expected)"
+                NSDebugDescriptionErrorKey: "Worktree backlink \(target) differs from \(expected)"
             ])
+        }
+    }
+
+    private static func verifyDirectory(_ directory: URL) throws {
+        let manager = FileManager()
+        guard directory.deletingLastPathComponent().lastPathComponent == "worktrees",
+              !manager.fileExists(atPath: directory.appendingPathComponent("locked").path) else {
+            throw CocoaError(.fileWriteNoPermission)
+        }
+        var cursor = directory
+        while cursor.path != "/" {
+            let attributes = try manager.attributesOfItem(atPath: cursor.path)
+            guard attributes[.type] as? FileAttributeType == .typeDirectory else {
+                throw CocoaError(.fileWriteNoPermission)
+            }
+            cursor.deleteLastPathComponent()
         }
     }
 

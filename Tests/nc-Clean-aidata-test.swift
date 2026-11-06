@@ -35,7 +35,9 @@ struct CleanAIDataTest {
             ?? manager.temporaryDirectory
         let temp = scratch.appendingPathComponent(UUID().uuidString)
         try manager.createDirectory(at: temp, withIntermediateDirectories: true)
-        let base = temp.resolvingSymlinksInPath()
+        guard let resolved = realpath(temp.path, nil) else { throw CocoaError(.fileReadUnknown) }
+        defer { free(resolved) }
+        let base = URL(filePath: String(cString: resolved), directoryHint: .isDirectory)
         defer { try? manager.removeItem(at: base) }
         let home = base.appendingPathComponent("fixture")
         let metadataRoot = base.appendingPathComponent("repo/.git/worktrees")
@@ -131,6 +133,24 @@ struct CleanAIDataTest {
                 precondition(name != "relative")
                 precondition(manager.fileExists(atPath: directory.path))
                 print("PASS: reported unsafe metadata: \(name)")
+            }
+        }
+        for name in ["changed-backlink", "new-lock"] {
+            let directory = metadataRoot.appendingPathComponent(name)
+            try manager.createDirectory(at: directory, withIntermediateDirectories: true)
+            let tree = base.appendingPathComponent("checkout")
+            let pointer = directory.appendingPathComponent("gitdir")
+            try Data(tree.appendingPathComponent(".git").path.utf8).write(to: pointer)
+            try CleanAIDataWorktreeMetadata.verify(directory, worktree: tree)
+            if name == "new-lock" {
+                try Data().write(to: directory.appendingPathComponent("locked"))
+            } else { try Data("/wrong/.git".utf8).write(to: pointer) }
+            do {
+                try CleanAIDataWorktreeMetadata.remove(directory, worktree: tree)
+                preconditionFailure("Changed metadata was removed")
+            } catch {
+                precondition(manager.fileExists(atPath: directory.path))
+                print("PASS: reported metadata change before removal: \(name)")
             }
         }
         let recovering = CleanAIDataService(policy: policy, transport: AITrash(receipts: receipts),
