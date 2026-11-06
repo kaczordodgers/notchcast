@@ -6,7 +6,7 @@ struct CleanAIDataPolicy: Sendable {
     let age: TimeInterval
 
     func permits(_ url: URL, kind: CleanAIDataItem.Kind) -> Bool {
-        let path = url.standardizedFileURL.path
+        let path = url.path
         guard !url.pathComponents.contains(".."), !url.pathComponents.contains(".") else { return false }
         let roots: [String]
         switch kind {
@@ -16,7 +16,7 @@ struct CleanAIDataPolicy: Sendable {
         case .worktree: roots = [".claude/worktrees", ".codex/worktrees", "agents/wt"]
         }
         return roots.contains { root in
-            let prefix = home.appendingPathComponent(root).standardizedFileURL.path + "/"
+            let prefix = home.appendingPathComponent(root).path + "/"
             guard path.hasPrefix(prefix) else { return false }
             let parts = path.dropFirst(prefix.count).split(separator: "/")
             guard parts.allSatisfy({ !$0.hasPrefix(".") }) else { return false }
