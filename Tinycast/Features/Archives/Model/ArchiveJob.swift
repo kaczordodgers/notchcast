@@ -1,6 +1,10 @@
 import Foundation
 
 nonisolated struct ArchiveJob: Identifiable, Equatable, Sendable {
+    enum Kind: Equatable, Sendable {
+        case extraction
+        case compression(ArchiveCompression, [URL])
+    }
     enum State: Equatable, Sendable {
         case queued, preflighting, extracting, cancelling, finished, failed, cancelled
     }
@@ -21,6 +25,7 @@ nonisolated struct ArchiveJob: Identifiable, Equatable, Sendable {
 
     let id: UUID
     let archive: URL
+    var kind: Kind = .extraction
     var mode: Mode = .keepArchive
     var effectiveMode: Mode = .keepArchive
     var fallback: Fallback?

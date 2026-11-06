@@ -1,5 +1,9 @@
 # Archives
 
+Compression runs under the existing Archives switch, without a panel or window. Finder Services and the three launcher commands share the archive queue: Compress with Notchcast uses system ditto ZIP, Compress Small uses Homebrew sevenzip, and Compress Fast uses system bsdtar with Homebrew zstd. Launcher commands read the current Finder selection. The command catalog has no argument field, so password encryption is omitted. Missing tools report `brew install sevenzip` or `brew install zstd`. Several items produce one archive named after their shared parent, or Archive when the parents differ; output goes beside the first source. A single item keeps its name. Collisions use numbered names, and exclusive rename prevents overwrites. Hidden staging is removed on failure or cancellation. Compression never uses the extraction journal or in-place mode. ZIP selections with several items are copied into hidden staging before ditto runs. Duplicate leaf names are staged for every format with numbered names preserving extensions; 7z and tar otherwise read sources directly. Publication retries exclusive rename collisions. Finder Services titles use ServicesMenu.xcstrings. Job states and results use the existing rows and notch messages.
+
+`nc-Archives-compress-test` checks exact commands, naming, failure cleanup and real ZIP, 7z and tar.zst round trips with Polish filenames, nested directories and an empty file. It locates Homebrew sevenzip and zstd, explicitly skipping unavailable real-tool checks. Duplicate-leaf round trips and publication races are covered.
+
 `Archives` starts `ArchiveModule` through `NotchcastCore.archiveModuleEntries`. It defaults on and
 does not require the island. File opens use the existing `AppDelegate` → `AppCore.handleOpenURL`
 path after launch-time URLs have been deferred. Only local archive URLs are accepted; plain `.gz`

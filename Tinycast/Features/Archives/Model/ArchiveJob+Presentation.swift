@@ -4,7 +4,7 @@ extension ArchiveJob {
     var stateTitle: String {
         switch state {
         case .queued: String(localized: "Queued", table: "Notchcast")
-        case .preflighting: String(localized: "Checking archive…", table: "Notchcast")
+        case .preflighting: kind == .extraction ? String(localized: "Checking archive…", table: "Notchcast") : String(localized: "Compressing…", table: "Notchcast")
         case .extracting: String(localized: "Extracting…", table: "Notchcast")
         case .cancelling: String(localized: "Cancelling…", table: "Notchcast")
         case .finished: String(localized: "Finished", table: "Notchcast")

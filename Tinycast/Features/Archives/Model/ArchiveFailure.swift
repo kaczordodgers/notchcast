@@ -1,6 +1,8 @@
 import Foundation
 
 nonisolated enum ArchiveFailure: Error, Equatable, Sendable {
+    case compressionToolMissing(String)
+    case compressionFailed(Int32)
     case toolMissing
     case unsupportedFormat
     case invalidListing
