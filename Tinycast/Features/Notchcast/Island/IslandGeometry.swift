@@ -1,16 +1,5 @@
 import Foundation
 
-struct IslandClosedContext: Sendable {
-    let screen: CGRect
-    let hardwareNotch: CGRect?
-    let pill: CGRect
-    var hasHardwareNotch: Bool { hardwareNotch != nil }
-
-    func wingWidth(contentWidth: CGFloat, minimum: CGFloat) -> CGFloat {
-        hasHardwareNotch ? max(minimum, contentWidth) : contentWidth
-    }
-}
-
 enum IslandGeometry {
     static func screenIndex(containing point: CGPoint, frames: [CGRect]) -> Int? {
         frames.firstIndex { $0.contains(point) }
@@ -29,10 +18,12 @@ enum IslandGeometry {
             width: rightArea.minX - leftArea.maxX, height: safeAreaTop)
     }
 
-    static func monitorPill(screen: CGRect, size: CGSize) -> CGRect {
+    /// A monitor's pill, centred, `topGap` under the screen's top edge.
+    static func monitorPill(screen: CGRect, size: CGSize, topGap: CGFloat = 0) -> CGRect {
         let width = min(max(0, size.width), screen.width)
-        let height = min(max(0, size.height), screen.height)
-        return CGRect(x: screen.midX - width / 2, y: screen.maxY - height,
+        let gap = min(max(0, topGap), screen.height)
+        let height = min(max(0, size.height), screen.height - gap)
+        return CGRect(x: screen.midX - width / 2, y: screen.maxY - gap - height,
                       width: width, height: height)
     }
 

@@ -19,6 +19,7 @@ final class IslandActivityCenter {
         let text: String
         let tone: IslandMessage.Tone
         let dwell: TimeInterval
+        let symbol: String?
     }
 
     init(sleep: @escaping @MainActor (TimeInterval) async -> Void = { try? await Task.sleep(for: .seconds($0)) }) {
@@ -32,6 +33,11 @@ final class IslandActivityCenter {
         }
     }
 
+    /// Every activity, the one that outranks the rest first.
+    var ranked: [IslandActivity] {
+        activities.sorted { $0.outranks($1) }
+    }
+
     @discardableResult
     func begin(_ activity: IslandActivity) -> UUID {
         if let index = activities.firstIndex(where: { $0.id == activity.id }) {
@@ -43,8 +49,9 @@ final class IslandActivityCenter {
     }
 
     func update(_ id: UUID, title: String? = nil, progress: Double?? = nil,
-                endDate: Date?? = nil, priority: Int? = nil) {
+                endDate: Date?? = nil, priority: Int? = nil, value: IslandValue?? = nil) {
         guard let index = activities.firstIndex(where: { $0.id == id }) else { return }
+        if let value { activities[index].value = value.map(IslandValue.clamped) }
         if let title { activities[index].title = title }
         if let progress { activities[index].progress = progress.map { min(max($0, 0), 1) } }
         if let endDate { activities[index].endDate = endDate }
@@ -56,8 +63,9 @@ final class IslandActivityCenter {
     func fail(_ id: UUID) { finish(id) }
 
     /// Only an `id` waits its turn; without one a message replaces the visible one, like upstream's HUD.
-    func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval, id: String? = nil) {
-        let notice = Notice(id: id, text: text, tone: tone, dwell: dwell)
+    func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval,
+                     id: String? = nil, symbol: String? = nil) {
+        let notice = Notice(id: id, text: text, tone: tone, dwell: dwell, symbol: symbol)
         guard let id, message != nil, id != visibleID else { return present(notice) }
         if let index = pending.firstIndex(where: { $0.id == id }) {
             pending[index] = notice
@@ -71,7 +79,7 @@ final class IslandActivityCenter {
         dismissal?.cancel()
         visibleID = notice.id
         message = IslandMessage(id: message?.id ?? UUID(), tone: notice.tone, text: notice.text,
-                                isProgress: false, onCancel: nil)
+                                isProgress: false, onCancel: nil, symbol: notice.symbol)
         dismissal = Task { [weak self, sleep] in
             await sleep(notice.dwell)
             guard !Task.isCancelled else { return }
