@@ -28,14 +28,31 @@ struct ArchiveRoutingTests {
         var extensions: [String] = []
         for imported in imports {
             let identifier = imported["UTTypeIdentifier"] as? String ?? ""
-            precondition(identifier.hasPrefix("app.notchcast.") || identifier == "org.bittorrent.torrent")
+            precondition(identifier.hasPrefix("app.notchcast.") || identifier == "org.bittorrent.torrent"
+                         || identifier == "com.rarlab.rar-archive")
             let tags = imported["UTTypeTagSpecification"] as? [String: Any]
             extensions += tags?["public.filename-extension"] as? [String] ?? []
         }
         precondition(extensions.contains("001"))
-        for identifier in identifiers where !identifier.hasPrefix("app.notchcast.") {
-            precondition(UTType(identifier)?.isDeclared == true, "System declares \(identifier)")
+        var systemTypes = Set<String>()
+        for path in [
+            "/System/Library/CoreServices/CoreTypes.bundle/Contents/Info.plist",
+            "/System/Library/CoreServices/Applications/Archive Utility.app/Contents/Info.plist"
+        ] {
+            let data = try Data(contentsOf: URL(filePath: path))
+            guard let system = try PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any] else {
+                fatalError("Missing system declarations")
+            }
+            for key in ["UTImportedTypeDeclarations", "UTExportedTypeDeclarations"] {
+                let declarations = system[key] as? [[String: Any]] ?? []
+                systemTypes.formUnion(declarations.compactMap { $0["UTTypeIdentifier"] as? String })
+            }
         }
+        let importedTypes = Set(imports.compactMap { $0["UTTypeIdentifier"] as? String })
+        // ISO is declared by DiskImageMounter, outside the archive type declaration bundles.
+        let archiveIdentifiers = Set(identifiers).subtracting(["public.iso-image"])
+        let missing = archiveIdentifiers.subtracting(systemTypes).subtracting(importedTypes)
+        precondition(missing.isEmpty, "Missing system or app declaration: \(missing.sorted())")
         let utilityURL = URL(fileURLWithPath: "/System/Library/CoreServices/Applications")
             .appending(path: "Archive Utility.app/Contents/Info.plist")
         guard let utility = try PropertyListSerialization.propertyList(
@@ -44,8 +61,13 @@ struct ArchiveRoutingTests {
             fatalError("Missing Archive Utility declarations")
         }
         let restorable = Set(utilityDocuments.flatMap { $0["LSItemContentTypes"] as? [String] ?? [] })
-        precondition(Set(ArchiveFormat.defaultTypeIdentifiers) == Set(identifiers).intersection(restorable))
-        print("PASS: only fork UTIs imported; all system UTIs declared; default claims exactly match Archive Utility support")
+        let previousClaims: Set = ["com.rarlab.rar-archive", "app.notchcast.split-archive"]
+        let expectedClaims = Set(identifiers).intersection(restorable).union(previousClaims)
+        precondition(Set(ArchiveFormat.defaultTypeIdentifiers) == expectedClaims)
+        precondition(previousClaims.isSubset(of: Set(ArchiveFormat.defaultTypeIdentifiers)))
+        precondition(!ArchiveFormat.defaultTypeIdentifiers.contains("public.iso-image"))
+        precondition(!ArchiveFormat.defaultTypeIdentifiers.contains("com.apple.installer-package-archive"))
+        print("PASS: archive types declared by system plists or app imports; default claims preserve rar and 001")
         precondition(!extensions.contains("tar.gz"))
         let gzip = UTType(filenameExtension: "gz")!
         precondition(gzip.identifier == "org.gnu.gnu-zip-archive")

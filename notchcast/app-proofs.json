@@ -9,7 +9,7 @@
   "archive-fallback": [
     "Tinycast/Features/Archives/Model/ArchiveEngineRoute.swift",
     "Tinycast/Features/Archives/Model/ArchiveZIPEncoding.swift",
-    "Tinycast/Features/Archives/Service/ArchiveExtractionRunner+Fallback.swift",
+    "Tinycast/Features/Archives/Model/ArchiveFallbackListing.swift",
     "Tinycast/Features/AppProof/**"
   ]
 }

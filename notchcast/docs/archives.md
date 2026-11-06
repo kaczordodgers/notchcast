@@ -31,14 +31,14 @@ Orderly shutdown cancels the worker and signals the child process group. There i
 watchdog: a hard app kill relies on recovery at the next launch.
 
 `Open archives with Notchcast` defaults off and also depends on Archives. Enabling it calls
-`ArchiveDefaultApplicationService` for the claimable archive UTIs. Only types declared by Archive Utility are claimed as defaults; all other supported formats remain available through Open With and launcher opens. Disabling it, including by disabling
+`ArchiveDefaultApplicationService` for the claimable archive UTIs. Defaults preserve the previous claims, including RAR and split `.001`, and add supported types declared by Archive Utility; `.iso` and `.pkg` remain excluded. Other supported formats remain available through Open With and launcher opens. Disabling it, including by disabling
 Archives, gives handlers still owned by this app back to Archive Utility. Handler writes are
 serialized, including when switches change during a write or a write only partly succeeds.
 Quitting preserves an opted-in handler so the next file open can launch Notchcast. A successful claim
 is persisted so launch does not override subsequent handler choices. Restore only targets types
-declared by Archive Utility, and per-type errors are collected and reported after all types are tried.
+declared by Archive Utility, so RAR and split `.001` cannot be handed back, as before; per-type errors are collected and reported after all types are tried.
 
-The document declarations use the Alternate rank, so registration alone does not claim defaults. The gzip, xz, bzip2 and zstd UTIs offer both plain streams and their `.tar` variants; compound aliases `.tgz`, `.txz`, `.tbz2` and `.tzst` and split `.001` have separate tags; only `app.notchcast.*` identifiers are imported. Multi-component filename extension tags are not used. Preferences stay in the existing bundle-scoped Notchcast suite.
+The document declarations use the Alternate rank, so registration alone does not claim defaults. The gzip, xz, bzip2 and zstd UTIs offer both plain streams and their `.tar` variants; compound aliases `.tgz`, `.txz`, `.tbz2` and `.tzst` and split `.001` have separate tags; archive imports include `app.notchcast.*` and `com.rarlab.rar-archive`, which the system does not declare. Multi-component filename extension tags are not used. Preferences stay in the existing bundle-scoped Notchcast suite.
 
 `nc-Archives-fallback-test`, `nc-Archives-engine-test`, `nc-Archives-modules-test` and `nc-Archives-routing-test` cover the engine,
 module ownership, switch defaults and gating, mode selection, shutdown, fake handler effects, document

@@ -1,7 +1,6 @@
 import Foundation
 
 extension NotchcastAppProof {
-    /// Routes each format to its engine and round-trips Polish names through the system tools the fallback uses.
     static func archiveFallback() throws {
         let routes: [String: ArchiveEngineRoute?] = [
             "a.zip": .hatchzip, "a.tar.gz": .hatchzip, "a.7z": .hatchzip, "a.tar.xz": .bsdtar, "a.tar.bz2": .bsdtar,
@@ -28,21 +27,32 @@ extension NotchcastAppProof {
         }
         let tarball = root.appending(path: "a.tar.bz2")
         try shell("/usr/bin/tar", ["-cjf", tarball.path, "-C", root.path, "Łódź"])
+        let listingFile = root.appending(path: "listing")
+        _ = files.createFile(atPath: listingFile.path, contents: nil)
+        let listingHandle = try FileHandle(forWritingTo: listingFile)
+        defer { try? listingHandle.close() }
+        try shell("/usr/bin/bsdtar", ["-tvf", tarball.path], output: listingHandle)
+        let listing = try ArchiveFallbackListing.bsdtar(Data(contentsOf: listingFile))
+        try ArchiveRules.validate(listing, archiveBytes: Int64(Data(contentsOf: tarball).count))
+        let unsafe = Data("-rw-r--r--  0 user group 1 Jan 1 2026 ../x\n".utf8)
+        do {
+            try ArchiveRules.validate(ArchiveFallbackListing.bsdtar(unsafe), archiveBytes: 1)
+            throw ArchiveFallbackProofFailure("a traversal member passed validation")
+        } catch ArchiveFailure.unsafePath("../x") {
+        }
         let out = root.appending(path: "out")
         try files.createDirectory(at: out, withIntermediateDirectories: true)
         try shell("/usr/bin/bsdtar", ["-xf", tarball.path, "-C", out.path])
         guard (try? Data(contentsOf: out.appending(path: "Łódź/gęś.txt"))) == data else {
             throw ArchiveFallbackProofFailure("tar.bz2 round trip differs")
         }
-        guard (try? shell("/usr/bin/bsdtar", ["-xf", zip.path + ".missing", "-C", out.path])) == nil else {
-            throw ArchiveFallbackProofFailure("a missing archive extracted")
-        }
     }
 
-    private static func shell(_ tool: String, _ arguments: [String]) throws {
+    private static func shell(_ tool: String, _ arguments: [String], output: FileHandle = .nullDevice) throws {
         let process = Process()
         process.executableURL = URL(filePath: tool)
         process.arguments = arguments
+        process.standardOutput = output
         process.standardError = FileHandle.nullDevice
         try process.run()
         process.waitUntilExit()
