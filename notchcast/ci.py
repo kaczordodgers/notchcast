@@ -118,7 +118,7 @@ def plan():
     rebase = base != upstream_main
     held = False
     if rebase:
-        prs = json.loads(run("gh", "pr", "list", "-R", cfg["FORK_REPO"], "--base", "main", "--state", "open",
+        prs = json.loads(run("gh", "pr", "list", "-R", cfg["FORK_REPO"], "--base", "main", "--state", "open", "--limit", "1000",
                              "--json", "number,isDraft,isCrossRepository"))
         moved_at = int(run("git", "log", "--first-parent", "--reverse", "--format=%ct", f"{base}..{upstream_main}").splitlines()[0])
         held, message = rebase_hold(prs, moved_at, time.time())
