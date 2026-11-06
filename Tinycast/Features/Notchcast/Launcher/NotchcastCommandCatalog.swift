@@ -22,7 +22,7 @@ enum NotchcastCommandCatalog {
     @MainActor static func dispatch(_ id: String, dismiss: () -> Void) -> Bool {
         guard let command = command(for: id) else { return false }
         if isEnabled(id) {
-            dismiss()
+            if !command.keepsPalette { dismiss() }
             command.run()
         }
         return true

@@ -27,6 +27,11 @@ extension SystemNoticesModule {
             text = String(localized: "Low battery: \(percent)%", table: "Notchcast")
             warning = true
         }
-        IslandActivityCenter.shared.showMessage(text, tone: warning ? .danger : .neutral, dwell: 5, id: id)
+        let symbol = switch notice {
+        case .wifi(let available): available ? "wifi" : "wifi.slash"
+        case .tailscale: "network"
+        case .lowBattery: "battery.25percent"
+        }
+        IslandActivityCenter.shared.showMessage(text, tone: warning ? .danger : .neutral, dwell: 5, id: id, symbol: symbol)
     }
 }

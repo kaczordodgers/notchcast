@@ -70,7 +70,11 @@ final class DayCalendarService {
             return EventReminderEngine.Event(
                 id: id, title: event.title ?? String(localized: "(No Title)"), start: start,
                 isAllDay: event.isAllDay, isDeclined: false,
-                offsets: (event.alarms ?? []).filter { $0.absoluteDate == nil }.map(\.relativeOffset))
+                offsets: (event.alarms ?? []).filter { $0.absoluteDate == nil }.map(\.relativeOffset),
+                tint: CGColorSpace(name: CGColorSpace.sRGB).flatMap {
+                    event.calendar?.cgColor?.converted(to: $0, intent: .defaultIntent, options: nil)?.components
+                }.map { $0.prefix(3).map(Double.init) },
+                link: MeetingLink.detect(fields: [event.url?.absoluteString, event.location, event.notes])?.webURL)
         }
     }
 

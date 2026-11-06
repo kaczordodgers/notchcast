@@ -16,7 +16,7 @@
   "islandHoverOpen": "automatic: hover-open input + delay picker (Tinycast/Features/Notchcast/Island/IslandController.swift:263, :275)",
   "islandStatusMessages": "automatic: upstream HUD messages routed into the island (Tinycast/Windows/HUD/MessageHUDController.swift:18 → Tinycast/Features/Notchcast/Activities/IslandHUDRouter.swift:28; shown at IslandController.swift:203)",
   "islandLiveActivities": "automatic: closed-island activity glyph + Home list (Tinycast/Features/Notchcast/Island/IslandController.swift:199, Pages/IslandHomeView.swift:6); only producer is Event Reminders (Tinycast/Features/EventReminder/Service/EventReminderModule.swift:81)",
-  "launcherFromIsland": "automatic: launcher palette anchored under the island (Tinycast/Palette/PaletteWindowController.swift:504 via Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift:5)",
+  "launcherFromIsland": "automatic: launcher palette anchored under the island (Tinycast/Palette/PaletteWindowController.swift:505 via Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift:5)",
   "launcherNumberKeys": "hotkey: Cmd-1…9 open results (Tinycast/Features/Launcher/UI/LauncherScreen.swift:420)",
   "launcherAliasSpace": "hotkey: Space after exact alias (Tinycast/Palette/RootPaletteView.swift:1492)",
   "musicNowPlaying": "launcher command Open Current Player (Tinycast/Features/Music/Commands/MusicCommands.swift:20; catalog :37); note: no island view renders now-playing, so \"Show what is playing\" itself has no surface",

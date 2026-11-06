@@ -13,7 +13,9 @@ import Foundation
 final class IslandActivityCenter {
     enum Tone { case neutral }
     static let shared = IslandActivityCenter()
-    func showMessage(_ text: String, tone: Tone, dwell: Double, id: String? = nil) { fatalError("Real sink in harness") }
+    func showMessage(_ text: String, tone: Tone, dwell: Double, id: String? = nil, symbol: String? = nil) {
+        fatalError("Real sink in harness")
+    }
 }
 
 @MainActor

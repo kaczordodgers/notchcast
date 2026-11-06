@@ -27,7 +27,7 @@ import Foundation
     static let shared = IslandActivityCenter()
     var messages: [String] = []
     var ids: [String?] = []
-    func showMessage(_ text: String, tone: Tone, dwell: TimeInterval, id: String?) {
+    func showMessage(_ text: String, tone: Tone, dwell: TimeInterval, id: String?, symbol: String? = nil) {
         messages.append(text)
         ids.append(id)
     }

@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 enum NotchcastGallery {
     static func bootIfRequested() -> Bool {
+        if IslandVisualizerLab.bootIfRequested() { return true }
         guard ProcessInfo.processInfo.environment["NOTCHCAST_GALLERY"] != nil else { return false }
         let environment = ProcessInfo.processInfo.environment
         guard let home = environment["CFFIXED_USER_HOME"],
@@ -28,6 +29,7 @@ enum NotchcastGallery {
     }
 
     static func runIfRequested(_ core: AppCore) -> Bool {
+        if IslandMotionStage.runIfRequested(core) { return true }
         if GallerySettingsTiming.runIfRequested(core) { return true }
         guard let directory = ProcessInfo.processInfo.environment["NOTCHCAST_GALLERY"] else { return false }
         Task { @MainActor in

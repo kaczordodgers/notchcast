@@ -20,7 +20,9 @@ final class SystemLevelIslandPresenter {
         let title = notice.kind == .brightness
             ? String(localized: "Brightness", table: "Notchcast") : String(localized: "Volume")
         center.begin(IslandActivity(id: id, kind: .status, priority: 100, title: title,
-                                   progress: notice.muted == true ? 0 : notice.percent.map { Double($0) / 100 }))
+                                   progress: notice.muted == true ? 0 : notice.percent.map { Double($0) / 100 },
+                                   symbol: notice.kind == .brightness ? "sun.max"
+                                       : notice.muted == true ? "speaker.slash" : "speaker.wave.2"))
         dismissal = Task { [weak self] in
             try? await Task.sleep(for: .seconds(2))
             guard !Task.isCancelled, let self else { return }
