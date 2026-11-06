@@ -16,6 +16,7 @@ extension NotchcastCommandCatalog {
         ColorPickerModule.launcherCommand,
         ScreenshotModule.launcherCommand,
         ScreenshotModule.areaCommand,
+        CaptureEditorCoordinator.launcherCommand,
         RecordingCommands.screen,
         RecordingCommands.area,
         RecordingCommands.pause,
