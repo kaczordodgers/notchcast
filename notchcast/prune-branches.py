@@ -39,9 +39,9 @@ def main():
     if not args.dry_run:
         git('fetch', '--prune', 'origin')
     git('rev-parse', '--verify', 'origin/main')
-    opened = json.loads(run('gh', 'pr', 'list', '--state', 'open', '-L', '1000', '--json', 'headRefName').stdout)
+    opened = json.loads(run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'open', '-L', '1000', '--json', 'headRefName').stdout)
     open_names = {pr['headRefName'] for pr in opened}
-    closed = json.loads(run('gh', 'pr', 'list', '--state', 'closed', '-L', '1000', '--json',
+    closed = json.loads(run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'closed', '-L', '1000', '--json',
                             'headRefName,comments').stdout)
     landed_tips = set()
     for pr in closed:
@@ -58,7 +58,7 @@ def main():
     kept = Counter()
     candidates = {'remote': [], 'local': []}
     before = {kind: len(refs(kind == 'remote')) for kind in candidates}
-    cutoff = time.time() - 3 * 86400
+    cutoff = time.time() - 86400
     proof = {}
     for kind in candidates:
         if not getattr(args, kind):
@@ -71,7 +71,7 @@ def main():
                 reason = 'open PR'
             elif any(fnmatch.fnmatchcase(name, pattern) for pattern in ('nc-design-race-*', 'nc-design-v4-*')):
                 reason = 'design'
-            elif int(git('show', '-s', '--format=%ct', sha)) >= cutoff:
+            elif (name, sha) not in landed_tips and int(git('show', '-s', '--format=%ct', sha)) >= cutoff:
                 reason = 'recent'
             trees = worktrees.get(name, []) if kind == 'local' else []
             for tree in trees:
@@ -82,7 +82,7 @@ def main():
                     reason = reason or 'worktree outside roots'
                 elif run('git', '-C', str(path), 'status', '--porcelain').stdout:
                     reason = reason or 'dirty worktree'
-            if reason is None:
+            if reason is None and (name, sha) not in landed_tips:
                 if sha not in proof:
                     ancestor = run('git', 'merge-base', '--is-ancestor', sha, 'origin/main', check=False)
                     if ancestor.returncode not in (0, 1):
@@ -99,6 +99,10 @@ def main():
     for reason, count in sorted(kept.items()):
         print(f'Kept {reason}: {count}')
     print('Candidates: ' + ' '.join(f'{kind}={len(items)}' for kind, items in candidates.items()))
+    if args.dry_run:
+        for kind, items in candidates.items():
+            for name, _, _ in items:
+                print(f'Candidate {kind}: {name}')
 
     def record(name, sha, kind, path=''):
         with args.log.expanduser().open('a') as log:
@@ -120,16 +124,26 @@ def main():
         for name, sha, trees in candidates['local']:
             for tree in trees:
                 record(name, sha, 'worktree', tree['worktree'])
-                git('worktree', 'remove', tree['worktree'])
-            if git('rev-parse', 'refs/heads/' + name) != sha:
-                print(f'Kept moved local branch: {name}')
-                continue
-            record(name, sha, 'local')
-            git('branch', '-D', '--', name)
+                removed = run('git', 'worktree', 'remove', tree['worktree'], check=False)
+                if removed.returncode:
+                    print(f'Warning: worktree remove failed for {name}: {removed.stderr.strip()}')
+                    kept['remove failed'] += 1
+                    break
+            else:
+                if git('rev-parse', 'refs/heads/' + name) != sha:
+                    print(f'Kept moved local branch: {name}')
+                    continue
+                record(name, sha, 'local')
+                removed = run('git', 'branch', '-D', '--', name, check=False)
+                if removed.returncode:
+                    print(f'Warning: branch remove failed for {name}: {removed.stderr.strip()}')
+                    kept['remove failed'] += 1
         if args.local:
             git('worktree', 'prune')
         git('fetch', '--prune', 'origin')
     print(f'After: remote={len(refs(True))} local={len(refs(False))}; dry-run={args.dry_run}')
+    if kept['remove failed']:
+        print(f'Kept remove failed: {kept["remove failed"]}')
 
 
 if __name__ == '__main__':
