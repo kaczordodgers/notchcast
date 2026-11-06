@@ -70,7 +70,7 @@ private struct CaptureEditorCanvas: View {
                             }
                             coordinator.previewSucceeded()
                         } catch {
-                            coordinator.reportPreviewFailure(error, marks: document.marks)
+                            coordinator.reportPreviewFailure(error)
                         }
                     }
                 }

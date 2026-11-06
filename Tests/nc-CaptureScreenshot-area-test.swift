@@ -5,6 +5,8 @@
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
+// notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
+// notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
 import AppKit
 
 struct NotchcastCommand: Sendable {
@@ -17,18 +19,9 @@ struct NotchcastCommand: Sendable {
 }
 
 @MainActor enum NotchcastCore {
-    static let captureEditor = EditorProbe()
+    static var captureEditor: CaptureEditorCoordinator!
     static var instance: ScreenshotModule?
     static var screenshot: ScreenshotModule { instance! }
-}
-
-@MainActor final class EditorProbe {
-    var opens = 0
-    var failure: (any Error)?
-    func openCapture(url: URL?, clipboard: Bool) throws {
-        opens += 1
-        if let failure { throw failure }
-    }
 }
 
 @MainActor final class AppCore {
@@ -58,6 +51,9 @@ struct NotchcastCommand: Sendable {
         })
         let board = NSPasteboard.withUniqueName()
         defer { board.releaseGlobally() }
+        let editor = CaptureEditorCoordinator(pasteboard: board)
+        editor.start()
+        NotchcastCore.captureEditor = editor
         board.setString("Untouched", forType: .string)
         var captures: [CGRect] = []
         var files = 0
@@ -97,13 +93,12 @@ struct NotchcastCommand: Sendable {
             precondition(captures.last == expected)
         }
         precondition(starts == 2 && captures.count == 2)
-        precondition(NotchcastCore.captureEditor.opens == 0)
+        precondition(!editor.isOpen)
         NotchcastPreferences.shared.set(.captureEditor, true)
-        NotchcastCore.captureEditor.failure = CocoaError(.fileReadCorruptFile)
         command.run()
         await module.commandTask?.value
-        precondition(NotchcastCore.captureEditor.opens == 1)
-        precondition(AppCore.shared.messages == [CocoaError(.fileReadCorruptFile).localizedDescription])
+        precondition(!editor.isOpen)
+        precondition(AppCore.shared.messages == [CaptureEditorCoordinator.Failure.noImage.localizedDescription])
         AppCore.shared.messages.removeAll()
         NotchcastPreferences.shared.set(.captureEditor, false)
         precondition(board.string(forType: .string) == "Captured")
@@ -120,6 +115,45 @@ struct NotchcastCommand: Sendable {
         module.stop()
         command.run()
         precondition(captures.count == 4 && AppCore.shared.messages.isEmpty)
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let context = CGContext(data: nil, width: 100, height: 80, bitsPerComponent: 8, bytesPerRow: 0,
+            space: CGColorSpace(name: CGColorSpace.sRGB)!, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        let image = NSImage(cgImage: context.makeImage()!, size: CGSize(width: 100, height: 80))
+        let png = try await CaptureEditorRender.png(CaptureEditorImage(image)!, marks: [])
+        let url = folder.appendingPathComponent("capture.png")
+        try png.write(to: url)
+        let flow = ScreenshotModule(defaults: defaults, area: area, capture: { _, destination, _ in
+            if case .file = destination {} else {
+                board.clearContents()
+                precondition(board.writeObjects([image]))
+            }
+            if case .clipboard = destination { return nil }
+            return url
+        })
+        flow.start()
+        defer { flow.stop(); editor.stop() }
+        NotchcastPreferences.shared.set(.captureEditor, true)
+        for destination in ScreenshotModule.Destination.allCases {
+            board.clearContents()
+            flow.destination = destination
+            flow.captureArea()
+            await flow.commandTask?.value
+            precondition(editor.isOpen)
+            let document = editor.document!
+            document.pick(.rectangle)
+            document.pressed(at: CGPoint(x: 10, y: 10), slack: 1)
+            document.dragged(to: CGPoint(x: 60, y: 50))
+            document.released()
+            let marks = document.marks
+            precondition(marks.count == 1)
+            editor.close()
+            try editor.openFromClipboardOrLast()
+            precondition(editor.document === document && editor.document?.marks == marks)
+            print("PASS: captureArea → editor → close → Edit Capture retains marks for \(destination)")
+            editor.close()
+        }
+        try FileManager.default.removeItem(at: folder)
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         let catalog = try String(contentsOf: root.appendingPathComponent(
             "Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift"), encoding: .utf8)

@@ -44,7 +44,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     private let pasteboard: NSPasteboard
     private let render: @MainActor (CaptureEditorImage, [CaptureEditorMark]) async throws -> Data
     private var session: Session?
-    private var failedPreviewMarks: [CaptureEditorMark]?
+    private var previewFailing = false
     private var operation: UUID?
     private var copyTask: Task<Void, Never>?
     private let reportFailure: (@MainActor (any Error) -> Void)?
@@ -77,7 +77,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
             return
         }
         guard let editable = CaptureEditorImage(image) else { throw Failure.noImage }
-        present(makeSession(image: editable, source: image, clipboardCount: nil))
+        present(makeSession(image: editable, source: image, clipboardCount: pasteboard.changeCount))
     }
 
     func openFromClipboardOrLast() throws {
@@ -137,6 +137,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
         pasteboard.clearContents()
         guard pasteboard.writeObjects([item]) else { throw Failure.clipboard }
         close()
+        self.session = nil
     }
 
     func handle(_ event: NSEvent) -> Bool {
@@ -183,13 +184,13 @@ final class CaptureEditorCoordinator: NotchcastModule {
         reportFailure?(error)
     }
 
-    func reportPreviewFailure(_ error: any Error, marks: [CaptureEditorMark]) {
-        guard failedPreviewMarks != marks else { return }
-        failedPreviewMarks = marks
+    func reportPreviewFailure(_ error: any Error) {
+        guard !previewFailing else { return }
+        previewFailing = true
         reportRenderFailure(error)
     }
 
-    func previewSucceeded() { failedPreviewMarks = nil }
+    func previewSucceeded() { previewFailing = false }
 
     private func makeSession(image: CaptureEditorImage, source: NSImage?, clipboardCount: Int?) -> Session {
         Session(document: CaptureEditorDocument(size: image.points, markScale: image.markScale,
@@ -198,7 +199,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     }
 
     private func present(_ session: Session) {
-        failedPreviewMarks = nil
+        previewFailing = false
         copyTask?.cancel()
         copyTask = nil
         operation = nil

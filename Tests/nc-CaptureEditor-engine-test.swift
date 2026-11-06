@@ -291,6 +291,7 @@ struct CaptureEditorEngineTest {
         try editor.open(image: last)
         precondition(editor.document === first && editor.document?.marks.count == 1)
         let clipboard = NSImage(cgImage: source.pixels, size: CGSize(width: 50, height: 40))
+        board.clearContents()
         precondition(board.writeObjects([clipboard]))
         try editor.openFromClipboardOrLast()
         precondition(editor.document !== first && editor.document?.size == CGSize(width: 50, height: 40))
@@ -313,7 +314,7 @@ struct CaptureEditorEngineTest {
         draw(editor.document!, .text)
         editor.document?.textEdit?.string = "Copy commits text"
         try await editor.copy()
-        precondition(!editor.isOpen && editor.document?.marks.isEmpty == false)
+        precondition(!editor.isOpen && editor.document == nil)
         let copied = board.data(forType: .png)!
         let decoded = CGImageSourceCreateWithData(copied as CFData, nil)!
         precondition(CGImageSourceCreateImageAtIndex(decoded, 0, nil)!.width == 200)
