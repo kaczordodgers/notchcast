@@ -27,10 +27,25 @@ struct ArchiveRoutingTests {
         precondition(Set(identifiers) == Set(ArchiveFormat.typeIdentifiers))
         var extensions: [String] = []
         for imported in imports {
+            let identifier = imported["UTTypeIdentifier"] as? String ?? ""
+            precondition(identifier.hasPrefix("app.notchcast.") || identifier == "org.bittorrent.torrent")
             let tags = imported["UTTypeTagSpecification"] as? [String: Any]
             extensions += tags?["public.filename-extension"] as? [String] ?? []
         }
-        precondition(Set(["7z", "rar", "tgz", "001"]).isSubset(of: Set(extensions)))
+        precondition(extensions.contains("001"))
+        for identifier in identifiers where !identifier.hasPrefix("app.notchcast.") {
+            precondition(UTType(identifier)?.isDeclared == true, "System declares \(identifier)")
+        }
+        let utilityURL = URL(fileURLWithPath: "/System/Library/CoreServices/Applications")
+            .appending(path: "Archive Utility.app/Contents/Info.plist")
+        guard let utility = try PropertyListSerialization.propertyList(
+            from: Data(contentsOf: utilityURL), format: nil) as? [String: Any],
+              let utilityDocuments = utility["CFBundleDocumentTypes"] as? [[String: Any]] else {
+            fatalError("Missing Archive Utility declarations")
+        }
+        let restorable = Set(utilityDocuments.flatMap { $0["LSItemContentTypes"] as? [String] ?? [] })
+        precondition(Set(ArchiveFormat.defaultTypeIdentifiers) == Set(identifiers).intersection(restorable))
+        print("PASS: only fork UTIs imported; all system UTIs declared; default claims exactly match Archive Utility support")
         precondition(!extensions.contains("tar.gz"))
         let gzip = UTType(filenameExtension: "gz")!
         precondition(gzip.identifier == "org.gnu.gnu-zip-archive")

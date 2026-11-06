@@ -2,9 +2,9 @@
 
 `Archives` starts `ArchiveModule` through `NotchcastCore.archiveModuleEntries`. It defaults on and does not require the island. File opens use the existing `AppDelegate` → `AppCore.handleOpenURL` path after launch-time URLs have been deferred. Only local archive URLs are accepted, including plain compressed files. Turning Archives off rejects new opens and retries immediately and cancels queued and active jobs. Quitting waits for the archive child to stop and staging cleanup to complete.
 
-`ArchiveEngineRoute` keeps `.zip`, `.7z`, `.rar`, `.tar`, `.tgz`, `.tar.gz`, `.001` and `.rNN` on hatchzip. A ZIP central-directory name containing non-ASCII bytes without general-purpose UTF-8 bit 11 routes to XADMaster instead. Other ZIPs keep their existing hatchzip path, including in-place extraction and journal resumes. XADMaster’s detector can misread short CP852 names as Windows-1252. A conservative hint selects IBM852 or Windows-1250 only when at least three distinct legacy bytes fit exclusively that encoding’s Polish letter set; all other names retain XAD detection. The same encoding is used for listing and extraction.
+`ArchiveEngineRoute` keeps `.zip`, `.7z`, `.rar`, `.tar`, `.tgz`, `.tar.gz`, `.001` and `.rNN` on hatchzip. A ZIP central-directory name with invalid UTF-8 bytes and without general-purpose UTF-8 bit 11 routes to XADMaster instead. Other ZIPs keep their existing hatchzip path, including in-place extraction and journal resumes. XADMaster’s detector can misread short CP852 names as Windows-1252. A conservative hint selects IBM852 or Windows-1250 only when at least three distinct legacy bytes fit exclusively that encoding’s Polish letter set; all other names retain XAD detection. The same encoding is used for listing and extraction.
 
-System `/usr/bin/bsdtar` handles `.tar.xz`/`.txz`, `.tar.bz2`/`.tbz2`, `.iso`, `.cab`, `.pkg`/`.xar` and `.cpio`. macOS libarchive 3.7.4 lacks zstd, so Homebrew `zstd -d` handles `.zst` and decompresses `.tar.zst`/`.tzst` into staging before bsdtar lists and extracts the tar. Plain `.gz`, `.xz` and `.bz2` use the same system libarchive through its raw-stream API: bsdtar does not enable raw format when reading. Plain compressed files produce one file named by removing the final suffix, ignoring any embedded filename.
+System `/usr/bin/bsdtar` handles `.tar.xz`/`.txz`, `.tar.bz2`/`.tbz2`, `.iso`, `.cab`, `.pkg`/`.xar` and `.cpio`. macOS libarchive 3.7.4 lacks zstd, so Homebrew `zstd -d` handles `.zst` and decompresses `.tar.zst`/`.tzst` into staging before bsdtar lists and extracts the tar. Plain `.gz`, `.xz` and `.bz2` use system `/usr/bin/gzip -d -c` through the bounded, cancellable process runner. Plain compressed files produce one file named by removing the final suffix, ignoring any embedded filename.
 
 Homebrew XADMaster (`lsar`/`unar`, installed with `brew install unar`) handles `.sit`, `.sitx`, `.lzh`/`.lha`, `.arj`, `.z`, `.arc`, `.zoo` and legacy-encoding ZIPs. This deliberately bounded list follows XADMaster’s registered StuffIt, LZH, ARJ, Compress, ARC and Zoo parsers. Nothing is bundled; missing Homebrew tools fail only affected jobs and report `brew install unar` or `brew install zstd`.
 
@@ -31,14 +31,14 @@ Orderly shutdown cancels the worker and signals the child process group. There i
 watchdog: a hard app kill relies on recovery at the next launch.
 
 `Open archives with Notchcast` defaults off and also depends on Archives. Enabling it calls
-`ArchiveDefaultApplicationService` for the claimable archive UTIs. ISO and PKG are declared for Open With and launcher opens but never claimed as default handlers, preserving Finder mounting and Installer. Disabling it, including by disabling
+`ArchiveDefaultApplicationService` for the claimable archive UTIs. Only types declared by Archive Utility are claimed as defaults; all other supported formats remain available through Open With and launcher opens. Disabling it, including by disabling
 Archives, gives handlers still owned by this app back to Archive Utility. Handler writes are
 serialized, including when switches change during a write or a write only partly succeeds.
 Quitting preserves an opted-in handler so the next file open can launch Notchcast. A successful claim
 is persisted so launch does not override subsequent handler choices. Restore only targets types
 declared by Archive Utility, and per-type errors are collected and reported after all types are tried.
 
-The document declarations use the Alternate rank, so registration alone does not claim defaults. The gzip, xz, bzip2 and zstd UTIs offer both plain streams and their `.tar` variants; compound aliases `.tgz`, `.txz`, `.tbz2` and `.tzst` and split `.001` have separate imported tags. Multi-component filename extension tags are not used. Preferences stay in the existing bundle-scoped Notchcast suite.
+The document declarations use the Alternate rank, so registration alone does not claim defaults. The gzip, xz, bzip2 and zstd UTIs offer both plain streams and their `.tar` variants; compound aliases `.tgz`, `.txz`, `.tbz2` and `.tzst` and split `.001` have separate tags; only `app.notchcast.*` identifiers are imported. Multi-component filename extension tags are not used. Preferences stay in the existing bundle-scoped Notchcast suite.
 
 `nc-Archives-fallback-test`, `nc-Archives-engine-test`, `nc-Archives-modules-test` and `nc-Archives-routing-test` cover the engine,
 module ownership, switch defaults and gating, mode selection, shutdown, fake handler effects, document

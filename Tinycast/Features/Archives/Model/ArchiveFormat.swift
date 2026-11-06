@@ -11,9 +11,12 @@ nonisolated enum ArchiveFormat {
         "public.z-archive", "app.notchcast.arc-archive", "app.notchcast.zoo-archive"
     ]
 
-    static let defaultTypeIdentifiers = typeIdentifiers.filter {
-        $0 != "public.iso-image" && $0 != "com.apple.installer-package-archive"
-    }
+    static let defaultTypeIdentifiers = [
+        "public.zip-archive", "org.7-zip.7-zip-archive", "public.tar-archive",
+        "org.gnu.gnu-zip-tar-archive", "org.gnu.gnu-zip-archive", "org.tukaani.xz-archive",
+        "org.tukaani.tar-xz-archive", "public.bzip2-archive", "public.tar-bzip2-archive",
+        "public.cpio-archive", "public.z-archive"
+    ]
 
     static func accepts(_ url: URL) -> Bool {
         ArchiveEngineRoute.route(url) != nil

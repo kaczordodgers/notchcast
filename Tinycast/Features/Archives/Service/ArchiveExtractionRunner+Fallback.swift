@@ -55,7 +55,8 @@ extension ArchiveExtractionRunner {
                 if route == .zstd {
                     bytes = try await fallbackCommand(tool, ["-d", "-c", "--", archive.path], maximum: maximum).outputBytes
                 } else {
-                    bytes = try await ArchiveRawStream.read(archive, maximumBytes: maximum)
+                    bytes = try await fallbackCommand(URL(fileURLWithPath: "/usr/bin/gzip"),
+                        ["-d", "-c", "--", archive.path], maximum: maximum).outputBytes
                 }
                 listing = ArchiveFallbackListing.stream(archive, bytes: bytes)
             } else {
@@ -90,11 +91,8 @@ extension ArchiveExtractionRunner {
                     _ = try await fallbackCommand(tool, ["-d", "-c", "--", archive.path],
                                                   output: output, maximum: total, progress: report)
                 } else {
-                    _ = try await ArchiveRawStream.read(archive, output: output, maximumBytes: total) { written in
-                        var current = update
-                        current.bytesWritten = written
-                        await progress(current)
-                    }
+                    _ = try await fallbackCommand(URL(fileURLWithPath: "/usr/bin/gzip"),
+                        ["-d", "-c", "--", archive.path], output: output, maximum: total, progress: report)
                 }
             } else {
                 _ = try await fallbackCommand(URL(fileURLWithPath: "/usr/bin/bsdtar"),

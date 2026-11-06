@@ -152,38 +152,6 @@
 	<array>
 		<dict>
 			<key>UTTypeIdentifier</key>
-			<string>org.tukaani.xz-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>xz</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.tukaani.tar-xz-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>txz</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>public.bzip2-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>bz2</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>public.tar-bzip2-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>tbz2</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
 			<string>app.notchcast.zstd-archive</string>
 			<key>UTTypeConformsTo</key>
 			<array><string>public.archive</string></array>
@@ -197,62 +165,6 @@
 			<array><string>public.archive</string></array>
 			<key>UTTypeTagSpecification</key>
 			<dict><key>public.filename-extension</key><array><string>tzst</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>public.iso-image</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.disk-image</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>iso</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.microsoft.cab</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>cab</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.apple.installer-package-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>pkg</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.apple.xar-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>xar</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>public.cpio-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>cpio</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.stuffit.archive.sit</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>sit</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.stuffit.archive.sitx</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>sitx</string></array></dict>
 		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
@@ -272,14 +184,6 @@
 		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
-			<string>public.z-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array><string>public.archive</string></array>
-			<key>UTTypeTagSpecification</key>
-			<dict><key>public.filename-extension</key><array><string>Z</string><string>z</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
 			<string>app.notchcast.arc-archive</string>
 			<key>UTTypeConformsTo</key>
 			<array><string>public.archive</string></array>
@@ -293,54 +197,6 @@
 			<array><string>public.archive</string></array>
 			<key>UTTypeTagSpecification</key>
 			<dict><key>public.filename-extension</key><array><string>zoo</string></array></dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.7-zip.7-zip-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.archive</string>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>7z</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>com.rarlab.rar-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.archive</string>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>rar</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
-			<string>org.gnu.gnu-zip-tar-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.archive</string>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>tgz</string>
-				</array>
-			</dict>
 		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>

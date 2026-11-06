@@ -73,6 +73,8 @@ struct ArchivesFallbackTest {
     }
 
     static func zipNames() {
+        expect(!ArchiveZIPEncoding.inspect(zip(Array("Zdjęcia/é.txt".utf8), flags: 0)).requiresUnar,
+               "Flagless valid UTF-8 stays hatchzip")
         expect(!ArchiveZIPEncoding.inspect(zip([0xc4, 0x85], flags: 0x800)).requiresUnar, "UTF-8 flag stays hatchzip")
         expect(!ArchiveZIPEncoding.inspect(zip(Array("ascii.txt".utf8), flags: 0)).requiresUnar, "ASCII stays hatchzip")
         expect(ArchiveZIPEncoding.inspect(zip([0xa5, 0x86, 0x2e, 0x74], flags: 0)).requiresUnar, "High bytes use XAD")
@@ -101,6 +103,9 @@ struct ArchivesFallbackTest {
 
         """.utf8)
         let listing = try ArchiveFallbackListing.bsdtar(tar)
+        let ordinary = try ArchiveFallbackListing.bsdtar(
+            Data("-rw-r--r--  0 0 0 12 Jan  1 12:00 notes link to self.txt\n".utf8))
+        expect(ordinary.entries.first?.path == "notes link to self.txt", "Regular link-to filename accepted")
         expect(listing.entries.count == 3 && listing.totalBytes == 12, "Tar fields, spaces and sizes")
         try ArchiveRules.validate(listing, archiveBytes: 10)
         let xad = Data(#"""
@@ -265,6 +270,10 @@ struct ArchivesFallbackTest {
         expect(generated.status == 0, "Generate real fixtures")
         var outputs: [String: String] = [:]
         let runner = ArchiveExtractionRunner()
+        let polish = root.appending(path: "mac-polish.zip")
+        expect(!ArchiveZIPEncoding.inspect(try Data(contentsOf: polish)).requiresUnar, "ditto UTF-8 stays hatchzip")
+        outputs["mac-polish.zip"] = try await runner.extract(polish).path
+        print("PASS: ditto Polish ZIP routed through hatchzip")
         for name in ["sample.tar.xz", "sample.tar.bz2", "plain.txt.gz", "plain.txt.xz", "plain.txt.bz2",
                      "plain.txt.zst", "sample.tar.zst", "sample.iso", "windows.zip", "windows-1250.zip",
                      "empty.txt.gz", "empty.txt.xz", "empty.txt.bz2"] {

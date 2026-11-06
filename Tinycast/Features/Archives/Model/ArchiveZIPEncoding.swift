@@ -39,8 +39,9 @@ nonisolated enum ArchiveZIPEncoding {
             let comment = Int(integer(data, at: cursor + 32, count: 2))
             let next = cursor + 46 + length + extra + comment
             guard next <= limit else { return Inspection() }
-            if flags & 0x800 == 0 {
-                legacyBytes.formUnion(data[(cursor + 46)..<(cursor + 46 + length)].filter { $0 >= 0x80 })
+            let name = data[(cursor + 46)..<(cursor + 46 + length)]
+            if flags & 0x800 == 0, String(bytes: name, encoding: .utf8) == nil {
+                legacyBytes.formUnion(name.filter { $0 >= 0x80 })
                 windowsNames = !legacyBytes.isEmpty
             }
             cursor = next

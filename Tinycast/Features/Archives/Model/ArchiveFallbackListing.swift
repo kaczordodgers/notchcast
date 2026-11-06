@@ -19,8 +19,6 @@ nonisolated enum ArchiveFallbackListing {
                 guard parts.count == 2 else { throw ArchiveFailure.invalidListing }
                 _ = try ArchiveRules.components(parts[1])
                 path = parts[0]
-            } else if path.contains(" link to ") {
-                throw ArchiveFailure.invalidListing
             }
             entries.append(.init(path: path, isDirectory: kind == "d", isSymlink: link))
             guard entries.count <= 100_000 else { throw ArchiveFailure.tooManyEntries }

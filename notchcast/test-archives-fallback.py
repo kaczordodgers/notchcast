@@ -24,12 +24,15 @@ def generate(root):
     source = root / 'source' / 'Folder'
     source.mkdir(parents=True, exist_ok=True)
     (source / 'hello.txt').write_bytes(b'Archive fallback contents\n')
+    (source / 'notes link to self.txt').write_bytes(b'Ordinary filename\n')
     (source / 'zażółć gęślą jaźń.txt').write_bytes(b'Polish CP852 filename\n')
     (source / 'pchnąć w tę łódź jeża lub ośm skrzyń fig.txt').write_bytes(b'Encoding detection sample\n')
     for suffix, mode in [('tar.xz', 'w:xz'), ('tar.bz2', 'w:bz2'), ('tar', 'w')]:
         with tarfile.open(root / f'sample.{suffix}', mode) as archive:
             archive.add(source, arcname='Folder')
     payload = b'Plain stream contents\x00\xff\n'
+    subprocess.run(['/usr/bin/ditto', '-c', '-k', '--keepParent', str(source),
+                    str(root / 'mac-polish.zip')], check=True)
     (root / 'plain-source').write_bytes(payload)
     for suffix, compress in [('gz', gzip.compress), ('xz', lzma.compress), ('bz2', bz2.compress)]:
         (root / f'plain.txt.{suffix}').write_bytes(compress(payload))
