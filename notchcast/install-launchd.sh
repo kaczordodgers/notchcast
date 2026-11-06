@@ -111,10 +111,10 @@ install_prune() {
         source "$HOME/.config/notchcast/private.env"
     fi
     IFS=: read -r -a roots <<< "${NOTCHCAST_WORKTREE_ROOTS:-}"
-    for root in "${roots[@]}"; do
+    for root in ${roots[@]+"${roots[@]}"}; do
         [ -z "$root" ] || args+=(--worktree-root "$root")
     done
-    # Run in the main checkout (not a worktree that may go away) with the current-main copy notchcast.update refreshes.
+    # Main checkout, never a worktree that may go away; the copy notchcast.update refreshes.
     local repo
     repo=$(dirname "$(git -C "$HERE" rev-parse --path-format=absolute --git-common-dir)")
     RUN_AT_LOAD=false agent notchcast.prune prune \
@@ -122,7 +122,7 @@ install_prune() {
 <key>WorkingDirectory</key><string>'"$repo"'</string>
 <key>EnvironmentVariables</key><dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>' \
         "$(named_job 'Notchcast prune' /usr/bin/env python3 "$HOME/Library/Application Support/notchcast/tools/prune-branches.py" \
-            --remote --local --log "$LOGS/pruned-branches.tsv" "${args[@]}")"
+            --remote --local --log "$LOGS/pruned-branches.tsv" ${args[@]+"${args[@]}"})"
 }
 
 install_app() {
