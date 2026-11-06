@@ -173,6 +173,13 @@ struct ArchivesEngineTest {
         let application = URL(fileURLWithPath: "/Applications/Fixture.app")
         let types = Array(ArchiveFormat.typeIdentifiers.prefix(4))
         var attempted: [String] = []
+        try await ArchiveDefaultApplicationService.apply(
+            enabled: true, application: application, supported: Set(ArchiveFormat.typeIdentifiers), current: { _ in nil }
+        ) { attempted.append($0) }
+        expect(attempted == ArchiveFormat.defaultTypeIdentifiers, "claims only eligible archive types")
+        expect(!attempted.contains("public.iso-image"), "ISO never claimed by real default-service path")
+        expect(!attempted.contains("com.apple.installer-package-archive"), "PKG never claimed by real default-service path")
+        attempted = []
         do {
             try await ArchiveDefaultApplicationService.apply(
                 enabled: false, application: application, supported: Set(types.prefix(3)),
@@ -209,7 +216,7 @@ struct ArchivesEngineTest {
         for name in ["a.zip", "a.7z", "a.rar", "a.part02.rar", "a.r00", "a.tar", "a.tgz", "a.tar.gz", "a.7z.001"] {
             expect(ArchiveFormat.accepts(URL(fileURLWithPath: name)), "format \(name)")
         }
-        expect(!ArchiveFormat.accepts(URL(fileURLWithPath: "plain.gz")), "plain gzip unclaimed")
+        expect(ArchiveFormat.accepts(URL(fileURLWithPath: "plain.gz")), "plain gzip supported")
         expect(ArchiveFormat.baseName(URL(fileURLWithPath: "a.part02.rar")) == "a", "RAR basename")
         expect(ArchiveFormat.baseName(URL(fileURLWithPath: "a.tar.gz.001")) == "a", "split basename")
         for path in ["/etc/test", "../escape", "folder/../escape", "C:/escape", "folder\\escape"] {

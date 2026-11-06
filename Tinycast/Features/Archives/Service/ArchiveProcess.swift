@@ -5,17 +5,29 @@ nonisolated enum ArchiveProcess {
     struct Result: Sendable {
         let status: Int32
         let listing: ArchiveListing?
+        let output: Data
+        let outputBytes: Int64
     }
 
     @concurrent static func run(
-        tool: URL, arguments: [String], captureListing: Bool = false,
+        tool: URL, arguments: [String], captureListing: Bool = false, captureOutput: Bool = false,
+        outputFile: URL? = nil, maximumOutputBytes: Int64? = nil,
+        environment: [String: String] = ProcessInfo.processInfo.environment,
         progress: @escaping @Sendable () async -> Void = {}
     ) async throws -> Result {
         let pipe = Pipe()
         let descriptor = pipe.fileHandleForReading.fileDescriptor
         guard fcntl(descriptor, F_SETFL, O_NONBLOCK) != -1 else { throw ArchiveFailure.filesystem("pipe") }
         try Task.checkCancellation()
-        let identifier = try launch(tool: tool, arguments: arguments, pipe: pipe)
+        let destination: FileHandle?
+        if let outputFile {
+            try Data().write(to: outputFile, options: .withoutOverwriting)
+            destination = try FileHandle(forWritingTo: outputFile)
+        } else {
+            destination = nil
+        }
+        defer { try? destination?.close() }
+        let identifier = try launch(tool: tool, arguments: arguments, pipe: pipe, environment: environment)
         var status: Int32 = 0
         defer {
             kill(-identifier, SIGKILL)
@@ -24,6 +36,8 @@ nonisolated enum ArchiveProcess {
         try pipe.fileHandleForWriting.close()
         defer { try? pipe.fileHandleForReading.close() }
         var listing = captureListing ? ArchiveListing() : nil
+        var output = Data()
+        var outputBytes: Int64 = 0
         var failure: (any Error)?
         var stopped: ContinuousClock.Instant?
         var buffer = [UInt8](repeating: 0, count: 8192)
@@ -56,7 +70,22 @@ nonisolated enum ArchiveProcess {
             }
             let count = read(descriptor, &buffer, buffer.count)
             if count > 0, failure == nil {
-                do { try listing?.feed(Data(buffer.prefix(count))) } catch { failure = error }
+                do {
+                    let data = Data(buffer.prefix(count))
+                    if let maximumOutputBytes, Int64(count) > maximumOutputBytes - outputBytes {
+                        throw ArchiveFailure.expansionLimit
+                    }
+                    outputBytes += Int64(count)
+                    if captureOutput {
+                        guard output.count + count <= 16_000_000 else { throw ArchiveFailure.invalidListing }
+                        output.append(data)
+                    }
+                    try listing?.feed(data)
+                    if let outputFile {
+                        try ArchiveFallbackSpace.check(outputFile.deletingLastPathComponent(), additionalBytes: Int64(count))
+                    }
+                    try destination?.write(contentsOf: data)
+                } catch { failure = error }
             } else if count == 0 {
                 ended = true
             } else if count < 0, errno != EAGAIN, errno != EINTR {
@@ -75,7 +104,7 @@ nonisolated enum ArchiveProcess {
         try Task.checkCancellation()
         if let failure { throw failure }
         if captureListing, terminationStatus == 0 { try listing?.finish() }
-        return Result(status: terminationStatus, listing: listing)
+        return Result(status: terminationStatus, listing: listing, output: output, outputBytes: outputBytes)
     }
 
     static func validate(_ status: Int32) throws {
@@ -88,7 +117,7 @@ nonisolated enum ArchiveProcess {
         }
     }
 
-    private static func launch(tool: URL, arguments: [String], pipe: Pipe) throws -> pid_t {
+    private static func launch(tool: URL, arguments: [String], pipe: Pipe, environment: [String: String]) throws -> pid_t {
         var actions: posix_spawn_file_actions_t?
         var attributes: posix_spawnattr_t?
         posix_spawn_file_actions_init(&actions)
@@ -103,7 +132,7 @@ nonisolated enum ArchiveProcess {
         posix_spawn_file_actions_addopen(&actions, STDERR_FILENO, "/dev/null", O_WRONLY, 0)
         posix_spawn_file_actions_adddup2(&actions, pipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
         let argv = ([tool.path] + arguments).map { strdup($0) } + [nil]
-        let envp = ProcessInfo.processInfo.environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
+        let envp = environment.map { strdup("\($0.key)=\($0.value)") } + [nil]
         defer {
             argv.forEach { free($0) }
             envp.forEach { free($0) }
