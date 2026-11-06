@@ -10,7 +10,7 @@ ALLOWED = {
 }
 
 
-# Old commits with a non-allowed author email, already public; rewriting history is Damian's decision. Do not add to this list.
+# Old commits with a non-allowed author email, already public; rewriting history is the repo owner's decision. Do not add to this list.
 OLD_COMMITS = {
     "4f199aad279ca9e68cb941a9788c81aefed50726",
     "1f17b82e60180905a66a099f1f6959ead5f30f74",

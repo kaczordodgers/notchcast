@@ -17,7 +17,7 @@ replay-fixes/<lowercase subject, non-alphanumerics hyphenated>.patch or fail.
 Failures are remembered as refs/notchcast-failed/<main|release-<tag>>-<upstream or tag>-<our main>, so the same
 input is retried only when upstream or our main changes, and reported as one open issue per kind (label
 notchcast-<kind>: sync = replay onto new upstream, main = main tested as it is, release), which a newer failure with
-the same cause only retitles; notchcast/update.sh tells Chad once per issue and cause.
+the same cause only retitles; notchcast/update.sh reports each issue and cause once through its notify hook.
 """
 import json
 import os
@@ -269,7 +269,7 @@ def pruned(tree):
 
 
 def regenerate(tree, onto):
-    """Write GENERATED in tree: our README as README.md, the Xcode project from project.yml ($XCODEGEN), and the
+    """Write GENERATED in tree: notchcast/README.public.md as README.md, the Xcode project from project.yml ($XCODEGEN), and the
     extension runtime bundle when our commits change its sources. Also stage the removal of every path in
     notchcast/prune-paths.txt (upstream files the app does not need), so the removal rides in the generated-files
     commit, which a replay never picks and so never conflicts."""
@@ -277,7 +277,7 @@ def regenerate(tree, onto):
     paths = pruned(tree)
     if paths:
         run("git", "rm", "-r", "-q", "--ignore-unmatch", "--", *paths, cwd=tree)
-    (tree / "README.md").write_text((tree / "notchcast/README.md").read_text())
+    (tree / "README.md").write_text((tree / "notchcast/README.public.md").read_text())
     if os.environ.get("XCODEGEN"):
         run(os.environ["XCODEGEN"], "generate", "--quiet", cwd=tree)
     elif subprocess.run(["git", "diff", "--quiet", onto, "HEAD", "--", "project.yml"], cwd=tree).returncode:
@@ -325,7 +325,7 @@ def issue(action, kind, *args):
 
 def design_notice(tree, old, new):
     """One notchcast-design issue per sync that brings upstream design-system changes; update.sh turns it into a
-    Todoist task and closes it."""
+    private task and closes it."""
     cfg = config()
     url = f"https://github.com/{cfg['UPSTREAM_REPO']}/commit"
     commits = run("git", "log", f"--format=- [`%h`]({url}/%H) %s", f"{old}..{new}", "--", *DESIGN_PATHS, cwd=tree)
