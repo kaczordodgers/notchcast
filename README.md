@@ -44,7 +44,7 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 
 - ⌘X and ⌘V move files in Finder; Hyper+R renames the selection; ⌘V saves a clipboard image as a PNG file in Finder.
 - Paste Plain Text, and tracking parameters removed from copied links.
-- Archives extract beside the original, optionally in place and as the default app for archives.
+- Archives in many formats extract beside the original, optionally in place and as the default app for archives. Compress the Finder selection as ZIP, 7z or tar.zst.
 - Convert files, compress video and images, make GIFs and extract text from the Finder selection, all locally.
 - Quick Look for Markdown files, and spell checking in the editor.
 
