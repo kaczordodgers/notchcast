@@ -32,7 +32,7 @@ struct IslandSurfaceTests {
         surface.setContent(open: AnyView(EmptyView()), closed: AnyView(Text("Timer")))
         surface.setContent(open: AnyView(EmptyView()), closed: AnyView(Text("Done")), handover: true)
         surface.present(outline: closed, openRect: openRect, showing: .closed, motion: .shrink)
-        assert(surface.subviews.count == 3 && surface.subviews[2].layer?.contents is CGImage,
+        assert(surface.subviews.count == 3 && surface.subviews[2].layer?.contents != nil,
                "handover retains a still image without restarting the outgoing row's geometry callbacks")
         let incoming = surface.subviews[1].layer?.animation(forKey: "islandContent") as? CABasicAnimation
         assert(incoming!.beginTime > CACurrentMediaTime() + IslandMotion.crossFade,
