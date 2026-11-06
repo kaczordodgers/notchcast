@@ -13,20 +13,31 @@ nonisolated struct ArchiveCompressor: Sendable {
         guard !sources.isEmpty, sources.allSatisfy({ $0.isFileURL && files.fileExists(atPath: $0.path) }) else {
             throw ArchiveFailure.filesystem("selection")
         }
-        let output = format.output(sources: sources) { files.fileExists(atPath: $0.path) }
+        var output = format.output(sources: sources) { files.fileExists(atPath: $0.path) }
         let temporary = output.deletingLastPathComponent().appending(path: ".\(UUID()).\(format.suffix)")
         defer { if files.fileExists(atPath: temporary.path) { try? files.removeItem(at: temporary) } }
         let tool: URL
         var inputs = sources
         let staging = output.deletingLastPathComponent().appending(path: ".\(UUID())")
         defer { if files.fileExists(atPath: staging.path) { try? files.removeItem(at: staging) } }
-        if format == .zip, sources.count > 1 {
+        let duplicateLeaves = Set(sources.map { $0.lastPathComponent.lowercased() }).count < sources.count
+        if (format == .zip && sources.count > 1) || duplicateLeaves {
             try files.createDirectory(at: staging, withIntermediateDirectories: false)
+            inputs = []
             for source in sources {
                 try Task.checkCancellation()
-                try files.copyItem(at: source, to: staging.appending(path: source.lastPathComponent))
+                var destination = staging.appending(path: source.lastPathComponent)
+                var number = 1
+                while files.fileExists(atPath: destination.path) {
+                    number += 1
+                    let stem = source.deletingPathExtension().lastPathComponent
+                    let suffix = source.pathExtension.isEmpty ? "" : "." + source.pathExtension
+                    destination = staging.appending(path: "\(stem) \(number)\(suffix)")
+                }
+                try files.copyItem(at: source, to: destination)
+                inputs.append(destination)
             }
-            inputs = [staging]
+            if format == .zip { inputs = [staging] }
         }
         var zstd: URL?
         switch format {
@@ -41,17 +52,16 @@ nonisolated struct ArchiveCompressor: Sendable {
         let status = try await run(tool, arguments)
         guard status == 0 else { throw ArchiveFailure.compressionFailed(status) }
         try Task.checkCancellation()
-        guard renamex_np(temporary.path, output.path, UInt32(RENAME_EXCL)) == 0 else {
-            throw ArchiveFailure.filesystem("publish")
+        while renamex_np(temporary.path, output.path, UInt32(RENAME_EXCL)) != 0 {
+            guard errno == EEXIST else { throw ArchiveFailure.filesystem("publish") }
+            try Task.checkCancellation()
+            output = format.output(sources: sources) { files.fileExists(atPath: $0.path) }
         }
         return output
     }
 
     private func locate(_ name: String, install: String) throws -> URL {
-        let paths = (environment["PATH"] ?? "").split(separator: ":").map(String.init)
-            + [home.appending(path: ".local/bin").path, "/opt/homebrew/bin", "/usr/local/bin"]
-        guard let tool = paths.filter({ $0.hasPrefix("/") }).map({ URL(filePath: $0).appending(path: name) })
-            .first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) else {
+        guard let tool = ArchiveToolLocator(environment: environment, home: home, name: name).locate() else {
             throw ArchiveFailure.compressionToolMissing(install)
         }
         return tool

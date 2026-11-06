@@ -15,8 +15,7 @@ final class ArchiveServices: NSObject {
     }
 
     private func submit(_ pasteboard: NSPasteboard, format: ArchiveCompression) {
-        guard ArchiveCommands.enabled, NotchcastCore.archives.isRunning else { return }
         let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
-        NotchcastCore.archives.queue.compress(urls, format: format)
+        ArchiveCompressionCommands.submit(urls, format: format)
     }
 }

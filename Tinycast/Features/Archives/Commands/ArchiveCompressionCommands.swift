@@ -8,16 +8,29 @@ enum ArchiveCompressionCommands {
     nonisolated static let fast = NotchcastCommand(slug: "compress-fast", name: String(localized: "Compress Fast", table: "Notchcast"), sfSymbol: "archivebox", feature: .archives, isEnabled: { ArchiveCommands.enabled }, run: { run(.fast) })
 
     static func run(_ format: ArchiveCompression) {
-        guard ArchiveCommands.enabled else { return }
+        guard ArchiveCommands.enabled, NotchcastCore.archives.isRunning else {
+            submit([], format: format)
+            return
+        }
         Task {
             do {
                 let urls = try await selection()
-                guard ArchiveCommands.enabled, NotchcastCore.archives.isRunning else { return }
-                guard !urls.isEmpty else { throw ArchiveFailure.filesystem("selection") }
-                NotchcastCore.archives.queue.compress(urls, format: format)
+                submit(urls, format: format)
             } catch {
                 AppCore.shared.showMessage(String(localized: "Couldn’t read the Finder selection.", table: "Notchcast"), tone: .danger)
             }
         }
+    }
+
+    static func submit(_ urls: [URL], format: ArchiveCompression) {
+        guard ArchiveCommands.enabled, NotchcastCore.archives.isRunning else {
+            AppCore.shared.showMessage(String(localized: "The archive engine is not running.", table: "Notchcast"), tone: .danger)
+            return
+        }
+        guard !urls.isEmpty else {
+            AppCore.shared.showMessage(String(localized: "No archive was selected.", table: "Notchcast"), tone: .danger)
+            return
+        }
+        NotchcastCore.archives.queue.compress(urls, format: format)
     }
 }

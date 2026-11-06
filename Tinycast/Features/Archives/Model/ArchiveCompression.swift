@@ -15,7 +15,7 @@ nonisolated enum ArchiveCompression: String, Equatable, Sendable, CaseIterable {
         switch self {
         case .zip: ["-c", "-k", "--sequesterRsrc", "--keepParent"] + sources.map(\.path) + [output.path]
         case .small: ["a", "-t7z", "-mx=9", output.path, "--"] + sources.map(\.path)
-        case .fast: ["--use-compress-program", "\(zstd!.path) -T0", "-cf", output.path]
+        case .fast: ["--use-compress-program", "\"\(zstd!.path)\" -T0", "-cf", output.path]
             + sources.flatMap { ["-C", $0.deletingLastPathComponent().path, "./" + $0.lastPathComponent] }
         }
     }

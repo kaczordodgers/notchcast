@@ -2,12 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-    <key>NSServices</key>
-    <array>
-        <dict><key>NSMenuItem</key><dict><key>default</key><string>Compress with Notchcast</string><key>de</key><string>Mit Notchcast komprimieren</string><key>es</key><string>Comprimir con Notchcast</string><key>fr</key><string>Compresser avec Notchcast</string><key>ja</key><string>Notchcastで圧縮</string><key>ko</key><string>Notchcast로 압축</string><key>pt</key><string>Comprimir com Notchcast</string><key>ru</key><string>Сжать с помощью Notchcast</string><key>zh-Hans</key><string>使用 Notchcast 压缩</string></dict><key>NSMessage</key><string>compress</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
-        <dict><key>NSMenuItem</key><dict><key>default</key><string>Compress Small</string><key>de</key><string>Stark komprimieren</string><key>es</key><string>Comprimir al máximo</string><key>fr</key><string>Compresser au maximum</string><key>ja</key><string>高圧縮</string><key>ko</key><string>최대 압축</string><key>pt</key><string>Comprimir ao máximo</string><key>ru</key><string>Максимальное сжатие</string><key>zh-Hans</key><string>高效压缩</string></dict><key>NSMessage</key><string>compressSmall</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
-        <dict><key>NSMenuItem</key><dict><key>default</key><string>Compress Fast</string><key>de</key><string>Schnell komprimieren</string><key>es</key><string>Comprimir rápido</string><key>fr</key><string>Compresser rapidement</string><key>ja</key><string>高速圧縮</string><key>ko</key><string>빠른 압축</string><key>pt</key><string>Comprimir rápido</string><key>ru</key><string>Быстрое сжатие</string><key>zh-Hans</key><string>快速压缩</string></dict><key>NSMessage</key><string>compressFast</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
-    </array>
+	<key>NSServices</key>
+	<array>
+		<dict><key>NSMenuItem</key><dict><key>default</key><string>Compress with Notchcast</string></dict><key>NSMessage</key><string>compress</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
+		<dict><key>NSMenuItem</key><dict><key>default</key><string>Compress Small</string></dict><key>NSMessage</key><string>compressSmall</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
+		<dict><key>NSMenuItem</key><dict><key>default</key><string>Compress Fast</string></dict><key>NSMessage</key><string>compressFast</string><key>NSPortName</key><string>$(PRODUCT_NAME)</string><key>NSSendFileTypes</key><array><string>public.item</string></array></dict>
+	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
