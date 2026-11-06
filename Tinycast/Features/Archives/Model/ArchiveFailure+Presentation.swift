@@ -3,6 +3,8 @@ import Foundation
 extension ArchiveFailure {
     var message: String {
         switch self {
+        case .compressionToolMissing(let command): String(localized: "Install the compression tool: \(command)", table: "Notchcast")
+        case .compressionFailed(let status): String(localized: "Compression stopped with code \(status).", table: "Notchcast")
         case .toolMissing: String(localized: "hatchzip is not installed.", table: "Notchcast")
         case .fallbackToolMissing(let command): String(localized: "Install archive tool: \(command)", table: "Notchcast")
         case .fallbackToolFailed(let tool, let code): String(localized: "\(tool) exited with code \(code).", table: "Notchcast")

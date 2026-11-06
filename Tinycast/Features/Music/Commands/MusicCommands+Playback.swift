@@ -11,20 +11,24 @@ extension MusicCommands {
     nonisolated static let speakerOffCommand =
         speakerCommand("spotify-connect-speaker-off", name: String(localized: "Spotify Connect Speaker Off", table: "Notchcast"), on: false)
 
+    /// The speaker switch is what these commands flip, so they belong to Now Playing: Off must never hide On.
     nonisolated private static func speakerCommand(_ slug: String, name: String, on: Bool) -> NotchcastCommand {
-        NotchcastCommand(slug: slug, name: name, sfSymbol: "hifispeaker", feature: .spotifyConnect, isEnabled: { enabled }, run: {
+        NotchcastCommand(slug: slug, name: name, sfSymbol: "hifispeaker", feature: .musicNowPlaying, isEnabled: { enabled }, run: {
             guard enabled else { return }
-            let current = NotchcastPreferences.shared.isOn(.spotifyConnect)
-            if current == on {
+            let preferences = NotchcastPreferences.shared
+            if on, (try? NotchcastCore.services?.spotify.key.isSaved) != true {
+                preferences.set(.spotifyConnect, true)
+                AppCore.shared.settingsCoordinator.showSettings(
+                    tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
+            } else if preferences.isOn(.spotifyConnect) == on {
                 AppCore.shared.showMessage(on
                     ? String(localized: "Spotify Connect Speaker is already on.", table: "Notchcast")
                     : String(localized: "Spotify Connect Speaker is already off.", table: "Notchcast"))
-            } else if on {
-                AppCore.shared.settingsCoordinator.showSettings(
-                    tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
             } else {
-                NotchcastPreferences.shared.set(.spotifyConnect, false)
-                AppCore.shared.showMessage(String(localized: "Spotify Connect Speaker is off.", table: "Notchcast"))
+                preferences.set(.spotifyConnect, on)
+                AppCore.shared.showMessage(on
+                    ? String(localized: "Starting…")
+                    : String(localized: "Spotify Connect Speaker is off.", table: "Notchcast"))
             }
         })
     }

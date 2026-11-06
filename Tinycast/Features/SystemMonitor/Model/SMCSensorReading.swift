@@ -6,7 +6,6 @@ nonisolated struct SMCSensorReading: Sendable, Equatable {
         let currentRPM: Double?
         let minimumRPM: Double?
         let maximumRPM: Double?
-        let mode: Int?
     }
 
     let cpuTemperature: Double?

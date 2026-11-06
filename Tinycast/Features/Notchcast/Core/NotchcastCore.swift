@@ -1,4 +1,4 @@
-import Foundation
+import AppKit
 
 /// Modules and their entries live in `NotchcastCore+Modules.swift`.
 @MainActor
@@ -7,6 +7,7 @@ enum NotchcastCore {
     private static var controller: NotchcastModuleController?
     static private(set) var services: NotchcastServices?
     private static var monitor: MonitorModule?
+    private static let archiveServices = ArchiveServices()
 
     static func setFanMode(_ mode: FanControl.Mode) { monitor?.fans.set(mode) }
     static var confirmMacUpdate: () async -> Bool = { false }
@@ -37,6 +38,9 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
+        NSApp.servicesProvider = archiveServices
+        ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
+        archives.queue.compressionFinished = { [weak core] job in core?.showMessage(job.failure?.message ?? job.stateTitle, tone: job.failure == nil ? .neutral : .danger) }
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         battery.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in

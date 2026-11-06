@@ -2,8 +2,9 @@
 # Sync trigger: GitHub's own schedule never fired for this fork, so launchd (notchcast.kick, every 10 min) starts
 # sync.yml when upstream changes, and at least hourly.
 # The sync decides everything else (ci.py plan); a start that finds nothing to do costs one Linux minute.
-# Where chad-opus exists (the MBA) Chad is told once when this trigger fails, and once per upstream commit that is
-# not in our main after LAG_ALERT_MIN while no sync issue explains it.
+# Where ~/.config/notchcast/private.env defines notchcast_notify (notchcast/README.md, "Private hooks"), it is told
+# once when this trigger fails, and once per upstream commit that is not in our main after LAG_ALERT_MIN while no
+# sync issue explains it.
 # Usage: kick.sh [--dry-run]
 set -euo pipefail
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$HOME/.local/bin"
@@ -19,14 +20,18 @@ ALERTED="$STATE_DIR/kick.alerted"
 HEARTBEAT_SEC=3600 LAG_ALERT_MIN=40
 mkdir -p "$STATE_DIR"; touch "$STATE" "$ALERTED"
 log() { printf '%s %s\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" "$*"; }
+if [ -f "$HOME/.config/notchcast/private.env" ]; then
+    # shellcheck disable=SC1091
+    source "$HOME/.config/notchcast/private.env"
+fi
 
 alert_once() { # key message
-    command -v chad-opus >/dev/null || return 0
+    declare -F notchcast_notify >/dev/null || return 0
     grep -qxF "$1" "$ALERTED" && return 0
     if [ "$DRY" = 1 ]; then log "would alert: $2"; return 0; fi
-    printf 'Notchcast: %s\n' "$2" | chad-opus ping failure - >/dev/null || { log "ping failed; retried next run"; return 0; }
+    printf 'Notchcast: %s\n' "$2" | notchcast_notify || { log "notify failed; retried next run"; return 0; }
     echo "$1" >> "$ALERTED"
-    log "alerted Chad: $2"
+    log "notified: $2"
 }
 
 fail() {
@@ -47,7 +52,9 @@ if [ "$want" != "${last_main:-} ${last_release:-}" ]; then reason="upstream chan
 elif [ $((now - ${last_at:-0})) -ge "$HEARTBEAT_SEC" ]; then reason="hourly heartbeat"
 fi
 if [ -n "$reason" ] || [ "$DRY" = 1 ]; then
-    if [ "$DRY" = 1 ]; then log "would start sync ($reason)"
+    pending="$(gh run list -R "$FORK_REPO" --workflow sync.yml --limit 100 --json status --jq '[.[] | select(.status == "queued" or .status == "pending" or .status == "waiting")] | length' 2>&1)" || fail "reading pending sync runs: $pending"
+    if [ "$pending" != 0 ]; then log "skip sync: a run is queued/pending/waiting; re-evaluate next tick"
+    elif [ "$DRY" = 1 ]; then log "would start sync ($reason)"
     else
         out="$(gh workflow run sync.yml -R "$FORK_REPO" --ref main 2>&1)" || fail "gh workflow run: $out"
         echo "$want $now" > "$STATE"

@@ -4,6 +4,7 @@ import Observation
 @Observable @MainActor
 final class ArchiveQueue {
     private(set) var jobs: [ArchiveJob] = []
+    @ObservationIgnored var compressionFinished: (ArchiveJob) -> Void = { _ in }
     @ObservationIgnored private let runner: ArchiveExtractionRunner
     @ObservationIgnored private var worker: Task<Void, Never>?
     @ObservationIgnored private var activeID: UUID?
@@ -12,6 +13,14 @@ final class ArchiveQueue {
     init(runner: ArchiveExtractionRunner = ArchiveExtractionRunner()) { self.runner = runner }
 
     isolated deinit { worker?.cancel() }
+
+    func compress(_ sources: [URL], format: ArchiveCompression) {
+        guard let first = sources.first else { return }
+        let job = ArchiveJob(id: UUID(), archive: first, kind: .compression(format, sources))
+        jobs.append(job)
+        pendingIDs.append(job.id)
+        startNext()
+    }
 
     @discardableResult
     func enqueue(_ archive: URL, mode: ArchiveJob.Mode = .keepArchive) -> UUID {
@@ -63,6 +72,11 @@ final class ArchiveQueue {
         jobs[index].state = .preflighting
         worker = Task { [weak self, runner] in
             do {
+                if case .compression(let format, let sources) = job.kind {
+                    let output = try await ArchiveCompressor().compress(sources, format: format)
+                    self?.finish(job.id, output: output, failure: nil, cancelled: false)
+                    return
+                }
                 let output = try await runner.extract(
                     job.archive, mode: job.mode, recovery: job.recovery
                 ) { [weak self] progress in
@@ -99,6 +113,7 @@ final class ArchiveQueue {
         jobs[index].output = output
         jobs[index].failure = failure
         jobs[index].state = cancelled ? .cancelled : failure == nil ? .finished : .failed
+        if case .compression = jobs[index].kind { compressionFinished(jobs[index]) }
         if output != nil { jobs[index].bytesWritten = jobs[index].totalBytes }
         if output != nil { jobs[index].recovery = nil }
         activeID = nil

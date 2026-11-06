@@ -18,4 +18,4 @@ TLS MachLink remains independent of SSH. Shelf transfers resolve the paired endp
 the listener routes shelf requests before AI usage and acknowledges after persistence.
 Backup status, link health and file-transfer notices use the existing island status messages.
 
-Harnesses use synthetic data and fake runners. Live checks between Macs remain for the morning.
+Harnesses use synthetic data and fake runners. Live checks between Macs remain manual.
