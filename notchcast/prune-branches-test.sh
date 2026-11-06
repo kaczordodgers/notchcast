@@ -52,6 +52,12 @@ git switch -q -c unlanded "$base"
 echo unlanded > unlanded
 git add unlanded
 git commit -qm unlanded
+git switch -q -c merge-only "$base"
+git merge -q --no-ff --no-commit patch
+echo resolved > resolved
+git add resolved
+git commit -qm 'hand-resolved merge'
+[ -z "$(git cherry main merge-only | grep '^+' || true)" ]
 git switch -q main
 unset GIT_AUTHOR_DATE GIT_COMMITTER_DATE
 export GIT_AUTHOR_DATE=$(date -u -v-36H '+%Y-%m-%dT%H:%M:%SZ')
@@ -94,6 +100,11 @@ if python3 "$script" --remote --dry-run --log "$scratch/dry.tsv" > "$scratch/mis
 fi
 grep -q 'upstream/main is missing' "$scratch/missing-output"
 git update-ref refs/remotes/upstream/main "$upstream"
+if python3 "$script" --local --dry-run --log "$scratch/dry.tsv" --worktree-root "$HOME" > "$scratch/home-output" 2>&1; then
+    echo 'FAIL: a worktree root containing the home folder was accepted' >&2
+    exit 1
+fi
+grep -q 'contains the home folder' "$scratch/home-output"
 python3 "$script" --remote --local --dry-run --log "$scratch/dry.tsv" --worktree-root "$scratch/allowed" > "$scratch/dry-output"
 for name in other-author no-subject upstream-subject wrong-prefix; do
     ! grep -q "Candidate .*: $name$" "$scratch/dry-output"
@@ -108,7 +119,7 @@ git merge-base --is-ancestor recent-ancestor origin/main
 [ ! -e "$scratch/dry.tsv" ]
 python3 "$script" --remote --local --log "$scratch/log.tsv" --worktree-root "$scratch/allowed" > "$scratch/output"
 cat "$scratch/output"
-for name in main open nc-design-race-one nc-design-v4-one recent recent-ancestor unlanded dirty locked outside fail-tree fail-branch; do git show-ref --verify --quiet "refs/heads/$name"; done
+for name in main open nc-design-race-one nc-design-v4-one recent recent-ancestor unlanded merge-only dirty locked outside fail-tree fail-branch; do git show-ref --verify --quiet "refs/heads/$name"; done
 for name in ancestor patch squash clean age-36-hours; do
     ! git show-ref --verify --quiet "refs/heads/$name"
     [ -z "$(git ls-remote origin "refs/heads/$name")" ]

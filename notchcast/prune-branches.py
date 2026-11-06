@@ -44,8 +44,11 @@ def main():
     landed_numbers = {int(match[1]) for subject in
                       git('log', '--format=%s', 'upstream/main..origin/main').splitlines()
                       if (match := re.fullmatch(r'Notchcast:.* \(#(\d+)\)', subject))}
-    opened = json.loads(run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'open', '-L', '1000', '--json', 'headRefName').stdout)
-    open_names = {pr['headRefName'] for pr in opened}
+    def open_heads():
+        opened = run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'open', '-L', '1000', '--json', 'headRefName')
+        return {pr['headRefName'] for pr in json.loads(opened.stdout)}
+
+    open_names = open_heads()
     closed = json.loads(run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'closed', '-L', '1000', '--json',
                             'number,headRefName,comments').stdout)
     landed_tips = set()
@@ -63,6 +66,10 @@ def main():
         if 'branch' in fields:
             worktrees.setdefault(fields['branch'].removeprefix('refs/heads/'), []).append(fields)
     roots = [root.expanduser().resolve() for root in args.worktree_root]
+    home = Path.home().resolve()
+    for root in roots:
+        if home.is_relative_to(root):
+            parser.error(f'--worktree-root {root} contains the home folder; name the agent worktree folder itself')
     kept = Counter()
     candidates = {'remote': [], 'local': []}
     before = {kind: len(refs(kind == 'remote')) for kind in candidates}
@@ -95,8 +102,10 @@ def main():
                     ancestor = run('git', 'merge-base', '--is-ancestor', sha, 'origin/main', check=False)
                     if ancestor.returncode not in (0, 1):
                         raise RuntimeError(ancestor.stderr)
-                    proof[sha] = ancestor.returncode == 0 or not any(
-                        line.startswith('+') for line in git('cherry', 'origin/main', sha).splitlines())
+                    # git cherry skips merge commits, so a hand-resolved merge would otherwise look landed.
+                    proof[sha] = ancestor.returncode == 0 or (
+                        not git('rev-list', '--merges', 'origin/main..' + sha)
+                        and not any(line.startswith('+') for line in git('cherry', 'origin/main', sha).splitlines()))
                 if not proof[sha] and (name, sha) not in landed_tips:
                     reason = 'not landed'
             if reason:
@@ -121,14 +130,18 @@ def main():
         args.log.expanduser().parent.mkdir(parents=True, exist_ok=True)
         for offset in range(0, len(candidates['remote']), 50):
             batch = candidates['remote'][offset:offset + 50]
+            # Re-check right before each batch: a PR opened or a branch moved since selection keeps it.
             live = {ref.removeprefix('refs/heads/'): sha for sha, ref in
                     (line.split() for line in git('ls-remote', '--heads', 'origin').splitlines())}
-            batch = [item for item in batch if live.get(item[0]) == item[1]]
+            batch = [item for item in batch if live.get(item[0]) == item[1] and item[0] not in open_heads()]
             if not batch:
                 continue
             for name, sha, _ in batch:
                 record(name, sha, 'remote')
-            git('push', 'origin', '--delete', *(name for name, _, _ in batch))
+            pushed = run('git', 'push', '--atomic', 'origin', '--delete', *(name for name, _, _ in batch), check=False)
+            if pushed.returncode:
+                print(f'Warning: remote delete batch failed, nothing in it deleted: {pushed.stderr.strip()}')
+                kept['remove failed'] += len(batch)
         for name, sha, trees in candidates['local']:
             for tree in trees:
                 record(name, sha, 'worktree', tree['worktree'])
