@@ -14,6 +14,7 @@ echo base > file
 git add file
 git commit -qm base
 base=$(git rev-parse HEAD)
+git update-ref refs/remotes/upstream/main "$base"
 for name in ancestor open nc-design-race-one nc-design-v4-one dirty locked outside clean fail-tree fail-branch; do git branch "$name"; done
 git switch -q -c patch
 echo patch > patch
@@ -31,14 +32,22 @@ echo second >> squash
 git add squash
 git commit -qm second
 tip=$(git rev-parse HEAD)
+for name in other-author no-subject upstream-subject wrong-prefix; do git branch "$name"; done
 export GIT_AUTHOR_DATE='2020-01-01T00:00:00Z' GIT_COMMITTER_DATE='2020-01-01T00:00:00Z'
 git switch -q main
 echo unrelated > unrelated
 git add unrelated
 git commit -qm unrelated
 git merge --squash squash >/dev/null
-git commit -qm landed
+git commit -qm 'Notchcast: landed (#1)'
 landed=$(git rev-parse HEAD)
+git commit --amend -qm 'Notchcast: rebased landing (#1)'
+! git merge-base --is-ancestor "$landed" HEAD
+git commit -q --allow-empty -m 'Notchcast: other author (#2)'
+git commit -q --allow-empty -m 'Upstream: wrong prefix (#5)'
+git commit-tree "$base^{tree}" -p "$base" -m 'Notchcast: upstream only (#4)' > "$scratch/upstream-tip"
+git update-ref refs/remotes/upstream/main "$(cat "$scratch/upstream-tip")"
+git merge -q -s ours --no-edit upstream/main
 git switch -q -c unlanded "$base"
 echo unlanded > unlanded
 git add unlanded
@@ -62,13 +71,34 @@ for name in dirty locked clean fail-tree; do git worktree add -q "$scratch/allow
 git worktree add -q "$scratch/outside" outside
 echo dirty > "$scratch/allowed/dirty/untracked"
 git worktree lock "$scratch/allowed/locked"
-printf '#!/bin/bash\n[[ " $* " == *" -R kaczordodgers/notchcast "* ]] || exit 1\ncase "$*" in\n*open*) echo '\''[{"headRefName":"open"}]'\'' ;;\n*) echo '\''[{"headRefName":"squash","comments":[{"body":"Landed on main as %s by land: squash of %s onto base."}]}]'\'' ;;\nesac\n' "$landed" "$tip" > "$scratch/bin/gh"
+printf '#!/bin/bash\n[[ " $* " == *" -R kaczordodgers/notchcast "* ]] || exit 1\ncase "$*" in\n*open*) echo '\''[{"headRefName":"open"}]'\'' ;;\n*) cat "%s/comments.json" ;;\nesac\n' "$scratch" > "$scratch/bin/gh"
+printf '[{"number":1,"headRefName":"squash","comments":[{"author":{"login":"kaczordodgers"},"body":"Landed on main as %s by land: squash of %s onto base."}]}' "$landed" "$tip" > "$scratch/comments.json"
+number=2
+for name in other-author no-subject upstream-subject wrong-prefix; do
+    author=kaczordodgers
+    if [ "$name" = other-author ]; then author=someone-else; fi
+    printf ',{"number":%s,"headRefName":"%s","comments":[{"author":{"login":"%s"},"body":"Landed on main as %s by land: squash of %s onto base."}]}' "$number" "$name" "$author" "$landed" "$tip" >> "$scratch/comments.json"
+    number=$((number + 1))
+done
+printf ']\n' >> "$scratch/comments.json"
 real_git=$(command -v git)
 printf '#!/bin/bash\ncase "$*" in\n"worktree remove "*/fail-tree|"branch -D -- fail-branch") echo "fixture removal failure" >&2; exit 1 ;;\nesac\nexec "%s" "$@"\n' "$real_git" > "$scratch/bin/git"
 chmod +x "$scratch/bin/gh"
 chmod +x "$scratch/bin/git"
 export PATH="$scratch/bin:$PATH"
+upstream=$(git rev-parse upstream/main)
+git update-ref -d refs/remotes/upstream/main
+if python3 "$script" --remote --dry-run --log "$scratch/dry.tsv" > "$scratch/missing-output" 2>&1; then
+    echo 'FAIL: missing upstream/main was accepted' >&2
+    exit 1
+fi
+grep -q 'upstream/main is missing' "$scratch/missing-output"
+git update-ref refs/remotes/upstream/main "$upstream"
 python3 "$script" --remote --local --dry-run --log "$scratch/dry.tsv" --worktree-root "$scratch/allowed" > "$scratch/dry-output"
+for name in other-author no-subject upstream-subject wrong-prefix; do
+    ! grep -q "Candidate .*: $name$" "$scratch/dry-output"
+done
+! git merge-base --is-ancestor "$landed" origin/main
 grep -q 'Candidate local: squash' "$scratch/dry-output"
 grep -q 'Candidate local: age-36-hours' "$scratch/dry-output"
 ! grep -q 'Candidate .*: recent' "$scratch/dry-output"

@@ -1,6 +1,6 @@
 # Branch cleanup
 
-PR discovery explicitly targets `kaczordodgers/notchcast`. Ancestry and patch-equivalence proof require a tip at least 24 hours old. A closed PR's `Landed on main as` comment bypasses that age guard only when its squash-of tip equals the current branch tip and its landed commit is an ancestor of `origin/main`. All other keep rules still apply. Dry runs print candidate names. Failed local worktree or branch removals warn, count as kept with reason `remove failed`, and allow the run to continue.
+PR discovery explicitly targets `kaczordodgers/notchcast`. Ancestry and patch-equivalence proof require a tip at least 24 hours old. A closed PR's `Landed on main as` comment bypasses that age guard only when its author is `kaczordodgers`, its squash-of tip equals the current branch tip, and `upstream/main..origin/main` contains a commit subject starting with `Notchcast:` and ending with ` (#<PR number>)`. Sync rebases rewrite the landed SHA, so its ancestry is not proof. Missing `upstream/main` refuses pruning; fetch upstream first. All other keep rules still apply. Dry runs print candidate names. Failed local worktree or branch removals warn, count as kept with reason `remove failed`, and allow the run to continue.
 
 `land.sh` deletes unchanged origin and local heads after closing a PR. Fork heads and moved tips stay; deletion failures only warn.
 

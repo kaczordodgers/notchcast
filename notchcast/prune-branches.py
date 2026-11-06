@@ -39,16 +39,24 @@ def main():
     if not args.dry_run:
         git('fetch', '--prune', 'origin')
     git('rev-parse', '--verify', 'origin/main')
+    if run('git', 'rev-parse', '--verify', 'upstream/main', check=False).returncode:
+        parser.error('upstream/main is missing; fetch upstream before pruning')
+    landed_numbers = {int(match[1]) for subject in
+                      git('log', '--format=%s', 'upstream/main..origin/main').splitlines()
+                      if (match := re.fullmatch(r'Notchcast:.* \(#(\d+)\)', subject))}
     opened = json.loads(run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'open', '-L', '1000', '--json', 'headRefName').stdout)
     open_names = {pr['headRefName'] for pr in opened}
     closed = json.loads(run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'closed', '-L', '1000', '--json',
-                            'headRefName,comments').stdout)
+                            'number,headRefName,comments').stdout)
     landed_tips = set()
     for pr in closed:
+        if pr['number'] not in landed_numbers:
+            continue
         for comment in pr.get('comments', []):
+            if (comment.get('author') or {}).get('login') != 'kaczordodgers':
+                continue
             for match in re.finditer(r'Landed on main as ([0-9a-f]{40})\b[^\n]*?squash of ([0-9a-f]{40})\b', comment['body']):
-                if run('git', 'merge-base', '--is-ancestor', match[1], 'origin/main', check=False).returncode == 0:
-                    landed_tips.add((pr['headRefName'], match[2]))
+                landed_tips.add((pr['headRefName'], match[2]))
     worktrees = {}
     for block in git('worktree', 'list', '--porcelain').split('\n\n'):
         fields = dict(line.partition(' ')[::2] for line in block.splitlines())
