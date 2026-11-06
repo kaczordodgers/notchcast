@@ -21,7 +21,7 @@ JS
                 found=0
                 extra_sources=$(printf '%s ' $sources)
                 extra_sources=${extra_sources% }
-                for queue_file in "$QUEUE" "$EXCLUSIVE_QUEUE"; do
+                for queue_file in "$QUEUE" ${EXCLUSIVE_QUEUE:+"$EXCLUSIVE_QUEUE"}; do # upstream dropped it in ff4fa05
                     if awk -v name="$name" '$2 == name { found=1 } END { exit !found }' "$queue_file"; then
                         awk -v name="$name" -v extras="$extra_sources" \
                             '$2 == name { $0 = $0 " " extras } { print }' "$queue_file" > "$queue_file.sources"
