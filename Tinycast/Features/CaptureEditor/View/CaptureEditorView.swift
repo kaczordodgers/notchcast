@@ -68,8 +68,9 @@ private struct CaptureEditorCanvas: View {
                             for mark in document.marks {
                                 try CaptureEditorRender.draw(mark, over: image, in: graphics)
                             }
+                            coordinator.previewSucceeded()
                         } catch {
-                            coordinator.reportRenderFailure(error)
+                            coordinator.reportPreviewFailure(error)
                         }
                     }
                 }
