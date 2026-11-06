@@ -22,7 +22,8 @@ extension LauncherScreen {
                 entry.argumentCount = command?.arguments.count ?? 0
                 entry.hasRequiredArguments = command?.arguments.contains(where: \.required) ?? false
                 entry.isViewCommand = command?.mode == .view
-            default: break
+            default:
+                entry.argumentCount = SmallCommandsModule.argumentCount(entryID: app.id)
             }
             return entry
         }
