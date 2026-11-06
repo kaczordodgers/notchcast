@@ -265,6 +265,10 @@ final class CleanModule: NotchcastModule {
     }
 
     private struct GitReader: CleanAIDataGitReader {
+        func removeWorktreeMetadata(_ directory: URL, worktree: URL) throws {
+            try CleanAIDataWorktreeMetadata.remove(directory, worktree: worktree)
+        }
+
         func inspect(_ path: URL) async throws -> CleanAIDataGitState? {
             do {
                 return try await read(path)
