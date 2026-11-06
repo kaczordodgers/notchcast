@@ -13,7 +13,9 @@ nonisolated struct ArchiveCompressor: Sendable {
         guard !sources.isEmpty, sources.allSatisfy({ $0.isFileURL && files.fileExists(atPath: $0.path) }) else {
             throw ArchiveFailure.filesystem("selection")
         }
-        var output = format.output(sources: sources) { files.fileExists(atPath: $0.path) }
+        // Without following symlinks: a dangling link still blocks the rename below.
+        let exists = { (url: URL) in (try? files.attributesOfItem(atPath: url.path)) != nil }
+        var output = format.output(sources: sources, exists: exists)
         let temporary = output.deletingLastPathComponent().appending(path: ".\(UUID()).\(format.suffix)")
         defer { if files.fileExists(atPath: temporary.path) { try? files.removeItem(at: temporary) } }
         let tool: URL
@@ -28,11 +30,9 @@ nonisolated struct ArchiveCompressor: Sendable {
                 try Task.checkCancellation()
                 var destination = staging.appending(path: source.lastPathComponent)
                 var number = 1
-                while files.fileExists(atPath: destination.path) {
+                while exists(destination) {
                     number += 1
-                    let stem = source.deletingPathExtension().lastPathComponent
-                    let suffix = source.pathExtension.isEmpty ? "" : "." + source.pathExtension
-                    destination = staging.appending(path: "\(stem) \(number)\(suffix)")
+                    destination = staging.appending(path: Self.numbered(source, number))
                 }
                 try files.copyItem(at: source, to: destination)
                 inputs.append(destination)
@@ -55,9 +55,18 @@ nonisolated struct ArchiveCompressor: Sendable {
         while renamex_np(temporary.path, output.path, UInt32(RENAME_EXCL)) != 0 {
             guard errno == EEXIST else { throw ArchiveFailure.filesystem("publish") }
             try Task.checkCancellation()
-            output = format.output(sources: sources) { files.fileExists(atPath: $0.path) }
+            output = format.output(sources: sources, exists: exists)
         }
         return output
+    }
+
+    /// `x.tar.gz` → `x 2.tar.gz`, `App.app` → `App 2.app`; a plain folder such as `v1.2` → `v1.2 2`.
+    static func numbered(_ source: URL, _ number: Int) -> String {
+        let name = source.lastPathComponent
+        let values = try? source.resourceValues(forKeys: [.isDirectoryKey, .isPackageKey])
+        guard values?.isDirectory != true || values?.isPackage == true,
+              let dot = name.dropFirst().firstIndex(of: ".") else { return "\(name) \(number)" }
+        return "\(name[..<dot]) \(number)\(name[dot...])"
     }
 
     private func locate(_ name: String, install: String) throws -> URL {

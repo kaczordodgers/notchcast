@@ -57,6 +57,25 @@ import Foundation
         let finished = try Data(contentsOf: published)
         precondition(original == Data("other writer".utf8) && finished == Data("finished".utf8))
         print("PASS: publication EEXIST retries and preserves both finished archive and competing file")
+        try files.removeItem(at: output)
+        try files.removeItem(at: published)
+        try files.createSymbolicLink(atPath: output.path, withDestinationPath: "/nonexistent")
+        let writing = ArchiveCompressor(run: { _, arguments in
+            try Data("finished".utf8).write(to: URL(filePath: arguments.last!))
+            return 0
+        })
+        let besideLink = try await writing.compress([source], format: .zip)
+        precondition(besideLink.lastPathComponent == "fixture 2.zip")
+        try files.removeItem(at: output)
+        try files.removeItem(at: besideLink)
+        let dotted = root.appending(path: "v1.2")
+        try files.createDirectory(at: dotted, withIntermediateDirectories: false)
+        defer { try? files.removeItem(at: dotted) }
+        precondition(ArchiveCompressor.numbered(root.appending(path: "x.tar.gz"), 2) == "x 2.tar.gz")
+        precondition(ArchiveCompressor.numbered(root.appending(path: "README"), 2) == "README 2")
+        precondition(ArchiveCompressor.numbered(root.appending(path: ".hidden"), 2) == ".hidden 2")
+        precondition(ArchiveCompressor.numbered(dotted, 2) == "v1.2 2")
+        print("PASS: dangling symlink is a taken name; duplicate names keep multi-part suffixes and folder names")
         let first = root.appending(path: "a/README.md")
         let second = root.appending(path: "b/README.md")
         for url in [first, second] {
