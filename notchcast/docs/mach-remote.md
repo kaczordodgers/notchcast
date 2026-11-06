@@ -21,4 +21,4 @@ message. A local login shell remains after SSH exits. There is no polling.
 
 Harnesses use synthetic SSH configuration output and fake runners exclusively.
 Terminal automation permission, a real connection and the installed appearance
-remain morning checks.
+remain manual checks.
