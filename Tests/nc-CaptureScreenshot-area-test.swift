@@ -17,8 +17,14 @@ struct NotchcastCommand: Sendable {
 }
 
 @MainActor enum NotchcastCore {
+    static let captureEditor = EditorProbe()
     static var instance: ScreenshotModule?
     static var screenshot: ScreenshotModule { instance! }
+}
+
+@MainActor final class EditorProbe {
+    var opens = 0
+    func openCapture(url: URL?, clipboard: Bool) throws { opens += 1 }
 }
 
 @MainActor final class AppCore {
@@ -69,6 +75,9 @@ struct NotchcastCommand: Sendable {
         command.run()
         precondition(starts == 0)
         module.start()
+        let wasOn = NotchcastPreferences.shared.isOn(.captureEditor)
+        NotchcastPreferences.shared.set(.captureEditor, false)
+        defer { NotchcastPreferences.shared.set(.captureEditor, wasOn) }
         for (frame, start, end, expected) in [
             (CGRect(x: 0, y: 0, width: 1440, height: 900), CGPoint(x: 10, y: 20),
              CGPoint(x: 110, y: 70), CGRect(x: 10, y: 830, width: 100, height: 50)),
@@ -84,12 +93,18 @@ struct NotchcastCommand: Sendable {
             precondition(captures.last == expected)
         }
         precondition(starts == 2 && captures.count == 2)
+        precondition(NotchcastCore.captureEditor.opens == 0)
+        NotchcastPreferences.shared.set(.captureEditor, true)
+        command.run()
+        await module.commandTask?.value
+        precondition(NotchcastCore.captureEditor.opens == 1)
+        NotchcastPreferences.shared.set(.captureEditor, false)
         precondition(board.string(forType: .string) == "Captured")
         let changes = board.changeCount
         next = nil
         command.run()
         await module.commandTask?.value
-        precondition(captures.count == 2 && board.changeCount == changes)
+        precondition(captures.count == 3 && board.changeCount == changes)
         module.destination = .file
         next = .init(rect: CGRect(x: 1, y: 2, width: 3, height: 4), displayID: 1, displayFrame: .zero)
         command.run()
@@ -97,7 +112,7 @@ struct NotchcastCommand: Sendable {
         precondition(files == 1 && board.changeCount == changes)
         module.stop()
         command.run()
-        precondition(captures.count == 3 && AppCore.shared.messages.isEmpty)
+        precondition(captures.count == 4 && AppCore.shared.messages.isEmpty)
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
         let catalog = try String(contentsOf: root.appendingPathComponent(
             "Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift"), encoding: .utf8)
