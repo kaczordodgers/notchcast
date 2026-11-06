@@ -69,6 +69,32 @@ if local_build_green head; then exit 1; fi
 echo 'PASS: other creator refused'
 rm "$status_fixture"
 unset -f gh
+(
+    eval "$(sed -n '/^delete_head() {$/,/^}$/p' "$root/notchcast/land.sh")"
+    git init --quiet --bare "$scratch/remote.git"
+    git clone --quiet "$scratch/remote.git" "$scratch/delete"
+    cd "$scratch/delete"
+    git -c user.name=Fixture -c user.email=fixture@example.com commit --quiet --allow-empty -m base
+    head=$(git rev-parse HEAD)
+    git branch matching
+    git push --quiet origin matching
+    delete_head matching "$head"
+    [ -z "$(git ls-remote origin refs/heads/matching)" ]
+    ! git show-ref --verify --quiet refs/heads/matching
+    git -c user.name=Fixture -c user.email=fixture@example.com commit --quiet --allow-empty -m moved
+    moved=$(git rev-parse HEAD)
+    git branch remote-moved
+    git push --quiet origin remote-moved
+    delete_head remote-moved "$head"
+    [ "$(git ls-remote origin refs/heads/remote-moved | cut -f1)" = "$moved" ]
+    git branch local-moved
+    git push --quiet origin "$head:refs/heads/local-moved"
+    delete_head local-moved "$head"
+    [ "$(git rev-parse local-moved)" = "$moved" ]
+    delete_head remote-moved "$moved" true
+    [ -n "$(git ls-remote origin refs/heads/remote-moved)" ]
+    echo 'PASS: delete_head matching, moved remote, moved local and fork'
+)
 if [ "${1:-}" = --statuses ]; then
     echo 'PASS: local build status fixtures'
     exit 0
