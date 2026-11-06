@@ -11,7 +11,7 @@ struct DictationCleanupSettings: Codable, Equatable, Sendable {
     }
 
     var isEnabled = false
-    var baseURL = "http://127.0.0.1:8317"
+    var baseURL = "http://127.0.0.1:3425"
     var effort: Effort = .low
     var promptAddition = ""
     var vocabulary: [VocabularyTerm] = []
