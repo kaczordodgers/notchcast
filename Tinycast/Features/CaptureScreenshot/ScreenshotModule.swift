@@ -26,7 +26,8 @@ final class ScreenshotModule: NotchcastModule {
     }
     private let defaults: UserDefaults
     private let capture: Capture
-    private var enabled = false
+    let area: CaptureAreaService
+    private(set) var enabled = false
     private var operation: UUID?
     private var captureTask: Task<URL?, Error>?
     var commandTask: Task<Void, Never>?
@@ -36,11 +37,13 @@ final class ScreenshotModule: NotchcastModule {
     init(
         defaults: UserDefaults = UserDefaults(suiteName:
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+        area: CaptureAreaService = CaptureAreaService(),
         capture: @escaping Capture = { request, destination, isEnabled in
             try await ScreenshotService.capture(request, destination: destination, isEnabled: isEnabled)
         }
     ) {
         self.defaults = defaults
+        self.area = area
         self.capture = capture
         destination = defaults.string(forKey: Self.destinationKey).flatMap(Destination.init(rawValue:)) ?? .clipboard
         folder = defaults.string(forKey: Self.folderKey).map { URL(filePath: $0, directoryHint: .isDirectory) }
@@ -50,6 +53,7 @@ final class ScreenshotModule: NotchcastModule {
 
     func stop() {
         enabled = false
+        area.stop()
         commandTask?.cancel()
         commandTask = nil
         cancelCapture()

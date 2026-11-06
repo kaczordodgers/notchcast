@@ -7143,6 +7143,18 @@
         }
       }
     },
+    "Capture Area" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Bereich aufnehmen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Capturar área" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Capturer une zone" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "範囲をキャプチャ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "영역 캡처" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Capturar área" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Снимок области" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "捕捉区域" } }
+      }
+    },
     "Capture Screen" : {
       "localizations" : {
         "de" : {
