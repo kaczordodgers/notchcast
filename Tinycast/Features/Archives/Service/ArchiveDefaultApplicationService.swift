@@ -27,7 +27,7 @@ struct ArchiveDefaultApplicationService: ArchiveDefaultApplicationSetting {
         current: (String) -> URL?, set: (String) async throws -> Void
     ) async throws {
         var failures: [String] = []
-        for identifier in ArchiveFormat.typeIdentifiers {
+        for identifier in ArchiveFormat.defaultTypeIdentifiers {
             if !enabled, !supported.contains(identifier) { continue }
             if !enabled, current(identifier)?.standardizedFileURL != application.standardizedFileURL {
                 continue
