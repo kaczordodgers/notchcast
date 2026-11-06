@@ -69,6 +69,8 @@ jobs:
       contents: read
       statuses: write
       issues: write
+    outputs:
+      lost: ${{ steps.update.outputs.lost }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -124,8 +126,10 @@ jobs:
             rm -f "$RUNNER_TEMP/deploy-key"
             NOW="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" refs/heads/main | cut -f1)"
             [ -n "$NOW" ] && [ "$NOW" != "$OLD" ] || exit 1
-            echo "::notice::main moved to ${NOW:0:7} during the replay; the next Sync replays onto it"
-            echo "lost=true" >> "$GITHUB_OUTPUT"
+            if [ "$NOW" != "$(git rev-parse HEAD)" ]; then # else our push landed despite the error
+              echo "::notice::main moved to ${NOW:0:7} during the replay; the next Sync replays onto it"
+              echo "lost=true" >> "$GITHUB_OUTPUT"
+            fi
           fi
           rm -f "$RUNNER_TEMP/deploy-key"
       - name: Mark the commit tested
@@ -180,8 +184,9 @@ jobs:
 
   release:
     needs: [plan, main]
-    # After main: a release is built from the main this run ends with. Skipped main (nothing to rebase) is fine.
-    if: always() && needs.plan.result == 'success' && needs.main.result != 'failure' && needs.plan.outputs.releases != '[]'
+    # After main: a release is built from the main this run ends with. Skipped main (nothing to rebase) is fine;
+    # a lost main lease is not (main moved past plan's main), so the next Sync builds it.
+    if: always() && needs.plan.result == 'success' && needs.main.result != 'failure' && needs.main.outputs.lost != 'true' && needs.plan.outputs.releases != '[]'
     runs-on: xcode-27
     timeout-minutes: 120
     environment: sync
