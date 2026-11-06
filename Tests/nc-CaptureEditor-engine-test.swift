@@ -37,6 +37,18 @@ struct CaptureEditorEngineTest {
         try await sessions()
         try await staleCopies()
         try await keyboardCopies()
+        let released = CaptureEditorCoordinator()
+        released.start()
+        weak var retained: NSImage?
+        do {
+            let source = image()
+            let temporary = NSImage(cgImage: source.pixels, size: source.points)
+            retained = temporary
+            try released.open(image: temporary)
+        }
+        precondition(retained != nil)
+        released.close()
+        precondition(retained == nil && released.document == nil)
         print("PASS: capture editor tools, selection/move/resize, text, undo/redo, keys, full-res PNG/pixelate, sources, switch")
     }
 
@@ -232,7 +244,7 @@ struct CaptureEditorEngineTest {
         let suite = "capture-editor-preferences-\(UUID())"
         defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(!NotchcastFeature.captureEditor.defaultEnabled && !NotchcastFeature.captureEditor.isWired)
+        precondition(!NotchcastFeature.captureEditor.defaultEnabled && NotchcastFeature.captureEditor.isWired)
         precondition(NotchcastFeature.captureEditor.settingsGroup == .captureAndDictation)
         precondition(!preferences.isOn(.captureEditor))
         let controller = NotchcastModuleController([.init(requires: [.captureEditor], module: editor)], preferences: preferences)
@@ -275,7 +287,7 @@ struct CaptureEditorEngineTest {
         precondition(!editor.isOpen)
         editor.close()
         try editor.open(image: last)
-        precondition(editor.document === first && first.marks.count == 1)
+        precondition(editor.document !== first && editor.document?.marks.isEmpty == true)
         let clipboard = NSImage(cgImage: source.pixels, size: CGSize(width: 50, height: 40))
         precondition(board.writeObjects([clipboard]))
         try editor.openFromClipboardOrLast()
@@ -284,7 +296,7 @@ struct CaptureEditorEngineTest {
         draw(clipboardDocument, .arrow)
         editor.close()
         try editor.openFromClipboardOrLast()
-        precondition(editor.document === clipboardDocument && clipboardDocument.marks.count == 1)
+        precondition(editor.document !== clipboardDocument && editor.document?.marks.isEmpty == true)
         board.clearContents()
         precondition(board.writeObjects([clipboard]))
         try editor.openFromClipboardOrLast()

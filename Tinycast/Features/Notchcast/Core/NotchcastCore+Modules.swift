@@ -87,7 +87,7 @@ extension NotchcastCore {
     static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.live()
     static let captureTrimmer = CaptureTrimmerModule.live()
-    static let captureEditor = CaptureEditorCoordinator()
+    static let captureEditor = CaptureEditorCoordinator(reportFailure: { AppCore.shared.showMessage($0.localizedDescription, tone: .danger) })
     static let agentAnswer = AgentAnswerModule()
     static let recording = RecordingModule()
     static private(set) var voiceAsk: VoiceAskModule?
@@ -98,6 +98,7 @@ extension NotchcastCore {
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+        CaptureEditorWindowController.shared.attach(to: captureEditor)
         agents.configure(core)
         agentCLI.configure(index: agents.index)
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
