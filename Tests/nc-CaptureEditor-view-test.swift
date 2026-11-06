@@ -152,7 +152,7 @@ struct MenuThumbnail: View {
         let panel = host.window!
         let document = coordinator.document!
         document.pick(.text)
-        panel.styleMask.insert(.nonactivatingPanel)
+        precondition(panel.styleMask.contains(.nonactivatingPanel))
         panel.makeKeyAndOrderFront(nil)
         settle()
         precondition(panel.isKeyWindow)
