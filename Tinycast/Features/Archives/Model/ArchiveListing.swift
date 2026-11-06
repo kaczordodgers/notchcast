@@ -12,6 +12,11 @@ nonisolated struct ArchiveListing: Sendable {
     private var pending = Data()
     private var capturedBytes = 0
 
+    init(entries: [Entry] = [], totalBytes: Int64? = nil) {
+        self.entries = entries
+        self.totalBytes = totalBytes
+    }
+
     mutating func feed(_ data: Data) throws {
         capturedBytes += data.count
         guard capturedBytes <= 16_000_000 else { throw ArchiveFailure.invalidListing }
