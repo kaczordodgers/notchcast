@@ -81,7 +81,6 @@ struct ArchiveModulesTests {
         await settle()
         precondition(module.isRunning)
         precondition(!module.open(URL(string: "https://example.invalid/file.zip")!))
-        precondition(!module.open(URL(fileURLWithPath: "/fixture/file.gz")))
         precondition(!module.open(URL(fileURLWithPath: "/fixture/file.txt")))
         for name in ["file.zip", "file.7z", "file.rar", "file.part1.rar", "file.tar", "file.tgz", "file.tar.gz", "file.001"] {
             precondition(module.open(URL(fileURLWithPath: "/fixture/\(name)")))
@@ -96,6 +95,11 @@ struct ArchiveModulesTests {
         module.retry(failed)
         precondition(module.queue.jobs[0].state == .preflighting)
         try await until { module.queue.jobs[0].state == .failed }
+        precondition(module.open(URL(fileURLWithPath: "/fixture/file.gz")))
+        try await until { module.queue.jobs.last?.state == .failed }
+        guard case .filesystem = module.queue.jobs.last?.failure else {
+            preconditionFailure("Plain gzip routes without hatchzip and reports its missing source")
+        }
         preferences.set(.archives, false)
         let count = module.queue.jobs.count
         precondition(!module.open(URL(fileURLWithPath: "/fixture/disabled.zip")))

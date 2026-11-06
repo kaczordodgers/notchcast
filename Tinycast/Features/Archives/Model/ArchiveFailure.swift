@@ -4,6 +4,8 @@ nonisolated enum ArchiveFailure: Error, Equatable, Sendable {
     case compressionToolMissing(String)
     case compressionFailed(Int32)
     case toolMissing
+    case fallbackToolMissing(String)
+    case fallbackToolFailed(String, Int32)
     case unsupportedFormat
     case invalidListing
     case unsafePath(String)

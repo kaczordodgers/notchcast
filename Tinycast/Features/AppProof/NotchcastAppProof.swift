@@ -7,6 +7,7 @@ enum NotchcastAppProof {
         let checks: [String: () throws -> Void] = [
             "spotify-key": spotifyKey,
             "archive-compress": archiveCompress,
+            "archive-fallback": archiveFallback,
         ]
         guard let check = checks[name] else {
             print("PROOF FAIL \(name): unknown check")

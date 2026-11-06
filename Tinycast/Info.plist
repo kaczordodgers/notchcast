@@ -121,6 +121,24 @@
 				<string>org.gnu.gnu-zip-tar-archive</string>
 				<string>org.gnu.gnu-zip-archive</string>
 				<string>app.notchcast.split-archive</string>
+				<string>org.tukaani.xz-archive</string>
+				<string>org.tukaani.tar-xz-archive</string>
+				<string>public.bzip2-archive</string>
+				<string>public.tar-bzip2-archive</string>
+				<string>app.notchcast.zstd-archive</string>
+				<string>app.notchcast.zstd-tar-archive</string>
+				<string>public.iso-image</string>
+				<string>com.microsoft.cab</string>
+				<string>com.apple.installer-package-archive</string>
+				<string>com.apple.xar-archive</string>
+				<string>public.cpio-archive</string>
+				<string>com.stuffit.archive.sit</string>
+				<string>com.stuffit.archive.sitx</string>
+				<string>app.notchcast.lzh-archive</string>
+				<string>app.notchcast.arj-archive</string>
+				<string>public.z-archive</string>
+				<string>app.notchcast.arc-archive</string>
+				<string>app.notchcast.zoo-archive</string>
 			</array>
 		</dict>
 		<dict>
@@ -140,22 +158,6 @@
 	<array>
 		<dict>
 			<key>UTTypeIdentifier</key>
-			<string>org.7-zip.7-zip-archive</string>
-			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.archive</string>
-				<string>public.data</string>
-			</array>
-			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>7z</string>
-				</array>
-			</dict>
-		</dict>
-		<dict>
-			<key>UTTypeIdentifier</key>
 			<string>com.rarlab.rar-archive</string>
 			<key>UTTypeConformsTo</key>
 			<array>
@@ -172,19 +174,51 @@
 		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
-			<string>org.gnu.gnu-zip-tar-archive</string>
+			<string>app.notchcast.zstd-archive</string>
 			<key>UTTypeConformsTo</key>
-			<array>
-				<string>public.archive</string>
-				<string>public.data</string>
-			</array>
+			<array><string>public.archive</string></array>
 			<key>UTTypeTagSpecification</key>
-			<dict>
-				<key>public.filename-extension</key>
-				<array>
-					<string>tgz</string>
-				</array>
-			</dict>
+			<dict><key>public.filename-extension</key><array><string>zst</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>app.notchcast.zstd-tar-archive</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>public.archive</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict><key>public.filename-extension</key><array><string>tzst</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>app.notchcast.lzh-archive</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>public.archive</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict><key>public.filename-extension</key><array><string>lzh</string><string>lha</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>app.notchcast.arj-archive</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>public.archive</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict><key>public.filename-extension</key><array><string>arj</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>app.notchcast.arc-archive</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>public.archive</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict><key>public.filename-extension</key><array><string>arc</string></array></dict>
+		</dict>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>app.notchcast.zoo-archive</string>
+			<key>UTTypeConformsTo</key>
+			<array><string>public.archive</string></array>
+			<key>UTTypeTagSpecification</key>
+			<dict><key>public.filename-extension</key><array><string>zoo</string></array></dict>
 		</dict>
 		<dict>
 			<key>UTTypeIdentifier</key>
