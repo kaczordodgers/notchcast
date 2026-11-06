@@ -72,7 +72,12 @@ final class MonitorStore {
     private(set) var publicIPLookupFailed = false
     @ObservationIgnored private var enabled = false
     @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var visibleDemand = 0
+    @ObservationIgnored private var samplingAlertsOnly: Bool?
+    @ObservationIgnored private let alertSample: (@Sendable () async -> MonitorSnapshot)?
     @ObservationIgnored private var worker: Task<Void, Never>?
+    @ObservationIgnored private var samplingSleep: Task<Void, Never>?
+    @ObservationIgnored private var latestIsAlertsOnly = false
     @ObservationIgnored private let sample: (@Sendable () async -> MonitorSnapshot)?
     @ObservationIgnored private let measureSpeed: @Sendable (SpeedTestPhase) async throws -> SpeedTestResult.Measurement
     @ObservationIgnored private let lookupPublicIP: @Sendable () async -> String?
@@ -82,18 +87,21 @@ final class MonitorStore {
     @ObservationIgnored private var publicIPIdentity: UUID?
 
     init(sample: (@Sendable () async -> MonitorSnapshot)? = nil,
+         alertSample: (@Sendable () async -> MonitorSnapshot)? = nil,
          measureSpeed: @escaping @Sendable (SpeedTestPhase) async throws -> SpeedTestResult.Measurement = {
              try await SpeedTestRunner().run($0)
          },
          lookupPublicIP: @escaping @Sendable () async -> String? = { await NetworkPublicIPService().lookup() },
          sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }) {
         self.sample = sample
+        self.alertSample = alertSample
         self.measureSpeed = measureSpeed
         self.lookupPublicIP = lookupPublicIP
         self.sleep = sleep
     }
 
     isolated deinit {
+        samplingSleep?.cancel()
         worker?.cancel()
         speedTestTask?.cancel()
         publicIPTask?.cancel()
@@ -111,12 +119,14 @@ final class MonitorStore {
         isFetchingPublicIP = false
     }
 
-    func beginDemand() -> DemandToken {
+    func beginDemand(alertsOnly: Bool = false) -> DemandToken {
         demand += 1
+        if !alertsOnly { visibleDemand += 1 }
         update()
         return DemandToken { [weak self] in
             guard let self else { return }
             self.demand -= 1
+            if !alertsOnly { self.visibleDemand -= 1 }
             self.update()
         }
     }
@@ -175,8 +185,16 @@ final class MonitorStore {
     }
 
     private func update() {
+        let alertsOnly = visibleDemand == 0
+        if samplingAlertsOnly == true, !alertsOnly {
+            if latestIsAlertsOnly { latest = MonitorSnapshot() }
+            latestIsAlertsOnly = false
+            samplingSleep?.cancel()
+        }
+        samplingAlertsOnly = alertsOnly
         guard enabled, let cadence = MonitorCadence.next(isVisible: demand > 0) else {
             generation += 1
+            samplingSleep?.cancel()
             worker?.cancel()
             worker = nil
             return
@@ -184,19 +202,28 @@ final class MonitorStore {
         guard worker == nil else { return }
         let identity = generation
         let sample = sample
-        let sleep = sleep
+        let alertSample = alertSample
         worker = Task { [weak self] in
-            let stream = AsyncStream<MonitorSnapshot> { continuation in
-                let producer = Task.detached {
+            let stream = AsyncStream<(MonitorSnapshot, Bool)> { continuation in
+                let producer = Task.detached { [weak self] in
                     var cpu = CPUSampler()
                     var disk = DiskSampler()
                     var network = NetworkSampler()
                     var sensors = SMCSensorReader()
                     var processes = ProcessSampler()
                     while !Task.isCancelled {
+                        guard let alertsOnly = await self?.samplingAlertsOnly else { break }
+                        let sampler = alertsOnly ? alertSample : sample
                         let reading: MonitorSnapshot
-                        if let sample {
-                            reading = await sample()
+                        if let sampler {
+                            reading = await sampler()
+                        } else if alertsOnly {
+                            _ = disk.sample(now: ProcessInfo.processInfo.systemUptime)
+                            _ = network.sample()
+                            reading = MonitorSnapshot(
+                                cpu: cpu.sample(), memory: MemorySampler().read(),
+                                volumes: disk.read(bootOnly: true), battery: BatteryService().read(),
+                                sensors: sensors.read(alertsOnly: true))
                         } else {
                             reading = MonitorSnapshot(
                                 cpu: cpu.sample(), memory: MemorySampler().read(),
@@ -205,21 +232,36 @@ final class MonitorStore {
                                 battery: BatteryService().read(), sensors: sensors.read(), processes: processes.sample())
                         }
                         guard !Task.isCancelled else { break }
-                        continuation.yield(reading)
-                        do { try await sleep(.seconds(cadence.interval)) } catch { break }
+                        continuation.yield((reading, alertsOnly))
+                        // The store hands out the nap and is released while it runs, so it can deinit.
+                        guard let nap = await self?.samplingNap(interval: cadence.interval,
+                                                                alertsOnly: alertsOnly, identity: identity)
+                        else { break }
+                        await withTaskCancellationHandler { await nap.value } onCancel: { nap.cancel() }
                     }
                     continuation.finish()
                 }
                 continuation.onTermination = { _ in producer.cancel() }
             }
-            for await reading in stream {
+            for await (reading, alertsOnly) in stream {
                 guard !Task.isCancelled, let self, self.generation == identity,
                       self.enabled, self.demand > 0 else { break }
+                guard !alertsOnly || self.visibleDemand == 0 else { continue }
                 self.latest = reading
-                for (key, value) in reading.series {
+                self.latestIsAlertsOnly = alertsOnly
+                for (key, value) in alertsOnly ? [:] : reading.series {
                     self.histories[key, default: MonitorHistory()].append(value)
                 }
             }
         }
+    }
+
+    /// A mode change since the sample, or a stale worker, gets no nap so the next sample runs at once.
+    private func samplingNap(interval: TimeInterval, alertsOnly: Bool, identity: Int) -> Task<Void, Never> {
+        guard generation == identity, samplingAlertsOnly == alertsOnly else { return Task {} }
+        let sleep = sleep
+        let task = Task.detached { _ = try? await sleep(.seconds(interval)) }
+        samplingSleep = task
+        return task
     }
 }
