@@ -6,6 +6,7 @@ enum NotchcastAppProof {
               let name = ProcessInfo.processInfo.environment["NOTCHCAST_PROOF"] else { return false }
         let checks: [String: () throws -> Void] = [
             "spotify-key": spotifyKey,
+            "archive-compress": archiveCompress,
         ]
         guard let check = checks[name] else {
             print("PROOF FAIL \(name): unknown check")
