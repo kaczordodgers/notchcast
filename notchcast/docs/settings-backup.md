@@ -106,6 +106,7 @@ Cleanup JSON contains only effort (low/medium/high),
 promptAddition (16384 characters), and up to 500 vocabulary terms: spelling (256 characters) and
 misheardForms (50 strings of 256 characters). Its API key uses a separate Keychain service and is
 never read by backup. No inventoried JSON blob mixes a credential field with these plain fields.
+The API key lives in a Keychain item Notchcast creates itself when the key is pasted in Settings; items made by other tools are not read. A key saved before the item moved to the `api-key` account must be pasted again.
 
 ## Exclusions
 

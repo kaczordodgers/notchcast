@@ -111,6 +111,21 @@ struct NotchcastCommand: Sendable {
         let editorDefaults = UserDefaults(suiteName: editorDomain)!
         editorDefaults.removePersistentDomain(forName: editorDomain)
         defer { editorDefaults.removePersistentDomain(forName: editorDomain) }
+        let collisionDomain = "test.cleanup-collision.\(UUID().uuidString)"
+        let collisionDefaults = UserDefaults(suiteName: collisionDomain)!
+        defer { collisionDefaults.removePersistentDomain(forName: collisionDomain) }
+        let collisionPreferences = NotchcastPreferences(suiteName: collisionDomain)
+        let collisionStore = DictationCleanupSettingsStore(defaults: collisionDefaults, bundleIdentifier: collisionDomain)
+        var cleanupSettings = DictationCleanupSettings()
+        cleanupSettings.baseURL = "http://127.0.0.1:3425"
+        collisionPreferences.set(.dictationCleanup, true)
+        try collisionStore.save(cleanupSettings)
+        precondition(NotchcastPreferences(suiteName: collisionDomain).isOn(.dictationCleanup))
+        collisionPreferences.set(.dictationCleanup, false)
+        collisionPreferences.set(.dictationCleanup, true)
+        let preservedCleanup = try collisionStore.read()
+        precondition(preservedCleanup == cleanupSettings)
+        print("PASS: cleanup settings and feature switch persist independently")
         let complete = try ForkSettingsBackupState.live.snapshot()
         for feature: NotchcastFeature in [.urlCleaner, .dictationHistory, .captureTrimmer] {
             precondition(complete[feature.rawValue] as? Bool == NotchcastPreferences.shared.isOn(feature), feature.rawValue)
@@ -229,7 +244,7 @@ struct NotchcastCommand: Sendable {
         }
         for bad in [Data("broken".utf8), try JSONEncoder().encode(DictationCleanupSettings(
             promptAddition: String(repeating: "x", count: 16_385)))] {
-            liveDefaults.set(bad, forKey: "dictationCleanup")
+            liveDefaults.set(bad, forKey: "dictationCleanupSettings")
             let snapshot = try ForkSettingsBackupState.live.snapshot()
             precondition(snapshot["notchcast.dictationCleanup.settings"] == nil && snapshot.count == complete.count - 1)
             let badFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
