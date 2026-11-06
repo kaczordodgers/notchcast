@@ -16,6 +16,8 @@ struct NotchcastCommand: Sendable {
 }
 
 @MainActor final class ScreenshotModule {
+    enum Destination { case clipboard, file }
+    let destination = Destination.clipboard
     let enabled = true
     let area = CaptureAreaService()
     var commandTask: Task<Void, Never>?
@@ -32,12 +34,17 @@ enum ColorPickerService {
 }
 
 @MainActor enum NotchcastCore {
+    static let captureEditor = CaptureEditorProbe()
     static let screenshot = ScreenshotModule()
     static let colorPicker = ColorPickerModule()
 }
 
+@MainActor final class CaptureEditorProbe {
+    func openCapture(url: URL?, clipboard: Bool) throws {}
+}
+
 @MainActor final class NotchcastPreferences {
-    enum Feature { case screenshot, colorPicker }
+    enum Feature { case screenshot, colorPicker, captureEditor }
     static let shared = NotchcastPreferences()
     func isOn(_ feature: Feature) -> Bool { true }
 }
