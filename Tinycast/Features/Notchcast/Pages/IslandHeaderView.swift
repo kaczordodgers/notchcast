@@ -5,23 +5,26 @@ struct IslandHeaderView: View {
     @Environment(IslandPagesCoordinator.self) private var pages
     let cameraWidth: CGFloat
     let height: CGFloat
+    var shownPage: IslandPage?
+
+    private var selectedPage: IslandPage { shownPage ?? island.page }
 
     var body: some View {
         HStack(spacing: 0) {
             HStack(spacing: Theme.Spacing.xxs) {
                 ForEach(pages.pages) { page in
-                    BarButton(chrome: .rounded, isSelected: island.page == page.id) {
+                    BarButton(chrome: .rounded, isSelected: selectedPage == page.id) {
                         island.selectPage(page.id)
                     } label: {
                         Text(page.title)
                             .font(Theme.Typography.bar)
-                            .foregroundStyle(island.page == page.id
+                            .foregroundStyle(selectedPage == page.id
                                              ? Theme.Colors.textPrimary : Theme.Colors.textSecondary)
                     }
                     .overlay { focusOutline(pages.pages.firstIndex(of: page)) }
                     .tooltip(keyCaps: ["⌘", page.key])
                     .accessibilityLabel(Text(page.title))
-                    .accessibilityAddTraits(island.page == page.id ? .isSelected : [])
+                    .accessibilityAddTraits(selectedPage == page.id ? .isSelected : [])
                 }
                 Spacer(minLength: 0)
             }
