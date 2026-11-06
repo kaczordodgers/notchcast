@@ -23,8 +23,9 @@ struct CleanAIDataService: Sendable {
                 else { continue }
                 if policy.permits(path, kind: kind),
                    let snapshot = try? measure(path), old(snapshot.newest, kind: kind) {
+                    let refusal = try await refusal(path, kind: kind)
                     result.append(CleanAIDataItem(path: path, kind: kind,
-                        selectable: try await eligible(path, kind: kind), snapshot: snapshot.values))
+                        selectable: refusal == nil, refusal: refusal, snapshot: snapshot.values))
                 } else if attributes[.type] as? FileAttributeType == .typeDirectory,
                           kind != .worktree || path.lastPathComponent == URL(fileURLWithPath: root).lastPathComponent {
                     pending += (try? FileManager().contentsOfDirectory(at: path,
@@ -67,7 +68,9 @@ struct CleanAIDataService: Sendable {
                     results.append(.init(path: item.path, status: .changed, recovery: recovery)); continue
                 }
                 try Task.checkCancellation()
+                let metadata = item.kind == .worktree ? try worktreeMetadata(item.path) : nil
                 try transport.trash(item.path)
+                if let metadata { try git.removeWorktreeMetadata(metadata, worktree: item.path) }
                 status = .trashed
             } catch is CancellationError {
                 throw CancellationError()
@@ -82,14 +85,43 @@ struct CleanAIDataService: Sendable {
     private func current(_ item: CleanAIDataItem) async throws -> Bool {
         guard safe(item.path), policy.permits(item.path, kind: item.kind) else { return false }
         let snapshot = try measure(item.path)
-        let permitted = try await eligible(item.path, kind: item.kind)
+        let permitted = try await refusal(item.path, kind: item.kind) == nil
         return snapshot.values == item.snapshot && old(snapshot.newest, kind: item.kind) && permitted
     }
 
-    private func eligible(_ path: URL, kind: CleanAIDataItem.Kind) async throws -> Bool {
-        if kind == .worktree { return try await git.inspect(path)?.eligible == true }
-        guard kind == .claude else { return false }
-        return await chatIdle(path) == true
+    private func refusal(_ path: URL, kind: CleanAIDataItem.Kind) async throws -> CleanAIDataItem.Refusal? {
+        if kind == .worktree {
+            guard (try? worktreeMetadata(path)) != nil,
+                  try await git.inspect(path)?.eligible == true else { return .gitStateUnverified }
+            return nil
+        }
+        guard kind == .claude else { return .indexedStore }
+        let project = path.deletingLastPathComponent()
+        let sidecars = [project.appendingPathComponent("sessions-index.json"), path.deletingPathExtension()]
+        guard !sidecars.contains(where: { FileManager().fileExists(atPath: $0.path) }) else {
+            return .sessionSidecars
+        }
+        return await chatIdle(path) == true ? nil : .chatNotIdle
+    }
+
+    private func worktreeMetadata(_ path: URL) throws -> URL {
+        let pointer = path.appendingPathComponent(".git")
+        let attributes = try FileManager().attributesOfItem(atPath: pointer.path)
+        guard attributes[.type] as? FileAttributeType == .typeRegular else {
+            throw CocoaError(.fileReadNoPermission)
+        }
+        let text = try String(contentsOf: pointer, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.hasPrefix("gitdir: ") else { throw CocoaError(.fileReadCorruptFile) }
+        let value = String(text.dropFirst(8))
+        guard !value.isEmpty, !value.contains("\n"), !value.contains("\0") else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        let directory = URL(filePath: value, directoryHint: .isDirectory, relativeTo: path).standardized
+        guard directory.deletingLastPathComponent().lastPathComponent == "worktrees" else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        try CleanAIDataWorktreeMetadata.verify(directory, worktree: path)
+        return directory
     }
 
     private func old(_ date: Date, kind: CleanAIDataItem.Kind) -> Bool {
@@ -97,14 +129,14 @@ struct CleanAIDataService: Sendable {
     }
 
     private func safe(_ path: URL) -> Bool {
-        let home = policy.home.standardizedFileURL
-        guard home == home.resolvingSymlinksInPath(),
-              path.standardizedFileURL.path.hasPrefix(home.path + "/") else { return false }
-        var cursor = path.standardizedFileURL
-        while cursor != home {
+        guard path.path.hasPrefix(policy.home.path + "/") else { return false }
+        var cursor = path
+        while cursor.path != "/" {
             guard let attributes = try? FileManager().attributesOfItem(atPath: cursor.path),
                   attributes[.type] as? FileAttributeType != .typeSymbolicLink else { return false }
-            cursor.deleteLastPathComponent()
+            let parent = cursor.deletingLastPathComponent()
+            guard parent.path != cursor.path else { return false }
+            cursor = parent
         }
         return true
     }
