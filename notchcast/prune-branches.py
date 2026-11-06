@@ -133,7 +133,8 @@ def main():
             # Re-check right before each batch: a PR opened or a branch moved since selection keeps it.
             live = {ref.removeprefix('refs/heads/'): sha for sha, ref in
                     (line.split() for line in git('ls-remote', '--heads', 'origin').splitlines())}
-            batch = [item for item in batch if live.get(item[0]) == item[1] and item[0] not in open_heads()]
+            still_open = open_heads()
+            batch = [item for item in batch if live.get(item[0]) == item[1] and item[0] not in still_open]
             if not batch:
                 continue
             for name, sha, _ in batch:
