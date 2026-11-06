@@ -63,7 +63,6 @@ enum NotchcastTheme {
         static let wing = Theme.Size.menuIcon + Theme.Spacing.xl * 2
         static let wingInset = Theme.Spacing.xl + Theme.Spacing.sm / 2
         static let contentInset = Theme.Spacing.lg
-        /// Word and value share a wing only up to this width, so the eye stays on the camera.
         static let wingTextLimit: CGFloat = 100
         static let shoulder = Theme.Radius.thumbnail
         /// Rows below the camera: `xl` from the sides, `sm` under the last.

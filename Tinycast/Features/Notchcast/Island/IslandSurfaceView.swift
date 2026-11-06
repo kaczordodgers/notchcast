@@ -13,6 +13,7 @@ final class IslandSurfaceView: NSView {
     private let silhouette = CAShapeLayer()
     private let openHost = HostingView(rootView: AnyView(EmptyView()))
     private let closedHost = HostingView(rootView: AnyView(EmptyView()))
+    private var outgoingHost: HostingView?
     private var animationDisplayLink: CADisplayLink?
     private var showing = Showing.closed
     var onAnimationFrame: (() -> Void)?
@@ -45,7 +46,19 @@ final class IslandSurfaceView: NSView {
         silhouette.contentsScale = window?.backingScaleFactor ?? layer?.contentsScale ?? 1
     }
 
-    func setContent(open: AnyView, closed: AnyView) {
+    func setContent(open: AnyView, closed: AnyView, handover: Bool = false) {
+        if handover, showing == .closed {
+            outgoingHost?.removeFromSuperview()
+            let outgoing = HostingView(rootView: closedHost.rootView)
+            outgoing.sizingOptions = []
+            outgoing.frame = closedHost.frame
+            outgoing.wantsLayer = true
+            outgoing.setAccessibilityHidden(true)
+            addSubview(outgoing)
+            outgoingHost = outgoing
+            setOpacity(0, on: outgoing.layer, motion: .fade)
+            setOpacity(0, on: closedHost.layer, motion: .instant)
+        }
         openHost.rootView = open
         closedHost.rootView = closed
     }
@@ -62,6 +75,8 @@ final class IslandSurfaceView: NSView {
             watchAnimation()
             return
         }
+        let closing = showing == .closed && motion == .shrink
+            && (self.showing == .open || outgoingHost != nil)
         self.showing = showing
         let hosts: [(HostingView, Showing)] = [(openHost, .open), (closedHost, .closed)]
         for (host, kind) in hosts where kind == showing {
@@ -87,9 +102,17 @@ final class IslandSurfaceView: NSView {
             animation.duration = animation.settlingDuration
             animation.fromValue = previousPath
             animation.toValue = path
+            if closing {
+                animation.beginTime = silhouette.convertTime(CACurrentMediaTime(), from: nil) + IslandMotion.crossFade
+                animation.fillMode = .backwards
+            }
             silhouette.add(animation, forKey: "islandMorph")
         }
-        for (host, kind) in hosts { setOpacity(kind == showing ? 1 : 0, on: host.layer, motion: motion) }
+        for (host, kind) in hosts {
+            let delay = kind == .closed && (closing || outgoingHost != nil)
+                ? IslandMotion.crossFade + (closing ? IslandMotion.shrinking.time(reaching: 0.95) : 0) : 0
+            setOpacity(kind == showing ? 1 : 0, on: host.layer, motion: motion, delay: delay)
+        }
         if motion == .instant { for (host, kind) in hosts where kind != showing { host.isHidden = true } }
         onAnimationFrame?()
         if motion != .instant { watchAnimation() }
@@ -132,6 +155,8 @@ final class IslandSurfaceView: NSView {
     }
 
     func stop() {
+        outgoingHost?.removeFromSuperview()
+        outgoingHost = nil
         animationDisplayLink?.invalidate()
         animationDisplayLink = nil
         silhouette.removeAllAnimations()
@@ -182,6 +207,8 @@ final class IslandSurfaceView: NSView {
               layer?.animation(forKey: kCATransition) == nil,
               openHost.layer?.animation(forKey: "islandContent") == nil,
               closedHost.layer?.animation(forKey: "islandContent") == nil else { return }
+        outgoingHost?.removeFromSuperview()
+        outgoingHost = nil
         sender.invalidate()
         animationDisplayLink = nil
         if showing != .open { openHost.isHidden = true }

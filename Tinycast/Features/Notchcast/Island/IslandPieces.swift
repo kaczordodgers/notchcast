@@ -184,7 +184,6 @@ struct IslandScrollingText: View {
 }
 
 /// A song's cover, or the music symbol on a control tile while the player gave none.
-/// The cover follows the shape that holds it: round in the pill's end, the notch corner's small radius in a wing.
 struct IslandArtwork: View {
     let image: NSImage?
 

@@ -22,7 +22,7 @@ struct IslandClosedView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .foregroundStyle(NotchcastTheme.Colors.primary)
         .environment(\.colorScheme, .dark)
-        .animation(NotchcastTheme.Motion.swap, value: state.key)
+        .transaction { $0.animation = nil; $0.disablesAnimations = true }
         .motionScope()
     }
 
@@ -108,7 +108,7 @@ struct IslandClosedView: View {
             if !parts.hasTrailing {
                 if !needsLines(parts.item) { titleText(parts.title) }
             } else {
-                wordAndValue(parts)
+                parts.trailing(compact: true)
             }
         case .music: parts.trailing(compact: true)
         case .card: EmptyView()
@@ -122,15 +122,6 @@ struct IslandClosedView: View {
             .fixedSize()
     }
 
-    private func wordAndValue(_ parts: IslandItemParts) -> some View {
-        HStack(spacing: NotchcastTheme.Closed.itemGap) {
-            titleText(parts.title)
-            parts.trailing(compact: true)
-        }
-        .fixedSize()
-    }
-
-    /// Measures the main item's title, and its title with its value, so the wing can choose before it draws.
     private var titleProbe: some View {
         ZStack {
             if let main = state.main {

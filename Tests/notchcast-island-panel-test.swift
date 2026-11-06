@@ -54,6 +54,7 @@ struct IslandClosedState {
     static var idle: Self { Self() }
     var isIdle: Bool { main == nil }
     var spokenSummary: String? { nil }
+    var key: String { isIdle ? "idle" : "active" }
 }
 
 extension EnvironmentValues {

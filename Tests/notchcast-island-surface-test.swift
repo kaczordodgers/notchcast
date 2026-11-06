@@ -40,6 +40,9 @@ struct IslandSurfaceTests {
         surface.present(outline: closed, openRect: openRect, showing: .closed, motion: .shrink)
         let closing = mask.animation(forKey: "islandMorph") as? CASpringAnimation
         assert(closing != nil && closing !== morph, "a new outline must retarget the morph")
+        assert(closing!.beginTime > mask.convertTime(CACurrentMediaTime(), from: nil),
+               "the open content must fade before the shape shrinks")
+        assert(closing!.fillMode == .backwards, "the shape holds its old outline during content exit")
         assert(closing?.fromValue != nil && closing?.duration == closing?.settlingDuration,
                "a retarget starts where the shape is and runs until the spring settles")
 

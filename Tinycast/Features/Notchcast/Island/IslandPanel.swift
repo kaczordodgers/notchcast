@@ -129,6 +129,8 @@ final class IslandPanel: NSPanel {
     }
 
     func setContent(open: AnyView, closed: IslandClosedState, header: AnyView) {
+        let handover = state.key != closed.key && Motion.isEnabled
+            && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         state = closed
         expandedContent = open
         headerContent = header
@@ -147,7 +149,7 @@ final class IslandPanel: NSPanel {
             if !self.open { present(animated: true) }
         }
         surface.setContent(open: AnyView(expanded), closed: AnyView(compact
-            .environment(\.hasHardwareNotch, hardwareNotch != nil)))
+            .environment(\.hasHardwareNotch, hardwareNotch != nil)), handover: handover)
         surface.setAccessibilityValue(closed.spokenSummary)
         present(animated: true)
     }
@@ -315,7 +317,9 @@ final class IslandPanel: NSPanel {
     private var closedOutline: IslandOutline {
         if let notch = hardwareNotch {
             guard !state.isIdle else {
-                return IslandOutline(body: notch, bottomRadius: NotchcastTheme.Corners.bottomRadius(height: notch.height))
+                return IslandOutline(body: notch.insetBy(dx: -NotchcastTheme.Closed.shoulder, dy: 0),
+                                     shoulder: NotchcastTheme.Closed.shoulder,
+                                     bottomRadius: NotchcastTheme.Corners.bottomRadius(height: notch.height))
             }
             let size = CGSize(width: max(notch.width, closedSize.width), height: max(notch.height, closedSize.height))
             return IslandOutline(
