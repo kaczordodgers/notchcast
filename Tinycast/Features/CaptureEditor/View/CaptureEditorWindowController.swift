@@ -17,7 +17,7 @@ final class CaptureEditorWindowController: CaptureEditorCoordinator.Host {
         guard let coordinator else { return }
         let panel = CaptureEditorPanel(contentRect: CGRect(origin: .zero,
             size: CGSize(width: Theme.Size.panelWidth, height: Theme.Size.panelHeight)),
-            styleMask: [.borderless, .resizable], backing: .buffered, defer: false)
+            styleMask: [.borderless, .resizable, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.coordinator = coordinator
         panel.isReleasedWhenClosed = false
         panel.isOpaque = false
@@ -30,7 +30,6 @@ final class CaptureEditorWindowController: CaptureEditorCoordinator.Host {
         closeEditor()
         window = panel
         place(panel)
-        NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
     }
 
