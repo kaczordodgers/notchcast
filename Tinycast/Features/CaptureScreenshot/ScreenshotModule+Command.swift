@@ -17,7 +17,11 @@ extension ScreenshotModule {
                     do {
                         let url = try await self?.capture(.rect(selection.rect))
                         if NotchcastPreferences.shared.isOn(.captureEditor), let self {
-                            try NotchcastCore.captureEditor.openCapture(url: url, clipboard: self.destination != .file)
+                            do {
+                                try NotchcastCore.captureEditor.openCapture(url: url, clipboard: self.destination != .file)
+                            } catch {
+                                AppCore.shared.showMessage(error.localizedDescription, tone: .danger)
+                            }
                         }
                     } catch is CancellationError {
                     } catch {
