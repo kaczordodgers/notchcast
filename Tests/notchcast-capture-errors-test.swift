@@ -19,9 +19,12 @@ struct NotchcastCommand: Sendable {
     enum Destination { case clipboard, file }
     let destination = Destination.clipboard
     let enabled = true
-    let area = CaptureAreaService()
+    let area = CaptureAreaService(hasScreenRecordingAccess: { true }, select: {
+        $0(.init(rect: CGRect(x: 0, y: 0, width: 20, height: 20), displayID: 1, displayFrame: .zero))
+    })
+    var captures = 0
     var commandTask: Task<Void, Never>?
-    func capture(_ request: ScreenshotRequest) async throws -> URL? { nil }
+    func capture(_ request: ScreenshotRequest) async throws -> URL? { captures += 1; return nil }
 }
 
 @MainActor final class ColorPickerModule {
@@ -40,7 +43,11 @@ enum ColorPickerService {
 }
 
 @MainActor final class CaptureEditorProbe {
-    func openCapture(url: URL?, clipboard: Bool) throws {}
+    enum Failure: LocalizedError {
+        case noImage
+        var errorDescription: String? { "No Image to Edit" }
+    }
+    func openCapture(url: URL?, clipboard: Bool) throws { throw Failure.noImage }
 }
 
 @MainActor final class NotchcastPreferences {
@@ -57,7 +64,12 @@ enum ColorPickerService {
 }
 
 @main @MainActor struct CaptureErrorsTest {
-    static func main() {
+    static func main() async {
+        NotchcastCore.screenshot.captureArea()
+        await NotchcastCore.screenshot.commandTask?.value
+        precondition(NotchcastCore.screenshot.captures == 1)
+        precondition(AppCore.shared.messages == ["No Image to Edit"])
+        AppCore.shared.messages.removeAll()
         precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.permissionDenied)
                      == String(localized: "Screen Recording access is required."))
         precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.clipboardFailed)
