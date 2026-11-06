@@ -4,9 +4,10 @@ struct IslandDayView: View {
     @Environment(\.metrics) private var metrics
     @Environment(\.islandHeaderHeight) private var headerHeight
     let page: IslandDayPage
+    var hasAccess: Bool? = nil
 
     var body: some View {
-        if !page.hasAccess {
+        if !(hasAccess ?? page.hasAccess) {
             VStack(spacing: metrics.spacing.md) {
                 SymbolImage(name: "calendar", size: metrics.size.dialogIcon)
                     .accessibilityHidden(true)

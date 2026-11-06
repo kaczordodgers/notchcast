@@ -35,6 +35,16 @@ final class IslandSurfaceView: NSView {
 
     required init?(coder: NSCoder) { nil }
 
+    override func viewDidChangeBackingProperties() {
+        super.viewDidChangeBackingProperties()
+        silhouette.contentsScale = layer?.contentsScale ?? 1
+    }
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        silhouette.contentsScale = window?.backingScaleFactor ?? layer?.contentsScale ?? 1
+    }
+
     func setContent(open: AnyView, closed: AnyView) {
         openHost.rootView = open
         closedHost.rootView = closed

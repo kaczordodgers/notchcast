@@ -41,6 +41,8 @@ def problems(layout):
     for index, element in enumerate(elements):
         frame = rect(element["frame"])
         name = element.get("label") or f'{element["role"]}[{index}]'
+        if index == 0 and element["role"] == "AXGroup" and not element.get("label") and frame == canvas:
+            continue
         if not inside(frame, surface):
             found.append(f"{name}: outside surface")
         x, y, width, height = frame

@@ -3,12 +3,12 @@ import AppKit
 import SwiftUI
 
 extension GalleryPages {
-    /// The 16 closed states on main, the music and value pages, two at once, the cards and the opening's frames.
     static let closedIslandStates = [
         "idle", "timer", "transfer", "status", "volume", "brightness", "airpods", "low-battery", "wifi", "tailscale",
         "low-disk", "meeting-reminder", "dictation", "walk", "message", "danger-message",
         "music", "music-paused", "recording", "count", "step", "speed", "toggle", "level", "spinner", "calibration",
         "two-at-once", "timer-end", "long-message",
+        "agents", "camera", "mac-update", "several-items", "transcribing", "two-activities",
     ]
 
     static func island(_ core: AppCore) -> [GalleryPage] {
@@ -20,27 +20,55 @@ extension GalleryPages {
                 islandPage(core, name: "island-closed-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: false)
             }
-            let opening = ["start": 0.0, "middle": NotchcastTheme.Opening.middle, "end": 1.0]
+            let opening = ["start": 0.0, "middle": NotchcastTheme.Opening.middle]
                 .sorted { $0.value < $1.value }.map { frame, progress in
                     islandPage(core, name: "island-opening-\(frame)-\(suffix)", display: display, notch: notch,
                                state: "music", open: false, opening: progress)
                 }
-            // The opening's last frame at the largest interface size: the black must meet the scaled launcher.
-            let larger = islandPage(core, name: "island-opening-end-larger-\(suffix)", display: display, notch: notch,
-                                    state: "music", open: false, opening: 1, interfaceSize: .larger)
-            let opened = ["home-empty", "home-entries", "day-calendar"].map { state in
+            let ends = [InterfaceSize.larger, .large, .standard].map { size in
+                launcherEnd(core, display: display, notch: notch, size: size,
+                            suffix: size == .standard ? suffix : "\(size.rawValue)-\(suffix)")
+            }
+            let opened = ["home-empty", "home-entries", "day-calendar", "day-no-access"].map { state in
                 islandPage(core, name: "island-open-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: true)
             }
-            return closed + opening + [larger] + opened
+            return closed + opening + ends + opened
         } + [visualizerLab()]
     }
 
     private static func visualizerLab() -> GalleryPage {
-        let size = CGSize(width: 2 * NotchcastTheme.Visualizer.labTile.width + Theme.Spacing.lg + 2 * Theme.Spacing.xl,
-                          height: NotchcastTheme.Visualizer.labTile.height * 2 + 2 * Theme.Spacing.xl)
-        return GalleryPage(name: "island-visualizer-lab", types: ["IslandVisualizerLabView", "IslandVisualizer"],
-                           makeWindow: { window(IslandVisualizerLabView(), size: size, dark: true) })
+        GalleryPage(name: "island-visualizers", types: ["IslandVisualizerComparisonView", "IslandVisualizer"],
+                    makeWindow: {
+            let view = IslandVisualizerComparisonView()
+            return window(view, size: NSHostingView(rootView: view).fittingSize, dark: true)
+        })
+    }
+
+    private static func launcherEnd(_ core: AppCore, display: CGRect, notch: CGRect?, size: InterfaceSize,
+                                    suffix: String) -> GalleryPage {
+        GalleryPage(name: "launcher-opening-end-\(suffix)", types: ["RootPaletteView", "LauncherList"], makeWindow: {
+            core.settings.interfaceSize = size
+            let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
+            let launcher = launcherFrame(under: panel)
+            panel.showOpening(into: launcher, progress: 1)
+            let shape = (panel.contentView?.layer?.mask as? CAShapeLayer)?.path ?? CGMutablePath()
+            let canvas = panel.frame
+            let local = CGRect(x: launcher.minX - canvas.minX, y: canvas.maxY - launcher.maxY,
+                               width: launcher.width, height: launcher.height)
+            core.palette.prepare(mode: .launcher)
+            core.palette.noteCommandHeld(false)
+            core.palette.query = ""
+            let flip = CGAffineTransform(translationX: 0, y: canvas.height).scaledBy(x: 1, y: -1)
+            let view = ZStack(alignment: .topLeading) {
+                Color.clear
+                Path(shape).transform(flip).fill(NotchcastTheme.Colors.surface)
+                RootPaletteView().paletteEnvironment(core)
+                    .frame(width: local.width, height: local.height)
+                    .offset(x: local.minX, y: local.minY)
+            }
+            return window(view, size: canvas.size, dark: true)
+        }, settle: .milliseconds(500), finish: { core.settings.interfaceSize = .standard })
     }
 
     private static func islandPage(
@@ -65,7 +93,8 @@ extension GalleryPages {
             let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
             let island = IslandController()
             let pages = IslandPagesCoordinator(core: core, island: island)
-            let header = IslandHeaderView(cameraWidth: notch?.width ?? 0, height: panel.headerHeight)
+            let header = IslandHeaderView(cameraWidth: notch?.width ?? 0, height: panel.headerHeight,
+                                          shownPage: state.hasPrefix("day-") ? .day : .home)
                 .environment(island).environment(pages)
             if state == "home-entries" {
                 NotchcastPreferences.shared.set(.islandLiveActivities, true)
@@ -75,11 +104,11 @@ extension GalleryPages {
             }
             let content: AnyView
             if state == "day-calendar" {
-                let now = Date()
+                let now = Calendar.current.startOfDay(for: Date()).addingTimeInterval(9 * 3600)
                 let events = ["Design review", "Project planning"].enumerated().map { index, title in
                     MeetingEvent(id: "sample-\(index)", title: title,
-                                 start: now.addingTimeInterval(Double(index + 1) * 3600),
-                                 end: now.addingTimeInterval(Double(index + 1) * 3600 + 1800),
+                                 start: Calendar.current.date(byAdding: .day, value: index, to: now)!,
+                                 end: Calendar.current.date(byAdding: .day, value: index, to: now)!.addingTimeInterval(1800),
                                  isAllDay: false, isDeclined: false, calendarID: "sample",
                                  calendarName: "Sample calendar", calendarColor: .init(red: 0.4, green: 0.6, blue: 1),
                                  calendarItemID: "sample-\(index)", link: nil)
@@ -87,6 +116,8 @@ extension GalleryPages {
                 content = AnyView(ScheduleList(results: events, selectedID: events.first?.id, now: now,
                                                scroll: ScrollIntent(kind: .top), onActivate: { _ in }, onActions: { _ in })
                     .frame(height: 200))
+            } else if state == "day-no-access" {
+                content = AnyView(pages.noAccessContent())
             } else { content = AnyView(IslandHomeView()) }
             panel.setContent(open: AnyView(content.paletteEnvironment(core)), closed: closedFixture(state),
                              header: AnyView(header.paletteEnvironment(core)))
@@ -152,6 +183,17 @@ extension GalleryPages {
         case "recording":
             shown.activities = [activity("Recording", symbol: "record.circle", value: .elapsed(since: now - 83))]
         case "count": shown.activities = [activity("Copying files", symbol: "doc.on.doc", value: .count(3, of: 12))]
+        case "agents":
+            shown.activities = [activity("Agents waiting", symbol: "person.2", value: .count(2, of: 4))]
+        case "camera": shown.activities = [activity("Camera", symbol: "video", value: .toggle(true))]
+        case "mac-update":
+            shown.activities = [activity("macOS update", symbol: "arrow.triangle.2.circlepath", value: .step(3, of: 7))]
+        case "several-items":
+            shown.activities = [IslandActivity(kind: .transfer, title: "Sample downloads", value: .count(2, of: 5))]
+        case "transcribing":
+            shown.activities = [activity("Transcribing", symbol: "text.quote", value: .spinner)]
+        case "two-activities":
+            shown.activities = [tea, IslandActivity(kind: .transfer, title: "Photos backup", progress: 0.64)]
         case "step": shown.activities = [activity("Installing update", symbol: "shippingbox", value: .step(2, of: 5))]
         case "speed":
             shown.activities = [activity("Downloading", symbol: "arrow.down.circle",
