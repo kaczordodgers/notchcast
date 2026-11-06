@@ -5,5 +5,11 @@
     "Tinycast/Features/Music/Service/SoloistKey.swift",
     "Tinycast/Features/AppProof/**",
     "Tinycast/App/TinycastApp.swift"
+  ],
+  "archive-fallback": [
+    "Tinycast/Features/Archives/Model/ArchiveEngineRoute.swift",
+    "Tinycast/Features/Archives/Model/ArchiveZIPEncoding.swift",
+    "Tinycast/Features/Archives/Service/ArchiveExtractionRunner+Fallback.swift",
+    "Tinycast/Features/AppProof/**"
   ]
 }
