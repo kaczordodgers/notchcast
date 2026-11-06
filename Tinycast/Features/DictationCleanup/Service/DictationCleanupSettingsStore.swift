@@ -7,7 +7,7 @@ struct DictationCleanupSettingsStore {
 
     private let defaults: UserDefaults
     private let keychainService: String
-    private static let settingsKey = "dictationCleanup"
+    private static let settingsKey = "dictationCleanupSettings"
 
     init(defaults: UserDefaults, bundleIdentifier: String) {
         self.defaults = defaults
@@ -20,6 +20,15 @@ struct DictationCleanupSettingsStore {
     }
 
     func read() throws -> DictationCleanupSettings {
+        if defaults.object(forKey: Self.settingsKey) == nil,
+           let legacy = defaults.data(forKey: "dictationCleanup") {
+            if let settings = try? JSONDecoder().decode(DictationCleanupSettings.self, from: legacy) {
+                defaults.set(legacy, forKey: Self.settingsKey)
+                defaults.set(settings.isEnabled, forKey: "dictationCleanup")
+            } else {
+                defaults.removeObject(forKey: "dictationCleanup")
+            }
+        }
         guard let data = defaults.data(forKey: Self.settingsKey) else { return .init() }
         return try JSONDecoder().decode(DictationCleanupSettings.self, from: data)
     }
@@ -68,7 +77,7 @@ struct DictationCleanupSettingsStore {
         return [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: keychainService,
-            kSecAttrAccount as String: "cliproxyapi",
+            kSecAttrAccount as String: "api-key",
             kSecUseAuthenticationContext as String: context
         ]
     }
