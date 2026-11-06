@@ -24,6 +24,19 @@ source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
 refuse() { echo "REFUSED: $*" >&2; exit 1; }
+delete_head() {
+    local name=$1 expected=$2 fork=${3:-false} remote local_head
+    [ "$fork" = false ] || return 0
+    remote=$(git ls-remote origin "refs/heads/$name") || { echo 'WARN: cannot read origin head' >&2; return 0; }
+    if [ "${remote%%[[:space:]]*}" = "$expected" ]; then
+        git push origin --delete "$name" || echo "WARN: could not delete origin/$name" >&2
+    fi
+    local_head=$(git rev-parse --verify "refs/heads/$name" 2>/dev/null) || return 0
+    if [ "$local_head" = "$expected" ]; then
+        git branch -D -- "$name" || echo "WARN: could not delete local $name (possibly checked out)" >&2
+    fi
+    return 0
+}
 source "$(dirname "$0")/sync-wait.sh"
 source "$(dirname "$0")/hold.sh"
 check=0
@@ -33,7 +46,7 @@ if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     head=$(git rev-parse --verify "$3^{commit}")
 elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
-    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName,baseRefName)
+    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName,baseRefName,isCrossRepository)
     [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
     check_hold "$pr"
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
@@ -180,4 +193,5 @@ if [ "$check" -eq 0 ]; then
     done
     gh pr close "$pr" -R kaczordodgers/notchcast --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base." \
         || refuse "landed on main as $commit, but closing PR #$pr failed: close it by hand, do not rerun land.sh"
+    delete_head "$(jq -r .headRefName <<< "$metadata")" "$head" "$(jq -r .isCrossRepository <<< "$metadata")"
 fi
