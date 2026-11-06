@@ -15,7 +15,10 @@ extension ScreenshotModule {
                 guard let self, self.enabled, let selection else { return }
                 self.commandTask = Task { [weak self] in
                     do {
-                        _ = try await self?.capture(.rect(selection.rect))
+                        let url = try await self?.capture(.rect(selection.rect))
+                        if NotchcastPreferences.shared.isOn(.captureEditor), let self {
+                            try NotchcastCore.captureEditor.openCapture(url: url, clipboard: self.destination != .file)
+                        }
                     } catch is CancellationError {
                     } catch {
                         AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
