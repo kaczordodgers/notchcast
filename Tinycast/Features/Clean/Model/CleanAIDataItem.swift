@@ -6,5 +6,10 @@ struct CleanAIDataItem: Sendable {
     let kind: Kind
     let selectable: Bool
     let selected = false
+    var refusal: Refusal?
     internal let snapshot: [String: String]
+
+    enum Refusal: Sendable {
+        case indexedStore, sessionSidecars, gitStateUnverified, chatNotIdle
+    }
 }
