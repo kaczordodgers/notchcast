@@ -1,6 +1,33 @@
 import AppKit
 
 extension ScreenshotModule {
+    nonisolated static let areaCommand = NotchcastCommand(
+        slug: "screenshot-area", name: String(localized: "Capture Area", table: "Notchcast"),
+        sfSymbol: "camera.viewfinder", feature: .screenshot,
+        isEnabled: { NotchcastPreferences.shared.isOn(.screenshot) },
+        run: { NotchcastCore.screenshot.captureArea() })
+
+    func captureArea() {
+        guard enabled else { return }
+        commandTask?.cancel()
+        do {
+            try area.start { [weak self] selection in
+                guard let self, self.enabled, let selection else { return }
+                self.commandTask = Task { [weak self] in
+                    do {
+                        _ = try await self?.capture(.rect(selection.rect))
+                    } catch is CancellationError {
+                    } catch {
+                        AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
+                    }
+                }
+            }
+        } catch {
+            AppCore.shared.showMessage(
+                String(localized: "Screen Recording access is required.", table: "Notchcast"), tone: .danger)
+        }
+    }
+
     nonisolated static let launcherCommand = NotchcastCommand(
         slug: "screenshot-display", name: String(localized: "Capture Screen", table: "Notchcast"), sfSymbol: "camera", feature: .screenshot,
         isEnabled: { NotchcastPreferences.shared.isOn(.screenshot) },
