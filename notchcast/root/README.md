@@ -54,7 +54,7 @@ The fixed program and app client share twenty-five argument-free verbs. `version
 
 `standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings without invoking pmset.
 
-On the inspected MacBook Pro, `pmset -g cap` and `pmset -g custom` omit `autopoweroff`. The installed pmset binary still names the setting and its manual describes it for supported platforms, so the verbs remain available; their hardware effect on this Mac is unverified.
+On the inspected Mac, `pmset -g cap` and `pmset -g custom` omit `autopoweroff`. The installed pmset binary still names the setting and its manual describes it for supported platforms, so the verbs remain available; their hardware effect on this Mac is unverified.
 
 `RootContract.swift` here is a symlink to the app's contract under
 `Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no
