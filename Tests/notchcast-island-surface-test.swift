@@ -19,6 +19,9 @@ struct IslandSurfaceTests {
         let surface = IslandSurfaceView(frame: CGRect(x: 0, y: 0, width: 800, height: 520))
         guard let mask = surface.layer?.mask, surface.subviews.count == 2,
               let openLayer = surface.subviews[0].layer else { fatalError("surface layers missing") }
+        surface.layer?.contentsScale = 2
+        surface.viewDidChangeBackingProperties()
+        assert(mask.contentsScale == 2, "the silhouette must rasterize at the host's backing scale")
         let closed = IslandOutline(body: CGRect(x: 300, y: 488, width: 200, height: 32), bottomRadius: 10)
         let open = IslandOutline(body: CGRect(x: 0, y: 200, width: 800, height: 320), shoulder: 6, bottomRadius: 26)
         let openRect = open.body

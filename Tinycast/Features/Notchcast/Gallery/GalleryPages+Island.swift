@@ -29,7 +29,7 @@ extension GalleryPages {
                 launcherEnd(core, display: display, notch: notch, size: size,
                             suffix: size == .standard ? suffix : "\(size.rawValue)-\(suffix)")
             }
-            let opened = ["home-empty", "home-entries", "day-calendar"].map { state in
+            let opened = ["home-empty", "home-entries", "day-calendar", "day-no-access"].map { state in
                 islandPage(core, name: "island-open-\(state)-\(suffix)",
                            display: display, notch: notch, state: state, open: true)
             }
@@ -93,7 +93,8 @@ extension GalleryPages {
             let panel = IslandPanel(screenFrame: display, hardwareNotch: notch)
             let island = IslandController()
             let pages = IslandPagesCoordinator(core: core, island: island)
-            let header = IslandHeaderView(cameraWidth: notch?.width ?? 0, height: panel.headerHeight)
+            let header = IslandHeaderView(cameraWidth: notch?.width ?? 0, height: panel.headerHeight,
+                                          shownPage: state.hasPrefix("day-") ? .day : .home)
                 .environment(island).environment(pages)
             if state == "home-entries" {
                 NotchcastPreferences.shared.set(.islandLiveActivities, true)
@@ -103,11 +104,11 @@ extension GalleryPages {
             }
             let content: AnyView
             if state == "day-calendar" {
-                let now = Date()
+                let now = Calendar.current.startOfDay(for: Date()).addingTimeInterval(9 * 3600)
                 let events = ["Design review", "Project planning"].enumerated().map { index, title in
                     MeetingEvent(id: "sample-\(index)", title: title,
-                                 start: now.addingTimeInterval(Double(index + 1) * 3600),
-                                 end: now.addingTimeInterval(Double(index + 1) * 3600 + 1800),
+                                 start: Calendar.current.date(byAdding: .day, value: index, to: now)!,
+                                 end: Calendar.current.date(byAdding: .day, value: index, to: now)!.addingTimeInterval(1800),
                                  isAllDay: false, isDeclined: false, calendarID: "sample",
                                  calendarName: "Sample calendar", calendarColor: .init(red: 0.4, green: 0.6, blue: 1),
                                  calendarItemID: "sample-\(index)", link: nil)
@@ -115,6 +116,8 @@ extension GalleryPages {
                 content = AnyView(ScheduleList(results: events, selectedID: events.first?.id, now: now,
                                                scroll: ScrollIntent(kind: .top), onActivate: { _ in }, onActions: { _ in })
                     .frame(height: 200))
+            } else if state == "day-no-access" {
+                content = AnyView(pages.noAccessContent())
             } else { content = AnyView(IslandHomeView()) }
             panel.setContent(open: AnyView(content.paletteEnvironment(core)), closed: closedFixture(state),
                              header: AnyView(header.paletteEnvironment(core)))
