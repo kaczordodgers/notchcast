@@ -8,7 +8,11 @@ CONTRIBUTING.md
 CONTRIBUTOR_LICENSE_AND_FEEDBACK_AGREEMENT.md
 SECURITY.md
 .vscode/
-.github/ISSUE_TEMPLATE/
+.github/ISSUE_TEMPLATE/bug_report.yml
+.github/ISSUE_TEMPLATE/config.yml
+.github/ISSUE_TEMPLATE/extension_bug.yml
+.github/ISSUE_TEMPLATE/feature_request.yml
+.github/FUNDING.yml
 Scripts/gen-countries.js
 Scripts/gen-currencies.js
 Scripts/gen-emoji.js

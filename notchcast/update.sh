@@ -5,7 +5,7 @@
 # and only when nothing is installed yet, the release is newer, or the installed copy is not ours.
 # It replaces only the bundle, keeping one previous app for rollback; settings and data are never touched.
 # The in-app updater stays inert for app.notchcast (ReleaseChannel: development), so this is the update path.
-# Leads run notchcast/update.sh --install at each milestone end on both Macs, even with automatic updates off.
+# --install installs even with automatic updates off, e.g. to put one build on every maintainer machine.
 # Usage: update.sh [--install] [--retry] [--dry-run] (any order)
 # A newer release installs and restarts the app at once, whether or not the Mac is in use.
 set -euo pipefail
@@ -39,15 +39,15 @@ plist() { /usr/libexec/PlistBuddy -c "Print :$2" "$1/Contents/Info.plist" 2>/dev
 
 # The sync reports through issues on the fork (notchcast/ci.py): notchcast-sync, -main and -release are failures, one
 # open issue per kind whose cause marker changes only with a new cause; notchcast-design asks for a docs refresh.
-# Only where chad-opus exists (the MBA), so one Mac acts: Chad is told once per issue and cause, and each design
-# issue becomes one Todoist task (label notchcast, Backlog) and is closed.
-# ~/.config/notchcast/private.env supplies NOTCHCAST_TODOIST_PROJECT and NOTCHCAST_TODOIST_BACKLOG.
+# Only where ~/.config/notchcast/private.env defines notchcast_notify (notchcast/README.md, "Private hooks"), so one
+# Mac acts: it is told once per issue and cause, and with notchcast_task each design issue becomes one private task
+# and is closed.
 if [ -f "$HOME/.config/notchcast/private.env" ]; then
     # shellcheck disable=SC1091
     source "$HOME/.config/notchcast/private.env"
 fi
 alert_issues() {
-    command -v chad-opus >/dev/null || return 0
+    declare -F notchcast_notify >/dev/null || return 0
     local seen="$HOME/Library/Application Support/notchcast/alerted-issues" issues key n
     mkdir -p "$(dirname "$seen")"; touch "$seen"
     issues="$(gh issue list -R "$FORK_REPO" --state open --limit 50 --json number,title,url,body,labels \
@@ -56,26 +56,25 @@ alert_issues() {
     while IFS=$'\t' read -r key title url; do
         [ -n "$key" ] && ! grep -qxF "$key" "$seen" || continue
         if [ "$DRY" = 1 ]; then log "would alert: $title"; continue; fi
-        printf 'Notchcast: %s. Nothing was pushed or published. %s\n' "$title" "$url" | chad-opus ping failure - >/dev/null \
-            || { log "ping for $title failed; retried next run"; return 1; }
+        printf 'Notchcast: %s. Nothing was pushed or published. %s\n' "$title" "$url" | notchcast_notify \
+            || { log "notify for $title failed; retried next run"; return 1; }
         echo "$key" >> "$seen"
-        log "alerted Chad: $title"
+        log "notified: $title"
     done <<< "$issues"
     for n in $(gh issue list -R "$FORK_REPO" --state open --label notchcast-design --json number --jq '.[].number'); do
-        if [ -z "${NOTCHCAST_TODOIST_PROJECT:-}" ] || [ -z "${NOTCHCAST_TODOIST_BACKLOG:-}" ]; then
-            log "no private.env; design issue #$n left open"
+        if ! declare -F notchcast_task >/dev/null; then
+            log "no notchcast_task hook; design issue #$n left open"
             continue
         fi
-        if [ "$DRY" = 1 ]; then log "would add a Todoist task for design issue #$n"; continue; fi
+        if [ "$DRY" = 1 ]; then log "would add a task for design issue #$n"; continue; fi
         local body task
         body="$(gh issue view "$n" -R "$FORK_REPO" --json body,url --jq '.body + "\n" + .url')"
-        task="$(chad-opus td task add "Refresh notchcast/docs/design-system.md" --project "$NOTCHCAST_TODOIST_PROJECT" \
-            --section "$NOTCHCAST_TODOIST_BACKLOG" --labels notchcast --description "$body" --json | jq -r '.id // empty')"
-        [ -n "$task" ] || { log "Todoist task for design issue #$n not created; retried next run"; return 1; }
+        task="$(notchcast_task "Refresh notchcast/docs/design-system.md" "$body")"
+        [ -n "$task" ] || { log "task for design issue #$n not created; retried next run"; return 1; }
         # A failed close would make the next run add a second task.
         gh issue close "$n" -R "$FORK_REPO" --comment "Tracked privately." >/dev/null \
-            || { log "design issue #$n: Todoist task $task created but the issue is still open; close it by hand"; return 1; }
-        log "design issue #$n -> Todoist task $task"
+            || { log "design issue #$n: task $task created but the issue is still open; close it by hand"; return 1; }
+        log "design issue #$n -> task $task"
     done
 }
 alert_issues || log "issue check failed; retried next run"
