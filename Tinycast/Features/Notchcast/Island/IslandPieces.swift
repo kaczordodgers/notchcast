@@ -11,7 +11,7 @@ struct IslandGlyph: View {
     var spinning = false
 
     var body: some View {
-        SymbolImage(name: symbol, size: NotchcastTheme.Closed.symbol, monochrome: !symbol.hasPrefix("battery"))
+        SymbolImage(name: closedSymbol, size: NotchcastTheme.Closed.symbol, monochrome: !symbol.hasPrefix("battery"))
             .foregroundStyle(tint)
             .symbolEffect(.variableColor.iterative.dimInactiveLayers.nonReversing, isActive: spinning)
             .frame(width: NotchcastTheme.Closed.glyph, height: NotchcastTheme.Closed.glyph)
@@ -23,6 +23,16 @@ struct IslandGlyph: View {
         case .plain: NotchcastTheme.Colors.primary
         case .warning: NotchcastTheme.Colors.warning
         case .error: NotchcastTheme.Colors.error
+        }
+    }
+
+    private var closedSymbol: String {
+        switch symbol {
+        case "sun.max": "sun.max.fill"
+        case "info": "info.circle"
+        case "exclamationmark": "exclamationmark.circle"
+        case "checkmark": "checkmark.circle"
+        default: symbol
         }
     }
 }
@@ -177,7 +187,6 @@ struct IslandScrollingText: View {
 /// The cover follows the shape that holds it: round in the pill's end, the notch corner's small radius in a wing.
 struct IslandArtwork: View {
     let image: NSImage?
-    @Environment(\.hasHardwareNotch) private var hasHardwareNotch
 
     var body: some View {
         Group {
@@ -191,8 +200,7 @@ struct IslandArtwork: View {
             }
         }
         .frame(width: NotchcastTheme.Closed.artwork, height: NotchcastTheme.Closed.artwork)
-        .clipShape(RoundedRectangle(cornerRadius: hasHardwareNotch ? NotchcastTheme.Corners.artwork
-                                        : NotchcastTheme.Corners.capsuleArtwork, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: NotchcastTheme.Corners.artwork, style: .continuous))
         .accessibilityHidden(true)
     }
 }

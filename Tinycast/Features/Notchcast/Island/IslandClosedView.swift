@@ -14,7 +14,6 @@ struct IslandClosedView: View {
     @State private var leadingWidth: CGFloat = 0
     @State private var trailingWidth: CGFloat = 0
     @State private var titleWidth: CGFloat = 0
-    @State private var pairWidth: CGFloat = .infinity
 
     var body: some View {
         Group {
@@ -33,7 +32,7 @@ struct IslandClosedView: View {
     private var island: some View {
         Group {
             if let main = state.main {
-                IslandClosedRow(parts: IslandItemParts(item: main))
+                IslandClosedContent(parts: IslandItemParts(item: main))
             } else {
                 Color.clear.frame(height: NotchcastTheme.Closed.row)
             }
@@ -56,23 +55,21 @@ struct IslandClosedView: View {
         VStack(spacing: 0) {
             if let main = state.main {
                 let parts = IslandItemParts(item: main)
-                // Each wing's content hugs its outer edge, so the two sides balance however wide they grow.
-                // An item whose text drops below the camera takes its mark with it, so the two never part.
                 HStack(spacing: 0) {
                     wing { if !needsLines(main) { parts.leading } }
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { leadingWidth = $0 }
-                        .frame(width: wingWidth, alignment: .leading)
+                        .frame(width: wingWidth)
                     Color.clear.frame(width: camera.width).accessibilityHidden(true)
                     wing { notchTrailing(parts) }
                         .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { trailingWidth = $0 }
-                        .frame(width: wingWidth, alignment: .trailing)
+                        .frame(width: wingWidth)
                 }
                 .frame(height: camera.height)
                 if needsLines(main) {
-                    IslandClosedRow(parts: parts, capsuleEnds: false)
+                    IslandClosedContent(parts: parts)
                 }
                 if let second = state.second {
-                    IslandClosedRow(parts: IslandItemParts(item: second), capsuleEnds: false)
+                    IslandClosedContent(parts: IslandItemParts(item: second))
                 }
                 if needsLines(main) || state.second != nil {
                     Color.clear.frame(height: NotchcastTheme.Closed.dropBottom)
@@ -110,10 +107,8 @@ struct IslandClosedView: View {
         case .activity, .message:
             if !parts.hasTrailing {
                 if !needsLines(parts.item) { titleText(parts.title) }
-            } else if pairWidth <= NotchcastTheme.Closed.wingTextLimit {
-                wordAndValue(parts)
             } else {
-                parts.trailing(compact: true)
+                wordAndValue(parts)
             }
         case .music: parts.trailing(compact: true)
         case .card: EmptyView()
@@ -142,8 +137,6 @@ struct IslandClosedView: View {
                 let parts = IslandItemParts(item: main)
                 titleText(parts.title)
                     .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { titleWidth = $0 }
-                wordAndValue(parts)
-                    .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { pairWidth = $0 }
             }
         }
         .hidden()

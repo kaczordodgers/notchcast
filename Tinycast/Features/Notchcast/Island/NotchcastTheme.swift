@@ -58,10 +58,11 @@ enum NotchcastTheme {
         static let maximumWidth = Theme.Size.hudMaxWidth
         /// The bubble beside the island for the second thing, a compact-bar button's distance away.
         static let bubble = row
-        static let bubbleGap = Theme.Spacing.lg
+        static let bubbleGap = Theme.Spacing.sm
         /// A notch wing holds a glyph with `xl` either side, and grows with its content.
         static let wing = Theme.Size.menuIcon + Theme.Spacing.xl * 2
-        static let wingInset = Theme.Spacing.xl
+        static let wingInset = Theme.Spacing.xl + Theme.Spacing.sm / 2
+        static let contentInset = Theme.Spacing.lg
         /// Word and value share a wing only up to this width, so the eye stays on the camera.
         static let wingTextLimit: CGFloat = 100
         static let shoulder = Theme.Radius.thumbnail
