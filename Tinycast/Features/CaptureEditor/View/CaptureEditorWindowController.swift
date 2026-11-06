@@ -6,6 +6,7 @@ final class CaptureEditorWindowController: CaptureEditorCoordinator.Host {
     static let shared = CaptureEditorWindowController()
     weak var coordinator: CaptureEditorCoordinator?
     private(set) var window: NSPanel?
+    var pointerLocation: () -> CGPoint = { NSEvent.mouseLocation }
 
     func attach(to coordinator: CaptureEditorCoordinator) {
         self.coordinator = coordinator
@@ -26,16 +27,27 @@ final class CaptureEditorWindowController: CaptureEditorCoordinator.Host {
         panel.followMotion()
         panel.contentView = NSHostingView(rootView: CaptureEditorView(document: document,
             image: image, coordinator: coordinator).motionScope())
-        window?.orderOut(nil)
+        closeEditor()
         window = panel
-        panel.center()
+        place(panel)
         NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
     }
 
     func closeEditor() {
         window?.orderOut(nil)
+        // An ordered-out panel still renders the reused document and its text field steals focus.
+        window?.contentView = nil
         window = nil
+    }
+
+    private func place(_ panel: NSPanel) {
+        let pointer = pointerLocation()
+        guard let screen = NSScreen.screens.first(where: { $0.frame.contains(pointer) }) ?? NSScreen.main else {
+            return panel.center()
+        }
+        let area = screen.visibleFrame
+        panel.setFrameOrigin(CGPoint(x: area.midX - panel.frame.width / 2, y: area.midY - panel.frame.height / 2))
     }
 }
 
