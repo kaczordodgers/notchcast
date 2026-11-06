@@ -93,6 +93,16 @@ final class CaptureEditorCoordinator: NotchcastModule {
         }
     }
 
+    func openCapture(url: URL?, clipboard: Bool) throws {
+        if let url, let image = NSImage(contentsOf: url) {
+            try open(image: image)
+        } else if url == nil, clipboard {
+            try openFromClipboardOrLast()
+        } else {
+            throw Failure.noImage
+        }
+    }
+
     func close() {
         copyTask?.cancel()
         copyTask = nil
@@ -100,6 +110,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
         guard isOpen else { return }
         session?.document.released()
         session?.document.commitText()
+        session = nil
         isOpen = false
         host?.closeEditor()
     }
@@ -145,23 +156,31 @@ final class CaptureEditorCoordinator: NotchcastModule {
             characters: event.charactersIgnoringModifiers, modifiers: modifiers) else { return false }
         switch action {
         case .copy:
-            copyTask?.cancel()
-            copyFailure = nil
-            copyTask = Task { [weak self] in
-                guard let self else { return }
-                do {
-                    try await copy()
-                } catch is CancellationError {
-                } catch {
-                    guard !Task.isCancelled else { return }
-                    copyFailure = error
-                    reportFailure?(error)
-                }
-            }
+            requestCopy()
         case .close: close()
         default: document.apply(action)
         }
         return true
+    }
+
+    func requestCopy() {
+        copyTask?.cancel()
+        copyFailure = nil
+        copyTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                try await copy()
+            } catch is CancellationError {
+            } catch {
+                guard !Task.isCancelled else { return }
+                reportRenderFailure(error)
+            }
+        }
+    }
+
+    func reportRenderFailure(_ error: any Error) {
+        copyFailure = error
+        reportFailure?(error)
     }
 
     private func makeSession(image: CaptureEditorImage, source: NSImage?, clipboardCount: Int?) -> Session {
