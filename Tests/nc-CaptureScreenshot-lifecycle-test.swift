@@ -4,6 +4,8 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
 import Foundation
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
 
 @MainActor
 private final class CaptureProbe {
