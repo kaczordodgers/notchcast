@@ -43,6 +43,14 @@ struct MenuThumbnail: View {
         defer { board.releaseGlobally() }
         let host = CaptureEditorWindowController()
         let coordinator = CaptureEditorCoordinator(pasteboard: board)
+        var failures = 0
+        let preview = CaptureEditorCoordinator(pasteboard: board, reportFailure: { _ in failures += 1 })
+        preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding, marks: [])
+        preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding, marks: [])
+        precondition(failures == 1)
+        preview.previewSucceeded()
+        preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding, marks: [])
+        precondition(failures == 2)
         host.attach(to: coordinator)
         coordinator.start()
         let context = CGContext(data: nil, width: 320, height: 200, bitsPerComponent: 8, bytesPerRow: 0,
@@ -71,6 +79,9 @@ struct MenuThumbnail: View {
         }
         print("PASS: 20 live overlay drag redraws in \(elapsed); view has no flatten or PNG call")
         document.released()
+        preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding, marks: document.marks)
+        preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding, marks: document.marks)
+        precondition(failures == 3)
         document.pick(.text)
         document.pressed(at: CGPoint(x: 30, y: 100), slack: 2)
         document.textEdit?.string = "OK"
@@ -115,7 +126,7 @@ struct MenuThumbnail: View {
         precondition(coordinator.document?.size == CGSize(width: 320, height: 200))
         precondition(host.window?.isVisible == true)
         coordinator.close()
-        precondition(coordinator.document == nil)
+        precondition(coordinator.document != nil)
         try coordinator.open(image: source)
         let panel = host.window!
         panel.sendEvent(NSEvent.keyEvent(with: .keyDown, location: .zero, modifierFlags: [],

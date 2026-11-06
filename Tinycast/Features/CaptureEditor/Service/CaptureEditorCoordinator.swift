@@ -44,6 +44,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     private let pasteboard: NSPasteboard
     private let render: @MainActor (CaptureEditorImage, [CaptureEditorMark]) async throws -> Data
     private var session: Session?
+    private var failedPreviewMarks: [CaptureEditorMark]?
     private var operation: UUID?
     private var copyTask: Task<Void, Never>?
     private let reportFailure: (@MainActor (any Error) -> Void)?
@@ -66,6 +67,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     func stop() {
         enabled = false
         close()
+        session = nil
     }
 
     func open(image: NSImage) throws {
@@ -110,7 +112,6 @@ final class CaptureEditorCoordinator: NotchcastModule {
         guard isOpen else { return }
         session?.document.released()
         session?.document.commitText()
-        session = nil
         isOpen = false
         host?.closeEditor()
     }
@@ -136,7 +137,6 @@ final class CaptureEditorCoordinator: NotchcastModule {
         pasteboard.clearContents()
         guard pasteboard.writeObjects([item]) else { throw Failure.clipboard }
         close()
-        self.session = nil
     }
 
     func handle(_ event: NSEvent) -> Bool {
@@ -183,6 +183,14 @@ final class CaptureEditorCoordinator: NotchcastModule {
         reportFailure?(error)
     }
 
+    func reportPreviewFailure(_ error: any Error, marks: [CaptureEditorMark]) {
+        guard failedPreviewMarks != marks else { return }
+        failedPreviewMarks = marks
+        reportRenderFailure(error)
+    }
+
+    func previewSucceeded() { failedPreviewMarks = nil }
+
     private func makeSession(image: CaptureEditorImage, source: NSImage?, clipboardCount: Int?) -> Session {
         Session(document: CaptureEditorDocument(size: image.points, markScale: image.markScale,
             textSize: { CaptureEditorRender.textSize($0, markScale: image.markScale) }),
@@ -190,6 +198,7 @@ final class CaptureEditorCoordinator: NotchcastModule {
     }
 
     private func present(_ session: Session) {
+        failedPreviewMarks = nil
         copyTask?.cancel()
         copyTask = nil
         operation = nil

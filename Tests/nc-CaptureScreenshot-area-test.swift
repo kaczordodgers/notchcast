@@ -24,7 +24,11 @@ struct NotchcastCommand: Sendable {
 
 @MainActor final class EditorProbe {
     var opens = 0
-    func openCapture(url: URL?, clipboard: Bool) throws { opens += 1 }
+    var failure: (any Error)?
+    func openCapture(url: URL?, clipboard: Bool) throws {
+        opens += 1
+        if let failure { throw failure }
+    }
 }
 
 @MainActor final class AppCore {
@@ -95,9 +99,12 @@ struct NotchcastCommand: Sendable {
         precondition(starts == 2 && captures.count == 2)
         precondition(NotchcastCore.captureEditor.opens == 0)
         NotchcastPreferences.shared.set(.captureEditor, true)
+        NotchcastCore.captureEditor.failure = CocoaError(.fileReadCorruptFile)
         command.run()
         await module.commandTask?.value
         precondition(NotchcastCore.captureEditor.opens == 1)
+        precondition(AppCore.shared.messages == [CocoaError(.fileReadCorruptFile).localizedDescription])
+        AppCore.shared.messages.removeAll()
         NotchcastPreferences.shared.set(.captureEditor, false)
         precondition(board.string(forType: .string) == "Captured")
         let changes = board.changeCount
