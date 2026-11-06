@@ -114,16 +114,16 @@ struct NotchcastCommand: Sendable {
         let collisionDomain = "test.cleanup-collision.\(UUID().uuidString)"
         let collisionDefaults = UserDefaults(suiteName: collisionDomain)!
         defer { collisionDefaults.removePersistentDomain(forName: collisionDomain) }
-        let preferences = NotchcastPreferences(suiteName: collisionDomain)
-        let cleanupStore = DictationCleanupSettingsStore(defaults: collisionDefaults, bundleIdentifier: collisionDomain)
+        let collisionPreferences = NotchcastPreferences(suiteName: collisionDomain)
+        let collisionStore = DictationCleanupSettingsStore(defaults: collisionDefaults, bundleIdentifier: collisionDomain)
         var cleanupSettings = DictationCleanupSettings()
         cleanupSettings.baseURL = "http://127.0.0.1:3425"
-        preferences.set(.dictationCleanup, true)
-        try cleanupStore.save(cleanupSettings)
+        collisionPreferences.set(.dictationCleanup, true)
+        try collisionStore.save(cleanupSettings)
         precondition(NotchcastPreferences(suiteName: collisionDomain).isOn(.dictationCleanup))
-        preferences.set(.dictationCleanup, false)
-        preferences.set(.dictationCleanup, true)
-        let preservedCleanup = try cleanupStore.read()
+        collisionPreferences.set(.dictationCleanup, false)
+        collisionPreferences.set(.dictationCleanup, true)
+        let preservedCleanup = try collisionStore.read()
         precondition(preservedCleanup == cleanupSettings)
         print("PASS: cleanup settings and feature switch persist independently")
         let complete = try ForkSettingsBackupState.live.snapshot()
