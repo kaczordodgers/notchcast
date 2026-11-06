@@ -2,6 +2,8 @@ import Foundation
 
 nonisolated enum ArchiveFailure: Error, Equatable, Sendable {
     case toolMissing
+    case fallbackToolMissing(String)
+    case fallbackToolFailed(String, Int32)
     case unsupportedFormat
     case invalidListing
     case unsafePath(String)

@@ -10,6 +10,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
     }
 
     var locator: any ArchiveToolLocating = ArchiveToolLocator()
+    var fallbackTools = ArchiveFallbackTools()
 
     @concurrent func extract(
         _ archive: URL, mode: ArchiveJob.Mode = .keepArchive, recovery: ArchiveJob.Recovery? = nil,
@@ -17,6 +18,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
     ) async throws -> URL {
         guard ArchiveFormat.accepts(archive), archive.isFileURL else { throw ArchiveFailure.unsupportedFormat }
         let archive = ArchiveFiles.resolvedParent(archive)
+        if let output = try await extractFallback(archive, mode: mode, recovery: recovery, progress: progress) { return output }
         var recovery = recovery
         if let previous = recovery {
             recovery = ArchiveJob.Recovery(staging: ArchiveFiles.resolvedParent(previous.staging),
@@ -160,7 +162,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         }.value
     }
 
-    private func finish(_ recovery: ArchiveJob.Recovery, archive: URL) throws -> URL {
+    func finish(_ recovery: ArchiveJob.Recovery, archive: URL) throws -> URL {
         let durable = ArchiveRecovery(archive: archive, staging: recovery.staging,
                                       inPlace: false, state: .publishing)
         try durable.save()

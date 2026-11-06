@@ -77,7 +77,7 @@ struct ArchiveRoutingTests {
             .passwordRequired, .damagedArchive, .existingProgress, .toolFailed(4), .filesystem("fixture")
         ]
         precondition(failures.allSatisfy { !$0.message.isEmpty })
-        print("PASS: archive document types, alternate rank, gzip UTI probe, split tags, plain gz routing refusal")
+        print("PASS: archive document types, alternate rank, gzip UTI probe, split tags, plain gzip support")
         print("PASS: deferred open-file hook, quit hook, one settings section, search targets, job/failure presentation")
     }
 }

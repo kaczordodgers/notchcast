@@ -4,6 +4,8 @@ extension ArchiveFailure {
     var message: String {
         switch self {
         case .toolMissing: String(localized: "hatchzip is not installed.", table: "Notchcast")
+        case .fallbackToolMissing(let command): String(localized: "Install archive tool: \(command)", table: "Notchcast")
+        case .fallbackToolFailed(let tool, let code): String(localized: "\(tool) exited with code \(code).", table: "Notchcast")
         case .unsupportedFormat: String(localized: "This archive format is not supported.", table: "Notchcast")
         case .invalidListing: String(localized: "Couldn’t read the archive’s contents.", table: "Notchcast")
         case .unsafePath(let path): String(localized: "The archive contains an unsafe path: \(path)", table: "Notchcast")
