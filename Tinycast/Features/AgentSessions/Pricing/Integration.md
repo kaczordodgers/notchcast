@@ -17,4 +17,4 @@ unpriced records so partial estimates cannot be mistaken for complete spend.
 The injected calendar defines usage days during indexing and pricing. Round only the final
 displayed total, half up to cents. The bundled engine is decoded once per process.
 
-Live switch visibility is not verified (morning).
+Live switch visibility is not verified.

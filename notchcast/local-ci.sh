@@ -7,12 +7,18 @@ cd "$tools"
 # During a landing hold (notchcast/hold.sh) the owner's build takes the build queue's landing lane, ahead of every
 # normal job, and any other PR's local CI waits here until the hold ends.
 source "$tools/notchcast/hold.sh"
+# Optional machine hooks: NOTCHCAST_BUILD_QUEUE, NOTCHCAST_LOCAL_CI_DIR, notchcast_build_done
+# (notchcast/README.md, "Private hooks").
+if [ -f "$HOME/.config/notchcast/private.env" ]; then
+    # shellcheck disable=SC1091
+    source "$HOME/.config/notchcast/private.env"
+fi
 lane=
 if hold_turn "$PR"; then lane=--landing; fi
 metadata=$(gh pr view "$1" -R kaczordodgers/notchcast --json headRefOid,baseRefOid)
 head=$(jq -r .headRefOid <<< "$metadata")
 export HEAD_SHA=$head BASE_SHA=$(jq -r .baseRefOid <<< "$metadata")
-root="$HOME/agents/nc-local-ci"
+root="${NOTCHCAST_LOCAL_CI_DIR:-$HOME/Library/Caches/notchcast/local-ci}"
 mkdir -p "$root/logs"
 scratch=$(mktemp -d "$root/build.XXXXXX")
 tree="$scratch/tree"
@@ -23,13 +29,13 @@ owned=0
 finish() {
     code=$?
     trap - EXIT
-    # The build runs inside $tree, which is removed below; t3_send.py fails from a deleted working directory.
+    # The build runs inside $tree, which is removed below; a hook can fail from a deleted working directory.
     cd "$root"
     minutes=$(( (SECONDS - started + 59) / 60 ))
     step=$(cat "$scratch/step" 2>/dev/null || echo setup)
     state=failure
     [ "$code" -ne 0 ] || state=success
-    description="$(hostname -s): ${minutes}m, $step"
+    description="${minutes}m, $step"
     gh api "repos/kaczordodgers/notchcast/statuses/$head" -f context=build/local \
         -f state="$state" -f description="${description:0:140}" || code=1
     if [ "$code" -eq 0 ]; then
@@ -46,10 +52,10 @@ finish() {
     rm -rf "$scratch"
     log=$stable_log
     echo "$state: $description; log: $log"
-    # Wake the T3 thread that started the build: build-wake.py only watches Actions runs, so nothing else does.
-    if [ -n "${T3CODE_THREAD_ID:-}" ]; then
+    # Tell whoever started the build; nothing else watches a local build.
+    if declare -F notchcast_build_done >/dev/null; then
         echo "build/local $state on #$PR ${head:0:8}: $description; log: $log ... continue." |
-            /usr/bin/python3 "$HOME/chad/bin/t3_send.py" "$T3CODE_THREAD_ID" - || true
+            notchcast_build_done || true
     fi
     exit "$code"
 }
@@ -82,4 +88,9 @@ git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kacz
     commit --quiet --allow-empty --no-edit -m "Merge $head"
 export RUNNER_TEMP="$scratch" TMPDIR="$scratch/tmp"
 mkdir "$TMPDIR"
-python3 "$HOME/chad/bin/build-queue.py" hold $lane -- bash "$tools/notchcast/ci-build.sh"
+if [ -n "${NOTCHCAST_BUILD_QUEUE:-}" ]; then
+    # shellcheck disable=SC2086
+    $NOTCHCAST_BUILD_QUEUE hold $lane -- bash "$tools/notchcast/ci-build.sh"
+else
+    bash "$tools/notchcast/ci-build.sh"
+fi

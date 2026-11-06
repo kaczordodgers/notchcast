@@ -15,6 +15,6 @@ Disabling the switch stops contact callbacks and removes the hub consumer. Permi
 each second without prompting. Failed device discovery backs off for 60 seconds before retrying.
 The Three Finger Drag preference is cached during the permission refresh, outside input callbacks.
 
-The recognizer is adapted from Damian's Orion sources. No third-party implementation is copied.
+The recognizer is adapted from the maintainer's own earlier app. No third-party implementation is copied.
 Its injected clock, per-device state, movement and duration limits, typing guard, and bounce guard
 are exercised by `Tests/notchcast-middle-click-test.swift`.
