@@ -26,6 +26,15 @@ for label in update kick; do
     bash -n "$exe"
 done
 grep -qF kick.sh "$HOME/Library/Application Support/notchcast/jobs/Notchcast sync check"
+git -C "$WORK/checkout" worktree add -q --detach "$WORK/linked"
+cp "$HERE/install-launchd.sh" "$WORK/linked/notchcast/"
+/bin/bash "$WORK/linked/notchcast/install-launchd.sh" prune
+plist="$HOME/Library/LaunchAgents/notchcast.prune.plist"
+test "$(/usr/libexec/PlistBuddy -c 'Print :WorkingDirectory' "$plist")" = "$(cd "$WORK/checkout" && pwd -P)" \
+    || { echo 'FAIL: prune job does not run in the main checkout'; exit 1; }
+grep -qF 'Application\ Support/notchcast/tools/prune-branches.py --remote --local --log' "$(/usr/libexec/PlistBuddy -c 'Print :ProgramArguments:0' "$plist")" \
+    || { echo 'FAIL: prune job does not run the tools copy without roots'; exit 1; }
+echo 'PASS: prune installs without roots, from a linked worktree, into the main checkout'
 git -C "$WORK/origin" checkout -q --orphan rewritten
 printf '#!/bin/bash\nHERE="$(cd "$(dirname "$0")" && pwd)"\nsource "$HERE/config.env"\ntest -f "$HERE/install-app.sh"\necho "rewritten $APP_NAME $*"\n' > "$WORK/origin/notchcast/update.sh"
 cp "$HERE/install-app.sh" "$WORK/origin/notchcast/"
