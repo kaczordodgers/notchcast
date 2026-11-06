@@ -28,7 +28,7 @@ enum ArchiveCompressionCommands {
             return
         }
         guard !urls.isEmpty else {
-            AppCore.shared.showMessage(String(localized: "No archive was selected.", table: "Notchcast"), tone: .danger)
+            AppCore.shared.showMessage(String(localized: "No files selected in Finder.", table: "Notchcast"), tone: .danger)
             return
         }
         NotchcastCore.archives.queue.compress(urls, format: format)

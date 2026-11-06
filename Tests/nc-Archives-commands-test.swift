@@ -55,7 +55,7 @@ struct MissingTool: ArchiveToolLocating {
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
         NotchcastCore.archives.start()
         ArchiveCompressionCommands.submit([], format: .small)
-        precondition(AppCore.shared.messages.last == "No archive was selected.")
+        precondition(AppCore.shared.messages.last == "No files selected in Finder.")
         preferences.set(.archives, false)
         ArchiveCompressionCommands.run(.fast)
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
