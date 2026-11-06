@@ -20,8 +20,13 @@ struct NotchcastCommand: Sendable {
 }
 
 @MainActor enum NotchcastCore {
+    static let captureEditor = EditorProbe()
     static var instance: ScreenshotModule?
     static var screenshot: ScreenshotModule { instance! }
+}
+
+@MainActor final class EditorProbe {
+    func openCapture(url: URL?, clipboard: Bool) throws {}
 }
 
 @MainActor final class NSScreen {
