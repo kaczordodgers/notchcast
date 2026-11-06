@@ -78,14 +78,10 @@ nonisolated struct SMCSensorReader: Sendable {
         var result: [SMCSensorReading.Fan] = []
         for index in 0..<Int(count) {
             guard ProcessInfo.processInfo.systemUptime < deadline else { break }
-            let mode = client.value("F\(index)Md").flatMap { value -> Int? in
-                guard (0...255).contains(value), value.rounded() == value else { return nil }
-                return Int(value)
-            }
             result.append(SMCSensorReading.Fan(
                 index: index, currentRPM: SMCSensorReading.fanRPM(client.value("F\(index)Ac")),
                 minimumRPM: SMCSensorReading.fanRPM(client.value("F\(index)Mn")),
-                maximumRPM: SMCSensorReading.fanRPM(client.value("F\(index)Mx")), mode: mode))
+                maximumRPM: SMCSensorReading.fanRPM(client.value("F\(index)Mx"))))
         }
         return result
     }
