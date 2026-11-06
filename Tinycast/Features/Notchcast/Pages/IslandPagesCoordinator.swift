@@ -31,6 +31,12 @@ final class IslandPagesCoordinator {
         page.content(day: day, homeRevision: homeRevision)
     }
 
+    #if DEBUG
+    func noAccessContent() -> AnyView {
+        AnyView(IslandDayView(page: day, hasAccess: false))
+    }
+    #endif
+
     func didOpen(page: IslandPage) {
         headerFocus = nil
         cancelRefresh()

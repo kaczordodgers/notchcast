@@ -7,6 +7,8 @@ struct NotchcastCommand: Sendable {
     var feature: NotchcastFeature? = nil
     var owner: SettingsTab? = .notchcast
     var legacyID: String?
+    /// It opens a palette screen: hiding first would drop the back step and replay the island opening.
+    var keepsPalette = false
     var isEnabled: @MainActor @Sendable () -> Bool = { true }
     let run: @MainActor @Sendable () -> Void
 

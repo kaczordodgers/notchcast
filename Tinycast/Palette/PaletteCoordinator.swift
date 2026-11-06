@@ -136,6 +136,7 @@ final class PaletteCoordinator {
 
     var paletteIsCollapsed: Bool {
         settings.compactMode
+            && !NotchcastLauncherPlacement.isActive
             && !palette.forceExpanded
             && palette.mode == .launcher
             && queryIsBlank
