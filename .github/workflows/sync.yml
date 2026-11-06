@@ -33,6 +33,7 @@ jobs:
     permissions:
       contents: read
       statuses: read
+      pull-requests: read
       issues: write
     outputs:
       rebase: ${{ steps.plan.outputs.rebase }}

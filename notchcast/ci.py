@@ -26,6 +26,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -90,6 +91,17 @@ def release_tags(repo):
     return {r["tag_name"] for page in pages for r in page}
 
 
+def rebase_hold(prs, moved_at, now):
+    numbers = sorted(pr["number"] for pr in prs if not pr["isDraft"] and not pr["isCrossRepository"])
+    if not numbers:
+        return False, ""
+    names = ", ".join(f"#{number}" for number in numbers)
+    left = 12 - (now - moved_at) / 3600
+    if left > 0:
+        return True, f"open PRs {names}; {left:.1f} h of 12 left"
+    return False, f"::warning::main: 12-hour hold expired with PRs {names} still open"
+
+
 def plan():
     """Run in a checkout of our main with history (fetch-depth 0)."""
     cfg = config()
@@ -104,8 +116,18 @@ def plan():
 
     main_key = f"main-{upstream_main}-{main}"
     rebase = base != upstream_main
+    held = False
+    if rebase:
+        prs = json.loads(run("gh", "pr", "list", "-R", cfg["FORK_REPO"], "--base", "main", "--state", "open",
+                             "--json", "number,isDraft,isCrossRepository"))
+        moved_at = int(run("git", "log", "--reverse", "--format=%ct", f"{base}..{upstream_main}").splitlines()[0])
+        held, message = rebase_hold(prs, moved_at, time.time())
+        if message:
+            print(f"main: hold rebase onto upstream {upstream_main[:10]}: {message}" if held else message)
     if not rebase:
         print(f"main: contains upstream {upstream_main[:10]}")
+    elif held:
+        rebase = False
     elif main_key in failed:
         print(f"main: {main_key} already failed; waiting for upstream or main to change")
         rebase = False
