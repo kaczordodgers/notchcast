@@ -5,11 +5,6 @@ import SwiftUI
 @MainActor
 @Observable
 final class IslandController: NotchcastModule {
-    struct ClosedContent {
-        var leading: AnyView?
-        var trailing: AnyView?
-    }
-
     static let shared = IslandController()
 
     private var input = IslandInputState()
@@ -18,17 +13,20 @@ final class IslandController: NotchcastModule {
     private(set) var commandsAvailable = false
     private(set) var hasKeyboardFocus = false
     var hasLiveActivities = false
+    /// A song that stands in for Now Playing; set only by the Debug build's live demo.
+    var demoTrack: IslandTrack?
     private(set) var page = IslandPage.home
     var openContent = AnyView(Color.clear.frame(height: NotchcastTheme.estimatedContentHeight)) {
         didSet { updateContent() }
     }
-    /// Builds each panel's wings or pill using its screen and notch geometry; views inherit the notch flag.
-    var closedContent: (IslandClosedContext) -> ClosedContent = { _ in ClosedContent() } {
+    /// What every panel shows closed; each shape lays it out itself.
+    var closedState = IslandClosedState.idle {
         didSet { updateContent() }
     }
 
-    @ObservationIgnored private var panels: [IslandPanel] = []
-    @ObservationIgnored private weak var openPanel: IslandPanel?
+    @ObservationIgnored private(set) var panels: [IslandPanel] = []
+    @ObservationIgnored var launcherObservations: [NotificationToken] = []
+    @ObservationIgnored private(set) weak var openPanel: IslandPanel?
     @ObservationIgnored private var screenObservation: NotificationToken?
     @ObservationIgnored private var mouseMonitors: [Any] = []
     @ObservationIgnored private var observationID: UUID?
@@ -78,6 +76,7 @@ final class IslandController: NotchcastModule {
         rebuildPanels()
         setCommandAvailable(true)
         observePreferences(identity: identity)
+        watchLauncher()
     }
 
     func stop() {
@@ -89,6 +88,7 @@ final class IslandController: NotchcastModule {
         screenObservation = nil
         appObservation = nil
         spaceObservation = nil
+        launcherObservations.removeAll()
         mouseMonitors.forEach(NSEvent.removeMonitor)
         mouseMonitors.removeAll()
         panels.forEach { $0.close() }
@@ -97,6 +97,7 @@ final class IslandController: NotchcastModule {
 
     func open(page: IslandPage, on screen: NSScreen? = nil, takeKey: Bool = true) {
         guard observationID != nil, NotchcastPreferences.shared.isOn(.island) else { return }
+        restoreAfterLauncher()
         let frames = panels.map(\.displayFrame)
         let point = screen.map { CGPoint(x: $0.frame.midX, y: $0.frame.midY) } ?? NSEvent.mouseLocation
         guard let index = IslandGeometry.screenIndex(containing: point, frames: frames),
@@ -173,7 +174,7 @@ final class IslandController: NotchcastModule {
             } else {
                 header = AnyView(Color.clear)
             }
-            panel.setContent(open: openContent, closed: closedContent(panel.closedContext), header: header)
+            panel.setContent(open: openContent, closed: closedState, header: header)
         }
     }
 
@@ -182,9 +183,10 @@ final class IslandController: NotchcastModule {
         let externalDisplays = preferences.isOn(.islandExternalDisplays)
         let fullScreen = preferences.isOn(.islandFullScreen)
         for panel in panels {
+            panel.fitCanvas()
             panel.setFullScreenEnabled(fullScreen)
             if panel.hardwareNotch != nil || externalDisplays {
-                panel.orderFrontRegardless()
+                if !panel.isVisible { panel.orderFrontRegardless() }
             } else {
                 panel.orderOut(nil)
             }
@@ -197,15 +199,11 @@ final class IslandController: NotchcastModule {
         }
         let center = IslandActivityCenter.shared
         hasLiveActivities = !center.activities.isEmpty
-        let activity = preferences.isOn(.islandLiveActivities) ? center.current : nil
-        closedContent = { _ in ClosedContent(
-            leading: activity.map { AnyView(IslandActivityGlyph(activity: $0)) },
-            trailing: activity.map { AnyView(IslandActivityValue(activity: $0, multiple: center.activities.count > 1)) }) }
-        let message = preferences.isOn(.islandStatusMessages) ? center.message : nil
-        panels.forEach {
-            $0.setMessage(message)
-            $0.setActivityAccessibility(activity)
-        }
+        closedState = Self.closedState(
+            message: preferences.isOn(.islandStatusMessages) ? center.message : nil,
+            activities: preferences.isOn(.islandLiveActivities) ? center.ranked : [],
+            track: demoTrack
+                ?? (preferences.isEnabled(.musicNowPlaying) ? Self.track(NotchcastCore.services?.music.model.nowPlaying) : nil))
         updatePresenter()
     }
 
@@ -230,6 +228,10 @@ final class IslandController: NotchcastModule {
             _ = preferences.isOn(.islandStatusMessages)
             _ = IslandActivityCenter.shared.activities
             _ = IslandActivityCenter.shared.message
+            _ = preferences.isEnabled(.musicNowPlaying)
+            _ = NotchcastCore.services?.music.model.nowPlaying
+            _ = demoTrack
+            _ = NotchcastTheme.Launcher.size
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self, observationID == identity else { return }
