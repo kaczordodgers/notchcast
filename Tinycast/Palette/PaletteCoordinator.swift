@@ -134,6 +134,7 @@ final class PaletteCoordinator {
 
     var paletteIsCollapsed: Bool {
         settings.compactMode
+            && !NotchcastLauncherPlacement.isActive
             && !palette.forceExpanded
             && palette.mode == .launcher
             && palette.query.trimmingCharacters(in: .whitespaces).isEmpty

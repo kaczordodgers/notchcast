@@ -34,9 +34,17 @@ enum CommandID: String, CaseIterable {
     case switchWindows, switchWindowsBackwards, searchMenuItems, createWindowLayout
     case captureWindowLayout, switchRoom, createRoom, clipboardHistory, pasteSequentially, searchEmoji
     case joinNextMeeting, mySchedule, createEvent, copyMeetingLink, openInCalendar, openInBrowser
+    case settings = "command:settings", about = "command:about", quit = "command:quit"
     var isQueryDriven: Bool { self == .openInBrowser }
-    var name: String { rawValue }
-    var englishName: String { rawValue }
+    var name: String {
+        switch self {
+        case .settings: "Tinycast Settings"
+        case .about: "About Tinycast"
+        case .quit: "Quit Tinycast"
+        default: rawValue
+        }
+    }
+    var englishName: String { name }
     var builtInQuickAction: String? { nil }
     var hotKeyAction: HotKeyAction? { .command(self) }
 }
@@ -125,6 +133,9 @@ extension NotchcastCommandCatalog {
         NotchcastCommand(slug: "send-to-remote-mac", name: "Send", sfSymbol: "paperplane", run: {}),
         NotchcastCommand(slug: "update-remote-mac", name: "Update", sfSymbol: "arrow.clockwise", run: {}),
         AgentSessionsModule.refreshCommand,
+        NotchcastCommand(
+            slug: "theme", name: "Theme", sfSymbol: "paintpalette", feature: .island, keepsPalette: true,
+            run: { CommandFixture.shared.toggle() }),
     ]
 }
 
@@ -179,6 +190,15 @@ extension NotchcastCommandCatalog {
         palette.isVisible = true
         NotchcastCommandCatalog.perform(commands[0].entry.id)
         assert(palette.hideCalls == 2 && !palette.restoredFocus && island.runs == 4)
-        print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility and dispatch")
+        palette.isVisible = true
+        assert(NotchcastCommandCatalog.dispatch("command:nc-theme", dismiss: {
+            palette.hidePalette(restoreFocus: false)
+        }))
+        NotchcastCommandCatalog.perform("command:nc-theme")
+        assert(palette.hideCalls == 2 && palette.isVisible && island.runs == 6)
+        let branded = CommandCatalog.all.filter { $0.id.hasPrefix("command:") && $0.name.contains("Tinycast") }
+        assert(branded.isEmpty)
+        assert(CommandCatalog.all.contains { $0.name == "Quit Notchcast" && $0.alternateTitles.contains("Quit Tinycast") })
+        print("PASS: unique prefixed IDs, catalog, owner, legacy ID, disabled visibility, dispatch, palette screens, brand")
     }
 }

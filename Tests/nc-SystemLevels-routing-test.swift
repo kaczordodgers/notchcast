@@ -6,6 +6,7 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelIslandPresenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityPresenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
 // notchcast-sources: Tinycast/Features/DisplayBrightness/Model/*.swift

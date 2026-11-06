@@ -70,6 +70,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             let key = NSApp.keyWindow
             // A mode switch re-shows the palette while it holds key; keep what it recorded then.
             if key !== panel { previousOwnWindow = key }
+            if previousOwnWindow is IslandPanel { previousOwnWindow = nil }
             // Once per summon, and from `previousApp`, so the label names the paste target.
             core.palette.pasteTarget = PasteTarget(app: previousApp)
             let panel = ensurePanel()

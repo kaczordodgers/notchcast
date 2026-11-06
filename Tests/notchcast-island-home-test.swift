@@ -2,6 +2,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityPresenter.swift
 import Foundation
 
@@ -51,6 +52,12 @@ struct IslandHomeTests {
         priority.priority = 100
         precondition(model.entries(live: [stale, priority], now: now).first?.title == "priority")
         let center = IslandActivityCenter(sleep: { _ in })
+        let older = center.begin(IslandActivity(kind: .transfer, title: "Older", progress: 0.5))
+        let urgent = center.begin(IslandActivity(kind: .timer, priority: 100, title: "Urgent", endDate: now))
+        precondition(center.activities.first?.id == older)
+        precondition(center.ranked.first?.id == urgent && center.current?.id == urgent)
+        center.finish(older)
+        center.finish(urgent)
         let id = center.begin(IslandActivity(kind: .timer, title: "Timer", endDate: now))
         center.showProgress("Working")
         let adapted = IslandHomeActivityAdapter.entries(from: center, now: now)

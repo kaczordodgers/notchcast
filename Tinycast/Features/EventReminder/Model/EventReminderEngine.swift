@@ -8,6 +8,9 @@ struct EventReminderEngine {
         let isAllDay: Bool
         let isDeclined: Bool
         let offsets: [TimeInterval]
+        /// The calendar's sRGB colour and the meeting's join link, for the island's card.
+        var tint: [Double]?
+        var link: URL?
     }
 
     struct Alert: Sendable {

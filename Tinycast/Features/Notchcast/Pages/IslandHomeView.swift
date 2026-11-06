@@ -7,8 +7,9 @@ struct IslandHomeView: View {
            !IslandActivityCenter.shared.activities.isEmpty {
             ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(IslandActivityCenter.shared.activities) { activity in
-                        IslandActivityRow(activity: activity)
+                    ForEach(IslandActivityCenter.shared.ranked) { activity in
+                        IslandActivityRow(activity: activity,
+                                          selected: activity.id == IslandActivityCenter.shared.ranked.first?.id)
                     }
                 }
                 .padding(metrics.spacing.md)
@@ -16,7 +17,8 @@ struct IslandHomeView: View {
             .edgeDissolve()
             .thinScrollbar()
             .frame(height: min(NotchcastTheme.maximumHeight - NotchcastTheme.monitorHeader,
-                               CGFloat(IslandActivityCenter.shared.activities.count) * NotchcastTheme.homeActivityRow))
+                               CGFloat(IslandActivityCenter.shared.activities.count)
+                               * (metrics.size.resultRowIcon + metrics.spacing.sm * 2) + metrics.spacing.md * 2))
         } else {
         VStack(spacing: metrics.spacing.md) {
             SymbolImage(name: "house", size: metrics.size.dialogIcon)
@@ -34,23 +36,27 @@ struct IslandHomeView: View {
 private struct IslandActivityRow: View {
     @Environment(\.metrics) private var metrics
     let activity: IslandActivity
+    let selected: Bool
     @State private var hovered = false
 
     var body: some View {
         HStack(spacing: metrics.spacing.lg) {
-            IslandActivityGlyph(activity: activity).frame(width: metrics.size.resultRowIcon)
-            Text(activity.title).font(metrics.typography.rowTitle)
+            IslandGlyph(symbol: activity.symbol ?? (activity.kind == .status ? "info.circle" : activity.shownSymbol),
+                        tone: activity.tone)
+                .frame(width: metrics.size.resultRowIcon, height: metrics.size.resultRowIcon)
+            Text(activity.title).font(metrics.typography.rowTitle).lineLimit(1)
             Spacer()
-            IslandActivityValue(activity: activity)
-                .padding(.horizontal, metrics.spacing.md)
-                .padding(.vertical, metrics.spacing.xxs)
-                .background(Theme.Colors.controlSurface, in: RoundedRectangle(cornerRadius: Theme.Radius.keyCap))
+            if IslandItemParts.hasValue(activity) {
+                IslandActivityValue(activity: activity)
+            }
         }
+        .frame(height: metrics.size.resultRowIcon)
         .padding(.horizontal, metrics.spacing.md)
         .padding(.vertical, metrics.spacing.sm)
-        .background(hovered ? Theme.Colors.rowHover : .clear,
-                    in: RoundedRectangle(cornerRadius: Theme.Radius.row))
+        .background(selected ? Theme.Colors.selection : hovered ? Theme.Colors.rowHover : .clear,
+                    in: RoundedRectangle(cornerRadius: metrics.radius.row, style: .continuous))
         .armedHover($hovered)
         .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }

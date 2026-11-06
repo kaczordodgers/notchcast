@@ -112,5 +112,8 @@ enum NotchcastCore {
         self.controller = controller
         controller.run()
         services.keys.run()
+        #if DEBUG
+        NotchcastLiveDemo.runIfRequested(core)
+        #endif
     }
 }
