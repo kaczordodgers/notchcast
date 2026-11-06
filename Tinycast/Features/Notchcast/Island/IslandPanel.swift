@@ -137,6 +137,7 @@ final class IslandPanel: NSPanel {
     func setContent(open: AnyView, closed: IslandClosedState, header: AnyView) {
         let handover = state.key != closed.key && Motion.isEnabled
             && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        if state.key != closed.key { cardButtonFrame = .zero }
         state = closed
         expandedContent = open
         headerContent = header

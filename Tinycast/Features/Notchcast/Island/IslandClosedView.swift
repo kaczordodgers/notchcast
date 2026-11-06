@@ -20,6 +20,8 @@ struct IslandClosedView: View {
         Group {
             if let hardwareNotch { notch(hardwareNotch) } else { island }
         }
+        // Fresh views per state restart their onAppear animations; the handover snapshot hides the swap.
+        .id(state.key)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .foregroundStyle(NotchcastTheme.Colors.primary)
         .environment(\.colorScheme, .dark)
