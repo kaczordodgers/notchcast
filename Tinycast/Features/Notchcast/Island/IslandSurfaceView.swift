@@ -13,7 +13,7 @@ final class IslandSurfaceView: NSView {
     private let silhouette = CAShapeLayer()
     private let openHost = HostingView(rootView: AnyView(EmptyView()))
     private let closedHost = HostingView(rootView: AnyView(EmptyView()))
-    private var outgoingHost: HostingView?
+    private var outgoingHost: NSView?
     private var animationDisplayLink: CADisplayLink?
     private var showing = Showing.closed
     var onAnimationFrame: (() -> Void)?
@@ -47,12 +47,12 @@ final class IslandSurfaceView: NSView {
     }
 
     func setContent(open: AnyView, closed: AnyView, handover: Bool = false) {
-        if handover, showing == .closed {
+        if handover, showing == .closed, let picture = snapshot(of: closedHost) {
             outgoingHost?.removeFromSuperview()
-            let outgoing = HostingView(rootView: closedHost.rootView)
-            outgoing.sizingOptions = []
+            let outgoing = NSView()
             outgoing.frame = closedHost.frame
             outgoing.wantsLayer = true
+            outgoing.layer?.contents = picture
             outgoing.setAccessibilityHidden(true)
             addSubview(outgoing)
             outgoingHost = outgoing
@@ -191,6 +191,23 @@ final class IslandSurfaceView: NSView {
             animation.fillMode = .backwards
         }
         layer.add(animation, forKey: "islandContent")
+    }
+
+    private func snapshot(of view: NSView) -> CGImage? {
+        guard let layer = view.layer, view.bounds.width > 0, view.bounds.height > 0,
+              let space = CGColorSpace(name: CGColorSpace.sRGB) else { return nil }
+        let scale = window?.backingScaleFactor ?? 2
+        guard let context = CGContext(
+            data: nil, width: Int((view.bounds.width * scale).rounded(.up)),
+            height: Int((view.bounds.height * scale).rounded(.up)), bitsPerComponent: 8, bytesPerRow: 0,
+            space: space, bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return nil }
+        context.scaleBy(x: scale, y: scale)
+        if layer.isGeometryFlipped {
+            context.translateBy(x: 0, y: view.bounds.height)
+            context.scaleBy(x: 1, y: -1)
+        }
+        layer.render(in: context)
+        return context.makeImage()
     }
 
     private func watchAnimation() {

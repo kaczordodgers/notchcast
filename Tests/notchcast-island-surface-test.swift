@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Island/IslandMotion.swift
 import AppKit
 import QuartzCore
+import SwiftUI
 
 enum NotchcastTheme {
     enum Colors {
@@ -28,6 +29,15 @@ struct IslandSurfaceTests {
 
         surface.present(outline: closed, openRect: openRect, showing: .closed, motion: .instant)
         assert(mask.animation(forKey: "islandMorph") == nil)
+        surface.setContent(open: AnyView(EmptyView()), closed: AnyView(Text("Timer")))
+        surface.setContent(open: AnyView(EmptyView()), closed: AnyView(Text("Done")), handover: true)
+        surface.present(outline: closed, openRect: openRect, showing: .closed, motion: .shrink)
+        assert(surface.subviews.count == 3 && surface.subviews[2].layer?.contents is CGImage,
+               "handover retains a still image without restarting the outgoing row's geometry callbacks")
+        let incoming = surface.subviews[1].layer?.animation(forKey: "islandContent") as? CABasicAnimation
+        assert(incoming!.beginTime > CACurrentMediaTime() + IslandMotion.crossFade,
+               "the replacement waits until the outgoing content has faded")
+        surface.stop()
 
         surface.present(outline: open, openRect: openRect, showing: .open, motion: .open)
         guard let morph = mask.animation(forKey: "islandMorph"),
