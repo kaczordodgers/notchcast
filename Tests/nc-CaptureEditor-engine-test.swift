@@ -48,6 +48,8 @@ struct CaptureEditorEngineTest {
         }
         precondition(retained != nil)
         released.close()
+        precondition(retained != nil && released.document != nil)
+        released.stop()
         precondition(retained == nil && released.document == nil)
         print("PASS: capture editor tools, selection/move/resize, text, undo/redo, keys, full-res PNG/pixelate, sources, switch")
     }
@@ -287,8 +289,9 @@ struct CaptureEditorEngineTest {
         precondition(!editor.isOpen)
         editor.close()
         try editor.open(image: last)
-        precondition(editor.document !== first && editor.document?.marks.isEmpty == true)
+        precondition(editor.document === first && editor.document?.marks.count == 1)
         let clipboard = NSImage(cgImage: source.pixels, size: CGSize(width: 50, height: 40))
+        board.clearContents()
         precondition(board.writeObjects([clipboard]))
         try editor.openFromClipboardOrLast()
         precondition(editor.document !== first && editor.document?.size == CGSize(width: 50, height: 40))
@@ -296,7 +299,7 @@ struct CaptureEditorEngineTest {
         draw(clipboardDocument, .arrow)
         editor.close()
         try editor.openFromClipboardOrLast()
-        precondition(editor.document !== clipboardDocument && editor.document?.marks.isEmpty == true)
+        precondition(editor.document === clipboardDocument && editor.document?.marks.count == 1)
         board.clearContents()
         precondition(board.writeObjects([clipboard]))
         try editor.openFromClipboardOrLast()
@@ -318,7 +321,7 @@ struct CaptureEditorEngineTest {
         try editor.openFromClipboardOrLast()
         preferences.set(.captureEditor, false)
         for _ in 0..<1000 where editor.enabled { await Task.yield() }
-        precondition(!editor.enabled && !editor.isOpen && host.closed > 0)
+        precondition(!editor.enabled && !editor.isOpen && editor.document == nil && host.closed > 0)
         do {
             try await editor.copy()
             preconditionFailure("disabled copy")
