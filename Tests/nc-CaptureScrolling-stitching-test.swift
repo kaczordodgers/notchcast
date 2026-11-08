@@ -142,6 +142,15 @@ struct CaptureScrollingTests {
         let flatGap = capture(header: Array(5000..<5019), footer: Array(repeating: 7, count: 35), page: gap,
                               frameHeight: 169, offsets: [12, 53, 63, 129, 150, 170])
         expectImage(flatGap, rows: Array(gap[13..<285]))
+        let gapAboveFooter = Array(1000..<1094) + Array(repeating: 7, count: 46) + Array(2000..<2300)
+        let footerGap = capture(header: Array(5000..<5028), footer: Array(6000..<6034), page: gapAboveFooter,
+                                frameHeight: 155, offsets: [4, 33, 69])
+        expectImage(footerGap, rows: Array(gapAboveFooter[4..<162]))
+        let gapBelowHeader = Array(repeating: 7, count: 87) + Array(1000..<1028) + Array(repeating: 7, count: 45)
+            + Array(1028..<1371)
+        let headerGap = capture(header: Array(repeating: 7, count: 34), footer: Array(repeating: 7, count: 18),
+                                page: gapBelowHeader, frameHeight: 160, offsets: [6, 6, 70, 117, 159, 161, 224])
+        expectImage(headerGap, rows: Array(gapBelowHeader[49..<332]))
     }
 
     static func repeatedRowsTests() {

@@ -101,10 +101,23 @@ struct ScrollingStitcher: Sendable {
     private static func minimumOverlap(_ count: Int) -> Int { min(count, max(16, count / 8)) }
 
     private mutating func place(_ frame: CGImage, hashes: [UInt64]) -> Update {
-        let content = Array(hashes[leadingRows..<frameHeight - trailingRows])
+        var leading = leadingRows
+        var trailing = trailingRows
+        // A bar's flat inner edge may be page rows that matched by chance; scrolling moves them.
+        while leading > 0, case let row = leading - 1,
+              previousFrame[row] == previousFrame[leadingRows - 1], hashes[row] != previousFrame[row] {
+            leading -= 1
+        }
+        while trailing > 0, case let row = frameHeight - trailing,
+              previousFrame[row] == previousFrame[frameHeight - trailingRows], hashes[row] != previousFrame[row] {
+            trailing -= 1
+        }
+        let content = Array(hashes[leading..<frameHeight - trailing])
         guard let start = log.placement(of: content, minimumOverlap: Self.minimumOverlap(content.count)) else {
             return .unmatched
         }
+        leadingRows = leading
+        trailingRows = trailing
         let added = start + content.count - height
         guard start >= 0, added > 0 else { return .unchanged }
         let take = min(added, limit - height)
