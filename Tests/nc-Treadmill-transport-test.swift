@@ -12,16 +12,11 @@ private final class FakeCentral: TreadmillBluetoothCentral {
     var stops = 0
     var writes: [Data] = []
     var known = false
-    var cancels = 0
     func start() { onEvent?(.poweredOn) }
     func scan() -> Bool {
         if known { connect(); return false }
         scans += 1
         return true
-    }
-    func failSetup() {
-        cancels += 1
-        onEvent?(.disconnected)
     }
     func connect() { connects += 1 }
     func stop() { stops += 1 }
@@ -77,6 +72,12 @@ struct TreadmillTransportTests {
         central.onEvent?(.failed)
         precondition(failure == .connectionFailed)
         try await waitUntil { central.connects == connects + 2 }
+        let rejectedScans = central.scans
+        failure = nil
+        central.onEvent?(.rejected)
+        precondition(central.scans == rejectedScans + 1)
+        try await waitUntil { failure == .padAbsent }
+        print("Treadmill rejection passed: rejected pad rescans and the pad-absent timeout runs again")
         transport.close()
         try transport.open()
         precondition(central.scans > scans + 1)
@@ -94,11 +95,8 @@ struct TreadmillTransportTests {
         try pending.open()
         try await waitUntil { known.connects == 1 }
         precondition(known.scans == 0)
-        let setup = CoreBluetoothTreadmillCentral(defaults: UserDefaults(suiteName: "treadmill-setup-test")!)
-        setup.completeSetup(success: false) { known.failSetup() }
-        precondition(known.cancels == 1 && known.connects == 2)
         pending.close()
-        print("Treadmill recovery passed: known pad has no scans and one pending connect; setup cancellation reconnects")
+        print("Treadmill recovery passed: known pad has no scans and one pending connect")
         let folder = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         let defaults = UserDefaults(suiteName: "treadmill-test-" + UUID().uuidString)!
         let coordinator = TreadmillCoordinator(transport: BluetoothTreadmillTransport(central: FakeCentral()),

@@ -302,10 +302,94 @@ struct AgentSessionTests {
     }
 
     static func exclusion(_ root: URL) throws {
-        expect(!AgentSessionIndex.allows(root.appendingPathComponent("sub/agent-2784f2ac.jsonl")), "Excluded agent file name rejected")
-        expect(!AgentSessionIndex.allows(root.appendingPathComponent("AGENT-2784F2AC-wal")), "Excluded agent side file rejected")
-        expect(AgentSessionIndex.allows(root.appendingPathComponent("sub/agent-1234abcd.jsonl")), "Other agent files allowed")
-        let forbidden = root.appendingPathComponent("nested/agent-2784f2ac")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let config = root.appendingPathComponent("private.env")
+        let missing = try AgentSessionExclusions.load(from: config)
+        expect(missing.isEmpty, "Missing private config excludes nothing")
+        let fixturePath = root.appendingPathComponent("sub/private-fixture.jsonl")
+        expect(AgentSessionIndex.allows(fixturePath, excluding: missing), "No file allows otherwise excluded paths")
+        let marker = root.appendingPathComponent("must-not-exist")
+        try Data("OTHER_KEY=value\ntouch \"\(marker.path)\"\n".utf8).write(to: config)
+        let noKey = try AgentSessionExclusions.load(from: config)
+        expect(noKey.isEmpty, "Missing key excludes nothing")
+        try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE=private-fixture,other-private,,\n".utf8).write(to: config)
+        let prefixes = try AgentSessionExclusions.load(from: config)
+        expect(prefixes == ["private-fixture", "other-private"], "Plain comma-separated prefixes parsed")
+        let forms = [
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a,b": ["a", "b"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b\"": ["a", "b"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE='A,b'": ["a", "b"],
+            "  NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent_a.b,c\nOTHER=1\n": ["agent_a.b", "c"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=": [],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc  # note $(x) `y`": ["agent-abc"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent-abc\" # note": ["agent-abc"],
+            "export\tNOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc\t": ["agent-abc"],
+        ]
+        for (text, expected) in forms {
+            try Data(text.utf8).write(to: config)
+            let parsed = try AgentSessionExclusions.load(from: config)
+            expect(parsed == expected, "Shell form parsed: \(text)")
+        }
+        let malformed = [
+            "export FOO=1; export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old; NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-new",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE = x",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE =x",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-\"abc\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent\"-abc",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b'",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=good\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE = bad",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=new",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=kept\n# NOTCHCAST_AGENT_SESSIONS_EXCLUDE=comment",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc; export OTHER=1",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a, b\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc\r,ghi",
+            "NOTCHCAST_AGENT_\\\nSESSIONS_EXCLUDE=ghi",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-a\\\n,agent-b",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE= # note \\\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=secret",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc # c:\\\\\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=secret",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE='ab\\\nc'",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUD$'E'=secret",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUD$\"E\"=secret",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLU{D,D}E=secret",
+            "export N{O,O}TCHCAST_AGENT_SESSIONS_EXCLUDE=secret\nX=1",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc\nexport NOTCHCAST_AGENT_SESSIONS_EXCLU{D..D}E=secret",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUD$(printf E)=secret",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc\u{2028},ghi",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUD\"E\"=ghi",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUD\\E=ghi",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc\nexport NOTCHCAST_AGENT_SESSIONS_EXCLUD'E'=ghi",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc#note",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=$ID",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"$ID,agent-other\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=${ID}",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent\\-secret",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent-a\n,agent-b\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=`id`",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=$(id)",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-a; . more.inc",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a\nif false; then NOTCHCAST_AGENT_SESSIONS_EXCLUDE=b; fi",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a\nf() { NOTCHCAST_AGENT_SESSIONS_EXCLUDE=b; }",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a\ncat <<EOF\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=b\nEOF",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a&&OTHER=1",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a>/dev/null",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a|b",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a<b",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=(a)",
+        ]
+        for text in malformed {
+            try Data(text.utf8).write(to: config)
+            expect((try? AgentSessionExclusions.load(from: config)) == nil, "Malformed form throws: \(text)")
+        }
+        expect(!FileManager.default.fileExists(atPath: marker.path), "Private config is never executed")
+        expect(!AgentSessionIndex.allows(fixturePath, excluding: prefixes), "Excluded file prefix rejected")
+        expect(!AgentSessionIndex.allows(root.appendingPathComponent("PRIVATE-FIXTURE-wal"), excluding: prefixes),
+               "Excluded side file prefix is case insensitive")
+        expect(!AgentSessionIndex.allows(root.appendingPathComponent("other-private/log.jsonl"), excluding: prefixes),
+               "Every configured prefix is applied")
+        expect(AgentSessionIndex.allows(root.appendingPathComponent("sub/session.jsonl"), excluding: prefixes),
+               "Other files allowed")
+        let forbidden = root.appendingPathComponent("nested/private-fixture")
         try FileManager.default.createDirectory(at: forbidden, withIntermediateDirectories: true)
         defer { expect(rmdir(forbidden.path) == 0, "Empty excluded fixture removed without opening it") }
         let safe = root.appendingPathComponent("safe/session.jsonl")
@@ -314,17 +398,19 @@ struct AgentSessionTests {
         try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("loop"), withDestinationURL: root)
         let accesses = Mutex<[URL]>([])
         var index = AgentSessionIndex { url in
-            expect(!url.pathComponents.contains { $0.lowercased() == "agent-2784f2ac" }, "Excluded folder never touched")
+            expect(AgentSessionIndex.allows(url, excluding: prefixes), "Excluded folder never touched")
             accesses.withLock { $0.append(url) }
         }
+        index.excludedPathComponentPrefixes = prefixes
         let result = try index.refresh(roots: [.init(provider: .claude, url: root)])
         expect(result.sessions.count == 1, "Sibling indexed and symlinks skipped")
         let before = accesses.withLock { $0.count }
         let excluded = try index.refresh(roots: [.init(provider: .claude, url: forbidden),
             .init(provider: .opencode, url: forbidden.appendingPathComponent("opencode.db")),
-            .init(provider: .claude, url: root.appendingPathComponent("nested/AGENT-2784F2AC"))])
+            .init(provider: .claude, url: root.appendingPathComponent("nested/PRIVATE-FIXTURE"))])
         expect(excluded.sessions.isEmpty && accesses.withLock { $0.count } == before, "Excluded roots do zero I/O")
-        expect(!AgentSessionIndex.allows(forbidden.appendingPathComponent("../escape")), "Traversal spelling rejected")
+        expect(!AgentSessionIndex.allows(forbidden.appendingPathComponent("../escape"), excluding: prefixes),
+               "Traversal spelling rejected")
         expect(AgentSessionIndex.Root.defaults(home: root).count == 6, "Default locations built without accessing them")
     }
 
@@ -332,7 +418,8 @@ struct AgentSessionTests {
     static func lifecycle(_ root: URL) async throws {
         let file = root.appendingPathComponent("lazy.jsonl")
         try append(["type": "user", "timestamp": timestamp], to: file)
-        let module = AgentSessionsModule(roots: [.init(provider: .claude, url: root)])
+        let module = AgentSessionsModule(roots: [.init(provider: .claude, url: root)],
+            privateConfigURL: root.appendingPathComponent("missing-private.env"))
         module.start()
         await Task.yield()
         expect(module.snapshot.sessions.isEmpty, "Enable remains lazy before demand")
