@@ -96,6 +96,9 @@ struct AgentSessionIndex: Sendable {
             }
             var merged = (existing.lastActivityAt ?? .distantPast) >= (session.lastActivityAt ?? .distantPast)
                 ? existing : session
+            merged.project = merged.project ?? existing.project ?? session.project
+            merged.model = merged.model ?? existing.model ?? session.model
+            merged.endedAt = existing.endedAt.flatMap { left in session.endedAt.map { max(left, $0) } }
             merged.startedAt = min(existing.startedAt ?? .distantFuture, session.startedAt ?? .distantFuture)
             merged.usage = existing.usage
             for usage in session.usage {
