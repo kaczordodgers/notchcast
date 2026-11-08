@@ -26,22 +26,11 @@ if [ -n "${BASE_SHA:-}" ]; then
 fi
 step feature-shape
 python3 notchcast/check-feature-shape.py
-python3 notchcast/check-feature-shape-test.py
 python3 notchcast/check-backup-schema.py
-python3 notchcast/check-backup-schema-test.py
-python3 notchcast/check-entry-lists-test.py
-bash notchcast/ci-finishes-test.sh
-bash notchcast/fork-point-test.sh
-bash notchcast/main-harness-base-test.sh
-python3 notchcast/replay-test.py
 step legacy-ids
 python3 notchcast/check-legacy-command-ids.py
-python3 notchcast/check-legacy-command-ids-test.py
-step publish-snapshot
-bash notchcast/publish-snapshot-test.sh
-bash notchcast/verify-signature-test.sh
-bash notchcast/install-launchd-test.sh
-bash notchcast/update-install-test.sh
+step script-tests
+python3 notchcast/script-tests.py
 step build
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
     -jobs "${CHAD_BUILD_QUEUE_JOBS:-4}" -derivedDataPath "$RUNNER_TEMP/DerivedData" \

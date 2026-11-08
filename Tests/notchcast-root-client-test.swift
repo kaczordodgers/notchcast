@@ -1,4 +1,5 @@
 // notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-reads: notchcast/root/*.swift Tinycast/Features/Clean/Model/CleanSystem*.swift
 import Darwin
 import Foundation
 

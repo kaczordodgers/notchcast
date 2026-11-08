@@ -70,6 +70,23 @@ class HarnessInputsTest(unittest.TestCase):
         self.assertNotIn("fixtures/", result.stdout)
         self.assertIn("notchcast-reader-test -parse-as-library", lines)
 
+    def test_conditional_globs_do_not_duplicate_sources_or_drop_repeated_flags(self):
+        source = "Tinycast/Features/Notchcast/Core/NotchcastFeatureModule.swift"
+        (self.root / source).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / source).touch()
+        tab = "Tinycast/Features/Settings/SettingsTab.swift"
+        (self.root / tab).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / tab).touch()
+        (self.root / "Tests/nc-Example-overlap-test.swift").write_text(
+            f"// notchcast-sources: -framework AppKit -framework Foundation {source} {tab}\n")
+        result = subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
+                                 'run() { printf "%s\\n" "$*"; }; source notchcast/test-harnesses.sh'],
+                                cwd=self.root, env=self.env, text=True, capture_output=True, check=True)
+        arguments = next(line.split()[1:] for line in result.stdout.splitlines()
+                         if line.startswith("nc-Example-overlap-test "))
+        self.assertEqual(1, arguments.count(source))
+        self.assertEqual(["-framework", "AppKit", "-framework", "Foundation"], arguments[:4])
+
     def test_module_check_includes_conditional_sources(self):
         source = "Tinycast/Features/Notchcast/Core/NotchcastFeatureModule.swift"
         (self.root / source).parent.mkdir(parents=True, exist_ok=True)
