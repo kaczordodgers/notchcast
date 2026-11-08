@@ -65,6 +65,22 @@ private struct TreadmillSessionTimeoutTests {
         return archive.records.map(\.seconds)
     }
 
+    static func stoppedThenFed(_ steps: [(phase: UInt8, seconds: Int, at: Double)], stopAt: Double, at t: Date) -> [Double] {
+        var engine = TreadmillSessionEngine(walk: nil)
+        var archive = TreadmillArchive()
+        func feed(_ status: TreadmillStatus, _ at: Double) {
+            let update = engine.receive(.status(status), now: t.addingTimeInterval(at))
+            archive.apply(current: engine.walk, finished: update.finished)
+        }
+        for (index, step) in steps.enumerated() {
+            if index == 1 { _ = engine.stop(now: t.addingTimeInterval(stopAt)) }
+            let body: [UInt8] = [step.phase, 40, 0, UInt8(step.seconds & 0xFF), UInt8(step.seconds >> 8), 100, 0, 0, 0, 4, 0, 0, 0, 0, 0]
+            feed(TreadmillStatus(body: body)!, step.at)
+        }
+        feed(TreadmillStatus(body: [0, 0])!, steps.last!.at + 1)
+        return archive.records.map(\.seconds)
+    }
+
     static func main() throws {
         let now = Date(timeIntervalSince1970: 1_793_793_600)
         var engine = TreadmillSessionEngine(walk: nil)
@@ -133,6 +149,12 @@ private struct TreadmillSessionTimeoutTests {
                      "a start during the silence still records the continued walk once")
         precondition(pausedResumeRecords(at: now) == [660], "a paused walk resumed after a lost Stop is recorded once")
         precondition(silentNewWalkRecords(at: now) == [10, 60], "a new walk heard after a silent Stop is its own record")
-        print("nc-Treadmill-session-timeout: 26 checks passed")
+        precondition(stoppedThenFed([(3, 10, 0), (10, 20, 30)], stopAt: 1, at: now) == [20],
+                     "a walk the pad paused after a lost Stop is recorded once")
+        precondition(stoppedThenFed([(3, 10, 0), (4, 20, 30)], stopAt: 1, at: now) == [20],
+                     "a walk the pad slowed after a lost Stop is recorded once")
+        precondition(stoppedThenFed([(3, 30, 30), (10, 35, 90), (3, 40, 95)], stopAt: 31, at: now) == [40],
+                     "a walk paused then resumed after a lost Stop is recorded once")
+        print("nc-Treadmill-session-timeout: 29 checks passed")
     }
 }

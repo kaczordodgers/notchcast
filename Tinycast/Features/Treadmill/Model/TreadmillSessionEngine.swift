@@ -98,10 +98,11 @@ struct TreadmillSessionEngine: Sendable {
         }
         var stale = Update()
         if moving, isStale(now: now) {
-            // A walk started at the pad during the silence cannot have counted more seconds than elapsed.
+            // A pad running a walk begun in the silence cannot have counted more seconds than elapsed.
             if let walk, walk.phase == .paused && status.phase == .countdown
                 || status.sample.map({ $0.seconds >= walk.sample.seconds
-                    && (Double($0.seconds) > now.timeIntervalSince(walk.updated) || walk.phase == .paused) }) == true {
+                    && (status.phase != .running || Double($0.seconds) > now.timeIntervalSince(walk.updated)
+                        || walk.phase == .paused) }) == true {
                 self.silentStopDeadline = nil
             } else {
                 endWalk(into: &stale)
