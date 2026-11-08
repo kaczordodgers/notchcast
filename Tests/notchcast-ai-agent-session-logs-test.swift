@@ -228,6 +228,12 @@ struct AgentSessionTests {
         try sql(database, "INSERT INTO \(messages) VALUES ('bad', 's1', \(milliseconds), \(milliseconds), 'malformed')")
         var index = AgentSessionIndex()
         let roots = [AgentSessionIndex.Root(provider: .opencode, url: file)]
+        var blocked = AgentSessionIndex(excludedPathComponentPrefixes: ["opencode.db-wal"]) { url in
+            expect(url.lastPathComponent != "opencode.db-wal", "Excluded SQLite sidecar never touched")
+        }
+        let skipped = try blocked.refresh(roots: roots)
+        expect(skipped.sessions.isEmpty && skipped.statistics.databaseRowsRead == 0,
+               "Excluded sidecar prevents opening its database")
         let bytesBefore = try Data(contentsOf: file)
         let result = try index.refresh(roots: roots)
         let bytesAfter = try Data(contentsOf: file)
@@ -302,10 +308,28 @@ struct AgentSessionTests {
     }
 
     static func exclusion(_ root: URL) throws {
-        expect(!AgentSessionIndex.allows(root.appendingPathComponent("sub/agent-2784f2ac.jsonl")), "Excluded agent file name rejected")
-        expect(!AgentSessionIndex.allows(root.appendingPathComponent("AGENT-2784F2AC-wal")), "Excluded agent side file rejected")
-        expect(AgentSessionIndex.allows(root.appendingPathComponent("sub/agent-1234abcd.jsonl")), "Other agent files allowed")
-        let forbidden = root.appendingPathComponent("nested/agent-2784f2ac")
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+        let config = root.appendingPathComponent("private.env")
+        let missing = try AgentSessionExclusions.load(from: config)
+        expect(missing.isEmpty, "Missing private config excludes nothing")
+        let fixturePath = root.appendingPathComponent("sub/private-fixture.jsonl")
+        expect(AgentSessionIndex.allows(fixturePath, excluding: missing), "No file allows otherwise excluded paths")
+        let marker = root.appendingPathComponent("must-not-exist")
+        try Data("OTHER_KEY=value\ntouch \"\(marker.path)\"\n".utf8).write(to: config)
+        let noKey = try AgentSessionExclusions.load(from: config)
+        expect(noKey.isEmpty, "Missing key excludes nothing")
+        try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE= private-fixture, other-private, ,\n".utf8).write(to: config)
+        let prefixes = try AgentSessionExclusions.load(from: config)
+        expect(prefixes == ["private-fixture", "other-private"], "Plain comma-separated prefixes parsed")
+        expect(!FileManager.default.fileExists(atPath: marker.path), "Private config is never executed")
+        expect(!AgentSessionIndex.allows(fixturePath, excluding: prefixes), "Excluded file prefix rejected")
+        expect(!AgentSessionIndex.allows(root.appendingPathComponent("PRIVATE-FIXTURE-wal"), excluding: prefixes),
+               "Excluded side file prefix is case insensitive")
+        expect(!AgentSessionIndex.allows(root.appendingPathComponent("other-private/log.jsonl"), excluding: prefixes),
+               "Every configured prefix is applied")
+        expect(AgentSessionIndex.allows(root.appendingPathComponent("sub/session.jsonl"), excluding: prefixes),
+               "Other files allowed")
+        let forbidden = root.appendingPathComponent("nested/private-fixture")
         try FileManager.default.createDirectory(at: forbidden, withIntermediateDirectories: true)
         defer { expect(rmdir(forbidden.path) == 0, "Empty excluded fixture removed without opening it") }
         let safe = root.appendingPathComponent("safe/session.jsonl")
@@ -313,8 +337,8 @@ struct AgentSessionTests {
         try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("alias"), withDestinationURL: forbidden)
         try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("loop"), withDestinationURL: root)
         let accesses = Mutex<[URL]>([])
-        var index = AgentSessionIndex { url in
-            expect(!url.pathComponents.contains { $0.lowercased() == "agent-2784f2ac" }, "Excluded folder never touched")
+        var index = AgentSessionIndex(excludedPathComponentPrefixes: prefixes) { url in
+            expect(AgentSessionIndex.allows(url, excluding: prefixes), "Excluded folder never touched")
             accesses.withLock { $0.append(url) }
         }
         let result = try index.refresh(roots: [.init(provider: .claude, url: root)])
@@ -322,9 +346,10 @@ struct AgentSessionTests {
         let before = accesses.withLock { $0.count }
         let excluded = try index.refresh(roots: [.init(provider: .claude, url: forbidden),
             .init(provider: .opencode, url: forbidden.appendingPathComponent("opencode.db")),
-            .init(provider: .claude, url: root.appendingPathComponent("nested/AGENT-2784F2AC"))])
+            .init(provider: .claude, url: root.appendingPathComponent("nested/PRIVATE-FIXTURE"))])
         expect(excluded.sessions.isEmpty && accesses.withLock { $0.count } == before, "Excluded roots do zero I/O")
-        expect(!AgentSessionIndex.allows(forbidden.appendingPathComponent("../escape")), "Traversal spelling rejected")
+        expect(!AgentSessionIndex.allows(forbidden.appendingPathComponent("../escape"), excluding: prefixes),
+               "Traversal spelling rejected")
         expect(AgentSessionIndex.Root.defaults(home: root).count == 6, "Default locations built without accessing them")
     }
 
@@ -332,7 +357,8 @@ struct AgentSessionTests {
     static func lifecycle(_ root: URL) async throws {
         let file = root.appendingPathComponent("lazy.jsonl")
         try append(["type": "user", "timestamp": timestamp], to: file)
-        let module = AgentSessionsModule(roots: [.init(provider: .claude, url: root)])
+        let module = AgentSessionsModule(roots: [.init(provider: .claude, url: root)],
+            privateConfigURL: root.appendingPathComponent("missing-private.env"))
         module.start()
         await Task.yield()
         expect(module.snapshot.sessions.isEmpty, "Enable remains lazy before demand")

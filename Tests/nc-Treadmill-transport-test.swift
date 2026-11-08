@@ -85,6 +85,7 @@ struct TreadmillTransportTests {
         transport.close()
         central.onEvent?(.discovered)
         precondition(central.connects == connects + 2)
+        precondition(CoreBluetoothTreadmillCentral.discoveryServices.map(\.uuidString) == ["1826"])
         precondition(CoreBluetoothTreadmillCentral.service.uuidString == "FFF0")
         precondition(CoreBluetoothTreadmillCentral.notify.uuidString == "FFF1")
         precondition(CoreBluetoothTreadmillCentral.write.uuidString == "FFF2")

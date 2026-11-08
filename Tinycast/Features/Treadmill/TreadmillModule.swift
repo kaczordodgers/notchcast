@@ -18,9 +18,7 @@ extension TreadmillCoordinator {
     static func live(bundleID: String = Bundle.main.bundleIdentifier ?? "app.notchcast.dev") -> TreadmillCoordinator {
         let support = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Library/Application Support")
         let repository = TreadmillRepository(
-            directory: support.appending(path: bundleID).appending(path: "notchcast/treadmill"),
-            legacyDirectories: [support.appending(path: "urevo-treadmill"), support.appending(path: "Orion/walk")],
-            legacyLubeDirectory: support.appending(path: "urevo-treadmill"))
+            directory: support.appending(path: bundleID).appending(path: "notchcast/treadmill"))
         let defaults = UserDefaults(suiteName: bundleID + ".notchcast")!
         return TreadmillCoordinator(transport: BluetoothTreadmillTransport(),
                                     history: TreadmillHistoryStore(repository: repository),

@@ -4,6 +4,7 @@ import Foundation
 @MainActor
 final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     @preconcurrency CBCentralManagerDelegate, @preconcurrency CBPeripheralDelegate {
+    static let discoveryServices = [CBUUID(string: "1826")]
     static let service = CBUUID(string: "FFF0")
     static let notify = CBUUID(string: "FFF1")
     static let write = CBUUID(string: "FFF2")
@@ -39,7 +40,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
             connect()
             return false
         }
-        manager.scanForPeripherals(withServices: nil,
+        manager.scanForPeripherals(withServices: Self.discoveryServices,
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
         return true
     }
@@ -78,8 +79,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
                         advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?? peripheral.name
-        guard active, pad == nil, name == "URTM050" else { return }
+        guard active, pad == nil else { return }
         pad = peripheral
         peripheral.delegate = self
         onEvent?(.discovered)

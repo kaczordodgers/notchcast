@@ -193,21 +193,16 @@ private struct TreadmillTests {
         let summary = TreadmillSummary(records: records, current: nil, now: now, calendar: calendar)
         expect(summary.today.walks == 1 && summary.odometerKm == 2, "Calendar buckets exclude future records")
         expect(summary.today.averageKmh == 6, "Distance weighted average")
-        let imported = TreadmillImport.phoneTotals(calendar: calendar)
-        let phoneSummary = TreadmillSummary(records: imported, current: nil, now: now, calendar: calendar)
-        expect(abs(phoneSummary.odometerKm - 509.71) < 0.001, "Phone odometer continued")
-        expect(phoneSummary.year.walks == 0 && phoneSummary.year.seconds == 7670 * 60, "Aggregate blocks are not walks")
+        var imported = record()
+        imported.imported = true
+        let importedSummary = TreadmillSummary(records: [imported], current: nil, now: now, calendar: calendar)
+        expect(importedSummary.odometerKm == imported.meters / 1000, "Persisted aggregate contributes distance")
+        expect(importedSummary.year.walks == 0 && importedSummary.year.seconds == imported.seconds,
+               "Aggregate blocks are not walks")
+        expect(importedSummary.monthDays.allSatisfy { $0.totals.seconds == 0 }, "Aggregates stay out of daily chart")
         expect(TreadmillGoal.standard.progress(summary.today) == 1.0 / 6, "Default minutes goal")
         expect(TreadmillGoal(unit: .steps, target: 1000).progress(summary.today) == 1, "Steps goal")
         expect(TreadmillGoal(unit: .kilometers, target: 2).progress(summary.today) == 0.5, "Distance goal")
-        let merged = TreadmillImport.merge(imported + records, into: [records[0]], calendar: calendar)
-        expect(merged.count == 6, "Import deduplicates overlapping sources and phone blocks")
-        var shifted = imported[0]
-        shifted = TreadmillRecord(started: shifted.started + 3600, ended: shifted.ended + 3600,
-                                  seconds: shifted.seconds, meters: shifted.meters, kcal: shifted.kcal,
-                                  steps: shifted.steps, averageKmh: 0, imported: true)
-        expect(TreadmillImport.merge([shifted], into: imported, calendar: calendar).count == 3,
-               "Phone blocks deduplicate across time zones")
         var archive = TreadmillArchive()
         archive.lubricatedKm = 400
         expect(archive.lubeDueMark(odometerKm: 599.99) == nil, "Not due before lube mark")
@@ -225,31 +220,12 @@ private struct TreadmillTests {
     private static func history() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: "nc-Treadmill-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
-        let legacy = root.appending(path: "legacy")
-        try FileManager.default.createDirectory(at: legacy, withIntermediateDirectories: true)
-        let legacyData = try JSONEncoder().encode(record()) + Data("\n{partial".utf8)
-        try legacyData.write(to: legacy.appending(path: "history.jsonl"))
-        try Data("{\"reminded_km\":400}".utf8).write(to: legacy.appending(path: "lube.json"))
-        let repository = TreadmillRepository(directory: root.appending(path: "fork"), legacyDirectories: [legacy, legacy],
-                                              legacyLubeDirectory: legacy)
+        let repository = TreadmillRepository(directory: root.appending(path: "fork"))
         let store = TreadmillHistoryStore(repository: repository)
-        try await store.load(calendar: calendar)
-        expect(store.archive.records.count == 4 && store.archive.lubricatedKm == 400, "Legacy import once, read only")
-        let secondLegacy = root.appending(path: "second-legacy")
-        try FileManager.default.createDirectory(at: secondLegacy, withIntermediateDirectories: true)
-        try legacyData.write(to: secondLegacy.appending(path: "history.jsonl"))
-        try Data("{\"reminded_km\":0}".utf8).write(to: legacy.appending(path: "lube.json"))
-        let explicitMark = TreadmillRepository(directory: root.appending(path: "explicit-mark"),
-                                               legacyDirectories: [legacy, secondLegacy], legacyLubeDirectory: legacy)
-        let explicitArchive = try await explicitMark.load(calendar: calendar)
-        expect(explicitArchive.lubricatedKm == 0, "Second history source cannot override an explicit lube mark")
-        let onlyHistory = TreadmillRepository(directory: root.appending(path: "history-only"),
-                                              legacyDirectories: [secondLegacy])
-        let historyArchive = try await onlyHistory.load(calendar: calendar)
-        expect(historyArchive.lubricatedKm == 0, "History-only import cannot invent a lubrication mark")
-        try FileManager.default.removeItem(at: legacy.appending(path: "lube.json"))
-        let fallbackArchive = try await explicitMark.load(calendar: calendar)
-        expect(fallbackArchive.lubricatedKm == 400, "Old treadmill folder alone supplies the legacy default")
+        try await store.load()
+        expect(store.archive == TreadmillArchive(), "Missing archive starts empty without injected history")
+        store.update(current: nil, finished: [record()])
+        store.markLubricated(odometerKm: 400)
         var engine = TreadmillSessionEngine()
         _ = engine.receive(message(status(3)), now: now.addingTimeInterval(1000))
         store.update(current: engine.walk, finished: [])
@@ -257,22 +233,21 @@ private struct TreadmillTests {
         async let second: Void = store.flush()
         try await first
         try await second
-        let restored = try await repository.load(calendar: calendar)
+        let restored = try await repository.load()
         expect(restored.current == engine.walk, "Concurrent flushes preserve recovery snapshot")
         let end = engine.receive(message(status(1, seconds: 120)), now: now.addingTimeInterval(1120))
         store.update(current: engine.walk, finished: end.finished)
         store.update(current: engine.walk, finished: end.finished)
-        expect(store.archive.records.count == 5, "Duplicate finish cannot duplicate history")
+        expect(store.archive.records.count == 2, "Duplicate finish cannot duplicate history")
         expect(store.takeGoalReached(TreadmillGoal(unit: .steps, target: 1), now: now, calendar: calendar), "Goal event")
         expect(!store.takeGoalReached(.standard, now: now, calendar: calendar), "Goal event once per day")
         try await store.flush()
-        let afterFinish = try await repository.load(calendar: calendar)
-        expect(afterFinish.current == nil && afterFinish.records.count == 5, "Finish and clear commit atomically")
+        let afterFinish = try await repository.load()
+        expect(afterFinish.current == nil && afterFinish.records.count == 2, "Finish and clear commit atomically")
         expect(afterFinish.goalAnnouncedDay == calendar.startOfDay(for: now), "Goal announcement survives restart")
-        expect(try Data(contentsOf: legacy.appending(path: "history.jsonl")) == legacyData, "Legacy data unchanged")
         let reopened = TreadmillHistoryStore(repository: repository)
-        try await reopened.load(calendar: calendar)
-        expect(reopened.archive.records.count == 5, "Committed import does not repeat")
+        try await reopened.load()
+        expect(reopened.archive.records.count == 2, "Persisted history does not gain records on reload")
         async let concurrent: Void = reopened.flush()
         for index in 1...20 {
             reopened.markLubricated(odometerKm: Double(index))
@@ -280,19 +255,19 @@ private struct TreadmillTests {
         }
         try await concurrent
         try await reopened.flush()
-        let latest = try await repository.load(calendar: calendar)
+        let latest = try await repository.load()
         expect(latest.lubricatedKm == 20, "Changes during a write finish in the latest snapshot")
         let corrupt = root.appending(path: "corrupt")
         try FileManager.default.createDirectory(at: corrupt, withIntermediateDirectories: true)
         let damaged = Data("{\"records\": [".utf8)
         try damaged.write(to: corrupt.appending(path: "treadmill.json"))
         let badStore = TreadmillHistoryStore(repository: TreadmillRepository(directory: corrupt))
-        do { try await badStore.load(calendar: calendar); fatalError("Corrupt archive accepted") } catch {}
+        do { try await badStore.load(); fatalError("Corrupt archive accepted") } catch {}
         expect(!badStore.isLoaded, "Corruption does not initialize an empty replacement")
         expect(try Data(contentsOf: corrupt.appending(path: "treadmill.json")) == damaged, "Corrupt archive preserved")
         let blocked = root.appending(path: "blocked")
         let failedStore = TreadmillHistoryStore(repository: TreadmillRepository(directory: blocked.appending(path: "fork")))
-        try await failedStore.load(calendar: calendar)
+        try await failedStore.load()
         try Data().write(to: blocked)
         do { try await failedStore.flush(); fatalError("Expected write failure") } catch {}
         try FileManager.default.removeItem(at: blocked)
@@ -430,7 +405,7 @@ private struct TreadmillTests {
                && reentrantTransport.sent.last == TreadmillProtocol.stop,
                "Goal callback disabling Walk prevents queued speed commands")
         await reentrant.stopForTermination()
-        let terminated = try await TreadmillRepository(directory: root.appending(path: "reentrant")).load(calendar: calendar)
+        let terminated = try await TreadmillRepository(directory: root.appending(path: "reentrant")).load()
         expect(terminated.current?.sample.steps == 100, "Termination flushes the last counters")
         let persistent = FakeTreadmillTransport()
         persistent.maintainsConnection = true

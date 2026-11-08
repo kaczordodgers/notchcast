@@ -100,7 +100,7 @@ final class TreadmillCoordinator {
     }
 
     func prepare() async throws {
-        try await history.load(calendar: calendar())
+        try await history.load()
         try Task.checkCancellation()
         if engine.walk == nil { engine = TreadmillSessionEngine(walk: history.archive.current) }
         try await history.flush()

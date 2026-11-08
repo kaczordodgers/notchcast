@@ -42,6 +42,7 @@ Maintainer-specific integrations stay out of this repo. `kick.sh`, `update.sh` a
 - `notchcast_build_done`: receives the `build/local` result line on stdin when `local-ci.sh` ends.
 - `NOTCHCAST_BUILD_QUEUE`: a command that runs `hold [--landing] -- <command>` through a machine-wide build queue (`local-ci.sh`, and `app-proof.py` from the environment). Without it, builds run directly.
 - `NOTCHCAST_LOCAL_CI_DIR`: where `local-ci.sh` keeps its scratch and logs (default `~/Library/Caches/notchcast/local-ci`).
+- `NOTCHCAST_AGENT_SESSIONS_EXCLUDE`: comma-separated path-component prefixes that Agent Session Logs must never access, matched case-insensitively. The app reads this key as plain `KEY=value` text from `~/.config/notchcast/private.env` on each refresh and never executes the file. A missing file or key excludes nothing; an unreadable or invalid UTF-8 file prevents the scan.
 
 ## Installing on a Mac
 
