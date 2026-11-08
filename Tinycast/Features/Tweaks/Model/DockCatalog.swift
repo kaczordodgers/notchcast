@@ -19,7 +19,6 @@ nonisolated enum DockCatalog {
         "dock-left": [Write("com.apple.dock", "orientation", .string("left"))],
         "dock-scale": [Write("com.apple.dock", "mineffect", .string("scale"))],
         "dock-corner": [Write("com.apple.dock", "wvous-br-corner", .integer(1))],
-        "spaces-fixed": [Write("com.apple.dock", "mru-spaces", .bool(false))],
         "group-windows": [Write("com.apple.dock", "expose-group-apps", .bool(true))],
         "title-fill": [Write("AppleActionOnDoubleClick", .string("Fill"))],
         "stage-off": [Write("com.apple.WindowManager", "GloballyEnabled", .bool(false))],
@@ -34,7 +33,7 @@ nonisolated enum DockCatalog {
         if identifier == "screenshot-shadow" { return "SystemUIServer" }
         let dock: Set<String> = [
             "dock-recents", "dock-delay", "dock-bounce", "minimize-to-app", "dock-autohide",
-            "dock-instant", "dock-left", "dock-scale", "dock-corner", "spaces-fixed", "group-windows",
+            "dock-instant", "dock-left", "dock-scale", "dock-corner", "group-windows",
         ]
         return dock.contains(identifier) ? "Dock" : nil
     }
