@@ -46,28 +46,28 @@ if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     head=$(git rev-parse --verify "$3^{commit}")
 elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
-    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName,baseRefName,isCrossRepository)
+    metadata=$(gh pr view "$pr" -R "$FORK_REPO" --json state,isDraft,headRefOid,headRefName,baseRefName,isCrossRepository)
     [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
     check_hold "$pr"
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
     git fetch origin main "refs/pull/$pr/head" '+refs/notchcast/synced/*:refs/notchcast/synced/*'
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
     for name in design leaks; do
-        verdict=$(gh api "repos/kaczordodgers/notchcast/commits/$head/check-runs?check_name=$name&filter=all" \
+        verdict=$(gh api "repos/$FORK_REPO/commits/$head/check-runs?check_name=$name&filter=all" \
             --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end')
         [ "$verdict" = none ] || [ "$verdict" = success ] || refuse "$name is $verdict on ${head:0:8}; wait for success"
     done
     required=$(python3 notchcast/app-proof.py plan origin/main "$head")
     if [ -n "$required" ]; then
-        verdict=$(gh api "repos/kaczordodgers/notchcast/commits/$head/check-runs?check_name=proof&filter=all" \
+        verdict=$(gh api "repos/$FORK_REPO/commits/$head/check-runs?check_name=proof&filter=all" \
             --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end')
         branch=$(jq -r .headRefName <<< "$metadata")
-        [ "$verdict" = success ] || refuse "real-app proof ($required) is $verdict on ${head:0:8}; it runs on the PR, or: gh workflow run Proof --ref $branch -R kaczordodgers/notchcast"
+        [ "$verdict" = success ] || refuse "real-app proof ($required) is $verdict on ${head:0:8}; it runs on the PR, or: gh workflow run Proof --ref $branch -R $FORK_REPO"
     fi
     # Check runs on the commit, not the PR's statusCheckRollup: the rollup omits dispatched runs, and a PR
     # GitHub calls conflicting gets no pull_request run at all. The newest run wins over a cancelled one.
     build() {
-        gh api "repos/kaczordodgers/notchcast/commits/$1/check-runs?check_name=build&filter=all" \
+        gh api "repos/$FORK_REPO/commits/$1/check-runs?check_name=build&filter=all" \
             --jq '[.check_runs[] | select(.app.slug == "github-actions")] | max_by(.started_at) | if . == null then "none" elif .status != "completed" then "pending" else .conclusion end'
     }
     green() { [ "$(build "$1")" = success ] || local_build_green "$1"; }
@@ -81,12 +81,12 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
         branch=$(jq -r .headRefName <<< "$metadata")
         generated=$(python3 -c 'from notchcast.ci import GENERATED; print("\n".join(GENERATED))')
         proven=
-        for sha in $(git rev-list --max-count=30 "$head") $(gh run list -R kaczordodgers/notchcast -w PR -b "$branch" -L 30 --json headSha,conclusion \
+        for sha in $(git rev-list --max-count=30 "$head") $(gh run list -R "$FORK_REPO" -w PR -b "$branch" -L 30 --json headSha,conclusion \
                 --jq '.[] | select(.conclusion == "success") | .headSha' | awk '!seen[$0]++'); do
             git fetch -q origin "$sha" 2>/dev/null && green "$sha" || continue
             [ -n "$(git diff --name-only "$sha" "$head" | grep -vxF "$generated")" ] || { proven=$sha; break; }
         done
-        [ -n "$proven" ] || refuse "build is not green on ${head:0:8}; if it has none, run: gh workflow run PR --ref $branch -R kaczordodgers/notchcast"
+        [ -n "$proven" ] || refuse "build is not green on ${head:0:8}; if it has none, run: gh workflow run PR --ref $branch -R $FORK_REPO"
         echo "build: ${head:0:8} differs from green ${proven:0:8} only in generated files"
     fi
     base=$(git rev-parse origin/main)
@@ -135,7 +135,7 @@ merge_onto() {
     fi
     unmerged=$(git diff --name-only --diff-filter=U)
     [ -z "$unmerged" ] || refuse "merge conflict: $(echo $unmerged)"
-    git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
+    git -c core.hooksPath=/dev/null -c user.name="$MAINTAINER_NAME" -c user.email="$MAINTAINER_EMAIL" \
         commit --quiet --allow-empty --no-edit -m "Merge $head"
     # A union merge keeps a line the PR deleted when main appended next to it; refuse instead of reviving it.
     for file in $(awk '$2 == "merge=union" {print $1}' .gitattributes); do
@@ -165,15 +165,15 @@ echo 'PASS: merged-tree harnesses'
 # Not covered without an Xcode build of this tree: code no selected harness compiles (UI, AppCore wiring,
 # resources); the PR build covered the head alone, and the main harness job, Sync and Snapshot follow on main.
 if [ "$check" -eq 0 ]; then
-    title=$(gh pr view "$pr" -R kaczordodgers/notchcast --json title --jq .title)
+    title=$(gh pr view "$pr" -R "$FORK_REPO" --json title --jq .title)
     [[ "$title" == Notchcast:* ]] || title="Notchcast: $title"
     printf '%s (#%s)\n' "$title" "$pr" > "$scratch/message"
     notchcast/check-identity.sh message "$scratch/message" || refuse 'commit message names something private'
-    commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
-        GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
+    commit=$(GIT_AUTHOR_NAME="$MAINTAINER_NAME" GIT_AUTHOR_EMAIL="$MAINTAINER_EMAIL" \
+        GIT_COMMITTER_NAME="$MAINTAINER_NAME" GIT_COMMITTER_EMAIL="$MAINTAINER_EMAIL" \
         git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
     wait_for_sync
-    [ "$(gh pr view "$pr" -R kaczordodgers/notchcast --json headRefOid --jq .headRefOid)" = "$head" ] \
+    [ "$(gh pr view "$pr" -R "$FORK_REPO" --json headRefOid --jq .headRefOid)" = "$head" ] \
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
     for attempt in 1 2 3 4 5 6; do
@@ -187,11 +187,11 @@ if [ "$check" -eq 0 ]; then
         base=$moved_to
         merge_onto "$base"
         harnesses "$base"
-        commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
-            GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
+        commit=$(GIT_AUTHOR_NAME="$MAINTAINER_NAME" GIT_AUTHOR_EMAIL="$MAINTAINER_EMAIL" \
+            GIT_COMMITTER_NAME="$MAINTAINER_NAME" GIT_COMMITTER_EMAIL="$MAINTAINER_EMAIL" \
             git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
     done
-    gh pr close "$pr" -R kaczordodgers/notchcast --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base." \
+    gh pr close "$pr" -R "$FORK_REPO" --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base." \
         || refuse "landed on main as $commit, but closing PR #$pr failed: close it by hand, do not rerun land.sh"
     delete_head "$(jq -r .headRefName <<< "$metadata")" "$head" "$(jq -r .isCrossRepository <<< "$metadata")"
 fi

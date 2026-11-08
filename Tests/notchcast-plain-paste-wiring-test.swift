@@ -1,4 +1,5 @@
 // notchcast-sources: -parse-as-library
+// notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift
 import Foundation
 
 @main struct PlainPasteWiringTest {

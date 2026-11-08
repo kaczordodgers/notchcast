@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
+// notchcast-reads: notchcast/check-command-owners.py Tinycast/Features/**/*.swift
 import Foundation
 
 enum SettingsTab: Sendable { case notchcast }

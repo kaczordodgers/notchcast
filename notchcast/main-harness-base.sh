@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
+source "$(dirname "$0")/config.env"
 before=$1
 head=$2
 # Push runs only: a workflow_dispatch on main selects from main itself (core only), so it proves nothing about pushes.
@@ -17,7 +18,7 @@ if [ -n "$green" ]; then
                 break
             fi
             tested=$(gh api "repos/$GITHUB_REPOSITORY/commits/$candidate/status" \
-                --jq '[.statuses[] | select(.context == "notchcast/tested")][0].state // empty') || tested=
+                --jq "[.statuses[] | select(.context == \"$TESTED_CONTEXT\")][0].state // empty") || tested=
             if [ "$tested" = success ]; then
                 before=$candidate
                 break

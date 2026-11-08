@@ -44,7 +44,6 @@ BOT = {
     "GIT_COMMITTER_NAME": "github-actions[bot]",
     "GIT_COMMITTER_EMAIL": "41898282+github-actions[bot]@users.noreply.github.com",
 }
-AUTHOR = "Damian <336236323+kaczordodgers@users.noreply.github.com>"
 TAG_RE = re.compile(r"v(\d+)\.(\d+)\.(\d+)(?:-[a-z]+\.(\d+))?")
 
 
@@ -55,6 +54,9 @@ def config():
             key, _, value = line.partition("=")
             values[key] = value.strip().strip('"')
     return values
+
+
+AUTHOR = "{MAINTAINER_NAME} <{MAINTAINER_EMAIL}>".format(**config())
 
 
 def run(*cmd, cwd=None, env=None):
@@ -165,7 +167,7 @@ def plan():
         releases.append({"tag": tag, "title": r["name"], "prerelease": r["isPrerelease"]})
 
     statuses = json.loads(run("gh", "api", f"repos/{cfg['FORK_REPO']}/commits/{main}/status"))["statuses"]
-    tested = any(s["context"] == "notchcast/tested" and s["state"] == "success" for s in statuses)
+    tested = any(s["context"] == cfg["TESTED_CONTEXT"] and s["state"] == "success" for s in statuses)
     # Without a rebase, a main commit is tested as it is, once: a red one waits for a new main.
     test_main = not rebase and not tested and f"test-{main}" not in failed
     print(f"main {main[:10]}: {'tested' if tested else 'failed before' if not test_main and not rebase else 'not tested yet'}")

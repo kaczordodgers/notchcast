@@ -1,3 +1,4 @@
+// notchcast-reads: Tests/Fixtures/ai-usage/cache-shapes.json
 // notchcast-sources: Tinycast/Features/AIUsage/Model/*.swift
 // notchcast-sources: Tinycast/Features/AIUsage/Service/*.swift
 import Foundation

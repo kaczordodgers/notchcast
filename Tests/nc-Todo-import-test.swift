@@ -1,3 +1,4 @@
+// notchcast-reads: Tests/Fixtures/todoist-export.json
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift Tinycast/Features/Todo/Service/TodoistImportClient.swift
 import Foundation
 

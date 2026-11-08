@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 """Check our commit identities without exposing rejected addresses in diagnostics."""
+from pathlib import Path
+import runpy
 import subprocess
 import sys
 
+CONFIG = runpy.run_path(str(Path(__file__).with_name('ci.py')))['config']()
+
 ALLOWED = {
-    "336236323+kaczordodgers@users.noreply.github.com",
+    CONFIG['MAINTAINER_EMAIL'],
     "noreply@github.com",  # GitHub web-flow squash committer.
     "41898282+github-actions[bot]@users.noreply.github.com",  # Sync replay.
 }

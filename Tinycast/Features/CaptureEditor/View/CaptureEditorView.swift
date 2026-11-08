@@ -80,7 +80,6 @@ private struct CaptureEditorCanvas: View {
                         get: { document.textEdit?.string ?? "" },
                         set: { document.textEdit?.string = $0 }))
                         .focused($editingText)
-                        .onAppear { editingText = true }
                         .onSubmit { document.commitText() }
                         .frame(width: max(1, image.points.width - (document.textEdit?.origin.x ?? 0)) * scale)
                         .offset(x: (document.textEdit?.origin.x ?? 0) * scale,
@@ -96,7 +95,12 @@ private struct CaptureEditorCanvas: View {
                     dragging = true
                 }
                 document.dragged(to: CGPoint(x: value.location.x / scale, y: value.location.y / scale))
-            }.onEnded { _ in document.released(); dragging = false })
+            }.onEnded { _ in
+                document.released()
+                dragging = false
+                // An inactive app drops focus set in the field's own onAppear.
+                if document.textEdit != nil { editingText = true }
+            })
         }
     }
 }
