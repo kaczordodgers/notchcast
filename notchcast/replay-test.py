@@ -2,6 +2,7 @@
 """Exercise replay's catalog resolution and conflict boundaries in isolated repositories."""
 import importlib.util
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -38,6 +39,20 @@ class RebaseHoldTests(unittest.TestCase):
     def test_message_names_all_eligible_prs(self):
         self.assertEqual(CI.rebase_hold([dict(self.PR, number=412), self.PR], 0, 0),
                          (True, "open PRs #411, #412; 12.0 h of 12 left"))
+
+
+class SyncWorkflowTests(unittest.TestCase):
+    def job(self, name):
+        text = (Path(__file__).resolve().parent.parent / ".github/workflows/sync.yml").read_text()
+        match = re.search(rf"^  {name}:\n(.*?)(?=^  \S|\Z)", text, re.M | re.S)
+        self.assertIsNotNone(match, name)
+        return match[1]
+
+    def test_release_failure_never_skips_main(self):
+        """Releases run after main and from plan's main; main depends on plan alone, never on a release."""
+        self.assertRegex(self.job("main"), r"(?m)^    needs: plan$")
+        self.assertNotIn("release", re.search(r"(?m)^    if: (.*)$", self.job("main"))[1])
+        self.assertRegex(self.job("release"), r"(?m)^    needs: \[plan, main\]$")
 
 
 class ReplayTests(unittest.TestCase):
@@ -95,15 +110,20 @@ class ReplayTests(unittest.TestCase):
             if fix:
                 path = root / "notchcast/replay-fixes/ours.patch"
                 path.parent.mkdir(parents=True)
-                path.write_text("diff --git a/other b/other\n--- a/other\n+++ b/other\n"
-                                "@@ -1 +1,2 @@\n upstream\n+ours\n"
-                                if fix in {"valid", "partial", "extra"} else "invalid patch\n")
+                valid = "diff --git a/other b/other\n--- a/other\n+++ b/other\n@@ -1 +1,2 @@\n upstream\n+ours\n"
+                if fix == "labelled":
+                    # A fix for another base first, then the one for this base under a label.
+                    path.write_text(valid.replace(" upstream\n", " newer upstream\n"))
+                    path.with_name("ours.v1-0-0-beta-1.patch").write_text(valid)
+                    path.with_name("ours-longer.v1.patch").write_text("invalid patch\n")
+                else:
+                    path.write_text(valid if fix in {"valid", "partial", "extra"} else "invalid patch\n")
                 if fix == "extra":
                     with path.open("a") as stream:
                         stream.write("diff --git a/clean b/clean\n--- a/clean\n+++ b/clean\n"
                                      "@@ -1 +1 @@\n-clean cherry-pick result\n+changed\n")
                 commit("stored fix")
-            if (conflict or later_conflict) and fix != "valid":
+            if (conflict or later_conflict) and fix not in {"valid", "labelled"}:
                 with self.assertRaises(CI.Conflict) as caught:
                     CI.replay(root, upstream, check=True)
                 self.assertEqual(caught.exception.subject, "later conflict" if later_conflict else "ours")
@@ -116,11 +136,14 @@ class ReplayTests(unittest.TestCase):
                                  {"a", "ours", "upstream", "z"})
                 self.assertEqual(git("diff", "--name-only", "--diff-filter=U"), "")
                 self.assertEqual((root / "clean").read_text(), "clean cherry-pick result\n")
-                if fix == "valid":
+                if fix in {"valid", "labelled"}:
                     self.assertEqual((root / "other").read_text(), "upstream\nours\n")
 
     def test_per_file_fix_preserves_clean_results_and_catalog(self):
         self.scenario(conflict="other", fix="valid")
+
+    def test_fix_labelled_for_another_base_applies_when_the_bare_fix_does_not(self):
+        self.scenario(conflict="other", fix="labelled")
 
     def test_invalid_fix_raises_conflict(self):
         self.scenario(conflict="other", fix="invalid")
