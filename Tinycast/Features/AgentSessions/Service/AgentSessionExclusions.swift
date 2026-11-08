@@ -12,7 +12,11 @@ enum AgentSessionExclusions {
             return []
         }
         let joined = contents.replacing("\\\n", with: "")
-        let lines = joined.split(separator: "\n").filter { $0.filter { !"\"'\\$".contains($0) }.contains(key) }
+        let lines = joined.split(separator: "\n").filter { line in
+            var rest = key.unicodeScalars[...]
+            for scalar in line.unicodeScalars where scalar == rest.first { rest.removeFirst() }
+            return rest.isEmpty
+        }
         guard lines.count <= 1 else { throw MalformedAssignment() }
         guard let line = lines.first else { return [] }
         guard contents.split(separator: "\n").contains(line) else { throw MalformedAssignment() }
