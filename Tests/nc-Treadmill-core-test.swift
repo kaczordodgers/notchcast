@@ -93,7 +93,23 @@ private struct TreadmillTests {
         try summaries()
         try await history()
         try await coordinator()
+        rejections()
         print("Treadmill: \(checks) checks passed; fake transport only")
+    }
+
+    private static func rejections() {
+        let pad = UUID()
+        var screen = TreadmillPadRejections()
+        expect(!screen.discoveryFailed() && !screen.discoveryFailed(), "Two discovery errors keep the pad")
+        expect(screen.discoveryFailed(), "Third discovery error in a row rejects")
+        screen.reject(pad)
+        expect(!screen.allows(pad) && screen.allows(UUID()), "Rejected pad skipped, others allowed")
+        expect(!screen.discoveryFailed() && !screen.discoveryFailed(), "Reject resets the error count")
+        screen.ready()
+        expect(!screen.discoveryFailed() && !screen.discoveryFailed(), "Ready resets the error count")
+        screen.stop()
+        expect(screen.allows(pad), "Stop clears rejected pads")
+        expect(!screen.discoveryFailed() && !screen.discoveryFailed(), "Stop clears the error count")
     }
 
     private static func frames() throws {

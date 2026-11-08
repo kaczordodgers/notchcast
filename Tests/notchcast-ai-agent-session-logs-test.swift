@@ -317,14 +317,13 @@ struct AgentSessionTests {
         expect(prefixes == ["private-fixture", "other-private"], "Plain comma-separated prefixes parsed")
         let forms = [
             "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a,b": ["a", "b"],
-            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a, b\"": ["a", "b"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b\"": ["a", "b"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE='A,b'": ["a", "b"],
-            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=new": ["new"],
-            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=kept\n# NOTCHCAST_AGENT_SESSIONS_EXCLUDE=comment": ["kept"],
-            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc  # note": ["agent-abc"],
+            "  NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent_a.b,c\nOTHER=1\n": ["agent_a.b", "c"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=": [],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc  # note $(x) `y`": ["agent-abc"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent-abc\" # note": ["agent-abc"],
-            "export\tNOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc": ["agent-abc"],
-            "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc; export OTHER=1": ["agent-abc"],
+            "export\tNOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc\t": ["agent-abc"],
         ]
         for (text, expected) in forms {
             try Data(text.utf8).write(to: config)
@@ -340,6 +339,28 @@ struct AgentSessionTests {
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent\"-abc",
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b'",
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=good\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE = bad",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=new",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=kept\n# NOTCHCAST_AGENT_SESSIONS_EXCLUDE=comment",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc; export OTHER=1",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a, b\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc#note",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=$ID",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"$ID,agent-other\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=${ID}",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent\\-secret",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-a\\\n,agent-b",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent-a\n,agent-b\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=`id`",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=$(id)",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-a; . more.inc",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a\nif false; then NOTCHCAST_AGENT_SESSIONS_EXCLUDE=b; fi",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a\nf() { NOTCHCAST_AGENT_SESSIONS_EXCLUDE=b; }",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a\ncat <<EOF\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=b\nEOF",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a&&OTHER=1",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a>/dev/null",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a|b",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a<b",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=(a)",
         ]
         for text in malformed {
             try Data(text.utf8).write(to: config)

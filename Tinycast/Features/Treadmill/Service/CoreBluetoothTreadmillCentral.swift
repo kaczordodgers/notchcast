@@ -13,9 +13,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     private var pad: CBPeripheral?
     private var writer: CBCharacteristic?
     private var active = false
-    private var rejected = Set<UUID>()
-    private var discoveryErrors = 0
-    private static let discoveryErrorLimit = 3
+    private var rejections = TreadmillPadRejections()
     private let defaults: UserDefaults
     private static let padIDKey = "treadmill.padID"
 
@@ -37,7 +35,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
         active = true
         if pad != nil { return false }
         if let id = defaults.string(forKey: Self.padIDKey).flatMap(UUID.init(uuidString:)),
-           !rejected.contains(id), let known = manager.retrievePeripherals(withIdentifiers: [id]).first {
+           rejections.allows(id), let known = manager.retrievePeripherals(withIdentifiers: [id]).first {
             pad = known
             known.delegate = self
             connect()
@@ -60,8 +58,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
         let previous = pad
         pad = nil
         writer = nil
-        rejected.removeAll()
-        discoveryErrors = 0
+        rejections.stop()
         previous?.delegate = nil
         if let previous { manager?.cancelPeripheralConnection(previous) }
     }
@@ -84,7 +81,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
                         advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        guard active, pad == nil, !rejected.contains(peripheral.identifier) else { return }
+        guard active, pad == nil, rejections.allows(peripheral.identifier) else { return }
         pad = peripheral
         peripheral.delegate = self
         onEvent?(.discovered)
@@ -133,21 +130,19 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
                     error: (any Error)?) {
         guard active, peripheral === pad, characteristic.uuid == Self.notify else { return }
         guard error == nil, characteristic.isNotifying else { reject(peripheral); return }
-        discoveryErrors = 0
+        rejections.ready()
         defaults.set(peripheral.identifier.uuidString, forKey: Self.padIDKey)
         onEvent?(.ready)
     }
 
     private func discoveryFailed(_ peripheral: CBPeripheral) {
-        discoveryErrors += 1
-        if discoveryErrors >= Self.discoveryErrorLimit { reject(peripheral) } else {
+        if rejections.discoveryFailed() { reject(peripheral) } else {
             manager?.cancelPeripheralConnection(peripheral)
         }
     }
 
     private func reject(_ peripheral: CBPeripheral) {
-        discoveryErrors = 0
-        rejected.insert(peripheral.identifier)
+        rejections.reject(peripheral.identifier)
         pad = nil
         writer = nil
         peripheral.delegate = nil

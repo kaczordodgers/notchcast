@@ -32,7 +32,6 @@ launcher, hotkey and CLI registration remain outside this core-only port.
 
 PR #63's `NotchcastExtrasSection` was not on main at implementation time. The feature enum provides
 the two switch rows through the current automatic list; the Extras section can list the same cases.
-No permission or entitlement changes are needed for the unavailable transport.
 
 Left for the look: live walk activity, controls, history/chart, goal and lubrication notices, and goal
 configuration. `stats()`, `history.archive`, `engine.walk`, `onGoalReached` and `lubeDueMark` expose data

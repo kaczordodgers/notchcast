@@ -11,38 +11,16 @@ enum AgentSessionExclusions {
         } catch CocoaError.fileNoSuchFile, CocoaError.fileReadNoSuchFile {
             return []
         }
-        var value: Substring?
-        for rawLine in contents.split(whereSeparator: \.isNewline) {
-            var line = rawLine.trimmingPrefix(while: \.isWhitespace)
-            guard !line.hasPrefix("#"), line.contains(key) else { continue }
-            if line.hasPrefix("export"), line.dropFirst(6).first?.isWhitespace == true {
-                line = line.dropFirst(6).trimmingPrefix(while: \.isWhitespace)
-            }
-            guard line.hasPrefix(key + "=") else { throw MalformedAssignment() }
-            value = try shellWord(line.dropFirst(key.count + 1))
-        }
-        guard let value else { return [] }
-        return value.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces).lowercased() }
-            .filter { !$0.isEmpty }
-    }
-
-    // Fails closed: anything a shell could read differently from this parser throws.
-    private static func shellWord(_ raw: Substring) throws -> Substring {
-        let word: Substring
-        let rest: Substring
-        if let quote = raw.first, quote == "\"" || quote == "'" {
-            guard let end = raw.dropFirst().firstIndex(of: quote) else { throw MalformedAssignment() }
-            word = raw[raw.index(after: raw.startIndex)..<end]
-            rest = raw[raw.index(after: end)...]
-        } else {
-            word = raw.prefix { !$0.isWhitespace && $0 != ";" }
-            rest = raw[word.endIndex...]
-            guard !word.contains(where: { $0 == "\"" || $0 == "'" }) else { throw MalformedAssignment() }
-        }
-        let tail = rest.trimmingPrefix(while: \.isWhitespace)
-        let spaced = tail.startIndex != rest.startIndex
-        guard tail.isEmpty || (spaced && tail.hasPrefix("#")) || (tail.hasPrefix(";") && !tail.contains(key))
-        else { throw MalformedAssignment() }
-        return word
+        let lines = contents.split(whereSeparator: \.isNewline).filter { $0.contains(key) }
+        guard lines.count <= 1 else { throw MalformedAssignment() }
+        guard let line = lines.first else { return [] }
+        let assignment = #/
+            [\x20\t]* (?: export [\x20\t]+ )? NOTCHCAST_AGENT_SESSIONS_EXCLUDE=
+            (?: ([A-Za-z0-9_.,-]*) | "([A-Za-z0-9_.,-]*)" | '([A-Za-z0-9_.,-]*)' )
+            (?: [\x20\t]+ (?: \#.* )? )?
+            /#
+        guard let match = line.wholeMatch(of: assignment) else { throw MalformedAssignment() }
+        let value = match.1 ?? match.2 ?? match.3 ?? ""
+        return value.split(separator: ",").map { $0.lowercased() }
     }
 }
