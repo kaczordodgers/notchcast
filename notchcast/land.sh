@@ -196,7 +196,9 @@ merge_onto() {
     python3 "$drift_tools/check-drift.py" --root "$PWD" --compare-base "$onto" || refuse 'drift baseline grew'
     check_drift "$onto" "$drift_tools"
     if drift_fixtures_changed "$onto"; then
+        cp "$drift_tools/check-drift-test.py" notchcast/check-drift-test.py  # main's fixtures judge the candidate
         python3 notchcast/check-drift-test.py || refuse 'drift fixtures'
+        git checkout -q HEAD -- notchcast/check-drift-test.py
     fi
     check_defect_tests "$fork" "$head" "$pr_title" "$pr_body"
     # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.

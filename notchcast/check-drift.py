@@ -19,6 +19,7 @@ spec = importlib.util.spec_from_file_location('swiftgraph', TOOLS / 'bin/swiftgr
 swiftgraph = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(swiftgraph)
 KERNEL = {'Features/Notchcast'}
+HUB = 'Tinycast/Features/Notchcast/Core/NotchcastFeature.swift'  # One line per feature until Phase 2b.
 RULES = {'1': ('boundaries', 'core-lookups', 'upstream-folders'),
          '2': ('file-size',), '3': ('dead', 'test-only'), '4': ('clones', 'constants')}
 WAIVER = re.compile(r'// drift: keep \S.*$')
@@ -65,8 +66,7 @@ def unwaived(source):
 
 
 def sources(root, prefix):
-    return {p.relative_to(root).as_posix(): p.read_text() for p in sorted((root / prefix).rglob('*.swift'))
-            if not p.name.endswith('.generated.swift')}
+    return {p.relative_to(root).as_posix(): p.read_text() for p in sorted((root / prefix).rglob('*.swift'))}
 
 
 def clone_counts(root, files):
@@ -138,8 +138,8 @@ def measure(root, upstream, gates):
         observed['boundaries'] = {pair: len(paths) for pair, paths in pairs.items()}
     if '2' in gates:
         for path, text in (ours | our_tests).items():
-            if path == 'Tinycast/Features/Notchcast/Core/NotchcastFeature.swift':
-                continue  # One line per feature; Phase 2b removes this registry.
+            if path == HUB:
+                continue
             length = len(text.splitlines())
             limit = 600 if path.startswith('Tests/') else 400
             if length > limit and not WAIVER.search(text.splitlines()[-1]):
@@ -234,7 +234,7 @@ def compare_baseline(root, base, baseline):
 
 
 def report_counters(root, upstream, ours, our_tests):
-    counters = {('file-lines', path): len(text.splitlines()) for path, text in ours.items()}
+    counters = {('file-lines', path): len(text.splitlines()) for path, text in ours.items() if path != HUB}
     counters.update({('test-lines', path): len(text.splitlines()) for path, text in our_tests.items()})
     counters['waivers', 'all'] = sum(bool(WAIVER.search(line)) for text in (ours | our_tests).values()
                                      for line in text.splitlines())
@@ -266,15 +266,16 @@ def notify(counters, thresholds, cache, hook):
     import fcntl
     with (cache.parent / (cache.name + '.lock')).open('w') as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
-        previous = json.loads(cache.read_text()) if cache.exists() else {}
+        first = not cache.exists()
+        previous = {} if first else json.loads(cache.read_text())
         current = {}
         for (counter, key), value in sorted(counters.items()):
             threshold = thresholds[counter]
             identity = f'{counter}|{key}'
             if value <= threshold:
                 continue
-            if identity in previous:
-                current[identity] = previous[identity]
+            if first or identity in previous:
+                current[identity] = previous.get(identity, value)
                 continue
             result = subprocess.run(['bash', '-c',
                                      'if [ -f "$1" ]; then source "$1"; fi\n'

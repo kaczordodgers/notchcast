@@ -20,6 +20,8 @@ LARGE_LINES = 407
 LARGE_SOURCE = ''.join(f'let fixtureValue{index} = {index}\n' for index in range(LARGE_LINES))
 CLONE_PATH = 'Tinycast/Features/Clean/Fixture.swift'
 CLONE_SOURCE = '\n'.join(f'let cloneValue{index} = transform({index}, scale: {index + 3})' for index in range(15)) + '\n'
+NEAR_CLONE_SOURCE = ''.join(f'let nearValue{index} = transform({index}, scale: {index + 3})\n' for index in range(6)) \
+    + 'let nearTail = transform(6)\n'  # jscpd 4.0.5: 72 tokens over a 6-line span, just above the gate limits.
 
 
 def write(root, path, text):
@@ -118,10 +120,6 @@ class Gates(unittest.TestCase):
     def test_harness_over_600(self):
         write(self.root, 'Tests/drift-test.swift', '\n' * 601)
         self.red('2', '601 > 0')
-
-    def test_generated_file_exempt(self):
-        write(self.root, 'Tinycast/Features/Todo/Drift.generated.swift', '\n' * 700)
-        self.assertEqual(self.run_check('2').returncode, 0)
 
     def test_harness_600_allowed(self):
         write(self.root, 'Tests/drift-test.swift', '\n' * 600)
@@ -224,6 +222,11 @@ class Gates(unittest.TestCase):
         write(self.root, TODO, CLONE_SOURCE)
         self.red('4', 'clones: ')
 
+    def test_near_threshold_clone(self):
+        write(self.root, TODO, NEAR_CLONE_SOURCE)
+        write(self.root, 'Tinycast/Features/Treadmill/NearClone.swift', NEAR_CLONE_SOURCE)
+        self.red('4', f'clones: {TODO} | Tinycast/Features/Treadmill/NearClone.swift: 1 > 0')
+
     def test_generated_large_clone(self):
         write(self.root, 'Tinycast/Features/Todo/DriftBig.swift', LARGE_SOURCE)
         self.red('4', 'clones: ')
@@ -277,21 +280,25 @@ class Gates(unittest.TestCase):
     def test_report_stub_hook_one_crossing_and_zero_on_rerun(self):
         baseline = self.baseline()
         baseline['alerts'] = dict.fromkeys(baseline['alerts'], 999999)
+        baseline['alerts']['file-lines'] = 20
         baseline['alerts']['try?'] = 0
         self.save_baseline(baseline)
-        write(self.root, TODO, 'let result = try? fixtureOperation()\n')
+        for index in range(10):
+            write(self.root, f'Tinycast/Features/Todo/Over{index}.swift', '\n' * 21)
         home = Path(self.work.name) / 'home'
         calls = home / 'calls'
-        write(home, '.config/notchcast/private.env',
-              'notchcast_task() { printf "%s\\n%s\\n" "$1" "$2" >> "$HOME/calls"; }\n')
+        write(home, '.config/notchcast/private.env', 'notchcast_task() { printf "%s\\n" "$1" >> "$HOME/calls"; }\n')
         env = dict(os.environ, HOME=str(home))
-        first = self.run_check('1,2,3', '--report', env=env)
-        self.assertEqual(first.returncode, 0, first.stdout + first.stderr)
-        self.assertEqual(len(calls.read_text().splitlines()), 2)
-        second = self.run_check('1,2,3', '--report', env=env)
-        self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
-        self.assertEqual(len(calls.read_text().splitlines()), 2)
-        print('PASS gate 5: stub hook called 1 time on crossing, 0 times on rerun')
+        counts = []
+        for change in (None, 'let result = try? fixtureOperation()\n', None):
+            if change:
+                write(self.root, TODO, change)
+            result = self.run_check('1,2,3', '--report', env=env)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            counts.append(len(calls.read_text().splitlines()) if calls.exists() else 0)
+        self.assertEqual(counts, [0, 1, 1])
+        print('PASS gate 5: stub hook called 0 times on first report of 10 over-limit files, '
+              '1 time on a new crossing, 0 times on rerun')
 
     def test_empty_waiver_reason_does_not_pass(self):
         write(self.root, TODO, 'struct DriftProbe {} // drift: keep \n')

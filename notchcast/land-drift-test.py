@@ -127,6 +127,18 @@ class Landing(unittest.TestCase):
         self.assertIn('base checker', result.stdout)
         self.assertNotIn('candidate bypass', result.stdout)
 
+    def test_base_fixtures_judge_candidate(self):
+        lines = LAND.splitlines()
+        start = next(index for index, line in enumerate(lines) if 'cp "$drift_tools/check-drift-test.py"' in line)
+        tools = Path(self.fixture.work.name) / 'base-tools'
+        fixtures.write(tools, 'check-drift-test.py', 'print("base fixtures")\nraise SystemExit(7)\n')
+        fixtures.write(self.root, 'notchcast/check-drift-test.py', 'print("candidate fixtures")\n')
+        result = self.shell('drift_tools="$1"\n' + '\n'.join(lines[start:start + 3]), str(tools))
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('base fixtures', result.stdout)
+        self.assertNotIn('candidate fixtures', result.stdout)
+        self.assertIn('REFUSED: drift fixtures', result.stdout)
+
     def test_red_base_is_reported_without_allowing_candidate(self):
         fixtures.write(self.root, 'notchcast/check-drift.py', 'raise SystemExit(9)\n')
         result = self.shell(function('check_drift') + '\nscratch="$1"\ncheck_drift HEAD "$drift_tools"',
