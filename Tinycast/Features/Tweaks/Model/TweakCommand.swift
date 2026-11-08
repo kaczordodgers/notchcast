@@ -6,7 +6,7 @@ nonisolated struct TweakCommand: Equatable, Sendable {
 
     static func preference(_ preference: TweakPreference, value: TweakValue) -> Self {
         var arguments = preference.currentHost ? ["-currentHost"] : []
-        let domain = preference.domain == ".GlobalPreferences" ? "NSGlobalDomain" : preference.domain
+        let domain = preference.domain
         switch value {
         case .absent:
             arguments += ["delete", domain, preference.key]
@@ -14,6 +14,8 @@ nonisolated struct TweakCommand: Equatable, Sendable {
             arguments += ["write", domain, preference.key, "-bool", value ? "true" : "false"]
         case .integer(let value):
             arguments += ["write", domain, preference.key, "-int", String(value)]
+        case .real(let value):
+            arguments += ["write", domain, preference.key, "-float", String(value)]
         case .string(let value):
             arguments += ["write", domain, preference.key, "-string", value]
         }

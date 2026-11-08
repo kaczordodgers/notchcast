@@ -4,7 +4,7 @@ nonisolated enum MacSetupCatalog {
     static let preferences: [(TweakPreference, TweakValue)] = [
         AIOffCatalog.pref("com.apple.dock", "orientation", .string("left")),
         AIOffCatalog.pref("com.apple.dock", "autohide", .bool(true)),
-        AIOffCatalog.pref("com.apple.dock", "autohide-delay", .integer(0)),
+        AIOffCatalog.pref("com.apple.dock", "autohide-delay", .real(0)),
         AIOffCatalog.pref("com.apple.dock", "autohide-time-modifier", .integer(0)),
         AIOffCatalog.pref("com.apple.dock", "mineffect", .string("scale")),
         AIOffCatalog.pref(".GlobalPreferences", "AppleInterfaceStyle", .string("Dark")),

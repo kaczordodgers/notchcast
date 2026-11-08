@@ -14,7 +14,9 @@ nonisolated struct MacSetupRollbackStore: Sendable {
         guard FileManager().fileExists(atPath: url.path) else { return [] }
         let data = try Data(contentsOf: url)
         do {
-            return try JSONDecoder().decode([MacSetupPlan.Change].self, from: data)
+            return try JSONDecoder().decode([MacSetupPlan.Change].self, from: data).filter {
+                $0.preference.domain != "com.apple.dock" || $0.preference.key != "mru-spaces"
+            }
         } catch is DecodingError {
             let destination = url.appendingPathExtension(UUID().uuidString + ".corrupt")
             try FileManager().moveItem(at: url, to: destination)
