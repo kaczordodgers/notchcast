@@ -15,8 +15,14 @@ export RELEASE_TAGS="$MIXED_TAGS"
 gh() {
     case "$1 $2" in
         'release list')
-            while [ "$1" != --jq ]; do shift; done
-            printf '%s\n' "$RELEASE_TAGS" | jq -Rn '[inputs | {tagName: ., isDraft: false, isPrerelease: contains("-")}]' | jq -r "$2"
+            local limit=30
+            while [ "$1" != --jq ]; do
+                case "$1" in
+                    -L) limit=$2; shift 2 ;;
+                    *) shift ;;
+                esac
+            done
+            printf '%s\n' "$RELEASE_TAGS" | jq -Rn --argjson limit "$limit" '[inputs | {tagName: ., isDraft: false}] | .[:$limit]' | jq -r "$2"
             ;;
         'release download') printf '%s\n' "$3" > "$HOME/downloaded" ;;
     esac
@@ -65,3 +71,6 @@ export RELEASE_TAGS=$'v0.12.10-beta.135\nv0.12.8'
 run_case mirrors-only 0.12.8.snapshot.20261107201744 none
 export RELEASE_TAGS="$MIXED_TAGS"$'\nv0.12.7-beta.1.snapshot.20261108000000'
 run_case lower-base-newer-snapshot "${LATEST#v}" v0.12.7-beta.1.snapshot.20261108000000
+printf -v RELEASE_TAGS 'v0.12.10-beta.%s\n' {1..30}
+RELEASE_TAGS+="$LATEST"
+run_case snapshot-after-30-mirrors 0.12.8.snapshot.20261107201744 "$LATEST"
