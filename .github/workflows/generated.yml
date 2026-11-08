@@ -37,7 +37,6 @@ jobs:
         run: |
           refuse() { echo "$*" >&2; exit 1; }
           source notchcast/sync-wait.sh
-          source notchcast/config.env
           git config user.name "$MAINTAINER_NAME"
           git config user.email "$MAINTAINER_EMAIL"
           for attempt in 1 2 3 4 5; do

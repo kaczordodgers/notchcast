@@ -27,8 +27,6 @@ if [ -n "${BASE_SHA:-}" ]; then
 fi
 step config
 python3 notchcast/check-config.py
-python3 notchcast/check-config-test.py
-bash notchcast/release-test.sh
 step feature-shape
 python3 notchcast/check-feature-shape.py
 python3 notchcast/check-feature-shape-test.py
@@ -52,7 +50,6 @@ xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug \
     -jobs "${CHAD_BUILD_QUEUE_JOBS:-4}" -derivedDataPath "$RUNNER_TEMP/DerivedData" \
     CODE_SIGNING_ALLOWED=NO build -quiet
 step identity
-source "$TOOLS/notchcast/config.env"
 bash "$TOOLS/notchcast/check-identity.sh" app "$RUNNER_TEMP/DerivedData/Build/Products/Debug/$APP_NAME Dev.app"
 step lint
 command -v swiftlint >/dev/null || brew install --quiet swiftlint

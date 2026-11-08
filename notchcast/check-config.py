@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Keep checked documentation, fixtures and upstream literals aligned with config.env."""
+"""Keep fork-owned literal exceptions aligned with config.env."""
 import argparse
 import json
 from pathlib import Path
@@ -8,11 +8,14 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parent.parent
 KEYS = ('UPSTREAM_REPO', 'FORK_REPO', 'MAINTAINER_NAME', 'MAINTAINER_EMAIL', 'TESTED_CONTEXT')
+FORK_WORKFLOWS = ('design', 'generated-retry', 'generated', 'leaks', 'main-harnesses',
+                  'pr', 'proof', 'snapshot', 'sync')
 
 
 def inventory(root, cfg):
     paths = subprocess.check_output(
-        ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', 'notchcast', '.github', 'Scripts'],
+        ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', 'notchcast',
+         *(f'.github/workflows/{name}.yml' for name in FORK_WORKFLOWS)],
         cwd=root).decode().split('\0')
     found = {}
     for path in sorted(set(paths) - {'', 'notchcast/config.env'}):

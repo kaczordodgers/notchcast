@@ -1,9 +1,5 @@
 {
-  ".github/CONTRIBUTING.md": {"UPSTREAM_REPO": 2, "FORK_REPO": 1},
-  ".github/ISSUE_TEMPLATE/notchcast-bug.yml": {"UPSTREAM_REPO": 1, "FORK_REPO": 1},
-  ".github/SECURITY.md": {"UPSTREAM_REPO": 1, "FORK_REPO": 1},
   ".github/workflows/sync.yml": {"TESTED_CONTEXT": 2},
-  "Scripts/release-notes.sh": {"UPSTREAM_REPO": 1},
   "notchcast/README.md": {"UPSTREAM_REPO": 3, "FORK_REPO": 4, "TESTED_CONTEXT": 1},
   "notchcast/README.public.md": {"UPSTREAM_REPO": 2, "FORK_REPO": 8},
   "notchcast/check-identity-added-lines-test.sh": {"MAINTAINER_NAME": 1, "MAINTAINER_EMAIL": 1},

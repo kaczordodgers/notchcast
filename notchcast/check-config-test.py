@@ -28,8 +28,14 @@ class ConfigTests(unittest.TestCase):
                 return subprocess.run(['python3', str(root / 'notchcast/check-config.py')],
                                       cwd=root, capture_output=True, text=True)
 
+            for path in ('Scripts/release-notes.sh', '.github/workflows/upstream-release.yml',
+                         '.github/CONTRIBUTING.md'):
+                target = root / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(CONFIG['UPSTREAM_REPO'] + '\n')
             self.assertEqual(check().returncode, 0)
-            target = root / '.github/ISSUE_TEMPLATE/notchcast-bug.yml'
+            print('PASS upstream-owned files do not affect the literal guard')
+            target = root / 'notchcast/README.public.md'
             original = target.read_text()
             target.write_text(original.replace(CONFIG['FORK_REPO'], 'different/repository'))
             red = check()

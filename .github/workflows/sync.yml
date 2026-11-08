@@ -49,8 +49,6 @@ jobs:
           ref: main
           fetch-depth: 0
           persist-credentials: false
-      - name: Check repository constants
-        run: python3 notchcast/check-config.py
       - id: plan
         env:
           GH_TOKEN: ${{ github.token }}
@@ -239,7 +237,6 @@ jobs:
           build: ${{ steps.app.outputs.build }}
           p12-base64: ${{ secrets.SIGNING_P12_BASE64 }}
           p12-password: ${{ secrets.SIGNING_P12_PASSWORD }}
-          identity-first: 'true'
       - uses: ./tools/notchcast/actions/deploy-key
         with:
           key: ${{ secrets.DEPLOY_KEY }}

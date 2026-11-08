@@ -13,9 +13,6 @@ inputs:
   p12-password:
     description: Signing certificate password
     required: true
-  identity-first:
-    description: Check app identity before codesign verification for mirrored releases
-    default: 'false'
 runs:
   using: composite
   steps:
@@ -54,13 +51,11 @@ runs:
       shell: bash -e {0}
       env:
         VERSION: ${{ inputs.version }}
-        IDENTITY_FIRST: ${{ inputs.identity-first }}
       run: |
         set -a; source tools/notchcast/config.env; set +a
         NAME="$APP_NAME"
         APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
         bash tools/notchcast/verify-signature.sh "$APP" ./src/Scripts/verify-signature.sh
-        if [ "$IDENTITY_FIRST" = true ]; then ./tools/notchcast/check-identity.sh app "$APP"; fi
         codesign --verify --deep --strict "$APP"
         plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$APP/Contents/Info.plist"; }
         test "$(plist CFBundleIdentifier)" = "$BUNDLE_ID"
@@ -72,7 +67,6 @@ runs:
           test "$(lipo -archs "$BIN")" = arm64
         done
     - name: Check app identity
-      if: inputs.identity-first != 'true'
       shell: bash -e {0}
       run: |
         source tools/notchcast/config.env
@@ -87,7 +81,7 @@ runs:
         PID=$!
         trap 'kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true' EXIT
         sleep 30
-        kill -0 "$PID" || { echo '::error::Snapshot skipped: app did not stay alive'; exit 1; }
+        kill -0 "$PID" || { echo '::error::Release skipped: app did not stay alive'; exit 1; }
     - name: Package zip and dmg
       shell: bash -e {0}
       env:
