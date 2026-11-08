@@ -16,6 +16,7 @@ struct TreadmillSessionEngine: Sendable {
     private var restoreSpeed = false
     private var stopping = false
     private var silentStopDeadline: Date?
+    private static let silenceTimeout: TimeInterval = 15
 
     var isStarting: Bool { startFrame != nil }
 
@@ -32,7 +33,7 @@ struct TreadmillSessionEngine: Sendable {
         requestedSpeed = (speed * 10).rounded() / 10
         restoreSpeed = true
         startFrame = frame
-        startDeadline = now.addingTimeInterval(15)
+        startDeadline = now.addingTimeInterval(Self.silenceTimeout)
         startsSent = 1
         stopping = false
         silentStopDeadline = nil
@@ -55,8 +56,8 @@ struct TreadmillSessionEngine: Sendable {
     }
 
     mutating func stop() -> [Data] {
-        stopping = true
-        silentStopDeadline = nil
+        silentStopDeadline = walk == nil ? silentStopDeadline ?? startDeadline : nil
+        stopping = walk != nil || silentStopDeadline != nil
         startFrame = nil
         startDeadline = nil
         restoreSpeed = false
@@ -86,7 +87,7 @@ struct TreadmillSessionEngine: Sendable {
         guard let startDeadline, now >= startDeadline else { return Update() }
         stopping = true
         clearPending()
-        silentStopDeadline = now.addingTimeInterval(15)
+        silentStopDeadline = now.addingTimeInterval(Self.silenceTimeout)
         return Update(commands: [TreadmillProtocol.stop], failure: .timedOut)
     }
 
@@ -97,7 +98,7 @@ struct TreadmillSessionEngine: Sendable {
             switch status.phase {
             case .countdown, .running, .slowing, .paused:
                 if update.commands.isEmpty { update.commands.append(TreadmillProtocol.stop) }
-                if silentStopDeadline != nil { silentStopDeadline = now.addingTimeInterval(15) }
+                if silentStopDeadline != nil { silentStopDeadline = now.addingTimeInterval(Self.silenceTimeout) }
                 return update
             case .standby, .ready, .asleep, .ended, .error:
                 stopping = false

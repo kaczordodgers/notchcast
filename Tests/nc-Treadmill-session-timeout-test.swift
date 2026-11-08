@@ -27,6 +27,25 @@ private struct TreadmillSessionTimeoutTests {
         precondition(retry.count == 1 && engine.isStarting, "a start after the pad stays silent is accepted")
         _ = engine.receive(.status(running), now: now.addingTimeInterval(40))
         precondition(engine.walk?.phase == .running, "the retried start adopts the walk")
-        print("nc-Treadmill-session-timeout: 7 checks passed")
+
+        var stopAfterTimeout = TreadmillSessionEngine(walk: nil)
+        _ = try stopAfterTimeout.start(speed: 4, minutes: 0, now: now)
+        _ = stopAfterTimeout.checkTimeout(now: now.addingTimeInterval(15))
+        _ = stopAfterTimeout.stop()
+        precondition(refusesStart(&stopAfterTimeout, at: now.addingTimeInterval(25)), "a Stop keeps the wait")
+        precondition(!refusesStart(&stopAfterTimeout, at: now.addingTimeInterval(40)), "a Stop after a timeout expires")
+
+        var stopWhileStarting = TreadmillSessionEngine(walk: nil)
+        _ = try stopWhileStarting.start(speed: 4, minutes: 0, now: now)
+        _ = stopWhileStarting.stop()
+        precondition(refusesStart(&stopWhileStarting, at: now.addingTimeInterval(10)), "a stopped start waits")
+        _ = stopWhileStarting.receive(.status(running), now: now.addingTimeInterval(12))
+        precondition(refusesStart(&stopWhileStarting, at: now.addingTimeInterval(20)), "late running pushes the wait")
+        precondition(!refusesStart(&stopWhileStarting, at: now.addingTimeInterval(86400)), "a stopped start expires")
+
+        var idle = TreadmillSessionEngine(walk: nil)
+        _ = idle.stop()
+        precondition(!refusesStart(&idle, at: now), "a Stop on an idle engine does not block a start")
+        print("nc-Treadmill-session-timeout: 14 checks passed")
     }
 }
