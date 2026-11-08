@@ -6,8 +6,7 @@ final class QuitProtectionStore {
     @ObservationIgnored private let defaults: UserDefaults
     private let key = "notchcast.quitProtection."
 
-    init(defaults: UserDefaults = UserDefaults(suiteName:
-             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!) {
+    init(defaults: UserDefaults = NotchcastIdentity.current.defaults) {
         self.defaults = defaults
         configuration = .init(
             quitEnabled: defaults.object(forKey: key + "quitEnabled") as? Bool ?? true,

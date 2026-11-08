@@ -16,7 +16,7 @@ final class AgentCLIModule: NotchcastModule {
         guard server == nil else { return }
         let socketURL = AgentSocketClient.socketURL(
             home: FileManager.default.homeDirectoryForCurrentUser,
-            bundleID: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
+            bundleID: NotchcastIdentity.current.bundleID)
         server = AgentSocketServer(socketURL: socketURL) { [weak index] request in
             guard let index else { return .init(code: .notRunning) }
             return await index.handle(request)
@@ -31,7 +31,7 @@ final class AgentCLIModule: NotchcastModule {
             hasFailed = false
         } catch {
             hasFailed = true
-            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "AgentCLI")
+            Logger(subsystem: NotchcastIdentity.current.bundleID, category: "AgentCLI")
                 .error("Unable to start agent socket: \(error)")
         }
     }
