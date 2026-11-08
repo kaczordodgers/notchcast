@@ -4,7 +4,7 @@ PATH="/opt/homebrew/bin:$PATH"
 root="$(git rev-parse --show-toplevel)"
 # A stale upstream puts its own commits in the range, and those authors are not ours.
 git fetch -q upstream main || true
-python3 "$root/notchcast/check-drift.py" --gates 1,2,3
+python3 "$root/notchcast/check-drift.py" --gates 1,2,3 || echo 'WARN: drift gates fail; land.sh will refuse' >&2
 while read -r _local_ref local_sha _remote_ref _remote_sha; do
     if [[ "$local_sha" =~ ^0+$ ]]; then
         continue

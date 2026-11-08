@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Permanent planted violations for each drift gate, using the real CLI and jscpd."""
-import importlib.util
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import sys
@@ -13,12 +13,13 @@ import unittest
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 CHECK = ROOT / 'notchcast/check-drift.py'
-SPEC = importlib.util.spec_from_file_location('drift', CHECK)
-DRIFT = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(DRIFT)
+JSCPD_VERSION = re.search(r'^JSCPD_VERSION=(\S+)$', (ROOT / 'notchcast/config.env').read_text(), re.M)[1]
 TODO = 'Tinycast/Features/Todo/DriftProbe.swift'
-BATTERY = 'Tinycast/Features/Battery/Store/BatteryModule.swift'
-CLEAN = 'Tinycast/Features/Clean/Service/CleanService.swift'
+LARGE = 'Tinycast/Features/Battery/Fixture.swift'
+LARGE_LINES = 407
+LARGE_SOURCE = ''.join(f'let fixtureValue{index} = {index}\n' for index in range(LARGE_LINES))
+CLONE_PATH = 'Tinycast/Features/Clean/Fixture.swift'
+CLONE_SOURCE = '\n'.join(f'let cloneValue{index} = transform({index}, scale: {index + 3})' for index in range(15)) + '\n'
 
 
 def write(root, path, text):
@@ -44,12 +45,12 @@ class Gates(unittest.TestCase):
         git(cls.seed, 'add', '.')
         git(cls.seed, 'commit', '-qm', 'Upstream fixture')
         cls.upstream = git(cls.seed, 'rev-parse', 'HEAD')
-        write(cls.seed, 'notchcast/config.env', (ROOT / 'notchcast/config.env').read_text())
+        write(cls.seed, 'notchcast/config.env', f'JSCPD_VERSION={JSCPD_VERSION}\n')
         write(cls.seed, 'Tinycast/Features/Katana/KatanaPresetImporter.swift', 'struct KatanaPresetImporter {}\n')
         write(cls.seed, 'Tinycast/Features/Todo/Existing.swift', 'struct TodoExisting {}\n')
         write(cls.seed, 'Tinycast/Features/Treadmill/Existing.swift', 'struct TreadmillExisting {}\n')
-        write(cls.seed, BATTERY, (ROOT / BATTERY).read_text())
-        write(cls.seed, CLEAN, (ROOT / CLEAN).read_text())
+        write(cls.seed, LARGE, LARGE_SOURCE)
+        write(cls.seed, CLONE_PATH, CLONE_SOURCE)
         git(cls.seed, 'add', '.')
         git(cls.seed, 'commit', '-qm', 'Fork fixture')
         result = subprocess.run([sys.executable, str(CHECK), '--root', str(cls.seed), '--upstream', cls.upstream,
@@ -110,9 +111,9 @@ class Gates(unittest.TestCase):
         write(self.root, TODO, '// KatanaPresetImporter NotchcastCore.todo\nlet prose = "NotchcastCore.todo"\n')
         self.assertEqual(self.run_check('1').returncode, 0)
 
-    def test_battery_copy_over_400(self):
-        write(self.root, 'Tinycast/Features/Todo/DriftBig.swift', (ROOT / BATTERY).read_text())
-        self.red('2', 'file-size: Tinycast/Features/Todo/DriftBig.swift: 454 > 0')
+    def test_generated_production_over_400(self):
+        write(self.root, 'Tinycast/Features/Todo/DriftBig.swift', LARGE_SOURCE)
+        self.red('2', f'file-size: Tinycast/Features/Todo/DriftBig.swift: {LARGE_LINES} > 0')
 
     def test_harness_over_600(self):
         write(self.root, 'Tests/drift-test.swift', '\n' * 601)
@@ -160,32 +161,71 @@ class Gates(unittest.TestCase):
               'override func fixtureOverride() {}\n@propertyWrapper struct FixtureWrapper {}\n')
         self.assertEqual(self.run_check('3').returncode, 0)
 
+    def test_representable_callbacks_pass(self):
+        write(self.root, TODO, 'struct DriftRepresentable: NSViewRepresentable {\n'
+              '    func makeNSView(context: Context) -> NSView { NSView() }\n'
+              '    func updateNSView(_ view: NSView, context: Context) {}\n'
+              '    func urlSession() {}\n    func centralManager() {}\n'
+              '    func numberOfPreviewItems() -> Int { 0 }\n}\n'
+              'let wrapper = DriftRepresentable()\nconsume(wrapper)\n')
+        result = self.run_check('3')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_static_function_stays_checked(self):
+        write(self.root, TODO, 'struct FixtureStatic {\n    static func unusedStaticFunction() {}\n}\n')
+        self.red('3', ':unusedStaticFunction:')
+
+    def test_feature_registry_is_not_size_budgeted(self):
+        write(self.root, 'Tinycast/Features/Notchcast/Core/NotchcastFeature.swift', '\n' * 1001)
+        self.assertEqual(self.run_check('2').returncode, 0)
+
+    def test_root_helper_is_checked(self):
+        write(self.root, 'notchcast/root/DriftHelper.swift', '\n' * 401)
+        self.red('2', 'file-size: notchcast/root/DriftHelper.swift: 401 > 0')
+
+    def test_root_helper_dead_and_core_lookup(self):
+        write(self.root, 'notchcast/root/DriftHelper.swift', 'struct UnusedHelper {}\nlet service = NotchcastCore.todo\n')
+        self.red('1', 'core-lookups: notchcast/root/DriftHelper.swift')
+        self.red('3', ':UnusedHelper:')
+
     def test_copied_key_literal(self):
-        write(self.root, TODO, 'let firstKey = "todo-drift.probe"\n')
-        write(self.root, 'Tinycast/Features/Treadmill/DriftProbe.swift', 'let secondKey = "todo-drift.probe"\n')
-        self.red('4', 'constants: todo-drift.probe: 2 > 0')
+        write(self.root, TODO, 'let firstKey = "notchcast.drift.probe"\n')
+        write(self.root, 'Tinycast/Features/Treadmill/DriftProbe.swift', 'let secondKey = "notchcast.drift.probe"\n')
+        self.red('4', 'constants: notchcast.drift.probe: 2 > 0')
 
     def test_sf_symbols_and_comments_excluded(self):
         for feature in ('Todo', 'Treadmill'):
             write(self.root, f'Tinycast/Features/{feature}/Symbols.swift',
                   'Image(systemName: "arrow.clockwise")\nLabel("Refresh", systemImage: "arrow.clockwise")\n'
-                  '// let comment = "comment.not-key"\n/* let nested = "nested.not-key" */\n')
+                  'Icon(sfSymbol: "arrow.clockwise")\nlet mime = "application/json"\n'
+                  'let header = "content-type"\nlet host = "127.0.0.1"\n'
+                  '// let comment = "notchcast.comment"\n/* let nested = "com.apple.comment" */\n')
         result = self.run_check('4')
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_all_key_prefixes_are_checked(self):
+        values = ('app.notchcast.fixture', 'notchcast.fixture', 'com.notchcast.fixture', 'com.apple.fixture')
+        for feature in ('Todo', 'Treadmill'):
+            write(self.root, f'Tinycast/Features/{feature}/Keys.swift',
+                  ''.join(f'let key{index} = "{value}"\n' for index, value in enumerate(values)))
+        result = self.run_check('4')
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        for value in values:
+            self.assertIn(f'constants: {value}: 2 > 0', result.stdout)
+        print('RED gate 4: all 4 fork/preference key prefixes detected')
 
     def test_constant_waiver(self):
         for feature in ('Todo', 'Treadmill'):
             write(self.root, f'Tinycast/Features/{feature}/Constants.swift',
-                  'let key = "todo-drift.probe" // drift: keep fixture protocol\n')
+                  'let key = "notchcast.drift.probe" // drift: keep fixture protocol\n')
         self.assertEqual(self.run_check('4').returncode, 0)
 
     def test_clean_15_line_clone(self):
-        block = '\n'.join((ROOT / CLEAN).read_text().splitlines()[20:35]) + '\n'
-        write(self.root, TODO, block)
+        write(self.root, TODO, CLONE_SOURCE)
         self.red('4', 'clones: ')
 
-    def test_battery_clone(self):
-        write(self.root, 'Tinycast/Features/Todo/DriftBig.swift', (ROOT / BATTERY).read_text())
+    def test_generated_large_clone(self):
+        write(self.root, 'Tinycast/Features/Todo/DriftBig.swift', LARGE_SOURCE)
         self.red('4', 'clones: ')
 
     def test_jscpd_failure_closes_gate(self):
@@ -201,7 +241,7 @@ class Gates(unittest.TestCase):
 
     def test_lower_budget_required(self):
         baseline = self.baseline()
-        baseline['file-size'][BATTERY] += 1
+        baseline['file-size'][LARGE] += 1
         self.save_baseline(baseline)
         self.red('2', 'lower it in drift-baseline.json')
 
@@ -213,11 +253,19 @@ class Gates(unittest.TestCase):
 
     def test_baseline_raise_refused(self):
         baseline = self.baseline()
-        baseline['file-size'][BATTERY] += 1
+        baseline['file-size'][LARGE] += 1
         self.save_baseline(baseline)
         result = self.run_check('2', '--compare-base', 'HEAD')
         self.assertEqual(result.returncode, 1)
-        self.assertIn('455 > 454', result.stdout)
+        self.assertIn(f'{LARGE_LINES + 1} > {LARGE_LINES}', result.stdout)
+
+    def test_tightening_retains_zero_keys(self):
+        write(self.root, LARGE, '')
+        result = self.run_check('1,2,3,4', '--write-baseline')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(self.baseline()['file-size'][LARGE], 0)
+        result = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_added_zero_budget_key_refused(self):
         baseline = self.baseline()

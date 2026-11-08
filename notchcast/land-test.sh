@@ -101,6 +101,7 @@ if [ "${1:-}" = --statuses ]; then
 fi
 git clone --quiet --no-hardlinks "$root" "$scratch/repo"
 cd "$scratch/repo"
+git remote add upstream "$root"
 git config user.name Damian
 git config user.email 336236323+kaczordodgers@users.noreply.github.com
 printf '#!/usr/bin/env python3\n' > notchcast/check-drift.py

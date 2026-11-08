@@ -41,11 +41,42 @@ source "$(dirname "$0")/sync-wait.sh"
 source "$(dirname "$0")/hold.sh"
 check_defect_tests() {
     local onto=$1 candidate=$2 title=$3 body=$4 changed
-    [[ "$title" == 'Notchcast: Fix '* ]] || return 0
+    title=$(printf '%s' "$title" | tr '[:upper:]' '[:lower:]')
+    title=${title#notchcast: }
+    [[ "$title" == 'fix '* ]] || return 0
     if grep -Eq '^No test: [^[:space:]].*' <<< "$body"; then return 0; fi
     changed=$(git diff --name-only --diff-filter=AMR "$onto" "$candidate") || refuse 'cannot read defect test diff'
     grep -Eq '^Tests/[^/]+-test\.swift$|^notchcast/(.*/)?[^/]+-test\.[^/]+$' <<< "$changed" \
         || refuse 'defect fix needs a changed test or No test: <reason>'
+}
+refresh_upstream() {
+    git fetch -q upstream main || refuse 'cannot refresh upstream main'
+}
+drift_fixtures_changed() {
+    local changed
+    changed=$(git diff --name-only "$1" HEAD -- 'notchcast/check-drift*' notchcast/bin/swiftgraph.py notchcast/config.env) \
+        || refuse 'cannot read drift tooling diff'
+    [ -n "$changed" ]
+}
+prepare_drift_tools() {
+    drift_tools="$scratch/gates-$1"
+    mkdir -p "$drift_tools"
+    git archive "$1" notchcast | tar -x -C "$drift_tools"
+    drift_tools="$drift_tools/notchcast"
+    if [ ! -f "$drift_tools/check-drift.py" ]; then
+        drift_tools="$top/notchcast"
+    fi
+}
+check_drift() {
+    local onto=$1 tools=$2
+    if python3 "$tools/check-drift.py" --root "$PWD"; then return 0; fi
+    git cat-file -e "$onto:notchcast/drift-baseline.json" 2>/dev/null || refuse 'drift'
+    git worktree add --quiet --detach "$scratch/base" "$onto"
+    if ! python3 "$tools/check-drift.py" --root "$scratch/base" >/dev/null 2>&1; then
+        echo "WARN: main is already red: ${onto:0:8} fails the drift gates too; fix main before landing" >&2
+    fi
+    git worktree remove --force "$scratch/base"
+    refuse 'drift'
 }
 check=0
 pr_title=
@@ -109,6 +140,7 @@ else
 fi
 scratch=$(mktemp -d)
 cleanup() {
+    git worktree remove --force "$scratch/base" >/dev/null 2>&1 || true
     git worktree remove --force "$scratch/tree" >/dev/null 2>&1 || true
     rm -rf "$scratch"
     remove_tools
@@ -125,6 +157,7 @@ top=$(pwd)
 merge_onto() {
     local onto=$1 file revived unmerged
     cd "$top"
+    refresh_upstream
     fork=$(bash "$(dirname "$selector")/fork-point.sh" "$onto" "$head")
     git worktree remove --force "$scratch/tree" >/dev/null 2>&1 || true
     git worktree add --quiet --detach "$scratch/tree" "$onto"
@@ -159,9 +192,12 @@ merge_onto() {
     done
     [ "$(git rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$onto^{tree}")" ] || refuse 'nothing to land: main already has this change'
     python3 notchcast/check-feature-shape.py || refuse 'feature shape'
-    python3 notchcast/check-drift.py --compare-base "$onto" || refuse 'drift baseline grew'
-    python3 notchcast/check-drift.py || refuse 'drift'
-    python3 notchcast/check-drift-test.py || refuse 'drift fixtures'
+    prepare_drift_tools "$onto"
+    python3 "$drift_tools/check-drift.py" --root "$PWD" --compare-base "$onto" || refuse 'drift baseline grew'
+    check_drift "$onto" "$drift_tools"
+    if drift_fixtures_changed "$onto"; then
+        python3 notchcast/check-drift-test.py || refuse 'drift fixtures'
+    fi
     check_defect_tests "$fork" "$head" "$pr_title" "$pr_body"
     # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.
     typecheck=$(swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift 2>&1) \
@@ -186,7 +222,7 @@ if [ "$check" -eq 0 ]; then
     title=$pr_title
     [[ "$title" == Notchcast:* ]] || title="Notchcast: $title"
     printf '%s (#%s)\n' "$title" "$pr" > "$scratch/message"
-    if [[ "$title" == 'Notchcast: Fix '* ]]; then
+    if printf '%s\n' "$title" | grep -Eiq '^(notchcast: )?fix '; then
         printf '\n' >> "$scratch/message"
         grep -E '^No test: [^[:space:]].*' <<< "$pr_body" >> "$scratch/message" || true
     fi
@@ -213,12 +249,12 @@ if [ "$check" -eq 0 ]; then
             GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
             git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
     done
-    if git switch --quiet --detach "$commit"; then
-        python3 notchcast/check-drift.py --report || echo 'WARN: drift report failed after landing' >&2
-    else
-        echo 'WARN: drift report could not read the landed commit' >&2
-    fi
     gh pr close "$pr" -R kaczordodgers/notchcast --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base." \
         || refuse "landed on main as $commit, but closing PR #$pr failed: close it by hand, do not rerun land.sh"
     delete_head "$(jq -r .headRefName <<< "$metadata")" "$head" "$(jq -r .isCrossRepository <<< "$metadata")"
+    if git switch --quiet --detach "$commit"; then
+        python3 "$drift_tools/check-drift.py" --root "$PWD" --report || echo 'WARN: drift report failed after landing' >&2
+    else
+        echo 'WARN: drift report could not read the landed commit' >&2
+    fi
 fi

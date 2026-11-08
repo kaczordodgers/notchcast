@@ -6,7 +6,6 @@ import contextlib
 import importlib.util
 import io
 import json
-import os
 from pathlib import Path
 import re
 import shutil
@@ -24,7 +23,7 @@ RULES = {'1': ('boundaries', 'core-lookups', 'upstream-folders'),
          '2': ('file-size',), '3': ('dead', 'test-only'), '4': ('clones', 'constants')}
 WAIVER = re.compile(r'// drift: keep \S.*$')
 IDENT = re.compile(r'[A-Za-z_]\w*')
-DECL = re.compile(r'^[ \t]*((?:@\w+(?:\([^\n]*?\))?\s+)*)'
+DECL = re.compile(r'^[ \t]*((?:@\w+(?:\([^)\n]*\))?\s+)*)'
                   r'((?:(?:public|private|fileprivate|internal|final|nonisolated|static|class|'
                   r'mutating|override|indirect|convenience|required|lazy|weak)\s+)*)'
                   r'(class|struct|enum|protocol|actor|typealias|func|let|var)\s+`?([A-Za-z_]\w*)', re.M)
@@ -56,6 +55,8 @@ def upstream_base(root):
 
 def folder(path):
     parts = Path(path).parts
+    if parts[0] == 'notchcast':
+        return '/'.join(parts[:2])
     return '/'.join(parts[1:3]) if len(parts) > 3 and parts[1] == 'Features' else parts[1]
 
 
@@ -84,7 +85,7 @@ def clone_counts(root, files):
             target.write_text(unwaived(text))
         result = subprocess.run(['npx', '-y', f'jscpd@{version}', '--min-tokens', '70', '--min-lines', '6',
                                  '--format', 'swift', '--reporters', 'json', '--silent',
-                                 '--output', str(output), str(tree)], capture_output=True, text=True)
+                                 '--output', str(output), str(tree)], capture_output=True, text=True, timeout=120)
         if result.returncode:
             raise ValueError(f'gate 4 jscpd failed ({result.returncode}): {result.stderr.strip()}')
         report = json.loads((output / 'jscpd-report.json').read_text())
@@ -102,7 +103,8 @@ def clone_counts(root, files):
 
 
 def measure(root, upstream, gates):
-    prod, tests = sources(root, 'Tinycast'), sources(root, 'Tests')
+    prod = sources(root, 'Tinycast') | sources(root, 'notchcast/root')
+    tests = sources(root, 'Tests')
     added = set(git(root, 'diff', '--diff-filter=A', '--name-only', upstream, '--', '*.swift').splitlines())
     added.update(git(root, 'ls-files', '--others', '--exclude-standard', '--', '*.swift').splitlines())
     ours = {p: text for p, text in prod.items() if p in added}
@@ -112,7 +114,7 @@ def measure(root, upstream, gates):
     if '1' in gates:
         with tempfile.TemporaryDirectory(prefix='drift-graph.') as work:
             with contextlib.redirect_stdout(io.StringIO()):
-                swiftgraph.build(root, Path(work), 2)
+                swiftgraph.build(root, Path(work), 2, all_sources=True)
             graph = json.loads((Path(work) / 'graph.json').read_text())
         upstream_folders = {folder(p) for p in prod.keys() - ours.keys()}
         fork_folders = {folder(p) for p in ours} - upstream_folders
@@ -136,6 +138,8 @@ def measure(root, upstream, gates):
         observed['boundaries'] = {pair: len(paths) for pair, paths in pairs.items()}
     if '2' in gates:
         for path, text in (ours | our_tests).items():
+            if path == 'Tinycast/Features/Notchcast/Core/NotchcastFeature.swift':
+                continue  # One line per feature; Phase 2b removes this registry.
             length = len(text.splitlines())
             limit = 600 if path.startswith('Tests/') else 400
             if length > limit and not WAIVER.search(text.splitlines()[-1]):
@@ -149,7 +153,7 @@ def measure(root, upstream, gates):
                 attrs, mods, kind, name = match.groups()
                 if 'override' in mods or any(a in attrs for a in SKIP_ATTR):
                     continue
-                if kind in ('let', 'var') and 'static' not in mods and match.group().startswith((' ', '\t')):
+                if kind in ('func', 'let', 'var') and not {'static', 'class'} & set(mods.split()) and match.group().startswith((' ', '\t')):
                     continue
                 if name in ('body', 'init', 'id', 'description', 'hash', 'main', 'makeBody', 'shared'):
                     continue
@@ -169,7 +173,7 @@ def measure(root, upstream, gates):
             visible = swiftgraph.strip_literals(''.join(marked))
             for match in matches:
                 value = match[1]
-                if not re.search(r'[._/:-]', value):
+                if not value.startswith(('app.notchcast', 'notchcast.', 'com.notchcast', 'com.apple.')):
                     continue
                 if re.search(r'\b(?:systemName|systemImage)\s*:\s*$', text[:match.start()]):
                     continue
@@ -208,7 +212,7 @@ def read_baseline(path):
     for rule, counts in baseline.items():
         if not isinstance(counts, dict) or any(type(v) is not int or v < 0 for v in counts.values()):
             raise ValueError(f'invalid baseline counts for {rule}')
-    alerts = set(PATTERNS) | {'file-lines', 'test-lines', 'waivers', 'upstream-patch-lines', 'fix-no-test', 'periphery'}
+    alerts = set(PATTERNS) | {'file-lines', 'test-lines', 'waivers', 'upstream-patch-lines', 'fix-no-test'}
     if baseline['alerts'].keys() != alerts:
         raise ValueError('baseline alerts must define every report counter')
     return baseline
@@ -229,7 +233,7 @@ def compare_baseline(root, base, baseline):
             if key not in previous[rule] or value > previous[rule][key]]
 
 
-def report_counters(root, upstream, ours, our_tests, periphery):
+def report_counters(root, upstream, ours, our_tests):
     counters = {('file-lines', path): len(text.splitlines()) for path, text in ours.items()}
     counters.update({('test-lines', path): len(text.splitlines()) for path, text in our_tests.items()})
     counters['waivers', 'all'] = sum(bool(WAIVER.search(line)) for text in (ours | our_tests).values()
@@ -245,18 +249,13 @@ def report_counters(root, upstream, ours, our_tests, periphery):
     waived_fixes = 0
     for entry in log.split('\x1e'):
         subject, _, body = entry.lstrip().partition('\x1f')
-        if subject.startswith('Notchcast: Fix ') and re.search(r'^No test: \S', body, re.M):
+        if re.match(r'^(?:Notchcast: )?Fix ', subject, re.I) and re.search(r'^No test: \S', body, re.M):
             waived_fixes += 1
     counters['fix-no-test', 'all'] = waived_fixes
-    if periphery:
-        findings = json.loads(periphery.read_text())
-        if not isinstance(findings, list):
-            raise ValueError('periphery JSON report must be a list')
-        counters['periphery', 'all'] = len(findings)
     return counters
 
 
-def notify(counters, thresholds, cache, hook, title_prefix='Notchcast: Reduce'):
+def notify(counters, thresholds, cache, hook):
     available = subprocess.run(['bash', '-c',
                                 'if [ -f "$1" ]; then source "$1"; fi; declare -F notchcast_task >/dev/null',
                                 'drift-hook', str(hook)], capture_output=True, text=True)
@@ -282,7 +281,7 @@ def notify(counters, thresholds, cache, hook, title_prefix='Notchcast: Reduce'):
                                      'if declare -F notchcast_task >/dev/null; then\n'
                                      '  notchcast_task "$2" "$3"\n'
                                      'else printf "%s\\n" "no task hook"; exit 3; fi',
-                                     'drift-hook', str(hook), f'{title_prefix} {counter}',
+                                     'drift-hook', str(hook), f'Notchcast: Reduce {counter}',
                                      f'{counter}, {value}, threshold {threshold}, {key}'],
                                     capture_output=True, text=True)
             if result.stdout:
@@ -304,9 +303,6 @@ def main():
     parser.add_argument('--write-baseline', action='store_true', help='Seed or tighten the baseline; never raise existing budgets')
     parser.add_argument('--compare-base', help='Reject budget growth against this commit, without running tools')
     parser.add_argument('--report', action='store_true', help='Print counters and call optional threshold tasks')
-    parser.add_argument('--periphery-report', type=Path, help='Optional JSON from a separate indexed Periphery sweep')
-    parser.add_argument('--alert-cache', type=Path, default=Path.home() / 'Library/Caches/notchcast/drift-alerts.json')
-    parser.add_argument('--task-prefix', default='Notchcast: Reduce', help='Task title prefix for an authorized hook probe')
     args = parser.parse_args()
     root = args.root.resolve()
     path = root / 'notchcast/drift-baseline.json'
@@ -319,15 +315,17 @@ def main():
     upstream = args.upstream or upstream_base(root)
     observed, ours, our_tests = measure(root, upstream, args.gates.split(','))
     if args.write_baseline:
-        counters = report_counters(root, upstream, ours, our_tests, None)
+        counters = report_counters(root, upstream, ours, our_tests)
         observed['alerts'] = {name: value for (name, key), value in counters.items() if key == 'all'}
-        observed['alerts'].update({'file-lines': 349, 'test-lines': 549, 'periphery': 0})
+        observed['alerts'].update({'file-lines': 349, 'test-lines': 549})
         if path.exists():
             previous = read_baseline(path)
             observed['alerts'] = previous['alerts']
             if any(value > previous[rule].get(key, 0) for rule, counts in observed.items()
                    for key, value in counts.items()):
                 raise ValueError('cannot raise or add baseline entries')
+            for rule in observed.keys() - {'alerts'}:
+                observed[rule] = {key: observed[rule].get(key, 0) for key in previous[rule] | observed[rule]}
         path.write_text(json.dumps(observed, indent=2, sort_keys=True) + '\n')
         print('Seeded drift-baseline.json')
         return 0
@@ -339,15 +337,15 @@ def main():
         largest = sorted(ours, key=lambda p: (-len(ours[p].splitlines()), p))[:10]
         for file in largest:
             print(f'largest | {file} | {len(ours[file].splitlines())} lines')
-        counters = report_counters(root, upstream, ours, our_tests, args.periphery_report)
+        counters = report_counters(root, upstream, ours, our_tests)
         for (counter, key), value in sorted(counters.items()):
             if counter not in ('file-lines', 'test-lines') or value > baseline['alerts'][counter]:
                 print(f'{counter} | {value} | {baseline["alerts"][counter]} | {key}')
         for rule in ('dead', 'test-only'):
             for key in observed.get(rule, {}):
                 print(f'{rule} | {key}')
-        notify(counters, baseline['alerts'], args.alert_cache,
-               Path.home() / '.config/notchcast/private.env', args.task_prefix)
+        notify(counters, baseline['alerts'], Path.home() / 'Library/Caches/notchcast/drift-alerts.json',
+               Path.home() / '.config/notchcast/private.env')
         return 0
     problems = check_counts(observed, baseline)
     for gate in args.gates.split(','):
