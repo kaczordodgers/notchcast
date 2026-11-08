@@ -7,7 +7,7 @@ nonisolated struct SMCSensorReader: Sendable {
     private(set) var discoveredCPUKeys: [String] = []
     private(set) var discoveredGPUKeys: [String] = []
     private var nextKeyIndex: UInt32 = 0
-    // shortcut: one retry on the next read, then dropped; count attempts if one retry proves too few.
+    // shortcut: one retry on the next read, then dropped; count attempts if that proves too few.
     private var failedKeyIndices: [UInt32] = []
     private var keyCount: UInt32?
 
