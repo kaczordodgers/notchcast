@@ -41,6 +41,10 @@ struct SystemModuleTests {
         let saved = try JSONDecoder().decode([String: TypingPreferencePlan].self,
             from: journalDefaults.data(forKey: journalKey)!)
         precondition(saved == ["valid": plan])
+        let retired = TypingPreferencePlan(entries: [.init(
+            write: .init("com.apple.dock", "mru-spaces", .bool(false)), previous: .bool(true))])
+        journalDefaults.set(try JSONEncoder().encode(["spaces-fixed": retired]), forKey: journalKey)
+        precondition(TweaksModule(key: journalKey).store.plans.isEmpty)
         let malformed = try JSONSerialization.data(withJSONObject: ["bad": 7])
         journalDefaults.set(malformed, forKey: journalKey)
         precondition(TweaksModule(key: journalKey).store.plans.isEmpty)
@@ -61,7 +65,7 @@ struct SystemModuleTests {
         try await store.set(.sudoTouchID, enabled: true)
         try await store.set(.sudoTouchID, enabled: false)
         precondition(effects == [true, false])
-        let module = TweaksModule()
+        let module = TweaksModule(key: UUID().uuidString)
         let controller = NotchcastModuleController([
             .init(requires: [], requiresAny: [.macSetup, .privacyChoices], module: module)
         ], preferences: preferences)
