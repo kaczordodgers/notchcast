@@ -1,4 +1,6 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift
+// notchcast-reads: Tinycast/Features/Settings/AppSettings.swift
 import Foundation
 import SwiftUI
 import Observation

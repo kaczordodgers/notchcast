@@ -9,6 +9,19 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/SearchRelevance.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
+// notchcast-reads: notchcast/docs/hidden.md Tinycast/App/AppCore.swift Tinycast/App/MenuBarItem.swift
+// notchcast-reads: Tinycast/Features/Settings/*.swift Tinycast/Windows/About/AboutView.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift
+// notchcast-reads: Tinycast/Features/AppleShortcuts/UI/AppleShortcutCoordinator.swift
+// notchcast-reads: Tinycast/Features/Launcher/Model/CommandCatalog.swift
+// notchcast-reads: Tinycast/Features/Launcher/UI/LauncherCoordinator.swift
+// notchcast-reads: Tinycast/Features/Launcher/UI/AppActionsMenu.swift
+// notchcast-reads: Tinycast/Features/Launcher/Keys/LauncherScreen+AliasSpace.swift
+// notchcast-reads: Tinycast/Features/Launcher/Service/FallbackStore.swift
+// notchcast-reads: Tinycast/Features/Support/UI/SupportCoordinator.swift
+// notchcast-reads: Tinycast/Features/Support/Service/SupportReminderStore.swift
+// notchcast-reads: Tinycast/Features/Extensions/Service/ExtensionManager.swift
+// notchcast-reads: Tinycast/Features/Extensions/UI/ExtensionCoordinator.swift Tinycast/Palette/RootPaletteView.swift
 import Foundation
 
 @main

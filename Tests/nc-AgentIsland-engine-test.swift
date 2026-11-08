@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/Model/*.swift Tinycast/Features/OpenBotAgents/Service/*.swift
+// notchcast-reads: Tinycast/Resources/Notchcast.xcstrings
 import Foundation
 
 @MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
