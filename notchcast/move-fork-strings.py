@@ -10,6 +10,7 @@ import sys
 import textwrap
 
 ROOT = Path(__file__).resolve().parent.parent
+CONFIG = runpy.run_path(str(ROOT / 'notchcast/ci.py'))['config']()
 LOCAL = 'Tinycast/Resources/Localizable.xcstrings'
 FORK = 'Tinycast/Resources/Notchcast.xcstrings'
 LOCALES = {'de', 'es', 'fr', 'ja', 'ko', 'pt', 'ru', 'zh-Hans'}
@@ -192,7 +193,7 @@ def main():
     if args.fetch:
         if args.check:
             parser.error('--check cannot be combined with --fetch')
-        git('fetch', 'https://github.com/abue-ammar/tinycast.git',
+        git('fetch', "https://github.com/{}.git".format(CONFIG['UPSTREAM_REPO']),
             'main:refs/remotes/upstream/main')
     try:
         changes, keys, counts = plan(git('show', 'upstream/main:' + LOCAL))

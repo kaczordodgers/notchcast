@@ -4,7 +4,8 @@
 # number, or a name the lander passes in NOTCHCAST_LAND_AS. It expires by itself.
 #   notchcast/hold.sh set <owner> <minutes> | release | show
 # land.sh sources this file for check_hold; the caller defines refuse.
-hold_repo=kaczordodgers/notchcast
+source "$(dirname "${BASH_SOURCE[0]}")/config.env"
+hold_repo=$FORK_REPO
 
 # Prints the hold, or nothing when there is none; fails when it cannot be read.
 hold_read() {

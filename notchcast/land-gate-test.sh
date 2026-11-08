@@ -5,7 +5,7 @@ scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT
 mkdir -p "$scratch/repo/notchcast" "$scratch/bin"
 cp "${LAND_SCRIPT:-$root/notchcast/land.sh}" "$scratch/repo/notchcast/land.sh"
-cp "$root/notchcast/local-build-status.sh" "$root/notchcast/sync-wait.sh" "$root/notchcast/hold.sh" "$scratch/repo/notchcast/"
+cp "$root/notchcast/config.env" "$root/notchcast/local-build-status.sh" "$root/notchcast/sync-wait.sh" "$root/notchcast/hold.sh" "$scratch/repo/notchcast/"
 cp "$root/notchcast/app-proof.py" "$root/notchcast/app-proofs.json" "$scratch/repo/notchcast/"
 cat > "$scratch/bin/gh" <<'STUB'
 #!/bin/bash
