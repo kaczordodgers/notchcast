@@ -4,6 +4,10 @@
 // notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule*.swift
 // notchcast-sources: Tinycast/Features/ScreenText/Model/ScreenTextResult.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift
 import AppKit
 import Observation
 

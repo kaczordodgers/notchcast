@@ -14,7 +14,7 @@ spec.loader.exec_module(paths)
 
 
 def main():
-    with tempfile.TemporaryDirectory(dir=sys.argv[1]) as temporary:
+    with tempfile.TemporaryDirectory(dir=sys.argv[1] if len(sys.argv) > 1 else None) as temporary:
         root = Path(temporary)
         shutil.copytree(paths.ROOT / "Tinycast", root / "Tinycast")
         (root / "notchcast").mkdir()

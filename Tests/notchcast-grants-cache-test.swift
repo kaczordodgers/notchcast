@@ -1,4 +1,6 @@
 // notchcast-sources: -parse-as-library
+// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastGrantsSection.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Settings/NotchcastGrant+Settings.swift
 import Foundation
 
 @main

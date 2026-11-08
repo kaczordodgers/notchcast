@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingRows+*.swift
+// notchcast-reads: Tinycast/Resources/Localizable.xcstrings Tinycast/Resources/Notchcast.xcstrings
 import Foundation
 
 @main

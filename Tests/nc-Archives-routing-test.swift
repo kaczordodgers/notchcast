@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/Settings/SettingsSearchCatalog.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/SearchRelevance.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
+// notchcast-reads: Tinycast/Info.plist Tinycast/App/AppCore.swift Tinycast/App/AppDelegate.swift
 import Foundation
 import UniformTypeIdentifiers
 
