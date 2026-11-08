@@ -60,6 +60,7 @@ struct AgentSessionIndex: Sendable {
     private var databases: [String: AgentSessionDatabase] = [:]
     private let onAccess: @Sendable (URL) -> Void
     let calendar: Calendar
+    var excludedPathComponentPrefixes: [String] = []
 
     init(calendar: Calendar = .current, onAccess: @escaping @Sendable (URL) -> Void = { _ in }) {
         self.onAccess = onAccess
@@ -113,12 +114,15 @@ struct AgentSessionIndex: Sendable {
         return snapshot
     }
 
-    static func allows(_ url: URL) -> Bool {
-        !url.pathComponents.contains { $0.lowercased().hasPrefix("agent-2784f2ac") }
+    static func allows(_ url: URL, excluding prefixes: [String]) -> Bool {
+        !url.pathComponents.contains { component in
+            let lowered = component.lowercased()
+            return prefixes.contains { lowered.hasPrefix($0) }
+        }
     }
 
     private func inspect(_ url: URL) throws -> stat? {
-        guard Self.allows(url) else { return nil }
+        guard Self.allows(url, excluding: excludedPathComponentPrefixes) else { return nil }
         var component = URL(fileURLWithPath: "/", isDirectory: true)
         var information = stat()
         for name in url.pathComponents.dropFirst() {
@@ -136,14 +140,14 @@ struct AgentSessionIndex: Sendable {
     private mutating func walk(_ url: URL, provider: AgentSession.Provider,
                                seen: inout Set<String>, snapshot: inout Snapshot) throws {
         try Task.checkCancellation()
-        guard Self.allows(url) else { return }
+        guard Self.allows(url, excluding: excludedPathComponentPrefixes) else { return }
         do {
             guard let information = try inspect(url) else { return }
             if information.st_mode & S_IFMT == S_IFDIR {
                 guard provider != .opencode else { return }
                 onAccess(url)
                 let children = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
-                for child in children where Self.allows(child) {
+                for child in children where Self.allows(child, excluding: excludedPathComponentPrefixes) {
                     try walk(child, provider: provider, seen: &seen, snapshot: &snapshot)
                 }
                 return

@@ -4,7 +4,7 @@
 
 - The feature defaults off. Enabling it performs no filesystem scan until a consumer requests a refresh or calls `setDemand(true)`.
 - Only metadata and usage aggregates survive parsing. Prompts, replies, tool arguments and credentials are never retained, persisted or sent over the network.
-- Every path is checked before filesystem access. A path containing a component named `agent-2784f2ac` is rejected, including an injected scan root. Symlinks are skipped, including in root ancestors and SQLite sidecars.
+- Every path is checked before filesystem access. A path with a component starting with a prefix from the private `NOTCHCAST_AGENT_SESSIONS_EXCLUDE` key (see `notchcast/README.md`) is rejected, including an injected scan root. Symlinks are skipped, including in root ancestors and SQLite sidecars.
 - JSONL reads are bounded to 64 KiB and individual lines to 256 KiB. Incomplete lines wait for a newline; malformed or oversized lines do not prevent later records from being indexed.
 - The index and its snapshots are `Sendable` values. The module owns cancellation and rejects results from an earlier operation after stopping or refreshing.
 
