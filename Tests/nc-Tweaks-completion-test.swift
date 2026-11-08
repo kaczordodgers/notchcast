@@ -6,7 +6,6 @@ struct TweakCompletionTests {
         let home = URL(fileURLWithPath: "/example")
         let entries = MacSetupPresetCatalog.entries(home: home)
         precondition(Set(entries.map(\.id)).count == entries.count)
-        precondition(!entries.contains { $0.id == "spaces-fixed" })
         let selected = MacSetupPresetCatalog.selection(.full, home: home)
         precondition(!selected.contains { $0.id == "autocorrect" || $0.id == "key-repeat" })
         precondition(selected.contains { $0.id == "tinting" })

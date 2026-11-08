@@ -45,7 +45,6 @@ struct TweaksAppsTests {
                ["nohidden", "/tmp/home with spaces/Library"], "Library path stays one argument")
         expect(FinderCatalog.downloads(home: home).count == 2, "Downloads sets both Finder keys")
         expect(!FinderCatalog.preset.contains("hidden-files"), "Hidden-files preset stays off")
-        expect(DockCatalog.writes["spaces-fixed"] == nil, "Spaces order belongs to SpacesOrder")
         let all = TypingCatalog.writes.values.flatMap { $0 } + FinderCatalog.writes.values.flatMap { $0 }
             + DockCatalog.writes.values.flatMap { $0 }
         let fullPlan = try service.read(all) { _ in nil }

@@ -15,7 +15,14 @@ final class TweaksStore {
          read: @escaping (TypingPreferencePlan.Preference) throws -> TypingPreferencePlan.Value?,
          run: @escaping ([TypingPreferencePlan.Command]) async throws -> Void,
          save: @escaping ([String: TypingPreferencePlan]) throws -> Void) {
-        self.plans = plans.filter { $0.key != "spaces-fixed" }
+        self.plans = plans.compactMapValues { plan in
+            let entries = plan.entries.filter {
+                $0.write.preference.domain != "com.apple.dock" || $0.write.preference.key != "mru-spaces"
+            }
+            if entries.isEmpty, !plan.entries.isEmpty,
+               (plan.extraApply ?? []).isEmpty, (plan.extraRevert ?? []).isEmpty { return nil }
+            return TypingPreferencePlan(entries: entries, extraApply: plan.extraApply, extraRevert: plan.extraRevert)
+        }
         self.read = read
         self.run = run
         self.save = save
