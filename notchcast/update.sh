@@ -95,13 +95,12 @@ if [ -d "$APP" ]; then
 fi
 
 SNAPSHOT='def snapshot: capture("[.]snapshot[.](?<stamp>[0-9]{14})$").stamp // "";'
-TAG="$(gh release list -R "$FORK_REPO" -L 30 --json tagName,isDraft,isPrerelease \
+TAG="$(gh release list -R "$FORK_REPO" -L 1000 --json tagName,isDraft \
     --jq "$SNAPSHOT [.[] | select(.isDraft | not) | select((.tagName | snapshot) != \"\")]
           | sort_by(.tagName | snapshot) | last | .tagName // empty")"
 [ -n "$TAG" ] || { log "no $FORK_REPO snapshot yet"; exit 0; }
 WANT="${TAG#v}"
 CMP="$(jq -nr --arg want "$WANT" --arg have "$INSTALLED" "$SNAPSHOT"' if ($want|snapshot) > ($have|snapshot) then "newer" elif ($want|snapshot) == ($have|snapshot) then "same" else "older" end')"
-[ -n "$CMP" ] || { log "cannot compare versions '$WANT' and '$INSTALLED'; not installing"; exit 0; }
 if [ "$CMP" = older ] || { [ "$CMP" = same ] && [ "$OURS" = 1 ]; }; then
     log "nothing to install: newest snapshot $WANT, installed $INSTALLED ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
     exit 0
