@@ -74,8 +74,8 @@ private struct TreadmillSessionTimeoutTests {
         }
         for (index, step) in steps.enumerated() {
             if index == 1 { _ = engine.stop(now: t.addingTimeInterval(stopAt)) }
-            let body: [UInt8] = [step.phase, 40, 0, UInt8(step.seconds & 0xFF), UInt8(step.seconds >> 8), 100, 0, 0, 0, 4, 0, 0, 0, 0, 0]
-            feed(TreadmillStatus(body: body)!, step.at)
+            let low = UInt8(step.seconds & 0xFF), high = UInt8(step.seconds >> 8)
+            feed(TreadmillStatus(body: [step.phase, 40, 0, low, high, 100, 0, 0, 0, 4, 0, 0, 0, 0, 0])!, step.at)
         }
         feed(TreadmillStatus(body: [0, 0])!, steps.last!.at + 1)
         return archive.records.map(\.seconds)
