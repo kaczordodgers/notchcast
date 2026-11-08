@@ -11,7 +11,8 @@ enum AgentSessionExclusions {
         } catch CocoaError.fileNoSuchFile, CocoaError.fileReadNoSuchFile {
             return []
         }
-        let lines = contents.split(whereSeparator: \.isNewline).filter { $0.contains(key) }
+        let joined = contents.replacing("\\\n", with: "")
+        let lines = joined.split(separator: "\n").filter { $0.filter { !"\"'\\".contains($0) }.contains(key) }
         guard lines.count <= 1 else { throw MalformedAssignment() }
         guard let line = lines.first else { return [] }
         let assignment = #/
