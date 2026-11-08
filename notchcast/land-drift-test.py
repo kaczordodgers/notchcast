@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise landing drift behavior in isolated repositories with generated sources."""
 import importlib.util
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -37,11 +38,24 @@ class Landing(unittest.TestCase):
         fixtures.write(self.root, 'notchcast/check-drift.py', (ROOT / 'notchcast/check-drift.py').read_text())
         fixtures.write(self.root, 'notchcast/bin/swiftgraph.py', (ROOT / 'notchcast/bin/swiftgraph.py').read_text())
 
-    def shell(self, script, *args):
+    def shell(self, script, *args, env=None):
         return subprocess.run(['bash', '-c', 'set -euo pipefail\n'
                                'refuse() { printf "REFUSED: %s\\n" "$*"; exit 1; }\n'
                                'drift_tools="$PWD/notchcast"\n' + script,
-                               'landing-fixture', *args], cwd=self.root, capture_output=True, text=True)
+                               'landing-fixture', *args], cwd=self.root, capture_output=True, text=True, env=env)
+
+    def commit(self, message):
+        fixtures.git(self.root, 'add', '-A')
+        fixtures.git(self.root, 'commit', '-qm', message)
+        return fixtures.git(self.root, 'rev-parse', 'HEAD')
+
+    def tooling(self, base, body, base_fixtures='raise SystemExit(0)\n'):
+        tools = Path(self.fixture.work.name) / 'base-tools'
+        fixtures.write(tools, 'check-drift-test.py', base_fixtures)
+        script = (function('drift_fixtures_changed') + '\n' + function('check_drift_tooling') + '\n'
+                  + function('squash_message') + '\n'
+                  + 'check_drift_tooling "$1" "$2" "$3"\npr=7\npr_title="Notchcast: Tune drift"\npr_body="$2"\nsquash_message')
+        return self.shell(script, base, body, str(tools))
 
     def test_manually_raised_entry_refuses_in_land(self):
         baseline = self.fixture.baseline()
@@ -127,17 +141,86 @@ class Landing(unittest.TestCase):
         self.assertIn('base checker', result.stdout)
         self.assertNotIn('candidate bypass', result.stdout)
 
-    def test_base_fixtures_judge_candidate(self):
-        lines = LAND.splitlines()
-        start = next(index for index, line in enumerate(lines) if 'cp "$drift_tools/check-drift-test.py"' in line)
-        tools = Path(self.fixture.work.name) / 'base-tools'
-        fixtures.write(tools, 'check-drift-test.py', 'print("base fixtures")\nraise SystemExit(7)\n')
+    def test_tooling_change_needs_signoff_kept_in_message(self):
+        fixtures.write(self.root, 'notchcast/check-drift-test.py', 'print("base copy")\n')
+        base = self.commit('Base tooling')
         fixtures.write(self.root, 'notchcast/check-drift-test.py', 'print("candidate fixtures")\n')
-        result = self.shell('drift_tools="$1"\n' + '\n'.join(lines[start:start + 3]), str(tools))
+        self.commit('Candidate tooling')
+        refused = self.tooling(base, 'Summary only')
+        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+        self.assertIn('REFUSED: drift tooling or land.sh changed', refused.stdout)
+        passed = self.tooling(base, 'Summary\nDrift tooling: tighten the clone fixture')
+        self.assertEqual(passed.returncode, 0, passed.stdout + passed.stderr)
+        self.assertIn('\n\nDrift tooling: tighten the clone fixture\n', passed.stdout)
+        self.assertEqual((self.root / 'notchcast/check-drift-test.py').read_text(), 'print("candidate fixtures")\n')
+        print('PASS: tooling change refused without Drift tooling:, and the line reaches the squash message')
+
+    def test_land_change_needs_signoff(self):
+        base = self.commit('Base')
+        fixtures.write(self.root, 'notchcast/land.sh', 'echo changed\n')
+        self.commit('Candidate land.sh')
+        refused = self.tooling(base, '')
+        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+        self.assertIn('REFUSED: drift tooling or land.sh changed', refused.stdout)
+        passed = self.tooling(base, 'Drift tooling: land.sh retry wording')
+        self.assertEqual(passed.returncode, 0, passed.stdout + passed.stderr)
+        self.assertIn('Drift tooling: land.sh retry wording', passed.stdout)
+
+    def test_unrelated_change_needs_no_signoff(self):
+        base = self.commit('Base')
+        fixtures.write(self.root, 'notes.txt', 'unrelated\n')
+        self.commit('Unrelated')
+        result = self.tooling(base, '')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual(result.stdout, 'Notchcast: Tune drift (#7)\n')
+
+    def test_deleted_fixtures_refused_cleanly(self):
+        fixtures.write(self.root, 'notchcast/check-drift-test.py', 'print("base copy")\n')
+        base = self.commit('Base tooling')
+        (self.root / 'notchcast/check-drift-test.py').unlink()
+        self.commit('Delete fixtures')
+        result = self.tooling(base, 'Drift tooling: drop fixtures')
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('REFUSED: the PR deletes notchcast/check-drift-test.py', result.stdout)
+        self.assertNotIn('error:', result.stdout + result.stderr)
+
+    def test_planted_module_cannot_shadow_base_fixtures(self):
+        fixtures.write(self.root, 'notchcast/check-drift-test.py', 'print("base copy")\n')
+        base = self.commit('Base tooling')
+        fixtures.write(self.root, 'notchcast/check-drift-test.py', 'print("candidate fixtures")\n')
+        fixtures.write(self.root, 'notchcast/unittest.py', 'print("planted unittest")\nraise SystemExit(0)\n')
+        self.commit('Candidate plants unittest')
+        result = self.tooling(base, 'Drift tooling: probe', 'import unittest\nprint("base fixtures")\nraise SystemExit(7)\n')
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn('base fixtures', result.stdout)
-        self.assertNotIn('candidate fixtures', result.stdout)
+        self.assertNotIn('planted unittest', result.stdout)
         self.assertIn('REFUSED: drift fixtures', result.stdout)
+
+    def test_first_report_files_crossing_added_by_landing(self):
+        baseline = self.fixture.baseline()
+        baseline['alerts'] = dict.fromkeys(baseline['alerts'], 999999)
+        baseline['alerts']['file-lines'] = 20
+        self.fixture.save_baseline(baseline)
+        for index in range(10):
+            fixtures.write(self.root, f'Tinycast/Features/Todo/Over{index}.swift', '\n' * 21)
+        base = self.commit('Base with 10 over-limit files')
+        fixtures.write(self.root, 'Tinycast/Features/Todo/Over10.swift', '\n' * 21)
+        landed = self.commit('Landing adds one over-limit file')
+        fixtures.git(self.root, 'update-ref', 'refs/remotes/upstream/main', self.fixture.upstream)
+        home = Path(self.fixture.work.name) / 'home'
+        calls = home / 'calls'
+        fixtures.write(home, '.config/notchcast/private.env', 'notchcast_task() { printf "%s\\n" "$2" >> "$HOME/calls"; }\n')
+        env = dict(os.environ, HOME=str(home))
+        counts = []
+        for _ in range(2):
+            result = self.shell(function('drift_report') + '\ndrift_tools="$1"\ndrift_report "$2" "$3"',
+                                str(ROOT / 'notchcast'), base, landed, env=env)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertNotIn('WARN', result.stderr)
+            counts.append(len(calls.read_text().splitlines()) if calls.exists() else 0)
+        self.assertEqual(counts, [1, 1])
+        self.assertIn('Tinycast/Features/Todo/Over10.swift', calls.read_text())
+        print('PASS: no cache, base with 10 over-limit files: 1 hook call for the landed crossing, 0 on rerun')
 
     def test_red_base_is_reported_without_allowing_candidate(self):
         fixtures.write(self.root, 'notchcast/check-drift.py', 'raise SystemExit(9)\n')

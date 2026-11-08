@@ -21,7 +21,7 @@ LARGE_SOURCE = ''.join(f'let fixtureValue{index} = {index}\n' for index in range
 CLONE_PATH = 'Tinycast/Features/Clean/Fixture.swift'
 CLONE_SOURCE = '\n'.join(f'let cloneValue{index} = transform({index}, scale: {index + 3})' for index in range(15)) + '\n'
 NEAR_CLONE_SOURCE = ''.join(f'let nearValue{index} = transform({index}, scale: {index + 3})\n' for index in range(6)) \
-    + 'let nearTail = transform(6)\n'  # jscpd 4.0.5: 72 tokens over a 6-line span, just above the gate limits.
+    + 'nearTail = transform()\n'  # jscpd 4.0.5: exactly 70 tokens / 6 lines, so raising either limit turns it red.
 
 
 def write(root, path, text):

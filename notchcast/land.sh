@@ -58,6 +58,45 @@ drift_fixtures_changed() {
         || refuse 'cannot read drift tooling diff'
     [ -n "$changed" ]
 }
+# Tests cannot prove a gate change safe, so tooling and land.sh changes carry a sign-off into history.
+check_drift_tooling() {
+    local onto=$1 body=$2 tools=$3 fixtures=false
+    drift_signoff=
+    if drift_fixtures_changed "$onto"; then
+        fixtures=true
+    elif git diff --quiet "$onto" HEAD -- notchcast/land.sh; then
+        return 0
+    fi
+    drift_signoff=$(grep -m1 -E '^Drift tooling: [^[:space:]].*' <<< "$body") \
+        || refuse 'drift tooling or land.sh changed: the PR body needs a line Drift tooling: <reason>'
+    [ "$fixtures" = true ] || return 0
+    [ -f notchcast/check-drift-test.py ] || refuse 'the PR deletes notchcast/check-drift-test.py; the drift fixtures must stay'
+    cp "$tools/check-drift-test.py" notchcast/check-drift-test.py
+    python3 -I notchcast/check-drift-test.py || refuse 'drift fixtures'
+    git checkout -q HEAD -- notchcast/check-drift-test.py
+}
+drift_report() {
+    local base=$1 commit=$2
+    # Seed from main so a crossing this landing adds is filed, not absorbed as already known.
+    if [ ! -f "$HOME/Library/Caches/notchcast/drift-alerts.json" ] && git switch --quiet --detach "$base"; then
+        python3 "$drift_tools/check-drift.py" --root "$PWD" --report >/dev/null || echo 'WARN: drift alerts not seeded from main' >&2
+    fi
+    if git switch --quiet --detach "$commit"; then
+        python3 "$drift_tools/check-drift.py" --root "$PWD" --report || echo 'WARN: drift report failed after landing' >&2
+    else
+        echo 'WARN: drift report could not read the landed commit' >&2
+    fi
+}
+squash_message() {
+    local title=$pr_title
+    [[ "$title" == Notchcast:* ]] || title="Notchcast: $title"
+    printf '%s (#%s)\n' "$title" "$pr"
+    if printf '%s\n' "$title" | grep -Eiq '^(notchcast: )?fix '; then
+        printf '\n'
+        grep -E '^No test: [^[:space:]].*' <<< "$pr_body" || true
+    fi
+    if [ -n "$drift_signoff" ]; then printf '\n%s\n' "$drift_signoff"; fi
+}
 prepare_drift_tools() {
     drift_tools="$scratch/gates-$1"
     mkdir -p "$drift_tools"
@@ -195,11 +234,7 @@ merge_onto() {
     prepare_drift_tools "$onto"
     python3 "$drift_tools/check-drift.py" --root "$PWD" --compare-base "$onto" || refuse 'drift baseline grew'
     check_drift "$onto" "$drift_tools"
-    if drift_fixtures_changed "$onto"; then
-        cp "$drift_tools/check-drift-test.py" notchcast/check-drift-test.py  # main's fixtures judge the candidate
-        python3 notchcast/check-drift-test.py || refuse 'drift fixtures'
-        git checkout -q HEAD -- notchcast/check-drift-test.py
-    fi
+    check_drift_tooling "$onto" "$pr_body" "$drift_tools"
     check_defect_tests "$fork" "$head" "$pr_title" "$pr_body"
     # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.
     typecheck=$(swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift 2>&1) \
@@ -221,13 +256,7 @@ echo 'PASS: merged-tree harnesses'
 # Not covered without an Xcode build of this tree: code no selected harness compiles (UI, AppCore wiring,
 # resources); the PR build covered the head alone, and the main harness job, Sync and Snapshot follow on main.
 if [ "$check" -eq 0 ]; then
-    title=$pr_title
-    [[ "$title" == Notchcast:* ]] || title="Notchcast: $title"
-    printf '%s (#%s)\n' "$title" "$pr" > "$scratch/message"
-    if printf '%s\n' "$title" | grep -Eiq '^(notchcast: )?fix '; then
-        printf '\n' >> "$scratch/message"
-        grep -E '^No test: [^[:space:]].*' <<< "$pr_body" >> "$scratch/message" || true
-    fi
+    squash_message > "$scratch/message"
     notchcast/check-identity.sh message "$scratch/message" || refuse 'commit message names something private'
     commit=$(GIT_AUTHOR_NAME="$MAINTAINER_NAME" GIT_AUTHOR_EMAIL="$MAINTAINER_EMAIL" \
         GIT_COMMITTER_NAME="$MAINTAINER_NAME" GIT_COMMITTER_EMAIL="$MAINTAINER_EMAIL" \
@@ -254,9 +283,5 @@ if [ "$check" -eq 0 ]; then
     gh pr close "$pr" -R "$FORK_REPO" --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base." \
         || refuse "landed on main as $commit, but closing PR #$pr failed: close it by hand, do not rerun land.sh"
     delete_head "$(jq -r .headRefName <<< "$metadata")" "$head" "$(jq -r .isCrossRepository <<< "$metadata")"
-    if git switch --quiet --detach "$commit"; then
-        python3 "$drift_tools/check-drift.py" --root "$PWD" --report || echo 'WARN: drift report failed after landing' >&2
-    else
-        echo 'WARN: drift report could not read the landed commit' >&2
-    fi
+    drift_report "$base" "$commit"
 fi
