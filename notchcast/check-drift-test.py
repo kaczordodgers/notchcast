@@ -145,10 +145,11 @@ class Gates(unittest.TestCase):
 
     def test_dead_func_static_and_global(self):
         write(self.root, TODO, 'func driftFunction() {}\nlet driftGlobal = 0\n'
-              'struct Existing { static let driftStatic = 1 }\n')
+              'struct Existing {\n    static let driftStatic = 1\n}\n')
         self.red('3', ':driftFunction:')
         result = self.run_check('3')
         self.assertIn(':driftGlobal:', result.stdout)
+        self.assertIn(':driftStatic:', result.stdout)
 
     def test_dead_waiver(self):
         write(self.root, TODO, 'struct DriftProbe {} // drift: keep fixture API\n')
@@ -243,6 +244,24 @@ class Gates(unittest.TestCase):
         self.assertEqual(second.returncode, 0, second.stdout + second.stderr)
         self.assertEqual(len(calls.read_text().splitlines()), 2)
         print('PASS gate 5: stub hook called 1 time on crossing, 0 times on rerun')
+
+    def test_empty_waiver_reason_does_not_pass(self):
+        write(self.root, TODO, 'struct DriftProbe {} // drift: keep \n')
+        self.red('3', ':DriftProbe:')
+
+    def test_report_counts_landed_fix_waivers(self):
+        git(self.root, 'commit', '--allow-empty', '-qm', 'Notchcast: Fix fixture', '-m', 'No test: fixture proof')
+        result = self.run_check('1,2,3', '--report', env=dict(os.environ, HOME=str(Path(self.work.name) / 'home')))
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn('fix-no-test | 1 | 0', result.stdout)
+
+    def test_missing_alert_threshold_fails_closed(self):
+        baseline = self.baseline()
+        del baseline['alerts']['try?']
+        self.save_baseline(baseline)
+        result = self.run_check('1')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn('baseline alerts must define every report counter', result.stderr)
 
     def test_report_without_hook(self):
         home = Path(self.work.name) / 'home'

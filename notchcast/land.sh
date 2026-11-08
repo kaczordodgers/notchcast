@@ -40,11 +40,11 @@ delete_head() {
 source "$(dirname "$0")/sync-wait.sh"
 source "$(dirname "$0")/hold.sh"
 check_defect_tests() {
-    local onto=$1 candidate=$2 title=$3 body=$4
+    local onto=$1 candidate=$2 title=$3 body=$4 changed
     [[ "$title" == 'Notchcast: Fix '* ]] || return 0
     if grep -Eq '^No test: [^[:space:]].*' <<< "$body"; then return 0; fi
-    git diff --name-only --diff-filter=AMR "$onto" "$candidate" \
-        | grep -Eq '^Tests/[^/]+-test\.swift$|^notchcast/(.*/)?[^/]+-test\.[^/]+$' \
+    changed=$(git diff --name-only --diff-filter=AMR "$onto" "$candidate") || refuse 'cannot read defect test diff'
+    grep -Eq '^Tests/[^/]+-test\.swift$|^notchcast/(.*/)?[^/]+-test\.[^/]+$' <<< "$changed" \
         || refuse 'defect fix needs a changed test or No test: <reason>'
 }
 check=0
@@ -162,7 +162,7 @@ merge_onto() {
     python3 notchcast/check-drift.py --compare-base "$onto" || refuse 'drift baseline grew'
     python3 notchcast/check-drift.py || refuse 'drift'
     python3 notchcast/check-drift-test.py || refuse 'drift fixtures'
-    check_defect_tests "$onto" "$head" "$pr_title" "$pr_body"
+    check_defect_tests "$fork" "$head" "$pr_title" "$pr_body"
     # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.
     typecheck=$(swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift 2>&1) \
         || refuse "NotchcastFeature*.swift does not typecheck without warnings on the merged tree: $(grep -m3 -E 'error|warning' <<< "$typecheck")"

@@ -208,6 +208,9 @@ def read_baseline(path):
     for rule, counts in baseline.items():
         if not isinstance(counts, dict) or any(type(v) is not int or v < 0 for v in counts.values()):
             raise ValueError(f'invalid baseline counts for {rule}')
+    alerts = set(PATTERNS) | {'file-lines', 'test-lines', 'waivers', 'upstream-patch-lines', 'fix-no-test', 'periphery'}
+    if baseline['alerts'].keys() != alerts:
+        raise ValueError('baseline alerts must define every report counter')
     return baseline
 
 
@@ -229,17 +232,22 @@ def compare_baseline(root, base, baseline):
 def report_counters(root, upstream, ours, our_tests, periphery):
     counters = {('file-lines', path): len(text.splitlines()) for path, text in ours.items()}
     counters.update({('test-lines', path): len(text.splitlines()) for path, text in our_tests.items()})
-    counters['waivers', 'all'] = sum(bool(WAIVER.search(line)) for text in ours.values() for line in text.splitlines())
+    counters['waivers', 'all'] = sum(bool(WAIVER.search(line)) for text in (ours | our_tests).values()
+                                     for line in text.splitlines())
     for name, pattern in PATTERNS.items():
         counters[name, 'all'] = sum(len(re.findall(pattern, text)) for text in ours.values())
-    diff = git(root, 'diff', '--diff-filter=M', '--numstat', upstream, '--', '*.swift')
+    diff = git(root, 'diff', '--diff-filter=M', '--numstat', upstream)
     counters['upstream-patch-lines', 'all'] = sum(int(line.split('\t')[0]) for line in diff.splitlines()
-                                               if not line.split('\t')[2].endswith('.generated.swift')
+                                               if '.generated.' not in line.split('\t')[2]
+                                               and line.split('\t')[2] not in ('README.md', 'Tinycast.xcodeproj/project.pbxproj')
                                                and line.split('\t')[0].isdigit())
     log = git(root, 'log', '--first-parent', f'{upstream}..HEAD', '--format=%x1e%s%x1f%b')
-    counters['fix-no-test', 'all'] = sum(bool(re.match(r'Notchcast: Fix ', entry.lstrip()) and
-                                                   re.search(r'^No test: \S', entry, re.M))
-                                          for entry in log.split('\x1e'))
+    waived_fixes = 0
+    for entry in log.split('\x1e'):
+        subject, _, body = entry.lstrip().partition('\x1f')
+        if subject.startswith('Notchcast: Fix ') and re.search(r'^No test: \S', body, re.M):
+            waived_fixes += 1
+    counters['fix-no-test', 'all'] = waived_fixes
     if periphery:
         findings = json.loads(periphery.read_text())
         if not isinstance(findings, list):
