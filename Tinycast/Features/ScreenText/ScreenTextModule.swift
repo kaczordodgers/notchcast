@@ -18,8 +18,7 @@ final class ScreenTextModule: NotchcastModule {
     private var task: Task<Void, Never>?
 
     init(
-        defaults: UserDefaults = UserDefaults(suiteName:
-            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+        defaults: UserDefaults = NotchcastIdentity.current.defaults,
         area: CaptureAreaService = CaptureAreaService(),
         recognize: @escaping Recognize = {
             try await ScreenTextService.recognize(selection: $0, removeLineBreaks: $1)

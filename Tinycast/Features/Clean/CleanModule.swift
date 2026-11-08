@@ -9,7 +9,7 @@ extension NotchcastCore {
 @MainActor
 final class CleanModule: NotchcastModule {
     nonisolated private static let history = CleanHistoryStore(
-        logPath: AppPaths.applicationSupport().appendingPathComponent("clean-history.jsonl"))
+        logPath: NotchcastIdentity.current.standardApplicationSupport.appendingPathComponent("clean-history.jsonl"))
     private var running = false
     private weak var core: AppCore?
     private let preferences = NotchcastPreferences.shared

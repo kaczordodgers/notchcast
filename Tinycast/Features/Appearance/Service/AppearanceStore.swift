@@ -4,8 +4,7 @@ import Observation
 @MainActor @Observable
 final class AppearanceStore {
     private(set) static weak var current: AppearanceStore?
-    static let preferences = UserDefaults(
-        suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
+    static let preferences = NotchcastIdentity.current.defaults
     static let lightKey = "notchcast.appearance.theme.light"
     static let darkKey = "notchcast.appearance.theme.dark"
     static let importedKey = "notchcast.appearance.themes.imported"

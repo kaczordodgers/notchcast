@@ -41,7 +41,7 @@ final class SoloistInstaller: SoloistBuildSource {
         } catch {
             try Task.checkCancellation()
             let failure = (error as? SoloistFailure) ?? .filesystem.detail(SoloistFailure.describe(error))
-            Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast.app", category: "Soloist")
+            Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(fallback: NotchcastIdentity.upstreamBundleIdentifier), category: "Soloist")
                 .error("Soloist download: \(String(describing: failure), privacy: .public)")
             throw failure
         }
@@ -155,8 +155,7 @@ final class SoloistInstaller: SoloistBuildSource {
 
     @concurrent
     private static func download(_ url: URL) async throws -> Data {
-        let config = URLSessionConfiguration.ephemeral
-        config.urlCache = nil
+        let config = NotchcastIdentity.sessionConfiguration()
         let delegate = DownloadDelegate()
         let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
         defer { session.invalidateAndCancel() }

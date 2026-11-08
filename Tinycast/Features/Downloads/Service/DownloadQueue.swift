@@ -4,7 +4,7 @@ import OSLog
 
 @MainActor @Observable
 final class DownloadQueue {
-    nonisolated private static let logger = Logger(subsystem: "com.tinycast", category: "Downloads")
+    nonisolated private static let logger = Logger(subsystem: NotchcastIdentity.upstreamSubsystem, category: "Downloads")
     private(set) var jobs: [DownloadJob] = []
     private(set) var persistenceError: String?
     let maxConcurrent: Int
@@ -20,7 +20,7 @@ final class DownloadQueue {
     @ObservationIgnored private var stopped = false
 
     init(
-        file: URL? = AppPaths.applicationSupport().appending(path: "Notchcast/downloads.json"),
+        file: URL? = NotchcastIdentity.current.standardApplicationSupport.appending(path: "Notchcast/downloads.json"),
         destination: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Downloads"),
         maxConcurrent: Int = 3, tools: DownloadToolLookup = DownloadToolLookup(),
         clock: @escaping () -> Date = { Date() }

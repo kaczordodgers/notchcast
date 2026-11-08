@@ -12,7 +12,7 @@ import Observation
     private let confirm: () async -> Bool
     private let report: (Bool) -> Void
 
-    init(folder: URL = AppPaths.applicationSupport().appendingPathComponent("fork-settings-backups"),
+    init(folder: URL = NotchcastIdentity.current.standardApplicationSupport.appendingPathComponent("fork-settings-backups"),
          state: ForkSettingsBackupState = .live,
          confirm: @escaping () async -> Bool = {
              await AppCore.shared.confirm(title: String(localized: "Restore Settings Backup", table: "Notchcast"),

@@ -82,10 +82,10 @@ final class EditorCoordinator: NotchcastModule {
 
     func flushForTermination() async {
         for document in documents where document.isEnabled {
-            let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "editor")
+            let logger = Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(), category: "editor")
             do {
                 let recovery = try await EditorRecoveryService.flush(
-                    document, directory: AppPaths.applicationSupport().appendingPathComponent("EditorRecovery"))
+                    document, directory: NotchcastIdentity.current.standardApplicationSupport.appendingPathComponent("EditorRecovery"))
                 if let recovery {
                     logger.error("Document recovered at termination: \(recovery.path, privacy: .private)")
                 }

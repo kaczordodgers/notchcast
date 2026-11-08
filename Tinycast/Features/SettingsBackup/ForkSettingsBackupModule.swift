@@ -16,7 +16,7 @@ final class ForkSettingsBackupModule: NotchcastModule {
                     let now = Date.now
                     let data = try ForkSettingsBackupEngine.encode(values, created: now)
                     try await ForkSettingsBackupService.save(
-                        data, folder: AppPaths.applicationSupport().appendingPathComponent("fork-settings-backups"),
+                        data, folder: NotchcastIdentity.current.standardApplicationSupport.appendingPathComponent("fork-settings-backups"),
                         day: Int(now.timeIntervalSince1970 / 86_400))
                     guard !Task.isCancelled else { return }
                     failed = false

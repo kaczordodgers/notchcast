@@ -3,7 +3,7 @@ import Foundation
 struct SoloistFiles: Sendable {
     let root: URL
 
-    init(root: URL = AppPaths.applicationSupport().appending(path: "soloist", directoryHint: .isDirectory)) {
+    init(root: URL = NotchcastIdentity.current.standardApplicationSupport.appending(path: "soloist", directoryHint: .isDirectory)) {
         self.root = root.standardizedFileURL.resolvingSymlinksInPath()
     }
 

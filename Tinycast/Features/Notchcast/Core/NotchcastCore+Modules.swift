@@ -29,7 +29,7 @@ extension NotchcastCore {
     static let answers = LauncherAnswersModule()
     static let copyPath = CopyPathModule()
     static let smallCommands = SmallCommandsModule()
-    static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast") + ".urlCleaner"))
+    static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".urlCleaner", fallback: NotchcastIdentity.releaseBundleIdentifier)))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
     static let remoteFans = RemoteFanModule(transport: MachLinkFanTransport(channel: macLink.channel))
@@ -83,7 +83,7 @@ extension NotchcastCore {
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
     static let scrollingCapture = ScrollingCaptureModule()
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
+    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: NotchcastIdentity.current.standardApplicationSupport.appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.live()
     static let captureTrimmer = CaptureTrimmerModule.live()
@@ -92,8 +92,8 @@ extension NotchcastCore {
     static let recording = RecordingModule()
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
-    static let dictationHistory = DictationHistoryModule(repository: .init(directory: AppPaths.applicationSupport().appendingPathComponent("DictationHistory"), now: Date.init))
-    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".editor")!))
+    static let dictationHistory = DictationHistoryModule(repository: .init(directory: NotchcastIdentity.current.standardApplicationSupport.appendingPathComponent("DictationHistory"), now: Date.init))
+    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".editor"))!))
     static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
@@ -107,7 +107,7 @@ extension NotchcastCore {
         let trigger = makeDictationTrigger(core)
         dictationTrigger = trigger
         let voiceRecording = VoiceAskRecording(core: core)
-        let voiceAskModule = VoiceAskModule(defaults: UserDefaults(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel, message: { [weak core] in core?.showMessage($0, tone: $1) })
+        let voiceAskModule = VoiceAskModule(defaults: NotchcastIdentity.current.defaults, begin: voiceRecording.begin, finish: voiceRecording.finish, cancel: voiceRecording.cancel, message: { [weak core] in core?.showMessage($0, tone: $1) })
         self.voiceAsk = voiceAskModule
         voiceAskModule.configure(transport: VoiceAskCLITransport.production())
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)

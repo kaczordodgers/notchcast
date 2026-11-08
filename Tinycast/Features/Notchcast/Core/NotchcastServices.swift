@@ -17,7 +17,7 @@ final class NotchcastServices {
     init(core: AppCore, preferences: NotchcastPreferences) {
         let music = MusicNowPlayingModule(defaults: preferences.engineDefaults)
         self.music = music
-        tasks = TodoModule(directory: AppPaths.applicationSupport().appending(path: "Todo"),
+        tasks = TodoModule(directory: NotchcastIdentity.current.standardApplicationSupport.appending(path: "Todo"),
                            islandEnabled: { preferences.isOn(.todoIsland) },
                            showFailure: { [weak core] in core?.showMessage($0, tone: .danger) })
         commandFeedback = MusicCommandFeedback(music: music, preferences: preferences)
