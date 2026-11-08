@@ -14,6 +14,7 @@ import sys
 FILES = (
     "Tinycast/Features/Notchcast/Core/NotchcastFeature.swift",
     "Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift",
+    "Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift",
     "Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift",
     "Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift",
 )

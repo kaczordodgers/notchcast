@@ -16,8 +16,10 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-SCHEMA, MODULES, SEARCH = SHAPE.LISTS
+SCHEMA, MODULES, SEARCH, DESCRIPTORS = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
+DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/*/*Descriptor.swift"))
+HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
 
 
 def run(root, *args):
@@ -60,7 +62,7 @@ class FeatureShapeTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS, SHAPE.PREFERENCES):
+        for path in (SHAPE.FEATURE, SHAPE.GROUPS, *SHAPE.LISTS, SHAPE.PREFERENCES, *DESCRIBED):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)
             (self.root / path).write_text((ROOT / path).read_text())
 
@@ -204,6 +206,48 @@ class FeatureShapeTests(unittest.TestCase):
         source = (self.root / PREFS).read_text()
         self.rejected(PREFS, source + source, "expected one NotchcastPreferences class")
 
+    def test_arm_for_described_feature(self):
+        for anchor, arm in (("case .pasteImage: .clipboard\n", "case .hideCommandM: .system\n"),
+                            ("case .pasteImage: false\n", "case .linkHealth: false\n")):
+            with self.subTest(arm=arm):
+                source = (ROOT / SHAPE.FEATURE).read_text()
+                self.assertEqual(source.count(anchor), 1)
+                self.rejected(SHAPE.FEATURE, source.replace(anchor, anchor + "        " + arm), "has a descriptor")
+                (self.root / SHAPE.FEATURE).write_text(source)
+
+    def test_descriptor_outside_its_feature_folder(self):
+        source = (ROOT / HIDE).read_text()
+        (self.root / HIDE).unlink()
+        for path in (Path("Tinycast/Features/Notchcast/Core/HideCommandMDescriptor.swift"),
+                     Path("Tinycast/Features/HideCommandM/Model/HideCommandMDescriptor.swift"),
+                     Path("Tinycast/Features/HideCommandM/HideCommandM.swift")):
+            with self.subTest(path=path):
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, source, "declare a descriptor in Tinycast/Features/<its folder>/")
+                (self.root / path).unlink()
+        hub = (ROOT / DESCRIPTORS).read_text()
+        self.rejected(DESCRIPTORS, hub.rstrip() + "\n\n" + source.split("\n", 1)[1], "declare a descriptor in")
+
+    def test_descriptor_file_names_its_one_feature(self):
+        source = (ROOT / HIDE).read_text()
+        (self.root / HIDE).unlink()
+        self.rejected(HIDE.with_name("HideDescriptor.swift"), source, "declare exactly one descriptor, .hide")
+        (self.root / HIDE.with_name("HideDescriptor.swift")).unlink()
+        self.rejected(HIDE, source.replace("    static let hideCommandM", "    static let hideCommandK = hideCommandM\n"
+                                           "    static let hideCommandM"), "declare exactly one descriptor")
+
+    def test_hub_entry_maps_another_descriptor(self):
+        source = (ROOT / DESCRIPTORS).read_text()
+        self.rejected(DESCRIPTORS, source.replace(".linkHealth: .linkHealth,", ".linkHealth: .lowDiskWarning,"),
+                      ".linkHealth must map to its own descriptor")
+
+    def test_undescribed_feature_without_exhaustive_arm(self):
+        source = (ROOT / SHAPE.FEATURE).read_text()
+        arm = '        case .pastePlain: String(localized: "Paste Plain Text", table: "Notchcast")\n'
+        self.assertEqual(source.count(arm), 1)
+        self.rejected(SHAPE.FEATURE, source.replace(arm, ""),
+                      ".pastePlain needs a descriptor or a title arm")
+
     def init_repository(self):
         (self.root / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
         run(self.root, "git", "init", "-q", "-b", "base")
@@ -266,7 +310,8 @@ class FeatureShapeTests(unittest.TestCase):
             self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
             self.assertEqual(SHAPE.check(self.root), [])
             run(self.root, "swiftc", "-swift-version", "6", "-strict-concurrency=complete",
-                "-warnings-as-errors", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS))
+                "-warnings-as-errors", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS),
+                str(DESCRIPTORS), *map(str, DESCRIBED))
             print(f"PASS: {name} merge clean; feature, group and all switch appends typecheck", flush=True)
         features = (self.root / SHAPE.FEATURE).read_text()
         groups = (self.root / SHAPE.GROUPS).read_text()
@@ -326,6 +371,7 @@ class FeatureShapeTests(unittest.TestCase):
             self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
         self.assertEqual(SHAPE.check(self.root), [])
         run(self.root, "swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS), str(PREFS),
+            str(DESCRIPTORS), *map(str, DESCRIBED),
             str(ROOT / "Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift"), str(ROOT / "Tinycast/Platform/AppPaths.swift"))
         run(self.root, "git", "switch", "-qc", "edit", "base~2")
         prefs.write_text(base.replace('?? "auto"', '?? "quiet"'))
