@@ -37,14 +37,15 @@ jobs:
         run: |
           refuse() { echo "$*" >&2; exit 1; }
           source notchcast/sync-wait.sh
-          git config user.name Damian
-          git config user.email 336236323+kaczordodgers@users.noreply.github.com
+          source notchcast/config.env
+          git config user.name "$MAINTAINER_NAME"
+          git config user.email "$MAINTAINER_EMAIL"
           for attempt in 1 2 3 4 5; do
             # Generated pushes cost Sync its main lease too; a rewrite of main restarts this workflow anyway.
             wait_for_sync
             git fetch origin main
             git reset -q --hard origin/main
-            git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
+            git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
             python3 notchcast/ci.py regenerate . "$(git merge-base HEAD refs/remotes/upstream/main)"
             python3 - <<'PY'
           import subprocess

@@ -49,6 +49,8 @@ jobs:
           ref: main
           fetch-depth: 0
           persist-credentials: false
+      - name: Check repository constants
+        run: python3 notchcast/check-config.py
       - id: plan
         env:
           GH_TOKEN: ${{ github.token }}
@@ -89,8 +91,9 @@ jobs:
         if: needs.plan.outputs.rebase == 'true'
         working-directory: src
         run: |
-          git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main"
-          test "$(git rev-parse refs/remotes/upstream/main)" = "${{ needs.plan.outputs.upstream_main }}" || git fetch -q https://github.com/abue-ammar/tinycast.git "${{ needs.plan.outputs.upstream_main }}"
+          source ../tools/notchcast/config.env
+          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+          test "$(git rev-parse refs/remotes/upstream/main)" = "${{ needs.plan.outputs.upstream_main }}" || git fetch -q "https://github.com/$UPSTREAM_REPO.git" "${{ needs.plan.outputs.upstream_main }}"
           python3 ../tools/notchcast/ci.py replay . "${{ needs.plan.outputs.upstream_main }}"
       - name: Regenerate project before building main
         working-directory: src
@@ -138,7 +141,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$(git rev-parse HEAD)" -f state=success -f context=notchcast/tested \
+          source ../tools/notchcast/config.env
+          gh api -X POST "repos/$GITHUB_REPOSITORY/statuses/$(git rev-parse HEAD)" -f state=success -f context="$TESTED_CONTEXT" \
             -f description="Debug build and upstream tests green" -f target_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >/dev/null
       - name: Close resolved issues
         if: steps.update.outputs.lost != 'true'
@@ -222,75 +226,20 @@ jobs:
       - name: Replay our commits onto the tag
         working-directory: src
         run: |
-          git fetch -q https://github.com/abue-ammar/tinycast.git "+refs/heads/main:refs/remotes/upstream/main" "+refs/tags/$TAG:refs/tags/$TAG"
+          source ../tools/notchcast/config.env
+          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main" "+refs/tags/$TAG:refs/tags/$TAG"
           python3 ../tools/notchcast/ci.py replay . "refs/tags/$TAG^{commit}"
           echo "TAG_COMMIT=$(git rev-parse "refs/tags/$TAG^{commit}")" >> "$GITHUB_ENV"
       - uses: ./tools/notchcast/actions/tests
         with:
           upstream: ${{ env.TAG_COMMIT }}
-      - name: Import the signing identity
-        env:
-          P12_BASE64: ${{ secrets.SIGNING_P12_BASE64 }}
-          P12_PASSWORD: ${{ secrets.SIGNING_P12_PASSWORD }}
-        run: |
-          KEYCHAIN="$RUNNER_TEMP/signing.keychain-db"
-          KPW="$(openssl rand -base64 24)"
-          printf '%s' "$P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
-          security create-keychain -p "$KPW" "$KEYCHAIN"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN"
-          security unlock-keychain -p "$KPW" "$KEYCHAIN"
-          security import "$RUNNER_TEMP/cert.p12" -k "$KEYCHAIN" -P "$P12_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple: -s -k "$KPW" "$KEYCHAIN" >/dev/null
-          security list-keychains -d user -s "$KEYCHAIN" $(security list-keychains -d user | sed 's/"//g')
-          rm -f "$RUNNER_TEMP/cert.p12"
-      # Name and bundle id come from project.yml (Notchcast, app.notchcast); version and build from upstream's release.
-      - name: Build (Release, signed, arm64)
-        working-directory: src
-        env:
-          VERSION: ${{ steps.app.outputs.version }}
-          BUILD: ${{ steps.app.outputs.build }}
-        run: |
-          set -a; source ../tools/notchcast/config.env; set +a
-          xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Release \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
-            ARCHS=arm64 ONLY_ACTIVE_ARCH=NO \
-            CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY="$SIGN_IDENTITY" \
-            OTHER_CODE_SIGN_FLAGS="--timestamp=none" \
-            MARKETING_VERSION="$VERSION" CURRENT_PROJECT_VERSION="$BUILD" \
-            build -quiet
-      - name: Verify the app
-        env:
-          VERSION: ${{ steps.app.outputs.version }}
-        run: |
-          set -a; source tools/notchcast/config.env; set +a
-          NAME="$APP_NAME"
-          APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$NAME.app"
-          bash tools/notchcast/verify-signature.sh "$APP" ./src/Scripts/verify-signature.sh
-          ./tools/notchcast/check-identity.sh app "$APP"
-          codesign --verify --deep --strict "$APP"
-          plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$APP/Contents/Info.plist"; }
-          test "$(plist CFBundleIdentifier)" = "$BUNDLE_ID"
-          test "$(plist CFBundleShortVersionString)" = "$VERSION"
-          codesign -d --extract-certificates="$RUNNER_TEMP/cert" "$APP"
-          LEAF="$(shasum -a 1 "$RUNNER_TEMP/cert0" | awk '{print toupper($1)}')"
-          test "$LEAF" = "$SIGN_SHA1" || { echo "::error::signed by $LEAF, expected $SIGN_SHA1"; exit 1; }
-          for BIN in "$APP/Contents/MacOS/$NAME" "$APP/Contents/Helpers/ClipboardTextHelper" "$APP/Contents/Helpers/FileIndexHelper"; do
-            test "$(lipo -archs "$BIN")" = arm64
-          done
-      - name: Package zip and dmg
-        env:
-          VERSION: ${{ steps.app.outputs.version }}
-        run: |
-          set -a; source tools/notchcast/config.env; set +a
-          APP="$RUNNER_TEMP/DerivedData/Build/Products/Release/$APP_NAME.app"
-          mkdir -p dist
-          # Only ditto keeps the signature verifiable; the updater expands the zip with ditto.
-          ditto -c -k --keepParent --sequesterRsrc "$APP" "dist/$APP_NAME-$VERSION.zip"
-          STAGE="$(mktemp -d)"
-          cp -R "$APP" "$STAGE/"
-          ln -s /Applications "$STAGE/Applications"
-          hdiutil create -quiet -srcfolder "$STAGE" -volname "$APP_NAME" -format UDZO "dist/$APP_NAME-$VERSION.dmg"
-          ls -l dist
+      - uses: ./tools/notchcast/actions/release
+        with:
+          version: ${{ steps.app.outputs.version }}
+          build: ${{ steps.app.outputs.build }}
+          p12-base64: ${{ secrets.SIGNING_P12_BASE64 }}
+          p12-password: ${{ secrets.SIGNING_P12_PASSWORD }}
+          identity-first: 'true'
       - uses: ./tools/notchcast/actions/deploy-key
         with:
           key: ${{ secrets.DEPLOY_KEY }}
