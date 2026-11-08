@@ -5,6 +5,7 @@ import Foundation
 final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     @preconcurrency CBCentralManagerDelegate, @preconcurrency CBPeripheralDelegate {
     static let service = CBUUID(string: "FFF0")
+    static let discoveryServices = [CBUUID(string: "1826"), service]
     static let notify = CBUUID(string: "FFF1")
     static let write = CBUUID(string: "FFF2")
     var onEvent: ((TreadmillBluetoothEvent) -> Void)?
@@ -12,6 +13,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     private var pad: CBPeripheral?
     private var writer: CBCharacteristic?
     private var active = false
+    private var rejections = TreadmillPadRejections()
     private let defaults: UserDefaults
     private static let padIDKey = "treadmill.padID"
 
@@ -33,13 +35,13 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
         active = true
         if pad != nil { return false }
         if let id = defaults.string(forKey: Self.padIDKey).flatMap(UUID.init(uuidString:)),
-           let known = manager.retrievePeripherals(withIdentifiers: [id]).first {
+           rejections.allows(id), let known = manager.retrievePeripherals(withIdentifiers: [id]).first {
             pad = known
             known.delegate = self
             connect()
             return false
         }
-        manager.scanForPeripherals(withServices: nil,
+        manager.scanForPeripherals(withServices: Self.discoveryServices,
             options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
         return true
     }
@@ -56,6 +58,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
         let previous = pad
         pad = nil
         writer = nil
+        rejections.stop()
         previous?.delegate = nil
         if let previous { manager?.cancelPeripheralConnection(previous) }
     }
@@ -78,8 +81,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
                         advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String ?? peripheral.name
-        guard active, pad == nil, name == "URTM050" else { return }
+        guard active, pad == nil, rejections.allows(peripheral.identifier) else { return }
         pad = peripheral
         peripheral.delegate = self
         onEvent?(.discovered)
@@ -87,7 +89,6 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
 
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         guard active, peripheral === pad else { return }
-        defaults.set(peripheral.identifier.uuidString, forKey: Self.padIDKey)
         peripheral.discoverServices([Self.service])
     }
 
@@ -106,20 +107,21 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
         guard active, peripheral === pad else { return }
-        guard error == nil, let service = peripheral.services?.first(where: { $0.uuid == Self.service })
-        else { completeSetup(success: false) { self.manager?.cancelPeripheralConnection(peripheral) }; return }
+        guard error == nil else { discoveryFailed(peripheral); return }
+        guard let service = peripheral.services?.first(where: { $0.uuid == Self.service })
+        else { reject(peripheral); return }
         peripheral.discoverCharacteristics([Self.notify, Self.write], for: service)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService,
                     error: (any Error)?) {
         guard active, peripheral === pad, service.uuid == Self.service else { return }
-        guard error == nil,
-              let notify = service.characteristics?.first(where: { $0.uuid == Self.notify }),
+        guard error == nil else { discoveryFailed(peripheral); return }
+        guard let notify = service.characteristics?.first(where: { $0.uuid == Self.notify }),
               let write = service.characteristics?.first(where: { $0.uuid == Self.write }),
               notify.properties.contains(.notify),
               !write.properties.intersection([.write, .writeWithoutResponse]).isEmpty
-        else { completeSetup(success: false) { self.manager?.cancelPeripheralConnection(peripheral) }; return }
+        else { reject(peripheral); return }
         writer = write
         peripheral.setNotifyValue(true, for: notify)
     }
@@ -127,13 +129,25 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic,
                     error: (any Error)?) {
         guard active, peripheral === pad, characteristic.uuid == Self.notify else { return }
-        completeSetup(success: error == nil && characteristic.isNotifying) {
-            self.manager?.cancelPeripheralConnection(peripheral)
+        guard error == nil, characteristic.isNotifying else { reject(peripheral); return }
+        rejections.ready()
+        defaults.set(peripheral.identifier.uuidString, forKey: Self.padIDKey)
+        onEvent?(.ready)
+    }
+
+    private func discoveryFailed(_ peripheral: CBPeripheral) {
+        if rejections.discoveryFailed() { reject(peripheral) } else {
+            manager?.cancelPeripheralConnection(peripheral)
         }
     }
 
-    func completeSetup(success: Bool, cancel: () -> Void) {
-        if success { onEvent?(.ready) } else { cancel() }
+    private func reject(_ peripheral: CBPeripheral) {
+        rejections.reject(peripheral.identifier)
+        pad = nil
+        writer = nil
+        peripheral.delegate = nil
+        manager?.cancelPeripheralConnection(peripheral)
+        onEvent?(.rejected)
     }
 
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic,

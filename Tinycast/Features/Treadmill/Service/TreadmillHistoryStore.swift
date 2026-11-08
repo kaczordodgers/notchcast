@@ -12,9 +12,9 @@ final class TreadmillHistoryStore {
 
     init(repository: TreadmillRepository) { self.repository = repository }
 
-    func load(calendar: Calendar) async throws {
+    func load() async throws {
         guard !isLoaded else { return }
-        let loaded = try await repository.load(calendar: calendar)
+        let loaded = try await repository.load()
         try Task.checkCancellation()
         guard !isLoaded else { return }
         archive = loaded

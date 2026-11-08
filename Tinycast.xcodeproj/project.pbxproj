@@ -139,6 +139,7 @@
 		112B74EC497071EB5AD2C222 /* DictationIslandHUDPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B93AFEE4701AB7F1B2227E4 /* DictationIslandHUDPolicy.swift */; };
 		1130E414461A3373899056A9 /* TweaksStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A803EA633937B8C0A40636 /* TweaksStore.swift */; };
 		116C458286CD49E0AA8EA078 /* RemoteScreenState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C794B42BC4C230797CEFE0A9 /* RemoteScreenState.swift */; };
+		1185BC7DF64AC62201BE54E5 /* TreadmillPadRejections.swift in Sources */ = {isa = PBXBuildFile; fileRef = 673293E0A441625A6FC4296B /* TreadmillPadRejections.swift */; };
 		118C0B7F7C7953868254F8B3 /* QuickLookSpacePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0FFB7AE172F2D4981170243B /* QuickLookSpacePolicy.swift */; };
 		11A0F91815E5DFE1AB08CC20 /* FormFieldChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = C06BD8A507191F2621FCFFC7 /* FormFieldChrome.swift */; };
 		11AB546144F4F6711FB86A4C /* IslandMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FAF815793A69D67A5467C45 /* IslandMotion.swift */; };
@@ -985,6 +986,7 @@
 		81E707D618CCC08D5FE3176F /* IslandMotionStage+Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7457055753B7B5FB05397219 /* IslandMotionStage+Player.swift */; };
 		81E77E1312A242B1DA9940F8 /* TorrentToolLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C864672D910715D52367B35 /* TorrentToolLocator.swift */; };
 		8201A94ED9BAAB2B7E6A9010 /* RemoteScreenAddress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC705BB4323C48C670FC34F /* RemoteScreenAddress.swift */; };
+		8207091EC44ED959EC7AB27A /* AgentSessionExclusions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13452263C64300251F322988 /* AgentSessionExclusions.swift */; };
 		821FEEC6D57CA8D81FAD10DE /* WindowLayoutCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE58163F028AC3AD537AAC3 /* WindowLayoutCoordinator.swift */; };
 		8251B5D0F525BB3816DBADA2 /* GPUService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D3AD582EBA9DBE8418DFBE6E /* GPUService.swift */; };
 		8272A93BFE174A0B10C4E56F /* OpenBotAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = F332EB81FA859FB031D85761 /* OpenBotAgent.swift */; };
@@ -1179,7 +1181,6 @@
 		9B19276F20B240F75D09B614 /* NotchcastLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 471802CC0FA07F3DF1FE2D84 /* NotchcastLauncher.swift */; };
 		9B33859F8432946F7D6DF015 /* FilesAndClipboardSettingRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D6CA1B75454D55D1E61F338 /* FilesAndClipboardSettingRows.swift */; };
 		9B3BC1DCC478DA7517F04182 /* CalculatorHistoryScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86545F54669A075FBDA5D1F1 /* CalculatorHistoryScreen.swift */; };
-		9B50BD37183EA2D96A0FD961 /* TreadmillImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC6DC93A5A65D62C03BCC25B /* TreadmillImport.swift */; };
 		9B65D5176495DDF3D0F84CB6 /* BatterySettingRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD77A27BA91ADE39761C8D5A /* BatterySettingRows.swift */; };
 		9B798FDE094865BA613E00D0 /* FileSearchIgnoreList.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBFF39C46E98D0808B188E2E /* FileSearchIgnoreList.swift */; };
 		9B8C1C35BA7DFC41F1A070CD /* ExtensionSelectionForwarder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF4FF95DC8A5CD7676DCBA60 /* ExtensionSelectionForwarder.swift */; };
@@ -2178,6 +2179,7 @@
 		1327E808E4143D3E6E8914BC /* AudioPriorityDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPriorityDevice.swift; sourceTree = "<group>"; };
 		132C5A534C02305C1A29CC74 /* LauncherList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherList.swift; sourceTree = "<group>"; };
 		132FBA3F0A0B4F6C796B901B /* NoteSwitcherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteSwitcherView.swift; sourceTree = "<group>"; };
+		13452263C64300251F322988 /* AgentSessionExclusions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSessionExclusions.swift; sourceTree = "<group>"; };
 		134523530108C7EE37EB5B18 /* ClaudeMCPLaunch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeMCPLaunch.swift; sourceTree = "<group>"; };
 		1351A4B7E845BE89D9B2DD14 /* CopyPathModule+Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CopyPathModule+Command.swift"; sourceTree = "<group>"; };
 		1355D9F19F1FB4368F76B4E1 /* IslandMessage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandMessage.swift; sourceTree = "<group>"; };
@@ -2819,6 +2821,7 @@
 		666E0A469BE1984BEF1A9A50 /* CalcDimension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcDimension.swift; sourceTree = "<group>"; };
 		669FA6560666E46063407EC9 /* ThemedSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemedSurface.swift; sourceTree = "<group>"; };
 		66A75A4E9BD3B20FEF7CC7B3 /* MachLinkUsagePeerChannel+Health.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MachLinkUsagePeerChannel+Health.swift"; sourceTree = "<group>"; };
+		673293E0A441625A6FC4296B /* TreadmillPadRejections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreadmillPadRejections.swift; sourceTree = "<group>"; };
 		676760D8D30526B99A1F97B7 /* RoomPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPreviewController.swift; sourceTree = "<group>"; };
 		677036AB7EE67B050C2930D5 /* AXScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXScreens.swift; sourceTree = "<group>"; };
 		6778F970DEDAD288BE67ED19 /* NotchcastDownloadRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastDownloadRunner.swift; sourceTree = "<group>"; };
@@ -3845,7 +3848,6 @@
 		EC2EF66267B0141279A43613 /* SnippetsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnippetsSettingsView.swift; sourceTree = "<group>"; };
 		EC3D5A5B8038C07FEE03F433 /* KeyboardRemapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRemapper.swift; sourceTree = "<group>"; };
 		EC556B627740567074AB96D6 /* AllowedDeepLinksSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllowedDeepLinksSection.swift; sourceTree = "<group>"; };
-		EC6DC93A5A65D62C03BCC25B /* TreadmillImport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreadmillImport.swift; sourceTree = "<group>"; };
 		EC895E9AF76C4530E52C34BB /* WindowShortcutPresetCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowShortcutPresetCoordinator.swift; sourceTree = "<group>"; };
 		ECADE14DEB12279E53817B2F /* LevelNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelNotice.swift; sourceTree = "<group>"; };
 		ECE4D3633895F0E27FE3252D /* NoteInlineScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteInlineScanner.swift; sourceTree = "<group>"; };
@@ -4619,7 +4621,7 @@
 				172EB21BF9E44B0A1256745F /* TreadmillArchive.swift */,
 				CE3BEEB59FA1155A570E3153 /* TreadmillFailure.swift */,
 				B2402557FE8B2C61B8C5ACC8 /* TreadmillGoal.swift */,
-				EC6DC93A5A65D62C03BCC25B /* TreadmillImport.swift */,
+				673293E0A441625A6FC4296B /* TreadmillPadRejections.swift */,
 				9385B78E5B08395783B23CE4 /* TreadmillProtocol.swift */,
 				14BC8F66F8B2E3E25D9C1A2A /* TreadmillRecord.swift */,
 				29E5F0E34D56DAB0D612846B /* TreadmillSample.swift */,
@@ -7766,6 +7768,7 @@
 			isa = PBXGroup;
 			children = (
 				94A505DA35A19C0551FBCA43 /* AgentSessionDatabase.swift */,
+				13452263C64300251F322988 /* AgentSessionExclusions.swift */,
 				9B59F109217D6EE8691B7628 /* AgentSessionIndex.swift */,
 			);
 			path = Service;
@@ -10116,6 +10119,7 @@
 				98F10D7FC136B3DB58D1261F /* AgentSession.swift in Sources */,
 				D7736A666985713B30B01957 /* AgentSessionAccumulator.swift in Sources */,
 				60BABDA993B8C5E82110FA22 /* AgentSessionDatabase.swift in Sources */,
+				8207091EC44ED959EC7AB27A /* AgentSessionExclusions.swift in Sources */,
 				626B3C4293F4E5858577BF22 /* AgentSessionIndex.swift in Sources */,
 				4B0636C7E4AD3EEFD9D6705A /* AgentSessionPricing.swift in Sources */,
 				EAB5AFFE9EA522E701A36976 /* AgentSessionsModule+Command.swift in Sources */,
@@ -11757,8 +11761,8 @@
 				F7298CA93AC3A7DFBE73678E /* TreadmillFailure.swift in Sources */,
 				78833950108EC32E57D8CA90 /* TreadmillGoal.swift in Sources */,
 				BF8A5300FEEFF53E37DE365A /* TreadmillHistoryStore.swift in Sources */,
-				9B50BD37183EA2D96A0FD961 /* TreadmillImport.swift in Sources */,
 				CFECA7184E993199BF6D41D8 /* TreadmillModule.swift in Sources */,
+				1185BC7DF64AC62201BE54E5 /* TreadmillPadRejections.swift in Sources */,
 				32A3AF20A01D35C8A5C12ACE /* TreadmillPreferences.swift in Sources */,
 				8EB3D557555A20B6917C3E16 /* TreadmillProtocol.swift in Sources */,
 				19A1776CAE5277B83E5D716F /* TreadmillRecord.swift in Sources */,

@@ -1,0 +1,33 @@
+diff --git a/Tinycast/DesignSystem/PopoverMenu.swift b/Tinycast/DesignSystem/PopoverMenu.swift
+index d9866b777..6e4b2b69e 100644
+--- a/Tinycast/DesignSystem/PopoverMenu.swift
++++ b/Tinycast/DesignSystem/PopoverMenu.swift
+@@ -128,7 +128,7 @@ struct PopoverMenu: View {
+             attachedRadius: metrics.size.menuButton / 2)
+         surfaceContent
+             .frame(width: width ?? metrics.size.actionMenuWidth)
+-            .glassEffect(.regular, in: shape)
++            .glassEffect(AppearanceThemeColors.tinted(.regular), in: shape)
+     }
+ 
+     private var surfaceContent: some View {
+diff --git a/Tinycast/Palette/RootPaletteView.swift b/Tinycast/Palette/RootPaletteView.swift
+index d9c165357..484141e83 100644
+--- a/Tinycast/Palette/RootPaletteView.swift
++++ b/Tinycast/Palette/RootPaletteView.swift
+@@ -133,6 +133,7 @@ struct RootPaletteView: View {
+         case .extensionCommand:
+             return ExtensionCommandScreen(
+                 screen: extensionScreen, extensions: extensions, vm: vm, openActions: openActions)
++        case .theme: return ThemeCommandScreen(coordinator: core.appearanceCoordinator, vm: vm)
+         }
+     }
+ 
+@@ -342,6 +343,7 @@ struct RootPaletteView: View {
+                 )
+                 // The window's frame is the size source, so the glass and clip stay matched.
+                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
++                .background(AppearanceThemeColors.backdrop(hidden: isCollapsed))
+                 // Identity rather than removed, so expanding never rebuilds the tree it sits on.
+                 .glassEffect(
+                     isCollapsed ? .identity : .regular,

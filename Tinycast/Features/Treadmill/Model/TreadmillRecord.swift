@@ -20,11 +20,4 @@ struct TreadmillRecord: Codable, Equatable, Hashable, Sendable {
             $0.isFinite && (0...253_402_300_799).contains($0)
         } && ended >= started
     }
-
-    static func parseJSONLines(_ data: Data) -> [Self] {
-        data.split(separator: 0x0A).compactMap { line in
-            guard let record = try? JSONDecoder().decode(Self.self, from: Data(line)), record.isValid else { return nil }
-            return record
-        }
-    }
 }

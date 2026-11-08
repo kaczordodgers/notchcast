@@ -13,7 +13,7 @@ files, so those never conflict and never travel in our diffs. Two commits are ma
 "Notchcast: remove upstream workflows" (git rm -r .github/workflows), so upstream workflow edits never conflict and
 new ones never land, and "Notchcast: generated files", always last, which rewrites GENERATED (`regenerate`).
 Catalog conflicts merge by key; other conflicts use per-file diffs from the replay tip in main's
-replay-fixes/<lowercase subject, non-alphanumerics hyphenated>.patch or fail.
+replay-fixes/<lowercase subject, non-alphanumerics hyphenated>[.<base label>].patch (the first that applies) or fail.
 Failures are remembered as refs/notchcast-failed/<main|release-<tag>>-<upstream or tag>-<our main>, so the same
 input is retried only when upstream or our main changes, and reported as one open issue per kind (label
 notchcast-<kind>: sync = replay onto new upstream, main = main tested as it is, release), which a newer failure with
@@ -194,6 +194,15 @@ class Conflict(Exception):
                    if touched else "No upstream commit touched them, so an earlier commit of ours moved the lines.\n"))
 
 
+def replay_fixes(tree, main, name):
+    """main's stored fixes for one commit: <name>.patch, then <name>.<base label>.patch for older release bases."""
+    listed = run("git", "ls-tree", "--name-only", main, "notchcast/replay-fixes/", cwd=tree).splitlines()
+    bare = f"notchcast/replay-fixes/{name}.patch"
+    return ([bare] if bare in listed else []) + sorted(
+        path for path in listed
+        if path.startswith(bare.removesuffix("patch")) and path.endswith(".patch") and path != bare)
+
+
 def replay(tree, onto, check=False):
     """Replay merge-base(HEAD, upstream main)..HEAD onto `onto` in tree; leaves tree detached at the result.
     With check=True (plan, on Linux) the generated files are not regenerated. Raises Conflict."""
@@ -240,23 +249,27 @@ def replay(tree, onto, check=False):
             if (picked.returncode and not conflicts and not resolved_catalog
                     or set(conflicts) - set(GENERATED)):
                 name = re.sub(r"[^a-z0-9]+", "-", subject.lower()).strip("-")
-                patch = subprocess.run(
-                    ["git", "show", f"{main}:notchcast/replay-fixes/{name}.patch"],
-                    cwd=tree, text=True, capture_output=True)
                 applied = None
                 expected = set(conflicts) - set(GENERATED) - {catalog}
-                paths = subprocess.run(["git", "apply", "--numstat", "-z", "-"], input=patch.stdout,
-                                       cwd=tree, text=True, capture_output=True)
-                covered = {entry.split("\t", 2)[2] for entry in paths.stdout.split("\0") if entry}
-                if expected and patch.returncode == 0 and paths.returncode == 0 and covered == expected:
+                for fix in replay_fixes(tree, main, name):
+                    patch = subprocess.run(["git", "show", f"{main}:{fix}"], cwd=tree, text=True,
+                                           capture_output=True, check=True).stdout
+                    paths = subprocess.run(["git", "apply", "--numstat", "-z", "-"], input=patch,
+                                           cwd=tree, text=True, capture_output=True)
+                    covered = {entry.split("\t", 2)[2] for entry in paths.stdout.split("\0") if entry}
+                    if not expected or paths.returncode or covered != expected:
+                        continue
                     for path in expected:
                         if subprocess.run(["git", "cat-file", "-e", f"HEAD:{path}"], cwd=tree,
                                           stderr=subprocess.DEVNULL).returncode == 0:
                             run("git", "checkout", "HEAD", "--", path, cwd=tree)
                         else:
-                            run("git", "rm", "-q", "-f", "--", path, cwd=tree)
-                    applied = subprocess.run(["git", "apply", "--index", "-"], input=patch.stdout,
+                            run("git", "rm", "-q", "-f", "--ignore-unmatch", "--", path, cwd=tree)
+                    # git apply is all-or-nothing, so a fix for another base leaves the tree for the next one.
+                    applied = subprocess.run(["git", "apply", "--index", "-"], input=patch,
                                              cwd=tree, text=True, capture_output=True)
+                    if applied.returncode == 0:
+                        break
                 remaining = run("git", "diff", "--name-only", "--diff-filter=U", cwd=tree).split()
                 if applied is None or applied.returncode or set(remaining) - set(GENERATED):
                     run("git", "reset", "-q", "--hard", cwd=tree)
