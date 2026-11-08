@@ -1,4 +1,7 @@
 {
+  ".github/CONTRIBUTING.md": {"UPSTREAM_REPO": 2, "FORK_REPO": 1},
+  ".github/ISSUE_TEMPLATE/notchcast-bug.yml": {"UPSTREAM_REPO": 1, "FORK_REPO": 1},
+  ".github/SECURITY.md": {"UPSTREAM_REPO": 1, "FORK_REPO": 1},
   ".github/workflows/sync.yml": {"TESTED_CONTEXT": 2},
   "notchcast/README.md": {"UPSTREAM_REPO": 3, "FORK_REPO": 4, "TESTED_CONTEXT": 1},
   "notchcast/README.public.md": {"UPSTREAM_REPO": 2, "FORK_REPO": 8},
@@ -16,6 +19,5 @@
   "notchcast/land-test.sh": {"FORK_REPO": 3, "MAINTAINER_NAME": 1, "MAINTAINER_EMAIL": 1},
   "notchcast/land-tools-test.sh": {"MAINTAINER_NAME": 1, "MAINTAINER_EMAIL": 1},
   "notchcast/prune-branches-test.sh": {"FORK_REPO": 1},
-  "notchcast/root/README.md": {"MAINTAINER_NAME": 1},
-  "notchcast/update.sh": {"FORK_REPO": 1}
+  "notchcast/root/README.md": {"MAINTAINER_NAME": 1}
 }

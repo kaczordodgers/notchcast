@@ -10,12 +10,14 @@ ROOT = Path(__file__).resolve().parent.parent
 KEYS = ('UPSTREAM_REPO', 'FORK_REPO', 'MAINTAINER_NAME', 'MAINTAINER_EMAIL', 'TESTED_CONTEXT')
 FORK_WORKFLOWS = ('design', 'generated-retry', 'generated', 'leaks', 'main-harnesses',
                   'pr', 'proof', 'snapshot', 'sync')
+FORK_GITHUB_FILES = ('.github/CONTRIBUTING.md', '.github/SECURITY.md',
+                     '.github/ISSUE_TEMPLATE/notchcast-bug.yml')
 
 
 def inventory(root, cfg):
     paths = subprocess.check_output(
         ['git', 'ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', 'notchcast',
-         *(f'.github/workflows/{name}.yml' for name in FORK_WORKFLOWS)],
+         *(f'.github/workflows/{name}.yml' for name in FORK_WORKFLOWS), *FORK_GITHUB_FILES],
         cwd=root).decode().split('\0')
     found = {}
     for path in sorted(set(paths) - {'', 'notchcast/config.env'}):
