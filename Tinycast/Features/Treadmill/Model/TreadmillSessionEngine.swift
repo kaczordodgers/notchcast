@@ -55,9 +55,9 @@ struct TreadmillSessionEngine: Sendable {
         return [TreadmillProtocol.resume]
     }
 
-    mutating func stop() -> [Data] {
-        silentStopDeadline = walk == nil ? silentStopDeadline ?? startDeadline : nil
-        stopping = walk != nil || silentStopDeadline != nil
+    mutating func stop(now: Date) -> [Data] {
+        stopping = true
+        silentStopDeadline = now.addingTimeInterval(Self.silenceTimeout)
         startFrame = nil
         startDeadline = nil
         restoreSpeed = false
@@ -98,10 +98,11 @@ struct TreadmillSessionEngine: Sendable {
             switch status.phase {
             case .countdown, .running, .slowing, .paused:
                 if update.commands.isEmpty { update.commands.append(TreadmillProtocol.stop) }
-                if silentStopDeadline != nil { silentStopDeadline = now.addingTimeInterval(Self.silenceTimeout) }
+                silentStopDeadline = now.addingTimeInterval(Self.silenceTimeout)
                 return update
             case .standby, .ready, .asleep, .ended, .error:
                 stopping = false
+                silentStopDeadline = nil
             }
         }
         switch status.phase {
@@ -160,6 +161,7 @@ struct TreadmillSessionEngine: Sendable {
         walk = nil
         movingSpeed = nil
         stopping = false
+        silentStopDeadline = nil
         clearPending()
     }
 
