@@ -19,6 +19,8 @@ parser.add_argument("--list", action="store_true", help="list selected tests wit
 args = parser.parse_args()
 discovered = sorted(path for suffix in RUNTIMES for path in Path("notchcast").rglob(f"*-test{suffix}"))
 tests = [path for path in discovered if args.all or path not in ALL_ONLY]
+if not tests:
+    sys.exit("script-tests.py: no tests found; run it from the repository root")
 if args.list:
     print("\n".join(map(str, tests)))
 else:
