@@ -252,7 +252,8 @@ def replay(tree, onto, check=False):
                 applied = None
                 expected = set(conflicts) - set(GENERATED) - {catalog}
                 for fix in replay_fixes(tree, main, name):
-                    patch = run("git", "show", f"{main}:{fix}", cwd=tree) + "\n"
+                    patch = subprocess.run(["git", "show", f"{main}:{fix}"], cwd=tree, text=True,
+                                           capture_output=True, check=True).stdout
                     paths = subprocess.run(["git", "apply", "--numstat", "-z", "-"], input=patch,
                                            cwd=tree, text=True, capture_output=True)
                     covered = {entry.split("\t", 2)[2] for entry in paths.stdout.split("\0") if entry}
@@ -263,7 +264,7 @@ def replay(tree, onto, check=False):
                                           stderr=subprocess.DEVNULL).returncode == 0:
                             run("git", "checkout", "HEAD", "--", path, cwd=tree)
                         else:
-                            run("git", "rm", "-q", "-f", "--", path, cwd=tree)
+                            run("git", "rm", "-q", "-f", "--ignore-unmatch", "--", path, cwd=tree)
                     # git apply is all-or-nothing, so a fix for another base leaves the tree for the next one.
                     applied = subprocess.run(["git", "apply", "--index", "-"], input=patch,
                                              cwd=tree, text=True, capture_output=True)
