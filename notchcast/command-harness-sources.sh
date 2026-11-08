@@ -27,3 +27,13 @@ if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
         [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
     done
 fi
+
+# Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
+identity_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done; true)
+if [[ " $* " != *" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift "* ]] &&
+    grep -lqs NotchcastIdentity $identity_readers /dev/null; then
+    set -- "$@" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
+    # A harness that stubs AppPaths keeps its stub.
+    [[ " $* " == *" Tinycast/Platform/AppPaths.swift "* ]] || grep -q '^enum AppPaths' "Tests/$name.swift" ||
+        set -- "$@" Tinycast/Platform/AppPaths.swift
+fi

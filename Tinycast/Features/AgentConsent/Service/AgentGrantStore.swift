@@ -7,7 +7,8 @@ final class AgentGrantStore {
     private(set) var grants: [AgentConsentPolicy.Grant]
 
     init(bundleIdentifier: String) throws {
-        guard let defaults = UserDefaults(suiteName: bundleIdentifier + ".notchcast.agent-consent") else {
+        let suite = NotchcastIdentity(bundleIdentifier: bundleIdentifier).suiteName(suffix: ".notchcast.agent-consent")
+        guard let defaults = UserDefaults(suiteName: suite) else {
             throw CocoaError(.fileReadUnknown)
         }
         self.defaults = defaults

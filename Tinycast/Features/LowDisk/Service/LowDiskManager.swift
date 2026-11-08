@@ -8,7 +8,7 @@ final class LowDiskManager {
     typealias Read = @Sendable () async throws -> LowDiskEngine.Space
     static let checkInterval: Duration = .seconds(600)
     private static let spellKey = "notchcast.lowDisk.isLow"
-    private static let log = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Notchcast", category: "LowDisk")
+    private static let log = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "LowDisk")
 
     private(set) var engine: LowDiskEngine
     private(set) var isRunning = false
@@ -23,8 +23,7 @@ final class LowDiskManager {
     @ObservationIgnored private var generation = UUID()
     @ObservationIgnored private var readAgain = false
 
-    init(defaults: UserDefaults = UserDefaults(suiteName:
-             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+    init(defaults: UserDefaults = NotchcastIdentity.current.defaults,
          volumeURL: URL = URL(filePath: NSHomeDirectory()),
          interval: Duration = checkInterval,
          wakeCenter: NotificationCenter = NSWorkspace.shared.notificationCenter, read: Read? = nil) {

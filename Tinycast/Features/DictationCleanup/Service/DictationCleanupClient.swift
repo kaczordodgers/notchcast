@@ -28,8 +28,7 @@ struct DictationCleanupHTTPClient: DictationCleanupClient {
     }
 
     func clean(_ request: URLRequest) async throws -> String {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.httpCookieStorage = nil
         configuration.urlCredentialStorage = nil
         configuration.timeoutIntervalForResource = request.timeoutInterval

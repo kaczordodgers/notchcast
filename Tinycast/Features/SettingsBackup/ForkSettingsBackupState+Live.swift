@@ -98,7 +98,7 @@ extension ForkSettingsBackupState {
     }
 
     private static var cleanupStore: DictationCleanupSettingsStore {
-        let identifier = Bundle.main.bundleIdentifier ?? "app.notchcast.dev"
+        let identifier = NotchcastIdentity.current.bundleID
         return DictationCleanupSettingsStore(defaults: DayStorage.defaults, bundleIdentifier: identifier)
     }
 
@@ -114,7 +114,7 @@ extension ForkSettingsBackupState {
     }
 
     private static func logSkipped(_ key: String) {
-        Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "SettingsBackup")
+        Logger(subsystem: NotchcastIdentity.current.bundleID, category: "SettingsBackup")
             .error("Skipping invalid backup key: \(key, privacy: .public)")
     }
 

@@ -2,7 +2,7 @@ import Foundation
 import os
 
 enum DictationCleanup {
-    private static let logger = Logger(subsystem: "app.notchcast", category: "DictationCleanup")
+    private static let logger = Logger(subsystem: NotchcastIdentity.releaseBundleIdentifier, category: "DictationCleanup")
 
     @concurrent
     static func process(_ raw: String, language: String?) async -> String {
