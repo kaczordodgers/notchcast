@@ -21,7 +21,7 @@ import Foundation
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
 }
 enum AppPaths {
-    static func applicationSupport() -> URL { URL(fileURLWithPath: "/unused") }
+    static func applicationSupport(bundleID: String = "") -> URL { URL(fileURLWithPath: "/unused") }
 }
 @MainActor final class AppCore {
     var messages: [String] = []

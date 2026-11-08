@@ -41,7 +41,7 @@ final class SoloistInstaller: SoloistBuildSource {
         } catch {
             try Task.checkCancellation()
             let failure = (error as? SoloistFailure) ?? .filesystem.detail(SoloistFailure.describe(error))
-            Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(fallback: NotchcastIdentity.upstreamBundleIdentifier), category: "Soloist")
+            Logger(subsystem: NotchcastIdentity.upstreamFallbackSubsystem, category: "Soloist")
                 .error("Soloist download: \(String(describing: failure), privacy: .public)")
             throw failure
         }

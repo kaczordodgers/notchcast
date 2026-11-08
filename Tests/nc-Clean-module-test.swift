@@ -9,7 +9,7 @@
 import Foundation
 
 enum AppPaths {
-    static func applicationSupport() -> URL { FileManager().temporaryDirectory }
+    static func applicationSupport(bundleID: String = "") -> URL { FileManager().temporaryDirectory }
 }
 
 struct DialogAction {

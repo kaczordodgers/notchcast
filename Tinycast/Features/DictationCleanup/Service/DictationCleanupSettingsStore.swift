@@ -15,7 +15,8 @@ struct DictationCleanupSettingsStore {
     }
 
     static func live(bundleIdentifier: String) -> Self? {
-        guard let defaults = UserDefaults(suiteName: NotchcastIdentity(bundleIdentifier: bundleIdentifier).suiteName()) else { return nil }
+        let suite = NotchcastIdentity(bundleIdentifier: bundleIdentifier).suiteName()
+        guard let defaults = UserDefaults(suiteName: suite) else { return nil }
         return Self(defaults: defaults, bundleIdentifier: bundleIdentifier)
     }
 

@@ -85,7 +85,7 @@ final class EditorCoordinator: NotchcastModule {
             let logger = Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(), category: "editor")
             do {
                 let recovery = try await EditorRecoveryService.flush(
-                    document, directory: NotchcastIdentity.current.standardApplicationSupport.appendingPathComponent("EditorRecovery"))
+                    document, directory: NotchcastIdentity.supportRoot.appendingPathComponent("EditorRecovery"))
                 if let recovery {
                     logger.error("Document recovered at termination: \(recovery.path, privacy: .private)")
                 }

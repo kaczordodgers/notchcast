@@ -24,7 +24,7 @@ final class KatanaModule: NotchcastModule {
         guard let index else { return }
         unregister()
         do { try AgentDeviceActions.register(.katana, backend: self, in: index) } catch {
-            Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(fallback: NotchcastIdentity.releaseBundleIdentifier), category: "Katana")
+            Logger(subsystem: NotchcastIdentity.releaseFallbackSubsystem, category: "Katana")
                 .error("Action registration failed: \(error.localizedDescription, privacy: .public)")
             unregister()
         }

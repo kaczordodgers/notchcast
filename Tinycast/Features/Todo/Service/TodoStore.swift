@@ -74,7 +74,7 @@ final class TodoStore {
     isolated deinit {
         guard !isClosed else { return }
         do { try log.close() } catch {
-            Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(fallback: NotchcastIdentity.releaseBundleIdentifier), category: "Todo")
+            Logger(subsystem: NotchcastIdentity.releaseFallbackSubsystem, category: "Todo")
                 .error("Task log failed to close: \(error)")
         }
     }

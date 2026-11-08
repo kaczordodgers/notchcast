@@ -21,9 +21,11 @@ fi
 
 # Fork identity (suite, paths, subsystem, session) is read by fork files any harness may compile.
 if [[ " $* " == *" Tinycast/"* ]]; then
-    for source in Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift; do
-        [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
-    done
+    [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift "* ]] ||
+        set -- "$@" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
+    # A harness that stubs AppPaths keeps its stub; it then takes the bundleID: label.
+    [[ " $* " == *" Tinycast/Platform/AppPaths.swift "* ]] || grep -q '^enum AppPaths' "Tests/$name.swift" ||
+        set -- "$@" Tinycast/Platform/AppPaths.swift
 fi
 
 if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then

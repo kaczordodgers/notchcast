@@ -8,6 +8,10 @@ struct NotchcastIdentity: Sendable {
     static let displayName = "Notchcast"
 
     static var current: Self { Self(bundleIdentifier: Bundle.main.bundleIdentifier) }
+    static var supportRoot: URL { current.standardApplicationSupport }
+    static var releaseFallbackSubsystem: String { current.loggerSubsystem(fallback: releaseBundleIdentifier) }
+    static var upstreamFallbackSubsystem: String { current.loggerSubsystem(fallback: upstreamBundleIdentifier) }
+    static var displayNameFallbackSubsystem: String { current.loggerSubsystem(fallback: displayName) }
 
     let bundleIdentifier: String?
 

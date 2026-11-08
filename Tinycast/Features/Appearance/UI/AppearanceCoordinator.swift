@@ -112,7 +112,7 @@ final class AppearanceCoordinator: NotchcastModule {
             url.host(percentEncoded: false)?.lowercased() == "theme"
         else { return false }
         guard isEnabled else {
-            Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(fallback: NotchcastIdentity.releaseBundleIdentifier), category: "Appearance")
+            Logger(subsystem: NotchcastIdentity.releaseFallbackSubsystem, category: "Appearance")
                 .notice("Theme link ignored because Appearance is disabled.")
             return true
         }
