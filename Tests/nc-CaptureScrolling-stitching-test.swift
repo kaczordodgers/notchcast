@@ -88,6 +88,21 @@ struct CaptureScrollingTests {
         precondition(add([1, 2, 3], to: &tiny) == .unchanged)
     }
 
+    static func stickyEvidenceTests() {
+        let margin = Array(repeating: 7, count: 25)
+        var topMargin = stitcher(Array(margin[..<20]) + Array(0..<80))
+        precondition(add(Array(margin[..<15]) + Array(0..<85), to: &topMargin) == .added(5))
+        expectImage(topMargin, rows: Array(margin[..<20]) + Array(0..<85))
+        var bottomMargin = stitcher(Array(0..<80) + Array(margin[..<20]))
+        precondition(add(Array(5..<80) + margin, to: &bottomMargin) == .added(5))
+        expectImage(bottomMargin, rows: Array(0..<80) + margin)
+
+        var transient = stitcher(Array(0..<100))
+        precondition(add(Array(0..<20) + Array(500..<580), to: &transient) == .unmatched)
+        precondition(add(Array(40..<140), to: &transient) == .added(40))
+        expectImage(transient, rows: Array(0..<140))
+    }
+
     static func repeatedRowsTests() {
         var blank = stitcher(Array(repeating: 7, count: 100))
         precondition(add(Array(repeating: 7, count: 100), to: &blank) == .unchanged)
@@ -242,6 +257,7 @@ struct CaptureScrollingTests {
     @MainActor
     static func main() async throws {
         overlapTests()
+        stickyEvidenceTests()
         repeatedRowsTests()
         limitTests()
         cadenceAndGeometryTests()
