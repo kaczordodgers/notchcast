@@ -15,7 +15,8 @@ PATTERNS = {
 }
 ALLOW_FILES = {"notchcast/check-identity.py": "guard pattern definitions"}
 HEAD = "HEAD"
-ALLOWED = runpy.run_path(str(Path(__file__).with_name("check-commit-emails.py")))["ALLOWED"]
+EMAIL_POLICY = runpy.run_path(str(Path(__file__).with_name("check-commit-emails.py")))
+ALLOWED = EMAIL_POLICY["ALLOWED"]
 
 
 def git(*args):
@@ -144,7 +145,7 @@ def main():
             if email not in ALLOWED:
                 print(f"check-identity: {role.lower()}: non-allowed email; "
                       "fix with git config user.email "
-                      "336236323+kaczordodgers@users.noreply.github.com")
+                      f"{EMAIL_POLICY['CONFIG']['MAINTAINER_EMAIL']}")
                 failed = True
             failed |= inspect(identity, role.lower())
         return failed

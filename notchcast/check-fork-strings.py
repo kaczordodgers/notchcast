@@ -21,7 +21,7 @@ def check():
     if subprocess.run(['git', '-C', str(ROOT), 'rev-parse', '-q', '--verify', 'refs/remotes/upstream/main'],
                       capture_output=True).returncode:
         subprocess.check_call(['git', '-C', str(ROOT), 'fetch', '-q', '--no-tags',
-                               'https://github.com/abue-ammar/tinycast.git', '+refs/heads/main:refs/remotes/upstream/main'])
+                               "https://github.com/{}.git".format(tools['CONFIG']['UPSTREAM_REPO']), '+refs/heads/main:refs/remotes/upstream/main'])
     # Upstream deletions after our base must not turn inherited strings into fork keys.
     base = subprocess.run(['git', '-C', str(ROOT), 'merge-base', 'HEAD', 'upstream/main'],
                           capture_output=True, text=True)
