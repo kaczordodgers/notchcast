@@ -16,7 +16,8 @@ struct ScreenTextResult: Sendable, Equatable {
                 if !paragraph.isEmpty { paragraphs.append(paragraph); paragraph = "" }
                 continue
             }
-            let previousWord = paragraph.split(whereSeparator: { $0.isWhitespace }).last ?? ""
+            var previousWord = paragraph.split(whereSeparator: { $0.isWhitespace }).last ?? ""
+            while let first = previousWord.first, "([{\"'“„‘«»‹›".contains(first) { previousWord.removeFirst() }
             var nextWord = line.split(whereSeparator: { $0.isWhitespace }).first ?? ""
             while let last = nextWord.last, ".,;:!?)]}\"'“”„’‘«»‹›…".contains(last) { nextWord.removeLast() }
             if paragraph.hasSuffix("-"), !previousWord.dropLast().isEmpty,

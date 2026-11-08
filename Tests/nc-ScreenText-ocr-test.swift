@@ -57,6 +57,12 @@ enum ScreenTextTest {
         precondition(ScreenTextResult.removingLineBreaks("„so ge-\nnau“ hier") == "„so genau“ hier")
         precondition(ScreenTextResult.removingLineBreaks("«le docu-\nment»") == "«le document»")
         precondition(ScreenTextResult.removingLineBreaks("‹sehr ge-\nnau›") == "‹sehr genau›")
+        precondition(ScreenTextResult.removingLineBreaks("«docu-\nment»") == "«document»")
+        precondition(ScreenTextResult.removingLineBreaks("„ver-\nmutlich“ hier") == "„vermutlich“ hier")
+        precondition(ScreenTextResult.removingLineBreaks("“docu-\nment”") == "“document”")
+        precondition(ScreenTextResult.removingLineBreaks("state-\nof-the-art»") == "state- of-the-art»")
+        precondition(ScreenTextResult.removingLineBreaks("Word-\nfragment«") == "Word- fragment«")
+        precondition(ScreenTextResult.removingLineBreaks("one-\n»") == "one- »")
         let filter = CIFilter(name: "CIQRCodeGenerator")!
         filter.setValue(Data("https://example.com/ocr".utf8), forKey: "inputMessage")
         let code = filter.outputImage!.transformed(by: CGAffineTransform(scaleX: 8, y: 8))
