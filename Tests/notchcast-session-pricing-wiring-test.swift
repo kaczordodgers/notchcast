@@ -29,15 +29,17 @@ struct SessionPricingWiringTests {
         precondition(!preferences.isOn(.agentSessions) && !preferences.isOn(.agentPricing))
         preferences.set(.agentSessions, true)
         preferences.set(.agentPricing, true)
+        let privateConfig = root.appendingPathComponent("private.env")
+        try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE=private-fixture\n".utf8).write(to: privateConfig)
         let accesses = Mutex<[URL]>([])
         let pricingRuns = Mutex(0)
-        let excluded = root.appendingPathComponent("agent-2784f2ac")
+        let excluded = root.appendingPathComponent("private-fixture")
         try FileManager.default.createDirectory(at: excluded, withIntermediateDirectories: true)
         let module = AgentSessionsModule(roots: [.init(provider: .claude, url: root),
                                                 .init(provider: .claude, url: excluded)],
             preferences: preferences, index: AgentSessionIndex { url in
                 accesses.withLock { $0.append(url) }
-            }, price: { sessions, calendar in
+            }, privateConfigURL: privateConfig, price: { sessions, calendar in
                 pricingRuns.withLock { $0 += 1 }
                 return AgentSessionPricing.report(sessions, calendar: calendar)
             })
@@ -72,7 +74,7 @@ struct SessionPricingWiringTests {
         await module.waitUntilIdle()
         precondition(pricingRuns.withLock { $0 } == runs + 1 && module.pricingReport?.total.costUSD == 20)
         precondition(AgentSessionsModule.pollInterval == .seconds(30), "Bound recursive polling")
-        precondition(accesses.withLock { $0.allSatisfy { !$0.pathComponents.contains("agent-2784f2ac") } })
+        precondition(accesses.withLock { $0.allSatisfy { !$0.pathComponents.contains("private-fixture") } })
         preferences.set(.agentPricing, false)
         for _ in 0..<20 { await Task.yield() }
         precondition(module.pricingReport == nil && module.snapshot.sessions.count == 1)
@@ -87,6 +89,26 @@ struct SessionPricingWiringTests {
                      "Demand must not recursively walk again after only two seconds")
         module.setDemand(false)
         module.stop()
-        print("PASS: synthetic session pricing, switches, daily totals and excluded root access")
+        let excludedFixture = fixture.replacingOccurrences(of: "synthetic", with: "excluded-session")
+        try Data(excludedFixture.utf8).write(to: excluded.appendingPathComponent("session.jsonl"))
+        module.start()
+        module.refresh()
+        await module.waitUntilIdle()
+        precondition(module.snapshot.sessions.count == 1, "Restart preserves configured exclusions")
+        try FileManager.default.removeItem(at: privateConfig)
+        module.refresh()
+        await module.waitUntilIdle()
+        precondition(module.snapshot.sessions.count == 2, "Missing config excludes nothing")
+        try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE=private-fixture\n".utf8).write(to: privateConfig)
+        module.refresh()
+        await module.waitUntilIdle()
+        precondition(module.snapshot.sessions.count == 1, "New exclusions evict previously indexed sessions")
+        let beforeInvalidConfig = accesses.withLock { $0.count }
+        try Data([0xff]).write(to: privateConfig)
+        module.refresh()
+        await module.waitUntilIdle()
+        precondition(accesses.withLock { $0.count } == beforeInvalidConfig, "Invalid config prevents scanning")
+        module.stop()
+        print("PASS: synthetic pricing, switches, daily totals, fixture config, missing config and excluded root access")
     }
 }
