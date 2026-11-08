@@ -103,15 +103,17 @@ struct ScrollingStitcher: Sendable {
     private mutating func place(_ frame: CGImage, hashes: [UInt64]) -> Update {
         var leading = leadingRows
         var trailing = trailingRows
-        // A bar's flat inner edge may be page rows that matched by chance; scrolling moves them.
+        // A bar's flat edge may be chance-matched page rows; only varied rows replacing it prove a scroll.
         if leading > 1, case let edge = previousFrame[leading - 1], previousFrame[leading - 2] == edge {
             while leading > 0, previousFrame[leading - 1] == edge, hashes[leading - 1] != edge { leading -= 1 }
+            if Set(hashes[leading..<leadingRows]).count < 2 { leading = leadingRows }
         }
         if trailing > 1, case let edge = previousFrame[frameHeight - trailing],
            previousFrame[frameHeight - trailing + 1] == edge {
             while trailing > 0, previousFrame[frameHeight - trailing] == edge, hashes[frameHeight - trailing] != edge {
                 trailing -= 1
             }
+            if Set(hashes[frameHeight - trailingRows..<frameHeight - trailing]).count < 2 { trailing = trailingRows }
         }
         let minimumOverlap = Self.minimumOverlap(frameHeight - leadingRows - trailingRows)
         var content = Array(hashes[leading..<frameHeight - trailing])

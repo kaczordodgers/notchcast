@@ -123,6 +123,19 @@ struct CaptureScrollingTests {
             precondition(add(frame, to: &shade) == .added(30), "A flat bar that changes shade is still a bar")
         }
         expectImage(shade, rows: Array(1000..<1280))
+        func shadedFooter(_ name: String, _ footer: (Int) -> [Int]) {
+            var sticky = stitcher(Array(1000..<1160) + footer(0))
+            for offset in stride(from: 30, through: 120, by: 30) {
+                precondition(add(Array(1000 + offset..<1160 + offset) + footer(offset), to: &sticky) == .added(30),
+                             "A flat footer that \(name) is still a bar (offset \(offset))")
+            }
+            expectImage(sticky, rows: Array(1000..<1280))
+        }
+        let flat = Array(repeating: 7, count: 40)
+        shadedFooter("changes shade") { Array(repeating: $0 == 120 ? 8 : 7, count: 40) }
+        shadedFooter("blips one frame") { Array(repeating: $0 == 60 ? 8 : 7, count: 40) }
+        shadedFooter("changes its inner rows") { $0 == 120 ? [8, 8, 8] + flat[3...] : flat }
+        shadedFooter("is short and changes shade") { Array(repeating: $0 == 120 ? 8 : 7, count: 20) }
     }
 
     static func twoBarTests() {
