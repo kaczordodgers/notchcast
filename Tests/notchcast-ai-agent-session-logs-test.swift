@@ -27,6 +27,7 @@ struct AgentSessionTests {
         try FileManager.default.createDirectory(at: temporary, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: temporary) }
         try sharedIdentity(temporary.appendingPathComponent("shared"))
+        try sharedLifecycle(temporary.appendingPathComponent("lifecycle-shared"))
         localDays()
         try claude(temporary.appendingPathComponent("claude"))
         try codex(temporary.appendingPathComponent("codex"))
@@ -67,6 +68,23 @@ struct AgentSessionTests {
                "A file copied between roots counts once")
         let unchanged = try index.refresh(roots: [.init(provider: .claude, url: root)])
         expect(unchanged.sessions == result.sessions, "Shared usage is stable across refreshes")
+    }
+
+    static func sharedLifecycle(_ root: URL) throws {
+        let parent = root.appendingPathComponent("session.jsonl")
+        try append(["type": "assistant", "sessionId": "open", "cwd": "/synthetic/parent", "timestamp": timestamp,
+                    "message": ["id": "tool", "model": "claude-test", "stop_reason": "tool_use"]], to: parent)
+        try append(["type": "assistant", "sessionId": "open", "timestamp": nextTimestamp,
+                    "message": ["id": "child", "model": "claude-test", "stop_reason": "end_turn"]],
+                   to: root.appendingPathComponent("session/subagents/child.jsonl"))
+        var index = AgentSessionIndex()
+        let open = try index.refresh(roots: [.init(provider: .claude, url: root)]).sessions
+        expect(open.count == 1 && open[0].project == "/synthetic/parent", "Merged session keeps the parent's project")
+        expect(open[0].endedAt == nil, "A finished subagent does not end an open parent")
+        try append(["type": "assistant", "sessionId": "open", "timestamp": nextTimestamp,
+                    "message": ["id": "done", "model": "claude-test", "stop_reason": "end_turn"]], to: parent)
+        let ended = try index.refresh(roots: [.init(provider: .claude, url: root)]).sessions
+        expect(ended.count == 1 && ended[0].endedAt != nil, "Merged session ends when every file ended")
     }
 
     static func localDays() {
