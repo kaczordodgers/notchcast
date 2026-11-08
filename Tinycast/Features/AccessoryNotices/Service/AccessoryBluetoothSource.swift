@@ -46,7 +46,13 @@ final class AccessoryBluetoothMonitor: NSObject, AccessoryBluetoothSource {
         Task { @MainActor [weak self] in
             guard let self, let token = self.token,
                   UInt(bitPattern: Unmanaged.passUnretained(token).toOpaque()) == identity else { return }
-            if let device = IOBluetoothDevice(addressString: address) { self.watch(device) }
+            guard let device = IOBluetoothDevice(addressString: address) else { return }
+            self.watch(device)
+            // A disconnect before the watcher existed was never delivered, so it must not announce.
+            guard self.disconnects[address] != nil, device.isConnected() else {
+                self.disconnects.removeValue(forKey: address)?.unregister()
+                return
+            }
             self.receive?(address, name, true)
         }
     }
