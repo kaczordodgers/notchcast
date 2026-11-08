@@ -166,6 +166,14 @@ class Landing(unittest.TestCase):
         self.assertEqual(passed.returncode, 0, passed.stdout + passed.stderr)
         self.assertIn('Drift tooling: land.sh retry wording', passed.stdout)
 
+    def test_sourced_helper_change_needs_signoff(self):
+        base = self.commit('Base')
+        fixtures.write(self.root, 'notchcast/hold.sh', 'refuse() { echo "WARN: $*"; }\n')
+        self.commit('Candidate hold.sh')
+        refused = self.tooling(base, 'Summary only')
+        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+        self.assertIn('REFUSED: drift tooling or land.sh changed', refused.stdout)
+
     def test_unrelated_change_needs_no_signoff(self):
         base = self.commit('Base')
         fixtures.write(self.root, 'notes.txt', 'unrelated\n')

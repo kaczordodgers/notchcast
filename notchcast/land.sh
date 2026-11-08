@@ -64,7 +64,8 @@ check_drift_tooling() {
     drift_signoff=
     if drift_fixtures_changed "$onto"; then
         fixtures=true
-    elif git diff --quiet "$onto" HEAD -- notchcast/land.sh; then
+    elif git diff --quiet "$onto" HEAD -- notchcast/land.sh notchcast/hold.sh notchcast/sync-wait.sh \
+        notchcast/local-build-status.sh; then
         return 0
     fi
     drift_signoff=$(grep -m1 -E '^Drift tooling: [^[:space:]].*' <<< "$body") \
