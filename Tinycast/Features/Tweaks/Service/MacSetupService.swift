@@ -24,7 +24,7 @@ nonisolated struct MacSetupService: Sendable {
                                                 kCFPreferencesCurrentUser, host) else { return .absent }
         if let number = value as? NSNumber {
             if CFGetTypeID(number) == CFBooleanGetTypeID() { return .bool(number.boolValue) }
-            guard !CFNumberIsFloatType(number) else { throw MacSetupPlan.Failure.missingReading }
+            if CFNumberIsFloatType(number) { return .real(number.doubleValue) }
             return .integer(number.intValue)
         }
         if let string = value as? String { return .string(string) }

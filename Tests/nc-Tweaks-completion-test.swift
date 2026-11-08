@@ -5,7 +5,8 @@ struct TweakCompletionTests {
     static func main() throws {
         let home = URL(fileURLWithPath: "/example")
         let entries = MacSetupPresetCatalog.entries(home: home)
-        precondition(entries.count == 96 && Set(entries.map(\.id)).count == 96)
+        precondition(Set(entries.map(\.id)).count == entries.count)
+        precondition(!entries.contains { $0.id == "spaces-fixed" })
         let selected = MacSetupPresetCatalog.selection(.full, home: home)
         precondition(!selected.contains { $0.id == "autocorrect" || $0.id == "key-repeat" })
         precondition(selected.contains { $0.id == "tinting" })
@@ -34,6 +35,6 @@ struct TweakCompletionTests {
             try service.remove(plan) { _ in throw Injected.failed }
             fatalError("Runner failure must propagate")
         } catch Injected.failed { }
-        print("PASS: 96 preset rows, selections, reversible daemon plans and injected model removal")
+        print("PASS: unique preset rows, Spaces ownership, selections, reversible daemon plans and injected model removal")
     }
 }

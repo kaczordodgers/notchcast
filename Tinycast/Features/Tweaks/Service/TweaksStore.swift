@@ -15,7 +15,7 @@ final class TweaksStore {
          read: @escaping (TypingPreferencePlan.Preference) throws -> TypingPreferencePlan.Value?,
          run: @escaping ([TypingPreferencePlan.Command]) async throws -> Void,
          save: @escaping ([String: TypingPreferencePlan]) throws -> Void) {
-        self.plans = plans
+        self.plans = plans.filter { $0.key != "spaces-fixed" }
         self.read = read
         self.run = run
         self.save = save
