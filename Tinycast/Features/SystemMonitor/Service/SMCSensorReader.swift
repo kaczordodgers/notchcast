@@ -4,9 +4,11 @@ import Foundation
 nonisolated struct SMCSensorReader: Sendable {
     private let client: SMCClient?
     private let cpuKeys: [String]
-    private var discoveredCPUKeys: [String] = []
-    private var discoveredGPUKeys: [String] = []
+    private(set) var discoveredCPUKeys: [String] = []
+    private(set) var discoveredGPUKeys: [String] = []
     private var nextKeyIndex: UInt32 = 0
+    // shortcut: one retry on the next read, then dropped; count attempts if one retry proves too few.
+    private var failedKeyIndices: [UInt32] = []
     private var keyCount: UInt32?
 
     init(client: SMCClient? = SMCClient(), brand: String? = nil) {
@@ -28,7 +30,8 @@ nonisolated struct SMCSensorReader: Sendable {
         let fixedGPU = alertsOnly ? [] : temperatures(TemperatureSensorPolicy.gpuKeys, client: client, deadline: deadline)
         let needsCPU = fixedCPU.isEmpty && fallbackCPU.isEmpty
         if needsCPU || (!alertsOnly && fixedGPU.isEmpty) {
-            discover(client, needsCPU: needsCPU, needsGPU: !alertsOnly && fixedGPU.isEmpty, deadline: deadline)
+            discover(needsCPU: needsCPU, needsGPU: !alertsOnly && fixedGPU.isEmpty, deadline: deadline,
+                     keyCount: client.keyCount, key: client.key(at:))
         }
         let cpu = !fixedCPU.isEmpty ? fixedCPU : !fallbackCPU.isEmpty ? fallbackCPU
             : temperatures(discoveredCPUKeys, client: client, deadline: deadline)
@@ -56,14 +59,26 @@ nonisolated struct SMCSensorReader: Sendable {
         return readings
     }
 
-    private mutating func discover(_ client: SMCClient, needsCPU: Bool, needsGPU: Bool, deadline: Double) {
+    mutating func discover(needsCPU: Bool, needsGPU: Bool, deadline: Double,
+                           keyCount count: () -> UInt32?, key lookup: (UInt32) -> String?) {
         guard ProcessInfo.processInfo.systemUptime < deadline else { return }
-        if keyCount == nil { keyCount = client.keyCount() }
+        if keyCount == nil { keyCount = count() }
         guard let keyCount else { return }
         let includesTf = cpuKeys.contains { $0.hasPrefix("Tf") }
-        while nextKeyIndex < keyCount, ProcessInfo.processInfo.systemUptime < deadline {
-            let key = client.key(at: nextKeyIndex)
-            nextKeyIndex += 1
+        var retries = failedKeyIndices[...]
+        failedKeyIndices = []
+        defer { failedKeyIndices += retries }
+        while ProcessInfo.processInfo.systemUptime < deadline {
+            let key: String?
+            if let index = retries.popFirst() {
+                key = lookup(index)
+            } else if nextKeyIndex < keyCount {
+                key = lookup(nextKeyIndex)
+                if key == nil { failedKeyIndices.append(nextKeyIndex) }
+                nextKeyIndex += 1
+            } else {
+                break
+            }
             guard let key else { continue }
             if needsCPU, TemperatureSensorPolicy.isCPUKey(key, includesTf: includesTf) {
                 discoveredCPUKeys.append(key)
