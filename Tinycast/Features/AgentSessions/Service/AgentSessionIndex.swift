@@ -60,13 +60,11 @@ struct AgentSessionIndex: Sendable {
     private var databases: [String: AgentSessionDatabase] = [:]
     private let onAccess: @Sendable (URL) -> Void
     let calendar: Calendar
-    var excludedPathComponentPrefixes: [String]
+    var excludedPathComponentPrefixes: [String] = []
 
-    init(calendar: Calendar = .current, excludedPathComponentPrefixes: [String] = [],
-         onAccess: @escaping @Sendable (URL) -> Void = { _ in }) {
+    init(calendar: Calendar = .current, onAccess: @escaping @Sendable (URL) -> Void = { _ in }) {
         self.onAccess = onAccess
         self.calendar = calendar
-        self.excludedPathComponentPrefixes = excludedPathComponentPrefixes
     }
 
     mutating func refresh(roots: [Root]) throws -> Snapshot {

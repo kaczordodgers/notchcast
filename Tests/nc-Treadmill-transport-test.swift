@@ -72,6 +72,12 @@ struct TreadmillTransportTests {
         central.onEvent?(.failed)
         precondition(failure == .connectionFailed)
         try await waitUntil { central.connects == connects + 2 }
+        let rejectedScans = central.scans
+        failure = nil
+        central.onEvent?(.rejected)
+        precondition(central.scans == rejectedScans + 1)
+        try await waitUntil { failure == .padAbsent }
+        print("Treadmill rejection passed: rejected pad rescans and the pad-absent timeout runs again")
         transport.close()
         try transport.open()
         precondition(central.scans > scans + 1)

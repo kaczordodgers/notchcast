@@ -312,7 +312,7 @@ struct AgentSessionTests {
         try Data("OTHER_KEY=value\ntouch \"\(marker.path)\"\n".utf8).write(to: config)
         let noKey = try AgentSessionExclusions.load(from: config)
         expect(noKey.isEmpty, "Missing key excludes nothing")
-        try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE= private-fixture, other-private, ,\n".utf8).write(to: config)
+        try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE=private-fixture,other-private,,\n".utf8).write(to: config)
         let prefixes = try AgentSessionExclusions.load(from: config)
         expect(prefixes == ["private-fixture", "other-private"], "Plain comma-separated prefixes parsed")
         let forms = [
@@ -322,6 +322,10 @@ struct AgentSessionTests {
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b'": ["\"a", "b'"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=new": ["new"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=kept\n# NOTCHCAST_AGENT_SESSIONS_EXCLUDE=comment": ["kept"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc  # note": ["agent-abc"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent-abc\" # note": ["agent-abc"],
+            "export\tNOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc": ["agent-abc"],
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc; export OTHER=1": ["agent-abc"],
         ]
         for (text, expected) in forms {
             try Data(text.utf8).write(to: config)
@@ -344,10 +348,11 @@ struct AgentSessionTests {
         try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("alias"), withDestinationURL: forbidden)
         try FileManager.default.createSymbolicLink(at: root.appendingPathComponent("loop"), withDestinationURL: root)
         let accesses = Mutex<[URL]>([])
-        var index = AgentSessionIndex(excludedPathComponentPrefixes: prefixes) { url in
+        var index = AgentSessionIndex { url in
             expect(AgentSessionIndex.allows(url, excluding: prefixes), "Excluded folder never touched")
             accesses.withLock { $0.append(url) }
         }
+        index.excludedPathComponentPrefixes = prefixes
         let result = try index.refresh(roots: [.init(provider: .claude, url: root)])
         expect(result.sessions.count == 1, "Sibling indexed and symlinks skipped")
         let before = accesses.withLock { $0.count }
