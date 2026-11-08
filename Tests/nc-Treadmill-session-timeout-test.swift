@@ -28,6 +28,26 @@ private struct TreadmillSessionTimeoutTests {
         return archive.records.map(\.seconds)
     }
 
+    static func pausedResumeRecords(at t: Date) -> [Double] {
+        func counters(_ phase: UInt8, _ seconds: Int) -> TreadmillStatus {
+            TreadmillStatus(body: [phase, 40, 0, UInt8(seconds & 0xFF), UInt8(seconds >> 8), 100, 0, 0, 0, 4, 0, 0, 0, 0, 0])!
+        }
+        var engine = TreadmillSessionEngine(walk: nil)
+        var archive = TreadmillArchive()
+        func feed(_ status: TreadmillStatus, _ at: Double) {
+            let update = engine.receive(.status(status), now: t.addingTimeInterval(at))
+            archive.apply(current: engine.walk, finished: update.finished)
+        }
+        feed(counters(3, 590), 590)
+        feed(counters(10, 600), 600)
+        _ = engine.stop(now: t.addingTimeInterval(605))
+        feed(TreadmillStatus(body: [2, 3])!, 640)
+        feed(counters(3, 603), 643)
+        feed(counters(3, 660), 700)
+        feed(TreadmillStatus(body: [0, 0])!, 701)
+        return archive.records.map(\.seconds)
+    }
+
     static func main() throws {
         let now = Date(timeIntervalSince1970: 1_793_793_600)
         var engine = TreadmillSessionEngine(walk: nil)
@@ -94,6 +114,7 @@ private struct TreadmillSessionTimeoutTests {
                      "a walk the pad continues after a lost Stop is recorded once")
         precondition(lostStopRecords(lateBy: 0.4, startDuringSilence: true, at: now) == [630],
                      "a start during the silence still records the continued walk once")
-        print("nc-Treadmill-session-timeout: 24 checks passed")
+        precondition(pausedResumeRecords(at: now) == [660], "a paused walk resumed after a lost Stop is recorded once")
+        print("nc-Treadmill-session-timeout: 25 checks passed")
     }
 }
