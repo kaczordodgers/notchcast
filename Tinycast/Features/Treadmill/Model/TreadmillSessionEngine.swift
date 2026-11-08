@@ -19,6 +19,8 @@ struct TreadmillSessionEngine: Sendable {
 
     var isStarting: Bool { startFrame != nil }
 
+    func isStale(now: Date) -> Bool { silentStopDeadline.map { now >= $0 } ?? false }
+
     init(walk: TreadmillWalk? = nil) {
         self.walk = walk
         movingSpeed = walk?.resumeSpeed ?? walk.flatMap { $0.sample.speed > 0 ? $0.sample.speed : nil }
@@ -95,9 +97,12 @@ struct TreadmillSessionEngine: Sendable {
         case .standby, .ready, .asleep, .ended, .error: false
         }
         var stale = Update()
-        if moving, let silentStopDeadline, now >= silentStopDeadline {
+        if moving, isStale(now: now) {
+            // A pad running a walk begun in the silence cannot have counted more seconds than elapsed.
             if let walk, walk.phase == .paused && status.phase == .countdown
-                || status.sample.map({ $0.seconds >= walk.sample.seconds }) == true {
+                || status.sample.map({ $0.seconds >= walk.sample.seconds
+                    && (status.phase != .running || Double($0.seconds) > now.timeIntervalSince(walk.updated)
+                        || walk.phase == .paused) }) == true {
                 self.silentStopDeadline = nil
             } else {
                 endWalk(into: &stale)

@@ -141,7 +141,7 @@ final class TreadmillCoordinator {
     func toggleWalk() throws {
         guard walkEnabled else { throw TreadmillFailure.disabled }
         guard isReady else { throw TreadmillFailure.notReady }
-        if engine.walk != nil || engine.isStarting { try stopWalk(); return }
+        if engine.isStarting || engine.walk != nil && !engine.isStale(now: clock()) { try stopWalk(); return }
         if !connected { try connect() }
         togglePending = true
         do { try transport.send(TreadmillProtocol.queryStatus) } catch {

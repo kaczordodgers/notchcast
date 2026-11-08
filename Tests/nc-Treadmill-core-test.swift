@@ -456,6 +456,25 @@ private struct TreadmillTests {
         expect(reconnecting.connected && reconnecting.engine.walk?.started == walk?.started
                && reconnecting.engine.walk?.sample.steps == 120, "Reconnect resumes the same walk")
         await reconnecting.stopForTermination()
+        var staleNow = now
+        let staleTransport = FakeTreadmillTransport()
+        let staleStore = TreadmillHistoryStore(repository: TreadmillRepository(directory: root.appending(path: "stale")))
+        let silent = TreadmillCoordinator(transport: staleTransport, history: staleStore,
+                                         preferences: preferences, clock: { staleNow }, calendar: { calendar })
+        try await silent.prepare()
+        silent.setEnabled(.walk, true)
+        silent.setEnabled(.history, true)
+        try silent.startWalk()
+        staleTransport.emit(status(3))
+        try silent.stopWalk()
+        staleNow = now.addingTimeInterval(16)
+        staleTransport.sent = []
+        try silent.toggleWalk()
+        expect(staleTransport.sent == [TreadmillProtocol.queryStatus], "A stale walk's toggle queries instead of stopping")
+        staleTransport.emit(short(0))
+        expect(staleTransport.sent.last == (try TreadmillProtocol.start(minutes: 0))
+               && staleStore.archive.records.count == 1, "Standby after a stale walk records it once and starts")
+        await silent.stopForTermination()
         print("Treadmill protocol lifecycle passed: readiness, preserved walk, reconnect resumes counters")
     }
 }
