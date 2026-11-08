@@ -61,7 +61,7 @@ struct SystemModuleTests {
         try await store.set(.sudoTouchID, enabled: true)
         try await store.set(.sudoTouchID, enabled: false)
         precondition(effects == [true, false])
-        let module = TweaksModule()
+        let module = TweaksModule(key: UUID().uuidString)
         let controller = NotchcastModuleController([
             .init(requires: [], requiresAny: [.macSetup, .privacyChoices], module: module)
         ], preferences: preferences)
