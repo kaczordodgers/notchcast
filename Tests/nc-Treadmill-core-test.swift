@@ -179,13 +179,13 @@ private struct TreadmillTests {
         _ = try recovered.resume()
         expect(recovered.receive(message(status(3, speed: 10, seconds: 120)), now: now.addingTimeInterval(126)).commands
                == [try TreadmillProtocol.speed(5.5)], "Recovery preserves paused speed")
-        _ = engine.stop()
+        _ = engine.stop(now: now.addingTimeInterval(130))
         expect(engine.walk != nil, "Stop request keeps final counters pending")
         let finished = engine.receive(message(status(1, seconds: 180, meters: 200, steps: 270)),
                                       now: now.addingTimeInterval(180))
         expect(finished.finished.first?.seconds == 180 && finished.finished.first?.meters == 200, "Final counters saved")
         expect(engine.receive(message(short(0)), now: now).finished.isEmpty, "Final record exactly once")
-        expect(engine.stop() == [TreadmillProtocol.stop], "Stop accepts unknown belt state")
+        expect(engine.stop(now: now) == [TreadmillProtocol.stop], "Stop accepts unknown belt state")
         _ = engine.receive(message(short(0)), now: now)
         _ = try engine.start(speed: 4, minutes: 0, now: now)
         expect(engine.checkTimeout(now: now.addingTimeInterval(14)).commands.isEmpty, "No early timeout")
