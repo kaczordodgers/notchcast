@@ -2,7 +2,7 @@ import Foundation
 import os
 
 enum DictationEnglish {
-    private static let logger = Logger(subsystem: "app.notchcast", category: "DictationEnglish")
+    private static let logger = Logger(subsystem: NotchcastIdentity.releaseBundleIdentifier, category: "DictationEnglish")
 
     @concurrent
     static func process(

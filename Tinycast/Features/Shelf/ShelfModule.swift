@@ -10,7 +10,7 @@ final class ShelfModule: NotchcastModule {
     private var receiving = false
 
     init(directory: URL = URL.cachesDirectory
-        .appendingPathComponent(Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
+        .appendingPathComponent(NotchcastIdentity.current.bundleID)
         .appendingPathComponent("shelf-received")) {
         store = ShelfReceivedStore(directory: directory)
     }

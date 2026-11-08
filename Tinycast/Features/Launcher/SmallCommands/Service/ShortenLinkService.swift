@@ -71,8 +71,7 @@ struct ShortenLinkService: Sendable {
     }
 
     private static func fetch(_ request: URLRequest) async throws -> (Data, Int) {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.timeoutIntervalForRequest = 10
         configuration.timeoutIntervalForResource = 10
         let session = URLSession(configuration: configuration)

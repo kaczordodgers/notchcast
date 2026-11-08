@@ -2,7 +2,7 @@ import Foundation
 
 extension DictationCleanupModule {
     static func live() -> DictationCleanupModule {
-        let identifier = Bundle.main.bundleIdentifier ?? "app.notchcast.dev"
+        let identifier = NotchcastIdentity.current.bundleID
         return DictationCleanupModule(
             store: .live(bundleIdentifier: identifier)!,
             install: { DictationCleanup.install() },

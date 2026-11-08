@@ -30,7 +30,7 @@ final class LiveTimerStore {
 
     private static let soundKey = "notchcast.liveTimer.playSound"
     private static let entriesKey = "notchcast.liveTimer.entries"
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev",
+    private static let logger = Logger(subsystem: NotchcastIdentity.current.bundleID,
                                        category: "LiveTimerStore")
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let clock: () -> Date
@@ -42,8 +42,7 @@ final class LiveTimerStore {
     @ObservationIgnored private var nextSound: Date?
     @ObservationIgnored private var active: Bool
 
-    init(defaults: UserDefaults = UserDefaults(
-        suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+    init(defaults: UserDefaults = NotchcastIdentity.current.defaults,
          clock: @escaping () -> Date = Date.init,
          calendar: @escaping () -> Calendar = { .autoupdatingCurrent },
          playSound: (() -> Void)? = nil, stopSound: (() -> Void)? = nil, active: Bool = true) {

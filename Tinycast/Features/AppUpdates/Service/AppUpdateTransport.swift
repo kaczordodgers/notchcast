@@ -2,8 +2,7 @@ import Foundation
 
 final class AppUpdateTransport: NSObject, URLSessionTaskDelegate, Sendable {
     private let session: URLSession = {
-        let config = URLSessionConfiguration.ephemeral
-        config.urlCache = nil
+        let config = NotchcastIdentity.sessionConfiguration()
         config.httpCookieStorage = nil
         config.timeoutIntervalForRequest = 20
         config.timeoutIntervalForResource = 30

@@ -21,8 +21,7 @@ enum SoloistSystemEvents {
 
     static func answers(port: Int) async -> Bool {
         guard let url = URL(string: "ws://127.0.0.1:\(port)") else { return false }
-        let config = URLSessionConfiguration.ephemeral
-        config.urlCache = nil
+        let config = NotchcastIdentity.sessionConfiguration()
         let session = URLSession(configuration: config)
         let socket = session.webSocketTask(with: url)
         socket.resume()

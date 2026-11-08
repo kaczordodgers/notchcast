@@ -4,8 +4,7 @@ import Foundation
 nonisolated struct NetworkPublicIPService: Sendable {
     @concurrent
     func lookup() async -> String? {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.timeoutIntervalForRequest = 5
         configuration.timeoutIntervalForResource = 5
         let session = URLSession(configuration: configuration)
