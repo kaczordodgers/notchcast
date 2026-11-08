@@ -117,6 +117,25 @@ struct CaptureScrollingTests {
             precondition(add(strip + Array(body[offset..<offset + 85]), to: &flatStrip) == .added(added))
         }
         expectImage(flatStrip, rows: Array(body[0..<145]))
+        var shade = stitcher(Array(repeating: 7, count: 40) + Array(1000..<1160))
+        for offset in stride(from: 30, through: 120, by: 30) {
+            let frame = Array(repeating: offset < 60 ? 7 : 8, count: 40) + Array(1000 + offset..<1160 + offset)
+            precondition(add(frame, to: &shade) == .added(30), "A flat bar that changes shade is still a bar")
+        }
+        expectImage(shade, rows: Array(1000..<1280))
+        func shadedFooter(_ name: String, _ footer: (Int) -> [Int]) {
+            var sticky = stitcher(Array(1000..<1160) + footer(0))
+            for offset in stride(from: 30, through: 120, by: 30) {
+                precondition(add(Array(1000 + offset..<1160 + offset) + footer(offset), to: &sticky) == .added(30),
+                             "A flat footer that \(name) is still a bar (offset \(offset))")
+            }
+            expectImage(sticky, rows: Array(1000..<1280))
+        }
+        let flat = Array(repeating: 7, count: 40)
+        shadedFooter("changes shade") { Array(repeating: $0 == 120 ? 8 : 7, count: 40) }
+        shadedFooter("blips one frame") { Array(repeating: $0 == 60 ? 8 : 7, count: 40) }
+        shadedFooter("changes its inner rows") { $0 == 120 ? [8, 8, 8] + flat[3...] : flat }
+        shadedFooter("is short and changes shade") { Array(repeating: $0 == 120 ? 8 : 7, count: 20) }
     }
 
     static func twoBarTests() {
@@ -142,6 +161,32 @@ struct CaptureScrollingTests {
         let flatGap = capture(header: Array(5000..<5019), footer: Array(repeating: 7, count: 35), page: gap,
                               frameHeight: 169, offsets: [12, 53, 63, 129, 150, 170])
         expectImage(flatGap, rows: Array(gap[13..<285]))
+        let gapAboveFooter = Array(1000..<1094) + Array(repeating: 7, count: 46) + Array(2000..<2300)
+        let footerGap = capture(header: Array(5000..<5028), footer: Array(6000..<6034), page: gapAboveFooter,
+                                frameHeight: 155, offsets: [4, 33, 69])
+        expectImage(footerGap, rows: Array(gapAboveFooter[4..<162]))
+        let gapBelowHeader = Array(repeating: 7, count: 87) + Array(1000..<1028) + Array(repeating: 7, count: 45)
+            + Array(1028..<1371)
+        let headerGap = capture(header: Array(repeating: 7, count: 34), footer: Array(repeating: 7, count: 18),
+                                page: gapBelowHeader, frameHeight: 160, offsets: [6, 6, 70, 117, 159, 161, 224])
+        // Known lossy: the ideal image is gapBelowHeader[6..<332]; this pins today's 283 rows.
+        expectImage(headerGap, rows: Array(gapBelowHeader[49..<332]))
+        var mixed: [Int] = []
+        for (index, run) in [36, 92, 15, 88, 81, 117, 25, 131, 142, 27, 92, 127].enumerated() {
+            let next = 1000 + mixed.count
+            mixed += index.isMultiple(of: 2) ? Array(next..<next + run) : Array(repeating: 7, count: run)
+        }
+        let flatBars = capture(header: Array(repeating: 7, count: 92), footer: Array(repeating: 7, count: 89),
+                               page: mixed, frameHeight: 384, offsets: [130, 202, 287, 432, 459, 512])
+        expectImage(flatBars, rows: Array(mixed[130..<715]))
+        var edgeFlip = stitcher(Array(50000..<50040) + Array(text[0..<220]) + Array(60000..<60040))
+        for offset in stride(from: 40, through: 240, by: 40) {
+            var header = Array(50000..<50040)
+            var footer = Array(60000..<60040)
+            if offset == 120 { (header[39], footer[0]) = (40000, 41000) }
+            precondition(add(header + Array(text[offset..<offset + 220]) + footer, to: &edgeFlip) != .unmatched)
+        }
+        expectImage(edgeFlip, rows: Array(text[0..<460]))
     }
 
     static func repeatedRowsTests() {
