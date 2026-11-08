@@ -2,8 +2,7 @@ import Foundation
 
 enum DayHTTPService {
     private static let session: URLSession = {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         return URLSession(configuration: configuration)
     }()
 

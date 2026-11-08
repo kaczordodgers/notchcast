@@ -84,7 +84,7 @@ final class NotchcastPreferences {
 }
 
 extension NotchcastPreferences {
-    static let shared = NotchcastPreferences(suiteName: (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")
+    static let shared = NotchcastPreferences(suiteName: NotchcastIdentity.current.suiteName())
     static let chargeLimits = [60, 70, 80, 90]
     static let awakeDurations = [15, 30, 60, 120, 240]
 

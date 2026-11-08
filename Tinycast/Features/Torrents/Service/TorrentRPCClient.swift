@@ -21,8 +21,7 @@ import Foundation
         components.port = Int(port)
         components.path = "/jsonrpc"
         rpcURL = components.url
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.httpCookieStorage = nil
         configuration.connectionProxyDictionary = [:]
         configuration.timeoutIntervalForRequest = 2

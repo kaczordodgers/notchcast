@@ -8,7 +8,7 @@ final class KatanaModule: NotchcastModule {
     private var index: AgentActionIndex?
     let audio = KatanaAudioService()
     let tones = KatanaToneStore(file: URL.applicationSupportDirectory
-        .appending(path: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
+        .appending(path: NotchcastIdentity.current.bundleID)
         .appending(path: "Katana/tones.json"))
 
     init(midi: any KatanaMIDILayer = KatanaCoreMIDI()) {
@@ -25,7 +25,7 @@ final class KatanaModule: NotchcastModule {
         guard let index else { return }
         unregister()
         do { try AgentDeviceActions.register(.katana, backend: self, in: index) } catch {
-            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Katana")
+            Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Katana")
                 .error("Action registration failed: \(error.localizedDescription, privacy: .public)")
             unregister()
         }

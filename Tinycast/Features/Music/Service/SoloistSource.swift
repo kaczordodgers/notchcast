@@ -26,8 +26,7 @@ final class SoloistSource: NowPlayingSource {
     private let session: URLSession
 
     init() {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.timeoutIntervalForRequest = 15
         session = URLSession(configuration: configuration)
     }

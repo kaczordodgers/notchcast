@@ -10,8 +10,8 @@ final class AgentBridgeModule: NotchcastModule {
     func configure(_ core: AppCore) {
         guard !configured else { return }
         do {
-            let grants = try AgentGrantStore(bundleIdentifier: Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
-            let audit = AgentAuditStore(directory: AppPaths.applicationSupport().appending(path: "agent"))
+            let grants = try AgentGrantStore(bundleIdentifier: NotchcastIdentity.current.bundleID)
+            let audit = AgentAuditStore(directory: NotchcastIdentity.supportRoot.appending(path: "agent"))
             let confirmation = AgentConfirmationAuthorization(grants: grants,
                 isEnabled: { NotchcastPreferences.shared.isOn(.agentConfirmation) },
                 timeout: AgentRequestTiming.confirmationTimeout) { action, message, choices in
@@ -34,7 +34,7 @@ final class AgentBridgeModule: NotchcastModule {
             index.didComplete = { request, reply in
                 guard let entry = request.auditEntry(reply: reply, time: Date()) else { return }
                 do { try await audit.append(entry) } catch {
-                    Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "AgentBridge")
+                    Logger(subsystem: NotchcastIdentity.current.bundleID, category: "AgentBridge")
                         .error("Unable to append agent audit: \(error)")
                 }
             }
@@ -50,7 +50,7 @@ final class AgentBridgeModule: NotchcastModule {
             NotchcastCore.agentMCPServer.configure(index: index)
         } catch {
             index.unregisterAll()
-            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev", category: "AgentBridge")
+            Logger(subsystem: NotchcastIdentity.current.bundleID, category: "AgentBridge")
                 .error("Unable to register built-in agent actions: \(error)")
         }
     }

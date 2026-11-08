@@ -19,7 +19,7 @@ final class LiveSoloistLauncher: SoloistLauncher {
     private let log: @Sendable (String) -> Void
 
     init(log: @escaping @Sendable (String) -> Void = { line in
-        Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.tinycast.app", category: "Soloist")
+        Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Soloist")
             .info("\(line, privacy: .public)")
     }) {
         self.log = log
