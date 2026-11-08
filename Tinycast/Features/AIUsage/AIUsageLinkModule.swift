@@ -19,7 +19,7 @@ final class AIUsageLinkModule: NotchcastModule {
         preferences: NotchcastPreferences = .shared,
         provider: AIUsageProvider? = nil,
         defaults: UserDefaults = UserDefaults(suiteName:
-            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".mach-link")!
+            NotchcastIdentity.current.suiteName(suffix: ".mach-link"))!
     ) {
         self.preferences = preferences
         self.provider = provider

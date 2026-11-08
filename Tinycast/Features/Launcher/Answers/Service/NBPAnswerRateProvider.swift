@@ -19,8 +19,7 @@ struct NBPAnswerRateProvider: Sendable {
     }
 
     private static func fetch(_ request: URLRequest) async throws -> (Data, Int) {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.timeoutIntervalForResource = 10
         let session = URLSession(configuration: configuration)
         defer { session.finishTasksAndInvalidate() }

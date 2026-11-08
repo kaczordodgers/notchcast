@@ -35,8 +35,7 @@ final class OpenBotURLTransport: NSObject, OpenBotTransport, URLSessionTaskDeleg
     private let session: URLSession
 
     override init() {
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.urlCache = nil
+        let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.httpCookieStorage = nil
         configuration.timeoutIntervalForRequest = 15
         session = URLSession(configuration: configuration)

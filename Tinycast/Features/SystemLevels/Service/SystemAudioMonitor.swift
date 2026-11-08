@@ -11,7 +11,7 @@ final class SystemAudioMonitor {
         let block: AudioObjectPropertyListenerBlock
     }
 
-    private static let log = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Notchcast", category: "SystemAudio")
+    private static let log = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "SystemAudio")
     private var listeners: [Listener] = []
     private var generation = UUID()
 

@@ -2,8 +2,7 @@ import AppKit
 
 @MainActor
 final class SpacesOrderModule: NotchcastModule {
-    private let defaults = UserDefaults(suiteName:
-        (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
+    private let defaults = NotchcastIdentity.current.defaults
     private let backupKey = "spacesOrderOriginal"
     private let domain = "com.apple.dock" as CFString
     private let key = "mru-spaces" as CFString
