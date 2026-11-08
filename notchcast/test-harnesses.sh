@@ -1,5 +1,8 @@
 # Sourced by upstream's runner so fork harnesses never need another shared registration.
-harness_inputs=$(python3 notchcast/harness_inputs.py) || return 1
+harness_inputs=$(python3 notchcast/harness_inputs.py) || {
+    echo '::error::Fork harness input resolution failed; refusing an incomplete test suite' >&2
+    exit 1
+}
 while IFS=$'\t' read -r harness has_header sources; do
     [ -e "$harness" ] || continue
     name=$(basename "$harness" .swift)

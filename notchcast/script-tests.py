@@ -1,20 +1,32 @@
 #!/usr/bin/env python3
-"""Run every fork Python and shell script test, including nested folders."""
+"""Discover fork script tests, keeping slow and host-integrated checks opt-in."""
+import argparse
 from pathlib import Path
 import subprocess
 import sys
 
 
-tests = sorted(path for pattern in ("*-test.py", "*-test.sh") for path in Path("notchcast").rglob(pattern))
-if sys.argv[1:] == ["--list"]:
+RUNTIMES = {".py": ["python3"], ".sh": ["bash"], ".mjs": ["node"],
+            ".swift": ["swift", "-swift-version", "6"]}
+ALL_ONLY = {
+    Path("notchcast/land-test.sh"),
+    Path("notchcast/install-app-test.sh"),
+    Path("notchcast/gallery/keychain-test.py"),
+}
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--all", action="store_true", help="include slow and host-integrated tests")
+parser.add_argument("--list", action="store_true", help="list selected tests without running them")
+args = parser.parse_args()
+discovered = sorted(path for suffix in RUNTIMES for path in Path("notchcast").rglob(f"*-test{suffix}"))
+tests = [path for path in discovered if args.all or path not in ALL_ONLY]
+if args.list:
     print("\n".join(map(str, tests)))
 else:
-    print(f"Running {len(tests)} script tests", flush=True)
+    print(f"Running {len(tests)} script tests ({len(discovered) - len(tests)} opt-in tests excluded)", flush=True)
     failed = []
     for path in tests:
         print(f"\n=== {path} ===", flush=True)
-        command = "python3" if path.suffix == ".py" else "bash"
-        if subprocess.run([command, str(path)]).returncode:
+        if subprocess.run([*RUNTIMES[path.suffix], str(path)]).returncode:
             failed.append(str(path))
     print(f"\nScript tests: {len(tests) - len(failed)} passed, {len(failed)} failed", flush=True)
     if failed:
