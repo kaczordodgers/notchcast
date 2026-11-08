@@ -41,6 +41,10 @@ struct SystemModuleTests {
         let saved = try JSONDecoder().decode([String: TypingPreferencePlan].self,
             from: journalDefaults.data(forKey: journalKey)!)
         precondition(saved == ["valid": plan])
+        let retired = TypingPreferencePlan(entries: [.init(
+            write: .init("com.apple.dock", "mru-spaces", .bool(false)), previous: .bool(true))])
+        journalDefaults.set(try JSONEncoder().encode(["spaces-fixed": retired]), forKey: journalKey)
+        precondition(TweaksModule(key: journalKey).store.plans.isEmpty)
         let malformed = try JSONSerialization.data(withJSONObject: ["bad": 7])
         journalDefaults.set(malformed, forKey: journalKey)
         precondition(TweaksModule(key: journalKey).store.plans.isEmpty)
