@@ -18,11 +18,12 @@ final class AccessoryBluetoothMonitor: NSObject, AccessoryBluetoothSource {
         stop()
         guard CBManager.authorization == .allowedAlways else { return [] }
         self.receive = receive
+        // Watch before reading, so a link change mid-start is either read or delivered.
+        token = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(connected(_:device:)))
         let devices = (IOBluetoothDevice.pairedDevices() ?? []).compactMap { $0 as? IOBluetoothDevice }
             .filter { $0.isConnected() }
         for device in devices { watch(device) }
-        token = IOBluetoothDevice.register(forConnectNotifications: self, selector: #selector(connected(_:device:)))
-        return devices.compactMap(\.addressString)
+        return devices.filter { $0.isConnected() }.compactMap(\.addressString)
     }
 
     private func watch(_ device: IOBluetoothDevice) {
