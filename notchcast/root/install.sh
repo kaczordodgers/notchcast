@@ -49,7 +49,7 @@ fi
 
 source_directory=$(cd "$(/usr/bin/dirname "$0")" && pwd)
 # Root compiles these sources: refuse uncommitted edits and show the commit they come from.
-app_sources=(../../Tinycast/Features/Clean/Model/CleanSystemEntry.swift ../../Tinycast/Features/Clean/Model/CleanSystemPlan.swift ../../Tinycast/Features/Clean/Model/CleanSystemPolicy.swift)
+app_sources=(../../Tinycast/Features/Clean/Model/CleanSystemEntry.swift ../../Tinycast/Features/Clean/Model/CleanSystemPlan.swift ../../Tinycast/Features/Clean/Model/CleanSystemPolicy.swift ../../Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift)
 if [ -n "$(/usr/bin/git -C "$source_directory" status --porcelain -- . "${app_sources[@]}")" ]; then
     printf 'Helper sources have uncommitted changes; commit or discard them first.\n' >&2
     exit 65
@@ -70,7 +70,7 @@ else
     trap '/bin/rm -rf "$stage"' EXIT
 fi
 
-step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$source_directory/BatterySMC.swift" "$source_directory/Spotlight.swift" "$source_directory/SudoTouchID.swift" "$source_directory/TouchIDPolicy.swift" "$source_directory/Power.swift" "$stage/"
+step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$source_directory/BatterySMC.swift" "$source_directory/Spotlight.swift" "$source_directory/SudoTouchID.swift" "$source_directory/../../Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift" "$source_directory/Power.swift" "$stage/"
 step /usr/bin/shasum -a 256 "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift"
 step /bin/cp "$source_directory/RootCaller.swift" "$stage/RootCaller.swift"
 step /bin/cp "$source_directory/CleanSystem.swift" "$source_directory/../../Tinycast/Features/Clean/Model/CleanSystemEntry.swift" "$source_directory/../../Tinycast/Features/Clean/Model/CleanSystemPlan.swift" "$source_directory/../../Tinycast/Features/Clean/Model/CleanSystemPolicy.swift" "$stage/"
