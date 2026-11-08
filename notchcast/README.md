@@ -26,6 +26,14 @@ Our commits:
 - Each failure opens or updates one issue per kind, closed by the next green run of that kind: `notchcast-sync` (replaying onto new upstream), `notchcast-main` (a pushed `main` tested as it is), `notchcast-release` (per tag). A conflict's issue names our commit and files and lists the upstream commits that touched them. A cause that stays the same (the same conflict, the same red `main`, the same tag) on a newer upstream only retitles the issue. On a maintainer machine with a notify hook (see [Private hooks](#private-hooks)), the updater reports each issue and cause once.
 - A sync that brings upstream changes under `Tinycast/DesignSystem/`, to `Theme.swift` or to `docs/ui.md` opens one `notchcast-design` issue listing those upstream commits. On a maintainer machine with a task hook, the updater turns it into one private task, "Refresh notchcast/docs/design-system.md", and closes the issue.
 
+## Shared repository configuration
+
+`notchcast/config.env` owns the repository names, maintainer identity and tested-status context. Shell scripts source it. Python tools use `ci.config()`. Git URLs and the trusted local-status creator are derived from those values.
+
+`python3 notchcast/check-config.py` compares literal counts in `notchcast/` and explicit lists of fork-owned workflows and GitHub documents with `notchcast/config-literals.json`. Upstream-owned files are never scanned, and the guard runs during build checks, not before replay planning. The checked exceptions are documentation and historical source references, independent test fixtures and workflow comments. `python3 notchcast/check-config.py --list` lists every path and key. A changed literal or an unlisted copy fails. `python3 notchcast/check-config-test.py` demonstrates a deliberately wrong literal failing and the restored literal passing.
+
+Snapshot and Sync both use `notchcast/actions/release` for signing, Release arm64 compilation, signature and identity checks, a 30-second launch check, and zip and dmg packaging. The action receives version, build and signing material explicitly. Identity is checked after signature verification in both workflows. Publication and cleanup remain with each workflow. `bash notchcast/release-test.sh` checks that both workflows call the action once and exercises live and crashed process fixtures. The test uses Ruby's standard-library YAML parser.
+
 ## Secrets and checks
 
 - Actions secrets live in the environment `sync`, which only `main` may use: `SIGNING_P12_BASE64` and `SIGNING_P12_PASSWORD` (the self-signed code-signing identity) and `DEPLOY_KEY` (write deploy key `notchcast-actions`; `GITHUB_TOKEN` cannot push commits that touch workflow files). The same material is kept outside git on the maintainer's Mac. The public leaf fingerprint is `SIGN_SHA1` in `config.env`.

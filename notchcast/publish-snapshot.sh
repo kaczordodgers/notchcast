@@ -81,7 +81,7 @@ remove_tag() {
     git push "$REMOTE" ":refs/tags/$TAG"
 }
 
-git -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
+git -c user.name="$MAINTAINER_NAME" -c user.email="$MAINTAINER_EMAIL" \
     tag -f -a "$TAG" "$MAIN" -m "Notchcast snapshot $MAIN" >/dev/null || exit 1
 retry "tag push" push_tag || exit 1
 if retry "release" publish; then
