@@ -324,8 +324,6 @@ struct AgentSessionTests {
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc  # note $(x) `y`": ["agent-abc"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent-abc\" # note": ["agent-abc"],
             "export\tNOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc\t": ["agent-abc"],
-            "NOTCHCAST_AGENT_\\\nSESSIONS_EXCLUDE=ghi": ["ghi"],
-            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-a\\\n,agent-b": ["agent-a", "agent-b"],
         ]
         for (text, expected) in forms {
             try Data(text.utf8).write(to: config)
@@ -346,6 +344,13 @@ struct AgentSessionTests {
             "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc; export OTHER=1",
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a, b\"",
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc\r,ghi",
+            "NOTCHCAST_AGENT_\\\nSESSIONS_EXCLUDE=ghi",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-a\\\n,agent-b",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE= # note \\\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=secret",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc # c:\\\\\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=secret",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE='ab\\\nc'",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUD$'E'=secret",
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUD$\"E\"=secret",
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=abc\u{2028},ghi",
             "export NOTCHCAST_AGENT_SESSIONS_EXCLUD\"E\"=ghi",
             "export NOTCHCAST_AGENT_SESSIONS_EXCLUD\\E=ghi",

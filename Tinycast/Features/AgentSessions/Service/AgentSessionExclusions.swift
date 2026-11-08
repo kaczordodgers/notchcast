@@ -12,9 +12,10 @@ enum AgentSessionExclusions {
             return []
         }
         let joined = contents.replacing("\\\n", with: "")
-        let lines = joined.split(separator: "\n").filter { $0.filter { !"\"'\\".contains($0) }.contains(key) }
+        let lines = joined.split(separator: "\n").filter { $0.filter { !"\"'\\$".contains($0) }.contains(key) }
         guard lines.count <= 1 else { throw MalformedAssignment() }
         guard let line = lines.first else { return [] }
+        guard contents.split(separator: "\n").contains(line) else { throw MalformedAssignment() }
         let assignment = #/
             [\x20\t]* (?: export [\x20\t]+ )? NOTCHCAST_AGENT_SESSIONS_EXCLUDE=
             (?: ([A-Za-z0-9_.,-]*) | "([A-Za-z0-9_.,-]*)" | '([A-Za-z0-9_.,-]*)' )
