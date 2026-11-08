@@ -88,6 +88,62 @@ struct CaptureScrollingTests {
         precondition(add([1, 2, 3], to: &tiny) == .unchanged)
     }
 
+    static func stickyEvidenceTests() {
+        let margin = Array(repeating: 7, count: 25)
+        var topMargin = stitcher(Array(margin[..<20]) + Array(0..<80))
+        precondition(add(Array(margin[..<15]) + Array(0..<85), to: &topMargin) == .added(5))
+        expectImage(topMargin, rows: Array(margin[..<20]) + Array(0..<85))
+        var bottomMargin = stitcher(Array(0..<80) + Array(margin[..<20]))
+        precondition(add(Array(5..<80) + margin, to: &bottomMargin) == .added(5))
+        expectImage(bottomMargin, rows: Array(0..<80) + margin)
+
+        var transient = stitcher(Array(0..<100))
+        precondition(add(Array(0..<20) + Array(500..<580), to: &transient) == .unmatched)
+        precondition(add(Array(40..<140), to: &transient) == .added(40))
+        expectImage(transient, rows: Array(0..<140))
+
+        let page = Array(repeating: 7, count: 100) + Array(1000..<1600)
+        let header = Array(repeating: 7, count: 80)
+        var flatHeader = stitcher(header + Array(page[0..<320]))
+        for offset in stride(from: 30, through: 210, by: 30) {
+            precondition(add(header + Array(page[offset..<offset + 320]), to: &flatHeader) == .added(30),
+                         "A flat header over a same-colour margin must be cropped once the margin scrolls out")
+        }
+        expectImage(flatHeader, rows: Array(page[0..<530]))
+        let strip = Array(repeating: 9, count: 15)
+        let body = Array(repeating: 9, count: 10) + Array(0..<300)
+        var flatStrip = stitcher(strip + Array(body[0..<85]))
+        for (offset, added) in [(5, 5), (15, 10), (40, 25), (60, 20)] {
+            precondition(add(strip + Array(body[offset..<offset + 85]), to: &flatStrip) == .added(added))
+        }
+        expectImage(flatStrip, rows: Array(body[0..<145]))
+    }
+
+    static func twoBarTests() {
+        func capture(header: [Int], footer: [Int], page: [Int], frameHeight: Int, offsets: [Int]) -> ScrollingStitcher {
+            let body = frameHeight - header.count - footer.count
+            var sticky = stitcher(header + Array(page[offsets[0]..<offsets[0] + body]) + footer)
+            for offset in offsets.dropFirst() {
+                precondition(add(header + Array(page[offset..<offset + body]) + footer, to: &sticky) != .unmatched,
+                             "Cropping one bar must not stop the other from being cropped later (offset \(offset))")
+            }
+            return sticky
+        }
+        let text = Array(1000..<4000)
+        let flatTop = Array(repeating: 7, count: 100) + text
+        let flatHeader = capture(header: Array(repeating: 7, count: 80), footer: Array(6000..<6060), page: flatTop,
+                                 frameHeight: 400, offsets: (0..<30).map { $0 * 30 })
+        expectImage(flatHeader, rows: Array(flatTop[0..<1130]))
+        let flatBand = Array(text[0..<240]) + Array(repeating: 7, count: 150) + Array(text[240...])
+        let flatFooter = capture(header: Array(5000..<5060), footer: Array(repeating: 7, count: 80), page: flatBand,
+                                 frameHeight: 400, offsets: (0..<20).map { $0 * 30 })
+        expectImage(flatFooter, rows: Array(flatBand[0..<830]))
+        let gap = Array(repeating: 7, count: 54) + Array(1000..<1073) + Array(repeating: 7, count: 47) + Array(2000..<2600)
+        let flatGap = capture(header: Array(5000..<5019), footer: Array(repeating: 7, count: 35), page: gap,
+                              frameHeight: 169, offsets: [12, 53, 63, 129, 150, 170])
+        expectImage(flatGap, rows: Array(gap[13..<285]))
+    }
+
     static func repeatedRowsTests() {
         var blank = stitcher(Array(repeating: 7, count: 100))
         precondition(add(Array(repeating: 7, count: 100), to: &blank) == .unchanged)
@@ -242,6 +298,8 @@ struct CaptureScrollingTests {
     @MainActor
     static func main() async throws {
         overlapTests()
+        stickyEvidenceTests()
+        twoBarTests()
         repeatedRowsTests()
         limitTests()
         cadenceAndGeometryTests()
