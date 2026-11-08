@@ -51,6 +51,7 @@ final class AccessoryBluetoothMonitor: NSObject, AccessoryBluetoothSource {
             // A disconnect before the watcher existed was never delivered, so it must not announce.
             guard self.disconnects[address] != nil, device.isConnected() else {
                 self.disconnects.removeValue(forKey: address)?.unregister()
+                self.receive?(address, name, false)
                 return
             }
             self.receive?(address, name, true)
