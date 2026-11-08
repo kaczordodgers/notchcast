@@ -8,6 +8,26 @@ private struct TreadmillSessionTimeoutTests {
         return false
     }
 
+    static func lostStopRecords(lateBy fraction: Double, startDuringSilence: Bool, at t: Date) -> [Double] {
+        func running(_ seconds: Int) -> TreadmillStatus {
+            TreadmillStatus(body: [3, 40, 0, UInt8(seconds & 0xFF), UInt8(seconds >> 8), 100, 0, 0, 0, 4, 0, 0, 0, 0, 0])!
+        }
+        var engine = TreadmillSessionEngine(walk: nil)
+        var archive = TreadmillArchive()
+        func feed(_ status: TreadmillStatus, _ at: Double) {
+            let update = engine.receive(.status(status), now: t.addingTimeInterval(at))
+            archive.apply(current: engine.walk, finished: update.finished)
+        }
+        feed(running(590), 590)
+        feed(running(600), 600)
+        _ = engine.stop(now: t.addingTimeInterval(600))
+        if startDuringSilence { _ = try? engine.start(speed: 4, minutes: 0, now: t.addingTimeInterval(616)) }
+        feed(running(620), 620 + fraction)
+        feed(running(630), 630 + fraction)
+        feed(TreadmillStatus(body: [0, 0])!, 640)
+        return archive.records.map(\.seconds)
+    }
+
     static func main() throws {
         let now = Date(timeIntervalSince1970: 1_793_793_600)
         var engine = TreadmillSessionEngine(walk: nil)
@@ -68,6 +88,12 @@ private struct TreadmillSessionTimeoutTests {
         precondition(!refusesStart(&silentWalk, at: now.addingTimeInterval(75)), "a stopped walk on a silent pad frees a start")
         let next = silentWalk.receive(.status(standby), now: now.addingTimeInterval(76))
         precondition(next.finished.count == 1 && next.commands.count == 1, "the silent walk is recorded and the start retried")
-        print("nc-Treadmill-session-timeout: 21 checks passed")
+        precondition(lostStopRecords(lateBy: 0, startDuringSilence: false, at: now) == [630],
+                     "a walk the pad continues after a lost Stop keeps its tail")
+        precondition(lostStopRecords(lateBy: 0.4, startDuringSilence: false, at: now) == [630],
+                     "a walk the pad continues after a lost Stop is recorded once")
+        precondition(lostStopRecords(lateBy: 0.4, startDuringSilence: true, at: now) == [630],
+                     "a start during the silence still records the continued walk once")
+        print("nc-Treadmill-session-timeout: 24 checks passed")
     }
 }

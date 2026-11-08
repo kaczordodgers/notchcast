@@ -95,7 +95,13 @@ struct TreadmillSessionEngine: Sendable {
         case .standby, .ready, .asleep, .ended, .error: false
         }
         var stale = Update()
-        if moving, let silentStopDeadline, now >= silentStopDeadline { endWalk(into: &stale) }
+        if moving, let silentStopDeadline, now >= silentStopDeadline {
+            if let walk, let sample = status.sample, sample.seconds >= walk.sample.seconds {
+                self.silentStopDeadline = nil
+            } else {
+                endWalk(into: &stale)
+            }
+        }
         var update = checkTimeout(now: now)
         update.finished = stale.finished
         if !moving {
