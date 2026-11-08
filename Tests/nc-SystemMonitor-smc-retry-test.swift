@@ -10,8 +10,7 @@ struct SMCRetryTests {
         var lookups: [UInt32: Int] = [:]
         var reader = SMCSensorReader(client: nil, brand: "Apple M1")
         func discover(failing: Set<UInt32>) {
-            reader.discover(needsCPU: true, needsGPU: true,
-                            deadline: ProcessInfo.processInfo.systemUptime + 1,
+            reader.discover(deadline: ProcessInfo.processInfo.systemUptime + 1,
                             keyCount: { UInt32(keys.count) }) { index in
                 lookups[index, default: 0] += 1
                 return failing.contains(index) ? nil : keys[Int(index)]
@@ -26,8 +25,7 @@ struct SMCRetryTests {
         lookups = [:]
         var stuck = SMCSensorReader(client: nil, brand: "Apple M1")
         for _ in 0..<10 {
-            stuck.discover(needsCPU: true, needsGPU: true,
-                           deadline: ProcessInfo.processInfo.systemUptime + 1,
+            stuck.discover(deadline: ProcessInfo.processInfo.systemUptime + 1,
                            keyCount: { UInt32(keys.count) }) { index in
                 lookups[index, default: 0] += 1
                 return index == 0 ? nil : keys[Int(index)]
@@ -36,6 +34,15 @@ struct SMCRetryTests {
         check("permanently bad index is bounded", (lookups[0] ?? 0) <= 2)
         check("discovery still completes", stuck.discoveredGPUKeys == ["Tg1b"]
             && stuck.discoveredCPUKeys == ["Tp01"])
+
+        var alertsFirst = SMCSensorReader(client: nil, brand: "Apple M1")
+        for pass in 0..<3 {
+            alertsFirst.discover(deadline: ProcessInfo.processInfo.systemUptime + 1,
+                                 keyCount: { UInt32(keys.count) }) { index in
+                index == 0 && pass == 0 ? nil : keys[Int(index)]
+            }
+        }
+        check("gpu keys survive a cpu-only scan", alertsFirst.discoveredGPUKeys.sorted() == ["Tg0a", "Tg1b"])
         print("SMC retry tests passed")
     }
 }

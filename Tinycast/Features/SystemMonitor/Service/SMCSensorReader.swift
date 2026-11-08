@@ -30,8 +30,7 @@ nonisolated struct SMCSensorReader: Sendable {
         let fixedGPU = alertsOnly ? [] : temperatures(TemperatureSensorPolicy.gpuKeys, client: client, deadline: deadline)
         let needsCPU = fixedCPU.isEmpty && fallbackCPU.isEmpty
         if needsCPU || (!alertsOnly && fixedGPU.isEmpty) {
-            discover(needsCPU: needsCPU, needsGPU: !alertsOnly && fixedGPU.isEmpty, deadline: deadline,
-                     keyCount: client.keyCount, key: client.key(at:))
+            discover(deadline: deadline, keyCount: client.keyCount, key: client.key(at:))
         }
         let cpu = !fixedCPU.isEmpty ? fixedCPU : !fallbackCPU.isEmpty ? fallbackCPU
             : temperatures(discoveredCPUKeys, client: client, deadline: deadline)
@@ -59,8 +58,8 @@ nonisolated struct SMCSensorReader: Sendable {
         return readings
     }
 
-    mutating func discover(needsCPU: Bool, needsGPU: Bool, deadline: Double,
-                           keyCount count: () -> UInt32?, key lookup: (UInt32) -> String?) {
+    mutating func discover(deadline: Double, keyCount count: () -> UInt32?,
+                           key lookup: (UInt32) -> String?) {
         guard ProcessInfo.processInfo.systemUptime < deadline else { return }
         if keyCount == nil { keyCount = count() }
         guard let keyCount else { return }
@@ -80,9 +79,9 @@ nonisolated struct SMCSensorReader: Sendable {
                 break
             }
             guard let key else { continue }
-            if needsCPU, TemperatureSensorPolicy.isCPUKey(key, includesTf: includesTf) {
+            if TemperatureSensorPolicy.isCPUKey(key, includesTf: includesTf) {
                 discoveredCPUKeys.append(key)
-            } else if needsGPU, TemperatureSensorPolicy.isGPUKey(key) {
+            } else if TemperatureSensorPolicy.isGPUKey(key) {
                 discoveredGPUKeys.append(key)
             }
         }
