@@ -25,6 +25,18 @@ struct SystemMonitorProcessBaselineTests {
         let next = ProcessSampler.baselines(previous: cut, reached: [lowNow, reused], live: [10, 900])
         expect(next[high.identity] == nil && next[reused.identity] == reused, "reused PID replaces old identity")
 
+        var cursor: Int32 = 0, rankedPast = false
+        for _ in 0..<4 where !rankedPast {
+            var budget = 3
+            let scan = ProcessSampler.scan(Array(1...10), after: cursor, read: { counter($0, ticks: 1) }) {
+                budget -= 1
+                return budget >= 0
+            }
+            cursor = scan.cursor
+            rankedPast = scan.reached.contains { $0.identity.pid == 10 }
+        }
+        expect(rankedPast, "PID past the deadline cut is reached within ceil(10 / 3) samples")
+
         print(failures == 0 ? "all passed" : "\(failures) failed")
         exit(failures == 0 ? 0 : 1)
     }
