@@ -45,7 +45,7 @@ final class TodoModule: NotchcastModule {
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled, let self, self.operationID == id else { return }
-                Logger(subsystem: NotchcastIdentity.releaseFallbackSubsystem, category: "Todo")
+                Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Todo")
                     .error("Task store failed to open: \(error)")
                 self.loading = nil
                 self.showFailure(String(localized: "The task store could not be opened.", table: "Notchcast"))
@@ -61,7 +61,7 @@ final class TodoModule: NotchcastModule {
         loading?.cancel()
         loading = nil
         do { try store?.close() } catch {
-            Logger(subsystem: NotchcastIdentity.releaseFallbackSubsystem, category: "Todo")
+            Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Todo")
                 .error("Task store failed to close: \(error)")
             showFailure(String(localized: "The task store could not be closed.", table: "Notchcast"))
         }

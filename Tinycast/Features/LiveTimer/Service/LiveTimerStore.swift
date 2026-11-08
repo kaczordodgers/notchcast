@@ -30,7 +30,7 @@ final class LiveTimerStore {
 
     private static let soundKey = "notchcast.liveTimer.playSound"
     private static let entriesKey = "notchcast.liveTimer.entries"
-    private static let logger = Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(),
+    private static let logger = Logger(subsystem: NotchcastIdentity.current.bundleID,
                                        category: "LiveTimerStore")
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let clock: () -> Date

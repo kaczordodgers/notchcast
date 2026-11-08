@@ -11,7 +11,7 @@ final class AgentBridgeModule: NotchcastModule {
         guard !configured else { return }
         do {
             let grants = try AgentGrantStore(bundleIdentifier: NotchcastIdentity.current.bundleID)
-            let audit = AgentAuditStore(directory: NotchcastIdentity.current.standardApplicationSupport.appending(path: "agent"))
+            let audit = AgentAuditStore(directory: NotchcastIdentity.supportRoot.appending(path: "agent"))
             let confirmation = AgentConfirmationAuthorization(grants: grants,
                 isEnabled: { NotchcastPreferences.shared.isOn(.agentConfirmation) },
                 timeout: AgentRequestTiming.confirmationTimeout) { action, message, choices in

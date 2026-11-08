@@ -20,7 +20,7 @@ final class DownloadQueue {
     @ObservationIgnored private var stopped = false
 
     init(
-        file: URL? = NotchcastIdentity.current.standardApplicationSupport.appending(path: "Notchcast/downloads.json"),
+        file: URL? = NotchcastIdentity.supportRoot.appending(path: "Notchcast/downloads.json"),
         destination: URL = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Downloads"),
         maxConcurrent: Int = 3, tools: DownloadToolLookup = DownloadToolLookup(),
         clock: @escaping () -> Date = { Date() }

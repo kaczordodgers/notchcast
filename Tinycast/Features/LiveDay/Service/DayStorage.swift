@@ -7,7 +7,8 @@ enum DayStorage {
     }
 
     static var weatherCacheURL: URL {
-        NotchcastIdentity.current.dayApplicationSupport
-            .appendingPathComponent("weather.json")
+        let identifier = NotchcastIdentity.current.bundleID
+        let directory = identifier == NotchcastIdentity.releaseBundleIdentifier ? "Notchcast" : "Notchcast-" + identifier
+        return URL.applicationSupportDirectory.appending(path: directory).appending(path: "weather.json")
     }
 }

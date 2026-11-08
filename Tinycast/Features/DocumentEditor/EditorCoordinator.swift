@@ -82,7 +82,7 @@ final class EditorCoordinator: NotchcastModule {
 
     func flushForTermination() async {
         for document in documents where document.isEnabled {
-            let logger = Logger(subsystem: NotchcastIdentity.current.loggerSubsystem(), category: "editor")
+            let logger = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "editor")
             do {
                 let recovery = try await EditorRecoveryService.flush(
                     document, directory: NotchcastIdentity.supportRoot.appendingPathComponent("EditorRecovery"))

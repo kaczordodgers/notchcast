@@ -8,7 +8,7 @@ final class LowDiskManager {
     typealias Read = @Sendable () async throws -> LowDiskEngine.Space
     static let checkInterval: Duration = .seconds(600)
     private static let spellKey = "notchcast.lowDisk.isLow"
-    private static let log = Logger(subsystem: NotchcastIdentity.displayNameFallbackSubsystem, category: "LowDisk")
+    private static let log = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "LowDisk")
 
     private(set) var engine: LowDiskEngine
     private(set) var isRunning = false

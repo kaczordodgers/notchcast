@@ -30,7 +30,7 @@
 import Foundation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
-enum AppPaths { static func applicationSupport(bundleID: String = "") -> URL { FileManager.default.temporaryDirectory } }
+enum AppPaths { static func applicationSupport() -> URL { FileManager.default.temporaryDirectory } }
 enum DialogTone { case neutral, danger }
 @MainActor final class AppIndexStub { func refreshNotchcastCommands() { } }
 @MainActor final class AppCore {

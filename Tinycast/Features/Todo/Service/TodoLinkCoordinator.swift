@@ -141,7 +141,7 @@ final class TodoLinkCoordinator {
             } catch {
                 guard self?.generation == generation else { return }
                 self?.report(error)
-                Logger(subsystem: NotchcastIdentity.releaseFallbackSubsystem, category: "TodoSync")
+                Logger(subsystem: NotchcastIdentity.current.bundleID, category: "TodoSync")
                     .error("Task exchange failed: \(error)")
             }
         }

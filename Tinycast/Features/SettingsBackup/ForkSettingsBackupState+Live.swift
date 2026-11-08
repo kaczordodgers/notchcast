@@ -114,7 +114,7 @@ extension ForkSettingsBackupState {
     }
 
     private static func logSkipped(_ key: String) {
-        Logger(subsystem: NotchcastIdentity.releaseFallbackSubsystem, category: "SettingsBackup")
+        Logger(subsystem: NotchcastIdentity.current.bundleID, category: "SettingsBackup")
             .error("Skipping invalid backup key: \(key, privacy: .public)")
     }
 

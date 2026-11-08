@@ -19,15 +19,6 @@ if [[ " $* " == *" Tinycast/"* && " $* " != *" Tinycast/Features/Notchcast/Hidde
     set -- "$@" Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift
 fi
 
-# Fork identity (suite, paths, subsystem, session) is read by fork files any harness may compile.
-if [[ " $* " == *" Tinycast/"* ]]; then
-    [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift "* ]] ||
-        set -- "$@" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
-    # A harness that stubs AppPaths keeps its stub; it then takes the bundleID: label.
-    [[ " $* " == *" Tinycast/Platform/AppPaths.swift "* ]] || grep -q '^enum AppPaths' "Tests/$name.swift" ||
-        set -- "$@" Tinycast/Platform/AppPaths.swift
-fi
-
 if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
     for source in Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift \
         Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
@@ -35,4 +26,14 @@ if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
         Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift; do
         [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
     done
+fi
+
+# Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
+identity_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done; true)
+if [[ " $* " != *" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift "* ]] &&
+    grep -lqs NotchcastIdentity $identity_readers /dev/null; then
+    set -- "$@" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
+    # A harness that stubs AppPaths keeps its stub.
+    [[ " $* " == *" Tinycast/Platform/AppPaths.swift "* ]] || grep -q '^enum AppPaths' "Tests/$name.swift" ||
+        set -- "$@" Tinycast/Platform/AppPaths.swift
 fi

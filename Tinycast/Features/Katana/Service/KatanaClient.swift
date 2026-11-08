@@ -15,7 +15,8 @@ final class KatanaClient {
     @ObservationIgnored private let ampLock: KatanaAmpLock
 
     init(transport: (any KatanaTransport)? = nil,
-         backupDirectory: URL = NotchcastIdentity.current.applicationSupport()
+         backupDirectory: URL = URL.applicationSupportDirectory
+            .appending(path: NotchcastIdentity.current.bundleID)
             .appending(path: "Katana/backups"),
          lockPath: String = FileManager.default.homeDirectoryForCurrentUser
             .appending(path: ".katana-venv/amp.lock").path,

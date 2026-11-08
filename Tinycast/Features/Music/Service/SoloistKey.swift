@@ -78,7 +78,7 @@ final class SoloistKey {
     /// Logged so a failure explains itself in Console; the detail never holds the key.
     private static func failure(_ kind: SoloistFailure, _ detail: String) -> SoloistFailure {
         let failure = kind.detail(detail)
-        Logger(subsystem: NotchcastIdentity.upstreamFallbackSubsystem, category: "Soloist")
+        Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Soloist")
             .error("API key: \(String(describing: failure), privacy: .public)")
         return failure
     }
