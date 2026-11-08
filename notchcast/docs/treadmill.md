@@ -18,7 +18,8 @@ launcher, hotkey and CLI registration remain outside this core-only port.
 - A failed or corrupt archive is reported and never overwritten. Imported aggregate records count
   toward period totals and the odometer, but never toward daily chart buckets or the walk count.
 - Discovery scans for service 0x1826 or FFF0. The pad id is saved only once FFF0 with its notify and
-  write characteristics is ready; a peripheral without them is skipped for the session.
+  write characteristics is ready; a peripheral without them, or whose notify-enable fails, is skipped
+  for the session. A service or characteristic discovery error reconnects; three in a row skip it too.
 - The goal defaults to 60 minutes, can count steps or kilometers, and can be disabled through the API.
   Goal preferences live in the channel's fork-local defaults suite. Goal completion is persisted once
   per calendar day. Lube becomes due at each 200 km mark after the last recorded lubrication.

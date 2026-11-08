@@ -319,7 +319,6 @@ struct AgentSessionTests {
             "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a,b": ["a", "b"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a, b\"": ["a", "b"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE='A,b'": ["a", "b"],
-            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b'": ["\"a", "b'"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=new": ["new"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=kept\n# NOTCHCAST_AGENT_SESSIONS_EXCLUDE=comment": ["kept"],
             "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc  # note": ["agent-abc"],
@@ -331,6 +330,20 @@ struct AgentSessionTests {
             try Data(text.utf8).write(to: config)
             let parsed = try AgentSessionExclusions.load(from: config)
             expect(parsed == expected, "Shell form parsed: \(text)")
+        }
+        let malformed = [
+            "export FOO=1; export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-abc",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old; NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-new",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE = x",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE =x",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=agent-\"abc\"",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"agent\"-abc",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b'",
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=good\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE = bad",
+        ]
+        for text in malformed {
+            try Data(text.utf8).write(to: config)
+            expect((try? AgentSessionExclusions.load(from: config)) == nil, "Malformed form throws: \(text)")
         }
         expect(!FileManager.default.fileExists(atPath: marker.path), "Private config is never executed")
         expect(!AgentSessionIndex.allows(fixturePath, excluding: prefixes), "Excluded file prefix rejected")

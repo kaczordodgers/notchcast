@@ -14,6 +14,8 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     private var writer: CBCharacteristic?
     private var active = false
     private var rejected = Set<UUID>()
+    private var discoveryErrors = 0
+    private static let discoveryErrorLimit = 3
     private let defaults: UserDefaults
     private static let padIDKey = "treadmill.padID"
 
@@ -59,6 +61,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
         pad = nil
         writer = nil
         rejected.removeAll()
+        discoveryErrors = 0
         previous?.delegate = nil
         if let previous { manager?.cancelPeripheralConnection(previous) }
     }
@@ -107,7 +110,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
 
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: (any Error)?) {
         guard active, peripheral === pad else { return }
-        guard error == nil else { manager?.cancelPeripheralConnection(peripheral); return }
+        guard error == nil else { discoveryFailed(peripheral); return }
         guard let service = peripheral.services?.first(where: { $0.uuid == Self.service })
         else { reject(peripheral); return }
         peripheral.discoverCharacteristics([Self.notify, Self.write], for: service)
@@ -116,7 +119,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService,
                     error: (any Error)?) {
         guard active, peripheral === pad, service.uuid == Self.service else { return }
-        guard error == nil else { manager?.cancelPeripheralConnection(peripheral); return }
+        guard error == nil else { discoveryFailed(peripheral); return }
         guard let notify = service.characteristics?.first(where: { $0.uuid == Self.notify }),
               let write = service.characteristics?.first(where: { $0.uuid == Self.write }),
               notify.properties.contains(.notify),
@@ -130,11 +133,20 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
                     error: (any Error)?) {
         guard active, peripheral === pad, characteristic.uuid == Self.notify else { return }
         guard error == nil, characteristic.isNotifying else { reject(peripheral); return }
+        discoveryErrors = 0
         defaults.set(peripheral.identifier.uuidString, forKey: Self.padIDKey)
         onEvent?(.ready)
     }
 
+    private func discoveryFailed(_ peripheral: CBPeripheral) {
+        discoveryErrors += 1
+        if discoveryErrors >= Self.discoveryErrorLimit { reject(peripheral) } else {
+            manager?.cancelPeripheralConnection(peripheral)
+        }
+    }
+
     private func reject(_ peripheral: CBPeripheral) {
+        discoveryErrors = 0
         rejected.insert(peripheral.identifier)
         pad = nil
         writer = nil
