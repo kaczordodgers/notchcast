@@ -1,4 +1,5 @@
 // notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-reads: notchcast/root/*.swift Tinycast/Features/Clean/Model/CleanSystem*.swift
 import Darwin
 import Foundation
 
@@ -409,6 +410,7 @@ struct RootClientTest {
         compiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         compiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
                               "-warnings-as-errors", "-O"] + sources + [
+                                "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemEntry.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemPlan.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemPolicy.swift", "-o", helper.path]
@@ -437,7 +439,7 @@ struct RootClientTest {
                                  "notchcast/root/BatterySMC.swift",
                                  "notchcast/root/NativeChargeLimit.swift",
                                  "notchcast/root/Power.swift",
-                                 "notchcast/root/Spotlight.swift", "notchcast/root/TouchIDPolicy.swift",
+                                 "notchcast/root/Spotlight.swift", "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
                                  "Tests/notchcast-root-client-test.swift", "-o", fanTests.path]
         try fanCompiler.run()
         fanCompiler.waitUntilExit()

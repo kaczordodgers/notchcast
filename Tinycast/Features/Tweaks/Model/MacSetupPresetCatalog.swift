@@ -109,7 +109,7 @@ nonisolated enum MacSetupPresetCatalog {
                  key: "autohide", value: .bool(true))])),
             .init(id: "dock-delay", group: "dock", presets: [.full],
                  action: .preferences([setting(domain: "com.apple.dock",
-                 key: "autohide-delay", value: .integer(0))])),
+                 key: "autohide-delay", value: .real(0))])),
                 
             .init(id: "dock-instant", group: "dock", presets: [.full],
                  action: .preferences([setting(domain: "com.apple.dock",
@@ -138,9 +138,6 @@ nonisolated enum MacSetupPresetCatalog {
                  action: .preferences([setting(domain: "com.apple.dock",
                  key: "wvous-br-corner", value: .integer(1))])),
                 
-            .init(id: "spaces-fixed", group: "windows", presets: [.full],
-                 action: .preferences([setting(domain: "com.apple.dock",
-                 key: "mru-spaces", value: .bool(false))])),
             .init(id: "group-windows", group: "windows", presets: [.full],
                  action: .preferences([setting(domain: "com.apple.dock",
                  key: "expose-group-apps", value: .bool(true))])),

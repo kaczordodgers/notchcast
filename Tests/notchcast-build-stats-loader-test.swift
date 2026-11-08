@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/BuildStats/Model/BuildStatsSnapshot.swift
 // notchcast-sources: Tinycast/Features/BuildStats/Service/BuildStatsLoader.swift
+// notchcast-reads: Tests/fixtures/build-stats-v1.json
 import Foundation
 
 @main
