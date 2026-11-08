@@ -55,6 +55,19 @@ private struct TreadmillSessionTimeoutTests {
         var silentIdle = TreadmillSessionEngine(walk: nil)
         _ = silentIdle.stop(now: now)
         precondition(!refusesStart(&silentIdle, at: now.addingTimeInterval(15)), "an idle Stop on a silent pad expires")
-        print("nc-Treadmill-session-timeout: 16 checks passed")
+
+        var padStart = TreadmillSessionEngine(walk: nil)
+        _ = padStart.stop(now: now)
+        let adopted = padStart.receive(.status(running), now: now.addingTimeInterval(16))
+        precondition(adopted.commands.isEmpty && padStart.walk?.phase == .running, "a walk started after silence is kept")
+
+        var silentWalk = TreadmillSessionEngine(walk: nil)
+        _ = silentWalk.receive(.status(running), now: now)
+        _ = silentWalk.stop(now: now.addingTimeInterval(60))
+        precondition(refusesStart(&silentWalk, at: now.addingTimeInterval(74)), "a stopped walk blocks a start as it winds down")
+        precondition(!refusesStart(&silentWalk, at: now.addingTimeInterval(75)), "a stopped walk on a silent pad frees a start")
+        let next = silentWalk.receive(.status(standby), now: now.addingTimeInterval(76))
+        precondition(next.finished.count == 1 && next.commands.count == 1, "the silent walk is recorded and the start retried")
+        print("nc-Treadmill-session-timeout: 21 checks passed")
     }
 }
