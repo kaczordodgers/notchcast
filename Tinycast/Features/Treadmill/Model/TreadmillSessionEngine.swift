@@ -15,6 +15,7 @@ struct TreadmillSessionEngine: Sendable {
     private var startsSent = 0
     private var restoreSpeed = false
     private var stopping = false
+    private var silentStopDeadline: Date?
 
     var isStarting: Bool { startFrame != nil }
 
@@ -24,7 +25,8 @@ struct TreadmillSessionEngine: Sendable {
     }
 
     mutating func start(speed: Double, minutes: Int, now: Date) throws -> [Data] {
-        guard walk == nil, startFrame == nil, !stopping else { throw TreadmillFailure.alreadyWalking }
+        let silent = silentStopDeadline.map { now >= $0 } ?? false
+        guard walk == nil, startFrame == nil, !stopping || silent else { throw TreadmillFailure.alreadyWalking }
         _ = try TreadmillProtocol.speed(speed)
         let frame = try TreadmillProtocol.start(minutes: minutes)
         requestedSpeed = (speed * 10).rounded() / 10
@@ -33,6 +35,7 @@ struct TreadmillSessionEngine: Sendable {
         startDeadline = now.addingTimeInterval(15)
         startsSent = 1
         stopping = false
+        silentStopDeadline = nil
         return [frame]
     }
 
@@ -53,6 +56,7 @@ struct TreadmillSessionEngine: Sendable {
 
     mutating func stop() -> [Data] {
         stopping = true
+        silentStopDeadline = nil
         startFrame = nil
         startDeadline = nil
         restoreSpeed = false
@@ -82,6 +86,7 @@ struct TreadmillSessionEngine: Sendable {
         guard let startDeadline, now >= startDeadline else { return Update() }
         stopping = true
         clearPending()
+        silentStopDeadline = now.addingTimeInterval(15)
         return Update(commands: [TreadmillProtocol.stop], failure: .timedOut)
     }
 
@@ -92,6 +97,7 @@ struct TreadmillSessionEngine: Sendable {
             switch status.phase {
             case .countdown, .running, .slowing, .paused:
                 if update.commands.isEmpty { update.commands.append(TreadmillProtocol.stop) }
+                if silentStopDeadline != nil { silentStopDeadline = now.addingTimeInterval(15) }
                 return update
             case .standby, .ready, .asleep, .ended, .error:
                 stopping = false
