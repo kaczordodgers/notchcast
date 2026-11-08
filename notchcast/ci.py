@@ -252,7 +252,7 @@ def replay(tree, onto, check=False):
                 applied = None
                 expected = set(conflicts) - set(GENERATED) - {catalog}
                 for fix in replay_fixes(tree, main, name):
-                    patch = run("git", "show", f"{main}:{fix}", cwd=tree)
+                    patch = run("git", "show", f"{main}:{fix}", cwd=tree) + "\n"
                     paths = subprocess.run(["git", "apply", "--numstat", "-z", "-"], input=patch,
                                            cwd=tree, text=True, capture_output=True)
                     covered = {entry.split("\t", 2)[2] for entry in paths.stdout.split("\0") if entry}
