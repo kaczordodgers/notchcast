@@ -3,7 +3,8 @@
 #        ci-priority.sh --restore           reruns what was cancelled
 set -euo pipefail
 
-repo="${CI_PRIORITY_REPO:-kaczordodgers/notchcast}"
+source "$(dirname "$0")/config.env"
+repo="${CI_PRIORITY_REPO:-$FORK_REPO}"
 state="${CI_PRIORITY_STATE:-$HOME/.notchcast-ci-priority}"
 touch "$state"
 
