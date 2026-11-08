@@ -25,6 +25,7 @@
 // notchcast-sources: Tinycast/Features/WindowManagement/Model/Room.swift
 // notchcast-sources: Tinycast/Features/WindowManagement/Model/CustomWindowSize.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
+// notchcast-reads: Tinycast/**/*.swift
 import Foundation
 
 @main @MainActor struct NotchcastLegacyEntryIDTests {
