@@ -18,7 +18,6 @@ struct AgentSessionDatabase: Sendable {
     private(set) var rowsRead = 0
 
     mutating func refresh(url: URL, inode: UInt64, onAccess: @Sendable (URL) -> Void) throws {
-        guard AgentSessionIndex.allows(url) else { return }
         onAccess(url)
         var database: OpaquePointer?
         let status = sqlite3_open_v2(url.path, &database, SQLITE_OPEN_READONLY | SQLITE_OPEN_NOMUTEX, nil)

@@ -15,6 +15,7 @@ final class AgentSessionsModule: NotchcastModule {
     @ObservationIgnored private var index = AgentSessionIndex()
     @ObservationIgnored private var task: Task<Void, Never>?
     private let roots: [AgentSessionIndex.Root]
+    private let privateConfigURL: URL
     private var enabled = false
     private var demanded = false
     private var operation = UUID()
@@ -22,11 +23,14 @@ final class AgentSessionsModule: NotchcastModule {
     init(roots: [AgentSessionIndex.Root] = AgentSessionIndex.Root.defaults(
         home: FileManager.default.homeDirectoryForCurrentUser),
          preferences: NotchcastPreferences = .shared,
-         index: AgentSessionIndex = AgentSessionIndex(), availabilityChanged: @escaping () -> Void = {},
+         index: AgentSessionIndex = AgentSessionIndex(),
+         privateConfigURL: URL = .homeDirectory.appending(path: ".config/notchcast/private.env"),
+         availabilityChanged: @escaping () -> Void = {},
          price: @escaping ([AgentSession], Calendar) -> AgentPricingEngine.Report? = AgentSessionPricing.report) {
         self.roots = roots
         self.preferences = preferences
         self.index = index
+        self.privateConfigURL = privateConfigURL
         self.availabilityChanged = availabilityChanged
         self.price = price
     }
@@ -62,12 +66,13 @@ final class AgentSessionsModule: NotchcastModule {
         cancel()
         let identity = operation
         let roots = roots
+        let privateConfigURL = privateConfigURL
         let initial = index
         task = Task { [weak self] in
             var current = initial
             repeat {
                 do {
-                    let (updated, snapshot) = try await Self.scan(current, roots: roots)
+                    let (updated, snapshot) = try await Self.scan(current, roots: roots, privateConfigURL: privateConfigURL)
                     guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
                     self.index = updated
                     if self.snapshot.sessions != snapshot.sessions || self.snapshot.issues != snapshot.issues {
@@ -115,9 +120,10 @@ final class AgentSessionsModule: NotchcastModule {
     }
 
     @concurrent
-    private static func scan(_ index: AgentSessionIndex, roots: [AgentSessionIndex.Root]) async throws
-        -> (AgentSessionIndex, AgentSessionIndex.Snapshot) {
+    private static func scan(_ index: AgentSessionIndex, roots: [AgentSessionIndex.Root],
+                             privateConfigURL: URL) async throws -> (AgentSessionIndex, AgentSessionIndex.Snapshot) {
         var updated = index
+        updated.excludedPathComponentPrefixes = try AgentSessionExclusions.load(from: privateConfigURL)
         let snapshot = try updated.refresh(roots: roots)
         return (updated, snapshot)
     }

@@ -13,7 +13,7 @@ protocol TreadmillBluetoothCentral: AnyObject {
 enum TreadmillBluetoothEvent {
     case poweredOn, poweredOff, unauthorized, discovered, ready, disconnected
     case bytes(Data)
-    case failed
+    case failed, rejected
 }
 
 enum TreadmillBluetoothFailure: LocalizedError, Equatable {
@@ -113,6 +113,9 @@ final class BluetoothTreadmillTransport: TreadmillTransport {
             onDisconnect?()
             onFailure?(TreadmillBluetoothFailure.connectionFailed)
             deadline(reconnect: true)
+        case .rejected:
+            ready = false
+            if central.scan() { deadline() }
         case .poweredOff, .unauthorized:
             ready = false
             powered = false

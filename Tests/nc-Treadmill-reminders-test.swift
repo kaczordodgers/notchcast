@@ -36,7 +36,7 @@ private struct ReminderTests {
             ids.append(id)
         })
         let repository = TreadmillRepository(directory: root)
-        try await repository.save(TreadmillArchive(importedLegacy: true))
+        try await repository.save(TreadmillArchive())
         let store = TreadmillHistoryStore(repository: repository)
         let transport = ReminderTransport()
         let coordinator = TreadmillCoordinator(transport: transport, history: store, preferences: preferences,
@@ -74,7 +74,7 @@ private struct ReminderTests {
         precondition(ids == ["treadmill.goal", "treadmill.goal", "treadmill.lube", "treadmill.lube"], "Stable ids")
         try await store.flush()
         let reloaded = TreadmillHistoryStore(repository: repository)
-        try await reloaded.load(calendar: fixedCalendar)
+        try await reloaded.load()
         precondition(reloaded.archive.lubricatedKm == 400, "Mark persisted")
         _ = reminders.post(history: reloaded, reachedGoal: false, now: now, calendar: fixedCalendar)
         precondition(messages.count == 4, "No repeat after reload")
