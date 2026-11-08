@@ -19,6 +19,13 @@ if [[ " $* " == *" Tinycast/"* && " $* " != *" Tinycast/Features/Notchcast/Hidde
     set -- "$@" Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift
 fi
 
+# Fork identity (suite, paths, subsystem, session) is read by fork files any harness may compile.
+if [[ " $* " == *" Tinycast/"* ]]; then
+    for source in Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift; do
+        [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
+    done
+fi
+
 if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
     for source in Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift \
         Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
