@@ -4,6 +4,7 @@ set -euo pipefail
 PR=$1
 tools=$(cd "$(dirname "$0")/.." && pwd)
 cd "$tools"
+source "$tools/notchcast/config.env"
 # During a landing hold (notchcast/hold.sh) the owner's build takes the build queue's landing lane, ahead of every
 # normal job, and any other PR's local CI waits here until the hold ends.
 source "$tools/notchcast/hold.sh"
@@ -15,7 +16,7 @@ if [ -f "$HOME/.config/notchcast/private.env" ]; then
 fi
 lane=
 if hold_turn "$PR"; then lane=--landing; fi
-metadata=$(gh pr view "$1" -R kaczordodgers/notchcast --json headRefOid,baseRefOid)
+metadata=$(gh pr view "$1" -R "$FORK_REPO" --json headRefOid,baseRefOid)
 head=$(jq -r .headRefOid <<< "$metadata")
 export HEAD_SHA=$head BASE_SHA=$(jq -r .baseRefOid <<< "$metadata")
 root="${NOTCHCAST_LOCAL_CI_DIR:-$HOME/Library/Caches/notchcast/local-ci}"
@@ -36,12 +37,12 @@ finish() {
     state=failure
     [ "$code" -ne 0 ] || state=success
     description="${minutes}m, $step"
-    gh api "repos/kaczordodgers/notchcast/statuses/$head" -f context=build/local \
+    gh api "repos/${FORK_REPO}/statuses/$head" -f context=build/local \
         -f state="$state" -f description="${description:0:140}" || code=1
     if [ "$code" -eq 0 ]; then
-        runs=$(gh run list -R kaczordodgers/notchcast --workflow PR --commit "$head" \
+        runs=$(gh run list -R "$FORK_REPO" --workflow PR --commit "$head" \
             --limit 100 --json databaseId,status --jq '.[] | select(.status != "completed") | .databaseId') || code=1
-        for run in $runs; do gh run cancel "$run" -R kaczordodgers/notchcast || code=1; done
+        for run in $runs; do gh run cancel "$run" -R "$FORK_REPO" || code=1; done
     fi
     # The landing lane prints only the build's last 40 lines and keeps the full output in the tree's git dir.
     if [ -n "$lane" ]; then cat "$tree"/.git/land-check/lander/*.log 2>/dev/null || true; fi
@@ -68,7 +69,7 @@ exec > "$log" 2>&1
 # upstream's check-migrations.sh then fails on them. The clone gets the fork's tags only, as Actions' checkout does.
 git clone --quiet --shared --no-checkout --no-tags "$(git rev-parse --path-format=absolute --git-common-dir)" "$tree"
 owned=1
-git -C "$tree" remote set-url origin https://github.com/kaczordodgers/notchcast.git
+git -C "$tree" remote set-url origin "https://github.com/$FORK_REPO.git"
 git -C "$tree" fetch --quiet --tags origin "refs/pull/$1/head" "$BASE_SHA" "+refs/heads/main:refs/remotes/origin/main"
 main=$(git -C "$tree" rev-parse origin/main)
 git -C "$tree" checkout --quiet --detach "$main"
@@ -84,7 +85,7 @@ if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Localizab
 fi
 unmerged=$(git diff --name-only --diff-filter=U)
 [ -z "$unmerged" ] || { echo "merge conflict: $unmerged"; exit 1; }
-git -c core.hooksPath=/dev/null -c user.name=Damian -c user.email=336236323+kaczordodgers@users.noreply.github.com \
+git -c core.hooksPath=/dev/null -c user.name="$MAINTAINER_NAME" -c user.email="$MAINTAINER_EMAIL" \
     commit --quiet --allow-empty --no-edit -m "Merge $head"
 export RUNNER_TEMP="$scratch" TMPDIR="$scratch/tmp"
 mkdir "$TMPDIR"

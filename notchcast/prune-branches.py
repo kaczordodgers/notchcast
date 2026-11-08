@@ -8,6 +8,9 @@ from pathlib import Path
 import re
 import subprocess
 import time
+from ci import config
+
+CONFIG = config()
 
 
 def run(*args, check=True):
@@ -45,18 +48,18 @@ def main():
                       git('log', '--format=%s', 'upstream/main..origin/main').splitlines()
                       if (match := re.fullmatch(r'Notchcast:.* \(#(\d+)\)', subject))}
     def open_heads():
-        opened = run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'open', '-L', '1000', '--json', 'headRefName')
+        opened = run('gh', 'pr', 'list', '-R', CONFIG['FORK_REPO'], '--state', 'open', '-L', '1000', '--json', 'headRefName')
         return {pr['headRefName'] for pr in json.loads(opened.stdout)}
 
     open_names = open_heads()
-    closed = json.loads(run('gh', 'pr', 'list', '-R', 'kaczordodgers/notchcast', '--state', 'closed', '-L', '1000', '--json',
+    closed = json.loads(run('gh', 'pr', 'list', '-R', CONFIG['FORK_REPO'], '--state', 'closed', '-L', '1000', '--json',
                             'number,headRefName,comments').stdout)
     landed_tips = set()
     for pr in closed:
         if pr['number'] not in landed_numbers:
             continue
         for comment in pr.get('comments', []):
-            if (comment.get('author') or {}).get('login') != 'kaczordodgers':
+            if (comment.get('author') or {}).get('login') != CONFIG['FORK_REPO'].split('/')[0]:
                 continue
             for match in re.finditer(r'Landed on main as ([0-9a-f]{40})\b[^\n]*?squash of ([0-9a-f]{40})\b', comment['body']):
                 landed_tips.add((pr['headRefName'], match[2]))
