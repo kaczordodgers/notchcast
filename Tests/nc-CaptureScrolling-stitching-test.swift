@@ -117,6 +117,12 @@ struct CaptureScrollingTests {
             precondition(add(strip + Array(body[offset..<offset + 85]), to: &flatStrip) == .added(added))
         }
         expectImage(flatStrip, rows: Array(body[0..<145]))
+        var shade = stitcher(Array(repeating: 7, count: 40) + Array(1000..<1160))
+        for offset in stride(from: 30, through: 120, by: 30) {
+            let frame = Array(repeating: offset < 60 ? 7 : 8, count: 40) + Array(1000 + offset..<1160 + offset)
+            precondition(add(frame, to: &shade) == .added(30), "A flat bar that changes shade is still a bar")
+        }
+        expectImage(shade, rows: Array(1000..<1280))
     }
 
     static func twoBarTests() {
@@ -150,7 +156,24 @@ struct CaptureScrollingTests {
             + Array(1028..<1371)
         let headerGap = capture(header: Array(repeating: 7, count: 34), footer: Array(repeating: 7, count: 18),
                                 page: gapBelowHeader, frameHeight: 160, offsets: [6, 6, 70, 117, 159, 161, 224])
+        // Known lossy: the ideal image is gapBelowHeader[6..<332]; this pins today's 283 rows.
         expectImage(headerGap, rows: Array(gapBelowHeader[49..<332]))
+        var mixed: [Int] = []
+        for (index, run) in [36, 92, 15, 88, 81, 117, 25, 131, 142, 27, 92, 127].enumerated() {
+            let next = 1000 + mixed.count
+            mixed += index.isMultiple(of: 2) ? Array(next..<next + run) : Array(repeating: 7, count: run)
+        }
+        let flatBars = capture(header: Array(repeating: 7, count: 92), footer: Array(repeating: 7, count: 89),
+                               page: mixed, frameHeight: 384, offsets: [130, 202, 287, 432, 459, 512])
+        expectImage(flatBars, rows: Array(mixed[130..<715]))
+        var edgeFlip = stitcher(Array(50000..<50040) + Array(text[0..<220]) + Array(60000..<60040))
+        for offset in stride(from: 40, through: 240, by: 40) {
+            var header = Array(50000..<50040)
+            var footer = Array(60000..<60040)
+            if offset == 120 { (header[39], footer[0]) = (40000, 41000) }
+            precondition(add(header + Array(text[offset..<offset + 220]) + footer, to: &edgeFlip) != .unmatched)
+        }
+        expectImage(edgeFlip, rows: Array(text[0..<460]))
     }
 
     static func repeatedRowsTests() {
