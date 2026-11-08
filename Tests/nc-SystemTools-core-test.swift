@@ -63,8 +63,8 @@ struct SystemToolsTests {
         let sudo = "# sudo\nauth include sudo_local\nauth required pam_opendirectory.so\n"
         let local = "# custom\nauth optional pam_other.so\n"
         let enabled = try TouchIDPolicy.replacement(sudo: sudo, local: local, enabled: true)
-        expect(TouchIDPolicy.enabled(in: enabled), "enabled")
-        expect(try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: true) == enabled, "idempotent")
+        expect(enabled.map { TouchIDPolicy.enabled(in: $0) } == true, "enabled")
+        expect(try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: true) == nil, "idempotent")
         expect(try TouchIDPolicy.replacement(sudo: sudo, local: enabled, enabled: false) == local, "preserves rules")
         expect(!TouchIDPolicy.enabled(in: "# auth sufficient pam_tid.so"), "comment ignored")
         refuses { _ = try TouchIDPolicy.replacement(sudo: "", local: nil, enabled: true) }
