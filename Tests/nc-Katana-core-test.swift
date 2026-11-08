@@ -1,3 +1,4 @@
+// notchcast-reads: Tinycast/Features/Katana/README.md notchcast/docs/katana.md
 // notchcast-sources: Tinycast/Features/Katana/Model/*.swift Tinycast/Features/Katana/Service/*.swift
 
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift

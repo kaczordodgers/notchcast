@@ -8,6 +8,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
+// notchcast-reads: Tinycast/Info.plist
 import Foundation
 import Network
 

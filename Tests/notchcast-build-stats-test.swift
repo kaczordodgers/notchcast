@@ -1,3 +1,4 @@
+// notchcast-reads: Tests/fixtures/build-stats-v1.json
 // notchcast-sources: Tinycast/Features/BuildStats/Model/*.swift
 import Foundation
 
