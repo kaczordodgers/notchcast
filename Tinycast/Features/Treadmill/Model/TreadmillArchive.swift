@@ -3,7 +3,6 @@ import Foundation
 struct TreadmillArchive: Codable, Equatable, Sendable {
     var records: [TreadmillRecord] = []
     var current: TreadmillWalk?
-    var importedLegacy = false
     var lubricatedKm = 0.0
     var goalAnnouncedDay: Date?
 
