@@ -98,7 +98,7 @@ private struct CaptureEditorCanvas: View {
             }.onEnded { _ in
                 document.released()
                 dragging = false
-                // Focus set in the field's own onAppear is dropped: it lands before the field is in the window.
+                // An inactive app drops focus set in the field's own onAppear.
                 if document.textEdit != nil { editingText = true }
             })
         }
