@@ -39,14 +39,28 @@ delete_head() {
 }
 source "$(dirname "$0")/sync-wait.sh"
 source "$(dirname "$0")/hold.sh"
+check_defect_tests() {
+    local onto=$1 candidate=$2 title=$3 body=$4
+    [[ "$title" == 'Notchcast: Fix '* ]] || return 0
+    if grep -Eq '^No test: [^[:space:]].*' <<< "$body"; then return 0; fi
+    git diff --name-only --diff-filter=AMR "$onto" "$candidate" \
+        | grep -Eq '^Tests/[^/]+-test\.swift$|^notchcast/(.*/)?[^/]+-test\.[^/]+$' \
+        || refuse 'defect fix needs a changed test or No test: <reason>'
+}
 check=0
+pr_title=
+pr_body=
 if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
     check=1
     base=$(git rev-parse --verify "$2^{commit}")
     head=$(git rev-parse --verify "$3^{commit}")
+    pr_title=$(git show -s --format=%s "$head")
+    pr_body=$(git show -s --format=%b "$head")
 elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr=$1
-    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName,baseRefName,isCrossRepository)
+    metadata=$(gh pr view "$pr" -R kaczordodgers/notchcast --json state,isDraft,headRefOid,headRefName,baseRefName,isCrossRepository,title,body)
+    pr_title=$(jq -r '.title // ""' <<< "$metadata")
+    pr_body=$(jq -r '.body // ""' <<< "$metadata")
     [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
     check_hold "$pr"
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
@@ -145,6 +159,10 @@ merge_onto() {
     done
     [ "$(git rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$onto^{tree}")" ] || refuse 'nothing to land: main already has this change'
     python3 notchcast/check-feature-shape.py || refuse 'feature shape'
+    python3 notchcast/check-drift.py --compare-base "$onto" || refuse 'drift baseline grew'
+    python3 notchcast/check-drift.py || refuse 'drift'
+    python3 notchcast/check-drift-test.py || refuse 'drift fixtures'
+    check_defect_tests "$onto" "$head" "$pr_title" "$pr_body"
     # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.
     typecheck=$(swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift 2>&1) \
         || refuse "NotchcastFeature*.swift does not typecheck without warnings on the merged tree: $(grep -m3 -E 'error|warning' <<< "$typecheck")"
@@ -165,9 +183,13 @@ echo 'PASS: merged-tree harnesses'
 # Not covered without an Xcode build of this tree: code no selected harness compiles (UI, AppCore wiring,
 # resources); the PR build covered the head alone, and the main harness job, Sync and Snapshot follow on main.
 if [ "$check" -eq 0 ]; then
-    title=$(gh pr view "$pr" -R kaczordodgers/notchcast --json title --jq .title)
+    title=$pr_title
     [[ "$title" == Notchcast:* ]] || title="Notchcast: $title"
     printf '%s (#%s)\n' "$title" "$pr" > "$scratch/message"
+    if [[ "$title" == 'Notchcast: Fix '* ]]; then
+        printf '\n' >> "$scratch/message"
+        grep -E '^No test: [^[:space:]].*' <<< "$pr_body" >> "$scratch/message" || true
+    fi
     notchcast/check-identity.sh message "$scratch/message" || refuse 'commit message names something private'
     commit=$(GIT_AUTHOR_NAME=Damian GIT_AUTHOR_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
         GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
@@ -191,6 +213,11 @@ if [ "$check" -eq 0 ]; then
             GIT_COMMITTER_NAME=Damian GIT_COMMITTER_EMAIL=336236323+kaczordodgers@users.noreply.github.com \
             git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
     done
+    if git switch --quiet --detach "$commit"; then
+        python3 notchcast/check-drift.py --report || echo 'WARN: drift report failed after landing' >&2
+    else
+        echo 'WARN: drift report could not read the landed commit' >&2
+    fi
     gh pr close "$pr" -R kaczordodgers/notchcast --comment "Landed on main as $commit by notchcast/land.sh: squash of $head onto $base." \
         || refuse "landed on main as $commit, but closing PR #$pr failed: close it by hand, do not rerun land.sh"
     delete_head "$(jq -r .headRefName <<< "$metadata")" "$head" "$(jq -r .isCrossRepository <<< "$metadata")"

@@ -103,6 +103,10 @@ git clone --quiet --no-hardlinks "$root" "$scratch/repo"
 cd "$scratch/repo"
 git config user.name Damian
 git config user.email 336236323+kaczordodgers@users.noreply.github.com
+printf '#!/usr/bin/env python3\n' > notchcast/check-drift.py
+printf '#!/usr/bin/env python3\n' > notchcast/check-drift-test.py
+git add notchcast/check-drift.py notchcast/check-drift-test.py
+git commit --quiet -m 'Fixture: isolate drift gates covered by land-drift-test.py'
 base=$(git rev-parse HEAD)
 # A Sync rewrite: old main has our commit; new main is upstream's next commit plus the same change replayed.
 fixture_commit() {
