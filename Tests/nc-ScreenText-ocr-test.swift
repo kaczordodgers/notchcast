@@ -50,6 +50,10 @@ enum ScreenTextTest {
         precondition(ScreenTextResult.removingLineBreaks("state-\nof-the-art") == "state- of-the-art")
         precondition(ScreenTextResult.removingLineBreaks("well-known-\ncompound") == "well-known- compound")
         precondition(ScreenTextResult.removingLineBreaks("Word-\nfragment") == "Word- fragment")
+        precondition(ScreenTextResult.removingLineBreaks("comput-\ning.") == "computing.")
+        precondition(ScreenTextResult.removingLineBreaks("comput-\ning, then") == "computing, then")
+        precondition(ScreenTextResult.removingLineBreaks("state-\nof-the-art.") == "state- of-the-art.")
+        precondition(ScreenTextResult.removingLineBreaks("one-\n.") == "one- .")
         let filter = CIFilter(name: "CIQRCodeGenerator")!
         filter.setValue(Data("https://example.com/ocr".utf8), forKey: "inputMessage")
         let code = filter.outputImage!.transformed(by: CGAffineTransform(scaleX: 8, y: 8))
