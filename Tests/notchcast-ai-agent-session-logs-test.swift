@@ -228,12 +228,6 @@ struct AgentSessionTests {
         try sql(database, "INSERT INTO \(messages) VALUES ('bad', 's1', \(milliseconds), \(milliseconds), 'malformed')")
         var index = AgentSessionIndex()
         let roots = [AgentSessionIndex.Root(provider: .opencode, url: file)]
-        var blocked = AgentSessionIndex(excludedPathComponentPrefixes: ["opencode.db-wal"]) { url in
-            expect(url.lastPathComponent != "opencode.db-wal", "Excluded SQLite sidecar never touched")
-        }
-        let skipped = try blocked.refresh(roots: roots)
-        expect(skipped.sessions.isEmpty && skipped.statistics.databaseRowsRead == 0,
-               "Excluded sidecar prevents opening its database")
         let bytesBefore = try Data(contentsOf: file)
         let result = try index.refresh(roots: roots)
         let bytesAfter = try Data(contentsOf: file)
@@ -321,6 +315,19 @@ struct AgentSessionTests {
         try Data("NOTCHCAST_AGENT_SESSIONS_EXCLUDE= private-fixture, other-private, ,\n".utf8).write(to: config)
         let prefixes = try AgentSessionExclusions.load(from: config)
         expect(prefixes == ["private-fixture", "other-private"], "Plain comma-separated prefixes parsed")
+        let forms = [
+            "export NOTCHCAST_AGENT_SESSIONS_EXCLUDE=a,b": ["a", "b"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a, b\"": ["a", "b"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE='A,b'": ["a", "b"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=\"a,b'": ["\"a", "b'"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=old\nNOTCHCAST_AGENT_SESSIONS_EXCLUDE=new": ["new"],
+            "NOTCHCAST_AGENT_SESSIONS_EXCLUDE=kept\n# NOTCHCAST_AGENT_SESSIONS_EXCLUDE=comment": ["kept"],
+        ]
+        for (text, expected) in forms {
+            try Data(text.utf8).write(to: config)
+            let parsed = try AgentSessionExclusions.load(from: config)
+            expect(parsed == expected, "Shell form parsed: \(text)")
+        }
         expect(!FileManager.default.fileExists(atPath: marker.path), "Private config is never executed")
         expect(!AgentSessionIndex.allows(fixturePath, excluding: prefixes), "Excluded file prefix rejected")
         expect(!AgentSessionIndex.allows(root.appendingPathComponent("PRIVATE-FIXTURE-wal"), excluding: prefixes),

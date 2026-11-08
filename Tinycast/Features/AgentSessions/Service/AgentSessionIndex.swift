@@ -118,7 +118,8 @@ struct AgentSessionIndex: Sendable {
 
     static func allows(_ url: URL, excluding prefixes: [String]) -> Bool {
         !url.pathComponents.contains { component in
-            prefixes.contains { !$0.isEmpty && component.lowercased().hasPrefix($0.lowercased()) }
+            let lowered = component.lowercased()
+            return prefixes.contains { lowered.hasPrefix($0) }
         }
     }
 
@@ -157,9 +158,7 @@ struct AgentSessionIndex: Sendable {
             if provider == .opencode {
                 guard url.lastPathComponent == "opencode.db" else { return }
                 for suffix in ["-wal", "-shm", "-journal"] {
-                    let sidecar = URL(fileURLWithPath: url.path + suffix)
-                    guard Self.allows(sidecar, excluding: excludedPathComponentPrefixes) else { return }
-                    _ = try inspect(sidecar)
+                    _ = try inspect(URL(fileURLWithPath: url.path + suffix))
                 }
                 seen.insert(url.path)
                 var database = databases[url.path] ?? AgentSessionDatabase(calendar: calendar)

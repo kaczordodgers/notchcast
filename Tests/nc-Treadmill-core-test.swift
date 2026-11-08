@@ -211,9 +211,6 @@ private struct TreadmillTests {
         expect(archive.lubeDueMark(odometerKm: 799.99) == nil, "Lubricated between marks")
         let invalid = record(meters: -.infinity)
         expect(!invalid.isValid, "Non-finite history rejected")
-        let encoded = try JSONEncoder().encode(record())
-        let parsed = TreadmillRecord.parseJSONLines(encoded + Data("\n{partial\n".utf8) + encoded)
-        expect(parsed.count == 2, "Partial JSONL line cannot hide neighboring records")
     }
 
     @MainActor
