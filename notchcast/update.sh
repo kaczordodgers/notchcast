@@ -94,9 +94,9 @@ if [ -d "$APP" ]; then
     [ "$(leaf_sha1 "$APP")" = "$SIGN_SHA1" ] && OURS=1
 fi
 
-SNAPSHOT='def snapshot: capture("[.]snapshot[.](?<stamp>[0-9]{14})$").stamp // "";'
+SNAPSHOT='def snapshot: capture("^v?[0-9]+[.][0-9]+[.][0-9]+(-[a-z]+[.][0-9]+)?[.]snapshot[.](?<stamp>[0-9]{14})$").stamp // "";'
 TAG="$(gh release list -R "$FORK_REPO" -L 1000 --json tagName,isDraft \
-    --jq "$SNAPSHOT [.[] | select(.isDraft | not) | select((.tagName | snapshot) != \"\")]
+    --jq "$SNAPSHOT [.[] | select(.isDraft | not) | select(.tagName | startswith(\"v\")) | select((.tagName | snapshot) != \"\")]
           | sort_by(.tagName | snapshot) | last | .tagName // empty")"
 [ -n "$TAG" ] || { log "no $FORK_REPO snapshot yet"; exit 0; }
 WANT="${TAG#v}"

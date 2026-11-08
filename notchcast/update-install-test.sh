@@ -67,6 +67,8 @@ run_case older-snapshot 0.12.8.snapshot.20261107201744 "$LATEST"
 run_case installed-beta 0.12.10-beta.135 "$LATEST"
 run_case same-snapshot "${LATEST#v}" none
 run_case installed-newer-snapshot 0.12.8.snapshot.20261108000000 none
+export RELEASE_TAGS=$'manual.snapshot.20261108000000\n0.12.8.snapshot.20261108000000\nv0.12.8.snapshot.20261107210745'
+run_case malformed-snapshot-tags 0.12.8.snapshot.20261107201744 "$LATEST"
 export RELEASE_TAGS=$'v0.12.10-beta.135\nv0.12.8'
 run_case mirrors-only 0.12.8.snapshot.20261107201744 none
 export RELEASE_TAGS="$MIXED_TAGS"$'\nv0.12.7-beta.1.snapshot.20261108000000'
