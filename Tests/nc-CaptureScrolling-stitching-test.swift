@@ -101,6 +101,22 @@ struct CaptureScrollingTests {
         precondition(add(Array(0..<20) + Array(500..<580), to: &transient) == .unmatched)
         precondition(add(Array(40..<140), to: &transient) == .added(40))
         expectImage(transient, rows: Array(0..<140))
+
+        let page = Array(repeating: 7, count: 100) + Array(1000..<1600)
+        let header = Array(repeating: 7, count: 80)
+        var flatHeader = stitcher(header + Array(page[0..<320]))
+        for offset in stride(from: 30, through: 210, by: 30) {
+            precondition(add(header + Array(page[offset..<offset + 320]), to: &flatHeader) == .added(30),
+                         "A flat header over a same-colour margin must be cropped once the margin scrolls out")
+        }
+        expectImage(flatHeader, rows: Array(page[0..<530]))
+        let strip = Array(repeating: 9, count: 15)
+        let body = Array(repeating: 9, count: 10) + Array(0..<300)
+        var flatStrip = stitcher(strip + Array(body[0..<85]))
+        for (offset, added) in [(5, 5), (15, 10), (40, 25), (60, 20)] {
+            precondition(add(strip + Array(body[offset..<offset + 85]), to: &flatStrip) == .added(added))
+        }
+        expectImage(flatStrip, rows: Array(body[0..<145]))
     }
 
     static func repeatedRowsTests() {

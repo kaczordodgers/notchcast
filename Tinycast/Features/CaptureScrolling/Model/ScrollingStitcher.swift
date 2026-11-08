@@ -39,48 +39,58 @@ struct ScrollingStitcher: Sendable {
         guard !limitReached else { return .limitReached }
         guard frame.width == width, frame.height == frameHeight, hashes.count == frameHeight else { return .unmatched }
         if hashes == previousFrame { return .unchanged }
-        var next = self
-        if pieces.count == 1, leadingRows == 0, trailingRows == 0 { next.cropStickyBars(matching: hashes) }
-        let update = next.place(frame, hashes: hashes)
-        switch update {
-        case .added, .limitReached: self = next
-        case .unchanged: previousFrame = hashes
-        case .unmatched: break
+        var update = Update.unmatched
+        if leadingRows == 0, trailingRows == 0, var cropped = croppingStickyBars(matching: hashes) {
+            update = cropped.place(frame, hashes: hashes)
+            if update != .unmatched, update != .unchanged { self = cropped }
         }
+        if update == .unmatched { update = place(frame, hashes: hashes) }
+        if update != .unmatched { previousFrame = hashes }
         return update
     }
 
-    private mutating func cropStickyBars(matching hashes: [UInt64]) {
-        let first = log.rows
+    private func croppingStickyBars(matching hashes: [UInt64]) -> ScrollingStitcher? {
+        let rows = log.rows
         var leading = 0
         var trailing = 0
-        while leading < frameHeight, hashes[leading] == first[leading] { leading += 1 }
-        while trailing < frameHeight - leading, hashes[frameHeight - trailing - 1] == first[frameHeight - trailing - 1] {
+        while leading < frameHeight, hashes[leading] == rows[leading] { leading += 1 }
+        while trailing < frameHeight - leading, hashes[frameHeight - trailing - 1] == rows[rows.count - trailing - 1] {
             trailing += 1
         }
         let minimumStickyRows = max(1, frameHeight / 10)
         if leading < minimumStickyRows { leading = 0 }
         if trailing < minimumStickyRows { trailing = 0 }
-        guard leading + trailing > 0, leading + trailing < frameHeight else { return }
+        guard leading + trailing > 0, leading + trailing < frameHeight else { return nil }
         var middle = ScrollingRowLog()
-        middle.append(first[leading..<frameHeight - trailing])
+        middle.append(rows[leading..<rows.count - trailing])
         let content = Array(hashes[leading..<frameHeight - trailing])
-        guard let shift = middle.placement(of: content, minimumOverlap: Self.minimumOverlap(content.count)),
-              shift > 0 else { return }
+        guard let start = middle.placement(of: content, minimumOverlap: Self.minimumOverlap(content.count)) else {
+            return nil
+        }
         // A band is only chrome if the scroll that moved the middle did not move it with it.
-        if shift + leading <= frameHeight, hashes[..<leading] == first[shift..<shift + leading] { leading = 0 }
-        if shift + trailing <= frameHeight,
-           first[(frameHeight - trailing)...] == hashes[(frameHeight - trailing - shift)..<(frameHeight - shift)] {
+        if start >= 0, hashes[..<leading] == rows[start..<start + leading] { leading = 0 }
+        if rows.count - start <= frameHeight,
+           rows[(rows.count - trailing)...] == hashes[(rows.count - trailing - start)..<(rows.count - start)] {
             trailing = 0
         }
-        guard leading + trailing > 0, let original = pieces.first,
-              let cropped = Self.piece(of: original, firstRow: leading, height: frameHeight - leading - trailing)
-        else { return }
-        log = ScrollingRowLog()
-        log.append(first[leading..<frameHeight - trailing])
-        pieces = [cropped]
-        leadingRows = leading
-        trailingRows = trailing
+        guard leading + trailing > 0 else { return nil }
+        var next = self
+        var dropped = 0
+        while dropped < trailing, let last = next.pieces.popLast() {
+            dropped += last.height
+            if dropped > trailing {
+                guard let kept = Self.piece(of: last, firstRow: 0, height: dropped - trailing) else { return nil }
+                next.pieces.append(kept)
+            }
+        }
+        guard let top = next.pieces.first,
+              let cropped = Self.piece(of: top, firstRow: leading, height: top.height - leading) else { return nil }
+        next.pieces[0] = cropped
+        next.log = ScrollingRowLog()
+        next.log.append(rows[leading..<rows.count - trailing])
+        next.leadingRows = leading
+        next.trailingRows = trailing
+        return next
     }
 
     private static func minimumOverlap(_ count: Int) -> Int { min(count, max(16, count / 8)) }
@@ -90,7 +100,6 @@ struct ScrollingStitcher: Sendable {
         guard let start = log.placement(of: content, minimumOverlap: Self.minimumOverlap(content.count)) else {
             return .unmatched
         }
-        previousFrame = hashes
         let added = start + content.count - height
         guard start >= 0, added > 0 else { return .unchanged }
         let take = min(added, limit - height)
