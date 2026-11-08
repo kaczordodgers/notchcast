@@ -130,7 +130,7 @@ final class TreadmillCoordinator {
 
     func stopWalk() throws {
         togglePending = false
-        try perform { $0.stop() }
+        try perform { $0.stop(now: clock()) }
     }
     func pauseWalk() throws { try perform { try $0.pause() } }
     func resumeWalk() throws { try perform { try $0.resume() } }
