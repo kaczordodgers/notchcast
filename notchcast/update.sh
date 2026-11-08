@@ -1,5 +1,5 @@
 #!/bin/bash
-# Notchcast updater: install the newest kaczordodgers/notchcast release at /Applications/Notchcast.app and have the
+# Notchcast updater: install the newest snapshot at /Applications/Notchcast.app and have the
 # notchcast.app LaunchAgent restart it. Runs from launchd (notchcast.update) and from install-launchd.sh (first install).
 # It installs only a build with our bundle id (BUNDLE_ID), the release's version and our leaf certificate (SIGN_SHA1),
 # and only when nothing is installed yet, the release is newer, or the installed copy is not ours.
@@ -94,18 +94,16 @@ if [ -d "$APP" ]; then
     [ "$(leaf_sha1 "$APP")" = "$SIGN_SHA1" ] && OURS=1
 fi
 
-# Snapshot revisions sort after their mirror and before the next upstream version.
-VKEY='def vkey: ltrimstr("v") | capture("^(?<a>[0-9]+)[.](?<b>[0-9]+)[.](?<c>[0-9]+)(-[a-z]+[.](?<n>[0-9]+))?([.]snapshot[.](?<s>[0-9]+))?$")
-    | [(.a|tonumber), (.b|tonumber), (.c|tonumber), (if .n then 0 else 1 end), ((.n // "0")|tonumber), ((.s // "0")|tonumber)];'
+SNAPSHOT='def snapshot: capture("[.]snapshot[.](?<stamp>[0-9]{14})$").stamp // "";'
 TAG="$(gh release list -R "$FORK_REPO" -L 30 --json tagName,isDraft,isPrerelease \
-    --jq "$VKEY [.[] | select(.isDraft | not) | select(.tagName | test(\"^v[0-9]+[.][0-9]+[.][0-9]+(-[a-z]+[.][0-9]+)?([.]snapshot[.][0-9]+)?$\"))]
-          | sort_by(.tagName | vkey) | last | .tagName // empty")"
-[ -n "$TAG" ] || { log "no $FORK_REPO release yet"; exit 0; }
+    --jq "$SNAPSHOT [.[] | select(.isDraft | not) | select((.tagName | snapshot) != \"\")]
+          | sort_by(.tagName | snapshot) | last | .tagName // empty")"
+[ -n "$TAG" ] || { log "no $FORK_REPO snapshot yet"; exit 0; }
 WANT="${TAG#v}"
-if [ -z "$INSTALLED" ]; then CMP=newer; else CMP="$(jq -nr --arg want "$WANT" --arg have "$INSTALLED" "$VKEY"' if ($want|vkey) > ($have|vkey) then "newer" elif ($want|vkey) == ($have|vkey) then "same" else "older" end')"; fi
+CMP="$(jq -nr --arg want "$WANT" --arg have "$INSTALLED" "$SNAPSHOT"' if ($want|snapshot) > ($have|snapshot) then "newer" elif ($want|snapshot) == ($have|snapshot) then "same" else "older" end')"
 [ -n "$CMP" ] || { log "cannot compare versions '$WANT' and '$INSTALLED'; not installing"; exit 0; }
 if [ "$CMP" = older ] || { [ "$CMP" = same ] && [ "$OURS" = 1 ]; }; then
-    log "nothing to install: newest release $WANT, installed $INSTALLED ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
+    log "nothing to install: newest snapshot $WANT, installed $INSTALLED ($([ "$OURS" = 1 ] && echo ours || echo "not ours"))"
     exit 0
 fi
 # A release that failed its stay-alive check is not installed again until someone passes --retry.
