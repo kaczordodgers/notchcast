@@ -101,10 +101,32 @@ struct ScrollingStitcher: Sendable {
     private static func minimumOverlap(_ count: Int) -> Int { min(count, max(16, count / 8)) }
 
     private mutating func place(_ frame: CGImage, hashes: [UInt64]) -> Update {
-        let content = Array(hashes[leadingRows..<frameHeight - trailingRows])
-        guard let start = log.placement(of: content, minimumOverlap: Self.minimumOverlap(content.count)) else {
-            return .unmatched
+        var leading = leadingRows
+        var trailing = trailingRows
+        // A bar's flat edge may be chance-matched page rows; only varied rows replacing it prove a scroll.
+        if leading > 1, case let edge = previousFrame[leading - 1], previousFrame[leading - 2] == edge {
+            while leading > 0, previousFrame[leading - 1] == edge, hashes[leading - 1] != edge { leading -= 1 }
+            if Set(hashes[leading..<leadingRows]).count < 2 { leading = leadingRows }
         }
+        if trailing > 1, case let edge = previousFrame[frameHeight - trailing],
+           previousFrame[frameHeight - trailing + 1] == edge {
+            while trailing > 0, previousFrame[frameHeight - trailing] == edge, hashes[frameHeight - trailing] != edge {
+                trailing -= 1
+            }
+            if Set(hashes[frameHeight - trailingRows..<frameHeight - trailing]).count < 2 { trailing = trailingRows }
+        }
+        let minimumOverlap = Self.minimumOverlap(frameHeight - leadingRows - trailingRows)
+        var content = Array(hashes[leading..<frameHeight - trailing])
+        var placed = log.placement(of: content, minimumOverlap: minimumOverlap)
+        // A bar that only changed shade is still a bar.
+        if placed == nil, leading != leadingRows || trailing != trailingRows {
+            (leading, trailing) = (leadingRows, trailingRows)
+            content = Array(hashes[leading..<frameHeight - trailing])
+            placed = log.placement(of: content, minimumOverlap: minimumOverlap)
+        }
+        guard let start = placed else { return .unmatched }
+        leadingRows = leading
+        trailingRows = trailing
         let added = start + content.count - height
         guard start >= 0, added > 0 else { return .unchanged }
         let take = min(added, limit - height)
