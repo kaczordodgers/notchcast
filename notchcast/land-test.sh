@@ -181,8 +181,8 @@ paths['landingFixture'] = 'Synthetic feature used only by the merged-tree landin
 p.write_text(json.dumps(paths, indent=2) + '\n')
 # nc-SettingsBackup-engine-test requires every feature to be classified for backups.
 p = Path('Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift')
-s = p.read_text().replace('    static let excluded: Set<String> = [\n',
-                          '    static let excluded: Set<String> = [\n        "landingFixture",\n', 1)
+s = p.read_text().replace('    private static let listedExcluded: Set<String> = [\n',
+                          '    private static let listedExcluded: Set<String> = [\n        "landingFixture",\n', 1)
 assert '"landingFixture"' in s
 p.write_text(s)
 PY

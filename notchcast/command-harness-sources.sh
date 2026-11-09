@@ -28,6 +28,14 @@ if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
     done
 fi
 
+# The backup schema collects every feature's own key file, written in the hub's BackupKeys vocabulary.
+if [[ " $* " == *" Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift "* ]]; then
+    for source in Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
+        $(find Tinycast/Features -mindepth 2 -name '*BackupKeys.swift' -not -path 'Tinycast/Features/Notchcast/Core/*' | sort); do
+        [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
+    done
+fi
+
 # The hub's list names every descriptor file, at any depth, found as land.sh finds them.
 if [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastFeature"* ]]; then
     for source in Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift \

@@ -10,13 +10,13 @@ struct NotchcastCleanActionsSettingRow: View {
             ForEach(CleanSystemPolicy.allowedRoots, id: \.path) { root in
                 LabeledContent(root.path) { Text("Report only", tableName: "Notchcast") }
             }
-            if !coordinator.rootAvailable {
+            if !coordinator.helperCurrent {
                 Text("Needs the Notchcast helper update", tableName: "Notchcast")
             }
         }
         if feature == .cleanSystem {
             Button(String(localized: "Scan…", table: "Notchcast")) { CleanSettingsActions.scan(feature, coordinator: coordinator) }
-                .settingsEnabled(!coordinator.busy.contains(feature) && coordinator.rootAvailable)
+                .settingsEnabled(!coordinator.busy.contains(feature) && coordinator.helperCurrent)
         }
         if coordinator.busy.contains(feature) { ProgressView() }
         if let review = coordinator.reviews[feature] {

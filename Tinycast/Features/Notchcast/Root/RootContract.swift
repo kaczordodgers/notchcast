@@ -57,6 +57,11 @@ enum RootContract {
             self = command
         }
 
+        init?(chargeLimit percent: Int?) {
+            guard let percent else { self = .chargeLimitOff; return }
+            self.init(rawValue: "charge-limit-\(percent)")
+        }
+
         var arguments: [String] { [rawValue] }
 
         var output: String {

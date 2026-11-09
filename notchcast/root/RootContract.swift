@@ -1,1 +1,0 @@
-../../Tinycast/Features/Notchcast/Root/RootContract.swift
