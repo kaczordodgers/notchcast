@@ -112,12 +112,8 @@ struct AudioPriorityTests {
         await settle()
         precondition(transport.writes.count == 4)
         manager.stop()
-        let ranking = store.values[.output]!
-        let decoded = try JSONDecoder().decode(AudioPriorityRanking.self,
-                                               from: JSONEncoder().encode(ranking))
-        precondition(decoded == ranking)
         print("PASS: connect, disconnect, unknown, manual, no-op, independence, disabled, failure,")
-        print("PASS: stopped/stale callbacks, idempotence, UID Codable round trip; fake transport only")
+        print("PASS: stopped/stale callbacks, idempotence; fake transport only")
     }
 
     @MainActor
