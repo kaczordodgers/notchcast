@@ -259,25 +259,31 @@ def main_counters(root, upstream):
     if subprocess.run(['git', '-C', str(root), 'rev-parse', '-q', '--verify', 'refs/remotes/origin/main'],
                       capture_output=True).returncode:
         return {}
-    base = git(root, 'merge-base', 'HEAD', 'refs/remotes/origin/main')
-    fork = git(root, 'merge-base', base, upstream)
-    added = git(root, 'diff', '--diff-filter=A', '--name-only', fork, base, '--', '*.swift').splitlines()
-    texts = {p: subprocess.check_output(['git', '-C', str(root), 'show', f'{base}:{p}'], text=True)
-             for p in added if p.startswith(('Tinycast/', 'notchcast/root/', 'Tests/'))}
-    tests = {p: text for p, text in texts.items() if p.startswith('Tests/')}
-    prod = {p: text for p, text in texts.items() if p not in tests}
+    try:
+        base = git(root, 'merge-base', 'HEAD', 'refs/remotes/origin/main')
+        fork = git(root, 'merge-base', base, upstream)
+    except subprocess.CalledProcessError:
+        return {}
+    added = set(git(root, 'diff', '--diff-filter=A', '--name-only', fork, base, '--', '*.swift').splitlines())
+    with tempfile.TemporaryDirectory(prefix='drift-main.') as work:
+        present = git(root, 'ls-tree', '--name-only', base, '--', 'Tinycast', 'notchcast/root', 'Tests').split()
+        archive = subprocess.run(['git', '-C', str(root), 'archive', base, *present],
+                                 capture_output=True, check=True).stdout
+        subprocess.run(['tar', '-x', '-C', work], input=archive, check=True)
+        prod = {p: text for p, text in (sources(Path(work), 'Tinycast') | sources(Path(work), 'notchcast/root')).items()
+                if p in added}
+        tests = {p: text for p, text in sources(Path(work), 'Tests').items() if p in added}
     return report_counters(root, fork, prod, tests, base)
 
 
-def print_counters(root, upstream, observed, ours, our_tests, baseline):
+def print_counters(root, upstream, observed, ours, our_tests, baseline, known):
     print('Counter | Current | Baseline / threshold')
     for rule, counts in observed.items():
         print(f'{rule} | {sum(counts.values())} ({len(counts)} keys) | {sum(baseline[rule].values())}')
         for key, value in sorted(counts.items()):
             if value > baseline[rule].get(key, 0):
-                print(f'GATE-THRESHOLD {rule}:{key} {value} {baseline[rule].get(key, 0)}')
+                print(f'GATE-THRESHOLD {rule}:{key.replace(" | ", "|")} {value} {baseline[rule].get(key, 0)}')
     counters = report_counters(root, upstream, ours, our_tests)
-    known = main_counters(root, upstream)
     for (counter, key), value in sorted(counters.items()):
         limit = baseline['alerts'][counter]
         if key == 'all':
@@ -365,7 +371,7 @@ def main():
         return 0
     baseline = read_baseline(path)
     if args.report:
-        counters = print_counters(root, upstream, observed, ours, our_tests, baseline)
+        counters = print_counters(root, upstream, observed, ours, our_tests, baseline, {})
         for rule in ('dead', 'test-only'):
             for key in observed.get(rule, {}):
                 print(f'{rule} | {key}')
@@ -380,7 +386,7 @@ def main():
     for problem in problems:
         print(problem)
     if args.gates == '1,2,3,4':  # land.sh and local-ci.sh run all four; the pre-push subset stays quiet
-        print_counters(root, upstream, observed, ours, our_tests, baseline)
+        print_counters(root, upstream, observed, ours, our_tests, baseline, main_counters(root, upstream))
     return bool(problems)
 
 
