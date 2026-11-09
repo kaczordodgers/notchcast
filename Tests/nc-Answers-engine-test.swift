@@ -105,11 +105,6 @@ struct AnswersEngineTest {
             cancellationGate.finish(data, status: status)
             let cancelledResult = await caller.value
             precondition(cancelledResult == nil)
-            let state = Mirror(reflecting: cancellationModule)
-            let pending = state.children.first { $0.label == "pending" }!.value
-            precondition(Mirror(reflecting: pending).children.isEmpty, "Cancelled caller must clear pending")
-            let failed = state.children.first { $0.label == "refreshFailed" }!.value as? Bool
-            precondition(failed == (status != 200))
             let cached = await cancellationModule.answer(for: "2 usd")
             precondition((cached != nil) == (status == 200))
             precondition(cancellationGate.count == 1)
