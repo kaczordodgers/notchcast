@@ -13,8 +13,8 @@ Received JSON envelopes live in the bundle-scoped user cache, independent of tem
 They are disposable cache data, not permanent originals. Storage errors propagate to callers.
 
 `NotchcastCore` supplies `ShelfModule.linkStatus` and `transport` through `MachLinkShelfChannel`,
-which resolves the current paired endpoint at send time. The shared MachLink listener routes `shelf-item` to
-`ShelfMachLinkTransport.response(to:module:)` before AI usage dispatch. It acknowledges only
+which resolves the current paired endpoint at send time and registers the `shelf-item` route on the shared
+MachLink listener, refused unless Mac Link and Shelf between Macs are on. It acknowledges only
 after the validated item is written. The adapter is intentionally separate from link health,
 which observes the same TLS link independently. Disabled or unpaired links refuse sends as peer down.
 

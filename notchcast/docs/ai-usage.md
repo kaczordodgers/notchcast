@@ -11,8 +11,8 @@ Local snapshots retain optional reset credits (`availableCount`); malformed cred
 `AIUsageSnapshotAdapter` projects provider windows into the peer engine's normalized wire readings;
 the wire representation intentionally carries no provider-specific display or reset metadata.
 
-`AIUsageLinkModule` owns the listener and browser. Switching Mac link off stops both and cancels
-incoming work. Incoming requests require both AI usage switches to remain enabled before returning a local
+`MachLink/AIUsageLinkModule` owns the listener and browser. Switching Mac link off stops both and cancels
+incoming work. `MachLinkChannel+OtherMacUsage.swift` registers the `ai-usage` route; incoming requests require both AI usage switches to remain enabled before returning a local
 snapshot. Outbound peer requests retain the engine's one-minute minimum interval.
 
 Enable Mac link on both Macs. Pair with an empty code on one Mac, then enter that code and Pair on

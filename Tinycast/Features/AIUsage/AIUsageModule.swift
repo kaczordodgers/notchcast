@@ -20,7 +20,7 @@ final class AIUsageModule: NotchcastModule {
     init(
         provider: AIUsageProvider? = nil,
         preferences: NotchcastPreferences = .shared,
-        channel: MachLinkUsagePeerChannel = MachLinkUsagePeerChannel(),
+        channel: MachLinkChannel = MachLinkChannel(),
         post: @escaping @MainActor (String) -> Void = { _ in }
     ) {
         self.provider = provider
@@ -29,6 +29,7 @@ final class AIUsageModule: NotchcastModule {
         let source = AIUsageSnapshotAdapter()
         self.source = source
         otherMac = OtherMacUsageService(source: source, channel: channel, clock: { Date() })
+        channel.registerUsageRoute(provider: provider, preferences: preferences)
     }
 
     func start() {
