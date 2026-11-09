@@ -8,8 +8,8 @@ backups because importing settings must not grant access to task replication.
 ## Protocol
 
 `todo-sync` uses the existing authenticated Mac Link request channel. The reply preserves the
-request's method and correlation ID. Its owner injects the handler through the listener route;
-`MachLinkManager+Peers.swift` checks eligibility before and after awaiting that handler.
+request's method and correlation ID. `TodoLinkCoordinator.live` registers the route, which refuses
+unless the coordinator can sync.
 
 Both directions carry `TodoLinkPacket`: `clock` is the sender's applied, contiguous per-replica
 `TodoVectorClock`; `envelopes` is an ordered batch the recipient lacks; `hasMore` says the batch

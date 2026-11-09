@@ -7,7 +7,7 @@ Only availability metadata crosses that boundary; no image, clipboard, password 
 
 The injected client opener selects bundle ID `io.nekohasekai.screensharing` when installed, otherwise
 `com.apple.ScreenSharing`. `usedFallback` exposes the fallback for a future HUD integration.
-The peer answers availability through `MachLinkManager+Peers.swift`: it reports its `.local` host
+The peer answers availability through the route `RemoteScreenModule` registers: it reports its `.local` host
 only while `com.apple.screensharing` is loaded (`RemoteScreenAddress.swift`). This Mac then opens the
 `vnc://` URL with `NSWorkspace` (`RemoteScreenModule.swift`). The launcher command Remote Screen runs
 it and reports when the switch or Screen Sharing is off on the other Mac. No screen data crosses Mac

@@ -8,9 +8,10 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
-// notchcast-sources: Tinycast/Features/MachLink/Service/MachLinkManager+Peers.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
+// notchcast-sources: Tinycast/Features/MachLink/Service/MachLinkChannel.swift
+// notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkRequestBudget.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 import Foundation
 import Network
 
@@ -20,26 +21,28 @@ struct MachLinkPairing: Sendable {
     let discoveryHash = "fake"
 }
 
-@MainActor final class MachLinkUsagePeerChannel {
-    let manager = MachLinkManager()
-    var pairing: MachLinkPairing? = MachLinkPairing()
-    var endpoint: NWEndpoint? = .hostPort(host: "unused.invalid", port: 1)
+extension MachLinkChannel {
+    static func paired() -> MachLinkChannel {
+        let channel = MachLinkChannel()
+        channel.pairing = MachLinkPairing()
+        channel.endpoint = .hostPort(host: "unused.invalid", port: 1)
+        return channel
+    }
 }
 
 @MainActor final class MachLinkManager {
-    var fanHandler: ((RemoteFanRequest) async throws -> RemoteFanReport)?
-    var fanEnabled: () -> Bool = { false }
-    var screenEnabled: () -> Bool = { false }
-    var screenAddress: () async throws -> RemoteScreenState.Availability = {
-        .init(screenSharingEnabled: false)
-    }
+    var routes: [String: @MainActor (MachLinkMessage) async throws -> MachLinkMessage] = [:]
     var peers: Set<NWBrowser.Result> = []
     var serviceName: String?
     static var fakeRequest: ((MachLinkMessage) async throws -> MachLinkMessage)?
 
+    func register(_ method: String, _ route: @escaping @MainActor (MachLinkMessage) async throws -> MachLinkMessage) {
+        routes[method] = route
+    }
+
     static func request<Request: Encodable & Sendable, Response: Decodable & Sendable>(
         _ value: Request, method: String, from endpoint: NWEndpoint,
-        pairing: MachLinkPairing, as type: Response.Type
+        pairing: MachLinkPairing, timeout: Duration, as type: Response.Type
     ) async throws -> Response {
         guard let fakeRequest else { throw MachLinkMessage.Failure.disconnected }
         let request = try MachLinkMessage(method: method, value: value)
@@ -52,7 +55,6 @@ struct MachLinkPairing: Sendable {
 }
 
 @MainActor final class FakeChannel {
-    let manager = MachLinkManager()
     weak var peer: TodoLinkCoordinator?
     var dropResponse = false
     var calls = 0
@@ -82,9 +84,7 @@ struct MachLinkPairing: Sendable {
             cancellationSeen = Task.isCancelled
         } else { await Task.yield() }
         guard let peer else { throw MachLinkMessage.Failure.disconnected }
-        let response = try await manager.todoResponse(to: request, enabled: { peer.canSync }, handler: {
-            try peer.response(to: $0)
-        })!
+        let response = try peer.response(to: request)
         precondition(response.id == request.id && response.method == request.method)
         let decoded = try MachLinkMessage.decode(response.encoded())
         if dropResponse {
@@ -108,6 +108,7 @@ struct TodoLinkTests {
         try await pairingChange(root)
         try await oversized(root)
         try await failures(root)
+        try await outage(root)
         print("PASS: Todo Mac Link fake-channel suite")
     }
 
@@ -117,6 +118,31 @@ struct TodoLinkTests {
             try await Task.sleep(for: .milliseconds(1))
         }
         preconditionFailure("exchange did not settle")
+    }
+
+    static func outage(_ root: URL) async throws {
+        let suite = "test.todo-link.outage.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        for feature: NotchcastFeature in [.tasks, .machLink, .tasksSync] { preferences.set(feature, true) }
+        let store = try await TodoStore.open(directory: root.appending(path: "outage"))
+        var failures: [MachLinkMessage.Failure] = [.timedOut, .disconnected, .invalidMessage]
+        MachLinkManager.fakeRequest = { _ in throw failures.removeFirst() }
+        defer { MachLinkManager.fakeRequest = nil }
+        let coordinator = TodoLinkCoordinator.live(channel: .paired(), preferences: preferences)
+        var messages: [String] = []
+        coordinator.showFailure = { messages.append($0) }
+        coordinator.opened(store)
+        coordinator.start()
+        try await idle(coordinator)
+        coordinator.requestExchange()
+        try await idle(coordinator)
+        coordinator.requestExchange()
+        try await idle(coordinator)
+        precondition(failures.isEmpty && messages.count == 1)
+        coordinator.stop()
+        try store.close()
+        print("PASS: a timeout, then a disconnect, then a bad reply report one outage once")
     }
 
     static func oversized(_ root: URL) async throws {
@@ -277,7 +303,7 @@ struct TodoLinkTests {
         let module = TodoModule(directory: root.appending(path: "module"), showFailure: { _ in
             preconditionFailure("module failed")
         })
-        let channel = MachLinkUsagePeerChannel()
+        let channel = MachLinkChannel.paired()
         var calls = 0
         MachLinkManager.fakeRequest = { request in
             calls += 1
@@ -317,46 +343,18 @@ struct TodoLinkTests {
     }
 
     static func peerChecks() async throws {
-        let manager = MachLinkManager()
+        let suite = "test.todo-link.peer.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let channel = MachLinkChannel.paired()
+        let coordinator = TodoLinkCoordinator.live(channel: channel, preferences: NotchcastPreferences(suiteName: suite))
+        guard let route = channel.manager.routes["todo-sync"] else { preconditionFailure("todo-sync not registered") }
         let message = try MachLinkMessage(method: "todo-sync", value: true)
-        var enabled = false
-        var called = false
-        do {
-            _ = try await manager.todoResponse(to: message, enabled: { enabled }, handler: {
-                called = true
-                return $0
-            })
-            preconditionFailure("disabled peer accepted")
-        } catch MachLinkMessage.Failure.disconnected {}
-        precondition(!called)
-        enabled = true
-        do {
-            _ = try await manager.todoResponse(to: message, enabled: { enabled }, handler: {
-                await Task.yield()
-                enabled = false
-                return $0
-            })
-            preconditionFailure("peer disabled during await accepted")
-        } catch MachLinkMessage.Failure.disconnected {}
-        do {
-            _ = try await manager.todoResponse(to: message, enabled: { true }, handler: { _ in
-                try MachLinkMessage(method: "todo-sync", value: true)
-            })
-            preconditionFailure("wrong correlation accepted")
-        } catch MachLinkMessage.Failure.invalidMessage {}
-        let route = makeRoute(manager: manager, coordinator: TodoLinkCoordinator(exchange: { $0 }))
+        defer { coordinator.stop() }
         do {
             _ = try await route(message)
-            preconditionFailure("nonisolated route accepted a stopped coordinator")
+            preconditionFailure("stopped coordinator accepted")
         } catch MachLinkMessage.Failure.disconnected {}
-        print("PASS: peer switch refusal before/after await and response correlation")
-    }
-
-    nonisolated static func makeRoute(manager: MachLinkManager, coordinator: TodoLinkCoordinator)
-        -> @Sendable (MachLinkMessage) async throws -> MachLinkMessage? {
-        { request in
-            try await coordinator.peerResponse(to: request, via: manager)
-        }
+        print("PASS: registered todo-sync route refuses a peer that cannot sync")
     }
 
     static func cancellation(_ root: URL) async throws {
@@ -442,7 +440,7 @@ struct TodoLinkTests {
         var replication = TodoReplication(replicaID: "peer")
         try replication.perform(.addTask(.init(id: UUID().uuidString, title: "Old pairing")))
         let packet = try TodoLinkPacket.make(from: replication, after: TodoVectorClock())
-        let channel = MachLinkUsagePeerChannel()
+        let channel = MachLinkChannel.paired()
         MachLinkManager.fakeRequest = { request in
             await Task.yield()
             channel.pairing = MachLinkPairing()
