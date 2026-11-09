@@ -173,8 +173,12 @@ struct NotchcastTapHubTests {
         fixture.withLock { $0.failNext = true }
         let retry = hub.register(mask: key) { _ in fatalError("Removed callback must not run") }
         await eventually { !hub.isRunning }
-        hub.refreshPermission()
-        await eventually { fixture.withLock { $0.records.count == 4 } }
+        await eventually { fixture.withLock { $0.records.count == 4 } && hub.isRunning }
+        expect(hub.isTrusted, "A running tap reports trust")
+        fixture.withLock { $0.trusted = false }
+        await eventually { !hub.isRunning && !hub.isTrusted }
+        fixture.withLock { $0.trusted = true }
+        await eventually { hub.isRunning && hub.isTrusted && fixture.withLock { $0.records.count == 5 } }
         hub.remove(retry)
         expect(hub.consumerCount == 0 && !hub.isRunning, "Retry can be removed")
         expect(!fixture.withLock { $0.wrongConfiguration }, "All taps use the private worker and session configuration")

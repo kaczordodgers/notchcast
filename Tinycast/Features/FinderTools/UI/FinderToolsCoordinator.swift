@@ -4,20 +4,18 @@ import Observation
 @MainActor @Observable
 final class FinderToolsCoordinator {
     private var cutSession = FinderCutSession()
-    @ObservationIgnored private let hub: EventTapHub
+    @ObservationIgnored private let tap: EventTapSubscription
     @ObservationIgnored private let input = FinderShortcutState()
-    @ObservationIgnored private var registration: UUID?
     @ObservationIgnored private var activation: NotificationToken?
     @ObservationIgnored private var operation: Task<Void, Never>?
     private var cutEnabled = false
     private var renameEnabled = false
     private var permissionGranted = false
 
-    init(hub: EventTapHub) { self.hub = hub }
+    init(hub: EventTapHub) { tap = EventTapSubscription(hub: hub) }
 
     isolated deinit {
         operation?.cancel()
-        if let registration { hub.remove(registration) }
     }
 
     func setEnabled(_ feature: NotchcastFeature, _ enabled: Bool) {
@@ -48,11 +46,11 @@ final class FinderToolsCoordinator {
     }
 
     private func start() {
-        guard registration == nil else { return }
+        guard !tap.isActive else { return }
         permissionGranted = AXIsProcessTrusted()
         let input = input
         let mask = CGEventMask(1 << CGEventType.keyDown.rawValue | 1 << CGEventType.keyUp.rawValue)
-        registration = hub.registerSynchronous(mask: mask) { [weak self] type, event in
+        tap.start(mask: mask) { [weak self] type, event in
             let flags = event.flags
             var modifiers: FinderShortcutPolicy.Modifiers = []
             if flags.contains(.maskCommand) { modifiers.insert(.command) }
@@ -80,8 +78,7 @@ final class FinderToolsCoordinator {
     }
 
     private func stop() {
-        if let registration { hub.remove(registration) }
-        registration = nil
+        tap.stop()
         activation = nil
     }
 
@@ -127,7 +124,6 @@ final class FinderToolsCoordinator {
         operation?.cancel()
         cutSession.clear()
         input.configure(cut: cutEnabled, rename: renameEnabled, pid: finderPID)
-        hub.refreshPermission()
     }
 
     private func isCurrent(_ request: FinderShortcutState.Request) -> Bool {

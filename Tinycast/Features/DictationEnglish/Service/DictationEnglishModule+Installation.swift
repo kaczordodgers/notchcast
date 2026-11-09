@@ -14,14 +14,12 @@ extension DictationEnglishModule {
             await DictationCleanup.observeTranscript(raw: raw, cleaned: translated)
             return translated
         }
-        var synchronous: UUID?
+        let swallowing = EventTapSubscription(hub: hub)
         self.init(register: { action in
             let held = Mutex(false)
-            synchronous = hub.registerSynchronous(mask:
-                EventTapPolicy.mask(for: .keyDown) | EventTapPolicy.mask(for: .keyUp)) { type, event in
-                guard event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag,
-                      event.getIntegerValueField(.keyboardEventKeycode) == kVK_ANSI_Grave
-                else { return .pass }
+            swallowing.start(mask: EventTapPolicy.mask(for: .keyDown) | EventTapPolicy.mask(for: .keyUp),
+                             skipsSynthetic: true) { type, event in
+                guard event.getIntegerValueField(.keyboardEventKeycode) == kVK_ANSI_Grave else { return .pass }
                 return held.withLock { down in
                     if type == .keyUp {
                         let swallow = down
@@ -43,8 +41,7 @@ extension DictationEnglishModule {
             }
         }, remove: {
             hub.remove($0)
-            if let synchronous { hub.remove(synchronous) }
-            synchronous = nil
+            swallowing.stop()
         }, toggle: { [weak coordinator] in
             guard let coordinator else { return }
             if coordinator.triggerIsRecording {

@@ -1,7 +1,9 @@
 import ApplicationServices
 import Foundation
+import Observation
 
 @MainActor
+@Observable
 final class EventTapHub {
     struct Event: Sendable {
         let type: CGEventType
@@ -33,15 +35,17 @@ final class EventTapHub {
     typealias Handler = @MainActor @Sendable (Event) -> Void
     typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
 
-    private var policy = EventTapPolicy()
-    private var handlers: [UUID: Handler] = [:]
-    private var synchronousHandlers: [UUID: SynchronousHandler] = [:]
-    private var order: [UUID] = []
-    private var session: EventTapThread?
-    private var permissionRetry: Task<Void, Never>?
+    /// Accessibility trust as last read; rechecked every second while anything is registered.
+    private(set) var isTrusted = false
+    @ObservationIgnored private var policy = EventTapPolicy()
+    @ObservationIgnored private var handlers: [UUID: Handler] = [:]
+    @ObservationIgnored private var synchronousHandlers: [UUID: SynchronousHandler] = [:]
+    @ObservationIgnored private var order: [UUID] = []
+    @ObservationIgnored private var session: EventTapThread?
+    @ObservationIgnored private var permissionWatch: Task<Void, Never>?
 
     isolated deinit {
-        permissionRetry?.cancel()
+        permissionWatch?.cancel()
         session?.stop()
     }
 
@@ -82,11 +86,6 @@ final class EventTapHub {
         reconcile()
     }
 
-    /// Call after a permission change; reading trust never opens an Accessibility prompt.
-    func refreshPermission() {
-        reconcile()
-    }
-
     private func add(_ id: UUID, mask: CGEventMask) {
         precondition(mask != 0)
         policy.register(id, mask: mask)
@@ -95,17 +94,10 @@ final class EventTapHub {
     }
 
     private func reconcile() {
-        permissionRetry?.cancel()
-        permissionRetry = nil
-        guard policy.needsTap, AXIsProcessTrusted() else {
+        watchPermission()
+        guard policy.needsTap, readTrust() else {
             session?.stop()
             session = nil
-            if policy.needsTap {
-                permissionRetry = Task { [weak self] in
-                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
-                    self?.refreshPermission()
-                }
-            }
             return
         }
         let consumers = order.compactMap { id -> EventTapThread.Consumer? in
@@ -130,5 +122,28 @@ final class EventTapHub {
         }
         session = worker
         worker.start()
+    }
+
+    private func readTrust() -> Bool {
+        let trusted = AXIsProcessTrusted()
+        if isTrusted != trusted { isTrusted = trusted }
+        return trusted
+    }
+
+    // macOS announces neither a grant nor a revocation, so trust is polled while a tap is wanted.
+    private func watchPermission() {
+        guard policy.needsTap else {
+            permissionWatch?.cancel()
+            permissionWatch = nil
+            return
+        }
+        guard permissionWatch == nil else { return }
+        permissionWatch = Task { [weak self] in
+            while true {
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                guard let self else { return }
+                if readTrust() != isRunning { reconcile() }
+            }
+        }
     }
 }

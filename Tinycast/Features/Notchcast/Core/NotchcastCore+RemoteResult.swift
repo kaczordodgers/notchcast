@@ -1,10 +1,6 @@
 extension NotchcastCore {
-    // The user asked for this outcome, so turning island messages off must not swallow it.
+    // The user asked for this outcome, so the HUD shows it whenever the island would not.
     static func remoteResult(_ text: String) {
-        if NotchcastPreferences.shared.isOn(.islandStatusMessages) {
-            remoteNotice(text)
-        } else {
-            AppCore.shared.showMessage(text, tone: .neutral)
-        }
+        AppCore.shared.showMessage(text, tone: .neutral)
     }
 }

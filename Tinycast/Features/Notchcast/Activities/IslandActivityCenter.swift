@@ -6,6 +6,11 @@ import Observation
 final class IslandActivityCenter {
     static let shared = IslandActivityCenter()
 
+    /// Identifies one posted notice, so its poster can end it and nobody else's.
+    struct NoticeHandle: Hashable, Sendable {
+        fileprivate let id = UUID()
+    }
+
     var hasPresenter = false
     private(set) var activities: [IslandActivity] = []
     private(set) var message: IslandMessage?
@@ -13,6 +18,7 @@ final class IslandActivityCenter {
     @ObservationIgnored private let sleep: @MainActor (TimeInterval) async -> Void
     @ObservationIgnored private var pending: [Notice] = []
     @ObservationIgnored private var visibleID: String?
+    @ObservationIgnored private var visibleOwner: NoticeHandle?
 
     private struct Notice {
         let id: String?
@@ -20,6 +26,7 @@ final class IslandActivityCenter {
         let tone: IslandMessage.Tone
         let dwell: TimeInterval
         let symbol: String?
+        let owner = NoticeHandle()
     }
 
     init(sleep: @escaping @MainActor (TimeInterval) async -> Void = { try? await Task.sleep(for: .seconds($0)) }) {
@@ -63,21 +70,27 @@ final class IslandActivityCenter {
     func fail(_ id: UUID) { finish(id) }
 
     /// Only an `id` waits its turn; without one a message replaces the visible one, like upstream's HUD.
+    @discardableResult
     func showMessage(_ text: String, tone: IslandMessage.Tone, dwell: TimeInterval,
-                     id: String? = nil, symbol: String? = nil) {
+                     id: String? = nil, symbol: String? = nil) -> NoticeHandle {
         let notice = Notice(id: id, text: text, tone: tone, dwell: dwell, symbol: symbol)
-        guard let id, message != nil, id != visibleID else { return present(notice) }
+        guard let id, message != nil, id != visibleID else {
+            present(notice)
+            return notice.owner
+        }
         if let index = pending.firstIndex(where: { $0.id == id }) {
             pending[index] = notice
         } else {
             pending.append(notice)
             if pending.count > 8 { pending.removeFirst() }
         }
+        return notice.owner
     }
 
     private func present(_ notice: Notice) {
         dismissal?.cancel()
         visibleID = notice.id
+        visibleOwner = notice.owner
         message = IslandMessage(id: message?.id ?? UUID(), tone: notice.tone, text: notice.text,
                                 isProgress: false, onCancel: nil, symbol: notice.symbol)
         dismissal = Task { [weak self, sleep] in
@@ -87,18 +100,29 @@ final class IslandActivityCenter {
         }
     }
 
-    func showProgress(_ text: String, onCancel: (() -> Void)? = nil) {
+    @discardableResult
+    func showProgress(_ text: String, onCancel: (() -> Void)? = nil) -> NoticeHandle {
         dismissal?.cancel()
         visibleID = nil
+        let owner = NoticeHandle()
+        visibleOwner = owner
         message = IslandMessage(id: message?.id ?? UUID(), tone: .neutral, text: text, isProgress: true,
                                 onCancel: onCancel)
+        return owner
+    }
+
+    /// Ends `notice` only while it is still its poster's; a replaced or finished one is left alone.
+    func dismiss(_ notice: NoticeHandle) {
+        guard visibleOwner == notice else { return pending.removeAll { $0.owner == notice } }
+        dismissMessage()
     }
 
     /// Ends only the visible message; waiting notices keep their turn.
-    func dismissMessage() {
+    private func dismissMessage() {
         dismissal?.cancel()
         dismissal = nil
         visibleID = nil
+        visibleOwner = nil
         message = nil
         if !pending.isEmpty { present(pending.removeFirst()) }
     }

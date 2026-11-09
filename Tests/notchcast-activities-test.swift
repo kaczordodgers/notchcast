@@ -84,10 +84,13 @@ struct NotchcastActivitiesTests {
 
         center.showMessage("Replaced", tone: .neutral, dwell: 1)
         await settle()
-        center.showProgress("Working")
+        let replaced = center.showProgress("Working")
         await clock.fire()
         precondition(center.message?.isProgress == true && center.message?.text == "Working")
-        center.dismissMessage()
+        let other = center.showProgress("Other poster")
+        center.dismiss(replaced)
+        precondition(center.message?.text == "Other poster", "a replaced poster cannot end the notice")
+        center.dismiss(other)
         precondition(center.message == nil)
 
         let shared = IslandActivityCenter.shared
@@ -126,7 +129,17 @@ struct NotchcastActivitiesTests {
         preferences.set(.islandStatusMessages, false)
         precondition(!IslandHUDRouter.show("Off", tone: .success))
         precondition(shared.message == nil)
+        preferences.set(.islandStatusMessages, true)
+        precondition(IslandHUDRouter.show("HUD", tone: .success))
+        let remote = IslandHUDRouter.post("Remote")
+        precondition(remote != nil && shared.message?.text == "Remote")
+        IslandHUDRouter.dismiss()
+        precondition(shared.message?.text == "Remote", "the HUD cannot end a remote notice")
+        shared.dismiss(remote!)
+        precondition(shared.message == nil)
         shared.hasPresenter = false
+        precondition(IslandHUDRouter.post("No presenter") == nil && shared.message == nil)
+        preferences.set(.islandStatusMessages, false)
         IslandHUDRouter.dismiss()
         precondition(shared.message == nil)
         print("PASS priority, deadlines, removal, updates, dwell re-arm, replacement, switch, routing and cancellation")
