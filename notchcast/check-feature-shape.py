@@ -9,12 +9,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 GROUPS = FEATURE.with_name("NotchcastFeature+SettingsGroup.swift")
+DESCRIPTORS = FEATURE.with_name("NotchcastFeature+Descriptor.swift")
 # Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
 LISTS = {
     Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift"): r'^"([^"]+)"',
     Path("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift"): r"module: ([\w.]+)",
     Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
+    DESCRIPTORS: r"^\.(\w+):",
 }
+# Root of a feature folder other than the hub; harnesses compile this glob with NotchcastFeature.swift.
+DESCRIPTOR_FILE = re.compile(r"Tinycast/Features/(?!Notchcast/)\w+/(\w+)Descriptor\.swift")
+DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*\(")
+# Switches without a default: a feature without a descriptor needs an arm in each.
+EXHAUSTIVE = ("settingsGroup", "title", "subtitle")
 
 
 def mask_literals(source):
@@ -156,6 +163,49 @@ def list_errors(source, identity):
     return errors
 
 
+def descriptor_errors(root):
+    """A described feature has no switch arm and one descriptor file in its own folder."""
+    errors = []
+    described = {}
+    for number, line in enumerate(mask_literals((root / DESCRIPTORS).read_text()).split("\n"), 1):
+        entry = re.fullmatch(r"\s*\.(\w+): \.(\w+),", line)
+        if entry:
+            described.setdefault(entry[1], number)
+            if entry[1] != entry[2]:
+                errors.append((DESCRIPTORS, number, f".{entry[1]} must map to its own descriptor .{entry[1]}"))
+    code = mask_literals((root / FEATURE).read_text())
+    for number, line in enumerate(code.split("\n"), 1):
+        arm = re.match(r"\s*case\s+([^:]*):", line)
+        for name in re.findall(r"\.(\w+)", arm[1]) if arm else []:
+            if name in described:
+                errors.append((FEATURE, number, f".{name} has a descriptor; change it there, not in a switch arm"))
+    enum = code.split("enum NotchcastFeature", 1)[-1].split("\n    var ", 1)[0]
+    cases = re.findall(r"^    case (\w+)$", enum, re.M)
+    sections = re.split(r"^    var (\w+)\b", code, flags=re.M)
+    for member, body in zip(sections[1::2], sections[2::2]):
+        if member in EXHAUSTIVE:
+            number = code.count("\n", 0, code.index(f"    var {member}")) + 1
+            arms = set(re.findall(r"^\s*case \.(\w+)", body, re.M))
+            errors.extend((FEATURE, number, f".{name} needs a descriptor or a {member} arm")
+                          for name in cases if name not in arms and name not in described)
+    for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
+        relative = path.relative_to(root)
+        source = path.read_text()
+        if "Descriptor" not in source:
+            continue
+        code = mask_literals(source)
+        declaration = DESCRIPTOR_DECLARATION.search(code)
+        place = DESCRIPTOR_FILE.fullmatch(relative.as_posix())
+        if declaration and not place:
+            errors.append((relative, code.count("\n", 0, declaration.start()) + 1,
+                           "declare a descriptor in Tinycast/Features/<its folder>/<Name>Descriptor.swift"))
+        elif place:
+            names = re.findall(r"\bstatic let (\w+)\b", code)
+            if not declaration or [name[:1].upper() + name[1:] for name in names] != [place[1]]:
+                errors.append((relative, 1, f"declare exactly one descriptor, .{place[1][:1].lower() + place[1][1:]}"))
+    return errors
+
+
 def check(root):
     errors = []
     declarations = {"NotchcastFeature": [], "SettingsGroup": []}
@@ -185,6 +235,10 @@ def check(root):
         errors.append(f"{PREFERENCES}:1: {error}")
     else:
         errors.extend(f"{PREFERENCES}:{line}: {message}" for line, message in preference_errors(source))
+    try:
+        errors.extend(f"{path}:{line}: {message}" for path, line, message in descriptor_errors(root))
+    except OSError as error:
+        errors.append(f"{DESCRIPTORS}:1: {error}")
     for name, locations in declarations.items():
         if len(locations) != 1:
             path, number = locations[-1] if locations else (FEATURE, 1)
@@ -203,7 +257,8 @@ def main():
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print("PASS: feature cases, switch arms, modules, search entries and settings use one line each, with no repeats")
+    print("PASS: feature cases, switch arms, modules, search entries and settings use one line each, with no repeats;"
+          " described features keep no arm and their descriptor in their own folder")
     return 0
 
 
