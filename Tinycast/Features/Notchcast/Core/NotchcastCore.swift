@@ -38,7 +38,10 @@ enum NotchcastCore {
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
         guard controller == nil else { return }
-        NotchcastHost.current = NotchcastHost(showMessage: { [weak core] in core?.showMessage($0, tone: $1) }, refreshNotchcastCommands: { [weak core] in core?.appIndex.refreshNotchcastCommands() })
+        NotchcastHost.current = NotchcastHost(
+            showMessage: { [weak core] in core?.showMessage($0, tone: $1) },
+            refreshNotchcastCommands: { [weak core] in core?.appIndex.refreshNotchcastCommands() }
+        )
         NSApp.servicesProvider = archiveServices
         ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
         archives.queue.compressionFinished = { [weak core] job in core?.showMessage(job.failure?.message ?? job.stateTitle, tone: job.failure == nil ? .neutral : .danger) }
