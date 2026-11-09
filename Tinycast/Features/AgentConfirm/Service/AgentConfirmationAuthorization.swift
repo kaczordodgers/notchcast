@@ -26,6 +26,7 @@ final class AgentConfirmationAuthorization {
     private let dialog: Dialog
     private let timeout: Duration
     private var presenting = false
+    private var shown: (id: UUID, task: Task<Void, Never>)?
     private var actions: [UUID: AgentAction] = [:]
     private var messages: [UUID: String] = [:]
     private var timers: [UUID: Task<Void, Never>] = [:]
@@ -73,6 +74,7 @@ final class AgentConfirmationAuthorization {
         actions.removeValue(forKey: id)
         messages.removeValue(forKey: id)
         timers.removeValue(forKey: id)?.cancel()
+        if shown?.id == id { shown?.task.cancel() }
         guard approved else { return nil }
         return { [self] in
             presenting = false
@@ -84,6 +86,7 @@ final class AgentConfirmationAuthorization {
         coordinator.stop()
         for timer in timers.values { timer.cancel() }
         timers.removeAll()
+        shown?.task.cancel()
         actions.removeAll()
         messages.removeAll()
     }
@@ -106,8 +109,9 @@ final class AgentConfirmationAuthorization {
         let message = messages[id] ?? ""
         let choices: [AgentConfirmationEngine.Choice] = pending.danger == .consent && action.parameters.properties.isEmpty
             ? [.allowOnce, .alwaysAllow, .deny] : [.allowOnce, .deny]
-        Task {
+        shown = (id, Task {
             let index = await dialog(action, message, choices)
+            shown = nil
             let choice = transport.continuations[id] != nil && choices.indices.contains(index) ? choices[index] : .deny
             try? coordinator.choose(id: id, choice: choice, now: Date())
             let approved = transport.approvals.remove(id) != nil
@@ -115,6 +119,6 @@ final class AgentConfirmationAuthorization {
                 presenting = false
                 presentNext()
             }
-        }
+        })
     }
 }
