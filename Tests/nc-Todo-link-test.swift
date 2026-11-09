@@ -15,6 +15,41 @@
 import Foundation
 import Network
 
+func loopChild(_ index: Int) async -> String? {
+    let process = Process()
+    process.executableURL = URL(filePath: CommandLine.arguments[0])
+    process.environment = ProcessInfo.processInfo.environment.merging(["NC_LOOP_CHILD": "1"]) { $1 }
+    let log = FileManager.default.temporaryDirectory.appending(path: "nc-loop-\(UUID().uuidString).log")
+    FileManager.default.createFile(atPath: log.path, contents: nil)
+    let handle = try! FileHandle(forWritingTo: log)
+    process.standardOutput = handle
+    process.standardError = handle
+    let status: Int32 = await withCheckedContinuation { continuation in
+        process.terminationHandler = { continuation.resume(returning: $0.terminationStatus) }
+        try! process.run()
+    }
+    if status == 0 { return nil }
+    let text = (try? String(contentsOf: log, encoding: .utf8)) ?? ""
+    return "child \(index) status \(status): " + text.split(separator: "\n").suffix(6).joined(separator: " | ")
+}
+
+@MainActor func loopOfTwenty(_ name: String, once: @MainActor () async throws -> Void) async throws {
+    if ProcessInfo.processInfo.environment["NC_LOOP_CHILD"] != nil { try await once(); return }
+    var failures: [String] = []
+    for wave in 0..<4 {
+        let results = await withTaskGroup(of: String?.self) { group in
+            for index in 0..<5 { group.addTask { await loopChild(wave * 5 + index) } }
+            var collected: [String] = []
+            for await result in group { if let result { collected.append(result) } }
+            return collected
+        }
+        failures += results
+    }
+    print("LOOP \(name): \(failures.count) failures of 20")
+    for failure in failures.prefix(4) { print("LOOP \(failure)") }
+    if !failures.isEmpty { exit(1) }
+}
+
 struct MachLinkPairing: Sendable {
     let id = UUID()
     let secret = Data([1])
@@ -97,7 +132,9 @@ extension MachLinkChannel {
 
 @main @MainActor
 struct TodoLinkTests {
-    static func main() async throws {
+    static func main() async throws { try await loopOfTwenty("nc-Todo-link-test", once: once) }
+
+    static func once() async throws {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         try await convergence(root)
