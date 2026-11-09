@@ -138,10 +138,13 @@ struct NotchcastActivitiesTests {
         shared.dismiss(remote!)
         precondition(shared.message == nil)
         shared.hasPresenter = false
-        precondition(IslandHUDRouter.post("No presenter") == nil && shared.message == nil)
+        precondition(IslandHUDRouter.post("No presenter") == nil && shared.message?.text == "No presenter",
+                     "a post still enters the center when no presenter shows it")
+        let pill = IslandHUDRouter.progress("Pill")
+        precondition(pill == nil && shared.message?.text == "No presenter", "a pill needs a presenter")
         preferences.set(.islandStatusMessages, false)
         IslandHUDRouter.dismiss()
-        precondition(shared.message == nil)
+        precondition(shared.message?.text == "No presenter", "the HUD cannot end a post")
         print("PASS priority, deadlines, removal, updates, dwell re-arm, replacement, switch, routing and cancellation")
     }
 }

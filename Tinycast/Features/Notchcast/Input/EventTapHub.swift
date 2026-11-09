@@ -86,6 +86,11 @@ final class EventTapHub {
         reconcile()
     }
 
+    /// Restarts a tap that failed to start; reading trust never opens an Accessibility prompt.
+    func refreshPermission() {
+        reconcile()
+    }
+
     private func add(_ id: UUID, mask: CGEventMask) {
         precondition(mask != 0)
         policy.register(id, mask: mask)
@@ -142,7 +147,8 @@ final class EventTapHub {
             while true {
                 do { try await Task.sleep(for: .seconds(1)) } catch { return }
                 guard let self else { return }
-                if readTrust() != isRunning { reconcile() }
+                let trusted = isTrusted
+                if readTrust() != trusted { reconcile() }
             }
         }
     }

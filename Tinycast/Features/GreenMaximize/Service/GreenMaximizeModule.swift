@@ -25,6 +25,7 @@ final class GreenMaximizeModule: NotchcastModule {
         let value = Mutex(TapState())
     }
     private let shared = SharedState()
+    private let hub: EventTapHub
     private let tap: EventTapSubscription
     private var activation: NotificationToken?
     private var observer: AXObserver?
@@ -48,7 +49,10 @@ final class GreenMaximizeModule: NotchcastModule {
         MainActor.assumeIsolated { owner.refresh() }
     }
 
-    init(hub: EventTapHub) { tap = EventTapSubscription(hub: hub) }
+    init(hub: EventTapHub) {
+        self.hub = hub
+        tap = EventTapSubscription(hub: hub)
+    }
 
     func start() {
         guard !tap.isActive else { return }
@@ -59,7 +63,10 @@ final class GreenMaximizeModule: NotchcastModule {
             MainActor.assumeIsolated { self?.refresh() }
         }, center: center)
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
+            MainActor.assumeIsolated {
+                self?.hub.refreshPermission()
+                self?.refresh()
+            }
         }
         refresh()
         let shared = self.shared

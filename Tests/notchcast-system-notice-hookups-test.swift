@@ -22,14 +22,16 @@ import Foundation
     func start() {}
     func stop() {}
 }
-@MainActor final class IslandActivityCenter {
+@MainActor enum IslandHUDRouter {
     enum Tone { case danger, neutral }
-    static let shared = IslandActivityCenter()
-    var messages: [String] = []
-    var ids: [String?] = []
-    func showMessage(_ text: String, tone: Tone, dwell: TimeInterval, id: String?, symbol: String? = nil) {
+    static var messages: [String] = []
+    static var ids: [String?] = []
+    @discardableResult
+    static func post(_ text: String, tone: Tone = .neutral, id: String? = nil, symbol: String? = nil,
+                     dwell: TimeInterval = 0) -> UUID? {
         messages.append(text)
         ids.append(id)
+        return nil
     }
 }
 @main struct NoticeTests {
@@ -39,7 +41,7 @@ import Foundation
         let space = LowDiskEngine.Space(free: 1_000_000, total: 100_000_000)
         disk.manager.onNotice?(space)
         precondition(disk.latest == space)
-        precondition(IslandActivityCenter.shared.messages.last?.hasPrefix("Low disk space:") == true)
+        precondition(IslandHUDRouter.messages.last?.hasPrefix("Low disk space:") == true)
         disk.stop()
         precondition(disk.manager.onNotice == nil)
         let system = SystemNoticesModule()
@@ -49,12 +51,12 @@ import Foundation
             system.manager.onNotice?(notice)
             precondition(system.latest == notice)
         }
-        precondition(IslandActivityCenter.shared.messages.count == 5)
-        precondition(IslandActivityCenter.shared.messages.last == "Low battery: 10%")
-        precondition(IslandActivityCenter.shared.ids == ["lowDisk", "system.wifi", "system.wifi",
+        precondition(IslandHUDRouter.messages.count == 5)
+        precondition(IslandHUDRouter.messages.last == "Low battery: 10%")
+        precondition(IslandHUDRouter.ids == ["lowDisk", "system.wifi", "system.wifi",
                                                          "system.tailscale", "system.battery"])
         system.stop()
         precondition(system.manager.onNotice == nil)
-        print("Verified low disk and system notice callbacks reach island messages and detach on stop")
+        print("Verified low disk and system notice callbacks reach the island router and detach on stop")
     }
 }

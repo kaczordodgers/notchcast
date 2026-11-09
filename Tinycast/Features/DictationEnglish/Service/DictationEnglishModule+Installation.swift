@@ -1,6 +1,5 @@
 import AppKit
 import Carbon.HIToolbox
-import Synchronization
 
 extension DictationEnglishModule {
     convenience init(hub: EventTapHub, coordinator: DictationCoordinator) {
@@ -16,20 +15,9 @@ extension DictationEnglishModule {
         }
         let swallowing = EventTapSubscription(hub: hub)
         self.init(register: { action in
-            let held = Mutex(false)
-            swallowing.start(mask: EventTapPolicy.mask(for: .keyDown) | EventTapPolicy.mask(for: .keyUp),
-                             skipsSynthetic: true) { type, event in
-                guard event.getIntegerValueField(.keyboardEventKeycode) == kVK_ANSI_Grave else { return .pass }
-                return held.withLock { down in
-                    if type == .keyUp {
-                        let swallow = down
-                        down = false
-                        return swallow ? .swallow : .pass
-                    }
-                    let other: CGEventFlags = [.maskCommand, .maskControl, .maskAlternate, .maskShift]
-                    down = event.flags.contains(.maskSecondaryFn) && event.flags.isDisjoint(with: other)
-                    return down ? .swallow : .pass
-                }
+            swallowing.startKeyPress(Int64(kVK_ANSI_Grave), skipsSynthetic: true) { event in
+                let other: CGEventFlags = [.maskCommand, .maskControl, .maskAlternate, .maskShift]
+                return event.flags.contains(.maskSecondaryFn) && event.flags.isDisjoint(with: other)
             }
             return hub.register(mask: EventTapPolicy.mask(for: .keyDown)) { event in
                 let other: CGEventFlags = [.maskCommand, .maskControl, .maskAlternate, .maskShift]

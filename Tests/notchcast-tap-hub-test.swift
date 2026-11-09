@@ -173,6 +173,9 @@ struct NotchcastTapHubTests {
         fixture.withLock { $0.failNext = true }
         let retry = hub.register(mask: key) { _ in fatalError("Removed callback must not run") }
         await eventually { !hub.isRunning }
+        try? await Task.sleep(for: .milliseconds(1500))
+        expect(!hub.isRunning && fixture.withLock { $0.records.count == 3 }, "A failed tap waits for a trust change")
+        hub.refreshPermission()
         await eventually { fixture.withLock { $0.records.count == 4 } && hub.isRunning }
         expect(hub.isTrusted, "A running tap reports trust")
         fixture.withLock { $0.trusted = false }

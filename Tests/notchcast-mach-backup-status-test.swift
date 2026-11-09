@@ -3,15 +3,30 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastCore+RemoteNotice.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
 import Foundation
+
+@MainActor enum NotchcastCore {}
+@MainActor enum IslandHUDRouter {
+    @discardableResult static func post(_ text: String) -> UUID? { nil }
+}
 
 @main
 enum BackupStatusTest {
     @MainActor static func main() async throws {
         func check(_ condition: Bool) { precondition(condition) }
+        let noticeSuite = "backup-notice-test." + UUID().uuidString
+        defer { UserDefaults(suiteName: noticeSuite)?.removePersistentDomain(forName: noticeSuite) }
+        let noticePreferences = NotchcastPreferences(suiteName: noticeSuite)
         var configurationNotices: [String] = []
-        let unconfigured = BackupStatusModule(path: { "" }, post: { configurationNotices.append($0) })
+        let unconfigured = BackupStatusModule(path: { "" }, post: { text in
+            NotchcastCore.deliverRemoteNotice(text, preferences: noticePreferences) { configurationNotices.append($0) }
+        })
+        noticePreferences.set(.islandStatusMessages, false)
+        unconfigured.start()
+        check(configurationNotices.isEmpty)
+        noticePreferences.set(.islandStatusMessages, true)
         unconfigured.start()
         check(configurationNotices == [String(localized: "Backup status path is not configured.")])
         var typedPath = ""

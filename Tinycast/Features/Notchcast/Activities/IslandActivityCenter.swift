@@ -117,6 +117,8 @@ final class IslandActivityCenter {
         dismissMessage()
     }
 
+    func isShowing(_ notice: NoticeHandle) -> Bool { visibleOwner == notice }
+
     /// Ends only the visible message; waiting notices keep their turn.
     private func dismissMessage() {
         dismissal?.cancel()

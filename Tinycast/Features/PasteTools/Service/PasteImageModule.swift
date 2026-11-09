@@ -19,16 +19,27 @@ final class PasteImageModule: NotchcastModule {
         var acceptsImage = false
     }
 
-    init(hub: EventTapHub) { tap = EventTapSubscription(hub: hub) }
+    private let pasteboard: NSPasteboard.Name
+    private let finderIsFrontmost: @MainActor () -> Bool
+
+    init(hub: EventTapHub, pasteboard: NSPasteboard.Name = .general,
+         finderIsFrontmost: @escaping @MainActor () -> Bool = {
+             NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder"
+         }) {
+        tap = EventTapSubscription(hub: hub)
+        self.pasteboard = pasteboard
+        self.finderIsFrontmost = finderIsFrontmost
+    }
 
     func start() {
         guard !tap.isActive else { return }
         let state = state
+        let pasteboard = pasteboard
         tap.startKeyPress(Int64(kVK_ANSI_V), skipsSynthetic: true) { [weak self] event in
             let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskControl, .maskAlternate]
             guard event.flags.intersection(modifiers) == .maskCommand else { return false }
             let take = state.withLock { state in
-                let board = NSPasteboard.general
+                let board = NSPasteboard(name: pasteboard)
                 if state.changeCount != board.changeCount {
                     state.changeCount = board.changeCount
                     state.acceptsImage = PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
@@ -56,7 +67,7 @@ final class PasteImageModule: NotchcastModule {
     }
 
     private func updateEligibility() {
-        let eligible = NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder"
+        let eligible = finderIsFrontmost()
         state.withLock { $0.eligible = eligible }
     }
 
