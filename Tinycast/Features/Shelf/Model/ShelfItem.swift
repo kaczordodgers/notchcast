@@ -8,7 +8,6 @@ struct ShelfItem: Codable, Sendable, Equatable {
     let data: Data
 
     var fingerprint: String {
-        SHA256.hash(data: Data((kind.rawValue + "\u{0}" + name + "\u{0}").utf8) + data)
-            .map { String(format: "%02x", $0) }.joined()
+        WebRules.hex(SHA256.hash(data: Data((kind.rawValue + "\u{0}" + name + "\u{0}").utf8) + data))
     }
 }

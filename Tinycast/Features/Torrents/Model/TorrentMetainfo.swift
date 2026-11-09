@@ -55,7 +55,7 @@ struct TorrentMetainfo: Sendable {
                 bytes.append(UInt8((buffer >> bits) & 255))
             }
         }
-        return bytes.map { String(format: "%02x", $0) }.joined()
+        return WebRules.hex(bytes)
     }
 
     private struct Parser {

@@ -36,6 +36,13 @@ if [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastFeature"* ]]; then
     done
 fi
 
+# The shared web rules have no dependencies; any compiled source that calls them brings them in.
+web_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done; true)
+if [[ " $* " != *" Tinycast/Features/Notchcast/Model/WebRules.swift "* &&
+    " $* " != *" Tinycast/Features/Notchcast/Model/*.swift "* ]] && grep -lqs 'WebRules\.' $web_readers /dev/null; then
+    set -- "$@" Tinycast/Features/Notchcast/Model/WebRules.swift
+fi
+
 # Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
 identity_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done; true)
 if [[ " $* " != *" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift "* ]] &&
