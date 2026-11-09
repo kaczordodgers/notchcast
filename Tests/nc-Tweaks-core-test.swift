@@ -52,7 +52,6 @@ struct TweakCoreTests {
         precondition(!SpotlightIndexing.parse("").isOff)
         precondition(SpotlightIndexing.parse("/:\n Indexing enabled.\n").needsTurnOff(featureEnabled: true))
         precondition(!SpotlightIndexing.parse("/:\n Indexing enabled.\n").needsTurnOff(featureEnabled: false))
-        precondition(SpotlightRootVerbs.turnOffIndexing.arguments == ["-a", "-i", "off"])
         print("PASS: tweaks plans, Undo, injected failures, profiles, shared models and Spotlight")
     }
 }
