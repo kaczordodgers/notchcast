@@ -151,7 +151,7 @@ xcodegen generate
 xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug build
 ```
 
-The project, target and source folders keep upstream's `Tinycast` names so our commits rebase cleanly. Debug builds are `Notchcast Dev.app` (`app.notchcast.dev`). They sign with a local `Tinycast Self-Signed` identity, which keeps the Accessibility grant across rebuilds; create it once with [docs/signing.md §1](/docs/signing.md), or add `CODE_SIGNING_ALLOWED=NO` for a build-only check. More: [docs/development.md](/docs/development.md).
+The project, target and source folders keep upstream's `Tinycast` names so our commits rebase cleanly. Debug builds are `Notchcast Dev.app` (`app.notchcast.dev`). They sign ad-hoc, so headless Xcode builds them anywhere, but a local run loses its Accessibility grant on each rebuild; to keep it, pass `CODE_SIGN_IDENTITY="Tinycast Self-Signed"` after creating that identity once with [docs/signing.md §1](/docs/signing.md). Add `CODE_SIGNING_ALLOWED=NO` for a build-only check. Release signing is unchanged. More: [docs/development.md](/docs/development.md).
 
 ### Tests
 

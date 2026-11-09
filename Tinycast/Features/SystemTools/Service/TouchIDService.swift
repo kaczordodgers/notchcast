@@ -14,8 +14,4 @@ nonisolated struct TouchIDService: Sendable {
             ? try String(contentsOf: localURL, encoding: .utf8) : nil
         return Reading(sudo: sudo, local: local)
     }
-
-    func apply(_ verb: TouchIDRootVerbs, run: (TouchIDRootVerbs) throws -> Void) throws {
-        try run(verb)
-    }
 }

@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/LiveTimer/LiveTimerModule.swift
 
 // notchcast-sources: Tinycast/Features/LiveTimer/Model/*.swift
@@ -40,11 +41,4 @@ struct TimerModuleTest {
     }
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = CommandIndexFixture()
-}
-@MainActor final class CommandIndexFixture {
-    private(set) var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
+enum DialogTone {}
