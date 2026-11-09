@@ -8,6 +8,20 @@ import AppKit
 @MainActor protocol NotchcastModule { func start(); func stop() }
 enum Paster { static let tinycastEventTag: Int64 = 12345 }
 func AXIsProcessTrusted() -> Bool { false }
+// The harness never maximizes: a full-screen answer ends any maximize before it moves a window.
+enum AXWindowAccess {
+    enum Anchor { case centered }
+    static func isFullScreen(_ window: AXUIElement) -> Bool { true }
+    static func frame(of window: AXUIElement) -> CGRect? { nil }
+    static func application(for pid: pid_t, timeout: Float) -> AXUIElement { AXUIElementCreateApplication(pid) }
+    static func suppressEnhancedUserInterface(on application: AXUIElement) -> () -> Void { {} }
+    static func write(_ target: CGRect, anchor: Anchor, to window: AXUIElement, current: CGRect,
+                      canResize: Bool, canvas: CGRect?) -> CGRect? { nil }
+}
+struct AXGeometry {
+    init(screens: [NSScreen]) {}
+    func flip(_ rect: CGRect) -> CGRect { rect }
+}
 @MainActor final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
     var greenMaximizeExcludedApps = ""
