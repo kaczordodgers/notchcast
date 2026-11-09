@@ -21,7 +21,7 @@ if [[ -z $bundle ]]; then
   cd "$root"
   xcodegen generate > "$scratch/generate.log" 2>&1
   derived=${NOTCHCAST_GALLERY_DERIVED_DATA:-$HOME/Library/Caches/NotchcastGallery/DerivedData}
-  build=(xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath "$derived" CODE_SIGN_IDENTITY=- CODE_SIGNING_ALLOWED=NO build)
+  build=(xcodebuild -project Tinycast.xcodeproj -scheme Tinycast -configuration Debug -destination 'platform=macOS,arch=arm64' -derivedDataPath "$derived" CODE_SIGNING_ALLOWED=NO build)
   if [[ -n ${NOTCHCAST_BUILD_WRAPPER:-} ]]; then
     "$NOTCHCAST_BUILD_WRAPPER" "${build[@]}" > "$scratch/build.log" 2>&1 || { tail -80 "$scratch/build.log"; exit 1; }
   else
