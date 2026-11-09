@@ -32,6 +32,7 @@ enum ForkSettingsBackupSchema {
         .agentActions,
         .lowDiskWarning,
         .spacesOrder,
+        .island,
     ]
 
     private static let listedAllowed: [String: NotchcastFeature.BackupValue] = [
@@ -88,7 +89,6 @@ enum ForkSettingsBackupSchema {
         "buildStats": .bool,
         "backupStatus": .bool,
         "notchcast.colorPicker.format": .string(14, ["hex", "hexLowercase", "rgb", "hsl", "swiftUIColor", "nsColorLiteral"]),
-        "islandHoverDelay": .choices([0.1, 0.3, 0.5, 1]),
         "dictationHistory": .bool,
         "captureTrimmer": .bool,
         "captureEditor": .bool,

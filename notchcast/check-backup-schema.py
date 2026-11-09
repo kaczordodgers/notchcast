@@ -15,12 +15,14 @@ spec.loader.exec_module(shape)
 ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 SCHEMA = Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift")
-# Island and capture folders cannot hold a key file yet; SettingsBackup's own restore writes the editor keys.
-SCHEMA_KEYS = {"islandHoverDelay", "notchcast.colorPicker.format",
+# The capture module cannot hold a key file yet; SettingsBackup's own restore writes the editor keys.
+SCHEMA_KEYS = {"notchcast.colorPicker.format",
                "notchcast.screenshot.destination", "notchcast.screenshot.folder",
                "notchcast.editor.font", "notchcast.editor.theme", "notchcast.editor.pairsAutomatically"}
 KEYS_FILE = re.compile(shape.DESCRIPTOR_FILE.pattern.replace("Descriptor", "BackupKeys"))
-KEYS_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.BackupKeys\b|\bBackupKeys\s*(?:\.init\s*)?\(")
+KEYS_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.BackupKeys\b|\bBackupKeys\s*(?:\.init\s*)?\("
+                              r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?BackupKeys\b"
+                              r"|->\s*(?:NotchcastFeature\.)?BackupKeys\b")
 
 
 def body(source, pattern, opening, closing):
@@ -87,8 +89,16 @@ def check(root):
                 errors.append(f"{SCHEMA}:{line}: {key} is a feature's own key; "
                               "declare it in <Name>BackupKeys.swift in that feature's folder")
     listing, offset = body(schema, r"\bstatic\s+let\s+featureKeys\b[^=]*=", "[", "]")
-    listed = {match[1]: offset + listing.count("\n", 0, match.start()) + 1
-              for match in re.finditer(r"^\s*\.(\w+),", shape.mask_literals(listing), re.M)}
+    listed = {}
+    for number, text in enumerate(shape.mask_literals(listing).split("\n"), offset + 1):
+        match = re.fullmatch(r"\s*\.(\w+),\s*", text)
+        if not match:
+            if text.strip():
+                errors.append(f"{SCHEMA}:{number}: list one feature per featureKeys line, as .name,")
+        elif match[1] in listed:
+            errors.append(f"{SCHEMA}:{number}: .{match[1]} listed twice in featureKeys (first at line {listed[match[1]]})")
+        else:
+            listed[match[1]] = number
     features_described = described(root)
     files = set()
     for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
@@ -113,6 +123,8 @@ def check(root):
             continue
         if feature not in features_described:
             errors.append(f"{relative}:1: .{feature} has no descriptor; a key file belongs to a described feature")
+        elif not path.with_name(f"{place[1]}Descriptor.swift").exists():
+            errors.append(f"{relative}:1: put it beside {place[1]}Descriptor.swift")
         if feature not in listed:
             errors.append(f"{relative}:1: list .{feature}, in featureKeys in {SCHEMA}")
         for label, keyed in (("allowed", True), ("excluded", False)):

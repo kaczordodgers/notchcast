@@ -45,8 +45,11 @@ Record every feature's values on the base (`title`, `subtitle`, `settingsGroup`,
 
 `Descriptor` is plain data that harnesses compile with the hub alone, so anything that needs a view, a module or another feature's types lives beside it in the same folder instead:
 
-- backup keys: `<Name>BackupKeys.swift`, one `NotchcastFeature.BackupKeys` per described feature, collected by `featureKeys` in the schema ([settings-backup.md](settings-backup.md));
-- settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order); the row views that read `NotchcastCore` stay in `Notchcast/Settings/Rows/`, dispatched by `NotchcastSettingRows+A`–`D`, because drift gate 1 keeps core lookups in the hub;
-- commands: declared on the feature's own types, listed once each in `NotchcastCommandCatalog+All.swift`.
+- backup keys: `<Name>BackupKeys.swift` beside `<Name>Descriptor.swift`, one `NotchcastFeature.BackupKeys` per described feature, collected by `featureKeys` in the schema ([settings-backup.md](settings-backup.md));
+- settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order).
 
-Switch paths and the per-feature `if`s in `NotchcastModuleSettingsView` are not moved yet.
+Three things stay in the hub on purpose:
+
+- commands stay in `NotchcastCommandCatalog+All.swift`, one line each, each declared on the feature's own type; the catalog checkers and harnesses read that file line by line;
+- the per-feature `if`s in `NotchcastModuleSettingsView` and the row views and `NotchcastSettingRows+A`–`D` dispatch files in `Notchcast/Settings/` stay, because they read `NotchcastCore` and moving them into feature folders raises drift gate 1's core-lookups count;
+- switch paths.
