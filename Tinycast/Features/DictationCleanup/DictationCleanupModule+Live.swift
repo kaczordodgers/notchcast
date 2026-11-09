@@ -5,7 +5,7 @@ extension DictationCleanupModule {
         let identifier = NotchcastIdentity.current.bundleID
         return DictationCleanupModule(
             store: .live(bundleIdentifier: identifier)!,
-            install: { DictationCleanup.install() },
-            uninstall: { DictationCleanup.uninstall() })
+            install: { DictationFamily.shared.setCleanup(true) },
+            uninstall: { DictationFamily.shared.setCleanup(false) })
     }
 }

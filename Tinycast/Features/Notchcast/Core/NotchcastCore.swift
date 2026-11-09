@@ -63,10 +63,10 @@ enum NotchcastCore {
         dictationHistory.onFailure = { [weak core] in
             core?.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
         }
-        DictationCleanup.transcriptObserver = { raw, cleaned in
+        DictationFamily.shared.historySink = { raw, cleaned in
             dictationHistory.enqueue(raw: raw, cleaned: cleaned)
         }
-        dictationHistory.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
+        dictationHistory.setStageEnabled = { DictationFamily.shared.setHistory($0) }
         Task { await dictationHistory.maintain() }
         dictationCleanup.reportFailure = { [weak core] in
             core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)

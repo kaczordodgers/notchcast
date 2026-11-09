@@ -32,7 +32,7 @@
     "Features/Clean -> notchcast/root": 0,
     "Features/CommandRunner -> Features/Downloads": 1,
     "Features/ConvertFiles -> Features/Downloads": 2,
-    "Features/DictationEnglish -> Features/DictationCleanup": 3,
+    "Features/DictationEnglish -> Features/DictationCleanup": 2,
     "Features/Distill -> Features/Downloads": 4,
     "Features/Downloads -> Features/Distill": 1,
     "Features/Downloads -> Features/NetMerge": 1,
