@@ -1,8 +1,6 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkRequestBudget.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
-// notchcast-sources: Tinycast/Features/MachLink/Service/MachLinkManager+Peers.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Service/RemoteFan*.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/FanControl+Completion.swift
@@ -53,15 +51,19 @@ struct SMCClient {
 
 @MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
 @MainActor final class MachLinkManager {
-    var fanHandler: ((RemoteFanRequest) async throws -> RemoteFanReport)?
-    var fanEnabled: () -> Bool = { true }
-    var screenEnabled: () -> Bool = { true }
-    var screenAddress: () async throws -> RemoteScreenState.Availability = { throw RemoteScreenRequest.Failure.unavailable }
+    var routes: [String: @MainActor (MachLinkMessage) async throws -> MachLinkMessage] = [:]
+    func register(_ method: String, _ route: @escaping @MainActor (MachLinkMessage) async throws -> MachLinkMessage) {
+        routes[method] = route
+    }
 }
-@MainActor struct Channel: RemoteFanTransport {
-    let peer: MachLinkManager
-    func exchange(_ request: MachLinkMessage) async throws -> MachLinkMessage {
-        try await peer.peerResponse(to: request)!
+@MainActor final class MachLinkChannel {
+    let manager = MachLinkManager()
+    var calls = 0
+    func request<Value: Encodable, Response: Decodable>(_ value: Value, method: String,
+                                                        as type: Response.Type) async throws -> Response {
+        calls += 1
+        guard let route = manager.routes[method] else { throw MachLinkMessage.Failure.disconnected }
+        return try await route(MachLinkMessage(method: method, value: value)).value(as: type)
     }
 }
 @main struct FanPeerTest {
@@ -69,22 +71,18 @@ struct SMCClient {
         let applyAndRestore = RootContract.Operation.change.timeout * 2
         precondition(MachLinkRequestBudget.responder == applyAndRestore + .seconds(2))
         precondition(MachLinkRequestBudget.requester == MachLinkRequestBudget.responder + .seconds(2))
-        let peer = MachLinkManager()
-        var calls = 0
+        let channel = MachLinkChannel()
         let monitor = MonitorModule()
         let fans = monitor.fans
-        peer.fanHandler = { request in
-            calls += 1
-            return try await monitor.remoteFanReport(request)
-        }
-        let module = RemoteFanModule(transport: Channel(peer: peer))
+        monitor.registerRemoteFanRoute(on: channel)
+        let module = RemoteFanModule(transport: MachLinkFanTransport(channel: channel))
         module.start()
         let report = try await module.run(.max)
-        precondition(report.mode == .max && calls == 1)
-        peer.fanEnabled = { false }
+        precondition(report.mode == .max && channel.calls == 1)
+        NotchcastPreferences.shared.enabled = false
         do { _ = try await module.run(.max); fatalError("Fan off accepted") } catch RemoteFanReport.Failure.unavailable {}
-        precondition(calls == 1)
-        peer.fanEnabled = { true }
+        precondition(fans.mode.remoteMode == .max)
+        NotchcastPreferences.shared.enabled = true
         for (request, expected, target): (RemoteFanRequest, RemoteFanReport.Mode, Double) in [
             (.auto, .auto, 6000), (.cycle, .mid, 4000), (.cycle, .max, 6000), (.cycle, .auto, 6000)
         ] {
