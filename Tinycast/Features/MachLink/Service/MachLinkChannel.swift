@@ -2,40 +2,34 @@ import Foundation
 import Network
 
 @MainActor
-final class MachLinkUsagePeerChannel: OtherMacUsagePeerChannel {
+final class MachLinkChannel {
     let manager = MachLinkManager()
     var pairing: MachLinkPairing?
     var endpoint: NWEndpoint?
 
-    func requestUsageSnapshot(
-        providers: Set<String>, timeout: Duration
-    ) async throws -> OtherMacUsageSnapshot {
-        guard let pairing else { throw MachLinkMessage.Failure.disconnected }
-        let remotes = manager.peers.filter {
-            guard case let .service(name, _, _, _) = $0.endpoint else { return false }
-            guard name != manager.serviceName, case let .bonjour(record) = $0.metadata else { return false }
+    // Two Macs advertising one pairing are ambiguous, so a request never picks between them.
+    var peer: NWEndpoint? {
+        if let endpoint { return endpoint }
+        guard let pairing else { return nil }
+        let paired = manager.peers.filter {
+            guard case let .service(name, _, _, _) = $0.endpoint, name != manager.serviceName,
+                  case let .bonjour(record) = $0.metadata else { return false }
             return record["pairing"] == pairing.discoveryHash
         }
-        let endpoints = endpoint.map { [$0] } ?? remotes.map(\.endpoint)
-        let deadline = ContinuousClock.now.advanced(by: timeout)
-        for endpoint in endpoints {
-            try Task.checkCancellation()
-            let remaining = ContinuousClock.now.duration(to: deadline)
-            guard remaining > .zero else { throw MachLinkMessage.Failure.timedOut }
-            do {
-                return try await MachLinkManager.request(
-                    providers, method: "ai-usage", from: endpoint, pairing: pairing,
-                    timeout: min(remaining, .seconds(2)), as: OtherMacUsageSnapshot.self)
-            } catch is CancellationError { throw CancellationError() } catch { continue }
-        }
-        throw MachLinkMessage.Failure.disconnected
+        return paired.count == 1 ? paired.first?.endpoint : nil
     }
 
-    static func response(to request: MachLinkMessage, provider: AIUsageProvider) async throws -> MachLinkMessage {
-        guard request.method == "ai-usage" else { throw MachLinkMessage.Failure.invalidMessage }
-        let providers = try request.value(as: Set<String>.self)
-        let source = AIUsageSnapshotAdapter()
-        source.snapshots = await provider.refresh().filter { providers.contains($0.providerID) }
-        return try MachLinkMessage(id: request.id, method: request.method, value: await source.localSnapshot())
+    func request<Request: Encodable & Sendable, Response: Decodable & Sendable>(
+        _ value: Request, method: String, timeout: Duration = MachLinkRequestBudget.requester,
+        as type: Response.Type
+    ) async throws -> Response {
+        guard let pairing, let peer else { throw MachLinkMessage.Failure.disconnected }
+        let destination = endpoint
+        let response = try await MachLinkManager.request(
+            value, method: method, from: peer, pairing: pairing, timeout: timeout, as: type)
+        try Task.checkCancellation()
+        guard self.pairing?.id == pairing.id, self.pairing?.secret == pairing.secret,
+              endpoint == destination else { throw MachLinkMessage.Failure.disconnected }
+        return response
     }
 }

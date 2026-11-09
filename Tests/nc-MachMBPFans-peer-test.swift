@@ -2,7 +2,6 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkRequestBudget.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/MachLinkManager+Peers.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Service/RemoteFan*.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/FanControl+Completion.swift
@@ -55,8 +54,6 @@ struct SMCClient {
 @MainActor final class MachLinkManager {
     var fanHandler: ((RemoteFanRequest) async throws -> RemoteFanReport)?
     var fanEnabled: () -> Bool = { true }
-    var screenEnabled: () -> Bool = { true }
-    var screenAddress: () async throws -> RemoteScreenState.Availability = { throw RemoteScreenRequest.Failure.unavailable }
 }
 @MainActor struct Channel: RemoteFanTransport {
     let peer: MachLinkManager

@@ -4,7 +4,6 @@
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 import Foundation
-import Network
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
 enum TestFeature: Hashable { case fleetPanel, agentThreads, machLink }
@@ -36,22 +35,9 @@ struct NotchcastCommand {
     static let macLink = TestLink()
     static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
 }
-@MainActor final class TestLink { let channel = MachLinkUsagePeerChannel() }
-@MainActor final class MachLinkUsagePeerChannel {
-    struct Pairing { let id: UUID; let discoveryHash: String }
-    var pairing: Pairing?
-    var endpoint: NWEndpoint?
-    let manager = MachLinkManager()
-}
-@MainActor final class MachLinkManager {
-    enum Metadata { case bonjour([String: String]) }
-    struct Peer { let endpoint: NWEndpoint; let metadata: Metadata }
-    let peers: [Peer] = []
-    let serviceName = "synthetic"
-    static func request<T: Encodable, R: Decodable>(
-        _ value: T, method: String, from: NWEndpoint,
-        pairing: MachLinkUsagePeerChannel.Pairing, as: R.Type
-    ) async throws -> R {
+@MainActor final class TestLink { let channel = MachLinkChannel() }
+@MainActor final class MachLinkChannel {
+    func request<T: Encodable, R: Decodable>(_ value: T, method: String, as: R.Type) async throws -> R {
         throw MachLinkMessage.Failure.disconnected
     }
 }

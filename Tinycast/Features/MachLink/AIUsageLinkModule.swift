@@ -5,25 +5,21 @@ import SystemConfiguration
 @MainActor
 @Observable
 final class AIUsageLinkModule: NotchcastModule {
-    let channel = MachLinkUsagePeerChannel()
+    let channel = MachLinkChannel()
     @ObservationIgnored var listenerRoute: (@Sendable (MachLinkMessage) async throws -> MachLinkMessage?)?
     private(set) var isRunning = false
     private(set) var isPaired = false
     private(set) var failed = false
-    @ObservationIgnored private let preferences: NotchcastPreferences
-    @ObservationIgnored private let provider: AIUsageProvider?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let secrets = KeychainSecretStore(scope: "mach-link")
 
-    init(
-        preferences: NotchcastPreferences = .shared,
-        provider: AIUsageProvider? = nil,
-        defaults: UserDefaults = UserDefaults(suiteName:
-            NotchcastIdentity.current.suiteName(suffix: ".mach-link"))!
-    ) {
-        self.preferences = preferences
-        self.provider = provider
+    init(defaults: UserDefaults = UserDefaults(suiteName:
+        NotchcastIdentity.current.suiteName(suffix: ".mach-link"))!) {
         self.defaults = defaults
+        channel.manager.register("link-health") { request in
+            _ = try request.value(as: Bool.self)
+            return try MachLinkMessage(id: request.id, method: request.method, value: true)
+        }
     }
 
     func start() {
@@ -85,29 +81,7 @@ final class AIUsageLinkModule: NotchcastModule {
     }
 
     func respond(to request: MachLinkMessage) async throws -> MachLinkMessage {
-        if request.method == "dialogs" {
-            guard preferences.isOn(.machBlockedDialogAlert) else {
-                throw MachLinkMessage.Failure.disconnected
-            }
-            return try MachLinkMessage(id: request.id, method: request.method,
-                value: BlockedDialogWindows.current())
-        }
-        if let response = try await listenerRoute?(request) { return response }
-        if request.method == "link-health" {
-            _ = try request.value(as: Bool.self)
-            return try MachLinkMessage(id: request.id, method: request.method, value: true)
-        }
-        guard preferences.isOn(.aiUsage), preferences.isOn(.aiUsageOtherMac) else {
-            throw MachLinkMessage.Failure.disconnected
-        }
-        let path = preferences.aiUsageCachePath
-        let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
-            path: path, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
-        let response = try await MachLinkUsagePeerChannel.response(to: request, provider: provider)
-        try Task.checkCancellation()
-        guard preferences.isOn(.aiUsage), preferences.isOn(.aiUsageOtherMac) else {
-            throw MachLinkMessage.Failure.disconnected
-        }
+        guard let response = try await listenerRoute?(request) else { throw MachLinkMessage.Failure.invalidMessage }
         return response
     }
 

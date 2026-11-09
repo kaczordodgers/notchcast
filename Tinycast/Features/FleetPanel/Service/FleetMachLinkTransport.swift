@@ -1,31 +1,12 @@
 import Foundation
-import Network
 
 @MainActor
 struct FleetMachLinkTransport: FleetTransport {
-    let channel: MachLinkUsagePeerChannel
+    let channel: MachLinkChannel
 
     func read() async throws -> FleetSnapshot {
-        guard NotchcastPreferences.shared.isOn(.machLink), let pairing = channel.pairing else {
-            throw MachLinkMessage.Failure.disconnected
-        }
-        let peers = channel.manager.peers.filter {
-            guard case let .service(name, _, _, _) = $0.endpoint,
-                  name != channel.manager.serviceName,
-                  case let .bonjour(record) = $0.metadata else { return false }
-            return record["pairing"] == pairing.discoveryHash
-        }
-        let configuredEndpoint = channel.endpoint
-        let endpoints = configuredEndpoint.map { [$0] } ?? peers.map(\.endpoint)
-        guard endpoints.count == 1, let endpoint = endpoints.first else {
-            throw MachLinkMessage.Failure.disconnected
-        }
-        let snapshot = try await MachLinkManager.request(true, method: "agent-threads",
-            from: endpoint, pairing: pairing, as: FleetSnapshot.self)
-        guard channel.pairing?.id == pairing.id, channel.endpoint == configuredEndpoint else {
-            throw CancellationError()
-        }
-        return snapshot
+        guard NotchcastPreferences.shared.isOn(.machLink) else { throw MachLinkMessage.Failure.disconnected }
+        return try await channel.request(true, method: "agent-threads", as: FleetSnapshot.self)
     }
 
     static func response(to request: MachLinkMessage) async throws -> MachLinkMessage {

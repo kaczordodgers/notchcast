@@ -10,7 +10,9 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/MachLinkManager+Peers.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
+// notchcast-sources: Tinycast/Features/MachLink/Service/MachLinkChannel.swift
+// notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkRequestBudget.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 import Foundation
 import Network
 
@@ -20,26 +22,25 @@ struct MachLinkPairing: Sendable {
     let discoveryHash = "fake"
 }
 
-@MainActor final class MachLinkUsagePeerChannel {
-    let manager = MachLinkManager()
-    var pairing: MachLinkPairing? = MachLinkPairing()
-    var endpoint: NWEndpoint? = .hostPort(host: "unused.invalid", port: 1)
+extension MachLinkChannel {
+    static func paired() -> MachLinkChannel {
+        let channel = MachLinkChannel()
+        channel.pairing = MachLinkPairing()
+        channel.endpoint = .hostPort(host: "unused.invalid", port: 1)
+        return channel
+    }
 }
 
 @MainActor final class MachLinkManager {
     var fanHandler: ((RemoteFanRequest) async throws -> RemoteFanReport)?
     var fanEnabled: () -> Bool = { false }
-    var screenEnabled: () -> Bool = { false }
-    var screenAddress: () async throws -> RemoteScreenState.Availability = {
-        .init(screenSharingEnabled: false)
-    }
     var peers: Set<NWBrowser.Result> = []
     var serviceName: String?
     static var fakeRequest: ((MachLinkMessage) async throws -> MachLinkMessage)?
 
     static func request<Request: Encodable & Sendable, Response: Decodable & Sendable>(
         _ value: Request, method: String, from endpoint: NWEndpoint,
-        pairing: MachLinkPairing, as type: Response.Type
+        pairing: MachLinkPairing, timeout: Duration, as type: Response.Type
     ) async throws -> Response {
         guard let fakeRequest else { throw MachLinkMessage.Failure.disconnected }
         let request = try MachLinkMessage(method: method, value: value)
@@ -277,7 +278,7 @@ struct TodoLinkTests {
         let module = TodoModule(directory: root.appending(path: "module"), showFailure: { _ in
             preconditionFailure("module failed")
         })
-        let channel = MachLinkUsagePeerChannel()
+        let channel = MachLinkChannel.paired()
         var calls = 0
         MachLinkManager.fakeRequest = { request in
             calls += 1
@@ -442,7 +443,7 @@ struct TodoLinkTests {
         var replication = TodoReplication(replicaID: "peer")
         try replication.perform(.addTask(.init(id: UUID().uuidString, title: "Old pairing")))
         let packet = try TodoLinkPacket.make(from: replication, after: TodoVectorClock())
-        let channel = MachLinkUsagePeerChannel()
+        let channel = MachLinkChannel.paired()
         MachLinkManager.fakeRequest = { request in
             await Task.yield()
             channel.pairing = MachLinkPairing()
