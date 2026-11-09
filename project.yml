@@ -24,6 +24,8 @@ settings:
       TINYCAST_BUNDLE_IDENTIFIER: app.notchcast.dev
       # Its own scheme too, so a link never lands in whichever channel macOS happens to pick.
       TINYCAST_URL_SCHEME: notchcast-dev
+      # Ad-hoc, so headless Xcode builds and previews without a local identity; releases pass their own.
+      CODE_SIGN_IDENTITY: "-"
       DICTATION_EXECUTABLE_NAME: Tinycast Dev Dictation
     Release:
       DICTATION_EXECUTABLE_NAME: Tinycast Dictation
@@ -39,6 +41,7 @@ targets:
   Tinycast:
     type: application
     platform: macOS
+    scheme: {}
     sources:
       - path: Tinycast
         # Helper-only sources: compiling them in would link Vision and PDFKit into the app.

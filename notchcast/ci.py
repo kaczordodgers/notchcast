@@ -35,7 +35,8 @@ GENERATED_COMMIT = "Notchcast: generated files"
 PBXPROJ = "Tinycast.xcodeproj/project.pbxproj"
 RUNTIME_JS = "Tinycast/Resources/RaycastRuntime.generated.js"
 # Rewritten by `regenerate`, never taken from our commits.
-GENERATED = [PBXPROJ, RUNTIME_JS, "README.md"]
+SCHEME = "Tinycast.xcodeproj/xcshareddata/xcschemes/Tinycast.xcscheme"
+GENERATED = [PBXPROJ, SCHEME, RUNTIME_JS, "README.md"]
 # Never pruned (notchcast/prune-paths.txt); docs/*.md is kept too.
 KEEP = ["LICENSE", "NOTICE.md", "AGENTS.md", "Tests", "Scripts/raycast-runtime"]
 # Upstream changes here mean notchcast/docs/design-system.md may need a refresh.
