@@ -138,7 +138,6 @@ extension SettingsSearchCatalog {
         .init(group: .notchcastTweaksApps, LocalizedStringResource("Disable click to desktop", table: "Notchcast")),
         .init(group: .notchcastTweaksApps, LocalizedStringResource("Hide desktop widgets", table: "Notchcast")),
         .init(group: .notchcast(feature: .typingTweaks), LocalizedStringResource("Typing", table: "Notchcast")),
-        .init(group: .notchcastTweaksApps, LocalizedStringResource("Show library", table: "Notchcast")),
         .init(group: .notchcast(feature: .appleAppsTweaks), LocalizedStringResource("Restrict gaming", table: "Notchcast")),
         .init(group: .notchcast(feature: .appleAppsTweaks), LocalizedStringResource("Restrict iPhone mirroring", table: "Notchcast")),
         .init(group: .notchcast(feature: .appleAppsTweaks), LocalizedStringResource("Restrict music service", table: "Notchcast")),

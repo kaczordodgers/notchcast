@@ -16,7 +16,8 @@ struct CleanSystemRootClient: Sendable {
 
     func trash(_ entry: CleanSystemEntry) async throws {
         guard policy.reason(for: entry) != nil else { throw Failure.refused }
-        guard try await run(.cleanSystemTrash, JSONEncoder().encode(entry)) == Data("ok\n".utf8)
+        guard try await run(.cleanSystemTrash, JSONEncoder().encode(entry))
+                == Data(RootContract.Command.cleanSystemTrash.output.utf8)
         else { throw Failure.invalidResponse }
     }
 
@@ -37,7 +38,7 @@ struct CleanSystemRootClient: Sendable {
     }
 
     func checkVersion() async throws {
-        guard try await run(.version, Data()) == Data((RootContract.version + "\n").utf8)
+        guard try await run(.version, Data()) == Data(RootContract.Command.version.output.utf8)
         else { throw Failure.helperUpdate }
     }
 }

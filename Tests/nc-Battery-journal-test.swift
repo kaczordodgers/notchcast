@@ -30,7 +30,7 @@ struct OwnershipTests {
             let suite = "ownership-test.\(UUID().uuidString)"
             let prefs = NotchcastPreferences(suiteName: suite)
             defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
-            var calls: [BatteryRootVerbs] = []
+            var calls: [RootContract.Command] = []
             var limit: Int? = scenario == 3 ? 70 : nil
             var fail = false
             var gate: CheckedContinuation<Void, Never>?
@@ -45,7 +45,7 @@ struct OwnershipTests {
                     "ExternalConnected": scenario != 4])
             }, root: { verb in
                 calls.append(verb)
-                if scenario == 1 && verb == .chargingOn && !gated {
+                if scenario == 1 && verb == .batteryChargingOn && !gated {
                     gated = true
                     await withCheckedContinuation { gate = $0 }
                     try Task.checkCancellation()
@@ -90,13 +90,13 @@ struct OwnershipTests {
                     fail = true
                     module.stop()
                     await module.waitUntilIdle()
-                    let before = calls.filter { $0 == .sleepOn }.count
+                    let before = calls.filter { $0 == .batterySleepOn }.count
                     await module.evaluate(now: Date.now.addingTimeInterval(3600))
-                    check(module.failure != nil && calls.filter { $0 == .sleepOn }.count > before,
+                    check(module.failure != nil && calls.filter { $0 == .batterySleepOn }.count > before,
                           "failed-sleep-undo-retries")
                 } else {
                     for offset in 1...100 { await module.evaluate(now: Date.now.addingTimeInterval(Double(offset * 60))) }
-                    check(calls.filter { $0 == .chargingOff }.count <= 8, "permanent-failure-bounded")
+                    check(calls.filter { $0 == .batteryChargingOff }.count <= 8, "permanent-failure-bounded")
                 }
                 module.stop()
                 await module.waitUntilIdle()
