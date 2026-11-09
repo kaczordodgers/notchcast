@@ -152,7 +152,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case buildStats
 
     var dependencies: [Self] {
-        switch self {
+        if let descriptor { return descriptor.dependencies }
+        return switch self {
         case .tasksSync: [.tasks, .machLink]
         case .todoIsland: [.tasks]
         case .archives: []
@@ -169,7 +170,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     }
 
     var settingsGroup: SettingsGroup {
-        switch self {
+        if let descriptor { return descriptor.group }
+        return switch self {
         case .audioPriority: .systemTools
         case .cleaningMode: .tools
         case .appUpdates: .tools
@@ -229,7 +231,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .accessoryBatteries: .systemTools
         case .accessoryNotices: .system
         case .monitorAlerts: .systemTools
-        case .lowDiskWarning: .system
         case .systemNotices: .system
         case .volumeLevels: .system
         case .displayBrightness: .system
@@ -240,7 +241,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .batteryCalibration: .systemTools
         case .keepAwake: .systemTools
         case .lidClosedAwake: .systemTools
-        case .linkQuickFixes: .systemTools
         case .backupRunNow: .system
         case .backupBrowseRestore: .system
         case .quickLookSpace: .launcher
@@ -268,12 +268,10 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .settingsBackup: .system
         case .showDesktop: .system
         case .spacesOrder: .system
-        case .hideCommandM: .system
         case .middleClick: .system
         case .greenMaximize: .system
         case .machineSetupProfile: .system
         case .agentConfirmation: .islandOptions
-        case .eventReminder: .activities
         case .switcherQuitKey: .launcher
         case .agentActions: .system
         case .agentCLI: .system
@@ -301,7 +299,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .distillConvert: .activities
         case .machRemote: .system
         case .backupStatus: .system
-        case .linkHealth: .system
         case .shelfBetweenMacs: .activities
         case .sendFiles: .system
         case .updateRemote: .system
@@ -315,11 +312,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .finderCutPaste: .finder
         case .finderRename: .finder
         case .pasteImage: .clipboard
+        default: preconditionFailure("\(self) has neither a descriptor nor a settingsGroup arm")
         }
     }
 
     var title: String {
-        switch self {
+        if let descriptor { return descriptor.title }
+        return switch self {
         case .audioPriority: String(localized: "Audio device priority", table: "Notchcast")
         case .cleaningMode: String(localized: "Cleaning mode", table: "Notchcast")
         case .appUpdates: String(localized: "App updates", table: "Notchcast")
@@ -362,7 +361,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .fanControl: String(localized: "Fan Control", table: "Notchcast")
         case .accessoryBatteries: String(localized: "Accessory batteries", table: "Notchcast")
         case .accessoryNotices: String(localized: "Accessory notices", table: "Notchcast")
-        case .lowDiskWarning: String(localized: "Low Disk Warning", table: "Notchcast")
         case .systemNotices: String(localized: "System Notices", table: "Notchcast")
         case .volumeLevels: String(localized: "Volume in Island", table: "Notchcast")
         case .displayBrightness: String(localized: "Display Brightness", table: "Notchcast")
@@ -394,7 +392,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .scrollingCapture: String(localized: "Scrolling Capture", table: "Notchcast")
         case .greenMaximize: String(localized: "Green Button Maximizes", table: "Notchcast")
         case .middleClick: String(localized: "Trackpad Middle Click", table: "Notchcast")
-        case .hideCommandM: String(localized: "Hide with ⌘M", table: "Notchcast")
         case .spacesOrder: String(localized: "Keep Spaces in a fixed order", table: "Notchcast")
         case .showDesktop: String(localized: "Show Desktop with F3", table: "Notchcast")
         case .startupItems: String(localized: "Startup Items", table: "Notchcast")
@@ -412,7 +409,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .iPhoneBackupTweaks: String(localized: "iPhone backup", table: "Notchcast")
         case .machRemote: String(localized: "Remote Mac", table: "Notchcast")
         case .backupStatus: String(localized: "Backup Status", table: "Notchcast")
-        case .linkHealth: String(localized: "Link Health", table: "Notchcast")
         case .shelfBetweenMacs: String(localized: "Shelf between Macs", table: "Notchcast")
         case .sendFiles: String(localized: "Send to Remote Mac", table: "Notchcast")
         case .updateRemote: String(localized: "Update Remote Mac", table: "Notchcast")
@@ -448,9 +444,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .settingsBackup: String(localized: "Settings Backup", table: "Notchcast")
         case .machineSetupProfile: String(localized: "Machine Setup Profile", table: "Notchcast")
         case .agentConfirmation: String(localized: "Agent Confirmation", table: "Notchcast")
-        case .eventReminder: String(localized: "Event Reminders", table: "Notchcast")
         case .switcherQuitKey: String(localized: "Switcher Quit Key", table: "Notchcast")
-        case .linkQuickFixes: String(localized: "Link Quick Fixes", table: "Notchcast")
         case .downloads: String(localized: "Downloads", table: "Notchcast")
         case .downloadsAria2: String(localized: "Fast Downloads with aria2c", table: "Notchcast")
         case .distill: String(localized: "Distill", table: "Notchcast")
@@ -465,11 +459,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .markdownFiles: String(localized: "Markdown Files", table: "Notchcast")
         case .plainTextFiles: String(localized: "Plain Text Files", table: "Notchcast")
         case .editorSpellChecking: String(localized: "Editor Spell Checking", table: "Notchcast")
+        default: preconditionFailure("\(self) has neither a descriptor nor a title arm")
         }
     }
 
     var subtitle: String {
-        switch self {
+        if let descriptor { return descriptor.subtitle }
+        return switch self {
         case .audioPriority: String(localized: "Choose devices automatically when they connect or disconnect.", table: "Notchcast")
         case .cleaningMode: String(localized: "Press Escape five times to exit; ends after 300 seconds.", table: "Notchcast")
         case .appUpdates: String(localized: "Check installed apps for updates on demand.", table: "Notchcast")
@@ -513,7 +509,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .fanControl: String(localized: "Control fans with the privileged helper.", table: "Notchcast")
         case .accessoryBatteries: String(localized: "Show connected accessory battery levels.", table: "Notchcast")
         case .accessoryNotices: String(localized: "Show accessory connections and low battery notices.", table: "Notchcast")
-        case .lowDiskWarning: String(localized: "Warns below \(10)% or \(30) GB free.", table: "Notchcast")
         case .systemNotices: String(localized: "Wi-Fi, Tailscale and low battery notices in the island.", table: "Notchcast")
         case .volumeLevels: String(localized: "Replaces the macOS volume overlay.", table: "Notchcast")
         case .displayBrightness: String(localized: "Brightness keys control every display, external ones too.", table: "Notchcast")
@@ -545,7 +540,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .scrollingCapture: String(localized: "Copy a scrolling area as one image.", table: "Notchcast")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.", table: "Notchcast")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.", table: "Notchcast")
-        case .hideCommandM: String(localized: "Hide the front app instead of minimizing its window.", table: "Notchcast")
         case .spacesOrder: String(localized: "Prevent automatic Spaces reordering and restore your setting when turned off.", table: "Notchcast")
         case .showDesktop: String(localized: "Press F3 to show the desktop; press again to restore windows.", table: "Notchcast")
         case .startupItems: String(localized: "Manage user LaunchAgents and inspect system items.", table: "Notchcast")
@@ -563,7 +557,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .iPhoneBackupTweaks: String(localized: "Changes system preferences after confirmation; some changes require signing out.", table: "Notchcast")
         case .machRemote: String(localized: "Connect to the remote Mac using SSH.", table: "Notchcast")
         case .backupStatus: String(localized: "Warns when backups fail or become stale.", table: "Notchcast")
-        case .linkHealth: String(localized: "Notify when the paired Mac disconnects or reconnects.", table: "Notchcast")
         case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.", table: "Notchcast")
         case .sendFiles: String(localized: "Send selected files to the remote Mac.", table: "Notchcast")
         case .updateRemote: String(localized: "Run the update on the remote Mac.", table: "Notchcast")
@@ -598,9 +591,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.", table: "Notchcast")
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.", table: "Notchcast")
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.", table: "Notchcast")
-        case .eventReminder: String(localized: "Show calendar alerts in the island.", table: "Notchcast")
         case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.", table: "Notchcast")
-        case .linkQuickFixes: String(localized: "Offer manual fixes for connection problems.", table: "Notchcast")
         case .downloads: String(localized: "Download video, audio, transcripts and webpages from clipboard links.", table: "Notchcast")
         case .downloadsAria2: String(localized: "Use aria2c for faster media downloads when it is installed.", table: "Notchcast")
         case .distill: String(localized: "Save links and transcribe media into your Distill folder.", table: "Notchcast")
@@ -615,12 +606,14 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .markdownFiles: String(localized: "Edit Markdown documents outside the notes folder.", table: "Notchcast")
         case .plainTextFiles: String(localized: "Edit plain text while preserving its file encoding.", table: "Notchcast")
         case .editorSpellChecking: String(localized: "Check spelling in the editor.", table: "Notchcast")
+        default: preconditionFailure("\(self) has neither a descriptor nor a subtitle arm")
         }
     }
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
-        switch self {
+        if let descriptor { return descriptor.requiredGrants }
+        return switch self {
         case .accessoryNotices: [.bluetooth]
         case .cleaningMode: [.accessibility]
         case .screenText: [.screenRecording]
@@ -637,7 +630,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .microphoneMute: [.accessibility]
         case .inUseMarks: []
         case .showDesktop: [.accessibility]
-        case .hideCommandM: [.accessibility]
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
         case .switcherQuitKey: [.accessibility]
@@ -645,7 +637,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .recording: [.screenRecording]
         case .globeDictation: [.accessibility, .microphone]
         case .dayCalendar: [.calendars]
-        case .eventReminder: [.calendars]
         case .volumeLevels: [.accessibility]
         case .displayBrightness: [.accessibility]
         case .quitProtection: [.accessibility]
@@ -664,7 +655,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .islandStatusMessages: []
         case .islandLiveActivities: []
         case .launcherFromIsland: []
-        case .lowDiskWarning: []
         case .systemNotices: []
         case .liveTimers: []
         case .dayWeather: []
@@ -733,6 +723,7 @@ extension NotchcastFeature {
 
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
+        if let descriptor { return descriptor.needsIsland }
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
         case .island: false
@@ -762,7 +753,6 @@ extension NotchcastFeature {
         case .settingsBackup: false
         case .showDesktop: false
         case .spacesOrder: false
-        case .hideCommandM: false
         case .middleClick: false
         case .greenMaximize: false
         case .machineSetupProfile: false
@@ -806,7 +796,6 @@ extension NotchcastFeature {
         case .machMBPFans: false
         case .machRemote: false
         case .backupStatus: false
-        case .linkHealth: false
         case .shelfBetweenMacs: false
         case .sendFiles: false
         case .updateRemote: false
@@ -845,6 +834,7 @@ extension NotchcastFeature {
     var isLauncherKeysFeature: Bool { self == .launcherNumberKeys || self == .launcherAliasSpace }
 
     var defaultEnabled: Bool {
+        if let descriptor { return descriptor.defaultEnabled }
         if isSystemFeature || isSystemTweak || settingsGroup == .clean || isLauncherKeysFeature { return false }
         return switch self {
         case .tasks: false
@@ -884,7 +874,6 @@ extension NotchcastFeature {
         case .distillConvert: false
         case .machRemote: false
         case .backupStatus: false
-        case .linkHealth: false
         case .shelfBetweenMacs: false
         case .sendFiles: false
         case .updateRemote: false
