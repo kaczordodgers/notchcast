@@ -80,7 +80,6 @@ final class IslandController: NotchcastModule {
     }
 
     func stop() {
-        NotchcastCore.levelKeys.hudPresenterAvailable = false
         IslandActivityCenter.shared.hasPresenter = false
         close()
         setCommandAvailable(false)
@@ -214,8 +213,6 @@ final class IslandController: NotchcastModule {
             enabled: NotchcastPreferences.shared.isOn(.islandStatusMessages),
             visibleOnActiveScreen: active?.isVisible == true && active?.isOnActiveSpace == true)
         IslandActivityCenter.shared.hasPresenter = eligible
-        NotchcastCore.levelKeys.hudPresenterAvailable = eligible
-            && NotchcastPreferences.shared.isOn(.islandLiveActivities)
     }
 
     private func observePreferences(identity: UUID) {

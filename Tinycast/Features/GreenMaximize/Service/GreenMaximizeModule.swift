@@ -26,7 +26,7 @@ final class GreenMaximizeModule: NotchcastModule {
     }
     private let shared = SharedState()
     private let hub: EventTapHub
-    private var registration: UUID?
+    private let tap: EventTapSubscription
     private var activation: NotificationToken?
     private var observer: AXObserver?
     private var observedPID: pid_t?
@@ -49,10 +49,13 @@ final class GreenMaximizeModule: NotchcastModule {
         MainActor.assumeIsolated { owner.refresh() }
     }
 
-    init(hub: EventTapHub) { self.hub = hub }
+    init(hub: EventTapHub) {
+        self.hub = hub
+        tap = EventTapSubscription(hub: hub)
+    }
 
     func start() {
-        guard registration == nil else { return }
+        guard !tap.isActive else { return }
         let center = NSWorkspace.shared.notificationCenter
         activation = NotificationToken(center.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
@@ -67,7 +70,7 @@ final class GreenMaximizeModule: NotchcastModule {
         }
         refresh()
         let shared = self.shared
-        registration = hub.registerSynchronous(mask:
+        tap.start(mask:
             EventTapPolicy.mask(for: .leftMouseDown) | EventTapPolicy.mask(for: .leftMouseUp)
                 | EventTapPolicy.mask(for: .mouseMoved) | EventTapPolicy.mask(for: .leftMouseDragged)
         ) { [weak self] type, event in
@@ -111,8 +114,7 @@ final class GreenMaximizeModule: NotchcastModule {
 
     func stop() {
         shared.value.withLock { $0 = TapState() }
-        if let registration { hub.remove(registration) }
-        registration = nil
+        tap.stop()
         activation = nil
         timer?.invalidate()
         timer = nil
@@ -191,7 +193,7 @@ final class GreenMaximizeModule: NotchcastModule {
     }
 
     private func maximize(_ snapshot: Snapshot) {
-        guard registration != nil, snapshot.generation == generation,
+        guard tap.isActive, snapshot.generation == generation,
             ProcessInfo.processInfo.systemUptime - snapshot.date < 2,
             !exclusions.contains(snapshot.bundleID)
         else { return }
@@ -218,7 +220,7 @@ final class GreenMaximizeModule: NotchcastModule {
     }
 
     private func refreshPointer(_ point: CGPoint) {
-        guard registration != nil else { return }
+        guard tap.isActive else { return }
         pointerPoint = point
         refreshPointerZones()
         let inside = shared.value.withLock { value in
