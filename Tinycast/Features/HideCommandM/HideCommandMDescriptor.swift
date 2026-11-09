@@ -5,9 +5,10 @@ extension NotchcastFeature.Descriptor {
         title: String(localized: "Hide with ⌘M", table: "Notchcast"),
         subtitle: String(localized: "Hide the front app instead of minimizing its window.", table: "Notchcast"),
         group: .system,
-        needsIsland: false,
         defaultEnabled: true,
         dependencies: [],
-        requiredGrants: [.accessibility]
+        requiredGrants: [.accessibility],
+        isSystemFeature: false,
+        isSystemTweak: false
     )
 }
