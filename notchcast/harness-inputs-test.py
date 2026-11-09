@@ -232,6 +232,13 @@ class HarnessInputsTest(unittest.TestCase):
                 self.assertIn("nc-Other-kit-test", selected)
         self.assertNotIn("nc-Example-kit-test", self.selected("Tests/Kit/other.kit"))
 
+    def test_kit_line_with_two_paths_selects_on_each(self):
+        self.add_kit("pair", "Tinycast/Features/Example/Model/A.swift Tinycast/Features/Example/Model/B.swift\n")
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text("// notchcast-kit: pair\n")
+        for changed in ("Tinycast/Features/Example/Model/A.swift", "Tinycast/Features/Example/Model/B.swift"):
+            with self.subTest(changed=changed):
+                self.assertIn("nc-Example-kit-test", self.selected(changed))
+
     def test_unknown_kit_fails_runner(self):
         (self.root / "Tests/nc-Example-kit-test.swift").write_text("// notchcast-kit: missing\n")
         self.assert_runner_refuses_invalid_inputs()
@@ -255,25 +262,55 @@ class HarnessInputsTest(unittest.TestCase):
     def git_fixture(self):
         env = {**self.env, "PATH": os.environ["PATH"], "GIT_AUTHOR_NAME": "t", "GIT_COMMITTER_NAME": "t",
                "GIT_AUTHOR_EMAIL": "t@example.invalid", "GIT_COMMITTER_EMAIL": "t@example.invalid"}
-        for command in (["init", "-q"], ["add", "-A"], ["commit", "-qm", "upstream"],
+        for command in (["init", "-q", "-b", "main"], ["add", "-A"], ["commit", "-qm", "upstream"],
                         ["update-ref", "refs/remotes/upstream/main", "HEAD"]):
             subprocess.run(["git", *command], cwd=self.root, env=env, check=True)
         return env
 
+    def fork_runner(self, env, harness, text=""):
+        (self.root / harness).write_text(text)
+        subprocess.run(["git", "add", "-A"], cwd=self.root, env=env, check=True)
+        subprocess.run(["git", "commit", "-qm", "fork"], cwd=self.root, env=env, check=True)
+        return subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
+                               'run() { printf "registered %s\\n" "$*"; }; source notchcast/test-harnesses.sh'],
+                              cwd=self.root, env=env, text=True, capture_output=True)
+
     def test_fork_owned_upstream_style_harness_without_header_fails_loudly(self):
         (self.root / "Tests/ext-old-test.swift").touch()
         env = self.git_fixture()
-        (self.root / "Tests/forked-test.swift").touch()
-        subprocess.run(["git", "add", "-A"], cwd=self.root, env=env, check=True)
-        subprocess.run(["git", "commit", "-qm", "fork"], cwd=self.root, env=env, check=True)
-        result = subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
-                                 'run() { printf "registered %s\\n" "$*"; }; source notchcast/test-harnesses.sh'],
-                                cwd=self.root, env=env, text=True, capture_output=True, check=True)
+        result = self.fork_runner(env, "Tests/forked-test.swift")
         self.assertIn("::error::Tests/forked-test.swift needs a // notchcast-sources: header", result.stderr)
         self.assertIn("registered forked-test", result.stdout)
         self.assertNotIn("ext-old-test", result.stdout + result.stderr)
         (self.root / "Tests/forked-test.swift").write_text("// notchcast-sources: -parse-as-library\n")
         self.assertIn("forked-test -parse-as-library", self.runner_lines(env))
+
+    def test_fork_owned_harness_with_only_a_reads_header_fails_loudly(self):
+        env = self.git_fixture()
+        result = self.fork_runner(env, "Tests/forked-test.swift", "// notchcast-reads: fixtures/*.txt\n")
+        self.assertIn("::error::Tests/forked-test.swift needs a // notchcast-sources: header", result.stderr)
+        self.assertIn("registered forked-test", result.stdout)
+
+    def test_fork_check_fetches_a_missing_upstream_ref_and_fails_closed_without_it(self):
+        env = self.git_fixture()
+        remote = tempfile.TemporaryDirectory(prefix="harness-upstream-")
+        self.addCleanup(remote.cleanup)
+        subprocess.run(["git", "clone", "-q", "--bare", str(self.root), f"{remote.name}/up.git"],
+                       env=env, check=True, capture_output=True)
+        env |= {"GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": f"url.{remote.name}/.insteadOf",
+                "GIT_CONFIG_VALUE_0": "https://github.com/"}
+        for repo, fetched in (("up", True), ("missing", False)):
+            with self.subTest(repo=repo):
+                subprocess.run(["git", "update-ref", "-d", "refs/remotes/upstream/main"],
+                               cwd=self.root, env=env, check=True)
+                (self.root / "notchcast/config.env").write_text(f'CI_SKIP_TESTS=""\nUPSTREAM_REPO={repo}\n')
+                result = self.fork_runner(env, "Tests/forked-test.swift")
+                self.assertEqual(0 if fetched else 1, result.returncode, result.stderr)
+                if fetched:
+                    self.assertIn("::error::Tests/forked-test.swift needs a // notchcast-sources: header",
+                                  result.stderr)
+                else:
+                    self.assertIn("::error::cannot fetch refs/remotes/upstream/main", result.stderr)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Resolve fork harness compiler arguments and change-selection dependencies."""
 from dataclasses import dataclass
+import functools
 import glob
 from pathlib import Path
 import re
@@ -45,8 +46,7 @@ def kit_lines(name: str) -> list[str]:
     kit = Path("Tests/Kit") / f"{name}.kit"
     if not kit.is_file():
         raise ValueError(f"unknown notchcast-kit '{name}': {kit} does not exist")
-    lines = [line.split("#", 1)[0].strip() for line in kit.read_text(encoding="utf-8").splitlines()]
-    lines = [line for line in lines if line]
+    lines = shlex.split(kit.read_text(encoding="utf-8"), comments=True)
     if not lines:
         raise ValueError(f"notchcast-kit '{name}' is empty: {kit} lists no sources")
     return lines
@@ -85,13 +85,25 @@ def read_inputs(path: Path, registered: list[str]) -> HarnessInputs:
     return HarnessInputs(expanded, registered + sources + kits, headers["reads"], has_header, len(upstream))
 
 
+@functools.cache
+def upstream_base() -> str:
+    ref = "refs/remotes/upstream/main"
+    if subprocess.run(["git", "rev-parse", "-q", "--verify", ref], capture_output=True).returncode:
+        repo = re.search(r"^UPSTREAM_REPO=(\S+)", Path("notchcast/config.env").read_text(), re.M)
+        if not repo:
+            raise ValueError(f"{ref} is missing and notchcast/config.env names no UPSTREAM_REPO")
+        fetch = subprocess.run(["git", "fetch", "-q", "--no-tags", f"https://github.com/{repo[1]}.git",
+                                f"+refs/heads/main:{ref}"], text=True, capture_output=True)
+        if fetch.returncode:
+            raise ValueError(f"cannot fetch {ref} to tell fork-owned harnesses: {fetch.stderr.strip()}")
+    base = subprocess.run(["git", "merge-base", "HEAD", ref], text=True, capture_output=True)
+    if base.returncode:
+        raise ValueError(f"no merge base with {ref}: {base.stderr.strip()}")
+    return base.stdout.strip()
+
+
 def fork_owned(path: Path) -> bool:
-    """True when the harness is absent from the upstream merge base (cannot tell without the ref)."""
-    base = subprocess.run(["git", "merge-base", "HEAD", "refs/remotes/upstream/main"],
-                          text=True, capture_output=True)
-    if base.returncode != 0:
-        return False
-    return subprocess.run(["git", "cat-file", "-e", f"{base.stdout.strip()}:{path}"],
+    return subprocess.run(["git", "cat-file", "-e", f"{upstream_base()}:{path}"],
                           capture_output=True).returncode != 0
 
 
@@ -117,7 +129,7 @@ def harnesses():
         inputs.patterns = list(dict.fromkeys(arg for arg in [*inputs.patterns, *augmented]
                                             if not arg.startswith("-")))
         inputs.arguments = compiled
-        inputs.headerless_fork = not (inputs.has_header or inputs.arguments or inputs.reads
+        inputs.headerless_fork = not (inputs.has_header or inputs.arguments
                                       or path.stem.startswith(("nc-", "notchcast-"))) and fork_owned(path)
         if inputs.has_header or inputs.arguments or inputs.reads or inputs.headerless_fork \
                 or path.stem.startswith(("nc-", "notchcast-")):
