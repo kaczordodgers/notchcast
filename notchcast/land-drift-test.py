@@ -14,11 +14,12 @@ SPEC = importlib.util.spec_from_file_location('fixtures', ROOT / 'notchcast/chec
 fixtures = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(fixtures)
 LAND = (ROOT / 'notchcast/land.sh').read_text()
-BASELINE = next(line.strip() for line in LAND.splitlines() if '--compare-base "$onto"' in line)
+GATES = (ROOT / 'notchcast/drift-gates.sh').read_text()
+BASELINE = next(line.strip() for line in GATES.splitlines() if '--compare-base "$onto"' in line)
 
 
 def function(name):
-    return re.search(r'^' + name + r'\(\) \{\n.*?^\}', LAND, re.M | re.S)[0]
+    return re.search(r'^' + name + r'\(\) \{\n.*?^\}', LAND + GATES, re.M | re.S)[0]
 
 
 class Landing(unittest.TestCase):
@@ -167,12 +168,15 @@ class Landing(unittest.TestCase):
         self.assertIn('Drift tooling: land.sh retry wording', passed.stdout)
 
     def test_sourced_helper_change_needs_signoff(self):
-        base = self.commit('Base')
-        fixtures.write(self.root, 'notchcast/hold.sh', 'refuse() { echo "WARN: $*"; }\n')
-        self.commit('Candidate hold.sh')
-        refused = self.tooling(base, 'Summary only')
-        self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
-        self.assertIn('REFUSED: drift tooling or land.sh changed', refused.stdout)
+        self.commit('Base')
+        for helper in ('hold.sh', 'drift-gates.sh'):
+            with self.subTest(helper=helper):
+                base = fixtures.git(self.root, 'rev-parse', 'HEAD')
+                fixtures.write(self.root, f'notchcast/{helper}', 'refuse() { echo "WARN: $*"; }\n')
+                self.commit(f'Candidate {helper}')
+                refused = self.tooling(base, 'Summary only')
+                self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)
+                self.assertIn('REFUSED: drift tooling or land.sh changed', refused.stdout)
 
     def test_unrelated_change_needs_no_signoff(self):
         base = self.commit('Base')
@@ -229,6 +233,19 @@ class Landing(unittest.TestCase):
         self.assertEqual(counts, [1, 1])
         self.assertIn('Tinycast/Features/Todo/Over10.swift', calls.read_text())
         print('PASS: no cache, base with 10 over-limit files: 1 hook call for the landed crossing, 0 on rerun')
+
+    def test_descriptor_in_upstream_folder_refuses(self):
+        fixtures.git(self.root, 'update-ref', 'refs/remotes/upstream/main', self.fixture.upstream)
+        base = self.commit('Base tooling')
+        fixtures.write(self.root, 'Tinycast/Features/Launcher/LauncherDescriptor.swift', 'struct LauncherDescriptor {}\n')
+        self.commit('Descriptor in an upstream folder')
+        gates = '\n'.join(function(name) for name in ('prepare_drift_tools', 'check_drift', 'run_drift_gates'))
+        result = self.shell(gates + '\nscratch="$1"\ntop="$PWD"\nrun_drift_gates "$2"', self.fixture.work.name, base)
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('upstream-folders:', result.stdout)
+        self.assertIn('REFUSED: drift\n', result.stdout)
+        self.assertNotIn('main is already red', result.stderr)
+        print('PASS: a fork descriptor in Launcher/ refuses with REFUSED: drift')
 
     def test_red_base_is_reported_without_allowing_candidate(self):
         fixtures.write(self.root, 'notchcast/check-drift.py', 'raise SystemExit(9)\n')

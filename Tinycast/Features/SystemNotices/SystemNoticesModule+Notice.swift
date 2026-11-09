@@ -32,6 +32,6 @@ extension SystemNoticesModule {
         case .tailscale: "network"
         case .lowBattery: "battery.25percent"
         }
-        IslandActivityCenter.shared.showMessage(text, tone: warning ? .danger : .neutral, dwell: 5, id: id, symbol: symbol)
+        IslandHUDRouter.post(text, tone: warning ? .danger : .neutral, id: id, symbol: symbol, dwell: 5)
     }
 }

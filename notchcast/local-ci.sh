@@ -87,6 +87,10 @@ unmerged=$(git diff --name-only --diff-filter=U)
 [ -z "$unmerged" ] || { echo "merge conflict: $unmerged"; exit 1; }
 git -c core.hooksPath=/dev/null -c user.name="$MAINTAINER_NAME" -c user.email="$MAINTAINER_EMAIL" \
     commit --quiet --allow-empty --no-edit -m "Merge $head"
+echo drift > "$scratch/step"
+top="$tree"
+source "$tools/notchcast/drift-gates.sh"
+run_drift_gates "$main"
 export RUNNER_TEMP="$scratch" TMPDIR="$scratch/tmp"
 mkdir "$TMPDIR"
 if [ -n "${NOTCHCAST_BUILD_QUEUE:-}" ]; then

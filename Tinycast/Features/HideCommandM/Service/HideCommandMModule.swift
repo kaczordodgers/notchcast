@@ -3,47 +3,30 @@ import Synchronization
 
 @MainActor
 final class HideCommandMModule: NotchcastModule {
-    private struct Session: Sendable {
-        var policy = HideCommandMPolicy()
-        var pid: Int32 = 0
+    private final class Frontmost: Sendable {
+        let pid = Mutex<Int32>(0)
     }
 
-    private final class SharedSession: Sendable {
-        let value = Mutex(Session())
-    }
-
-    private let state = SharedSession()
-    private let hub: EventTapHub
-    private var registration: UUID?
+    private let frontmost = Frontmost()
+    private let tap: EventTapSubscription
     private var activation: NotificationToken?
     private var generation = UUID()
 
-    init(hub: EventTapHub) { self.hub = hub }
+    init(hub: EventTapHub) { tap = EventTapSubscription(hub: hub) }
 
     func start() {
-        guard registration == nil else { return }
+        guard !tap.isActive else { return }
         refresh()
         let generation = generation
         let ownPID = ProcessInfo.processInfo.processIdentifier
-        let mask = EventTapPolicy.mask(for: .keyDown) | EventTapPolicy.mask(for: .keyUp)
-        registration = hub.registerSynchronous(mask: mask) { [state, weak self] type, event in
-            guard event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag else { return .pass }
-            let result = state.value.withLock { session in
-                let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl, .maskSecondaryFn]
-                let decision = session.policy.consume(
-                    keyDown: type == .keyDown,
-                    keyCode: event.getIntegerValueField(.keyboardEventKeycode),
-                    plainCommand: event.flags.intersection(modifiers) == .maskCommand,
-                    isRepeat: event.getIntegerValueField(.keyboardEventAutorepeat) != 0,
-                    skipped: session.pid <= 0 || session.pid == ownPID)
-                return (decision, session.pid)
+        tap.startKeyPress(46, skipsSynthetic: true) { [frontmost, weak self] event in
+            let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskAlternate, .maskControl, .maskSecondaryFn]
+            let pid = frontmost.pid.withLock { $0 }
+            guard event.flags.intersection(modifiers) == .maskCommand, pid > 0, pid != ownPID else { return false }
+            DispatchQueue.main.async { [weak self] in
+                self?.hide(pid: pid, generation: generation)
             }
-            if result.0 == .hide {
-                DispatchQueue.main.async { [weak self] in
-                    self?.hide(pid: result.1, generation: generation)
-                }
-            }
-            return result.0 == .pass ? .pass : .swallow
+            return true
         }
         let center = NSWorkspace.shared.notificationCenter
         activation = NotificationToken(center.addObserver(
@@ -55,20 +38,18 @@ final class HideCommandMModule: NotchcastModule {
 
     func stop() {
         generation = UUID()
-        if let registration { hub.remove(registration) }
-        registration = nil
+        tap.stop()
         activation = nil
-        state.value.withLock { $0 = Session() }
+        frontmost.pid.withLock { $0 = 0 }
     }
 
     private func refresh() {
         let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
-        state.value.withLock { $0.pid = pid }
-        hub.refreshPermission()
+        frontmost.pid.withLock { $0 = pid }
     }
 
     private func hide(pid: Int32, generation: UUID) {
-        guard registration != nil, self.generation == generation,
+        guard tap.isActive, self.generation == generation,
               let app = NSWorkspace.shared.frontmostApplication, app.processIdentifier == pid else { return }
         let isFinder = app.bundleIdentifier == "com.apple.finder"
         let windows = isFinder ? CGWindowListCopyWindowInfo(

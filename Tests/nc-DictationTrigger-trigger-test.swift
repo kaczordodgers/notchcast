@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationCapture.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationSpectrum.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 import AppKit
 import Carbon.HIToolbox
 import Synchronization
@@ -225,6 +226,8 @@ enum DictationWire {
     static let maximumSamples = sampleRate * 60 * 5
 }
 
+enum Paster { static let tinycastEventTag: Int64 = 1 }
+
 @MainActor
 final class EventTapHub {
     struct Event: Sendable {
@@ -245,6 +248,10 @@ final class EventTapHub {
     }
 
     func remove(_ id: UUID) { handlers[id] = nil }
+
+    enum Verdict { case pass, swallow }
+    func registerSynchronous(mask: CGEventMask,
+                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID { UUID() }
 
     func send(
         _ type: CGEventType, key: Int, flags: CGEventFlags = [], at time: TimeInterval,
