@@ -23,7 +23,7 @@ trap remove_tools EXIT
 source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
-refuse() { echo "REFUSED: $*" >&2; exit 1; }
+source "$(dirname "$0")/drift-gates.sh"
 delete_head() {
     local name=$1 expected=$2 fork=${3:-false} remote local_head
     [ "$fork" = false ] || return 0
@@ -65,7 +65,7 @@ check_drift_tooling() {
     if drift_fixtures_changed "$onto"; then
         fixtures=true
     elif git diff --quiet "$onto" HEAD -- notchcast/land.sh notchcast/hold.sh notchcast/sync-wait.sh \
-        notchcast/local-build-status.sh; then
+        notchcast/local-build-status.sh notchcast/drift-gates.sh; then
         return 0
     fi
     drift_signoff=$(grep -m1 -E '^Drift tooling: [^[:space:]].*' <<< "$body") \
@@ -97,26 +97,6 @@ squash_message() {
         grep -E '^No test: [^[:space:]].*' <<< "$pr_body" || true
     fi
     if [ -n "$drift_signoff" ]; then printf '\n%s\n' "$drift_signoff"; fi
-}
-prepare_drift_tools() {
-    drift_tools="$scratch/gates-$1"
-    mkdir -p "$drift_tools"
-    git archive "$1" notchcast | tar -x -C "$drift_tools"
-    drift_tools="$drift_tools/notchcast"
-    if [ ! -f "$drift_tools/check-drift.py" ]; then
-        drift_tools="$top/notchcast"
-    fi
-}
-check_drift() {
-    local onto=$1 tools=$2
-    if python3 "$tools/check-drift.py" --root "$PWD"; then return 0; fi
-    git cat-file -e "$onto:notchcast/drift-baseline.json" 2>/dev/null || refuse 'drift'
-    git worktree add --quiet --detach "$scratch/base" "$onto"
-    if ! python3 "$tools/check-drift.py" --root "$scratch/base" >/dev/null 2>&1; then
-        echo "WARN: main is already red: ${onto:0:8} fails the drift gates too; fix main before landing" >&2
-    fi
-    git worktree remove --force "$scratch/base"
-    refuse 'drift'
 }
 check=0
 pr_title=
@@ -232,9 +212,7 @@ merge_onto() {
     done
     [ "$(git rev-parse 'HEAD^{tree}')" != "$(git rev-parse "$onto^{tree}")" ] || refuse 'nothing to land: main already has this change'
     python3 notchcast/check-feature-shape.py || refuse 'feature shape'
-    prepare_drift_tools "$onto"
-    python3 "$drift_tools/check-drift.py" --root "$PWD" --compare-base "$onto" || refuse 'drift baseline grew'
-    check_drift "$onto" "$drift_tools"
+    run_drift_gates "$onto"
     check_drift_tooling "$onto" "$pr_body" "$drift_tools"
     check_defect_tests "$fork" "$head" "$pr_title" "$pr_body"
     # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.
