@@ -1,5 +1,5 @@
 // notchcast-sources: -parse-as-library notchcast/root/RootCaller.swift
-// notchcast-sources: notchcast/root/CallerRequirement.swift notchcast/root/RootContract.swift
+// notchcast-sources: notchcast/root/CallerRequirement.swift Tinycast/Features/Notchcast/Root/RootContract.swift
 import Darwin
 
 @main
