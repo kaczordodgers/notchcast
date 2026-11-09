@@ -17,7 +17,7 @@ LISTS = {
     Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
     DESCRIPTORS: r"^\.(\w+):",
 }
-# The folder holding the feature's code at any depth, beside its layers: harnesses glob Model/ and Service/.
+# The feature's code folder at any depth, beside its layers: harnesses glob Model/ and Service/.
 DESCRIPTOR_FILE = re.compile(r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))"
                              r"(?:(?!(?:Model|Service|UI|Settings)/)\w+/)+(\w+)Descriptor\.swift")
 DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*(?:\.init\s*)?\("

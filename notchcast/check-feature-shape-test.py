@@ -21,7 +21,7 @@ PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
 HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
-# An arm of a feature that stays on the switches (the capture module), so the planted edits keep an anchor.
+# A capture-module arm: it stays on the switches, so planted edits keep an anchor.
 ARM = "case .colorPicker: .captureAndDictation"
 
 
