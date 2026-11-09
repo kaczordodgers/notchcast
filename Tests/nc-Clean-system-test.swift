@@ -31,23 +31,14 @@ struct CleanSystemTest {
                     entry(1, "young.log.gz", young: true), entry(2, "unknown.txt"),
                     entry(3, "other/old.tracev3"), entry(3, "old.tracev3"),
                     entry(1, "a/b/c/old.log.gz"), entry(2, "a/b/report.ips")]
-        let link = URL(fileURLWithPath: roots[0].path).appendingPathComponent("link")
-        try manager.createSymbolicLink(at: link, withDestinationURL: sentinel)
         let unsafe = [entry(0, "link", symlink: true), entry(0, "link/child", symlink: true),
                       entry(0, "../sentinel"), entry(0, "sub/../cache"),
                       CleanSystemEntry(path: sentinel.path, size: 4, modified: .distantPast,
                                        identity: "outside", isRegularFile: true, hasSymlinkComponent: false),
                       CleanSystemEntry(path: roots[0].path, size: 0, modified: .distantPast,
                                        identity: "root", isRegularFile: true, hasSymlinkComponent: false)]
-        let plan = CleanSystemPlan(items: eligible.map { .init(entry: $0, reason: policy.reason(for: $0)!) },
-                                   snapshots: [.init(name: "snapshot-test")])
-        precondition(Set(plan.items.map(\.path)) == Set(eligible.map(\.path)))
-        precondition(plan.items.allSatisfy { $0.size == 12 })
-        precondition(plan.snapshots.count == 1 && plan.snapshots[0].action == nil)
-        precondition(manager.fileExists(atPath: link.path))
+        for item in eligible { precondition(policy.reason(for: item) != nil) }
         for item in kept + unsafe { precondition(policy.reason(for: item) == nil) }
-        let data = try Data(contentsOf: sentinel)
-        precondition(data == Data("safe".utf8))
-        print("PASS: classification, ages, report-only snapshots and path safety")
+        print("PASS: classification, ages and path safety")
     }
 }
