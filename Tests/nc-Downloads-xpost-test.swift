@@ -87,7 +87,8 @@ struct DownloadsXPostTests {
             ("https://twitter.com/Some_User/status/1/photo/1", "Some_User/status/1"),
             ("http://www.x.com/a/status/12", "a/status/12"),
             ("https://mobile.twitter.com/a/article/34", "a/status/34"),
-            ("https://X.COM/a/status/5", "a/status/5")
+            ("https://X.COM/a/status/5", "a/status/5"),
+            ("https://x.com/I/status/20", "I/status/20")
         ] {
             expect(XPost.apiURL(URL(string: value)!)?.absoluteString == "https://api.fxtwitter.com/\(api)", "matches \(value)")
         }
@@ -96,7 +97,7 @@ struct DownloadsXPostTests {
                       "https://x.com@evil.com/a/status/1", "https://api.x.com/a/status/1", "ftp://x.com/a/status/1",
                       "https://x.com/a/likes/1", "https://x.com/a/status/abc", "https://x.com/a/status",
                       "https://x.com/home", "https://x.com/far_too_long_handle/status/1",
-                      "https://x.com/i/article/2118504468342018048", "https://x.com/I/status/1"] {
+                      "https://x.com/i/article/2118504468342018048", "https://x.com/I/article/1"] {
             expect(XPost.apiURL(URL(string: value)!) == nil, "refuses \(value)")
         }
     }

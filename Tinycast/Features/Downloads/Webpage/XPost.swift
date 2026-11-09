@@ -29,7 +29,8 @@ enum XPost {
               ["x.com", "twitter.com"].contains(host) else { return nil }
         let parts = source.pathComponents.filter { $0 != "/" }
         // x.com/i/article/<id> carries an article id, not the status id fxtwitter needs.
-        guard parts.count >= 3, ["status", "article"].contains(parts[1]), parts[0].lowercased() != "i",
+        guard parts.count >= 3, ["status", "article"].contains(parts[1]),
+              parts[0].lowercased() != "i" || parts[1] == "status",
               parts[0].wholeMatch(of: /[A-Za-z0-9_]{1,15}/) != nil, parts[2].wholeMatch(of: /[0-9]{1,20}/) != nil
         else { return nil }
         return URL(string: "https://api.fxtwitter.com/\(parts[0])/status/\(parts[2])")
