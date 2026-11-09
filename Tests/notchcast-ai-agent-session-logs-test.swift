@@ -428,6 +428,7 @@ struct AgentSessionTests {
         expect(excluded.sessions.isEmpty && accesses.withLock { $0.count } == before, "Excluded roots do zero I/O")
         expect(!AgentSessionIndex.allows(forbidden.appendingPathComponent("../escape"), excluding: prefixes),
                "Traversal spelling rejected")
+        expect(AgentSessionIndex.Root.defaults(home: root).count == 6, "Default locations built without accessing them")
     }
 
     @MainActor

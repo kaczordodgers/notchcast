@@ -9,6 +9,7 @@ struct ClearNotificationsTests {
     static func main() async throws {
         let calls = Mutex(0)
         precondition(!ClearNotificationsScript.source.contains("click at"))
+        precondition(ClearNotificationsScript.source.contains("error \"notification-center-unavailable\" number -10001"))
         let runner = ClearNotificationsRunner { source in
             precondition(source == ClearNotificationsScript.source)
             calls.withLock { $0 += 1 }

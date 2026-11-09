@@ -50,7 +50,10 @@ struct LauncherWiringTests {
         precondition(!answers.isRunning && !copyPath.isRunning && !small.isRunning)
         var reached = await launcherActionsReach(answers, small)
         precondition(reached == (false, false))
-        for feature in features { preferences.set(feature, true) }
+        for feature in features {
+            precondition(!feature.needsIsland && !feature.defaultEnabled)
+            preferences.set(feature, true)
+        }
         for _ in 0..<20 { await Task.yield() }
         precondition(github.isRunning && notifications.isRunning)
         precondition(answers.isRunning && copyPath.isRunning && small.isRunning)
@@ -74,6 +77,7 @@ struct LauncherWiringTests {
             _ = try await notifications.run(accessibilityGranted: true)
             preconditionFailure("Disabled module ran")
         } catch ClearNotificationsModule.Failure.disabled { }
+        precondition(NotchcastFeature.clearNotifications.requiredGrants == [.accessibility])
         print("PASS: all five launcher tool switches start and stop their modules")
     }
 

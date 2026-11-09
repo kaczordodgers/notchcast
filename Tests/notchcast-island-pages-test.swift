@@ -49,6 +49,8 @@ struct IslandPagesTests {
     }
 
     static func pages() {
+        expect(IslandPage.allCases == [.home, .day], "page order follows the registry")
+        expect(IslandPage.allCases.map(\.key) == ["1", "2"], "page shortcuts follow order")
         for page in IslandPage.allCases {
             expect(IslandPage.page(forKey: page.key) == page, "page key round-trips")
             expect(!page.symbol.isEmpty, "each registered page has a glyph")
@@ -149,6 +151,8 @@ struct IslandPagesTests {
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         expect(preferences.islandHoverDelay == .standard, "absent hover delay defaults to 0.3 seconds")
+        expect(NotchcastPreferences.HoverDelay.allCases.map(\.rawValue) == [0.1, 0.3, 0.5, 1],
+               "the typed preference offers exactly the design's four delays")
         for delay in NotchcastPreferences.HoverDelay.allCases {
             preferences.islandHoverDelay = delay
             expect(NotchcastPreferences(suiteName: suite).islandHoverDelay == delay,

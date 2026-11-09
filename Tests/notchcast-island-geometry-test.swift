@@ -154,6 +154,7 @@ struct IslandGeometryTests {
             }
         }
         expect(IslandMotion.fade.spring == nil && IslandMotion.instant.spring == nil, "nothing moves without motion")
+        expect(IslandMotion.crossFade == 0.12, "Reduce Motion cross-fades for 120 ms")
         springTiming()
     }
 
@@ -198,6 +199,7 @@ struct IslandGeometryTests {
                && IslandSilhouette.bottomRadius(height: 475, cap: 26) == 26, "a tall island stops at the caps")
         expect(IslandSilhouette.shoulder(height: -4, cap: 14) == 0
                && IslandSilhouette.bottomRadius(height: 32, cap: -1) == 0, "negative input never inverts a corner")
+        expect(IslandMotion.shrinking.bounce == 0 && IslandMotion.growing.bounce == 0, "no island spring bounces")
     }
 
     static func expect(_ condition: @autoclosure () -> Bool, _ message: String) {

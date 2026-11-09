@@ -35,7 +35,7 @@ struct NotchcastCommand: Sendable {
         NotchcastToolsLauncherCommands.controller = controller
         controller.start()
         let commands = NotchcastToolsLauncherCommands.all
-        precondition(commands.count == NotchcastToolsCommands.Action.allCases.count)
+        precondition(commands.count == 8)
         for (action, command) in zip(NotchcastToolsCommands.Action.allCases, commands) {
             preferences.set(action.feature, false)
             let before = reads

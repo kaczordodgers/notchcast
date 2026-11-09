@@ -63,6 +63,7 @@ struct TweaksStoreTests {
         }
         precondition(Set(emitted.map(\.executable)).isSubset(of: SystemToolsProcessRunner.allowedExecutables),
                      "The runner refuses a tool a catalog emits")
+        precondition(SystemToolsProcessRunner.allowedExecutables.contains("/usr/bin/killall"))
         do {
             _ = try SystemToolsProcessRunner().run("/untrusted/journal", arguments: [])
             preconditionFailure("Untrusted executable accepted")

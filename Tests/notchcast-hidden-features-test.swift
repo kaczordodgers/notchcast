@@ -9,7 +9,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/SearchRelevance.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
-// notchcast-reads: notchcast/docs/hidden.md Tinycast/App/AppCore.swift Tinycast/App/MenuBarItem.swift
+// notchcast-reads: Tinycast/App/AppCore.swift Tinycast/App/MenuBarItem.swift
 // notchcast-reads: Tinycast/Features/Settings/*.swift Tinycast/Windows/About/AboutView.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift
 // notchcast-reads: Tinycast/Features/AppleShortcuts/UI/AppleShortcutCoordinator.swift
@@ -30,7 +30,11 @@ struct HiddenFeaturesTest {
         precondition(!SettingsSection.allCases.flatMap(\.tabs).contains(.extensions))
         precondition(SettingsTab(slug: "extensions") == nil)
         let visible = SettingsSection.allCases.flatMap(\.tabs)
-        for tab in NotchcastHidden.tabs {
+        let hiddenTabs: [SettingsTab] = [.extensions, .fallbacks, .appleShortcuts, .about, .backup]
+        precondition(NotchcastHidden.tabs == Set(hiddenTabs))
+        precondition(NotchcastHidden.commands == ["command:support", "command:import-from-raycast"])
+        precondition(!NotchcastHidden.fallbacksEnabled && !NotchcastHidden.supportEnabled)
+        for tab in hiddenTabs {
             precondition(!visible.contains(tab), "Visible hidden tab: \(tab.slug)")
             precondition(SettingsTab(slug: tab.slug) == nil)
             precondition(!SettingsSearchCatalog.entries.contains { $0.tab == tab })

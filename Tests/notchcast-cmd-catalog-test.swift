@@ -72,6 +72,9 @@ struct CommandCatalogTest {
         do { try await missing.add("task"); preconditionFailure("missing token accepted") } catch {
             precondition(error == .missingToken)
         }
+        precondition(!NotchcastFeature.commandRunner.defaultEnabled)
+        precondition(!NotchcastFeature.commandRunner.needsIsland)
+        precondition(NotchcastFeature.commandRunner.settingsGroup == .launcher)
         print("command catalogue: passed (synthetic fixtures only)")
     }
 }

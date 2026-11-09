@@ -374,6 +374,7 @@ struct RootClientTest {
         for arguments in invalid {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
+        precondition(RootContract.version == "4")
         precondition(RootContract.Reply(command: .version, output: "4\n") == .version("4"))
         do {
             try RootHelperClient.validateExitStatus(78)

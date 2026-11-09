@@ -73,6 +73,7 @@ struct SessionPricingWiringTests {
         module.refresh()
         await module.waitUntilIdle()
         precondition(pricingRuns.withLock { $0 } == runs + 1 && module.pricingReport?.total.costUSD == 20)
+        precondition(AgentSessionsModule.pollInterval == .seconds(30), "Bound recursive polling")
         precondition(accesses.withLock { $0.allSatisfy { !$0.pathComponents.contains("private-fixture") } })
         preferences.set(.agentPricing, false)
         for _ in 0..<20 { await Task.yield() }

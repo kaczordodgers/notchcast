@@ -116,6 +116,10 @@ struct LauncherKeysTest {
         precondition(LauncherNumberKeys.rowIndex(
             digit: 2, query: "r", entryRows: [2, 5, 9], favoriteCount: 9,
             hasLeadCard: true, enabled: true) == 5)
+        for feature in [NotchcastFeature.launcherNumberKeys, .launcherAliasSpace] {
+            precondition(!feature.defaultEnabled && !feature.needsIsland)
+            precondition(feature.settingsGroup == .launcher && feature.requiredGrants.isEmpty)
+        }
         print("Launcher keys passed")
     }
 }
