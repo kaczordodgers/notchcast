@@ -66,7 +66,7 @@ enum CleanSystem {
         else { throw Failure.refused }
         let trash = String(cString: user.pointee.pw_dir) + "/.Trash"
         try Self.trash(entry, policy: policy, destination: trash, owner: uid, sourceOwner: 0)
-        return Data("ok\n".utf8)
+        return Data(command.output.utf8)
     }
 
     static func trash(_ entry: CleanSystemEntry, policy: CleanSystemPolicy,
