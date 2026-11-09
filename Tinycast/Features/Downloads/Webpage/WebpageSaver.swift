@@ -5,7 +5,11 @@ struct WebpageSaver: Sendable {
 
     @MainActor
     func save(_ source: URL, saved: Date = .now) async throws -> URL {
-        let article = try await WebpageExtractor().extract(source)
+        let article = if let api = XPost.apiURL(source) {
+            try await XPost.fetch(source, from: api)
+        } else {
+            try await WebpageExtractor().extract(source)
+        }
         try Task.checkCancellation()
         return try await write(article, saved: saved)
     }
