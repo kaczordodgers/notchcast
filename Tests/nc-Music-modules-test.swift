@@ -22,8 +22,12 @@
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 import Foundation
 import AppKit
+import Observation
+
+enum Paster { static let tinycastEventTag: Int64 = 0x54494E59 }
 
 @MainActor private var trusted = false
 @MainActor func AXIsProcessTrusted() -> Bool { trusted }
@@ -32,19 +36,20 @@ enum EventTapPolicy {
     static func mask(for type: CGEventType) -> CGEventMask { 1 << type.rawValue }
 }
 
-@MainActor
+@MainActor @Observable
 final class EventTapHub {
+    struct Event {}
     enum Verdict { case pass, swallow }
-    var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
-    var removals = 0
-    var refreshes = 0
+    @ObservationIgnored var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
+    @ObservationIgnored var removals = 0
+    var isTrusted = false
     func registerSynchronous(mask: CGEventMask,
                              handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
         precondition(mask & EventTapPolicy.mask(for: .keyDown) != 0)
         self.handler = handler
         return UUID()
     }
-    func refreshPermission() { refreshes += 1 }
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
     func remove(_ id: UUID) { removals += 1; handler = nil }
 }
 
@@ -252,15 +257,9 @@ struct MusicModuleTests {
         monitor.run()
         await settle()
         precondition(music.model.failure == .noReplacement, "a swallowed key keeps its replacement decision")
-        let beforeRetry = hub.refreshes
-        await waitUntil { hub.refreshes > beforeRetry }
-        precondition(hub.refreshes > beforeRetry, "untrusted registration retries without activation")
-        trusted = true
+        hub.isTrusted = true
         await waitUntil { mute.hotKeyStatus == nil }
-        precondition(mute.hotKeyStatus == nil, "permission grant clears F5 warning automatically")
-        let afterGrant = hub.refreshes
-        try? await Task.sleep(for: .milliseconds(1100))
-        precondition(hub.refreshes == afterGrant, "permission polling stops after grant")
+        precondition(mute.hotKeyStatus == nil, "the hub's permission grant clears the F5 warning")
         launch?(.init(bundleID: LastPlayer.appleMusic, processID: 123))
         precondition(quits == 1, "hub media key arms Apple Music blocking")
         microphone.start()
@@ -281,10 +280,9 @@ struct MusicModuleTests {
         preferences.set(.island, false)
         await settle()
         precondition(hub.handler == nil && hub.removals == 1 && mute.hotKeyStatus == nil)
-        let afterRemoval = hub.refreshes
-        trusted = false
-        try? await Task.sleep(for: .milliseconds(1100))
-        precondition(hub.refreshes == afterRemoval, "unregistered monitor never retries")
+        hub.isTrusted = false
+        await settle()
+        precondition(mute.hotKeyStatus == nil, "a monitor with mute off shows no F5 warning")
         var reads = 0
         let key = SoloistKey(read: { reads += 1; throw SoloistFailure.keyUnavailable },
                             write: { _ in }, presence: { true })

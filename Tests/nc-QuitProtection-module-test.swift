@@ -1,6 +1,8 @@
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift Tinycast/Features/QuitProtection/Service/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionModule.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
@@ -11,7 +13,9 @@ enum ASCIIKeyboardLayout {
     }
 }
 @MainActor final class EventTapHub {
+    struct Event {}
     enum Verdict { case pass, swallow }
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
     var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
     var count = 0
     func registerSynchronous(mask: CGEventMask,
@@ -22,7 +26,6 @@ enum ASCIIKeyboardLayout {
         return UUID()
     }
     func remove(_ id: UUID) { count -= 1; handler = nil }
-    func refreshPermission() {}
 }
 @main @MainActor struct ModuleTests {
     static func main() {

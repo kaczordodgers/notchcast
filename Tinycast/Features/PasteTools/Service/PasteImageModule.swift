@@ -7,47 +7,47 @@ import Observation
 @Observable
 final class PasteImageModule: NotchcastModule {
     private(set) var saveFailed = false
-    private let hub: EventTapHub
+    private let tap: EventTapSubscription
     private let state = OSAllocatedUnfairLock(initialState: State())
     private var activation: NotificationToken?
     var onFailure: (() -> Void)?
     private var work: Task<Void, Never>?
-    private var token: UUID?
 
     private struct State: Sendable {
         var eligible = false
         var changeCount: Int?
         var acceptsImage = false
-        var filter = PasteImagePolicy()
     }
 
-    init(hub: EventTapHub) { self.hub = hub }
+    private let pasteboard: NSPasteboard.Name
+    private let finderIsFrontmost: @MainActor () -> Bool
+
+    init(hub: EventTapHub, pasteboard: NSPasteboard.Name = .general,
+         finderIsFrontmost: @escaping @MainActor () -> Bool = {
+             NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder"
+         }) {
+        tap = EventTapSubscription(hub: hub)
+        self.pasteboard = pasteboard
+        self.finderIsFrontmost = finderIsFrontmost
+    }
 
     func start() {
-        guard token == nil else { return }
+        guard !tap.isActive else { return }
         let state = state
-        let mask: CGEventMask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
-        token = hub.registerSynchronous(mask: mask) { [weak self] type, event in
-            guard event.getIntegerValueField(.keyboardEventKeycode) == kVK_ANSI_V,
-                event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag
-            else { return .pass }
-            let repeatKey = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+        let pasteboard = pasteboard
+        tap.startKeyPress(Int64(kVK_ANSI_V), skipsSynthetic: true) { [weak self] event in
             let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskControl, .maskAlternate]
-            let commandOnly = event.flags.intersection(modifiers) == .maskCommand
+            guard event.flags.intersection(modifiers) == .maskCommand else { return false }
             let take = state.withLock { state in
-                let board = NSPasteboard.general
+                let board = NSPasteboard(name: pasteboard)
                 if state.changeCount != board.changeCount {
                     state.changeCount = board.changeCount
                     state.acceptsImage = PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
                 }
-                return state.filter.take(down: type == .keyDown, repeatKey: repeatKey,
-                    eligible: state.eligible && state.acceptsImage && commandOnly)
+                return state.eligible && state.acceptsImage
             }
-            guard take else { return .pass }
-            if type == .keyDown && !repeatKey {
-                Task { @MainActor [weak self] in self?.paste() }
-            }
-            return .swallow
+            if take { Task { @MainActor [weak self] in self?.paste() } }
+            return take
         }
         updateEligibility()
         let center = NSWorkspace.shared.notificationCenter
@@ -62,19 +62,17 @@ final class PasteImageModule: NotchcastModule {
         activation = nil
         work?.cancel()
         work = nil
-        if let token { hub.remove(token) }
-        token = nil
+        tap.stop()
         state.withLock { $0 = State() }
     }
 
     private func updateEligibility() {
-        let eligible = NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder"
+        let eligible = finderIsFrontmost()
         state.withLock { $0.eligible = eligible }
-        hub.refreshPermission()
     }
 
     func paste() {
-        guard token != nil else { return }
+        guard tap.isActive else { return }
         guard work == nil else { Paster.postCommandV(); return }
         saveFailed = false
         guard let app = NSWorkspace.shared.frontmostApplication,

@@ -3,6 +3,8 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelIslandPresenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
@@ -37,6 +39,7 @@ enum BrightnessDisplayService {
 
 @MainActor
 final class EventTapHub {
+    struct Event {}
     enum Verdict { case pass, swallow }
     typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
     var handlers: [UUID: SynchronousHandler] = [:]
@@ -47,8 +50,8 @@ final class EventTapHub {
         return id
     }
 
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
     func remove(_ id: UUID) { handlers[id] = nil }
-    func refreshPermission() {}
 
     func send(_ key: MediaLevelKey, fine: Bool = false, location: CGPoint = .init(x: 150, y: 50)) {
         guard let event = NSEvent.otherEvent(
@@ -138,7 +141,7 @@ struct SystemLevelRoutingTests {
         var notices = 0
         var replays: [MediaLevelKeyMonitor.Press] = []
         let keys = SystemLevelKeysModule(hub: hub, levels: levels, brightness: brightness,
-                                        preferences: preferences, present: {
+                                        preferences: preferences, center: center, present: {
             if $0 != nil { notices += 1 }
             presenter.present($0)
         }, replay: { replays.append($0) })
@@ -150,7 +153,8 @@ struct SystemLevelRoutingTests {
         await levels.service.settled()
         check(hub.handlers.count == 1, "Brightness stays registered without a HUD presenter")
         check(hardware.state.withLock { $0.writes } == 0, "No presenter performs no custom steps")
-        keys.hudPresenterAvailable = true
+        center.hasPresenter = true
+        for _ in 0..<20 { await Task.yield() }
         check(hub.handlers.count == 1, "One hub consumer handles both features")
         hub.send(.volumeUp)
         await eventually { keys.latest?.percent == 56 }
@@ -224,7 +228,8 @@ struct SystemLevelRoutingTests {
         hub.send(.brightnessUp)
         await eventually { keys.latest?.kind == .brightness }
         check(keys.latest != nil, "Brightness works with the island off")
-        keys.hudPresenterAvailable = false
+        center.hasPresenter = false
+        for _ in 0..<20 { await Task.yield() }
         check(hub.handlers.count == 1, "Removing the presenter keeps brightness registered")
         check(center.activities.isEmpty, "Removing the presenter clears its activity")
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")

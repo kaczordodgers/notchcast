@@ -59,11 +59,11 @@ struct IslandHomeTests {
         center.finish(older)
         center.finish(urgent)
         let id = center.begin(IslandActivity(kind: .timer, title: "Timer", endDate: now))
-        center.showProgress("Working")
+        let working = center.showProgress("Working")
         let adapted = IslandHomeActivityAdapter.entries(from: center, now: now)
         precondition(adapted.count == 2 && adapted.allSatisfy { $0.state == .active })
         center.finish(id)
-        center.dismissMessage()
+        center.dismiss(working)
         precondition(IslandHomeActivityAdapter.entries(from: center, now: now).isEmpty)
         print("island-home: ranking, dedupe, expiry, limits, undo and activity adapter passed")
     }

@@ -1,6 +1,8 @@
 // notchcast-sources: Tinycast/Features/MiddleClick/Model/*.swift
 // notchcast-sources: Tinycast/Features/MiddleClick/Service/MiddleClickModule.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 import AppKit
 
 @main
@@ -68,9 +70,9 @@ final class EventTapHub {
         return handlers.insert(UUID()).memberAfterInsert
     }
 
+    struct Event {}
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
     func remove(_ id: UUID) { handlers.remove(id) }
-
-    func refreshPermission() {}
 }
 
 @MainActor

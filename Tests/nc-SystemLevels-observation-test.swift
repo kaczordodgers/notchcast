@@ -3,6 +3,8 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 // notchcast-sources: Tinycast/Features/DisplayBrightness/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
@@ -12,6 +14,10 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
 import AppKit
 import Synchronization
 
@@ -28,6 +34,7 @@ enum BrightnessDisplayService {
 
 @MainActor
 final class EventTapHub {
+    struct Event {}
     enum Verdict { case pass, swallow }
     typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
     var handlers: [UUID: SynchronousHandler] = [:]
@@ -38,8 +45,8 @@ final class EventTapHub {
         return id
     }
 
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
     func remove(_ id: UUID) { handlers[id] = nil }
-    func refreshPermission() {}
 }
 
 @MainActor
@@ -72,8 +79,10 @@ struct SystemLevelObservationTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         let levels = SystemLevelsModule(service: .init(hardware: SilentAudioHardware(), observeHardware: false))
         var bodyRuns = 0
+        let center = IslandActivityCenter()
         let keys = SystemLevelKeysModule(hub: EventTapHub(), levels: levels, brightness: DisplayBrightnessModule(),
-                                        preferences: preferences, present: { if $0 == nil { bodyRuns += 1 } })
+                                        preferences: preferences, center: center,
+                                        present: { if $0 == nil { bodyRuns += 1 } })
         func runsAfterPreferenceChange() async -> Int {
             await settle()
             bodyRuns = 0
@@ -85,8 +94,8 @@ struct SystemLevelObservationTests {
         let baseline = await runsAfterPreferenceChange()
         precondition(baseline == 1, "One live chain re-runs once per change, got \(baseline)")
         for _ in 0..<10 {
-            keys.hudPresenterAvailable = true
-            keys.hudPresenterAvailable = false
+            center.hasPresenter = true
+            center.hasPresenter = false
             await settle()
         }
         let afterFlips = await runsAfterPreferenceChange()
