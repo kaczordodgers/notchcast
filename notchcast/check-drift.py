@@ -255,6 +255,25 @@ def report_counters(root, upstream, ours, our_tests):
     return counters
 
 
+def print_counters(root, upstream, observed, ours, our_tests, baseline):
+    print('Counter | Current | Baseline / threshold')
+    for rule, counts in observed.items():
+        current, limit = sum(counts.values()), sum(baseline[rule].values())
+        print(f'{rule} | {current} ({len(counts)} keys) | {limit}')
+        if current > limit:
+            print(f'GATE-THRESHOLD {rule} {current} {limit}')
+    for file in sorted(ours, key=lambda p: (-len(ours[p].splitlines()), p))[:10]:
+        print(f'largest | {file} | {len(ours[file].splitlines())} lines')
+    counters = report_counters(root, upstream, ours, our_tests)
+    for (counter, key), value in sorted(counters.items()):
+        limit = baseline['alerts'][counter]
+        if counter not in ('file-lines', 'test-lines') or value > limit:
+            print(f'{counter} | {value} | {limit} | {key}')
+        if value > limit:  # one machine-readable line per crossing; a file counter names its file
+            print(f'GATE-THRESHOLD {counter if key == "all" else f"{counter}:{key}"} {value} {limit}')
+    return counters
+
+
 def notify(counters, thresholds, cache, hook):
     available = subprocess.run(['bash', '-c',
                                 'if [ -f "$1" ]; then source "$1"; fi; declare -F notchcast_task >/dev/null',
@@ -332,16 +351,7 @@ def main():
         return 0
     baseline = read_baseline(path)
     if args.report:
-        print('Counter | Current | Baseline / threshold')
-        for rule, counts in observed.items():
-            print(f'{rule} | {sum(counts.values())} ({len(counts)} keys) | {sum(baseline[rule].values())}')
-        largest = sorted(ours, key=lambda p: (-len(ours[p].splitlines()), p))[:10]
-        for file in largest:
-            print(f'largest | {file} | {len(ours[file].splitlines())} lines')
-        counters = report_counters(root, upstream, ours, our_tests)
-        for (counter, key), value in sorted(counters.items()):
-            if counter not in ('file-lines', 'test-lines') or value > baseline['alerts'][counter]:
-                print(f'{counter} | {value} | {baseline["alerts"][counter]} | {key}')
+        counters = print_counters(root, upstream, observed, ours, our_tests, baseline)
         for rule in ('dead', 'test-only'):
             for key in observed.get(rule, {}):
                 print(f'{rule} | {key}')
@@ -355,6 +365,8 @@ def main():
         print(f'gate {gate}: {"FAIL" if failed else "PASS"} ({count} keys)')
     for problem in problems:
         print(problem)
+    if args.gates == '1,2,3,4':  # land.sh and local-ci.sh run all four; the pre-push subset stays quiet
+        print_counters(root, upstream, observed, ours, our_tests, baseline)
     return bool(problems)
 
 

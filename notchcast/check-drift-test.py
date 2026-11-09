@@ -318,6 +318,31 @@ class Gates(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn('baseline alerts must define every report counter', result.stderr)
 
+    def test_gate_run_prints_counters_and_threshold_lines(self):
+        write(self.root, TODO, 'struct DriftProbe {}\nstruct DriftProbeTwin {}\n')
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        lines = result.stdout.splitlines()
+        limit = sum(self.baseline()['dead'].values())
+        self.assertIn(f'GATE-THRESHOLD dead {limit + 2} {limit}', lines)
+        self.assertIn(f'GATE-THRESHOLD file-lines:{LARGE} {LARGE_LINES} 349', lines)
+        self.assertIn(f'largest | {LARGE} | {LARGE_LINES} lines', lines)
+        self.assertIn(f'dead | {limit + 2} ({limit + 2} keys) | {limit}', lines)
+        print('\n'.join(line for line in lines if line.startswith(('gate ', 'GATE-THRESHOLD'))))
+
+    def test_clean_gate_run_has_no_rule_threshold_line(self):
+        result = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        thresholds = [line for line in result.stdout.splitlines() if line.startswith('GATE-THRESHOLD')]
+        self.assertEqual(thresholds, [f'GATE-THRESHOLD file-lines:{LARGE} {LARGE_LINES} 349'])
+
+    def test_gate_subset_run_stays_quiet(self):
+        write(self.root, TODO, 'struct DriftProbe {}\n')
+        result = self.run_check('3')
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertNotIn('GATE-THRESHOLD', result.stdout)
+        self.assertNotIn('largest |', result.stdout)
+
     def test_report_without_hook(self):
         home = Path(self.work.name) / 'home'
         env = dict(os.environ, HOME=str(home))
