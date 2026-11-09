@@ -1,6 +1,5 @@
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskInput.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: input
 import AppKit
 
 enum Paster { static let tinycastEventTag: Int64 = 12345 }

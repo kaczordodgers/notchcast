@@ -193,6 +193,88 @@ class HarnessInputsTest(unittest.TestCase):
                                 text=True, capture_output=True, check=True)
         self.assertEqual("", result.stdout)
 
+    def add_kit(self, name, text):
+        (self.root / "Tests/Kit").mkdir(exist_ok=True)
+        (self.root / f"Tests/Kit/{name}.kit").write_text(text)
+
+    def runner_lines(self, env=None):
+        result = subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
+                                 'run() { printf "%s\\n" "$*"; }; source notchcast/test-harnesses.sh'],
+                                cwd=self.root, env=env or self.env, text=True, capture_output=True, check=True)
+        return result.stdout.splitlines()
+
+    def test_kit_line_expands_to_its_listed_sources(self):
+        for name in ("A", "B", "C"):
+            (self.root / f"Tinycast/Features/Example/Model/{name}.swift").touch()
+        self.add_kit("pair", "# shared\n\nTinycast/Features/Example/Model/A.swift  # first\n"
+                             "Tinycast/Features/Example/Model/B.swift\n")
+        self.add_kit("star", "Tinycast/Features/Example/Model/*.swift\n-parse-as-library\n")
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text(
+            "// notchcast-kit: pair\n// notchcast-sources: -framework AppKit Tinycast/Features/Example/Model/A.swift\n")
+        (self.root / "Tests/nc-Example-stars-test.swift").write_text("// notchcast-kit: pair star\n")
+        lines = self.runner_lines()
+        self.assertTrue(any(line.startswith("nc-Example-kit-test Tinycast/Features/Example/Model/A.swift "
+                                            "Tinycast/Features/Example/Model/B.swift -framework AppKit")
+                            for line in lines), lines)
+        stars = next(line.split() for line in lines if line.startswith("nc-Example-stars-test "))
+        self.assertEqual(1, stars.count("Tinycast/Features/Example/Model/A.swift"))
+        self.assertEqual(["Tinycast/Features/Example/Model/B.swift"], stars[2:3])
+        self.assertIn("-parse-as-library", stars)
+
+    def test_kit_file_and_matched_source_select_every_user(self):
+        self.add_kit("pair", "Tinycast/Features/Example/Model/*.swift\n")
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text("// notchcast-kit: pair\n")
+        (self.root / "Tests/nc-Other-kit-test.swift").write_text("// notchcast-kit: pair\n")
+        for changed in ("Tests/Kit/pair.kit", "Tinycast/Features/Example/Model/Removed.swift"):
+            with self.subTest(changed=changed):
+                selected = self.selected(changed)
+                self.assertIn("nc-Example-kit-test", selected)
+                self.assertIn("nc-Other-kit-test", selected)
+        self.assertNotIn("nc-Example-kit-test", self.selected("Tests/Kit/other.kit"))
+
+    def test_unknown_kit_fails_runner(self):
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text("// notchcast-kit: missing\n")
+        self.assert_runner_refuses_invalid_inputs()
+
+    def test_empty_kit_fails_runner(self):
+        self.add_kit("hollow", "# only a comment\n\n")
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text("// notchcast-kit: hollow\n")
+        self.assert_runner_refuses_invalid_inputs()
+
+    def test_kit_line_naming_no_kit_fails_runner(self):
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text("// notchcast-kit:\n")
+        self.assert_runner_refuses_invalid_inputs()
+
+    def test_resolver_cli_reports_kit_error_and_exits_nonzero(self):
+        (self.root / "Tests/nc-Example-kit-test.swift").write_text("// notchcast-kit: missing\n")
+        result = subprocess.run(["python3", "notchcast/harness_inputs.py"], cwd=self.root, env=self.env,
+                                text=True, capture_output=True)
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("::error::unknown notchcast-kit 'missing'", result.stderr)
+
+    def git_fixture(self):
+        env = {**self.env, "PATH": os.environ["PATH"], "GIT_AUTHOR_NAME": "t", "GIT_COMMITTER_NAME": "t",
+               "GIT_AUTHOR_EMAIL": "t@example.invalid", "GIT_COMMITTER_EMAIL": "t@example.invalid"}
+        for command in (["init", "-q"], ["add", "-A"], ["commit", "-qm", "upstream"],
+                        ["update-ref", "refs/remotes/upstream/main", "HEAD"]):
+            subprocess.run(["git", *command], cwd=self.root, env=env, check=True)
+        return env
+
+    def test_fork_owned_upstream_style_harness_without_header_fails_loudly(self):
+        (self.root / "Tests/ext-old-test.swift").touch()
+        env = self.git_fixture()
+        (self.root / "Tests/forked-test.swift").touch()
+        subprocess.run(["git", "add", "-A"], cwd=self.root, env=env, check=True)
+        subprocess.run(["git", "commit", "-qm", "fork"], cwd=self.root, env=env, check=True)
+        result = subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
+                                 'run() { printf "registered %s\\n" "$*"; }; source notchcast/test-harnesses.sh'],
+                                cwd=self.root, env=env, text=True, capture_output=True, check=True)
+        self.assertIn("::error::Tests/forked-test.swift needs a // notchcast-sources: header", result.stderr)
+        self.assertIn("registered forked-test", result.stdout)
+        self.assertNotIn("ext-old-test", result.stdout + result.stderr)
+        (self.root / "Tests/forked-test.swift").write_text("// notchcast-sources: -parse-as-library\n")
+        self.assertIn("forked-test -parse-as-library", self.runner_lines(env))
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

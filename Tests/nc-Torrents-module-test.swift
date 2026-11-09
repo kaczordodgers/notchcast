@@ -6,7 +6,7 @@
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentRPCClient.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentS*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentTool*.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift

@@ -16,6 +16,7 @@ class HarnessInputs:
     reads: list[str]
     has_header: bool
     registered_count: int
+    headerless_fork: bool = False
 
 
 def upstream_registrations() -> dict[str, list[str]]:
@@ -40,23 +41,58 @@ def upstream_registrations() -> dict[str, list[str]]:
     return registrations
 
 
+def kit_lines(name: str) -> list[str]:
+    kit = Path("Tests/Kit") / f"{name}.kit"
+    if not kit.is_file():
+        raise ValueError(f"unknown notchcast-kit '{name}': {kit} does not exist")
+    lines = [line.split("#", 1)[0].strip() for line in kit.read_text(encoding="utf-8").splitlines()]
+    lines = [line for line in lines if line]
+    if not lines:
+        raise ValueError(f"notchcast-kit '{name}' is empty: {kit} lists no sources")
+    return lines
+
+
 def read_inputs(path: Path, registered: list[str]) -> HarnessInputs:
     headers = {"sources": [], "reads": []}
     has_header = False
+    kits = []
     for line in path.read_text(encoding="utf-8").splitlines():
         for kind in headers:
             prefix = f"// notchcast-{kind}:"
             if line.startswith(prefix):
                 headers[kind].extend(shlex.split(line[len(prefix):]))
                 has_header |= kind == "sources"
+        if line.startswith("// notchcast-kit:"):
+            names = shlex.split(line[len("// notchcast-kit:"):])
+            if not names:
+                raise ValueError(f"{path}: // notchcast-kit: names no kit")
+            for name in names:
+                kits.append(f"Tests/Kit/{name}.kit")
+                headers["sources"].extend(kit_lines(name))
+            has_header = True
     sources = headers["sources"]
     if not has_header and path.stem.startswith("nc-"):
         folder = path.stem[3:].split("-", 1)[0]
         sources = [f"Tinycast/Features/{folder}/{part}/*.swift" for part in ("Model", "Service")]
     arguments = [arg for arg in sources if has_header or glob.glob(arg)]
     upstream = [value for arg in registered for value in (sorted(glob.glob(arg)) or [arg])]
-    expanded = upstream + [value for arg in arguments for value in (sorted(glob.glob(arg)) or [arg])]
-    return HarnessInputs(expanded, registered + sources, headers["reads"], has_header, len(upstream))
+    expanded = upstream.copy()
+    for arg in arguments:
+        for value in sorted(glob.glob(arg)) or [arg]:
+            # A kit glob and a plain file line may name one source; compiling it twice redefines its types.
+            if not (value in expanded and Path(value).is_file()):
+                expanded.append(value)
+    return HarnessInputs(expanded, registered + sources + kits, headers["reads"], has_header, len(upstream))
+
+
+def fork_owned(path: Path) -> bool:
+    """True when the harness is absent from the upstream merge base (cannot tell without the ref)."""
+    base = subprocess.run(["git", "merge-base", "HEAD", "refs/remotes/upstream/main"],
+                          text=True, capture_output=True)
+    if base.returncode != 0:
+        return False
+    return subprocess.run(["git", "cat-file", "-e", f"{base.stdout.strip()}:{path}"],
+                          capture_output=True).returncode != 0
 
 
 def harnesses():
@@ -81,12 +117,20 @@ def harnesses():
         inputs.patterns = list(dict.fromkeys(arg for arg in [*inputs.patterns, *augmented]
                                             if not arg.startswith("-")))
         inputs.arguments = compiled
-        if inputs.has_header or inputs.arguments or inputs.reads or path.stem.startswith(("nc-", "notchcast-")):
+        inputs.headerless_fork = not (inputs.has_header or inputs.arguments or inputs.reads
+                                      or path.stem.startswith(("nc-", "notchcast-"))) and fork_owned(path)
+        if inputs.has_header or inputs.arguments or inputs.reads or inputs.headerless_fork \
+                or path.stem.startswith(("nc-", "notchcast-")):
             yield path, inputs
 
 
 if __name__ == "__main__":
-    for path, inputs in harnesses():
-        if inputs.has_header or path.stem.startswith(("nc-", "notchcast-")):
+    try:
+        entries = list(harnesses())
+    except ValueError as error:
+        print(f"::error::{error}", file=sys.stderr)
+        sys.exit(1)
+    for path, inputs in entries:
+        if inputs.has_header or inputs.headerless_fork or path.stem.startswith(("nc-", "notchcast-")):
             additions = inputs.arguments[inputs.registered_count:]
             print("\t".join([str(path), str(int(inputs.has_header)), " ".join(additions)]))

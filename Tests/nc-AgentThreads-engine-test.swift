@@ -1,6 +1,7 @@
 // notchcast-sources: -lsqlite3 Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
-// notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
 // notchcast-reads: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 import Foundation
 import SQLite3
