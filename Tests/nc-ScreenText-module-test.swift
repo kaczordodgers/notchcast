@@ -4,6 +4,7 @@
 // notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule*.swift
 // notchcast-sources: Tinycast/Features/ScreenText/Model/ScreenTextResult.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift
@@ -37,13 +38,12 @@ struct NotchcastCommand: Sendable {
     func showMessage(_ text: String, tone: Tone) { messages.append(text) }
 }
 @MainActor final class CaptureAreaService {
-    enum Failure: Error { case denied }
     var starts = 0
     var stops = 0
     var denied = false
     func start(_ select: (CaptureAreaSelection?) -> Void) throws {
         starts += 1
-        if denied { throw Failure.denied }
+        if denied { throw CaptureFailure.permissionDenied }
         select(.init(rect: CGRect(x: 0, y: 0, width: 2, height: 2), displayID: 1, displayFrame: .zero))
     }
     func stop() { stops += 1 }

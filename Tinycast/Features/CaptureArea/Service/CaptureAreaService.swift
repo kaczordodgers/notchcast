@@ -2,8 +2,6 @@ import AppKit
 
 @MainActor
 final class CaptureAreaService {
-    enum Failure: Error { case screenRecordingDenied }
-
     private var windows: [NSWindow] = []
     private var completion: ((CaptureAreaSelection?) -> Void)?
     private let hasScreenRecordingAccess: () -> Bool
@@ -27,7 +25,7 @@ final class CaptureAreaService {
     func start(completion: @escaping (CaptureAreaSelection?) -> Void) throws {
         stop()
         guard hasScreenRecordingAccess() || requestScreenRecordingAccess() else {
-            throw Failure.screenRecordingDenied
+            throw CaptureFailure.permissionDenied
         }
         self.completion = completion
         if let select {
@@ -36,8 +34,7 @@ final class CaptureAreaService {
         }
         let mainDisplayHeight = CGDisplayBounds(CGMainDisplayID()).height
         for screen in NSScreen.screens {
-            guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
-            else { continue }
+            guard let displayID = screen.displayID else { continue }
             let window = OverlayWindow(
                 contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
             window.isReleasedWhenClosed = false
@@ -46,7 +43,7 @@ final class CaptureAreaService {
             window.level = .screenSaver
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             let view = SelectionView(frame: CGRect(origin: .zero, size: screen.frame.size))
-            view.displayID = number.uint32Value
+            view.displayID = displayID
             view.displayFrame = screen.frame
             view.mainDisplayHeight = mainDisplayHeight
             view.finish = { [weak self] selection in self?.finish(selection) }

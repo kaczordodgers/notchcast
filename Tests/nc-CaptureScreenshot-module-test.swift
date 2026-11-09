@@ -31,7 +31,7 @@ struct NotchcastCommand: Sendable {
 
 @MainActor final class NSScreen {
     static var underCursor: NSScreen? = NSScreen()
-    let deviceDescription = [NSDeviceDescriptionKey("NSScreenNumber"): NSNumber(value: 42)]
+    let displayID: UInt32? = 42
 }
 
 @MainActor final class AppCore {

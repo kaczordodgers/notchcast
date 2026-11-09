@@ -15,4 +15,9 @@ enum ScreenshotRequest: Sendable {
     enum Failure: Error {
         case disabled, permissionDenied, invalidRect, targetUnavailable, encodingFailed, clipboardFailed
     }
+
+    static func isValid(rect: CGRect) -> Bool {
+        [rect.origin.x, rect.origin.y, rect.width, rect.height].allSatisfy(\.isFinite)
+            && rect.width > 0 && rect.height > 0
+    }
 }
