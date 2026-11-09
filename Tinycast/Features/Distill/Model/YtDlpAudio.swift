@@ -23,7 +23,8 @@ nonisolated enum YtDlpAudio {
     static let format = "bestaudio[ext=m4a]/bestaudio/best"
 
     static func metadataArguments(link: String) -> [String] {
-        ["--ignore-config", "--no-playlist", "--skip-download", "--dump-single-json", "--", link]
+        ["--ignore-config", "--no-playlist", "--skip-download",
+         "--print", "%(.{id,title,fulltitle,channel,uploader,_type})j", "--", link]
     }
 
     static func audioArguments(link: String, folder: URL) -> [String] {

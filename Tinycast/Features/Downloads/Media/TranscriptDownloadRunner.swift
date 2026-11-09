@@ -18,15 +18,16 @@ struct TranscriptDownloadRunner: DownloadRunner {
         let original = metadata.output.trimmingCharacters(in: .whitespacesAndNewlines)
         let language = job.options["language"] ?? (original.isEmpty || original == "NA" ? nil : original)
         for automatic in [false, true] {
-            _ = try await context.spawn(executable: executable, arguments: MediaArguments.captions(
-                source: job.source, destination: staging, automatic: automatic,
-                language: language, cookies: job.options["cookiesFromBrowser"]))
+            let arguments = MediaArguments.captions(source: job.source, destination: staging, automatic: automatic,
+                                                    language: language, cookies: job.options["cookiesFromBrowser"])
+            let result = try await context.spawn(executable: executable, arguments: arguments)
+            if MediaArguments.retryCaptions(stderr: result.errors, wroteCaptions: try !captions(in: staging).isEmpty) {
+                try await Task.sleep(for: .seconds(5))
+                _ = try await context.spawn(executable: executable, arguments: arguments)
+            }
             try Task.checkCancellation()
-            let files = try FileManager.default.contentsOfDirectory(at: staging, includingPropertiesForKeys: nil)
-                .filter { ["vtt", "srt"].contains($0.pathExtension.lowercased()) }
-                .sorted { $0.lastPathComponent < $1.lastPathComponent }
-            for file in files {
-                let text = CaptionText.plainText(try String(contentsOf: file, encoding: .utf8), automatic: automatic)
+            for file in try captions(in: staging) {
+                let text = CaptionText.plainText(try String(contentsOf: file, encoding: .utf8))
                 guard !text.isEmpty else { continue }
                 let name = file.deletingPathExtension().deletingPathExtension().lastPathComponent
                 try Task.checkCancellation()
@@ -36,5 +37,11 @@ struct TranscriptDownloadRunner: DownloadRunner {
         if let transcribe { return try await transcribe(job, context) }
         throw MediaFailure(detail: String(localized:
             "No captions are available. The Distill transcriber fallback is not connected yet.", table: "Notchcast"))
+    }
+
+    private func captions(in folder: URL) throws -> [URL] {
+        try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
+            .filter { ["vtt", "srt"].contains($0.pathExtension.lowercased()) }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
     }
 }
