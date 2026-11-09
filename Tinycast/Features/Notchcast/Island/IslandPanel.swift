@@ -20,6 +20,7 @@ final class IslandPanel: NSPanel {
     var onOpen: (() -> Void)?
     var onKey: ((NSEvent) -> Bool)?
     var onFocus: ((Bool) -> Void)?
+    var onPointer: ((NSEvent) -> Void)?
     /// False while the launcher hides the island, so hovering its empty spot never opens it.
     var containsPointer: Bool {
         launcherFrame == nil
@@ -59,6 +60,7 @@ final class IslandPanel: NSPanel {
         collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         contentView = surface
         surface.onOpen = { [weak self] in self?.onOpen?() }
+        surface.onPointer = { [weak self] in self?.onPointer?($0) }
         surface.onAnimationFrame = { [weak self] in
             self?.updateMousePassthrough()
             self?.invalidateShadow()

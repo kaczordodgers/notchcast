@@ -18,9 +18,13 @@ final class IslandSurfaceView: NSView {
     private var showing = Showing.closed
     var onAnimationFrame: (() -> Void)?
     var onOpen: (() -> Void)?
+    var onPointer: ((NSEvent) -> Void)?
 
     override init(frame: NSRect) {
         super.init(frame: frame)
+        // Over the island the panel takes the pointer, so the global monitor sees nothing until it leaves.
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways,
+                                                              .inVisibleRect], owner: self))
         wantsLayer = true
         layer?.backgroundColor = NotchcastTheme.Colors.surfaceInk.cgColor
         layer?.mask = silhouette
@@ -147,6 +151,9 @@ final class IslandSurfaceView: NSView {
         let host = showing == .open ? openHost : closedHost
         return host.hitTest(localPoint) ?? self
     }
+
+    override func mouseMoved(with event: NSEvent) { onPointer?(event) }
+    override func mouseExited(with event: NSEvent) { onPointer?(event) }
 
     override func accessibilityPerformPress() -> Bool {
         guard showing == .closed else { return false }
