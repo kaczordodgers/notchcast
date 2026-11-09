@@ -98,18 +98,18 @@ struct DownloadsIslandTest {
         await controller!.settle()
         controller = nil
 
-        center.dismissMessage()
+        let fresh = IslandActivityCenter(sleep: { _ in try? await Task.sleep(for: .seconds(600)) })
         let relaunched = makeController(file: file, root: root)
-        DownloadsIslandBridge.track(relaunched, center: center)
+        DownloadsIslandBridge.track(relaunched, center: fresh)
         relaunched.start { $0.register(HeldRunner()) }
         await relaunched.settle()
         precondition(relaunched.queue?.jobs.contains { $0.state == .failed } == true)
         await drain()
-        precondition(center.message == nil && center.activities.isEmpty, "Relaunch repeats no failure")
+        precondition(fresh.message == nil && fresh.activities.isEmpty, "Relaunch repeats no failure")
         relaunched.queue!.enqueue(kind: "hold", sources: ["https://example.com/again"])
-        try await eventually { !center.activities.isEmpty }
+        try await eventually { !fresh.activities.isEmpty }
         relaunched.stop()
-        try await eventually { center.activities.isEmpty }
+        try await eventually { fresh.activities.isEmpty }
         await relaunched.settle()
     }
 
