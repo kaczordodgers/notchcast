@@ -233,19 +233,19 @@ def compare_baseline(root, base, baseline):
             if key not in previous[rule] or value > previous[rule][key]]
 
 
-def report_counters(root, upstream, ours, our_tests):
+def report_counters(root, upstream, ours, our_tests, rev=None):
     counters = {('file-lines', path): len(text.splitlines()) for path, text in ours.items() if path != HUB}
     counters.update({('test-lines', path): len(text.splitlines()) for path, text in our_tests.items()})
     counters['waivers', 'all'] = sum(bool(WAIVER.search(line)) for text in (ours | our_tests).values()
                                      for line in text.splitlines())
     for name, pattern in PATTERNS.items():
         counters[name, 'all'] = sum(len(re.findall(pattern, text)) for text in ours.values())
-    diff = git(root, 'diff', '--diff-filter=M', '--numstat', upstream)
+    diff = git(root, 'diff', '--diff-filter=M', '--numstat', upstream, *([rev] if rev else []))
     counters['upstream-patch-lines', 'all'] = sum(int(line.split('\t')[0]) for line in diff.splitlines()
                                                if '.generated.' not in line.split('\t')[2]
                                                and line.split('\t')[2] not in ('README.md', 'Tinycast.xcodeproj/project.pbxproj')
                                                and line.split('\t')[0].isdigit())
-    log = git(root, 'log', '--first-parent', f'{upstream}..HEAD', '--format=%x1e%s%x1f%b')
+    log = git(root, 'log', '--first-parent', f'{upstream}..{rev or "HEAD"}', '--format=%x1e%s%x1f%b')
     waived_fixes = 0
     for entry in log.split('\x1e'):
         subject, _, body = entry.lstrip().partition('\x1f')
@@ -255,22 +255,36 @@ def report_counters(root, upstream, ours, our_tests):
     return counters
 
 
+def main_counters(root, upstream):
+    if subprocess.run(['git', '-C', str(root), 'rev-parse', '-q', '--verify', 'refs/remotes/origin/main'],
+                      capture_output=True).returncode:
+        return {}
+    base = git(root, 'merge-base', 'HEAD', 'refs/remotes/origin/main')
+    fork = git(root, 'merge-base', base, upstream)
+    added = git(root, 'diff', '--diff-filter=A', '--name-only', fork, base, '--', '*.swift').splitlines()
+    texts = {p: subprocess.check_output(['git', '-C', str(root), 'show', f'{base}:{p}'], text=True)
+             for p in added if p.startswith(('Tinycast/', 'notchcast/root/', 'Tests/'))}
+    tests = {p: text for p, text in texts.items() if p.startswith('Tests/')}
+    prod = {p: text for p, text in texts.items() if p not in tests}
+    return report_counters(root, fork, prod, tests, base)
+
+
 def print_counters(root, upstream, observed, ours, our_tests, baseline):
     print('Counter | Current | Baseline / threshold')
     for rule, counts in observed.items():
-        current, limit = sum(counts.values()), sum(baseline[rule].values())
-        print(f'{rule} | {current} ({len(counts)} keys) | {limit}')
-        if current > limit:
-            print(f'GATE-THRESHOLD {rule} {current} {limit}')
-    for file in sorted(ours, key=lambda p: (-len(ours[p].splitlines()), p))[:10]:
-        print(f'largest | {file} | {len(ours[file].splitlines())} lines')
+        print(f'{rule} | {sum(counts.values())} ({len(counts)} keys) | {sum(baseline[rule].values())}')
+        for key, value in sorted(counts.items()):
+            if value > baseline[rule].get(key, 0):
+                print(f'GATE-THRESHOLD {rule}:{key} {value} {baseline[rule].get(key, 0)}')
     counters = report_counters(root, upstream, ours, our_tests)
+    known = main_counters(root, upstream)
     for (counter, key), value in sorted(counters.items()):
         limit = baseline['alerts'][counter]
-        if counter not in ('file-lines', 'test-lines') or value > limit:
+        if key == 'all':
             print(f'{counter} | {value} | {limit} | {key}')
-        if value > limit:  # one machine-readable line per crossing; a file counter names its file
-            print(f'GATE-THRESHOLD {counter if key == "all" else f"{counter}:{key}"} {value} {limit}')
+        if value > limit:
+            mark = ' known' if value <= known.get((counter, key), limit) else ''
+            print(f'GATE-THRESHOLD {counter if key == "all" else f"{counter}:{key}"} {value} {limit}{mark}')
     return counters
 
 
