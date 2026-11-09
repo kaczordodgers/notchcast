@@ -8,13 +8,13 @@ The folder may sit at any depth under `Tinycast/Features/` (`Launcher/CopyPath/`
 
 ## Features still on the switches
 
-Each `NotchcastFeature.swift` switch starts with one fallback line, `if let descriptor { return descriptor.<field> }` (or `descriptor?.<field> ?? <value>`), and keeps arms only for:
+`dependencies`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `requiredGrants` and `defaultEnabled` start with the fallback line `if let descriptor { return descriptor.<field> }` and keep arms only for:
 
 - the capture module (`colorPicker`, `screenshot`, `scrollingCapture`, `recording`, `captureTrimmer`, `captureEditor`) and Treadmill (`treadmillWalk`, `treadmillHistory`): kept out of this batch;
 - `switcherQuitKey`: its only code is `Notchcast/Service/AppCore+SwitcherQuitKey.swift`, a `Service/` folder the `nc-Notchcast-*` harnesses compile without the hub; it moves when F2 gives it a folder;
 - `editorSpellChecking`: its only code is a patched line in upstream `Notes/`; it moves when it has a fork folder.
 
-`settingsGroup`, `title` and `subtitle` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
+`settingsGroup`, `title` and `subtitle` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these ten move. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
 
 ## Checks
 

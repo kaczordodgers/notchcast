@@ -1,13 +1,9 @@
 # Launcher commands
 
-A new feature describes itself in its own folder instead of adding switch arms: see
-[feature-descriptors.md](feature-descriptors.md). Features without a descriptor append one case
-per line in `Core/NotchcastFeature.swift`, one line per feature in
-each switch, and one group line in `settingsGroup`. Never extend an existing line or combine
-switch arms. `settingsGroup` lists every feature without a descriptor; `requiredGrants` lists only exceptions before
-`default: []`. If `startsOff` is present, its arms follow the same rule.
-`needsIsland` first excludes system features, then uses one exception arm per line and
-`default: true`; add exceptions as separate arms rather than extending a Boolean expression.
+A new feature appends one case line in `Core/NotchcastFeature.swift` and describes itself in its
+own folder, never with switch arms: see [feature-descriptors.md](feature-descriptors.md). The
+switches keep one arm per line for the few features listed there; never extend an existing line
+or combine switch arms.
 New groups append one case line in `Core/NotchcastFeature+SettingsGroup.swift`, inside the
 separator comments. Keep separators between cases and members and between switches.
 Both files use `merge=union`; run `python3 notchcast/check-feature-shape.py` and
