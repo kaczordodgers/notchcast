@@ -93,7 +93,7 @@ struct MonitorEngineTests {
         let second = store?.beginDemand()
         precondition(store?.demand == 2)
         await until { probe.sleepers.count == 1 && store?.latest.battery != nil }
-        precondition(probe.samples == 1)
+        precondition(probe.samples == 1 && probe.intervals == [.seconds(2)])
         first = nil
         precondition(store?.demand == 1 && first == nil)
         probe.sleepers.removeFirst().resume()
@@ -136,9 +136,8 @@ struct MonitorEngineTests {
             probe.finishMeasurement(Double(index + 1))
             await until { store.speedTestState == .completed }
         }
-        let history = store.speedTestResults.map(\.downloadMbps)
-        precondition(history.count < 12 && !history.contains(0), "history drops the oldest results")
-        precondition(history.first == 11 && zip(history, history.dropFirst()).allSatisfy { $0 - $1 == 1 }, "newest first")
+        precondition(store.speedTestResults.count == 10)
+        precondition(store.speedTestResults.map(\.downloadMbps) == (2..<12).reversed().map(Double.init))
         precondition(store.speedTestResults.first?.uploadMbps == 12)
         precondition(probe.phases == Array(repeating: [.download, .upload], count: 12).flatMap { $0 })
         let saved = store.speedTestResults

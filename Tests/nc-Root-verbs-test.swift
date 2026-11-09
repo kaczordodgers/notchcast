@@ -19,6 +19,7 @@ struct RootVerbsTest {
             precondition(RootContract.Command(arguments: command.arguments) == command, "\(command) round trip")
             precondition(RootContract.Reply(command: command, output: command.output) != nil, "\(command) reply")
         }
+        precondition(RootContract.Command.version.output == "4\n")
         precondition(RootContract.Reply(command: .version, output: "4\n") == .version("4"))
         precondition(RootContract.Reply(command: .ping, output: "pong\n") == .pong)
         precondition(RootContract.Reply(command: .chargeLimitRead, output: "off\n") == .chargeLimit(nil))

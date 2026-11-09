@@ -69,8 +69,8 @@ struct SMCClient {
 @main struct FanPeerTest {
     @MainActor static func main() async throws {
         let applyAndRestore = RootContract.Operation.change.timeout * 2
-        precondition(MachLinkRequestBudget.responder > applyAndRestore)
-        precondition(MachLinkRequestBudget.requester > MachLinkRequestBudget.responder)
+        precondition(MachLinkRequestBudget.responder == applyAndRestore + .seconds(2))
+        precondition(MachLinkRequestBudget.requester == MachLinkRequestBudget.responder + .seconds(2))
         let channel = MachLinkChannel()
         let monitor = MonitorModule()
         let fans = monitor.fans

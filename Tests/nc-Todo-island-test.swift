@@ -80,13 +80,14 @@ struct TodoIslandTests {
         precondition(module.store != nil && module.islandSnapshot == nil)
         toggle.enabled = true
         for _ in 0..<20 { await Task.yield() }
-        precondition(module.islandSnapshot != nil)
+        weak var released = module.islandFeed
+        precondition(released != nil && module.islandSnapshot != nil)
         let islandFile = root.appending(path: "module/island.json").path
         for _ in 0..<500 where !FileManager.default.fileExists(atPath: islandFile) { try await Task.sleep(for: .milliseconds(10)) }
         precondition(FileManager.default.fileExists(atPath: islandFile))
         toggle.enabled = false
         for _ in 0..<20 { await Task.yield() }
-        precondition(module.islandSnapshot == nil)
+        precondition(released == nil && module.islandSnapshot == nil)
         precondition(!FileManager.default.fileExists(atPath: islandFile), "switching off deletes the snapshot file")
         try module.store?.perform(.addTask(TodoTask(id: UUID().uuidString, title: "After off")))
         try await Task.sleep(for: .milliseconds(200))
@@ -94,18 +95,20 @@ struct TodoIslandTests {
         module.stop()
         toggle.enabled = true
         module.start()
-        precondition(module.islandSnapshot == nil)
+        precondition(module.islandFeed == nil && module.islandSnapshot == nil)
         for _ in 0..<500 where module.store == nil { try await Task.sleep(for: .milliseconds(10)) }
-        precondition(module.islandSnapshot != nil)
+        released = module.islandFeed
+        precondition(released != nil && module.islandSnapshot != nil)
         try module.store?.close()
         for _ in 0..<20 { await Task.yield() }
-        precondition(module.islandSnapshot == nil)
+        precondition(released == nil && module.islandSnapshot == nil)
         module.stop()
         module.start()
         for _ in 0..<500 where module.store == nil { try await Task.sleep(for: .milliseconds(10)) }
-        precondition(module.islandSnapshot != nil)
+        released = module.islandFeed
+        precondition(released != nil && module.islandSnapshot != nil)
         module.stop()
-        precondition(module.islandSnapshot == nil)
-        print("PASS: module switch, delayed store open, close and stop clear the island snapshot")
+        precondition(released == nil && module.islandSnapshot == nil)
+        print("PASS: module switch, delayed store open, close and stop release the feed and clear the snapshot")
     }
 }

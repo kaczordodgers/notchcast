@@ -27,6 +27,7 @@ struct TweakCoreTests {
         enum InjectedFailure: Error { case failed }
         let failure = TweakPlanRunner().apply(plan) { _, _ in throw InjectedFailure.failed }
         precondition(failure.completed.isEmpty && failure.failure != nil)
+        precondition(AIOffCatalog.features.count == 14)
         let service = AIOffModelService()
         let sizes = try service.read { _ in 0 }
         precondition(sizes.count == 5)

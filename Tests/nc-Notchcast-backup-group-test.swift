@@ -57,10 +57,11 @@ struct SettingsSectionHeader: View {
         while BackupActions.writes.isEmpty { await Task.yield() }
         precondition(BackupActions.writes == [false])
         precondition(core.settings.settingsFileEnabled && binding.wrappedValue, "the binding only asks BackupActions")
+        core.settings.settingsFileEnabled = false
+        precondition(!binding.wrappedValue, "the toggle shows the setting")
         binding.wrappedValue = true
         while BackupActions.writes.count < 2 { await Task.yield() }
         precondition(BackupActions.writes == [false, true])
-        precondition(core.settings.settingsFileEnabled)
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         func read(_ path: String) throws -> String {
             try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)

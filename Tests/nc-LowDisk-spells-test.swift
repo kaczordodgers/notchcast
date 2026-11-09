@@ -84,6 +84,7 @@ struct LowDiskTests {
         reader.continuation = nil
         await Task.yield()
         check(restarted.engine.isLow, "Stopped read cannot mutate the spell")
+        check(LowDiskManager.checkInterval == .seconds(600), "Ten-minute cadence")
         print("PASS: \(checks) disk threshold, persistence, wake and stale-result checks")
     }
 }

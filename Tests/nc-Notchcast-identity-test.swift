@@ -25,6 +25,8 @@ struct NotchcastIdentityTest {
         let missing = NotchcastIdentity(bundleIdentifier: nil)
         assert(missing.bundleID == "app.notchcast.dev")
         assert(missing.suiteName() == "app.notchcast.dev.notchcast")
+        assert(NotchcastIdentity.releaseBundleIdentifier == "app.notchcast")
+        assert(NotchcastIdentity.upstreamSubsystem == "com.tinycast")
         let configuration = NotchcastIdentity.sessionConfiguration()
         assert(configuration.urlCache == nil)
         assert(configuration.urlCredentialStorage !== URLCredentialStorage.shared)

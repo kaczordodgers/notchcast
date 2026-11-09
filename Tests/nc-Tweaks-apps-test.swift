@@ -37,7 +37,9 @@ struct TweaksAppsTests {
             _ = try service.read(punctuation) { _ in throw Failure.refused }
             fatalError("Unreadable key treated as absent")
         } catch Failure.refused { checks += 1 }
+        expect(TypingCatalog.writes.count == 7, "Five typing toggles and two repeat settings")
         expect(!TypingCatalog.preset.contains("autocorrect"), "Preset preserves autocorrect")
+        expect(FinderCatalog.writes.count == 15, "Twelve preference toggles and three additional settings")
         let home = URL(fileURLWithPath: "/tmp/home with spaces")
         expect(FinderCatalog.library(home: home, hidden: false).arguments ==
                ["nohidden", "/tmp/home with spaces/Library"], "Library path stays one argument")

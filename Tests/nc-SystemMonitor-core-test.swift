@@ -23,6 +23,7 @@ struct MonitorCoreTests {
         single.append(1)
         single.append(2)
         expect(single.values == [2], "single capacity")
+        expect(MonitorHistory().capacity == 60, "default capacity")
 
         let start = Date(timeIntervalSince1970: 0)
         var rule = MonitorAlertRule(direction: .above, threshold: 90, recoverValue: 80,
@@ -49,8 +50,12 @@ struct MonitorCoreTests {
         expect(interrupted.evaluate(.infinity, at: start) == .none, "invalid breaks sustain")
         expect(interrupted.evaluate(2, at: start) == .none, "sustain reset on invalid")
         expect(interrupted.evaluate(2, at: start) == .fire, "critical pressure fires")
+        expect(MonitorAlertRule.defaults.count == 6, "six default rules")
+        expect(MonitorAlertRule.defaults.values.allSatisfy { $0.cooldown == 900 }, "default cooldown")
 
         expect(MonitorCadence.next(isVisible: false) == nil, "hidden stops sampling")
+        expect(MonitorCadence.next(isVisible: true)?.interval == 2, "default interval")
+        expect(MonitorCadence.next(isVisible: true)?.leeway == 0.2, "default leeway")
         expect(MonitorCadence.next(isVisible: true, baseInterval: 5)?.leeway == 0.5, "custom cadence")
         expect(MonitorCadence.next(isVisible: true, baseInterval: 0) == nil, "invalid cadence")
 
