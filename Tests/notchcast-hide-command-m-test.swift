@@ -48,7 +48,8 @@ struct HideCommandMTests {
         let pid = NSWorkspace.shared.frontmostApplication?.processIdentifier ?? 0
         let hides = pid > 0 && pid != ProcessInfo.processInfo.processIdentifier
         precondition((send() == .swallow) == hides, "A plain Command-M hides only another frontmost app")
-        precondition((send(repeatKey: true, synthetic: true) == .swallow) == hides)
+        precondition(send(synthetic: true) == .pass, "Replayed keys pass even while one is held")
+        precondition((send(flags: [.maskCommand, .maskShift], repeatKey: true) == .swallow) == hides)
         precondition((send(false, flags: []) == .swallow) == hides)
         precondition(send(false) == .pass)
         module.stop()

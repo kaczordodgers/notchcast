@@ -154,6 +154,7 @@ struct SystemLevelRoutingTests {
         check(hub.handlers.count == 1, "Brightness stays registered without a HUD presenter")
         check(hardware.state.withLock { $0.writes } == 0, "No presenter performs no custom steps")
         center.hasPresenter = true
+        for _ in 0..<20 { await Task.yield() }
         check(hub.handlers.count == 1, "One hub consumer handles both features")
         hub.send(.volumeUp)
         await eventually { keys.latest?.percent == 56 }
@@ -228,6 +229,7 @@ struct SystemLevelRoutingTests {
         await eventually { keys.latest?.kind == .brightness }
         check(keys.latest != nil, "Brightness works with the island off")
         center.hasPresenter = false
+        for _ in 0..<20 { await Task.yield() }
         check(hub.handlers.count == 1, "Removing the presenter keeps brightness registered")
         check(center.activities.isEmpty, "Removing the presenter clears its activity")
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")
