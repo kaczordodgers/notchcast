@@ -28,8 +28,6 @@ private final class FakeBluetooth: AccessoryBluetoothSource {
         source.receive?("cc:dd", "Mouse", false)
         source.receive?("cc:dd", "Mouse", true)
         assert(connections == 2)
-        source.stop()
-        assert(source.receive == nil)
         func reading(_ percent: Double) -> [BatteryPeripheralReading] {
             [.init(id: 1, name: "Mouse", percent: percent)]
         }

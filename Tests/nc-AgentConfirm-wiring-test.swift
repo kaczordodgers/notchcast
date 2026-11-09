@@ -162,8 +162,16 @@ struct ConfirmationWiringTests {
             precondition(Mirror(reflecting: child.value).children.isEmpty,
                          "Expired request bookkeeping retained: \(label)")
         }
+        held = nil
+        let fresh = Task { await expiring.authorize(dangerous, parameters: .null) }
+        for _ in 0..<10_000 where held == nil { await Task.yield() }
+        precondition(held != nil, "A fresh request after 20 expirations never reached the presenter")
+        held?.resume(returning: 0)
+        let allowed = await fresh.value
+        precondition(allowed != nil, "The presenter's Allow once was not honoured")
         expiring.stop()
         print("PASS: 20 expired requests leave actions, messages and timers empty")
+        print("PASS: after 20 expired requests a fresh one reaches the presenter and its answer is honoured")
         print("PASS: queue held through upstream confirm; parameterized stored grants prompt; parameterless Always allow")
     }
 }
