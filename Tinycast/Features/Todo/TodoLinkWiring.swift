@@ -8,46 +8,30 @@ extension TodoLinkCoordinator: NotchcastModule {
         if let store = module.store { opened(store) }
     }
 
-    static func live(channel: MachLinkUsagePeerChannel, preferences: NotchcastPreferences) -> TodoLinkCoordinator {
+    static func live(channel: MachLinkChannel, preferences: NotchcastPreferences) -> TodoLinkCoordinator {
         let coordinator = TodoLinkCoordinator(enabled: {
             [.tasksSync, .tasks, .machLink].allSatisfy { preferences.isOn($0) }
         }, exchange: { packet in
-            guard let pairing = channel.pairing else { throw MachLinkMessage.Failure.disconnected }
-            let peers = channel.manager.peers.filter {
-                guard case let .service(name, _, _, _) = $0.endpoint,
-                      name != channel.manager.serviceName,
-                      case let .bonjour(record) = $0.metadata else { return false }
-                return record["pairing"] == pairing.discoveryHash
+            do {
+                return try await channel.request(packet, method: "todo-sync", as: TodoLinkPacket.self)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                throw MachLinkMessage.Failure.disconnected
             }
-            let endpoints = channel.endpoint.map { [$0] } ?? peers.map(\.endpoint)
-            let destination = channel.endpoint
-            for endpoint in endpoints {
-                try Task.checkCancellation()
-                do {
-                    let response = try await MachLinkManager.request(packet, method: "todo-sync", from: endpoint,
-                        pairing: pairing, as: TodoLinkPacket.self)
-                    try Task.checkCancellation()
-                    guard channel.pairing?.id == pairing.id, channel.pairing?.secret == pairing.secret,
-                          channel.endpoint == destination else {
-                        throw TodoLinkPacket.Failure.unavailable
-                    }
-                    return response
-                } catch is CancellationError { throw CancellationError() } catch { continue }
-            }
-            throw MachLinkMessage.Failure.disconnected
         })
         coordinator.pairingIdentity = { channel.pairing?.id }
+        channel.manager.register("todo-sync") { [weak coordinator] request in
+            guard let coordinator else { throw MachLinkMessage.Failure.disconnected }
+            return try coordinator.response(to: request)
+        }
         return coordinator
     }
 
     func response(to request: MachLinkMessage) throws -> MachLinkMessage {
+        try Task.checkCancellation()
+        guard canSync else { throw MachLinkMessage.Failure.disconnected }
         let response = try respond(request.value(as: TodoLinkPacket.self))
         return try MachLinkMessage(id: request.id, method: request.method, value: response)
-    }
-
-    func peerResponse(to request: MachLinkMessage, via manager: MachLinkManager) async throws -> MachLinkMessage? {
-        try await manager.todoResponse(to: request, enabled: { self.canSync }, handler: {
-            try self.response(to: $0)
-        })
     }
 }

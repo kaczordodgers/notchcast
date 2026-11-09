@@ -1,31 +1,28 @@
 import Foundation
-import Network
 
 @MainActor
 final class MachLinkShelfChannel: ShelfLinkStatus, ShelfTransport {
-    let channel: MachLinkUsagePeerChannel
+    let channel: MachLinkChannel
     let status: () -> Bool
 
-    init(channel: MachLinkUsagePeerChannel, status: @escaping () -> Bool) {
+    init(channel: MachLinkChannel, module: ShelfModule, status: @escaping () -> Bool) {
         self.channel = channel
         self.status = status
+        channel.manager.register("shelf-item") { [weak module] request in
+            guard NotchcastPreferences.shared.isOn(.machLink), NotchcastPreferences.shared.isOn(.shelfBetweenMacs),
+                  let module else { throw MachLinkMessage.Failure.disconnected }
+            _ = try await module.receive(request.value(as: ShelfItem.self))
+            return try MachLinkMessage(id: request.id, method: request.method, value: true)
+        }
     }
 
-    var shelfPeerAvailable: Bool { status() && channel.pairing != nil && endpoint != nil }
-
-    private var endpoint: NWEndpoint? {
-        if let endpoint = channel.endpoint { return endpoint }
-        return channel.manager.peers.first {
-            guard case let .service(name, _, _, _) = $0.endpoint,
-                  name != channel.manager.serviceName, case let .bonjour(record) = $0.metadata else { return false }
-            return record["pairing"] == channel.pairing?.discoveryHash
-        }?.endpoint
-    }
+    var shelfPeerAvailable: Bool { status() && channel.peer != nil }
 
     func sendShelfItem(_ item: ShelfItem) async throws {
-        guard shelfPeerAvailable, let endpoint, let pairing = channel.pairing else {
-            throw ShelfEngine.Failure.peerDown
+        guard shelfPeerAvailable else { throw ShelfEngine.Failure.peerDown }
+        try ShelfEngine.validate(item)
+        guard try await channel.request(item, method: "shelf-item", as: Bool.self) else {
+            throw ShelfEngine.Failure.invalidItem
         }
-        try await ShelfMachLinkTransport(endpoint: endpoint, pairing: pairing).sendShelfItem(item)
     }
 }
