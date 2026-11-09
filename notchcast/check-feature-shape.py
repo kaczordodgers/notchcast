@@ -17,9 +17,11 @@ LISTS = {
     Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
     DESCRIPTORS: r"^\.(\w+):",
 }
-# Root of a feature folder other than the hub; harnesses compile this glob with NotchcastFeature.swift.
-DESCRIPTOR_FILE = re.compile(r"Tinycast/Features/(?!Notchcast/)\w+/(\w+)Descriptor\.swift")
-DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*\(")
+# The feature's code folder at any depth, beside its layers: harnesses glob Model/ and Service/.
+DESCRIPTOR_FILE = re.compile(r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))"
+                             r"(?:(?!(?:Model|Service|UI|Settings)/)\w+/)+(\w+)Descriptor\.swift")
+DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*(?:\.init\s*)?\("
+                                    r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?Descriptor\b")
 # Switches without a default: a feature without a descriptor needs an arm in each.
 EXHAUSTIVE = ("settingsGroup", "title", "subtitle")
 
@@ -163,9 +165,19 @@ def list_errors(source, identity):
     return errors
 
 
+def upstream_folders(root):
+    """Feature folders upstream ships at the merge base; none without an upstream ref."""
+    def git(*args):
+        result = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
+        return result.stdout.strip() if result.returncode == 0 else ""
+    base = git("merge-base", "HEAD", "refs/remotes/upstream/main")
+    return {Path(path).name for path in git("ls-tree", "--name-only", base, "Tinycast/Features/").splitlines()} if base else set()
+
+
 def descriptor_errors(root):
-    """A described feature has no switch arm and one descriptor file in its own folder."""
+    """A described feature has no switch arm and one listed descriptor file in its own fork folder."""
     errors = []
+    upstream = upstream_folders(root)
     described = {}
     for number, line in enumerate(mask_literals((root / DESCRIPTORS).read_text()).split("\n"), 1):
         entry = re.fullmatch(r"\s*\.(\w+): \.(\w+),", line)
@@ -200,9 +212,15 @@ def descriptor_errors(root):
             errors.append((relative, code.count("\n", 0, declaration.start()) + 1,
                            "declare a descriptor in Tinycast/Features/<its folder>/<Name>Descriptor.swift"))
         elif place:
+            feature = place[1][:1].lower() + place[1][1:]
             names = re.findall(r"\bstatic let (\w+)\b", code)
             if not declaration or [name[:1].upper() + name[1:] for name in names] != [place[1]]:
-                errors.append((relative, 1, f"declare exactly one descriptor, .{place[1][:1].lower() + place[1][1:]}"))
+                errors.append((relative, 1, f"declare exactly one descriptor, .{feature}"))
+            elif feature not in described:
+                errors.append((relative, 1, f"list .{feature}: .{feature}, in {DESCRIPTORS}"))
+            if relative.parts[2] in upstream:
+                errors.append((relative, 1, f"upstream ships Features/{relative.parts[2]}/; "
+                                            "describe the feature from a fork folder of its own"))
     return errors
 
 

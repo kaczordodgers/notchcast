@@ -5,9 +5,10 @@ extension NotchcastFeature.Descriptor {
         title: String(localized: "Event Reminders", table: "Notchcast"),
         subtitle: String(localized: "Show calendar alerts in the island.", table: "Notchcast"),
         group: .activities,
-        needsIsland: true,
         defaultEnabled: true,
         dependencies: [.island],
-        requiredGrants: [.calendars]
+        requiredGrants: [.calendars],
+        isSystemFeature: false,
+        isSystemTweak: false
     )
 }
