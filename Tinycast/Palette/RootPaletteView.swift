@@ -1530,6 +1530,8 @@ struct RootPaletteView: View {
             launcherMode=\(vm.mode == .launcher) search=\(searchFocused) argument=\(argumentFocused != nil) \
             menu=\(menuOpen) composing=\(vm.isComposing) list=\(vm.isControlListOpen) collapsed=\(isCollapsed) \
             responder=\(NSApp.keyWindow?.firstResponder.map { "\(type(of: $0))" } ?? "nil") \
+            fieldEditor=\((NSApp.keyWindow?.firstResponder as? NSTextView)?.isFieldEditor ?? false) \
+            marked=\((NSApp.keyWindow?.firstResponder as? NSTextView)?.hasMarkedText() ?? false) \
             launcher=\(screen is LauncherScreen) modifiers=\(press.modifiers.rawValue)
             """)
         guard NotchcastPreferences.shared.isOn(.launcherAliasSpace),

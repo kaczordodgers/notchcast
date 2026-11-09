@@ -33,7 +33,8 @@ extension LauncherScreen {
             aliases: Array(core.aliases.aliases.values))
         LauncherAliasSpaceTrace.note("""
             decide rows=\(rows.count) candidates=\(candidates.count) \
-            arguments=\(candidates.first?.argumentCount ?? -1) \
+            arguments=\(candidates.first?.argumentCount ?? -1) kind=\(candidates.first.map { "\($0.kind)" } ?? "none") \
+            prefixed=\(core.aliases.aliases.values.contains { $0.hasPrefix(vm.query + " ") }) \
             aliasHits=\(core.aliases.aliases.values.filter { $0 == vm.query }.count) \
             caret=\(caretUTF16) length=\(vm.query.utf16.count) selection=\(selectionLength) \
             modifiers=\(hasModifiers) decision=\(decision.traceName)
