@@ -20,11 +20,7 @@ struct BatteryOwnershipJournal: Codable, Sendable, Equatable {
         capturedLimit = true
     }
 
-    var limitUndo: String? {
-        guard let priorLimit else { return "charge-limit-off" }
-        guard [60, 70, 80, 90].contains(priorLimit) else { return nil }
-        return "charge-limit-\(priorLimit)"
-    }
+    var limitUndo: String? { RootContract.Command(chargeLimit: priorLimit)?.rawValue }
 
     mutating func reapplyLimit() {
         guard var effect = effects["charge-limit"], effect.intent == nil else { return }
@@ -82,7 +78,7 @@ struct BatteryOwnershipJournal: Codable, Sendable, Equatable {
 
     func userChangedLimit(_ current: Int?) -> Bool {
         guard let effect = effects["charge-limit"] else { return false }
-        let value = current.map { "charge-limit-\($0)" } ?? "charge-limit-off"
+        guard let value = RootContract.Command(chargeLimit: current)?.rawValue else { return true }
         return value != effect.applied && value != effect.intent
     }
 }

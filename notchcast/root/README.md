@@ -49,16 +49,14 @@ require root (exit 77 otherwise) and return `ok` on success. Spotlight uses a 60
 Touch ID uses the 12-second change timeout. Unchanged Touch ID content is never written.
 The harness verifies pure PAM transforms without changing the system.
 
-The fixed program and app client share twenty-five argument-free verbs. `version` prints the contract version (`3`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
+The fixed program and app client share 27 argument-free verbs. `version` prints the contract version (`4`), and `ping` prints `pong`; neither requires root, nor does `charge-limit-read`. Change verbs require root and print exactly `ok
 ` on success. All replies end with a newline. Invalid argument vectors exit 64, unprivileged changes exit 77, absent battery control keys exit 69, and other operation failures exit 70, without stdout. Charge-limit timeouts report unconfirmed state on stderr. Spotlight, battery sleep, standby and autopoweroff verbs launch processes, with fixed arguments and an empty environment.
 
 `standby-off` and `standby-on` run `/usr/bin/pmset -a standby 0` and `/usr/bin/pmset -a standby 1`; `autopoweroff-off` and `autopoweroff-on` run `/usr/bin/pmset -a autopoweroff 0` and `/usr/bin/pmset -a autopoweroff 1`. These use the 12-second change timeout. The harness checks argument mappings without invoking pmset.
 
 On the inspected Mac, `pmset -g cap` and `pmset -g custom` omit `autopoweroff`. The installed pmset binary still names the setting and its manual describes it for supported platforms, so the verbs remain available; their hardware effect on this Mac is unverified.
 
-`RootContract.swift` here is a symlink to the app's contract under
-`Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no
-helper Xcode target or resident daemon.
+The helper compiles the app's `Tinycast/Features/Notchcast/Root/RootContract.swift` directly, so both programs compile the one command table and app callers send its typed `RootContract.Command` cases. There is no helper Xcode target or resident daemon.
 
 ## Installation
 
@@ -75,7 +73,7 @@ The rule names the console user at install time; another user re-runs the instal
 
 ## App contract
 
-`RootHelperClient().run(.version)` returns `.version("3")`; `.run(.ping)` returns `.pong`. Calls use
+`RootHelperClient().run(.version)` returns `.version("4")`; `.run(.ping)` returns `.pong`. Calls use
 `/usr/bin/sudo -n` with an empty environment, no stdin, and `/` as the working directory. Each call
 checks every path component with `lstat`: root ownership, no group/world write permission, directory
 parents, an executable regular file, and no symlinks. `isInstalled` reports that path check only;
@@ -107,7 +105,7 @@ Actual privileged operations require separate hardware validation.
 
 ## Fan implementation
 
-`FanSMC.swift` is helper-only, adapted from Orion's SMC codec, connection and fan sequence. It is never compiled into the app. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
+`FanSMC.swift` is helper-only, adapted from Orion's connection and fan sequence. It is never compiled into the app, but it decodes with the app's `SystemMonitor/Model/SMCValue.swift`, so the app and the helper read the same numbers from the same bytes; the helper accepts only the types it can encode (`flt `, `fpe2`, unsigned integers) and refuses negative values. Its connection stays its own because it writes and must tell a missing key from a failed call. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
 
 - `fans-auto`: write 0 to each fan's mode, then clear `Ftst` if present. Every release is attempted even if another fails. Targets are left alone.
 - `fans-medium`: unlock `Ftst` with 1 if present and not already 1; for each fan, write mode 1 repeatedly every 100 ms until it reads back as 1, then write its target `min + 0.6 × (max − min)`.
@@ -115,4 +113,4 @@ Actual privileged operations require separate hardware validation.
 
 All manual-mode retries share one five-second window. Any manual-operation failure attempts the complete Auto sequence before reporting failure. A failed key-info call is an error, not evidence that `Ftst` is absent. Numeric encodings follow the key's reported type (`flt ` little-endian, `fpe2` and unsigned integers big-endian); invalid sizes, unsupported types and overflow are rejected.
 
-The harness compiles the shipped fan implementation with an in-memory SMC fixture to check targets, encoding bytes, retry timing, write order and failure recovery. Live hardware verification and app lifecycle wiring are separate work.
+The harness compiles the shipped fan implementation with an in-memory SMC fixture to check targets, encoding bytes, retry timing, write order and failure recovery. `nc-SystemMonitor-smc-decode-test` decodes fixed SMC byte fixtures through both decoders, and `nc-Root-verbs-test` pins the verb table and the verbs Battery sends. Live hardware verification and app lifecycle wiring are separate work.

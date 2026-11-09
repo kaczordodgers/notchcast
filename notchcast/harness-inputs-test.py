@@ -133,7 +133,7 @@ class HarnessInputsTest(unittest.TestCase):
     def test_hub_consumer_gets_descriptors_at_any_depth(self):
         hub = "Tinycast/Features/Notchcast/Core/NotchcastFeature.swift"
         descriptors = ["Tinycast/Features/Example/ExampleDescriptor.swift",
-                       "Tinycast/Features/Launcher/Keys/LauncherAliasSpaceDescriptor.swift",
+                       "Tinycast/Features/MachRemote/Integration/SendFilesDescriptor.swift",
                        "Tinycast/Features/Notchcast/Island/IslandDescriptor.swift"]
         for path in (hub, *descriptors):
             (self.root / path).parent.mkdir(parents=True, exist_ok=True)

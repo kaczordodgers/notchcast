@@ -48,7 +48,7 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     func start() {
-        AppCore.shared.appIndex.refreshNotchcastCommands()
+        NotchcastHost.current.refreshNotchcastCommands()
         guard !tap.isActive else { return }
         refreshLayout()
         refresh()
@@ -93,7 +93,7 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     func stop() {
-        AppCore.shared.appIndex.refreshNotchcastCommands()
+        NotchcastHost.current.refreshNotchcastCommands()
         tap.stop()
         timer?.invalidate()
         timer = nil
