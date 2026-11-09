@@ -2,8 +2,7 @@
 import AppKit
 import SwiftUI
 
-/// A gallery page as the gallery captures it: the same windows, settle times and capture, shown as an image.
-/// The capture runs where the preview is made, not in a view body, so SwiftUI inside the page can still update.
+/// Captured outside a view body, so SwiftUI inside the page still updates before the shot.
 @MainActor
 private func galleryPreview(_ name: String) -> some View {
     let core = AppCore.shared
