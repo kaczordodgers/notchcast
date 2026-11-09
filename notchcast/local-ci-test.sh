@@ -22,6 +22,7 @@ STUB
 cat > "$scratch/bin/python3" <<'STUB'
 #!/bin/bash
 if [ "$1" = -c ]; then echo fixture; exit 0; fi
+if [[ "$1" == */check-drift.py ]]; then [ -z "${DRIFT_FAIL:-}" ] || echo 'gate 1: FAIL'; exit "${DRIFT_FAIL:-0}"; fi
 echo "builder $RUN"
 echo "$RUN: $*" >> "$QUEUE_CALLS"
 sleep 1
@@ -60,3 +61,8 @@ grep -q 'local CI waits: landing is held for 330' "$scratch/other" || { cat "$sc
 wait "$other" || { cat "$scratch/other"; exit 1; }
 grep -q '^other: .*build-queue.py hold -- bash ' "$QUEUE_CALLS" || { cat "$QUEUE_CALLS"; echo 'FAIL: the waiting build did not run after release'; exit 1; }
 echo 'PASS: another PR waits for the hold, then builds in the normal lane'
+if DRIFT_FAIL=1 RUN=drift bash "$script" 1 > "$scratch/drift" 2>&1; then echo 'FAIL: drift passed'; exit 1; fi
+grep -q '^REFUSED: drift baseline grew$' "$scratch/drift" || { cat "$scratch/drift"; echo 'FAIL: no drift refusal'; exit 1; }
+grep -q '^failure: .*, drift; log: ' "$scratch/drift" || { cat "$scratch/drift"; echo 'FAIL: status step is not drift'; exit 1; }
+! grep -q '^drift:' "$QUEUE_CALLS" || { echo 'FAIL: built after a drift refusal'; exit 1; }
+echo 'PASS: a drift refusal fails local CI before the build'
