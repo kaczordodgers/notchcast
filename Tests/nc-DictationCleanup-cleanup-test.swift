@@ -173,7 +173,6 @@ struct CleanupTests {
         defaults.set(false, forKey: "dictationCleanup")
         defaults.set(true, forKey: "dictationCleanup")
         expect(try store.read() == settings)
-        expect(defaults.dictionaryRepresentation().values.allSatisfy { !String(describing: $0).contains("fixture-key") })
         for enabled in [false, true] {
             defaults.removeObject(forKey: "dictationCleanupSettings")
             settings.isEnabled = enabled

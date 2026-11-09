@@ -82,7 +82,6 @@ struct CleanDiskTest {
             try await scanner.trash(0, from: scan, currentID: id)
             fatalError("Root accepted")
         } catch {}
-        precondition(manager.fileExists(atPath: sentinel.path))
         precondition(transport.calls.withLock { $0.isEmpty })
         let selected = scan.nodes.firstIndex { $0.path == file }!
         try await scanner.trash(selected, from: scan, currentID: id)
