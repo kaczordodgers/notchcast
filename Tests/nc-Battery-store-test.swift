@@ -92,7 +92,7 @@ struct BatteryStoreTests {
                 currentLimit = Int($0.rawValue.components(separatedBy: "-").last ?? "")
             }
         }, installed: { true }, version: { RootContract.version }, create: { _ in 99 }, release: { _ in },
-           supports: { _ in true }, readLimit: { currentLimit }))
+           readLimit: { currentLimit }))
         preferences.set(.keepAwake, false)
         preferences.set(.batterySailing, true)
         preferences.batteryChargePercent = 80
@@ -132,7 +132,7 @@ struct BatteryStoreTests {
                 throw RootHelperClient.Failure.executionFailed(70)
             }
         }, installed: { true }, version: { RootContract.version }, create: { _ in 0 }, release: { _ in },
-           supports: { _ in true }, readLimit: { nil }))
+           readLimit: { nil }))
         unsupported.start()
         for _ in 0..<100 { await Task.yield() }
         await unsupported.evaluate(now: .now)
@@ -147,7 +147,7 @@ struct BatteryStoreTests {
         let leftover = BatteryModule(preferences: preferences, runner: .init(read: { nil },
             root: { cleanupCalls.append($0) }, installed: { true }, version: { RootContract.version },
             create: { _ in preconditionFailure("No assertions expected") }, release: { _ in },
-            supports: { _ in true }, readLimit: { 85 }))
+            readLimit: { 85 }))
         leftover.start()
         for _ in 0..<100 { await Task.yield() }
         await leftover.evaluate(now: .now)
@@ -157,18 +157,6 @@ struct BatteryStoreTests {
         leftover.stop()
         await leftover.waitUntilIdle()
         precondition(cleanupCalls.isEmpty)
-        var missingCalls = 0
-        preferences.set(.batteryChargeLimit, true)
-        let missing = BatteryModule(preferences: preferences, runner: .init(read: { nil },
-            root: { _ in missingCalls += 1 }, installed: { true }, version: { RootContract.version },
-            create: { _ in 0 }, release: { _ in }, supports: { _ in false },
-            readLimit: { preconditionFailure("Missing read verb must never run") }))
-        missing.start()
-        for _ in 0..<100 { await Task.yield() }
-        await missing.evaluate(now: .now)
-        precondition(!missing.nativeLimitAvailable && missingCalls == 0)
-        missing.stop()
-        await missing.waitUntilIdle()
         for feature in NotchcastFeature.allCases where feature.isSystemFeature {
             preferences.set(feature, false)
         }

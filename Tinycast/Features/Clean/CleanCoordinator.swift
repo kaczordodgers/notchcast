@@ -50,8 +50,6 @@ final class CleanCoordinator {
         self.report = report
     }
 
-    var rootAvailable: Bool { helperCurrent }
-
     var helperCurrent = true
 
     func setEnabled(_ feature: NotchcastFeature, _ value: Bool) {
@@ -155,7 +153,7 @@ final class CleanCoordinator {
     }
 
     private func available(_ feature: NotchcastFeature) -> Bool {
-        enabled.contains(feature) && isOn(feature) && (feature != .cleanSystem || rootAvailable)
+        enabled.contains(feature) && isOn(feature) && (feature != .cleanSystem || helperCurrent)
     }
 
     private func begin(_ feature: NotchcastFeature) -> UUID {

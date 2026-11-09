@@ -17,7 +17,6 @@ final class BatteryModule: NotchcastModule {
         }
         var create: (String) throws -> UInt32
         var release: (UInt32) throws -> Void
-        var supports: (RootContract.Command) -> Bool = { _ in true }
         var readLimit: () async throws -> Int? = {
             guard case .chargeLimit(let limit) = try await RootHelperClient().run(.chargeLimitRead) else {
                 throw RootHelperClient.Failure.invalidResponse
@@ -47,11 +46,7 @@ final class BatteryModule: NotchcastModule {
     private(set) var nativeLimit: Int?
     private var helperHasNativeLimit = true
     var nativeLimitAvailable: Bool {
-        helperInstalled && !helperGateClosed && helperHasNativeLimit && runner.supports(.chargeLimitRead)
-            && runner.supports(.chargeLimitOff)
-            && NotchcastPreferences.chargeLimits.allSatisfy {
-                RootContract.Command(chargeLimit: $0).map(runner.supports) ?? false
-            }
+        helperInstalled && !helperGateClosed && helperHasNativeLimit
     }
     @ObservationIgnored private var limitGeneration = 0
     @ObservationIgnored private var observationID: UUID?
@@ -305,7 +300,6 @@ final class BatteryModule: NotchcastModule {
                 try Task.checkCancellation()
                 if reschedule { return }
                 if chargingUnsupported && (verb == .batteryChargingOn || verb == .batteryChargingOff) { continue }
-                guard runner.supports(verb) else { continue }
                 let key = verb.rawValue.components(separatedBy: "-").dropLast().joined(separator: "-")
                 do {
                     try await perform(verb, key: key, undo: key + "-on", now: now,
