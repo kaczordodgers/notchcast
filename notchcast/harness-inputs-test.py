@@ -291,6 +291,20 @@ class HarnessInputsTest(unittest.TestCase):
         self.assertIn("::error::Tests/forked-test.swift needs a // notchcast-sources: header", result.stderr)
         self.assertIn("registered forked-test", result.stdout)
 
+    def test_resolver_in_an_exported_tree_skips_the_fork_check(self):
+        (self.root / "Tests/ext-old-test.swift").touch()
+        env = self.git_fixture()
+        export = tempfile.TemporaryDirectory(prefix="harness-export-")
+        self.addCleanup(export.cleanup)
+        archive = subprocess.run(["git", "archive", "HEAD"], cwd=self.root, env=env, check=True,
+                                 capture_output=True).stdout
+        subprocess.run(["tar", "-x", "-C", export.name], input=archive, check=True)
+        outputs = [subprocess.run(["python3", "notchcast/harness_inputs.py"], cwd=cwd, env=env,
+                                  text=True, capture_output=True) for cwd in (self.root, export.name)]
+        for result in outputs:
+            self.assertEqual(0, result.returncode, result.stderr)
+        self.assertEqual(outputs[0].stdout, outputs[1].stdout)
+
     def test_fork_check_fetches_a_missing_upstream_ref_and_fails_closed_without_it(self):
         env = self.git_fixture()
         remote = tempfile.TemporaryDirectory(prefix="harness-upstream-")

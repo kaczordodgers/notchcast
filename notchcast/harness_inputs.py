@@ -103,6 +103,9 @@ def upstream_base() -> str:
 
 
 def fork_owned(path: Path) -> bool:
+    # A `git archive` copy has no history; selection and CI run this check in a real clone.
+    if subprocess.run(["git", "rev-parse", "--git-dir"], capture_output=True).returncode:
+        return False
     return subprocess.run(["git", "cat-file", "-e", f"{upstream_base()}:{path}"],
                           capture_output=True).returncode != 0
 
