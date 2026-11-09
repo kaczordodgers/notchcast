@@ -32,7 +32,7 @@ nonisolated final class SMCClient: Sendable {
         guard let code = SMCWire.code(key), let info = keyInfo(key),
               let reply = call(.read, key: code, size: info.size),
               SMCWire.succeeded(reply) else { return nil }
-        return SMCValue(info: info, bytes: SMCWire.data(reply, size: info.size))
+        return SMCValue(info: info, bytes: Array(reply[48..<(48 + info.size)]))
     }
 
     func value(_ key: String) -> Double? { read(key)?.number }

@@ -56,8 +56,8 @@ The fixed program and app client share twenty-five argument-free verbs. `version
 
 On the inspected Mac, `pmset -g cap` and `pmset -g custom` omit `autopoweroff`. The installed pmset binary still names the setting and its manual describes it for supported platforms, so the verbs remain available; their hardware effect on this Mac is unverified.
 
-`RootContract.swift` here is a symlink to the app's contract under
-`Tinycast/Features/Notchcast/Root/`, so both programs compile the same command table. There is no
+The helper compiles the app's `Tinycast/Features/Notchcast/Root/RootContract.swift` directly, so both
+programs compile the one command table and app callers send its typed `RootContract.Command` cases. There is no
 helper Xcode target or resident daemon.
 
 ## Installation
@@ -107,7 +107,7 @@ Actual privileged operations require separate hardware validation.
 
 ## Fan implementation
 
-`FanSMC.swift` is helper-only, adapted from Orion's connection and fan sequence. It is never compiled into the app, but it compiles the app's `SystemMonitor/Model/SMCWire.swift` for request and reply framing and `SMCValue.swift` for decoding, so the app and the helper read the same numbers from the same bytes; the helper accepts only the types it can encode (`flt `, `fpe2`, unsigned integers) and refuses negative values. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
+`FanSMC.swift` is helper-only, adapted from Orion's connection and fan sequence. It is never compiled into the app, but it decodes with the app's `SystemMonitor/Model/SMCValue.swift`, so the app and the helper read the same numbers from the same bytes; the helper accepts only the types it can encode (`flt `, `fpe2`, unsigned integers) and refuses negative values. Its connection stays its own because it writes and must tell a missing key from a failed call. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
 
 - `fans-auto`: write 0 to each fan's mode, then clear `Ftst` if present. Every release is attempted even if another fails. Targets are left alone.
 - `fans-medium`: unlock `Ftst` with 1 if present and not already 1; for each fan, write mode 1 repeatedly every 100 ms until it reads back as 1, then write its target `min + 0.6 × (max − min)`.

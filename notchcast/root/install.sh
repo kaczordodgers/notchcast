@@ -49,7 +49,7 @@ fi
 
 source_directory=$(cd "$(/usr/bin/dirname "$0")" && pwd)
 # Root compiles these sources: refuse uncommitted edits and show the commit they come from.
-app_sources=(../../Tinycast/Features/Clean/Model/CleanSystemEntry.swift ../../Tinycast/Features/Clean/Model/CleanSystemPlan.swift ../../Tinycast/Features/Clean/Model/CleanSystemPolicy.swift ../../Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift ../../Tinycast/Features/SystemMonitor/Model/SMCValue.swift ../../Tinycast/Features/SystemMonitor/Model/SMCWire.swift)
+app_sources=(../../Tinycast/Features/Clean/Model/CleanSystemEntry.swift ../../Tinycast/Features/Clean/Model/CleanSystemPlan.swift ../../Tinycast/Features/Clean/Model/CleanSystemPolicy.swift ../../Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift ../../Tinycast/Features/SystemMonitor/Model/SMCValue.swift ../../Tinycast/Features/Notchcast/Root/RootContract.swift)
 if [ -n "$(/usr/bin/git -C "$source_directory" status --porcelain -- . "${app_sources[@]}")" ]; then
     printf 'Helper sources have uncommitted changes; commit or discard them first.\n' >&2
     exit 65
@@ -70,10 +70,10 @@ else
     trap '/bin/rm -rf "$stage"' EXIT
 fi
 
-step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$source_directory/BatterySMC.swift" "$source_directory/Spotlight.swift" "$source_directory/SudoTouchID.swift" "$source_directory/../../Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift" "$source_directory/Power.swift" "$stage/"
+step /bin/cp "$source_directory/NativeChargeLimit.swift" "$source_directory/../../Tinycast/Features/Notchcast/Root/RootContract.swift" "$source_directory/main.swift" "$source_directory/FanSMC.swift" "$source_directory/BatterySMC.swift" "$source_directory/Spotlight.swift" "$source_directory/SudoTouchID.swift" "$source_directory/../../Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift" "$source_directory/Power.swift" "$stage/"
 step /usr/bin/shasum -a 256 "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" "$stage/main.swift" "$stage/FanSMC.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift"
-step /bin/cp "$source_directory/../../Tinycast/Features/SystemMonitor/Model/SMCValue.swift" "$source_directory/../../Tinycast/Features/SystemMonitor/Model/SMCWire.swift" "$stage/"
-step /usr/bin/shasum -a 256 "$stage/SMCValue.swift" "$stage/SMCWire.swift"
+step /bin/cp "$source_directory/../../Tinycast/Features/SystemMonitor/Model/SMCValue.swift" "$stage/"
+step /usr/bin/shasum -a 256 "$stage/SMCValue.swift"
 step /bin/cp "$source_directory/RootCaller.swift" "$stage/RootCaller.swift"
 step /bin/cp "$source_directory/CleanSystem.swift" "$source_directory/../../Tinycast/Features/Clean/Model/CleanSystemEntry.swift" "$source_directory/../../Tinycast/Features/Clean/Model/CleanSystemPlan.swift" "$source_directory/../../Tinycast/Features/Clean/Model/CleanSystemPolicy.swift" "$stage/"
 step /usr/bin/shasum -a 256 "$stage/RootCaller.swift" "$stage/CleanSystem.swift" "$stage/CleanSystemEntry.swift" "$stage/CleanSystemPlan.swift" "$stage/CleanSystemPolicy.swift"
@@ -84,7 +84,7 @@ else
 fi
 step /usr/bin/shasum -a 256 "$stage/CallerRequirement.swift"
 step /usr/bin/xcrun swiftc -swift-version 6 -O "$stage/CallerRequirement.swift" "$stage/RootCaller.swift" "$stage/NativeChargeLimit.swift" "$stage/RootContract.swift" \
-    "$stage/main.swift" "$stage/FanSMC.swift" "$stage/SMCValue.swift" "$stage/SMCWire.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift" "$stage/CleanSystem.swift" "$stage/CleanSystemEntry.swift" "$stage/CleanSystemPlan.swift" "$stage/CleanSystemPolicy.swift" -o "$stage/helper"
+    "$stage/main.swift" "$stage/FanSMC.swift" "$stage/SMCValue.swift" "$stage/BatterySMC.swift" "$stage/Spotlight.swift" "$stage/SudoTouchID.swift" "$stage/TouchIDPolicy.swift" "$stage/Power.swift" "$stage/CleanSystem.swift" "$stage/CleanSystemEntry.swift" "$stage/CleanSystemPlan.swift" "$stage/CleanSystemPolicy.swift" -o "$stage/helper"
 if [ "$dry_run" -eq 1 ]; then
     printf 'Would write %s with exactly one rule:\n' "$stage/notchcast"
     printf '%s ALL=(root) NOPASSWD: %s\n' "$console_user" "$helper"

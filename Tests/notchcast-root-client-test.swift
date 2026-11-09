@@ -1,6 +1,6 @@
 // notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
 // notchcast-reads: notchcast/root/*.swift Tinycast/Features/Clean/Model/CleanSystem*.swift
-// notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMC*.swift
+// notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift
 import Darwin
 import Foundation
 
@@ -23,15 +23,15 @@ struct FanSMCTest {
         var elapsed = Duration.zero
         var pauses: [Duration] = []
 
-        func info(_ key: String) throws -> SMCValue.KeyInfo? {
+        func info(_ key: String) throws -> FanSMC.Info? {
             if infoFailures.contains(key) { throw FanSMC.Failure.refused }
             guard !missing.contains(key), values[key] != nil else { return nil }
-            return SMCValue.KeyInfo(size: key == "FNum" || key == "Ftst" || key.hasSuffix("Md")
+            return FanSMC.Info(size: key == "FNum" || key == "Ftst" || key.hasSuffix("Md")
                 || key.hasSuffix("md") ? 1 : 4, type: key == "FNum" || key == "Ftst"
-                || key.hasSuffix("Md") || key.hasSuffix("md") ? "ui8 " : "flt ", attributes: 0)
+                || key.hasSuffix("Md") || key.hasSuffix("md") ? "ui8 " : "flt ")
         }
 
-        func read(_ key: String, info: SMCValue.KeyInfo) throws -> [UInt8] {
+        func read(_ key: String, info: FanSMC.Info) throws -> [UInt8] {
             if readFailures.contains(key) { throw FanSMC.Failure.refused }
             return try FanSMC.encode(values[key]!, info: info)
         }
@@ -178,12 +178,12 @@ struct FanSMCTest {
             var writes: [String: [UInt8]] = [:]
             var failedProbe: String?
 
-            func info(_ key: String) throws -> SMCValue.KeyInfo? {
+            func info(_ key: String) throws -> FanSMC.Info? {
                 if key == failedProbe { throw FanSMC.Failure.refused }
-                return keys[key].map { .init(size: $0, type: "ui8 ", attributes: 0) }
+                return keys[key].map { .init(size: $0, type: "ui8 ") }
             }
 
-            func read(_ key: String, info: SMCValue.KeyInfo) throws -> [UInt8] {
+            func read(_ key: String, info: FanSMC.Info) throws -> [UInt8] {
                 [UInt8](repeating: 0, count: info.size)
             }
 
@@ -246,7 +246,7 @@ struct FanSMCTest {
             ("ui32", 4, 0x12345678, [0x12, 0x34, 0x56, 0x78]),
         ]
         for (type, size, value, bytes) in cases {
-            let info = SMCValue.KeyInfo(size: size, type: type, attributes: 0)
+            let info = FanSMC.Info(size: size, type: type)
             let encoded = try FanSMC.encode(value, info: info)
             let decoded = try FanSMC.decode(bytes, info: info)
             precondition(encoded == bytes && decoded == value)
@@ -259,9 +259,9 @@ struct FanSMCTest {
                                      ("fpe2", 2, 16_384), ("ui8 ", 1, 256),
                                      ("ui16", 2, 65_536), ("ui32", 4, 4_294_967_296),
                                      ("ui8 ", 1, 0.5), ("nope", 4, 1), ("flt ", 2, 1)] {
-            rejects { _ = try FanSMC.encode(value, info: .init(size: size, type: type, attributes: 0)) }
+            rejects { _ = try FanSMC.encode(value, info: .init(size: size, type: type)) }
         }
-        rejects { _ = try FanSMC.decode([0, 0, 0x80, 0x7f], info: .init(size: 4, type: "flt ", attributes: 0)) }
+        rejects { _ = try FanSMC.decode([0, 0, 0x80, 0x7f], info: .init(size: 4, type: "flt ")) }
     }
 
     private static func validateSequence() throws {
@@ -411,9 +411,9 @@ struct RootClientTest {
         compiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         compiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
                               "-warnings-as-errors", "-O"] + sources + [
-                                "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
+                                "Tinycast/Features/Notchcast/Root/RootContract.swift",
                                 "Tinycast/Features/SystemMonitor/Model/SMCValue.swift",
-                                "Tinycast/Features/SystemMonitor/Model/SMCWire.swift",
+                                "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemEntry.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemPlan.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemPolicy.swift", "-o", helper.path]
@@ -438,9 +438,8 @@ struct RootClientTest {
         fanCompiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         fanCompiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
                                  "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
-                                 "notchcast/root/RootContract.swift", "notchcast/root/FanSMC.swift",
+                                 "Tinycast/Features/Notchcast/Root/RootContract.swift", "notchcast/root/FanSMC.swift",
                                  "Tinycast/Features/SystemMonitor/Model/SMCValue.swift",
-                                 "Tinycast/Features/SystemMonitor/Model/SMCWire.swift",
                                  "notchcast/root/BatterySMC.swift",
                                  "notchcast/root/NativeChargeLimit.swift",
                                  "notchcast/root/Power.swift",
