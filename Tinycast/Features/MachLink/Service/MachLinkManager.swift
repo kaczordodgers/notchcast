@@ -13,8 +13,11 @@ final class MachLinkManager {
     private(set) var peers: Set<NWBrowser.Result> = []
     var port: NWEndpoint.Port? { listener?.port }
     private(set) var serviceName: String?
+    private var pairing: MachLinkPairing?
+    private var restart: Task<Void, Never>?
 
     isolated deinit {
+        restart?.cancel()
         listener?.cancel()
         browser?.cancel()
         for task in requests.values { task.cancel() }
@@ -24,7 +27,15 @@ final class MachLinkManager {
         stop()
         let listener = try NWListener(using: MachLinkTransport.parameters(pairing: pairing))
         self.listener = listener
+        self.pairing = pairing
         serviceName = name
+        listener.stateUpdateHandler = { @Sendable [weak self, weak listener] state in
+            guard case .failed = state else { return }
+            Task { @MainActor [weak self, weak listener] in
+                guard let listener, self?.listener === listener else { return }
+                self?.restartAfterFailure()
+            }
+        }
         listener.service = NWListener.Service(name: name, type: Self.serviceType,
             txtRecord: NWTXTRecord(["pairing": pairing.discoveryHash]))
         listener.newConnectionHandler = { @Sendable [weak self, weak listener] connection in
@@ -58,6 +69,13 @@ final class MachLinkManager {
         listener.start(queue: .main)
         let browser = NWBrowser(for: .bonjour(type: Self.serviceType, domain: nil), using: .tcp)
         self.browser = browser
+        browser.stateUpdateHandler = { @Sendable [weak self, weak browser] state in
+            guard case .failed = state else { return }
+            Task { @MainActor [weak self, weak browser] in
+                guard let browser, self?.browser === browser else { return }
+                self?.restartAfterFailure()
+            }
+        }
         browser.browseResultsChangedHandler = { @Sendable [weak self, weak browser] results, _ in
             Task { @MainActor [weak self, weak browser] in
                 guard let browser, self?.browser === browser else { return }
@@ -67,7 +85,18 @@ final class MachLinkManager {
         browser.start(queue: .main)
     }
 
+    /// A failed listener or browser is terminal; restart after a delay so a stuck failure never spins.
+    private func restartAfterFailure() {
+        restart?.cancel()
+        restart = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(2))
+            guard let self, !Task.isCancelled, let pairing, let name = serviceName else { return }
+            do { try start(pairing: pairing, name: name) } catch { restartAfterFailure() }
+        }
+    }
+
     func stop() {
+        restart?.cancel()
         listener?.newConnectionHandler = nil
         listener?.cancel()
         listener = nil
