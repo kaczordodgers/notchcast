@@ -28,7 +28,8 @@ enum XPost {
               let host = source.host(percentEncoded: false)?.lowercased().replacing(/^(www|mobile)\./, with: ""),
               ["x.com", "twitter.com"].contains(host) else { return nil }
         let parts = source.pathComponents.filter { $0 != "/" }
-        guard parts.count >= 3, ["status", "article"].contains(parts[1]),
+        // x.com/i/article/<id> carries an article id, not the status id fxtwitter needs.
+        guard parts.count >= 3, ["status", "article"].contains(parts[1]), parts[0].lowercased() != "i",
               parts[0].wholeMatch(of: /[A-Za-z0-9_]{1,15}/) != nil, parts[2].wholeMatch(of: /[0-9]{1,20}/) != nil
         else { return nil }
         return URL(string: "https://api.fxtwitter.com/\(parts[0])/status/\(parts[2])")
@@ -50,9 +51,9 @@ enum XPost {
         guard let tweet = (try? decoder.decode(Response.self, from: data))?.tweet else { throw Failure.missing }
         let author = tweet.author?.name ?? tweet.author?.screenName ?? "X"
         let published = tweet.createdTimestamp.map { Date(timeIntervalSince1970: $0).formatted(.iso8601) }
-        if let article = tweet.article {
+        if let article = tweet.article, case let body = html(of: article), !body.isEmpty {
             return WebpageArticle(title: article.title ?? title(of: tweet), author: author, published: published,
-                                  source: source, baseURL: source, html: html(of: article))
+                                  source: source, baseURL: source, html: body)
         }
         var html = paragraphs(tweet.text) + media(tweet.media)
         if let quote = tweet.quote {
@@ -60,6 +61,7 @@ enum XPost {
             let heading = quote.url.map { "<a href=\"\(escape($0))\">\(name)</a>" } ?? name
             html += "<blockquote><p>\(heading)</p>\(paragraphs(quote.text))\(media(quote.media))</blockquote>"
         }
+        guard !html.isEmpty else { throw Failure.missing }
         return WebpageArticle(title: title(of: tweet), author: author, published: published,
                               source: source, baseURL: source, html: html)
     }

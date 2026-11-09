@@ -95,7 +95,8 @@ struct DownloadsXPostTests {
                       "https://x.co/a/status/1", "https://example.com/a/status/1", "https://evil.com/x.com/a/status/1",
                       "https://x.com@evil.com/a/status/1", "https://api.x.com/a/status/1", "ftp://x.com/a/status/1",
                       "https://x.com/a/likes/1", "https://x.com/a/status/abc", "https://x.com/a/status",
-                      "https://x.com/home", "https://x.com/far_too_long_handle/status/1"] {
+                      "https://x.com/home", "https://x.com/far_too_long_handle/status/1",
+                      "https://x.com/i/article/2118504468342018048", "https://x.com/I/status/1"] {
             expect(XPost.apiURL(URL(string: value)!) == nil, "refuses \(value)")
         }
     }
@@ -163,7 +164,8 @@ struct DownloadsXPostTests {
         expect(post.author == "Przemysław Wilde" && post.source == source, "fetch builds the post")
         let missing = "X returned no readable post for this link."
         for (status, body, expected) in [(404, "{}", missing), (200, #"{"code":404,"message":"NOT_FOUND"}"#, missing),
-                                         (200, "not json", missing),
+                                         (200, "not json", missing), (200, #"{"tweet":{}}"#, missing),
+                                         (200, #"{"tweet":{"id":"1","article":{"title":"T","content":{}}}}"#, missing),
                                          (500, "{}", "X returned HTTP status 500 for this post.")] {
             do {
                 _ = try await XPost.fetch(source, from: api, load: respond(status, body))

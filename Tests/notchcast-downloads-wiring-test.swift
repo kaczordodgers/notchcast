@@ -414,7 +414,7 @@ struct NotchcastDownloadsWiringTest {
         done
         case "$mode" in
           language) printf 'en\\n';;
-          metadata) printf '{"title":"Sample","id":"sample-id","channel":"Channel"}\\n';;
+          metadata) printf '\\n{"title":"Sample","id":"sample-id","channel":"Channel"}\\n{"title":"Next","id":"n"}\\n';;
           captions) exit 0;;
           download)
             if [ -n "$dest" ]; then

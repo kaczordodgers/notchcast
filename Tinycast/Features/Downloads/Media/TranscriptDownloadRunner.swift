@@ -27,7 +27,7 @@ struct TranscriptDownloadRunner: DownloadRunner {
             }
             try Task.checkCancellation()
             for file in try captions(in: staging) {
-                let text = CaptionText.plainText(try String(contentsOf: file, encoding: .utf8))
+                let text = CaptionText.plainText(try String(contentsOf: file, encoding: .utf8), automatic: automatic)
                 guard !text.isEmpty else { continue }
                 let name = file.deletingPathExtension().deletingPathExtension().lastPathComponent
                 try Task.checkCancellation()

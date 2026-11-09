@@ -38,8 +38,12 @@ nonisolated enum MediaArguments {
 
     static func captions(source: String, destination: URL, automatic: Bool,
                          language: String? = nil, cookies: String? = nil) -> [String] {
-        let base = language?.split(separator: "-").first.map(String.init)
-        let tracks = base.map { automatic ? "\($0)-orig,\($0)" : $0 } ?? (automatic ? ".*-orig" : "all,-live_chat")
+        // yt-dlp full-matches each code, so a regional track like pt-BR needs its full code.
+        let tracks = language.map { full in
+            let base = full.split(separator: "-").first.map(String.init) ?? full
+            let regional = full == base ? [] : [full]
+            return (automatic ? ["\(base)-orig", base] + regional : regional + [base]).joined(separator: ",")
+        } ?? (automatic ? ".*-orig" : "all,-live_chat")
         return common(destination: destination, cookies: cookies)
             + ["--skip-download", automatic ? "--write-auto-subs" : "--write-subs", "--sub-langs", tracks,
                "--sleep-subtitles", "3", "--sub-format", "vtt/srt", "--", source]

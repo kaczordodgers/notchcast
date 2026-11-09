@@ -38,8 +38,11 @@ import Foundation
                                                     language: "en-US")
         let automaticEnglish = MediaArguments.captions(source: source, destination: destination, automatic: true,
                                                        language: "en-US")
-        precondition(manualEnglish.contains("en") && !manualEnglish.contains("en-US"))
-        precondition(automaticEnglish.contains("en-orig,en"))
+        precondition(manualEnglish.contains("en-US,en") && automaticEnglish.contains("en-orig,en,en-US"))
+        let polish = MediaArguments.captions(source: source, destination: destination, automatic: false, language: "pl")
+        let automaticPolish = MediaArguments.captions(source: source, destination: destination, automatic: true,
+                                                      language: "pl")
+        precondition(polish.contains("pl") && automaticPolish.contains("pl-orig,pl"))
         precondition(manualEnglish.contains("--sleep-subtitles") && automaticEnglish.contains("--sleep-subtitles"))
         let rateLimited = "ERROR: Unable to download video subtitles for 'en': HTTP Error 429: Too Many Requests"
         precondition(MediaArguments.retryCaptions(stderr: rateLimited, wroteCaptions: false))
@@ -47,7 +50,7 @@ import Foundation
         precondition(!MediaArguments.retryCaptions(stderr: "", wroteCaptions: false))
         let metadata = YtDlpAudio.metadataArguments(link: source)
         precondition(!metadata.contains("--dump-single-json") && !metadata.contains("-J"))
-        precondition(metadata.contains("%(.{id,title,fulltitle,channel,uploader,_type})j"))
+        precondition(metadata.contains("%(.{id,title,fulltitle,channel,uploader})j"))
         let printed = #"{"id": "znWSzW0Zh_Y", "title": "Claude Just Dropped 7 Updates", "channel": "Duncan"}"#
         let media = try JSONDecoder().decode(YtDlpAudio.Media.self, from: Data(printed.utf8))
         precondition(media.title == "Claude Just Dropped 7 Updates" && media.channel == "Duncan")
@@ -91,7 +94,7 @@ import Foundation
         calling<00:00:03.720><c> Claude</c><00:00:04.080><c> 2.0,</c><00:00:04.800><c> and</c><00:00:04.920><c> only</c>
         <00:00:05.120><c> four</c><00:00:05.440><c> of</c><00:00:05.520><c> the</c>
         """.replacingOccurrences(of: "\n<", with: "<")
-        precondition(CaptionText.plainText(automaticCaptions) == rolling)
+        precondition(CaptionText.plainText(automaticCaptions, automatic: true) == rolling)
         let manualCaptions = """
         WEBVTT
         Kind: captions
@@ -108,11 +111,18 @@ import Foundation
         Claude desktop app, which people are
         calling Claude 2.0, and only four of the
         """
-        precondition(CaptionText.plainText(manualCaptions) == rolling)
-        precondition(CaptionText.plainText("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nyes &amp; no") == "yes & no")
+        precondition(CaptionText.plainText(manualCaptions, automatic: false) == rolling)
+        let repeated = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nNo.\n\n00:00:01.000 --> 00:00:02.000\nNo.\n\n"
+            + "00:00:02.000 --> 00:00:03.000\nLet it go\nLet it go"
+        precondition(CaptionText.plainText(repeated, automatic: false) == "No. No. Let it go Let it go")
+        let thanks = "1\n00:00:00,000 --> 00:00:01,000\nThank you.\n\n2\n00:00:01,000 --> 00:00:02,000\nThank you."
+        precondition(CaptionText.plainText(thanks, automatic: false) == "Thank you. Thank you.")
+        precondition(CaptionText.plainText("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n \n", automatic: false) == "")
+        let escaped = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nyes &amp; no"
+        precondition(CaptionText.plainText(escaped, automatic: false) == "yes & no")
         let srt = "1\n00:00:00,000 --> 00:00:01,000\nHello\n\n2\n00:00:01,000 --> 00:00:02,000\nthere"
-        precondition(CaptionText.plainText(srt) == "Hello there")
-        precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions") == "")
+        precondition(CaptionText.plainText(srt, automatic: false) == "Hello there")
+        precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions", automatic: true) == "")
         try await runners()
         print("downloads-media-test: passed")
     }

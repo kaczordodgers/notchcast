@@ -76,7 +76,7 @@ enum NotchcastDownloadLauncherCommands {
             status: { AppCore.shared.showMessage($0, tone: .danger) }))
     }
 
-    /// Links are read at invocation and every run queues its own; only a newer Run Distill replaces one.
+    /// Each run reads links when invoked and queues its own; only a newer Run Distill replaces one.
     static func start(_ action: NotchcastDownloadCommands.Action, with commands: NotchcastDownloadCommands) {
         var commands = commands
         switch action {

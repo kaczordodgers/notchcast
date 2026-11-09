@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-/// What the island shows for one Downloads queue: pure, so a harness drives it with plain job lists.
+/// What the island shows for one Downloads queue; pure, so a harness drives it with job lists.
 struct DownloadsIslandPolicy: Equatable, Sendable {
     struct Shown: Equatable, Sendable {
         let title: String?
@@ -58,7 +58,7 @@ final class DownloadsIslandBridge {
         DownloadsIslandBridge(controller: controller, center: center).observe()
     }
 
-    /// The onChange closure owns the bridge, so it lives exactly as long as there is something to observe.
+    /// The onChange closure owns the bridge, so it lives while there is something to observe.
     private func observe() {
         guard let controller else { return finish() }
         let (queue, jobs) = withObservationTracking {
