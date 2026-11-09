@@ -94,8 +94,8 @@
     "notchcast/root/Power.swift | notchcast/root/Spotlight.swift": 1
   },
   "constants": {
-    "app.notchcast": 10,
-    "app.notchcast.dev": 22,
+    "app.notchcast": 3,
+    "app.notchcast.dev": 7,
     "com.apple.": 3,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
