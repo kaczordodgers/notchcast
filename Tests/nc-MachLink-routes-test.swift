@@ -64,6 +64,11 @@ struct MachLinkRoutesTest {
         tasks.start()
         let monitor = MonitorModule()
         monitor.registerRemoteFanRoute(on: server, preferences: preferences)
+        var wrongIDServed = false
+        server.manager.register("wrong-id") { request in
+            wrongIDServed = true
+            return try MachLinkMessage(method: request.method, value: true)
+        }
         var replaced: MachLinkChannel?
         server.manager.register("replace-pairing") { request in
             replaced?.pairing = try MachLinkPairing.create()
@@ -129,6 +134,14 @@ struct MachLinkRoutesTest {
             _ = try await client.request(true, method: "unregistered", timeout: .seconds(1), as: Bool.self)
             fatalError("Unregistered method answered")
         } catch { print("PASS unregistered method refused") }
+
+        do {
+            _ = try await client.request(true, method: "wrong-id", timeout: .seconds(1), as: Bool.self)
+            fatalError("Reply with another request's id accepted")
+        } catch {
+            precondition(wrongIDServed)
+            print("PASS route reply with a different id refused")
+        }
 
         replaced = client
         do {

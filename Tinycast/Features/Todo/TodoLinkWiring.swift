@@ -12,7 +12,13 @@ extension TodoLinkCoordinator: NotchcastModule {
         let coordinator = TodoLinkCoordinator(enabled: {
             [.tasksSync, .tasks, .machLink].allSatisfy { preferences.isOn($0) }
         }, exchange: { packet in
-            try await channel.request(packet, method: "todo-sync", as: TodoLinkPacket.self)
+            do {
+                return try await channel.request(packet, method: "todo-sync", as: TodoLinkPacket.self)
+            } catch is CancellationError {
+                throw CancellationError()
+            } catch {
+                throw MachLinkMessage.Failure.disconnected
+            }
         })
         coordinator.pairingIdentity = { channel.pairing?.id }
         channel.manager.register("todo-sync") { [weak coordinator] request in

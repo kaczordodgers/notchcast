@@ -23,7 +23,7 @@ struct FleetMachLinkTransport: FleetTransport {
                          timeout: Duration = .seconds(20),
                          read: @escaping @MainActor () async -> FleetSnapshot) async throws -> MachLinkMessage {
         guard linkEnabled else { throw MachLinkMessage.Failure.disconnected }
-        guard request.method == "agent-threads", try request.value(as: Bool.self) else {
+        guard try request.value(as: Bool.self) else {
             throw MachLinkMessage.Failure.invalidMessage
         }
         let snapshot = featureEnabled ? await boundedRead(timeout: timeout, read: read)

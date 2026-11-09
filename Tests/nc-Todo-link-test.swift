@@ -108,6 +108,7 @@ struct TodoLinkTests {
         try await pairingChange(root)
         try await oversized(root)
         try await failures(root)
+        try await outage(root)
         print("PASS: Todo Mac Link fake-channel suite")
     }
 
@@ -117,6 +118,31 @@ struct TodoLinkTests {
             try await Task.sleep(for: .milliseconds(1))
         }
         preconditionFailure("exchange did not settle")
+    }
+
+    static func outage(_ root: URL) async throws {
+        let suite = "test.todo-link.outage.\(UUID().uuidString)"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
+        for feature: NotchcastFeature in [.tasks, .machLink, .tasksSync] { preferences.set(feature, true) }
+        let store = try await TodoStore.open(directory: root.appending(path: "outage"))
+        var failures: [MachLinkMessage.Failure] = [.timedOut, .disconnected, .invalidMessage]
+        MachLinkManager.fakeRequest = { _ in throw failures.removeFirst() }
+        defer { MachLinkManager.fakeRequest = nil }
+        let coordinator = TodoLinkCoordinator.live(channel: .paired(), preferences: preferences)
+        var messages: [String] = []
+        coordinator.showFailure = { messages.append($0) }
+        coordinator.opened(store)
+        coordinator.start()
+        try await idle(coordinator)
+        coordinator.requestExchange()
+        try await idle(coordinator)
+        coordinator.requestExchange()
+        try await idle(coordinator)
+        precondition(failures.isEmpty && messages.count == 1)
+        coordinator.stop()
+        try store.close()
+        print("PASS: a timeout, then a disconnect, then a bad reply report one outage once")
     }
 
     static func oversized(_ root: URL) async throws {
