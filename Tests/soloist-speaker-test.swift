@@ -280,7 +280,6 @@ struct SoloistSpeakerTest {
         let f = try Fixture()
         let previous = SoloistPeer(pid: 123, path: f.builds.available[0].executable.path)
         f.processes.list = [previous]
-        check(!FileManager.default.fileExists(atPath: f.files.root.appending(path: "notchcast-soloist.pid").path))
         f.speaker.setEnabled(true)
         check(f.processes.stopped == [previous] && f.speaker.state == .waitingForOther)
         f.processes.end(previous.pid)

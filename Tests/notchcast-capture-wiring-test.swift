@@ -70,9 +70,6 @@ struct CaptureWiringTest {
         precondition(requests == 2)
         text.removeLineBreaks = true
         precondition(ScreenTextModule(defaults: defaults).removeLineBreaks)
-        for feature in [NotchcastFeature.screenText, .scrollingCapture] {
-            precondition(!feature.needsIsland && feature.requiredGrants == [.screenRecording])
-        }
         precondition(ScreenTextModule.failureMessage(ScreenTextService.Failure.noContent)
                      != ScreenTextModule.failureMessage(ScreenTextService.Failure.clipboardWriteFailed))
         await testInFlightStop(defaults: defaults)

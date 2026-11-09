@@ -32,7 +32,8 @@ struct LauncherWiringTests {
             preconditionFailure("Wiring must never fetch")
         }))
         let notifications = ClearNotificationsModule(runner: ClearNotificationsRunner(execute: { _ in "3" }))
-        let answers = LauncherAnswersModule()
+        let rates = Data(#"[{"effectiveDate":"2026-11-03","rates":[{"code":"EUR","mid":4.25},{"code":"USD","mid":4}]}]"#.utf8)
+        let answers = LauncherAnswersModule(provider: { NBPAnswerRateProvider { _ in (rates, 200) } })
         let copyPath = CopyPathModule()
         let small = SmallCommandsModule()
         let controller = NotchcastModuleController([
@@ -47,15 +48,14 @@ struct LauncherWiringTests {
         let features: [NotchcastFeature] = [.githubSearch, .clearNotifications,
             .launcherAnswers, .copyPath, .smallCommands]
         precondition(!answers.isRunning && !copyPath.isRunning && !small.isRunning)
-        precondition(answers.provider == nil && copyPath.service == nil && small.airDrop == nil)
-        for feature in features {
-            precondition(!feature.needsIsland && !feature.defaultEnabled)
-            preferences.set(feature, true)
-        }
+        var reached = await launcherActionsReach(answers, small)
+        precondition(reached == (false, false))
+        for feature in features { preferences.set(feature, true) }
         for _ in 0..<20 { await Task.yield() }
         precondition(github.isRunning && notifications.isRunning)
         precondition(answers.isRunning && copyPath.isRunning && small.isRunning)
-        precondition(answers.provider != nil && copyPath.service != nil && small.shortener != nil)
+        reached = await launcherActionsReach(answers, small)
+        precondition(reached == (true, true))
         let count = try await notifications.run(accessibilityGranted: true)
         precondition(count == 3)
         preferences.set(.island, false)
@@ -67,13 +67,19 @@ struct LauncherWiringTests {
         for _ in 0..<20 { await Task.yield() }
         precondition(!github.isRunning && !notifications.isRunning)
         precondition(!answers.isRunning && !copyPath.isRunning && !small.isRunning)
-        precondition(answers.provider == nil && copyPath.service == nil && small.airDrop == nil)
+        reached = await launcherActionsReach(answers, small)
+        precondition(reached == (false, false))
         precondition(github.session.state == .idle)
         do {
             _ = try await notifications.run(accessibilityGranted: true)
             preconditionFailure("Disabled module ran")
         } catch ClearNotificationsModule.Failure.disabled { }
-        precondition(NotchcastFeature.clearNotifications.requiredGrants == [.accessibility])
         print("PASS: all five launcher tool switches start and stop their modules")
+    }
+
+    /// Whether the answers and small-commands launcher actions work; copy path has its own harness.
+    static func launcherActionsReach(_ answers: LauncherAnswersModule,
+                                     _ small: SmallCommandsModule) async -> (Bool, Bool) {
+        (await answers.answer(for: "100 usd to eur") != nil, (try? small.randomPassword()) != nil)
     }
 }

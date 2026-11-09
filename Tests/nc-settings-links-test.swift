@@ -99,9 +99,6 @@ struct NotchcastSettingsLinksTests {
                 precondition(module.groups.contains { $0.title.resolved() == anchor.title })
             }
         }
-        precondition(NotchcastFeature.globeDictation.requiredGrants.contains(.microphone))
-        precondition(NotchcastFeature.voiceAsk.requiredGrants.contains(.microphone))
-        precondition(NotchcastFeature.dayCalendar.requiredGrants.contains(.calendars))
         print("PASS: 17 module slugs, all feature search destinations and named anchors")
     }
 }

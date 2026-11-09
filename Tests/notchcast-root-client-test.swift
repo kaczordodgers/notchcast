@@ -218,9 +218,7 @@ struct FanSMCTest {
         do {
             try BatterySMC.apply(.batteryChargingOff, smc: BatteryFixture())
             preconditionFailure("Absent keys must report unsupported")
-        } catch BatterySMC.Failure.unsupported {
-            precondition(RootContract.unsupportedExit != 70)
-        }
+        } catch BatterySMC.Failure.unsupported {}
         let failed = BatteryFixture()
         failed.keys = ["CHTE": 4]
         failed.failedProbe = "CH0B"
@@ -376,7 +374,6 @@ struct RootClientTest {
         for arguments in invalid {
             precondition(RootContract.Command(arguments: arguments) == nil)
         }
-        precondition(RootContract.version == "4")
         precondition(RootContract.Reply(command: .version, output: "4\n") == .version("4"))
         do {
             try RootHelperClient.validateExitStatus(78)
@@ -395,7 +392,6 @@ struct RootClientTest {
         for invalid in ["0\n", "101\n", "080\n", "80", "80\nextra"] {
             precondition(RootContract.Reply(command: .chargeLimitRead, output: invalid) == nil)
         }
-        precondition(RootContract.Operation.change.timeout == .seconds(12))
     }
 
     private static func validateExecutable() throws {

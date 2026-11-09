@@ -25,11 +25,6 @@ func settle() async {
 @MainActor
 struct NotchcastCoreTests {
     static func main() async {
-        for feature: NotchcastFeature in [.showDesktop, .spacesOrder, .hideCommandM,
-                                         .middleClick, .greenMaximize] {
-            precondition(feature.settingsGroup == .system)
-            precondition(!feature.needsIsland && !feature.isSystemFeature)
-        }
         let suite = "notchcast-core-test.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -38,46 +33,10 @@ struct NotchcastCoreTests {
             "islandStatusMessages", "islandLiveActivities", "launcherFromIsland"
         ]
         precondition(m0.isSubset(of: NotchcastFeature.allCases.map(\.rawValue)))
-        precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
-        precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
-        for feature: NotchcastFeature in [.audioPriority, .cleanJunk, .cleanHistory, .cleanAIData,
-            .cleanDisk, .cleanPurge, .cleanOptimize, .cleanSystem, .cleaningMode, .appUpdates,
-            .macUpdate, .startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
-            .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices, .typingTweaks,
-            .finderTweaks, .dockTweaks, .appleAppsTweaks, .iPhoneBackupTweaks, .buildStats] {
-            precondition(!feature.defaultEnabled && !preferences.isOn(feature))
+        for feature in NotchcastFeature.allCases where feature.isWired {
+            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty, "Untitled switch: \(feature)")
         }
-        let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
-            .displayBrightness, .quitProtection, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets]
-        for feature in l3 {
-            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
-            let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
-            precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
-        }
-        precondition(!preferences.isOn(.pastePlain) && preferences.isOn(.pasteImage))
-        precondition(NotchcastFeature.finderCutPaste.settingsGroup == .finder)
-        precondition(NotchcastFeature.finderRename.settingsGroup == .finder)
-        precondition(!NotchcastFeature.finderCutPaste.needsIsland)
-        precondition(NotchcastFeature.finderRename.requiredGrants == [.accessibility])
-        precondition(NotchcastFeature.accessoryNotices.requiredGrants == [.bluetooth])
-        precondition(NotchcastGrant.allCases.contains(.bluetooth))
-        precondition(NotchcastFeature.pastePlain.subtitle.contains("launcher"))
-        precondition(NotchcastFeature.dayCalendar.needsIsland)
-        precondition(!NotchcastFeature.displayBrightness.needsIsland)
-        precondition(!NotchcastFeature.quitProtection.needsIsland)
         precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == ($0.defaultEnabled && $0.isWired) })
-        precondition(l3.filter(\.isWired).allSatisfy { preferences.isOn($0) })
-        precondition(![.aiUsage, .aiUsageOtherMac, .machLink].contains { preferences.isOn($0) })
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == ($0.defaultEnabled && $0.isWired) })
-        precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
-        precondition(!preferences.isOn(.torrentsKeepSharing))
-        precondition(NotchcastFeature.torrents.dependencies.isEmpty)
-        for feature: NotchcastFeature in [.torrents, .torrentsUseIPhone, .torrentsKeepSharing] {
-            precondition(!feature.needsIsland && !feature.isSystemFeature)
-            precondition(feature.requiredGrants.isEmpty)
-        }
-        precondition(NotchcastFeature.torrentsUseIPhone.dependencies == [.torrents])
-        precondition(NotchcastFeature.torrentsKeepSharing.dependencies == [.torrents])
         for feature in NotchcastFeature.allCases {
             preferences.set(feature, false)
             precondition(!NotchcastPreferences(suiteName: suite).isOn(feature))

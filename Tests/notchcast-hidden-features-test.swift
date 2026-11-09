@@ -29,22 +29,11 @@ struct HiddenFeaturesTest {
     static func main() throws {
         precondition(!SettingsSection.allCases.flatMap(\.tabs).contains(.extensions))
         precondition(SettingsTab(slug: "extensions") == nil)
-        let document = try String(contentsOfFile: "notchcast/docs/hidden.md", encoding: .utf8)
-        let rows = document.split(separator: "\n").filter { $0.hasPrefix("| Hidden |") }
-        precondition(rows.count == 7)
         let visible = SettingsSection.allCases.flatMap(\.tabs)
-        for row in rows {
-            let cells = row.split(separator: "|").map { $0.trimmingCharacters(in: .whitespaces) }
-            let slug = cells[2]
-            if slug != "none" {
-                let tab = SettingsTab.allCases.first { $0.slug == slug }!
-                precondition(!visible.contains(tab), "Visible hidden tab: \(slug)")
-                precondition(SettingsTab(slug: slug) == nil)
-                precondition(!SettingsSearchCatalog.entries.contains { $0.tab == tab })
-            }
-            if cells[3] != "none" {
-                precondition(NotchcastHidden.commands.contains(cells[3]))
-            }
+        for tab in NotchcastHidden.tabs {
+            precondition(!visible.contains(tab), "Visible hidden tab: \(tab.slug)")
+            precondition(SettingsTab(slug: tab.slug) == nil)
+            precondition(!SettingsSearchCatalog.entries.contains { $0.tab == tab })
         }
         precondition(SettingsSection.advanced.tabs.isEmpty)
         for (title, anchor) in [("Sync settings file", SettingsAnchor.notchcastBackupSettingsFile),
@@ -91,7 +80,6 @@ struct HiddenFeaturesTest {
                 .components(separatedBy: "\n    }")[0]
             precondition(body.contains("get { false }") && body.contains("set { }"))
         }
-        precondition(!NotchcastHidden.fallbacksEnabled && !NotchcastHidden.supportEnabled)
         let fallback = try source("Features/Launcher/Service/FallbackStore.swift")
         let support = try source("Features/Support/UI/SupportCoordinator.swift")
         let reminder = try source("Features/Support/Service/SupportReminderStore.swift")

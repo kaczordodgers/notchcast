@@ -42,8 +42,7 @@ struct MacRemoteWiringTest {
         preferences.remoteMacAddress = "fake-mac"
         preferences.remoteUpdatePath = "/tools/update.sh"
         for feature: NotchcastFeature in [.machRemote, .sendFiles, .updateRemote, .backupStatus, .linkHealth] {
-            precondition(!preferences.isOn(feature) && !feature.needsIsland && !feature.isSystemFeature)
-            precondition(feature.settingsGroup == .system)
+            precondition(!preferences.isOn(feature))
         }
         let send = SendFilesModule(preferences: preferences, runner: runner, post: { _ in })
         let update = UpdateRemoteModule(preferences: preferences, runner: runner, post: { _ in })

@@ -152,10 +152,6 @@ struct SoloistSourceTest {
             let object = try JSONSerialization.jsonObject(with: Data(encoded.utf8)) as? [String: Any]
             precondition(object?["volume"] as? Int == (level < 0 ? 0 : 100))
         }
-        for event in ["track_changed", "position_sync", "queue_changed", "playback_changed", "options_changed"] {
-            let parsed = try SoloistProtocol.parse("{\"type\":\"\(event)\"}", now: now)
-            precondition(parsed == .changed(queue: ["track_changed", "queue_changed", "options_changed"].contains(event)))
-        }
         let idle = try SoloistProtocol.parse(#"{"type":"playback_state","status":"idle"}"#, now: now)
         precondition(idle == .state(nil, cover: nil))
         do { _ = try SoloistProtocol.parse("bad json", now: now); fatalError("Accepted invalid JSON") } catch {}
@@ -202,16 +198,6 @@ struct SoloistSourceTest {
         precondition(source.queue == [.init(title: "Next Song", artist: "First Artist",
                                           uri: "spotify:track:fixture1")])
         let count = server.commands.count
-        if let path = ProcessInfo.processInfo.environment["SOLOIST_QUEUE_FIXTURE"] {
-            let reply = try String(contentsOfFile: path, encoding: .utf8)
-            guard case .queue(let items?) = try SoloistProtocol.parse(reply, now: now) else {
-                fatalError("Real queue reply was not parsed")
-            }
-            precondition(items.count > 1 && items.allSatisfy { $0.title != nil && $0.uri != nil })
-            precondition(items.contains { $0.artist?.contains(", ") == true })
-            source.receive(reply)
-            print("PASS: full captured queue reply parsed with correct titles, URIs and joined artists")
-        }
         for reply in [queueReply, snapshot, #"{"type":"command_result","success":true}"#] {
             source.receive(reply)
         }

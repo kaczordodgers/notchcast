@@ -13,8 +13,6 @@ import Foundation
 struct NotificationObserverTests {
     @MainActor
     static func main() throws {
-        let observer = NotificationCleanupObserver()
-        observer.stop()
         let policy = NotificationCleanupPolicy(diskEjectionTitles: ["Disk Not Ejected Properly"])
         let service = NotificationCleanupService(policy: policy)
         let selected = NotificationCleanupPolicy.Alert(identifier: "disk", title: "Disk Not Ejected Properly",
@@ -34,6 +32,6 @@ struct NotificationObserverTests {
         let stale = try service.apply(alerts: [selected], trusted: true, current: { _ in unrelated },
                                       perform: { _, _ in preconditionFailure("Stale dismissal") })
         precondition(stale == 0)
-        print("Notification cleanup: compile, teardown, permission, selection and stale snapshot checks passed")
+        print("Notification cleanup: permission, selection and stale snapshot checks passed")
     }
 }

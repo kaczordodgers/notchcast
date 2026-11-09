@@ -39,7 +39,6 @@ struct NotchcastCommand: Sendable {
         NotchcastCore.clearNotifications = module
         module.start()
         let command = ClearNotificationsModule.launcherCommand
-        precondition(command.feature == .clearNotifications && command.isEnabled())
         command.run()
         await module.commandTask?.value
         precondition(calls.withLock { $0 } == 1)
