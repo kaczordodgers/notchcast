@@ -161,10 +161,13 @@ s = p.read_text().replace('    case island\n', '    case landingFixture\n    cas
 values = {'dependencies': '[]', 'settingsGroup': '.activities', 'title': '"Fixture"', 'subtitle': '"Fixture."',
           'requiredGrants': '[]'}
 for name, value in values.items():
-    s, count = re.subn(rf'(var {name}: [^\n]+ {{\n        switch self {{\n)',
+    s, count = re.subn(rf'(var {name}: [^\n]+ {{\n(?:        if let descriptor [^\n]+\n)?        (?:return )?switch self {{\n)',
                        rf'\g<1>        case .landingFixture: {value}\n', s)
     assert count == 1, name
-s = s.replace('        return switch self {\n', '        return switch self {\n        case .landingFixture: false\n')
+for name in ('needsIsland', 'defaultEnabled'):
+    s, count = re.subn(rf'(var {name}: Bool {{\n(?:        if [^\n]+\n)+        return switch self {{\n)',
+                       r'\g<1>        case .landingFixture: false\n', s)
+    assert count == 1, name
 # Unwired, so harnesses that iterate every feature expect no search entry for it.
 s, count = re.subn(r'(    static let unwired: Set<Self> = \[\n)', r'\g<1>        .landingFixture,\n', s)
 assert count == 1, 'unwired'

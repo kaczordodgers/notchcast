@@ -1,8 +1,10 @@
 # Launcher commands
 
-Features append one case per line in `Core/NotchcastFeature.swift`, one line per feature in
+A new feature describes itself in its own folder instead of adding switch arms: see
+[feature-descriptors.md](feature-descriptors.md). Features without a descriptor append one case
+per line in `Core/NotchcastFeature.swift`, one line per feature in
 each switch, and one group line in `settingsGroup`. Never extend an existing line or combine
-switch arms. `settingsGroup` stays exhaustive; `requiredGrants` lists only exceptions before
+switch arms. `settingsGroup` lists every feature without a descriptor; `requiredGrants` lists only exceptions before
 `default: []`. If `startsOff` is present, its arms follow the same rule.
 `needsIsland` first excludes system features, then uses one exception arm per line and
 `default: true`; add exceptions as separate arms rather than extending a Boolean expression.
