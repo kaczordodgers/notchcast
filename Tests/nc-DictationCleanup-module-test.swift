@@ -46,6 +46,7 @@ import Foundation
         precondition(installs == 1 && module.settings.isEnabled && store.settings.isEnabled)
         module.stop()
         precondition(stops == 1 && !module.settings.isEnabled && !store.settings.isEnabled)
+        precondition(module.apiKey() == "fake")
         store.fails = true
         module.start()
         precondition(installs == 1 && !module.settings.isEnabled && failures == 1)

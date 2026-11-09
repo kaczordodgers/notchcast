@@ -15,7 +15,7 @@ struct FakeTrash: CleanTrashTransport {
 struct CleanJunkTest {
     static func main() async throws {
         try await scenario()
-        print("PASS: clean scan, safety, revalidation, partial failure and cancellation")
+        print("PASS: clean scan, safety, revalidation and partial failure")
     }
 
     static func scenario() async throws {

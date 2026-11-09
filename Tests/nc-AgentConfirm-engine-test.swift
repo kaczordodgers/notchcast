@@ -73,6 +73,7 @@ struct AgentConfirmationTests {
         enabled = false
         coordinator.tick(now: now)
         assert(transport.replies.last == .init(id: pendingOnDisable.id, verdict: .deny))
+        assert(coordinator.engine.queue.isEmpty)
         coordinator.receive(request(), now: now)
         assert(transport.replies.last?.verdict == .deny)
         enabled = true
@@ -80,6 +81,7 @@ struct AgentConfirmationTests {
         coordinator.receive(pendingOnStop, now: now)
         coordinator.stop()
         assert(transport.replies.last == .init(id: pendingOnStop.id, verdict: .deny))
+        assert(coordinator.engine.queue.isEmpty)
         print("Agent confirmation: queue, local decisions, grants, timeout, duplicate, malformed, disable passed")
     }
 }

@@ -64,10 +64,10 @@ struct MenuThumbnail: View {
             .appendingPathComponent("Tinycast/Features/CaptureEditor/View/CaptureEditorView.swift")
         let viewCode = try String(contentsOf: viewSource, encoding: .utf8)
         precondition(!viewCode.contains("CaptureEditorRender.png") && !viewCode.contains("CaptureEditorRender.flatten"))
+        print("PASS: view has no flatten or PNG call")
         let document = coordinator.document!
         document.pressed(at: CGPoint(x: 20, y: 40), slack: 2)
         document.dragged(to: CGPoint(x: 180, y: 40))
-        print("PASS: view has no flatten or PNG call")
         document.released()
         preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding)
         precondition(failures == 2)

@@ -3,10 +3,6 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityManager.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import Foundation
 
 @MainActor
@@ -15,7 +11,6 @@ private final class FakeTransport: AudioPriorityTransport {
     var inventory: [AudioPriorityDevice] = []
     var callback: (@Sendable () -> Void)?
     var writes = 0
-    var stops = 0
     var fail = false
     func devices() -> [AudioPriorityDevice] { inventory }
     func defaultUID(for direction: AudioPriorityDevice.Direction) -> String? { "low" }
@@ -24,7 +19,7 @@ private final class FakeTransport: AudioPriorityTransport {
         if fail { throw Failure() }
     }
     func start(onChange: @escaping @Sendable () -> Void) { callback = onChange }
-    func stop() { stops += 1; callback = nil }
+    func stop() { callback = nil }
 }
 
 @main
