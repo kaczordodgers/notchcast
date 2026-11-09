@@ -1525,6 +1525,13 @@ struct RootPaletteView: View {
     }
 
     private func launcherAliasSpace(_ press: KeyPress) -> KeyPress.Result {
+        LauncherAliasSpaceTrace.note("""
+            space on=\(NotchcastPreferences.shared.isOn(.launcherAliasSpace)) \
+            launcherMode=\(vm.mode == .launcher) search=\(searchFocused) argument=\(argumentFocused != nil) \
+            menu=\(menuOpen) composing=\(vm.isComposing) list=\(vm.isControlListOpen) collapsed=\(isCollapsed) \
+            responder=\(NSApp.keyWindow?.firstResponder.map { "\(type(of: $0))" } ?? "nil") \
+            launcher=\(screen is LauncherScreen) modifiers=\(press.modifiers.rawValue)
+            """)
         guard NotchcastPreferences.shared.isOn(.launcherAliasSpace),
               vm.mode == .launcher, searchFocused, argumentFocused == nil, !menuOpen,
               !vm.isComposing, !vm.isControlListOpen, !isCollapsed,
