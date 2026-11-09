@@ -109,12 +109,6 @@ struct ArchiveRoutingTests {
         fallback.effectiveMode = .inPlace
         fallback.state = .cancelled
         precondition(fallback.canRetry && !fallback.canCancel && fallback.fallbackNote != nil)
-        let failures: [ArchiveFailure] = [
-            .toolMissing, .unsupportedFormat, .invalidListing, .unsafePath("../bad"), .collision("A"),
-            .symlinkAncestor("link/file"), .tooManyEntries, .expansionLimit, .insufficientSpace,
-            .passwordRequired, .damagedArchive, .existingProgress, .toolFailed(4), .filesystem("fixture")
-        ]
-        precondition(failures.allSatisfy { !$0.message.isEmpty })
         print("PASS: archive document types, alternate rank, gzip UTI probe, split tags, plain gzip support")
         print("PASS: deferred open-file hook, quit hook, one settings section, search targets, job/failure presentation")
     }

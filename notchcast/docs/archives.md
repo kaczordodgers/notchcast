@@ -44,7 +44,7 @@ declared by Archive Utility, so RAR and split `.001` cannot be handed back, as b
 
 The document declarations use the Alternate rank, so registration alone does not claim defaults. The gzip, xz, bzip2 and zstd UTIs offer both plain streams and their `.tar` variants; compound aliases `.tgz`, `.txz`, `.tbz2` and `.tzst` and split `.001` have separate tags; archive imports include `app.notchcast.*` and `com.rarlab.rar-archive`, which the system does not declare. Multi-component filename extension tags are not used. Preferences stay in the existing bundle-scoped Notchcast suite.
 
-`nc-Archives-fallback-test`, `nc-Archives-engine-test`, `nc-Archives-modules-test` and `nc-Archives-routing-test` cover the engine,
+`nc-Archives-fallback-test`, `nc-Archives-engine-test`, `nc-Archives-module-test` and `nc-Archives-routing-test` cover the engine,
 module ownership, switch defaults and gating, mode selection, shutdown, fake handler effects, document
 declarations, routing and settings search. Handler tests always inject a fake service. Fixture files
 are created under the runner's `TMPDIR` and never use existing user archives.
