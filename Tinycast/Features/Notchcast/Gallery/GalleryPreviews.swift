@@ -5,11 +5,8 @@ import SwiftUI
 /// Captured outside a view body, so SwiftUI inside the page still updates before the shot.
 @MainActor
 private func galleryPreview(_ name: String) -> some View {
-    let core = AppCore.shared
-    let pages = GalleryPages.island(core) + GalleryPages.launcher(core)
-        + GalleryPages.notchcastSettings(core) + GalleryPages.settings(core)
-    return Group {
-        if let page = pages.first(where: { $0.name == name }), let image = capture(page) {
+    Group {
+        if let page = GalleryPages.all(AppCore.shared).first(where: { $0.name == name }), let image = capture(page) {
             Image(nsImage: image)
         } else {
             Text(verbatim: "No gallery page named \(name)")
