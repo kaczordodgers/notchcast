@@ -192,7 +192,9 @@ merge_onto() {
     # Generated files (ci.py GENERATED) keep main's version, conflicting or not: CI regenerates them before every
     # build, so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
     generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
-    git checkout "$onto" -- "${generated[@]}"
+    # Only the ones main has: a newly generated file is not on main until its first landing.
+    generated=($(git ls-tree -r --name-only "$onto" -- "${generated[@]}"))
+    [ ${#generated[@]} -eq 0 ] || git checkout "$onto" -- "${generated[@]}"
     # The string catalog conflicts on neighbouring keys; xcstrings-union.py merges it by key or exits non-zero.
     if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Localizable.xcstrings; then
         python3 notchcast/xcstrings-union.py --git --main-ref "$onto" || refuse 'string catalog conflict xcstrings-union.py cannot merge'
