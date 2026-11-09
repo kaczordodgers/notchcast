@@ -16,7 +16,7 @@ The client never retries a mutation on another endpoint: an ambiguous peer is re
 The existing Mac Link manager owns authentication, framing, correlation and timeouts.
 The module serializes requests and rejects cancelled or obsolete responses.
 
-The peer answers `mbp-fans` through `MachLinkManager+Peers.swift` with its one existing
+The peer answers `mbp-fans` through the route `registerRemoteFanRoute` registers with its one existing
 `MonitorModule` fan control (`MachMBPFans/RemoteFanPeer.swift`): same limits, and it refuses
 unless Mac Link, System Monitor and Fan Control are all on there. It applies the mode, reads
 the fans over SMC and reports busy if the mode changed meanwhile. Harnesses

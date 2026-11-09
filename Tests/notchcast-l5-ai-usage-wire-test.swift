@@ -4,16 +4,11 @@
 // notchcast-sources: Tinycast/Features/AIUsage/OtherMac/Service/*.swift
 // notchcast-sources: Tinycast/Features/AIUsage/OtherMac/*.swift
 // notchcast-sources: Tinycast/Features/AIUsage/AIUsageModule.swift
-// notchcast-sources: Tinycast/Features/AIUsage/AIUsageLinkModule.swift
-// notchcast-sources: Tinycast/Features/MachBlockedDialog/Model/*.swift
-// notchcast-sources: Tinycast/Features/MachBlockedDialog/Service/BlockedDialogWindows.swift
+// notchcast-sources: Tinycast/Features/MachLink/AIUsageLinkModule.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/*.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/RemoteScreenAddress.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
@@ -38,16 +33,9 @@ struct AIUsageWiringTest {
         """.utf8)
         try cache.write(to: directory.appendingPathComponent("fixture.json"))
         let provider = AIUsageProvider(cacheDirectory: directory)
-        let channel = MachLinkUsagePeerChannel()
+        let channel = MachLinkChannel()
         let module = AIUsageModule(provider: provider, preferences: preferences, channel: channel)
-        let link = AIUsageLinkModule(preferences: preferences, provider: provider, defaults: defaults)
-        link.listenerRoute = { request in
-            guard request.method == "fixture-route" else { return nil }
-            return try MachLinkMessage(id: request.id, method: request.method, value: true)
-        }
-        let routed = try await link.respond(to: MachLinkMessage(method: "fixture-route", value: true))
-        let accepted = try routed.value(as: Bool.self)
-        precondition(accepted)
+        let link = AIUsageLinkModule(defaults: defaults)
         var missingNotices: [String] = []
         preferences.aiUsageCachePath = directory.path
         let defaultCacheModule = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
@@ -74,14 +62,13 @@ struct AIUsageWiringTest {
         try await module.refresh()
         precondition(module.peerStatus == String(localized: "Not connected"))
         let pairing = try MachLinkPairing.create()
-        let server = MachLinkManager()
-        try server.start(pairing: pairing, name: "Usage fixture") { request in
-            try await MachLinkUsagePeerChannel.response(to: request, provider: provider)
-        }
-        defer { server.stop() }
-        for _ in 0..<100 where server.port == nil { try await Task.sleep(for: .milliseconds(20)) }
+        let server = MachLinkChannel()
+        _ = AIUsageModule(provider: provider, preferences: preferences, channel: server)
+        try server.manager.start(pairing: pairing, name: "Usage fixture")
+        defer { server.manager.stop() }
+        for _ in 0..<100 where server.manager.port == nil { try await Task.sleep(for: .milliseconds(20)) }
         channel.pairing = pairing
-        channel.endpoint = .hostPort(host: "127.0.0.1", port: server.port!)
+        channel.endpoint = .hostPort(host: "127.0.0.1", port: server.manager.port!)
         let snapshot = try await channel.requestUsageSnapshot(providers: ["fixture"], timeout: .seconds(5))
         precondition(snapshot.readings.first?.usedFraction == 0.42)
         precondition(snapshot.readings.first?.isStale == true)

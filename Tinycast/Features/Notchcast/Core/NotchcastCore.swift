@@ -72,19 +72,7 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)
         }
         dictationCleanup.load()
-        macLink.listenerRoute = { request in
-            if let response = try await tasksSync.peerResponse(to: request, via: macLink.channel.manager) { return response }
-            if request.method == "agent-threads" { return try await FleetMachLinkTransport.response(to: request) }
-            if request.method == "shelf-item" {
-                guard await NotchcastPreferences.shared.isOn(.machLink),
-                      await NotchcastPreferences.shared.isOn(.shelfBetweenMacs) else {
-                    throw MachLinkMessage.Failure.disconnected
-                }
-                return try await ShelfMachLinkTransport.response(to: request, module: shelf)
-            }
-            return nil
-        }
-        let shelfChannel = MachLinkShelfChannel(channel: macLink.channel) {
+        let shelfChannel = MachLinkShelfChannel(channel: macLink.channel, module: shelf) {
             macLink.isRunning && macLink.isPaired && (!linkHealth.isRunning || linkHealth.health.reachability != .down)
         }
         shelf.linkStatus = shelfChannel
@@ -103,7 +91,7 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Could not change fan mode.", table: "Notchcast"), tone: .danger)
         })
         self.monitor = monitor
-        macLink.channel.manager.fanHandler = { [weak monitor] request in guard let monitor else { throw RemoteFanReport.Failure.unavailable }; return try await monitor.remoteFanReport(request) }
+        monitor.registerRemoteFanRoute(on: macLink.channel)
         if !NotchcastPreferences.shared.isOn(.systemMonitor)
             || !NotchcastPreferences.shared.isOn(.fanControl) {
             monitor.fans.restore(preservingPreference: true, silently: true)

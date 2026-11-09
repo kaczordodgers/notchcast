@@ -1,9 +1,30 @@
 import Foundation
 
+@MainActor
+struct MachLinkFanTransport: RemoteFanTransport {
+    let channel: MachLinkChannel
+
+    func exchange(_ request: MachLinkMessage) async throws -> MachLinkMessage {
+        let verb = try request.value(as: RemoteFanRequest.self)
+        let report = try await channel.request(verb, method: request.method, as: RemoteFanReport.self)
+        return try MachLinkMessage(id: request.id, method: request.method, value: report)
+    }
+}
+
 extension MonitorModule {
-    func remoteFanReport(_ request: RemoteFanRequest) async throws -> RemoteFanReport {
+    func registerRemoteFanRoute(on channel: MachLinkChannel, preferences: NotchcastPreferences = .shared) {
+        channel.manager.register("mbp-fans") { [weak self] request in
+            guard let self else { throw RemoteFanReport.Failure.unavailable }
+            let verb = try request.value(as: RemoteFanRequest.self)
+            let report = try await remoteFanReport(verb, preferences: preferences)
+            return try MachLinkMessage(id: request.id, method: request.method, value: report)
+        }
+    }
+
+    func remoteFanReport(_ request: RemoteFanRequest,
+                         preferences: NotchcastPreferences = .shared) async throws -> RemoteFanReport {
         func enabled() -> Bool {
-            [.machLink, .systemMonitor, .fanControl].allSatisfy { NotchcastPreferences.shared.isOn($0) }
+            [.machLink, .systemMonitor, .fanControl].allSatisfy { preferences.isOn($0) }
         }
         guard enabled() else { throw RemoteFanReport.Failure.unavailable }
         let current = fans.mode.remoteMode

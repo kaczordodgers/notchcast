@@ -1,10 +1,7 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachLink/Service/*.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
-// notchcast-sources: Tinycast/Features/RemoteScreen/RemoteScreenAddress.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
@@ -52,9 +49,10 @@ struct MachLinkTest {
             fatalError("Pre-cancelled connection started")
         } catch is CancellationError { print("PASS cancel before start") }
         let server = MachLinkManager()
-        try server.start(pairing: pairing, name: "Harness") { request in
+        server.register("snapshot") { request in
             try MachLinkMessage(id: request.id, method: request.method, value: ["remaining": 42])
         }
+        try server.start(pairing: pairing, name: "Harness")
         defer { server.stop() }
         for _ in 0..<100 where server.port == nil { try await Task.sleep(for: .milliseconds(20)) }
         guard let port = server.port else { fatalError("Listener did not start") }
