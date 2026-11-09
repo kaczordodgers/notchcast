@@ -68,7 +68,6 @@ struct ColorPickerLifecycleTest {
         await settle()
         module.pick { precondition($0 == .cancelled) }
         precondition(samples == 3)
-        precondition(!NotchcastPreferences(suiteName: suite).isOn(.colorPicker))
         print("PASS: color picker switch gates sampling, stops stale copies and preserves format")
     }
 

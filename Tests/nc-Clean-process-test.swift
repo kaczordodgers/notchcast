@@ -1,4 +1,3 @@
-// notchcast-reads: Tinycast/Features/Clean/Service/CleanProcessRunner.swift
 import Darwin
 import Foundation
 
@@ -20,14 +19,14 @@ struct CleanProcessTest {
                 ["-c", script, "test", marker.path], timeout: 180)
         }
         try await Task.sleep(for: .milliseconds(100))
+        let cancelledAt = ContinuousClock.now
         task.cancel()
         do { _ = try await task.value; preconditionFailure("Expected cancellation") } catch is CancellationError {}
+        precondition(ContinuousClock.now - cancelledAt < .milliseconds(500), "Cancellation was not prompt")
         try await Task.sleep(for: .seconds(2))
         precondition(!FileManager().fileExists(atPath: marker.path))
         let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/bin/echo"), ["alive"], timeout: 2)
         precondition(result.code == 0 && result.output == "alive\n")
-        let source = try String(contentsOfFile: "Tinycast/Features/Clean/Service/CleanProcessRunner.swift", encoding: .utf8)
-        precondition(!source.contains("Thread.sleep"))
-        print("PASS process-group timeout/cancellation; unrelated invocation survives; suspending polling")
+        print("PASS process-group timeout/prompt cancellation; unrelated invocation survives")
     }
 }
