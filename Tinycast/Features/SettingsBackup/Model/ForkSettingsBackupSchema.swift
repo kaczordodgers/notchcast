@@ -194,6 +194,7 @@ enum ForkSettingsBackupSchema {
         "remoteUpdatePath",
         "aiUsageCachePath",
         "musicBlockAppleMusic",
+        "musicSharpCovers",
         "spotifyConnect",
         "microphoneMute",
         "archives",

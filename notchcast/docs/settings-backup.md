@@ -114,6 +114,7 @@ The API key lives in a Keychain item Notchcast creates itself when the key is pa
 | --- | --- |
 | spacesOrder | Changes the macOS Spaces ordering preference |
 | musicBlockAppleMusic | Terminates Apple Music after a media-key launch; changes OS app state |
+| musicSharpCovers | Consent to read browser sessions and send song titles to Apple; stays on this Mac |
 | spotifyConnect | Uses a saved key and starts the speaker process/network service |
 | microphoneMute | Start reapplies mute to system audio devices; stop unmutes |
 | archives | Start observes archivesDefaultApp and can change system-wide handlers |
