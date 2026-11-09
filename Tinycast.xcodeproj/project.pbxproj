@@ -272,7 +272,6 @@
 		210E935A0AF90A3B60A0B4C0 /* AgentChatToolsDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58CBA2C84FF953DF7AAA60D2 /* AgentChatToolsDescriptor.swift */; };
 		216B59603990E5D3FDA4BB76 /* SpotifyBuildRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3926FAF3501FDB6DA6A49E /* SpotifyBuildRow.swift */; };
 		21812A1B54A4DFDC88604C16 /* ReleaseChannel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 198E4EC8AECAAD0D90C4BA50 /* ReleaseChannel.swift */; };
-		2198836D1C4CC5FA615381DA /* ShowDesktopEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF9FC1364868064D5D7B5A3F /* ShowDesktopEngine.swift */; };
 		21AFF5EA627DE42054924BA4 /* KatanaClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F1AF410DA2CC845314806B /* KatanaClient.swift */; };
 		21BCDCCF463A32334ED27767 /* RootHelperClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12ECA687281A850DDF96537 /* RootHelperClient.swift */; };
 		2204909513A7A4DCDDE1222A /* TodoStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AA5CBDF74831EE6E4A1655B /* TodoStore.swift */; };
@@ -1291,6 +1290,7 @@
 		9E5B694969D3F99BF7D0D9E1 /* ExtensionImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32D20FAFD9F3CC0E5802A966 /* ExtensionImage.swift */; };
 		9E70D827FD1745DDAA2BC921 /* InlineArgumentFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23A119A569C07DE20F315212 /* InlineArgumentFields.swift */; };
 		9ECFA0114ED8A7C8B3C46B07 /* NoteLayoutFragmentProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E9A5FCC71B2F8BB491FDF45 /* NoteLayoutFragmentProvider.swift */; };
+		9ED42D51717879744A1069CA /* EventTapSubscription.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E218AEC05D410EE725FE551 /* EventTapSubscription.swift */; };
 		9EE05A3D78C432275190539D /* ClearNotificationsRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4E1C572A58423ACFB8D255F /* ClearNotificationsRunner.swift */; };
 		9F410B804F4155CEBBFEDDFF /* EventReminderSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096CEB97A4645E0C91B46B62 /* EventReminderSource.swift */; };
 		9F41BB14FEDC3273918784E7 /* EventReminderDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D038D61263619A731B29D1C2 /* EventReminderDescriptor.swift */; };
@@ -2544,6 +2544,7 @@
 		2DFEC8744A55CB60CA864F19 /* WindowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowLayout.swift; sourceTree = "<group>"; };
 		2E0B5C5A0C7DA977BCA18FF4 /* ColorPickerModule+Command.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ColorPickerModule+Command.swift"; sourceTree = "<group>"; };
 		2E1AA636F3343A932437FCE6 /* HotKeyAction+EntryID.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HotKeyAction+EntryID.swift"; sourceTree = "<group>"; };
+		2E218AEC05D410EE725FE551 /* EventTapSubscription.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventTapSubscription.swift; sourceTree = "<group>"; };
 		2E2B30AEB6165DF3DEBCEBC2 /* RaycastThemeLink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RaycastThemeLink.swift; sourceTree = "<group>"; };
 		2E393E2CA842C5B344C6B499 /* SupportReminderSchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportReminderSchedule.swift; sourceTree = "<group>"; };
 		2E429CA7ABF7AC45912426FB /* AgentDeviceActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentDeviceActions.swift; sourceTree = "<group>"; };
@@ -4000,7 +4001,6 @@
 		DE9FAACF5B3A672E7B2A6BEB /* MachRemoteDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MachRemoteDescriptor.swift; sourceTree = "<group>"; };
 		DF0880635E294D9DF55BAADA /* CustomCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommand.swift; sourceTree = "<group>"; };
 		DF2D20676B41496BA840FF2F /* RemoteScreenModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteScreenModule.swift; sourceTree = "<group>"; };
-		DF9FC1364868064D5D7B5A3F /* ShowDesktopEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShowDesktopEngine.swift; sourceTree = "<group>"; };
 		DFCAC238EA4DE82005A16E77 /* MusicNowPlayingModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MusicNowPlayingModule.swift; sourceTree = "<group>"; };
 		DFE5D670CFC618B2EAFA0868 /* LauncherSuggestions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherSuggestions.swift; sourceTree = "<group>"; };
 		DFF9F4C3CE67327914C720FF /* MediaFailure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaFailure.swift; sourceTree = "<group>"; };
@@ -4560,14 +4560,6 @@
 				07D221430D1B86128C710132 /* MachineSetupProfileDescriptor.swift */,
 			);
 			path = MachineSetupProfile;
-			sourceTree = "<group>";
-		};
-		0C0153EC022CF666E1FDF479 /* Model */ = {
-			isa = PBXGroup;
-			children = (
-				DF9FC1364868064D5D7B5A3F /* ShowDesktopEngine.swift */,
-			);
-			path = Model;
 			sourceTree = "<group>";
 		};
 		0CFF85FBF1E11E94C814214B /* Commands */ = {
@@ -6939,6 +6931,7 @@
 			children = (
 				1C43A6A16C3B2E4736CB76C9 /* EventTapHub.swift */,
 				8B58093F753AA45E1C720244 /* EventTapPolicy.swift */,
+				2E218AEC05D410EE725FE551 /* EventTapSubscription.swift */,
 				8B80F19625511A222707B975 /* EventTapThread.swift */,
 			);
 			path = Input;
@@ -8935,7 +8928,6 @@
 		C3181A44F8CD6EF1D5CBCD0F /* ShowDesktop */ = {
 			isa = PBXGroup;
 			children = (
-				0C0153EC022CF666E1FDF479 /* Model */,
 				B4A74F5250A8C9946329656E /* Service */,
 				CBF81E0F2C184A90C86DFF6F /* ShowDesktopDescriptor.swift */,
 			);
@@ -11124,6 +11116,7 @@
 				9F410B804F4155CEBBFEDDFF /* EventReminderSource.swift in Sources */,
 				685DB6EAB36795E8DE61F751 /* EventTapHub.swift in Sources */,
 				8E2A6187A163EF32A2343330 /* EventTapPolicy.swift in Sources */,
+				9ED42D51717879744A1069CA /* EventTapSubscription.swift in Sources */,
 				5740D82001956BC85812D615 /* EventTapThread.swift in Sources */,
 				A6200866E3416744A6E8B6E5 /* ExecutableLocator.swift in Sources */,
 				F244E0064508C29F74363A8C /* ExecutablePicker.swift in Sources */,
@@ -12058,7 +12051,6 @@
 				E071FDE210C1186962441418 /* ShortenLinkArgumentsAccessory.swift in Sources */,
 				A2AFEE7BD0773F0607D1C67A /* ShortenLinkService.swift in Sources */,
 				946A362EB22FA5A158708604 /* ShowDesktopDescriptor.swift in Sources */,
-				2198836D1C4CC5FA615381DA /* ShowDesktopEngine.swift in Sources */,
 				145DDBE3415AE73D913C49D9 /* ShowDesktopModule.swift in Sources */,
 				939F3944AE8D36A8C337D46F /* Signposts.swift in Sources */,
 				BBC6EAA28C46515193CFA789 /* SmallCommandsModule+Arguments.swift in Sources */,
