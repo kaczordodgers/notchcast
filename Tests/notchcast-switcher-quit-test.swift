@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Model/SwitcherQuitKeyPolicy.swift
+// notchcast-sources: Tinycast/Features/SwitcherQuitKey/Model/SwitcherQuitKeyPolicy.swift
 @main
 struct SwitcherQuitKeyTest {
     static func main() {

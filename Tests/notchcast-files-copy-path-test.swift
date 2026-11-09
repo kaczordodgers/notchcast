@@ -1,5 +1,5 @@
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Service/*.swift
 import Foundation
 
 @main

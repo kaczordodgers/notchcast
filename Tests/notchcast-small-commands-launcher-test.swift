@@ -1,5 +1,5 @@
-// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/Model/*.swift Tinycast/Features/Launcher/SmallCommands/Service/*.swift Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule*.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/*.swift Tinycast/Features/Launcher/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift Tinycast/Features/SmallCommands/Service/*.swift Tinycast/Features/SmallCommands/SmallCommandsModule*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AccessibilityText.swift
 import Foundation
 

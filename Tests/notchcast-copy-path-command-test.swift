@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/*.swift Tinycast/Features/Launcher/CopyPath/Service/*.swift Tinycast/Features/Launcher/CopyPath/CopyPathModule*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Features/CopyPath/CopyPathModule*.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}

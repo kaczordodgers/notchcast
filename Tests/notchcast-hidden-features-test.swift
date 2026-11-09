@@ -16,7 +16,7 @@
 // notchcast-reads: Tinycast/Features/Launcher/Model/CommandCatalog.swift
 // notchcast-reads: Tinycast/Features/Launcher/UI/LauncherCoordinator.swift
 // notchcast-reads: Tinycast/Features/Launcher/UI/AppActionsMenu.swift
-// notchcast-reads: Tinycast/Features/Launcher/Keys/LauncherScreen+AliasSpace.swift
+// notchcast-reads: Tinycast/Features/LauncherKeys/LauncherScreen+AliasSpace.swift
 // notchcast-reads: Tinycast/Features/Launcher/Service/FallbackStore.swift
 // notchcast-reads: Tinycast/Features/Support/UI/SupportCoordinator.swift
 // notchcast-reads: Tinycast/Features/Support/Service/SupportReminderStore.swift
@@ -102,7 +102,7 @@ struct HiddenFeaturesTest {
             ("Features/Extensions/Service/ExtensionManager.swift", "guard isEnabled, showsInLauncher else"),
             ("Features/Launcher/UI/LauncherCoordinator.swift", "guard core.settings.extensionsEnabled"),
             ("Features/Launcher/UI/AppActionsMenu.swift", "&& core.settings.extensionsEnabled"),
-            ("Features/Launcher/Keys/LauncherScreen+AliasSpace.swift", "guard core.settings.extensionsEnabled"),
+            ("Features/LauncherKeys/LauncherScreen+AliasSpace.swift", "guard core.settings.extensionsEnabled"),
             ("Palette/RootPaletteView.swift", "guard settings.extensionsEnabled, vm.mode"),
             ("Features/Extensions/UI/ExtensionCoordinator.swift", "func showStoreInstall")
         ] {

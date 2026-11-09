@@ -1,5 +1,5 @@
-// notchcast-sources: Tinycast/Features/Launcher/GitHub/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/GitHub/Service/*.swift
+// notchcast-sources: Tinycast/Features/GitHub/Model/*.swift
+// notchcast-sources: Tinycast/Features/GitHub/Service/*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 import Foundation
 import Synchronization
