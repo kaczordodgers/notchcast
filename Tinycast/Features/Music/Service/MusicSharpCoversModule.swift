@@ -2,7 +2,7 @@ import Foundation
 
 @MainActor
 final class MusicSharpCoversModule: NotchcastModule {
-    let finder: BrowserCoverFinder
+    private let finder: BrowserCoverFinder
     private let model: MusicModel
 
     init(model: MusicModel, finder: BrowserCoverFinder = BrowserCoverFinder()) {

@@ -148,6 +148,7 @@ struct BrowserCoverTests {
             + [0xC0] + Array("0123456789AB".utf8)
         let floodHeader = Array("mozLz40\0".utf8) + (0..<4).map { UInt8(truncatingIfNeeded: oversized >> (8 * $0)) }
         precondition(BrowserCoverRules.decodeMozLZ4(Data(floodHeader + flood)) == nil, "the decoded cap holds")
+        precondition(oversized == 16 * 1_024 * 1_024 + 1, "a session past 16 MiB never decodes, inside the memory budget")
 
         let tabs = BrowserCoverRules.openTabs(inSession: session)
         precondition(tabs.count == 4 && tabs[0].title.hasPrefix("(3) My favorite") && tabs[3].title == "Went back - YouTube",

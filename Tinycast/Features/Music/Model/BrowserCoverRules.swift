@@ -8,7 +8,7 @@ import ImageIO
 enum BrowserCoverRules {
     /// The island draws a cover up to 320 pixels across; anything smaller blurs once stretched.
     static let minimumCoverPixels = 300
-    static let maximumSessionBytes = 128 * 1_024 * 1_024
+    static let maximumSessionBytes = 16 * 1_024 * 1_024
     /// The saved file is LZ4, a few times smaller than what it decodes to.
     static let maximumSessionFileBytes = 32 * 1_024 * 1_024
     static let maximumArtworkBytes = 4 * 1_024 * 1_024
