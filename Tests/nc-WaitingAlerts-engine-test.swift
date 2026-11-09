@@ -2,7 +2,8 @@
 // notchcast-sources: Tinycast/Features/WaitingAlerts/Model/*.swift Tinycast/Features/WaitingAlerts/Service/*.swift
 // notchcast-sources: Tinycast/Features/FileSearch/Service/FileSystemWatcher.swift
 // notchcast-sources: Tinycast/Features/WaitingAlerts/WaitingAlertsModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
 import SQLite3
 
@@ -139,7 +140,8 @@ struct NotchcastCommand {
         NotchcastPreferences.shared.enabled = true
         precondition(WaitingAlertsModule.command.isEnabled())
         let entries = WaitingAlertsModule.register(AppCore.shared)
-        precondition(entries.count == 1 && entries[0].requires == [.waitingAlerts] && entries[0].module === WaitingAlertsModule.shared)
+        precondition(entries.count == 1 && entries[0].requires == [.waitingAlerts] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === WaitingAlertsModule.shared)
         print("PASS: transitions, first-read suppression, coalescing, approval/question/count text")
         print("PASS: fake watcher/reader; immediate command read; one in flight; exactly one trailing read")
         print("PASS: stop drops late result/event; missing folder; switch command gate; exact hook init; Swift 6 strict")

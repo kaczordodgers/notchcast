@@ -96,8 +96,8 @@ enum NotchcastCore {
             || !NotchcastPreferences.shared.isOn(.fanControl) {
             monitor.fans.restore(preservingPreference: true, silently: true)
         }
-        let registered = registrants.flatMap { $0.register(core) }
-        let controller = NotchcastModuleController(entries(core: core, monitor: monitor) + registered + services.moduleEntries, preferences: preferences)
+        let modules = entries(core: core, monitor: monitor) + registrants.flatMap { $0.register(core) }
+        let controller = NotchcastModuleController(modules + services.moduleEntries, preferences: preferences)
         self.controller = controller
         controller.run()
         services.keys.run()
