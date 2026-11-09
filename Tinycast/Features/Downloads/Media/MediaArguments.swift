@@ -38,10 +38,16 @@ nonisolated enum MediaArguments {
 
     static func captions(source: String, destination: URL, automatic: Bool,
                          language: String? = nil, cookies: String? = nil) -> [String] {
-        common(destination: destination, cookies: cookies)
-            + ["--skip-download", automatic ? "--write-auto-subs" : "--write-subs",
-               "--sub-langs", language ?? (automatic ? ".*-orig" : "all,-live_chat"),
-               "--sub-format", "vtt/srt", "--", source]
+        let base = language?.split(separator: "-").first.map(String.init)
+        let tracks = base.map { automatic ? "\($0)-orig,\($0)" : $0 } ?? (automatic ? ".*-orig" : "all,-live_chat")
+        return common(destination: destination, cookies: cookies)
+            + ["--skip-download", automatic ? "--write-auto-subs" : "--write-subs", "--sub-langs", tracks,
+               "--sleep-subtitles", "3", "--sub-format", "vtt/srt", "--", source]
+    }
+
+    // yt-dlp reports a rate-limited subtitle fetch on stderr yet still exits 0.
+    static func retryCaptions(stderr: String, wroteCaptions: Bool) -> Bool {
+        !wroteCaptions && stderr.contains("HTTP Error 429")
     }
 
     static func originalLanguage(source: String, cookies: String?) -> [String] {

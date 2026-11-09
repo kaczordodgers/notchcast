@@ -34,6 +34,23 @@ import Foundation
         precondition(automatic.contains(".*-orig") && !automatic.contains("en"))
         precondition(manual.contains("--write-subs") && !manual.contains("--write-auto-subs"))
         precondition(automatic.contains("--write-auto-subs") && !automatic.contains("--write-subs"))
+        let manualEnglish = MediaArguments.captions(source: source, destination: destination, automatic: false,
+                                                    language: "en-US")
+        let automaticEnglish = MediaArguments.captions(source: source, destination: destination, automatic: true,
+                                                       language: "en-US")
+        precondition(manualEnglish.contains("en") && !manualEnglish.contains("en-US"))
+        precondition(automaticEnglish.contains("en-orig,en"))
+        precondition(manualEnglish.contains("--sleep-subtitles") && automaticEnglish.contains("--sleep-subtitles"))
+        let rateLimited = "ERROR: Unable to download video subtitles for 'en': HTTP Error 429: Too Many Requests"
+        precondition(MediaArguments.retryCaptions(stderr: rateLimited, wroteCaptions: false))
+        precondition(!MediaArguments.retryCaptions(stderr: rateLimited, wroteCaptions: true))
+        precondition(!MediaArguments.retryCaptions(stderr: "", wroteCaptions: false))
+        let metadata = YtDlpAudio.metadataArguments(link: source)
+        precondition(!metadata.contains("--dump-single-json") && !metadata.contains("-J"))
+        precondition(metadata.contains("%(.{id,title,fulltitle,channel,uploader,_type})j"))
+        let printed = #"{"id": "znWSzW0Zh_Y", "title": "Claude Just Dropped 7 Updates", "channel": "Duncan"}"#
+        let media = try JSONDecoder().decode(YtDlpAudio.Media.self, from: Data(printed.utf8))
+        precondition(media.title == "Claude Just Dropped 7 Updates" && media.channel == "Duncan")
         let progress = MediaOutput.progress("MEDIA_PROGRESS 4200 NA 10000 18000000.0 105")!
         precondition(progress.fraction == 0.42 && progress.eta == 105)
         let completed = MediaOutput.progress("MEDIA_PROGRESS 629172 629172 NA 2021060.1325613454 NA")!
@@ -44,11 +61,55 @@ import Foundation
         let output = MediaOutput.outputPath("MEDIA_FILE \"/tmp/media/movie.mp4\"", destination: destination)
         precondition(output?.lastPathComponent == "movie.mp4")
         precondition(MediaOutput.outputPath("MEDIA_FILE \"/tmp/media/../escape.mp4\"", destination: destination) == nil)
-        let captions = "WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nhello <00:00:00.500><c>world</c>"
-            + "\n\n00:00:01.000 --> 00:00:02.000\nhello world again"
-            + "\n\n00:00:02.000 --> 00:00:03.000\nworld again &amp; goodbye"
-        precondition(CaptionText.plainText(captions, automatic: true) == "hello world again & goodbye")
-        precondition(CaptionText.plainText(captions) == "hello world hello world again world again & goodbye")
+        let rolling = "There are seven new updates in the Claude desktop app, which people are"
+            + " calling Claude 2.0, and only four of the"
+        let automaticCaptions = """
+        WEBVTT
+        Kind: captions
+        Language: en
+
+        00:00:00.000 --> 00:00:01.790 align:start position:0%
+        \u{20}
+        There<00:00:00.280><c> are</c><00:00:00.440><c> seven</c><00:00:00.880><c> new</c><00:00:01.160><c> updates</c>
+        <00:00:01.600><c> in</c><00:00:01.680><c> the</c>
+
+        00:00:01.790 --> 00:00:01.800 align:start position:0%
+        There are seven new updates in the
+        \u{20}
+
+        00:00:01.800 --> 00:00:03.350 align:start position:0%
+        There are seven new updates in the
+        Claude<00:00:02.120><c> desktop</c><00:00:02.600><c> app,</c><00:00:02.880><c> which</c>
+        <00:00:03.040><c> people</c><00:00:03.280><c> are</c>
+
+        00:00:03.350 --> 00:00:03.360 align:start position:0%
+        Claude desktop app, which people are
+        \u{20}
+
+        00:00:03.360 --> 00:00:05.630 align:start position:0%
+        Claude desktop app, which people are
+        calling<00:00:03.720><c> Claude</c><00:00:04.080><c> 2.0,</c><00:00:04.800><c> and</c><00:00:04.920><c> only</c>
+        <00:00:05.120><c> four</c><00:00:05.440><c> of</c><00:00:05.520><c> the</c>
+        """.replacingOccurrences(of: "\n<", with: "<")
+        precondition(CaptionText.plainText(automaticCaptions) == rolling)
+        let manualCaptions = """
+        WEBVTT
+        Kind: captions
+        Language: en
+
+        00:00:00.000 --> 00:00:01.800
+        There are seven new updates in the
+
+        00:00:01.800 --> 00:00:03.360
+        There are seven new updates in the
+        Claude desktop app, which people are
+
+        00:00:03.360 --> 00:00:05.640
+        Claude desktop app, which people are
+        calling Claude 2.0, and only four of the
+        """
+        precondition(CaptionText.plainText(manualCaptions) == rolling)
+        precondition(CaptionText.plainText("WEBVTT\n\n00:00:00.000 --> 00:00:01.000\nyes &amp; no") == "yes & no")
         let srt = "1\n00:00:00,000 --> 00:00:01,000\nHello\n\n2\n00:00:01,000 --> 00:00:02,000\nthere"
         precondition(CaptionText.plainText(srt) == "Hello there")
         precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions") == "")

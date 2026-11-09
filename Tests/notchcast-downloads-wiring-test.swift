@@ -383,9 +383,8 @@ struct NotchcastDownloadsWiringTest {
           case "$1" in
             --paths) shift; dest="$1";;
             -o) shift; template="$1";;
-            --dump-single-json) mode=metadata;;
             --write-subs|--write-auto-subs) mode=captions;;
-            --print) shift; [ "$1" != '%(language)s' ] || mode=language;;
+            --print) shift; case "$1" in '%(language)s') mode=language;; '%(.{'*) mode=metadata;; esac;;
           esac
           shift
         done
