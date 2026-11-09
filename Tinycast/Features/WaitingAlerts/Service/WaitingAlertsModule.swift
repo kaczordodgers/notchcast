@@ -102,5 +102,5 @@ final class WaitingAlertsModule: NotchcastModule {
         sfSymbol: "bubble.left", feature: .waitingAlerts,
         isEnabled: {
             NotchcastPreferences.shared.isOn(.waitingAlerts)
-        }, run: { NotchcastCore.waitingAlerts.refresh(report: true) })
+        }, run: { WaitingAlertsModule.shared.refresh(report: true) })
 }

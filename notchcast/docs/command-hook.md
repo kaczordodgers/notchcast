@@ -11,8 +11,9 @@ Both files use `merge=union`; run `python3 notchcast/check-feature-shape.py` and
 The checker rejects repeated enum cases and repeated feature cases within a switch: union
 can retain both the old and edited arm when another branch appends nearby.
 
-Modules register in `Core/NotchcastCore+Modules.swift`: one `static let` line and one entry
-line each. Settings search anchors and rows live one per line in
+A new module registers from its own folder: see
+[feature-descriptors.md](feature-descriptors.md#registering-a-module). Modules not moved yet live in
+`Core/NotchcastCore+Modules.swift`: one `static let` line and one entry line each. Settings search anchors and rows live one per line in
 `Settings/NotchcastSettingsSearch.swift`. Both files use `merge=union`; the same checker
 rejects an entry split over lines, a repeated `static` name, a module registered twice and
 a search row whose anchor and title repeat. It cannot tell a renamed module or a retitled

@@ -1,6 +1,6 @@
 import AppKit
 
-/// Modules and their entries live in `NotchcastCore+Modules.swift`.
+/// Modules and their entries live in `NotchcastCore+Modules.swift`, after them `+Registrants.swift`.
 @MainActor
 enum NotchcastCore {
     static let grantStatuses = NotchcastGrantState()
@@ -96,7 +96,8 @@ enum NotchcastCore {
             || !NotchcastPreferences.shared.isOn(.fanControl) {
             monitor.fans.restore(preservingPreference: true, silently: true)
         }
-        let controller = NotchcastModuleController(entries(core: core, monitor: monitor) + services.moduleEntries, preferences: preferences)
+        let registered = registrants.flatMap { $0.register(core) }
+        let controller = NotchcastModuleController(entries(core: core, monitor: monitor) + registered + services.moduleEntries, preferences: preferences)
         self.controller = controller
         controller.run()
         services.keys.run()

@@ -5,6 +5,7 @@ Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift merge=unio
 Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift merge=union
 # Module and settings search lists: one line per entry; the same checker rejects lines kept twice.
 Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift merge=union
+Tinycast/Features/Notchcast/Core/NotchcastCore+Registrants.swift merge=union
 Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift merge=union
 Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift merge=union
 Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift merge=union

@@ -10,16 +10,21 @@ ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 GROUPS = FEATURE.with_name("NotchcastFeature+SettingsGroup.swift")
 DESCRIPTORS = FEATURE.with_name("NotchcastFeature+Descriptor.swift")
+MODULES = FEATURE.with_name("NotchcastCore+Modules.swift")
+REGISTRANTS = FEATURE.with_name("NotchcastCore+Registrants.swift")
 # Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
 LISTS = {
     Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift"): r'^"([^"]+)"',
-    Path("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift"): r"module: ([\w.]+)",
+    MODULES: r"module: ([\w.]+)",
     Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
     DESCRIPTORS: r"^\.(\w+):",
+    REGISTRANTS: r"^(\w+)\.self,$",
 }
 # The feature's code folder at any depth, beside its layers: harnesses glob Model/ and Service/.
-DESCRIPTOR_FILE = re.compile(r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))"
-                             r"(?:(?!(?:Model|Service|UI|Settings)/)\w+/)+(\w+)Descriptor\.swift")
+FEATURE_FOLDER = r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))(?:(?!(?:Model|Service|UI|Settings)/)\w+/)+"
+DESCRIPTOR_FILE = re.compile(FEATURE_FOLDER + r"(\w+)Descriptor\.swift")
+REGISTRATION_FILE = re.compile(FEATURE_FOLDER + r"(\w+)\+Registration\.swift")
+REGISTER = re.compile(r"\bfunc\s+register\s*\(\s*_\s+\w+\s*:\s*AppCore\s*\)[^{}\n]*\{")
 DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*(?:\.init\s*)?\("
                                     r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?Descriptor\b")
 # Switches without a default: a feature without a descriptor needs an arm in each.
@@ -224,6 +229,34 @@ def descriptor_errors(root):
     return errors
 
 
+def registration_errors(root):
+    """A registrant registers from <Type>+Registration.swift in its own fork folder, and keeps nothing in the hub."""
+    errors = []
+    upstream = upstream_folders(root)
+    for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
+        relative = path.relative_to(root)
+        source = path.read_text()
+        if "AppCore" not in source:
+            continue
+        code = mask_literals(source)
+        implementation = REGISTER.search(code)
+        if not implementation:
+            continue
+        number = code.count("\n", 0, implementation.start()) + 1
+        if not REGISTRATION_FILE.fullmatch(relative.as_posix()):
+            errors.append((relative, number, "implement register(_: AppCore) in "
+                                             "Tinycast/Features/<its folder>/<Type>+Registration.swift"))
+        elif relative.parts[2] in upstream:
+            errors.append((relative, number, f"upstream ships Features/{relative.parts[2]}/; "
+                                             "register from a fork folder of its own"))
+    hub = mask_literals((root / MODULES).read_text()).split("\n")
+    for name in re.findall(r"^\s*(\w+)\.self,$", mask_literals((root / REGISTRANTS).read_text()), re.M):
+        held = re.compile(rf"\bstatic\s+(?:[\w()]+\s+)*(?:let|var)\s+\w+\s*[:=]\s*{name}\b|\bmodule:\s*{name}\b")
+        errors.extend((MODULES, number, f"{name} registers itself; drop its static and entry here")
+                      for number, line in enumerate(hub, 1) if held.search(line))
+    return errors
+
+
 def check(root):
     errors = []
     declarations = {"NotchcastFeature": [], "SettingsGroup": []}
@@ -257,6 +290,10 @@ def check(root):
         errors.extend(f"{path}:{line}: {message}" for path, line, message in descriptor_errors(root))
     except OSError as error:
         errors.append(f"{DESCRIPTORS}:1: {error}")
+    try:
+        errors.extend(f"{path}:{line}: {message}" for path, line, message in registration_errors(root))
+    except OSError as error:
+        errors.append(f"{REGISTRANTS}:1: {error}")
     for name, locations in declarations.items():
         if len(locations) != 1:
             path, number = locations[-1] if locations else (FEATURE, 1)
@@ -276,7 +313,8 @@ def main():
         print("\n".join(errors), file=sys.stderr)
         return 1
     print("PASS: feature cases, switch arms, modules, search entries and settings use one line each, with no repeats;"
-          " described features keep no arm and their descriptor in their own folder")
+          " described features keep no arm and their descriptor in their own folder;"
+          " registrants register from their own folder and leave the hub")
     return 0
 
 

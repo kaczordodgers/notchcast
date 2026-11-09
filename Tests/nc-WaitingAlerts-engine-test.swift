@@ -1,10 +1,12 @@
 // notchcast-sources: -strict-concurrency=complete -lsqlite3
 // notchcast-sources: Tinycast/Features/WaitingAlerts/Model/*.swift Tinycast/Features/WaitingAlerts/Service/*.swift
 // notchcast-sources: Tinycast/Features/FileSearch/Service/FileSystemWatcher.swift
+// notchcast-sources: Tinycast/Features/WaitingAlerts/WaitingAlertsModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
 import SQLite3
 
-@MainActor protocol NotchcastModule { func start(); func stop() }
+typealias NotchcastFeature = TestFeature
 enum TestFeature { case waitingAlerts, agentThreads }
 enum TestTone { case neutral }
 struct NotchcastCommand {
@@ -25,9 +27,6 @@ struct NotchcastCommand {
     static let shared = AppCore()
     let appIndex = TestIndex()
     func showMessage(_ message: String, tone: TestTone) {}
-}
-@MainActor enum NotchcastCore {
-    static let waitingAlerts = WaitingAlertsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
 }
 @MainActor final class FakeWatcher: WaitingAlertsWatching {
     var changed: (@MainActor () -> Void)?
@@ -139,7 +138,8 @@ struct NotchcastCommand {
         precondition(!WaitingAlertsModule.command.isEnabled())
         NotchcastPreferences.shared.enabled = true
         precondition(WaitingAlertsModule.command.isEnabled())
-        _ = NotchcastCore.waitingAlerts
+        let entries = WaitingAlertsModule.register(AppCore.shared)
+        precondition(entries.count == 1 && entries[0].requires == [.waitingAlerts] && entries[0].module === WaitingAlertsModule.shared)
         print("PASS: transitions, first-read suppression, coalescing, approval/question/count text")
         print("PASS: fake watcher/reader; immediate command read; one in flight; exactly one trailing read")
         print("PASS: stop drops late result/event; missing folder; switch command gate; exact hook init; Swift 6 strict")
