@@ -167,59 +167,26 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var settingsGroup: SettingsGroup {
         if let descriptor { return descriptor.group }
         return switch self {
-        case .cleaningMode: .tools
-        case .appUpdates: .tools
-        case .macUpdate: .tools
         case .commandRunner: .launcher
         case .mediaTools: .activities
         case .convertFiles: .activities
         case .urlCleaner: .system
         case .buildStats: .buildStats
-        case .agentMCPServer: .captureAndDictation
-        case .agentChatTools: .captureAndDictation
         case .colorPicker: .captureAndDictation
-        case .screenText: .captureAndDictation
         case .scrollingCapture: .captureAndDictation
         case .screenshot: .captureAndDictation
         case .machBlockedDialogAlert: .system
         case .remoteScreen: .system
         case .machMBPFans: .system
-        case .dictationIslandHUD: .activities
-        case .dictationCleanup: .captureAndDictation
-        case .dictationEnglish: .captureAndDictation
-        case .dictationHistory: .captureAndDictation
         case .captureTrimmer: .captureAndDictation
         case .captureEditor: .captureAndDictation
-        case .agentAnswer: .captureAndDictation
-        case .voiceAsk: .captureAndDictation
         case .recording: .captureAndDictation
-        case .globeDictation: .captureAndDictation
-        case .batteryChargeLimit: .systemTools
-        case .batterySailing: .systemTools
-        case .batteryHeatProtection: .systemTools
-        case .batteryCalibration: .systemTools
-        case .keepAwake: .systemTools
-        case .lidClosedAwake: .systemTools
         case .backupRunNow: .system
         case .backupBrowseRestore: .system
         case .quickLookSpace: .launcher
         case .markdownFiles: .system
         case .plainTextFiles: .system
         case .editorSpellChecking: .system
-        case .agentSessions: .activities
-        case .openBotAgents: .activities
-        case .agentThreads: .activities
-        case .agentIsland: .activities
-        case .fleetPanel: .activities
-        case .waitingAlerts: .activities
-        case .agentPricing: .agentPricing
-        case .cleanJunk: .clean
-        case .cleanHistory: .clean
-        case .cleanAIData: .clean
-        case .cleanDisk: .clean
-        case .cleanPurge: .clean
-        case .cleanOptimize: .clean
-        case .cleanSystem: .clean
         case .settingsBackup: .system
         case .showDesktop: .system
         case .spacesOrder: .system
@@ -230,8 +197,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .switcherQuitKey: .launcher
         case .treadmillWalk: .activities
         case .treadmillHistory: .activities
-        case .katana: .system
-        case .appearance: .appearance
         case .startupItems: .tweaks
         case .notificationCleanup: .tweaks
         case .sudoTouchID: .tweaks
@@ -250,21 +215,12 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .distill: .activities
         case .distillTimestamps: .activities
         case .distillConvert: .activities
-        case .machRemote: .system
-        case .backupStatus: .system
-        case .shelfBetweenMacs: .activities
-        case .sendFiles: .system
-        case .updateRemote: .system
         case .archives: .archives
         case .archivesInPlace: .archives
         case .archivesDefaultApp: .archives
         case .torrents: .torrents
         case .torrentsUseIPhone: .torrents
         case .torrentsKeepSharing: .torrents
-        case .pastePlain: .clipboard
-        case .finderCutPaste: .finder
-        case .finderRename: .finder
-        case .pasteImage: .clipboard
         default: preconditionFailure("\(self) has neither a descriptor nor a settingsGroup arm")
         }
     }
@@ -272,34 +228,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var title: String {
         if let descriptor { return descriptor.title }
         return switch self {
-        case .cleaningMode: String(localized: "Cleaning mode", table: "Notchcast")
-        case .appUpdates: String(localized: "App updates", table: "Notchcast")
-        case .macUpdate: String(localized: "Update this Mac", table: "Notchcast")
         case .commandRunner: String(localized: "Command Runner", table: "Notchcast")
         case .mediaTools: String(localized: "Media Tools", table: "Notchcast")
         case .convertFiles: String(localized: "Convert Files", table: "Notchcast")
         case .urlCleaner: String(localized: "URL cleaner", table: "Notchcast")
         case .buildStats: String(localized: "Build statistics", table: "Notchcast")
-        case .agentMCPServer: String(localized: "Agent MCP Server", table: "Notchcast")
-        case .agentChatTools: String(localized: "AI Chat Tools", table: "Notchcast")
         case .treadmillWalk: String(localized: "Walking Pad", table: "Notchcast")
         case .treadmillHistory: String(localized: "Walk History", table: "Notchcast")
-        case .katana: String(localized: "Katana", table: "Notchcast")
-        case .appearance: String(localized: "Custom appearance", table: "Notchcast")
-        case .agentSessions: String(localized: "Agent Session Logs", table: "Notchcast")
-        case .openBotAgents: String(localized: "OpenBot Agents", table: "Notchcast")
-        case .agentThreads: String(localized: "Agent Threads", table: "Notchcast")
-        case .agentIsland: String(localized: "Agent Island", table: "Notchcast")
-        case .fleetPanel: String(localized: "Fleet Panel", table: "Notchcast")
-        case .waitingAlerts: String(localized: "Waiting-for-you alerts", table: "Notchcast")
-        case .agentPricing: String(localized: "Agent API Value", table: "Notchcast")
-        case .pastePlain: String(localized: "Paste Plain Text", table: "Notchcast")
-        case .finderCutPaste: String(localized: "Finder Cut and Paste", table: "Notchcast")
-        case .finderRename: String(localized: "Finder Rename", table: "Notchcast")
-        case .pasteImage: String(localized: "Paste Image in Finder", table: "Notchcast")
         case .colorPicker: String(localized: "Color Picker", table: "Notchcast")
         case .screenshot: String(localized: "Screenshots", table: "Notchcast")
-        case .screenText: String(localized: "Capture Text", table: "Notchcast")
         case .scrollingCapture: String(localized: "Scrolling Capture", table: "Notchcast")
         case .greenMaximize: String(localized: "Green Button Maximizes", table: "Notchcast")
         case .middleClick: String(localized: "Trackpad Middle Click", table: "Notchcast")
@@ -318,40 +255,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: String(localized: "Dock and windows", table: "Notchcast")
         case .appleAppsTweaks: String(localized: "Apple apps", table: "Notchcast")
         case .iPhoneBackupTweaks: String(localized: "iPhone backup", table: "Notchcast")
-        case .machRemote: String(localized: "Remote Mac", table: "Notchcast")
-        case .backupStatus: String(localized: "Backup Status", table: "Notchcast")
-        case .shelfBetweenMacs: String(localized: "Shelf between Macs", table: "Notchcast")
-        case .sendFiles: String(localized: "Send to Remote Mac", table: "Notchcast")
-        case .updateRemote: String(localized: "Update Remote Mac", table: "Notchcast")
         case .archives: String(localized: "Archives")
         case .archivesInPlace: String(localized: "Extract in place", table: "Notchcast")
         case .archivesDefaultApp: String(localized: "Open archives with Notchcast", table: "Notchcast")
         case .torrents: String(localized: "Torrents", table: "Notchcast")
         case .torrentsUseIPhone: String(localized: "Use a plugged-in iPhone for big downloads", table: "Notchcast")
         case .torrentsKeepSharing: String(localized: "Keep sharing until ratio 1.0", table: "Notchcast")
-        case .dictationIslandHUD: String(localized: "Dictation in Island", table: "Notchcast")
-        case .dictationCleanup: String(localized: "AI cleanup", table: "Notchcast")
-        case .dictationEnglish: String(localized: "Dictate in English", table: "Notchcast")
-        case .dictationHistory: String(localized: "Keep dictation history", table: "Notchcast")
         case .captureTrimmer: String(localized: "Recording Trimmer", table: "Notchcast")
         case .captureEditor: String(localized: "Capture Editor", table: "Notchcast")
-        case .agentAnswer: String(localized: "Agent Answers", table: "Notchcast")
-        case .voiceAsk: String(localized: "Voice Ask", table: "Notchcast")
         case .recording: String(localized: "Screen Recording", table: "Notchcast")
-        case .globeDictation: String(localized: "Globe Dictation", table: "Notchcast")
-        case .batteryChargeLimit: String(localized: "Charge Limit", table: "Notchcast")
-        case .batterySailing: String(localized: "Battery Sailing", table: "Notchcast")
-        case .batteryHeatProtection: String(localized: "Battery Heat Protection", table: "Notchcast")
-        case .batteryCalibration: String(localized: "Battery Calibration", table: "Notchcast")
-        case .keepAwake: String(localized: "Keep Awake", table: "Notchcast")
-        case .lidClosedAwake: String(localized: "Keep Awake with Lid Closed", table: "Notchcast")
-        case .cleanJunk: String(localized: "Junk", table: "Notchcast")
-        case .cleanHistory: String(localized: "Clean history", table: "Notchcast")
-        case .cleanAIData: String(localized: "AI data", table: "Notchcast")
-        case .cleanDisk: String(localized: "Disk analyzer", table: "Notchcast")
-        case .cleanPurge: String(localized: "Project purge", table: "Notchcast")
-        case .cleanOptimize: String(localized: "Optimize", table: "Notchcast")
-        case .cleanSystem: String(localized: "System root", table: "Notchcast")
         case .settingsBackup: String(localized: "Settings Backup", table: "Notchcast")
         case .machineSetupProfile: String(localized: "Machine Setup Profile", table: "Notchcast")
         case .agentConfirmation: String(localized: "Agent Confirmation", table: "Notchcast")
@@ -377,35 +289,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var subtitle: String {
         if let descriptor { return descriptor.subtitle }
         return switch self {
-        case .cleaningMode: String(localized: "Press Escape five times to exit; ends after 300 seconds.", table: "Notchcast")
-        case .appUpdates: String(localized: "Check installed apps for updates on demand.", table: "Notchcast")
-        case .macUpdate: String(localized: "Run maintenance only after confirmation.", table: "Notchcast")
         case .commandRunner: String(localized: "Run commands from a host profile.", table: "Notchcast")
         case .mediaTools: String(localized: "Compress media, make GIFs and extract text locally.", table: "Notchcast")
         case .convertFiles: String(localized: "Convert local files beside the originals.", table: "Notchcast")
         case .urlCleaner: String(localized: "Remove tracking parameters from copied links.", table: "Notchcast")
         case .buildStats: String(localized: "Read a local build snapshot.", table: "Notchcast")
-        case .agentMCPServer: String(localized: "Nothing is exposed until the CLI is available.", table: "Notchcast")
-        case .agentChatTools: String(localized: "Add Notchcast tools to AI chat.", table: "Notchcast")
-        case .dictationEnglish: String(localized: "Use English for dictation.", table: "Notchcast")
         case .treadmillWalk: String(localized: "Control a Bluetooth walking pad from the launcher.", table: "Notchcast")
         case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.", table: "Notchcast")
-        case .katana: String(localized: "Switch Katana amp channels from the launcher.", table: "Notchcast")
-        case .appearance: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.", table: "Notchcast")
-        case .agentSessions: String(localized: "Read local agent session metadata and token usage on demand.", table: "Notchcast")
-        case .openBotAgents: String(localized: "Read waiting items from local OpenBot agents.", table: "Notchcast")
-        case .agentThreads: String(localized: "Read active and recently finished agent threads on this Mac.", table: "Notchcast")
-        case .agentIsland: String(localized: "Summarize waiting and working agents.", table: "Notchcast")
-        case .fleetPanel: String(localized: "Read T3 Code threads on both Macs on demand.", table: "Notchcast")
-        case .waitingAlerts: String(localized: "Notify when an agent needs approval or an answer.", table: "Notchcast")
-        case .agentPricing: String(localized: "Estimate API value from local agent token usage.", table: "Notchcast")
-        case .pastePlain: String(localized: "Paste text without formatting from the launcher.", table: "Notchcast")
-        case .finderCutPaste: String(localized: "Use ⌘X and ⌘V to move files in Finder.", table: "Notchcast")
-        case .finderRename: String(localized: "Use Hyper+R to rename the selection in Finder.", table: "Notchcast")
-        case .pasteImage: String(localized: "Command+V saves clipboard images as PNG files in Finder.", table: "Notchcast")
         case .colorPicker: String(localized: "Copy a color from anywhere on the screen.", table: "Notchcast")
         case .screenshot: String(localized: "Capture an area, window or display.", table: "Notchcast")
-        case .screenText: String(localized: "Copy text from a selected screen area.", table: "Notchcast")
         case .scrollingCapture: String(localized: "Copy a scrolling area as one image.", table: "Notchcast")
         case .greenMaximize: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.", table: "Notchcast")
         case .middleClick: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.", table: "Notchcast")
@@ -424,39 +316,15 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: String(localized: "Changes Dock preferences and restarts Dock after confirmation.", table: "Notchcast")
         case .appleAppsTweaks: String(localized: "macOS requires your approval to install this restriction; remove it in System Settings.", table: "Notchcast")
         case .iPhoneBackupTweaks: String(localized: "Changes system preferences after confirmation; some changes require signing out.", table: "Notchcast")
-        case .machRemote: String(localized: "Connect to the remote Mac using SSH.", table: "Notchcast")
-        case .backupStatus: String(localized: "Warns when backups fail or become stale.", table: "Notchcast")
-        case .shelfBetweenMacs: String(localized: "Send small items to the paired Mac.", table: "Notchcast")
-        case .sendFiles: String(localized: "Send selected files to the remote Mac.", table: "Notchcast")
-        case .updateRemote: String(localized: "Run the update on the remote Mac.", table: "Notchcast")
         case .archives: String(localized: "Extract opened archives beside the original file.", table: "Notchcast")
         case .archivesInPlace: String(localized: "The archive shrinks while extracting.", table: "Notchcast")
         case .archivesDefaultApp: String(localized: "Use Notchcast instead of Archive Utility to open archives.", table: "Notchcast")
         case .torrents: String(localized: "Download magnet links and torrent files to Downloads.", table: "Notchcast")
         case .torrentsUseIPhone: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.", table: "Notchcast")
         case .torrentsKeepSharing: String(localized: "Upload as much as you download before stopping.", table: "Notchcast")
-        case .dictationIslandHUD: String(localized: "Show dictation status in the island.", table: "Notchcast")
-        case .dictationCleanup: String(localized: "Clean up final dictation transcripts.", table: "Notchcast")
-        case .dictationHistory: String(localized: "Save transcripts for later review.", table: "Notchcast")
         case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.", table: "Notchcast")
         case .captureEditor: String(localized: "Mark up a capture and copy it.", table: "Notchcast")
-        case .agentAnswer: String(localized: "Reply to waiting agents.", table: "Notchcast")
-        case .voiceAsk: String(localized: "Voice Ask destination", table: "Notchcast")
         case .recording: String(localized: "Record an area, window or display with system audio.", table: "Notchcast")
-        case .globeDictation: String(localized: "Tap Globe to start or finish dictation, or hold it to talk.", table: "Notchcast")
-        case .batteryChargeLimit: String(localized: "Stop charging at the selected limit.", table: "Notchcast")
-        case .batterySailing: String(localized: "Use battery power above the charge limit.", table: "Notchcast")
-        case .batteryHeatProtection: String(localized: "Pause charging when the battery is hot.", table: "Notchcast")
-        case .batteryCalibration: String(localized: "Run a full battery calibration cycle.", table: "Notchcast")
-        case .keepAwake: String(localized: "Prevent idle sleep for the selected duration.", table: "Notchcast")
-        case .lidClosedAwake: String(localized: "Keep awake while the lid is closed.", table: "Notchcast")
-        case .cleanJunk: String(localized: "Runs only when you click an action.", table: "Notchcast")
-        case .cleanHistory: String(localized: "Runs only when you click an action.", table: "Notchcast")
-        case .cleanAIData: String(localized: "Runs only when you click an action.", table: "Notchcast")
-        case .cleanDisk: String(localized: "Runs only when you click an action.", table: "Notchcast")
-        case .cleanPurge: String(localized: "Runs only when you click an action.", table: "Notchcast")
-        case .cleanOptimize: String(localized: "Runs only when you click an action.", table: "Notchcast")
-        case .cleanSystem: String(localized: "Runs only when you click an action.", table: "Notchcast")
         case .settingsBackup: String(localized: "Back up safe Notchcast preferences daily.", table: "Notchcast")
         case .machineSetupProfile: String(localized: "Plan portable setup imports and exports.", table: "Notchcast")
         case .agentConfirmation: String(localized: "Ask before allowing agent requests.", table: "Notchcast")
@@ -483,18 +351,13 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var requiredGrants: [NotchcastGrant] {
         if let descriptor { return descriptor.requiredGrants }
         return switch self {
-        case .cleaningMode: [.accessibility]
-        case .screenText: [.screenRecording]
         case .scrollingCapture: [.screenRecording]
-        case .dictationEnglish: [.accessibility]
         case .screenshot: [.screenRecording]
         case .showDesktop: [.accessibility]
         case .middleClick: [.accessibility]
         case .greenMaximize: [.accessibility]
         case .switcherQuitKey: [.accessibility]
-        case .voiceAsk: [.accessibility, .microphone]
         case .recording: [.screenRecording]
-        case .globeDictation: [.accessibility, .microphone]
         case .notificationCleanup: [.accessibility]
         case .startupItems: []
         case .sudoTouchID: []
@@ -508,16 +371,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .dockTweaks: []
         case .appleAppsTweaks: []
         case .iPhoneBackupTweaks: []
-        case .batteryChargeLimit: []
-        case .batterySailing: []
-        case .batteryHeatProtection: []
-        case .batteryCalibration: []
-        case .keepAwake: []
-        case .lidClosedAwake: []
-        case .pastePlain: [.accessibility]
-        case .finderCutPaste: [.accessibility]
-        case .finderRename: [.accessibility]
-        case .pasteImage: [.accessibility]
         default: []
         }
     }
@@ -568,11 +421,9 @@ extension NotchcastFeature {
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
         case .colorPicker: false
-        case .screenText: false
         case .scrollingCapture: false
         case .screenshot: false
         case .buildStats: false
-        case .agentPricing: false
         case .urlCleaner: false
         case .convertFiles: false
         case .mediaTools: false
@@ -584,32 +435,17 @@ extension NotchcastFeature {
         case .greenMaximize: false
         case .machineSetupProfile: false
         case .switcherQuitKey: false
-        case .agentSessions: false
-        case .openBotAgents: false
-        case .agentThreads: false
-        case .agentIsland: false
-        case .fleetPanel: false
-        case .waitingAlerts: false
         case .archives: false
         case .archivesInPlace: false
         case .archivesDefaultApp: false
         case .torrents: false
         case .torrentsUseIPhone: false
         case .torrentsKeepSharing: false
-        case .dictationCleanup: false
-        case .dictationEnglish: false
-        case .dictationHistory: false
         case .captureTrimmer: false
         case .captureEditor: false
-        case .agentAnswer: false
-        case .voiceAsk: false
         case .recording: false
-        case .globeDictation: false
-        case .agentMCPServer: false
-        case .agentChatTools: false
         case .treadmillWalk: false
         case .treadmillHistory: false
-        case .appearance: false
         case .downloads: false
         case .downloadsAria2: false
         case .distill: false
@@ -617,21 +453,12 @@ extension NotchcastFeature {
         case .distillConvert: false
         case .remoteScreen: false
         case .machMBPFans: false
-        case .machRemote: false
-        case .backupStatus: false
-        case .shelfBetweenMacs: false
-        case .sendFiles: false
-        case .updateRemote: false
         case .backupRunNow: false
         case .backupBrowseRestore: false
         case .quickLookSpace: false
         case .markdownFiles: false
         case .plainTextFiles: false
         case .editorSpellChecking: false
-        case .pastePlain: false
-        case .finderCutPaste: false
-        case .finderRename: false
-        case .pasteImage: false
         default: true
         }
     }
@@ -667,12 +494,6 @@ extension NotchcastFeature {
         case .spacesOrder: false
         case .switcherQuitKey: false
         case .buildStats: false
-        case .voiceAsk: false
-        case .agentMCPServer: false
-        case .dictationEnglish: false
-        case .agentAnswer: false
-        case .dictationCleanup: false
-        case .pastePlain: false
         case .urlCleaner: false
         case .convertFiles: false
         case .mediaTools: false
@@ -682,21 +503,9 @@ extension NotchcastFeature {
         case .distill: false
         case .distillTimestamps: false
         case .distillConvert: false
-        case .machRemote: false
-        case .backupStatus: false
-        case .shelfBetweenMacs: false
-        case .sendFiles: false
-        case .updateRemote: false
         case .machBlockedDialogAlert: false
         case .remoteScreen: false
         case .machMBPFans: false
-        case .agentSessions: false
-        case .openBotAgents: false
-        case .agentThreads: false
-        case .agentIsland: false
-        case .fleetPanel: false
-        case .waitingAlerts: false
-        case .agentPricing: false
         case .treadmillWalk: false
         default: true
         }
@@ -704,10 +513,7 @@ extension NotchcastFeature {
 
     var isSystemFeature: Bool {
         if let descriptor { return descriptor.isSystemFeature }
-        return switch self {
-        case .katana: true
-        default: settingsGroup == .systemTools || settingsGroup == .tools
-        }
+        return settingsGroup == .systemTools || settingsGroup == .tools
     }
 }
 
