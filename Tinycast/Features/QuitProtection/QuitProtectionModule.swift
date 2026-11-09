@@ -7,15 +7,13 @@ import Synchronization
 final class QuitProtectionModule: NotchcastModule {
     private(set) var notice: QuitProtectionEngine.Notice?
     private let store: QuitProtectionStore
-    private let hub: EventTapHub
+    private let tap: EventTapSubscription
     private let frontmostTarget: @MainActor () -> QuitProtectionEngine.Target?
     private let state = SharedSession()
-    private var registration: UUID?
     private var timer: Timer?
     private var layoutSource: String?
     private var activation: NotificationToken?
     private var inputSourceChange: NotificationToken?
-    private var trusted = false
 
     private final class SharedSession: Sendable {
         let value = Mutex(Session())
@@ -45,18 +43,17 @@ final class QuitProtectionModule: NotchcastModule {
     init(store: QuitProtectionStore, hub: EventTapHub,
          frontmostTarget: @escaping @MainActor () -> QuitProtectionEngine.Target? = QuitProtectionModule.currentTarget) {
         self.store = store
-        self.hub = hub
+        tap = EventTapSubscription(hub: hub)
         self.frontmostTarget = frontmostTarget
     }
 
     func start() {
         AppCore.shared.appIndex.refreshNotchcastCommands()
-        guard registration == nil else { return }
+        guard !tap.isActive else { return }
         refreshLayout()
         refresh()
         let mask = [CGEventType.keyDown, .keyUp, .flagsChanged].reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }
-        registration = hub.registerSynchronous(mask: mask) { [state, weak self] type, event in
-            guard event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag else { return .pass }
+        tap.start(mask: mask, skipsSynthetic: true) { [state, weak self] type, event in
             let verdict: EventTapHub.Verdict = state.value.withLock { session in
                 let code = UInt16(truncatingIfNeeded: event.getIntegerValueField(.keyboardEventKeycode))
                 let key = QuitProtectionEngine.Key(code: code, commandCharacter: session.characters[code])
@@ -92,13 +89,12 @@ final class QuitProtectionModule: NotchcastModule {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.refreshLayout() }
         }, center: inputCenter)
-        if let registration { observeConfiguration(registration) }
+        if let id = tap.id { observeConfiguration(id) }
     }
 
     func stop() {
         AppCore.shared.appIndex.refreshNotchcastCommands()
-        if let registration { hub.remove(registration) }
-        registration = nil
+        tap.stop()
         timer?.invalidate()
         timer = nil
         activation = nil
@@ -123,7 +119,7 @@ final class QuitProtectionModule: NotchcastModule {
             state.value.withLock { $0.engine.configuration = store.configuration }
         } onChange: { [weak self] in
             DispatchQueue.main.async {
-                guard let self, self.registration == identity else { return }
+                guard let self, self.tap.id == identity else { return }
                 self.observeConfiguration(identity)
                 self.updatePendingPress()
             }
@@ -143,18 +139,13 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     private func refresh() {
-        let currentTrust = AXIsProcessTrusted()
-        if currentTrust != trusted {
-            trusted = currentTrust
-            hub.refreshPermission()
-        }
         let target = frontmostTarget()
         state.value.withLock { $0.target = target }
         updatePendingPress()
     }
 
     private func updatePendingPress() {
-        guard registration != nil else { return }
+        guard tap.isActive else { return }
         timer?.invalidate()
         timer = nil
         let result = state.value.withLock { session in

@@ -18,21 +18,19 @@ final class MediaLevelKeyMonitor {
         let operation: Operation
     }
 
-    private let hub: EventTapHub
+    private let tap: EventTapSubscription
     private let prepare: (Press) -> Operation
     private let applied: (LevelNotice) -> Void
     private let replay: @MainActor (Press) -> Void
-    private var registration: UUID?
     private var generation = UUID()
     private var enabled: Set<MediaLevelKey> = []
     private var pending: [Pending] = []
     private var worker: Task<Void, Never>?
-    private var activation: NotificationToken?
 
     init(hub: EventTapHub, prepare: @escaping (Press) -> Operation,
          applied: @escaping (LevelNotice) -> Void,
          replay: @escaping @MainActor (Press) -> Void = MediaLevelKeyMonitor.replay) {
-        self.hub = hub
+        tap = EventTapSubscription(hub: hub)
         self.prepare = prepare
         self.applied = applied
         self.replay = replay
@@ -49,8 +47,7 @@ final class MediaLevelKeyMonitor {
         if keys.contains(.brightnessUp) || keys.contains(.brightnessDown) {
             mask |= (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
         }
-        registration = hub.registerSynchronous(mask: mask) { [weak self] type, event in
-            guard event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag else { return .pass }
+        tap.start(mask: mask, skipsSynthetic: true) { [weak self] type, event in
             let decoded = type.rawValue == NSEvent.EventType.systemDefined.rawValue
                 ? NSEvent(cgEvent: event) : nil
             let decision = policy.withLock {
@@ -79,26 +76,15 @@ final class MediaLevelKeyMonitor {
                 return .swallow
             }
         }
-        let center = NSWorkspace.shared.notificationCenter
-        activation = NotificationToken(center.addObserver(
-            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self, self.generation == epoch else { return }
-                self.hub.refreshPermission()
-            }
-        }, center: center)
     }
 
     func stop() {
         generation = UUID()
-        if let registration { hub.remove(registration) }
-        registration = nil
+        tap.stop()
         enabled = []
         worker?.cancel()
         worker = nil
         pending = []
-        activation = nil
     }
 
     private func enqueue(_ press: Press) {
@@ -146,7 +132,6 @@ final class MediaLevelKeyMonitor {
     }
 
     isolated deinit {
-        if let registration { hub.remove(registration) }
         worker?.cancel()
     }
 }

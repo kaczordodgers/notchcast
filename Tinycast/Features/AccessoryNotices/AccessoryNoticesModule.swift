@@ -36,8 +36,7 @@ final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerD
         engine.seed(source.start { [weak self] address, name, connected in
             guard let self, self.running, self.engine.connection(address, connected: connected) else { return }
             let message = String(localized: "\(name): Connected", table: "Notchcast")
-            IslandActivityCenter.shared.showMessage(message, tone: .neutral, dwell: 4,
-                                                   id: "accessory.connection.\(address)", symbol: "headphones")
+            IslandHUDRouter.post(message, id: "accessory.connection.\(address)", symbol: "headphones", dwell: 4)
         })
         timer = Task { [weak self] in
             while !Task.isCancelled {
@@ -45,8 +44,8 @@ final class AccessoryNoticesModule: NSObject, NotchcastModule, CBCentralManagerD
                 guard !Task.isCancelled, let self, self.running else { return }
                 for reading in self.engine.batteries(readings) {
                     let message = String(localized: "\(reading.name): Low battery: \(Int(reading.percent))%", table: "Notchcast")
-                    IslandActivityCenter.shared.showMessage(message, tone: .danger, dwell: 4,
-                                                           id: "accessory.battery.\(reading.id)", symbol: "battery.25percent")
+                    IslandHUDRouter.post(message, tone: .danger, id: "accessory.battery.\(reading.id)",
+                                         symbol: "battery.25percent", dwell: 4)
                 }
                 do { try await Task.sleep(for: .seconds(30)) } catch { return }
             }
