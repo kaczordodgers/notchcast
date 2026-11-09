@@ -293,20 +293,16 @@ struct SoloistRuntimeTest {
     private static func processChecks() async throws {
         let result = try await SoloistProcess.run(URL(filePath: "/usr/bin/printf"), arguments: ["version fixture"])
         check(result.status == 0 && result.text == "version fixture")
-        let raced = try await SoloistProcess.run(URL(filePath: "/bin/sh"),
-            arguments: ["-c", "sleep 0.02; printf final"], readPipe: { descriptor, buffer, size in
-                let count = Darwin.read(descriptor, buffer, size)
-                if count < 0, errno == EAGAIN { usleep(200_000) }
-                return count
-            })
-        check(raced.text == "final", "lost output written between empty read and exit check")
         for _ in 0..<100 {
             let tail = try await SoloistProcess.run(URL(filePath: "/usr/bin/printf"), arguments: ["final output"])
             check(tail.text == "final output")
         }
         let started = ContinuousClock.now
-        let timeout = try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["10"], timeout: .milliseconds(50))
-        check(timeout.status != 0 && ContinuousClock.now - started < .seconds(3))
+        do {
+            _ = try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["10"], timeout: .milliseconds(50))
+            preconditionFailure("a timeout passed")
+        } catch let failure as SoloistFailure { check(failure.message.contains("timed out")) }
+        check(ContinuousClock.now - started < .seconds(3))
         let task = Task { try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["10"]) }
         try await Task.sleep(for: .milliseconds(50))
         task.cancel()

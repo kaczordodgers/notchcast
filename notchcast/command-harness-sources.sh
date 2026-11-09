@@ -36,6 +36,14 @@ if [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastFeature"* ]]; then
     done
 fi
 
+# Fork code that runs a program goes through ProcessRunner, which needs ProcessExit; no harness header lists either.
+runner_callers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done | tr '\n' ' '; true)
+if [[ " $runner_callers " != *" Tinycast/Features/Notchcast/Process/ProcessRunner.swift "* ]] &&
+    grep -lqsE '(^|[^A-Za-z0-9_])ProcessRunner\.' $runner_callers /dev/null; then
+    set -- "$@" Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+    [[ " $runner_callers " == *" Tinycast/Platform/ProcessExit.swift "* ]] || set -- "$@" Tinycast/Platform/ProcessExit.swift
+fi
+
 # Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
 identity_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done; true)
 if [[ " $* " != *" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift "* ]] &&

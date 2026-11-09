@@ -11,6 +11,12 @@ struct SystemRunnerTests {
             _ = try SystemToolsProcessRunner().run("/bin/sh", arguments: [])
             preconditionFailure("Shell execution must be rejected")
         } catch SystemToolsProcessRunner.Failure.invalidExecutable {}
+        let domains = try SystemToolsProcessRunner().run("/usr/bin/defaults", arguments: ["domains"])
+        precondition(domains.contains("com.apple"))
+        do {
+            _ = try SystemToolsProcessRunner().run("/usr/bin/defaults", arguments: ["read", "notchcast-no-such-domain"])
+            preconditionFailure("A failing tool must throw")
+        } catch SystemToolsProcessRunner.Failure.failed(let status) { precondition(status == 1) }
         let item = StartupItem(label: "example.agent", kind: .userAgent,
                                path: "/example/Library/LaunchAgents/example.plist",
                                program: nil, disabled: false, loaded: true)
@@ -19,6 +25,6 @@ struct SystemRunnerTests {
             calls.append($0)
         }
         precondition(calls == [["disable", "gui/501/example.agent"], ["bootout", "gui/501/example.agent"]])
-        print("Runner shell rejection and injected startup reversal passed; no processes launched")
+        print("Runner shell rejection, real defaults runs and injected startup reversal passed")
     }
 }

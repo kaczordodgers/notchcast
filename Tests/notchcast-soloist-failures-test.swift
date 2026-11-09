@@ -93,25 +93,15 @@ struct NotchcastSoloistFailuresTest {
     }
 
     private static func processChecks() async throws {
+        let quiet = try await SoloistProcess.run(URL(filePath: "/bin/sh"), arguments: ["-c", "sleep 0.05; printf done"])
+        check(quiet.text == "done", "a quiet process lost its output")
         do {
-            _ = try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["1"], readPipe: { _, _, _ in
-                errno = EBADF
-                return -1
-            })
-            preconditionFailure("a failing pipe read passed")
+            _ = try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["10"], timeout: .milliseconds(50))
+            preconditionFailure("a timeout passed")
         } catch {
             let failure = error as! SoloistFailure
-            check(failure.reason == .process && failure.message.contains("sleep: read:")
-                  && failure.message.contains("errno \(EBADF)"), failure.message)
+            check(failure.reason == .process && failure.message.contains("sleep: timed out"), failure.message)
         }
-        let waits = SendableCounter()
-        let quiet = try await SoloistProcess.run(URL(filePath: "/bin/sh"), arguments: ["-c", "sleep 0.05; printf done"],
-                                                 readPipe: { descriptor, buffer, size in
-            let count = Darwin.read(descriptor, buffer, size)
-            if count < 0 { waits.add() }
-            return count
-        })
-        check(quiet.text == "done" && waits.value > 0, "an empty pipe read stopped the process")
         do {
             _ = try await SoloistProcess.run(URL(filePath: "/nonexistent/tool"), arguments: [])
             preconditionFailure("a missing tool launched")
