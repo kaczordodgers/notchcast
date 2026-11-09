@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/LiveDay/DayWeatherModule.swift
 
 // notchcast-sources: Tinycast/Features/LiveDay/Model/*.swift
@@ -40,11 +41,4 @@ struct DayModulesTest {
     }
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = CommandIndexFixture()
-}
-@MainActor final class CommandIndexFixture {
-    private(set) var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
+enum DialogTone {}
