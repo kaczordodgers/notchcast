@@ -5,7 +5,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-reads: Tinycast/Features/Katana/KatanaDescriptor.swift
 import Foundation
 
 enum NotchcastFeature: Sendable { case katana }
@@ -132,8 +132,8 @@ enum DialogTone: Sendable {
             "Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift", encoding: .utf8)
         precondition(settings.components(separatedBy: ".feature(.katana,").count == 2)
         let feature = try String(contentsOfFile:
-            "Tinycast/Features/Notchcast/Core/NotchcastFeature.swift", encoding: .utf8)
-        precondition(feature.contains("case .katana: .system"))
+            "Tinycast/Features/Katana/KatanaDescriptor.swift", encoding: .utf8)
+        precondition(feature.contains("group: .system,"))
         print("PASS: Katana is listed once in Settings")
     }
 }

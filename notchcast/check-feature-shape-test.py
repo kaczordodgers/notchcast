@@ -18,8 +18,11 @@ SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
 SCHEMA, MODULES, SEARCH, DESCRIPTORS = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
-DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/*/*Descriptor.swift"))
+DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
+                   if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
 HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
+# A capture-module arm: it stays on the switches, so planted edits keep an anchor.
+ARM = "case .colorPicker: .captureAndDictation"
 
 
 def run(root, *args):
@@ -77,27 +80,27 @@ class FeatureShapeTests(unittest.TestCase):
     def test_shared_multi_case_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", "case .island, .islandExternalDisplays: .island"),
+            ARM, "case .colorPicker, .screenshot: .captureAndDictation"),
             "multi-case arm")
 
     def test_single_line_string_values(self):
         for value in ('"Other"', 'String(localized: "Other")'):
             with self.subTest(value=value):
                 source = (ROOT / SHAPE.FEATURE).read_text()
-                (self.root / SHAPE.FEATURE).write_text(source.replace(
-                    "case .island: .island", f"case .island: {value}"))
+                self.assertEqual(source.count(ARM), 1)
+                (self.root / SHAPE.FEATURE).write_text(source.replace(ARM, f"case .colorPicker: {value}"))
                 self.assertEqual(SHAPE.check(self.root), [])
 
     def test_two_switch_cases_on_one_line(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", 'case .island: "Other"; case .extra: "Extra"'),
+            ARM, 'case .colorPicker: "Other"; case .extra: "Extra"'),
             "own line")
 
     def test_multiline_string_value(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", 'case .island:\n            "Other"'),
+            ARM, 'case .colorPicker:\n            "Other"'),
             "keep each feature arm on one line")
 
     def test_shared_group_line(self):
@@ -113,7 +116,7 @@ class FeatureShapeTests(unittest.TestCase):
     def test_bare_case_before_multiline_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", "case\n            .island, .islandExternalDisplays: .island"),
+            ARM, "case\n            .colorPicker, .screenshot: .captureAndDictation"),
             "multi-case arm")
 
     def test_enum_comma_on_next_line(self):
@@ -133,13 +136,13 @@ class FeatureShapeTests(unittest.TestCase):
     def test_repeated_switch_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .dayMarkets: .activities", "case .dayMarkets: .activities\n        case .dayMarkets: .system"),
-            "repeated case .dayMarkets in switch")
+            "case .treadmillWalk: .activities", "case .treadmillWalk: .activities\n        case .treadmillWalk: .system"),
+            "repeated case .treadmillWalk in switch")
 
-    def test_needs_island_multi_case_arm(self):
+    def test_default_enabled_multi_case_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .displayBrightness: false", "case .displayBrightness, .quitProtection: false"),
+            "case .captureEditor: false", "case .captureEditor, .treadmillWalk: false"),
             "multi-case arm")
 
     def test_union_duplicated_group_header(self):
@@ -207,8 +210,8 @@ class FeatureShapeTests(unittest.TestCase):
         self.rejected(PREFS, source + source, "expected one NotchcastPreferences class")
 
     def test_arm_for_described_feature(self):
-        for anchor, arm in (("case .pasteImage: .clipboard\n", "case .hideCommandM: .system\n"),
-                            ("case .pasteImage: false\n", "case .linkHealth: false\n")):
+        for anchor, arm in ((ARM + "\n", "case .hideCommandM: .system\n"),
+                            ("case .recording: [.screenRecording]\n", "case .linkHealth: []\n")):
             with self.subTest(arm=arm):
                 source = (ROOT / SHAPE.FEATURE).read_text()
                 self.assertEqual(source.count(anchor), 1)
@@ -228,6 +231,47 @@ class FeatureShapeTests(unittest.TestCase):
         hub = (ROOT / DESCRIPTORS).read_text()
         self.rejected(DESCRIPTORS, hub.rstrip() + "\n\n" + source.split("\n", 1)[1], "declare a descriptor in")
 
+    def test_typed_and_init_descriptor_outside_its_feature_folder(self):
+        ghost = ('extension NotchcastFeature {\n    static let ghost: Descriptor = .init(title: "", subtitle: "",'
+                 ' group: .system, defaultEnabled: false, dependencies: [], requiredGrants: [],'
+                 ' isSystemFeature: false, isSystemTweak: false)\n}\n')
+        for path, source in ((Path("Tinycast/Features/LowDisk/Model/SubfolderDescriptor.swift"), ghost),
+                             (Path("Tinycast/Features/LowDisk/LowDiskGhost.swift"),
+                              ghost.replace(": Descriptor = .init(", " = NotchcastFeature.Descriptor.init("))):
+            with self.subTest(path=path):
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, source, "declare a descriptor in Tinycast/Features/<its folder>/")
+                (self.root / path).unlink()
+
+    def test_descriptor_in_a_nested_code_folder(self):
+        source = (ROOT / HIDE).read_text()
+        (self.root / HIDE).unlink()
+        for folder in ("Notchcast/Island", "Distill/Convert", "MachRemote/Integration"):
+            with self.subTest(folder=folder):
+                path = self.root / "Tinycast/Features" / folder / HIDE.name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(source)
+                self.assertEqual(SHAPE.check(self.root), [])
+                path.unlink()
+        for folder in ("Notchcast", "Notchcast/Core", "Distill/Convert/Model", "Distill/Convert/Service",
+                       "Notchcast/Island/UI", "Notchcast/Settings"):
+            with self.subTest(folder=folder):
+                path = Path("Tinycast/Features") / folder / HIDE.name
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, source, "declare a descriptor in Tinycast/Features/<its folder>/")
+                (self.root / path).unlink()
+
+    def test_descriptor_cannot_restate_needs_island(self):
+        source = (ROOT / HIDE).read_text()
+        self.assertEqual(source.count("        isSystemTweak: false\n"), 1)
+        (self.root / HIDE).write_text(source.replace("        isSystemTweak: false\n",
+                                                     "        isSystemTweak: false,\n        needsIsland: false\n"))
+        result = subprocess.run(["swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS),
+                                 str(DESCRIPTORS), *(str(self.root / path) for path in DESCRIBED)],
+                                cwd=ROOT, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0, "needsIsland is derived from dependencies, never stated")
+        self.assertIn("needsIsland", result.stderr)
+
     def test_descriptor_file_names_its_one_feature(self):
         source = (ROOT / HIDE).read_text()
         (self.root / HIDE).unlink()
@@ -236,6 +280,31 @@ class FeatureShapeTests(unittest.TestCase):
         self.rejected(HIDE, source.replace("    static let hideCommandM", "    static let hideCommandK = hideCommandM\n"
                                            "    static let hideCommandM"), "declare exactly one descriptor")
 
+    def test_descriptor_file_the_hub_does_not_list(self):
+        path = Path("Tinycast/Features/Treadmill/TreadmillWalkDescriptor.swift")
+        (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+        self.rejected(path, (ROOT / HIDE).read_text().replace("static let hideCommandM", "static let treadmillWalk"),
+                      f"list .treadmillWalk: .treadmillWalk, in {DESCRIPTORS}")
+
+    def test_descriptor_in_an_upstream_folder(self):
+        shipped = Path("Tinycast/Features/Launcher/LauncherScreen.swift")
+        (self.root / shipped).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / shipped).write_text("struct LauncherScreen {}\n")
+        run(self.root, "git", "init", "-q", "-b", "main")
+        run(self.root, "git", "add", str(shipped))
+        run(self.root, "git", "-c", "user.name=Upstream", "-c", "user.email=upstream@example.invalid",
+            "commit", "-qm", "Upstream")
+        run(self.root, "git", "update-ref", "refs/remotes/upstream/main", "HEAD")
+        self.assertEqual(SHAPE.check(self.root), [])
+        source = (ROOT / HIDE).read_text()
+        (self.root / HIDE).unlink()
+        for folder in ("Launcher", "Launcher/Keys"):
+            with self.subTest(folder=folder):
+                path = Path("Tinycast/Features") / folder / HIDE.name
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, source, "upstream ships Features/Launcher/")
+                (self.root / path).unlink()
+
     def test_hub_entry_maps_another_descriptor(self):
         source = (ROOT / DESCRIPTORS).read_text()
         self.rejected(DESCRIPTORS, source.replace(".linkHealth: .linkHealth,", ".linkHealth: .lowDiskWarning,"),
@@ -243,10 +312,10 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_undescribed_feature_without_exhaustive_arm(self):
         source = (ROOT / SHAPE.FEATURE).read_text()
-        arm = '        case .pastePlain: String(localized: "Paste Plain Text", table: "Notchcast")\n'
+        arm = '        case .colorPicker: String(localized: "Color Picker", table: "Notchcast")\n'
         self.assertEqual(source.count(arm), 1)
         self.rejected(SHAPE.FEATURE, source.replace(arm, ""),
-                      ".pastePlain needs a descriptor or a title arm")
+                      ".colorPicker needs a descriptor or a title arm")
 
     def init_repository(self):
         (self.root / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
@@ -265,31 +334,31 @@ class FeatureShapeTests(unittest.TestCase):
         self.init_repository()
         feature = self.root / SHAPE.FEATURE
         run(self.root, "git", "switch", "-qc", "append", "base")
-        source = feature.read_text().replace("    case dayMarkets\n", "    case dayMarkets\n    case captureArea\n")
+        source = feature.read_text().replace("    case treadmillWalk\n", "    case treadmillWalk\n    case captureArea\n")
         for member, value in (("settingsGroup", ".activities"),
                               ("title", 'String(localized: "Capture Area")'),
                               ("subtitle", 'String(localized: "Capture an area.")')):
             start = source.index(f"    var {member}:")
             end = source.index("\n        }", start)
-            arm = re.search(r"^        case \.dayMarkets:[^\n]*", source[start:end], re.M)
+            arm = re.search(r"^        case \.treadmillWalk:[^\n]*", source[start:end], re.M)
             insertion = start + arm.end() + 1
             source = source[:insertion] + f"        case .captureArea: {value}\n" + source[insertion:]
         feature.write_text(source)
         run(self.root, "git", "add", ".")
-        run(self.root, "git", "commit", "-qm", "Append captureArea beside dayMarkets")
+        run(self.root, "git", "commit", "-qm", "Append captureArea beside treadmillWalk")
         run(self.root, "git", "switch", "-qc", "edit", "base")
-        feature.write_text(feature.read_text().replace("case .dayMarkets: .activities", "case .dayMarkets: .system"))
+        feature.write_text(feature.read_text().replace("case .treadmillWalk: .activities", "case .treadmillWalk: .system"))
         run(self.root, "git", "add", ".")
-        run(self.root, "git", "commit", "-qm", "Change dayMarkets group")
+        run(self.root, "git", "commit", "-qm", "Change treadmillWalk group")
         run(self.root, "git", "switch", "-q", "append")
         run(self.root, "git", "merge", "--no-ff", "--no-edit", "edit")
         self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
         merged = feature.read_text()
-        self.assertIn("case .dayMarkets: .activities", merged)
-        self.assertIn("case .dayMarkets: .system", merged)
+        self.assertIn("case .treadmillWalk: .activities", merged)
+        self.assertIn("case .treadmillWalk: .system", merged)
         self.assertIn("case .captureArea: .activities", merged)
-        self.rejected(SHAPE.FEATURE, merged, "repeated case .dayMarkets in switch")
-        print("PASS: captureArea append plus dayMarkets edit merges clean; checker rejects retained old arm", flush=True)
+        self.rejected(SHAPE.FEATURE, merged, "repeated case .treadmillWalk in switch")
+        print("PASS: captureArea append plus treadmillWalk edit merges clean; checker rejects retained old arm", flush=True)
 
     def test_three_branch_union_merge(self):
         self.init_repository()
