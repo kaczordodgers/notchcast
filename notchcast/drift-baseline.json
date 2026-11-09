@@ -95,7 +95,7 @@
   },
   "constants": {
     "app.notchcast": 3,
-    "app.notchcast.dev": 7,
+    "app.notchcast.dev": 6,
     "com.apple.": 3,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
