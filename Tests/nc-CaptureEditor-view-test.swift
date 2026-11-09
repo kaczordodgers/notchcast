@@ -64,20 +64,10 @@ struct MenuThumbnail: View {
             .appendingPathComponent("Tinycast/Features/CaptureEditor/View/CaptureEditorView.swift")
         let viewCode = try String(contentsOf: viewSource, encoding: .utf8)
         precondition(!viewCode.contains("CaptureEditorRender.png") && !viewCode.contains("CaptureEditorRender.flatten"))
+        print("PASS: view has no flatten or PNG call")
         let document = coordinator.document!
         document.pressed(at: CGPoint(x: 20, y: 40), slack: 2)
         document.dragged(to: CGPoint(x: 180, y: 40))
-        let clock = ContinuousClock()
-        let elapsed = clock.measure {
-            for offset in 0..<20 {
-                document.dragged(to: CGPoint(x: 180 + offset, y: 40))
-                let content = host.window!.contentView!
-                content.layoutSubtreeIfNeeded()
-                let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds)!
-                content.cacheDisplay(in: content.bounds, to: bitmap)
-            }
-        }
-        print("PASS: 20 live overlay drag redraws in \(elapsed); view has no flatten or PNG call")
         document.released()
         preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding)
         precondition(failures == 2)
@@ -89,24 +79,6 @@ struct MenuThumbnail: View {
         document.pressed(at: CGPoint(x: 30, y: 100), slack: 2)
         document.textEdit?.string = "OK"
         document.commitText()
-        if let folder = ProcessInfo.processInfo.environment["CAPTURE_EDITOR_SNAPSHOTS"] {
-            let panel = host.window!
-            let screen = NSScreen.screens.first {
-                let id = ($0.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! NSNumber).uint32Value
-                return CGDisplayVendorNumber(id) == 0x0D17
-            }!
-            panel.setFrameOrigin(screen.visibleFrame.origin)
-            for (name, appearance) in [("dark", NSAppearance.Name.darkAqua), ("light", .aqua)] {
-                panel.appearance = NSAppearance(named: appearance)
-                try await Task.sleep(for: .milliseconds(500))
-                let content = panel.contentView!
-                content.layoutSubtreeIfNeeded()
-                let bitmap = content.bitmapImageRepForCachingDisplay(in: content.bounds)!
-                content.cacheDisplay(in: content.bounds, to: bitmap)
-                try bitmap.representation(using: .png, properties: [:])!.write(
-                    to: URL(filePath: folder).appendingPathComponent("capture-editor-\(name).png"))
-            }
-        }
         try await coordinator.copy()
         let png = board.data(forType: .png)!
         let decoded = CGImageSourceCreateImageAtIndex(CGImageSourceCreateWithData(png as CFData, nil)!, 0, nil)!

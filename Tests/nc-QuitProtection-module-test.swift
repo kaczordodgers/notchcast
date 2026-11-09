@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift Tinycast/Features/QuitProtection/Service/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionModule.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
@@ -70,11 +71,4 @@ enum ASCIIKeyboardLayout {
     }
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = CommandIndexFixture()
-}
-@MainActor final class CommandIndexFixture {
-    private(set) var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
+enum DialogTone {}
