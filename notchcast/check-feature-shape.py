@@ -21,7 +21,8 @@ LISTS = {
 DESCRIPTOR_FILE = re.compile(r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))"
                              r"(?:(?!(?:Model|Service|UI|Settings)/)\w+/)+(\w+)Descriptor\.swift")
 DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*(?:\.init\s*)?\("
-                                    r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?Descriptor\b")
+                                    r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?Descriptor\b"
+                                    r"|->\s*(?:NotchcastFeature\.)?Descriptor\b")
 # Switches without a default: a feature without a descriptor needs an arm in each.
 EXHAUSTIVE = ("settingsGroup", "title", "subtitle")
 
@@ -171,6 +172,9 @@ def upstream_folders(root):
         result = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True)
         return result.stdout.strip() if result.returncode == 0 else ""
     base = git("merge-base", "HEAD", "refs/remotes/upstream/main")
+    if not base:
+        print("note: no upstream/main ref; descriptors in upstream folders are not checked "
+              "(git fetch upstream main)", file=sys.stderr)
     return {Path(path).name for path in git("ls-tree", "--name-only", base, "Tinycast/Features/").splitlines()} if base else set()
 
 
@@ -245,7 +249,7 @@ def check(root):
             errors.append(f"{path}:1: {error}")
             continue
         if path.name == "ForkSettingsBackupSchema.swift":
-            source = re.sub(r"(?s)^.*?(?=    static let allowed:)", lambda m: "\n" * m[0].count("\n"), source)
+            source = re.sub(r"(?s)^.*?(?=    private static let featureKeys:)", lambda m: "\n" * m[0].count("\n"), source)
         errors.extend(f"{path}:{line}: {message}" for line, message in list_errors(source, identity))
     try:
         source = (root / PREFERENCES).read_text()

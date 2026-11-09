@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check feature raw values are classified exactly once by the backup schema."""
+"""Check every backup key is declared once: feature switches in the schema, a feature's own keys in its folder."""
 
 import argparse
 import importlib.util
@@ -15,6 +15,12 @@ spec.loader.exec_module(shape)
 ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 SCHEMA = Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift")
+# Island and capture folders cannot hold a key file yet; SettingsBackup's own restore writes the editor keys.
+SCHEMA_KEYS = {"islandHoverDelay", "notchcast.colorPicker.format",
+               "notchcast.screenshot.destination", "notchcast.screenshot.folder",
+               "notchcast.editor.font", "notchcast.editor.theme", "notchcast.editor.pairsAutomatically"}
+KEYS_FILE = re.compile(shape.DESCRIPTOR_FILE.pattern.replace("Descriptor", "BackupKeys"))
+KEYS_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.BackupKeys\b|\bBackupKeys\s*(?:\.init\s*)?\(")
 
 
 def body(source, pattern, opening, closing):
@@ -30,34 +36,97 @@ def body(source, pattern, opening, closing):
         end += 1
     if depth:
         raise ValueError("unterminated declaration")
-    return source[start + 1:end - 1]
+    return source[start + 1:end - 1], source.count("\n", 0, start)
 
 
-def check(root):
-    enum = body((root / FEATURE).read_text(), r"\benum\s+NotchcastFeature\b", "{", "}")
+def entries(source, offset, keyed):
+    """String keys at the top level of a list body, each with its line."""
+    code = shape.mask_literals(source)
+    found = []
+    depth = 0
+    for index, char in enumerate(code):
+        depth += (char in "([{") - (char in ")]}")
+        if char != "0" or source[index] != '"' or depth:
+            continue
+        value, length = json.JSONDecoder().raw_decode(source[index:])
+        follower = code[index + length:].lstrip(" ")[:1]
+        if follower == ":" or not keyed:
+            found.append((value, offset + source.count("\n", 0, index) + 1))
+    return found
+
+
+def features(root):
+    enum, _ = body((root / FEATURE).read_text(), r"\benum\s+NotchcastFeature\b", "{", "}")
     masked = shape.mask_literals(enum)
-    features = []
+    found = []
     for match in re.finditer(r"^\s*case\s+(\w+)(?:\s*=\s*(0))?", masked, re.M):
         raw = match[1]
         if match[2]:
             raw, _ = json.JSONDecoder().raw_decode(enum[match.start(2):])
-        features.append((match[1], raw))
-    if not features:
+        found.append((match[1], raw))
+    if not found:
         raise ValueError(f"no feature cases in {FEATURE}")
-    schema = (root / SCHEMA).read_text()
-    classified = []
-    for name in ("allowed", "excluded"):
-        entries = body(schema, rf"\bstatic\s+let\s+{name}\b[^=]*=", "[", "]")
-        code = shape.mask_literals(entries)
-        pattern = r"^\s*(0)\s*:" if name == "allowed" else r"^\s*(0)\s*[,\n]"
-        classified.append({json.JSONDecoder().raw_decode(entries[m.start(1):])[0]
-                           for m in re.finditer(pattern, code, re.M)})
+    return found
+
+
+def described(root):
+    hub = shape.mask_literals((root / shape.DESCRIPTORS).read_text())
+    return set(re.findall(r"^\s*\.(\w+): \.\w+,$", hub, re.M))
+
+
+def check(root):
     errors = []
-    for name, raw in features:
-        count = sum(raw in values for values in classified)
-        if count != 1:
-            label = "unclassified" if count == 0 else "doubly classified"
-            errors.append(f"{name} ({raw}): {label}; edit {SCHEMA}")
+    raw_values = {raw for _, raw in features(root)}
+    schema = (root / SCHEMA).read_text()
+    declared = {}
+    for name, keyed in (("listedAllowed", True), ("listedExcluded", False)):
+        source, offset = body(schema, rf"\bstatic\s+let\s+{name}\b[^=]*=", "[", "]")
+        for key, line in entries(source, offset, keyed):
+            declared.setdefault(key, []).append(f"{SCHEMA}:{line}")
+            if key not in raw_values and key not in SCHEMA_KEYS:
+                errors.append(f"{SCHEMA}:{line}: {key} is a feature's own key; "
+                              "declare it in <Name>BackupKeys.swift in that feature's folder")
+    listing, offset = body(schema, r"\bstatic\s+let\s+featureKeys\b[^=]*=", "[", "]")
+    listed = {match[1]: offset + listing.count("\n", 0, match.start()) + 1
+              for match in re.finditer(r"^\s*\.(\w+),", shape.mask_literals(listing), re.M)}
+    features_described = described(root)
+    files = set()
+    for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
+        relative = path.relative_to(root)
+        source = path.read_text()
+        if "Keys" not in source:
+            continue
+        code = shape.mask_literals(source)
+        declaration = KEYS_DECLARATION.search(code)
+        place = KEYS_FILE.fullmatch(relative.as_posix())
+        if declaration and not place and relative != SCHEMA:
+            errors.append(f"{relative}:{code.count(chr(10), 0, declaration.start()) + 1}: declare backup keys in "
+                          "Tinycast/Features/<its folder>/<Name>BackupKeys.swift")
+            continue
+        if not place:
+            continue
+        feature = place[1][:1].lower() + place[1][1:]
+        files.add(feature)
+        names = re.findall(r"^\s*static let (\w+)\b", code, re.M)
+        if not declaration or names != [feature]:
+            errors.append(f"{relative}:1: declare exactly one .{feature} of NotchcastFeature.BackupKeys")
+            continue
+        if feature not in features_described:
+            errors.append(f"{relative}:1: .{feature} has no descriptor; a key file belongs to a described feature")
+        if feature not in listed:
+            errors.append(f"{relative}:1: list .{feature}, in featureKeys in {SCHEMA}")
+        for label, keyed in (("allowed", True), ("excluded", False)):
+            keys, offset = body(source, rf"\b{label}\s*:", "[", "]")
+            for key, line in entries(keys, offset, keyed):
+                declared.setdefault(key, []).append(f"{relative}:{line}")
+    errors.extend(f"{SCHEMA}:{line}: .{name} has no {name[:1].upper() + name[1:]}BackupKeys.swift"
+                  for name, line in listed.items() if name not in files)
+    for key, places in declared.items():
+        if len(places) > 1:
+            errors.append(f"{places[-1]}: {key} declared twice (first at {places[0]})")
+    for name, raw in features(root):
+        if raw not in declared:
+            errors.append(f"{name} ({raw}): unclassified; edit {SCHEMA}")
     return errors
 
 

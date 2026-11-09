@@ -183,8 +183,7 @@
     "Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift": 666,
     "Tinycast/Features/Battery/Store/BatteryModule.swift": 454,
     "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413,
-    "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 2275,
-    "Tinycast/Features/Notchcast/Settings/Rows/TweaksSettingRows.swift": 467
+    "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 2275
   },
   "test-only": {
     "Tinycast/Features/AgentSessions/Pricing/AgentPricingEngine.swift:roundedUSD": 1,

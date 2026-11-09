@@ -2,7 +2,7 @@
 
 A feature describes itself once, in the folder that holds its code: `<Name>Descriptor.swift` there holds one `static let <name>` of `NotchcastFeature.Descriptor` with title, subtitle, group, `defaultEnabled`, dependencies, required grants, `isSystemFeature` and `isSystemTweak`. Every field is stated; none has a default. The hub adds one line, `.<name>: .<name>,`, to `descriptors` in `Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift` (`merge=union`), and the feature keeps only its enum case in `NotchcastFeature.swift`, with no switch arm.
 
-The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`, `MachRemote/Integration/`), beside the feature's `Model/`, `Service/`, `UI/` and `Settings/` folders, never inside them: harnesses compile `Model/` and `Service/` without the hub. Never in `Notchcast/Core/` or the `Notchcast/` root, and never anywhere under a folder upstream ships (`Launcher/`, `Notes/`, ...): a fork file there fails drift gate 1 (`upstream-folders`), so such a feature moves to a fork folder of its own first.
+The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`, `MachRemote/Integration/`), beside the feature's `Model/`, `Service/`, `UI/` and `Settings/` folders, never inside them: harnesses compile `Model/` and `Service/` without the hub. The same holds for a flat code folder a harness globs whole: `distillConvert`, `sendFiles` and `updateRemote` are described from `Distill/` and `MachRemote/`, one level above `Distill/Convert/`, `MachRemote/SendFiles/` and `MachRemote/UpdateRemote/`, because five harnesses compile `*.swift` there without the hub. Never in `Notchcast/Core/` or the `Notchcast/` root, and never anywhere under a folder upstream ships (`Launcher/`, `Notes/`, ...): a fork file there fails drift gate 1 (`upstream-folders`), so such a feature moves to a fork folder of its own first.
 
 `needsIsland` is not a field: it is `dependencies.contains(.island)`, so the two cannot disagree. A feature that shows only in the island lists `.island` first in `dependencies`.
 
@@ -39,4 +39,14 @@ swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchca
 
 ## Moving a feature
 
-Record every feature's values on the base (`title`, `subtitle`, `settingsGroup`, `needsIsland`, `defaultEnabled`, `dependencies`, `requiredGrants`, `isSystemFeature`, `isSystemTweak`, `isWired`), write each descriptor with the value that applied (its arm, or the default and the system-feature guards), delete every arm of the moved features, add the hub lines, and diff the same values after. Strings keep their localization keys and tables, so the catalog does not change. Settings rows, backup keys, command lists and switch paths move to descriptors in a later batch.
+Record every feature's values on the base (`title`, `subtitle`, `settingsGroup`, `needsIsland`, `defaultEnabled`, `dependencies`, `requiredGrants`, `isSystemFeature`, `isSystemTweak`, `isWired`), write each descriptor with the value that applied (its arm, or the default and the system-feature guards), delete every arm of the moved features, add the hub lines, and diff the same values after. Strings keep their localization keys and tables, so the catalog does not change.
+
+## What stays out of the descriptor
+
+`Descriptor` is plain data that harnesses compile with the hub alone, so anything that needs a view, a module or another feature's types lives beside it in the same folder instead:
+
+- backup keys: `<Name>BackupKeys.swift`, one `NotchcastFeature.BackupKeys` per described feature, collected by `featureKeys` in the schema ([settings-backup.md](settings-backup.md));
+- settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order); the row views that read `NotchcastCore` stay in `Notchcast/Settings/Rows/`, dispatched by `NotchcastSettingRows+A`–`D`, because drift gate 1 keeps core lookups in the hub;
+- commands: declared on the feature's own types, listed once each in `NotchcastCommandCatalog+All.swift`.
+
+Switch paths and the per-feature `if`s in `NotchcastModuleSettingsView` are not moved yet.
