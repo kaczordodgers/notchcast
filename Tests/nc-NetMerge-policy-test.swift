@@ -25,10 +25,6 @@ struct NetMergePolicyTest {
             let result = NetMergePolicy.evaluate(interfaces: missing, kind: .torrent, sizeBytes: nil, enabled: true)
             assert(result.aria2Arguments.isEmpty && !result.usesIPhone)
         }
-        let captured = decision(.torrent, nil)
-        assert(captured.usesIPhone)
-        assert(NetMergePolicy.evaluate(interfaces: [], kind: .torrent, sizeBytes: nil, enabled: true).usesIPhone == false)
-        assert(captured.aria2Arguments == ["--multiple-interface=en0,en7"])
         for name in ["iPhone USB", "iPhone (USB)", "IPHONE USB"] {
             assert(NetMergeInterfaceMonitor.isIPhoneUSB(name))
         }

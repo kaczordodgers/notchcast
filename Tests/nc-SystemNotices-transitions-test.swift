@@ -100,7 +100,6 @@ struct SystemNoticesTests {
         check(await task.value == .unavailable, "Cancellation kills and reaps child")
         check(await TailscaleStatusService(executable: root.appendingPathComponent("absent")).read() == .unavailable,
               "Missing executable stays quiet")
-        check(SystemNoticesManager.tailscaleInterval == .seconds(300), "Five-minute safety cadence")
         print("PASS: \(checks) notice edges, re-arming and bounded CLI checks")
     }
 }

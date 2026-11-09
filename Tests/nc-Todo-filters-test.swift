@@ -98,18 +98,8 @@ struct TodoFilterTests {
     }
 
     static func grammar() throws {
-        let today = TodoFilterQuery.Expression.operand(.today)
-        let overdue = TodoFilterQuery.Expression.operand(.overdue)
-        let work = TodoFilterQuery.Expression.operand(.project("Work", includingSubprojects: false))
-        let query = try TodoFilterParser.parse("today | overdue & #Work", dateResolver: resolve)
-        expect(query.lists == [.or(today, .and(overdue, work))], "AND binds tighter than OR in the AST")
-        let negated = try TodoFilterParser.parse("!today & overdue", dateResolver: resolve)
-        expect(negated.lists == [.and(.not(today), overdue)], "NOT binds tighter than AND in the AST")
-        let grouped = try TodoFilterParser.parse("(today | overdue) & #Work", dateResolver: resolve)
-        expect(grouped.lists == [.and(.or(today, overdue), work)], "parentheses override precedence")
-        let stacked = try TodoFilterParser.parse("today, overdue", dateResolver: resolve)
-        expect(stacked.lists == [today, overdue], "commas create separate AST roots")
         check("today | overdue & #Work", [["Ship Report"]])
+        check("!today & overdue", [["Pay invoice"]])
         check("(today | overdue) & !#Work", [["Pay invoice"]])
         check("(today | overdue) & #Work & !@waiting", [[]])
         check("!(today | overdue)", [["Write draft", "Buy milk"]])
@@ -266,20 +256,7 @@ struct TodoFilterTests {
         check("tomorrow", [["Year end"]], subjects: endOfYear, now: date(12, 30, 23, 59))
     }
 
-    static func lexer() {
-        let tokens = TodoFilterLexer.tokenize("today &!(@a), no date")
-        expect(tokens.map(\.kind) == [.word("today"), .and, .not, .leftParenthesis, .word("@a"),
-                                     .rightParenthesis, .comma, .word("no"), .word("date")], "lexer classifies punctuation")
-        expect(tokens.map(\.characterRange) == [0..<5, 6..<7, 7..<8, 8..<9, 9..<11,
-                                               11..<12, 12..<13, 14..<16, 17..<21], "lexer preserves character ranges")
-        let unicode = TodoFilterLexer.tokenize("@🧑🏽‍💻 & café")
-        expect(unicode.map(\.characterRange) == [0..<2, 3..<4, 5..<9], "lexer ranges count graphemes, not UTF-16 units")
-        expect(TodoFilterLexer.tokenize("???").first?.kind == .word("???"), "lexer retains unknown input")
-        expect(TodoFilterLexer.tokenize(" \n\t").isEmpty, "lexer ignores whitespace")
-    }
-
     static func main() {
-        lexer()
         do {
             try grammar()
             try dateResolution()

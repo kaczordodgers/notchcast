@@ -29,8 +29,12 @@ struct MicrophoneMuteTests {
         let restored = MicrophoneMute(audio: audio, defaults: defaults)
         restored.setMuted(false)
         precondition(audio.input.mute.map(\.value) == [1, 0], "Restore original per-channel mute")
-        precondition(defaults.data(forKey: "microphone.muted.restore") == Data("{}".utf8))
         restored.stop()
+        audio.input.mute = [.init(element: 1, value: 1), .init(element: 2, value: 1)]
+        let afterRestore = MicrophoneMute(audio: audio, defaults: defaults)
+        afterRestore.setMuted(false)
+        precondition(audio.input.mute.map(\.value) == [1, 1], "A restored mute record is not replayed")
+        afterRestore.stop()
         defaults.set(Data(#"{"fixture":{"mute":{}}}"#.utf8), forKey: "microphone.muted.restore")
         audio.input.mute = [.init(element: 1, value: 1), .init(element: 2, value: 1)]
         let legacy = MicrophoneMute(audio: audio, defaults: defaults)

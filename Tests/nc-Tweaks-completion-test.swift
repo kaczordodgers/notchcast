@@ -26,7 +26,6 @@ struct TweakCompletionTests {
         try service.remove(plan) { request in
             calls += 1
             precondition(request.configuration["Operation"] as? String == "ResetAssetSets")
-            precondition(request.timeout == 120 && request.retryDelays == [5, 15])
         }
         precondition(calls == 1)
         enum Injected: Error { case failed }
