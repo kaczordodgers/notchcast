@@ -58,7 +58,7 @@ final class WiringFake: Sendable {
                     self.state.withLock { $0.trashed.append(path) }
                 }
             }
-        }, supportsRootCommand: { RootContract.Command(rawValue: $0) != nil })
+        })
     }
 }
 

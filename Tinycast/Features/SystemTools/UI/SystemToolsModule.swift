@@ -17,10 +17,9 @@ final class SystemToolsModule: NotchcastModule {
 
     static func apply(_ feature: NotchcastFeature, enabled: Bool) async throws {
         guard feature == .sudoTouchID || feature == .spotlightOff else { return }
-        let verb = feature == .sudoTouchID
-            ? (enabled ? "sudo-touchid-on" : "sudo-touchid-off")
-            : (enabled ? "spotlight-off" : "spotlight-on")
-        guard let command = RootContract.Command(rawValue: verb) else { return }
+        let command: RootContract.Command = feature == .sudoTouchID
+            ? (enabled ? .sudoTouchIDOn : .sudoTouchIDOff)
+            : (enabled ? .spotlightOff : .spotlightOn)
         _ = try await RootHelperClient().run(command)
     }
 

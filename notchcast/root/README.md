@@ -107,7 +107,7 @@ Actual privileged operations require separate hardware validation.
 
 ## Fan implementation
 
-`FanSMC.swift` is helper-only, adapted from Orion's SMC codec, connection and fan sequence. It is never compiled into the app. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
+`FanSMC.swift` is helper-only, adapted from Orion's connection and fan sequence. It is never compiled into the app, but it compiles the app's `SystemMonitor/Model/SMCWire.swift` for request and reply framing and `SMCValue.swift` for decoding, so the app and the helper read the same numbers from the same bytes; the helper accepts only the types it can encode (`flt `, `fpe2`, unsigned integers) and refuses negative values. Fan count (`FNum`) must be integral and within 0–9; manual control requires at least one fan. Before manual writes, all fans' `F<n>Mn/Mx/Ac/Tg` readings, mode keys (`F<n>Md`, or `F<n>md` where exposed), target encodings and ranges are validated. Speeds must be finite and nonnegative; maximum must exceed minimum and stay within 20,000 RPM.
 
 - `fans-auto`: write 0 to each fan's mode, then clear `Ftst` if present. Every release is attempted even if another fails. Targets are left alone.
 - `fans-medium`: unlock `Ftst` with 1 if present and not already 1; for each fan, write mode 1 repeatedly every 100 ms until it reads back as 1, then write its target `min + 0.6 × (max − min)`.
@@ -115,4 +115,4 @@ Actual privileged operations require separate hardware validation.
 
 All manual-mode retries share one five-second window. Any manual-operation failure attempts the complete Auto sequence before reporting failure. A failed key-info call is an error, not evidence that `Ftst` is absent. Numeric encodings follow the key's reported type (`flt ` little-endian, `fpe2` and unsigned integers big-endian); invalid sizes, unsupported types and overflow are rejected.
 
-The harness compiles the shipped fan implementation with an in-memory SMC fixture to check targets, encoding bytes, retry timing, write order and failure recovery. Live hardware verification and app lifecycle wiring are separate work.
+The harness compiles the shipped fan implementation with an in-memory SMC fixture to check targets, encoding bytes, retry timing, write order and failure recovery. `nc-SystemMonitor-smc-decode-test` decodes fixed SMC byte fixtures through both decoders, and `nc-Root-verbs-test` pins the verb table and the verbs Battery sends. Live hardware verification and app lifecycle wiring are separate work.

@@ -5,6 +5,7 @@ nonisolated enum SMCWire {
 
     enum Command: UInt8, Sendable {
         case read = 5
+        case write = 6
         case keyAtIndex = 8
         case keyInfo = 9
     }
@@ -16,19 +17,22 @@ nonisolated enum SMCWire {
     }
 
     static func request(_ command: Command, key: UInt32 = 0, size: Int = 0,
-                        index: UInt32 = 0) -> [UInt8]? {
-        guard (0...32).contains(size) else { return nil }
+                        index: UInt32 = 0, payload: [UInt8] = []) -> [UInt8]? {
+        guard (0...32).contains(size), payload.count <= 32 else { return nil }
         var bytes = [UInt8](repeating: 0, count: Self.size)
         put(key, at: 0, in: &bytes)
         put(UInt32(size), at: 28, in: &bytes)
         bytes[42] = command.rawValue
         put(index, at: 44, in: &bytes)
+        bytes.replaceSubrange(48..<(48 + payload.count), with: payload)
         return bytes
     }
 
     static func succeeded(_ reply: [UInt8]) -> Bool {
         reply.count == size && reply[40] == 0
     }
+
+    static func data(_ reply: [UInt8], size: Int) -> [UInt8] { Array(reply[48..<(48 + size)]) }
 
     static func keyInfo(_ reply: [UInt8]) -> SMCValue.KeyInfo? {
         guard succeeded(reply) else { return nil }

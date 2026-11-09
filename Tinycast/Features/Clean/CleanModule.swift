@@ -14,7 +14,7 @@ final class CleanModule: NotchcastModule {
     private weak var core: AppCore?
     private let preferences = NotchcastPreferences.shared
     lazy var coordinator = CleanCoordinator(
-        transport: .init(scan: Self.scan, supportsRootCommand: { RootContract.Command(rawValue: $0) != nil }),
+        transport: .init(scan: Self.scan),
         isOn: { [preferences] in preferences.isOn($0) },
         question: { [weak self] feature, count, bytes in
             let size = bytes.map { ByteCountFormatter.string(fromByteCount: $0, countStyle: .file) }

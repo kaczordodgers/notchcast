@@ -4,14 +4,9 @@ import IOKit
 enum FanSMC {
     enum Failure: Error { case invalidValue, unavailable, refused }
 
-    struct Info {
-        let size: Int
-        let type: String
-    }
-
     protocol Access {
-        func info(_ key: String) throws -> Info?
-        func read(_ key: String, info: Info) throws -> [UInt8]
+        func info(_ key: String) throws -> SMCValue.KeyInfo?
+        func read(_ key: String, info: SMCValue.KeyInfo) throws -> [UInt8]
         func write(_ key: String, bytes: [UInt8]) throws
     }
 
@@ -25,23 +20,16 @@ enum FanSMC {
         }
     }
 
-    static func decode(_ bytes: [UInt8], info: Info) throws -> Double {
-        guard bytes.count == info.size else { throw Failure.invalidValue }
-        let value: Double
-        switch (info.type, info.size) {
-        case ("flt ", 4):
-            let bits = bytes.reversed().reduce(UInt32(0)) { $0 << 8 | UInt32($1) }
-            value = Double(Float(bitPattern: bits))
-        case ("fpe2", 2): value = Double(bytes.reduce(UInt32(0)) { $0 << 8 | UInt32($1) }) / 4
-        case ("ui8 ", 1), ("ui16", 2), ("ui32", 4):
-            value = Double(bytes.reduce(UInt32(0)) { $0 << 8 | UInt32($1) })
-        default: throw Failure.invalidValue
+    static func decode(_ bytes: [UInt8], info: SMCValue.KeyInfo) throws -> Double {
+        // The helper reads only the types its encoder can write back.
+        _ = try encode(0, info: info)
+        guard let value = SMCValue(info: info, bytes: bytes).number, value >= 0 else {
+            throw Failure.invalidValue
         }
-        guard value.isFinite, value >= 0 else { throw Failure.invalidValue }
         return value
     }
 
-    static func encode(_ value: Double, info: Info) throws -> [UInt8] {
+    static func encode(_ value: Double, info: SMCValue.KeyInfo) throws -> [UInt8] {
         guard value.isFinite, value >= 0 else { throw Failure.invalidValue }
         if info.type == "flt ", info.size == 4 {
             let number = Float(value)
@@ -132,7 +120,7 @@ enum FanSMC {
             for result in results { try result.get() }
         }
 
-        private func known(_ key: String) throws -> Info {
+        private func known(_ key: String) throws -> SMCValue.KeyInfo {
             guard let info = try smc.info(key) else { throw Failure.unavailable }
             return info
         }
@@ -163,42 +151,31 @@ enum FanSMC {
 
         deinit { IOServiceClose(connection) }
 
-        func info(_ key: String) throws -> Info? {
-            let reply = try call(9, key: key)
+        func info(_ key: String) throws -> SMCValue.KeyInfo? {
+            let reply = try call(.keyInfo, key: key)
             if reply[40] == 0x84 { return nil }
             try check(reply)
-            let size = Int(Self.integer(reply, at: 28))
-            guard (1...32).contains(size) else { throw Failure.invalidValue }
-            let code = Self.integer(reply, at: 32)
-            let type = String(decoding: (0..<4).map {
-                UInt8(truncatingIfNeeded: code >> (24 - 8 * $0))
-            }, as: UTF8.self)
-            return Info(size: size, type: type)
+            guard let info = SMCWire.keyInfo(reply) else { throw Failure.invalidValue }
+            return info
         }
 
-        func read(_ key: String, info: Info) throws -> [UInt8] {
-            let reply = try call(5, key: key, size: info.size)
+        func read(_ key: String, info: SMCValue.KeyInfo) throws -> [UInt8] {
+            let reply = try call(.read, key: key, size: info.size)
             try check(reply)
-            return Array(reply[48..<48 + info.size])
+            return SMCWire.data(reply, size: info.size)
         }
 
         func write(_ key: String, bytes: [UInt8]) throws {
-            try check(call(6, key: key, size: bytes.count, payload: bytes))
+            try check(call(.write, key: key, size: bytes.count, payload: bytes))
         }
 
-        private func call(_ command: UInt8, key: String, size: Int = 0, payload: [UInt8] = []) throws -> [UInt8] {
-            guard key.utf8.count == 4, (0...32).contains(size), payload.count <= 32 else {
+        private func call(_ command: SMCWire.Command, key: String, size: Int = 0,
+                          payload: [UInt8] = []) throws -> [UInt8] {
+            guard let code = SMCWire.code(key),
+                  let request = SMCWire.request(command, key: code, size: size, payload: payload) else {
                 throw Failure.invalidValue
             }
-            var request = [UInt8](repeating: 0, count: 80)
-            let code = key.utf8.reduce(UInt32(0)) { $0 << 8 | UInt32($1) }
-            for offset in 0..<4 {
-                request[offset] = UInt8(truncatingIfNeeded: code >> (8 * offset))
-                request[28 + offset] = UInt8(truncatingIfNeeded: UInt32(size) >> (8 * offset))
-            }
-            request[42] = command
-            request.replaceSubrange(48..<48 + payload.count, with: payload)
-            var reply = [UInt8](repeating: 0, count: 80)
+            var reply = [UInt8](repeating: 0, count: SMCWire.size)
             var replySize = reply.count
             let status = IOConnectCallStructMethod(connection, 2, request, request.count, &reply, &replySize)
             guard status == KERN_SUCCESS, replySize == reply.count else { throw Failure.refused }
@@ -206,11 +183,7 @@ enum FanSMC {
         }
 
         private func check(_ reply: [UInt8]) throws {
-            guard reply[40] == 0 else { throw Failure.refused }
-        }
-
-        private static func integer(_ bytes: [UInt8], at offset: Int) -> UInt32 {
-            (0..<4).reduce(0) { $0 | UInt32(bytes[offset + $1]) << (8 * $1) }
+            guard SMCWire.succeeded(reply) else { throw Failure.refused }
         }
     }
 }

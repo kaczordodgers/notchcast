@@ -17,14 +17,11 @@ final class CleanCoordinator {
 
     struct Transport: Sendable {
         let scan: @Sendable (NotchcastFeature, [URL]) async throws -> Review
-        let supportsRootCommand: @Sendable (String) -> Bool
     }
 
     static let features: [NotchcastFeature] = [
         .cleanJunk, .cleanHistory, .cleanAIData, .cleanDisk, .cleanPurge, .cleanOptimize, .cleanSystem
     ]
-    nonisolated static let rootScanCommand = "clean-system-list"
-    nonisolated static let rootTrashCommand = "clean-system-trash"
 
     private(set) var reviews: [NotchcastFeature: Review] = [:]
     private(set) var busy: Set<NotchcastFeature> = []
@@ -53,10 +50,7 @@ final class CleanCoordinator {
         self.report = report
     }
 
-    var rootAvailable: Bool {
-        helperCurrent && transport.supportsRootCommand(Self.rootScanCommand)
-            && transport.supportsRootCommand(Self.rootTrashCommand)
-    }
+    var rootAvailable: Bool { helperCurrent }
 
     var helperCurrent = true
 
