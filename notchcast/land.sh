@@ -238,7 +238,7 @@ merge_onto() {
     check_drift_tooling "$onto" "$pr_body" "$drift_tools"
     check_defect_tests "$fork" "$head" "$pr_title" "$pr_body"
     # A union merge can leave a body Swift accepts with only a warning: it returns the last expression.
-    descriptors=$(find Tinycast/Features -mindepth 2 -maxdepth 2 -name '*Descriptor.swift')
+    descriptors=$(find Tinycast/Features -mindepth 2 -name '*Descriptor.swift' -not -path 'Tinycast/Features/Notchcast/Core/*')
     typecheck=$(swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
         $descriptors 2>&1) \
         || refuse "NotchcastFeature*.swift does not typecheck without warnings on the merged tree: $(grep -m3 -E 'error|warning' <<< "$typecheck")"
