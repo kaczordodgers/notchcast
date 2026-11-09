@@ -312,7 +312,7 @@ struct TodoLinkTests {
         try first.undo()
         try first.perform(.addComment(taskID: task.id, comment: comment))
         try first.perform(.completeTask(id: task.id, at: Date()))
-        try await Task.sleep(for: .milliseconds(40))
+        while channel.calls == before { await Task.yield() }
         try await idle(sender)
         precondition(first.state == second.state && channel.calls == before + 1)
         precondition(channel.maximumActive == 1)
