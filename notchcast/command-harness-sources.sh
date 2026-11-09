@@ -28,10 +28,10 @@ if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
     done
 fi
 
-# The hub's descriptor list names every feature's own descriptor file.
+# The hub's descriptor list names every feature's own descriptor file, at any depth, as land.sh finds them.
 if [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastFeature"* ]]; then
     for source in Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift \
-        Tinycast/Features/*/*Descriptor.swift; do
+        $(find Tinycast/Features -mindepth 2 -name '*Descriptor.swift' -not -path 'Tinycast/Features/Notchcast/Core/*' | sort); do
         [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
     done
 fi

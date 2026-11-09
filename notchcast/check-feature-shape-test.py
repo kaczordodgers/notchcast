@@ -18,7 +18,8 @@ SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
 SCHEMA, MODULES, SEARCH, DESCRIPTORS = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
-DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/*/*Descriptor.swift"))
+DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
+                   if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
 HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
 
 
@@ -227,6 +228,47 @@ class FeatureShapeTests(unittest.TestCase):
                 (self.root / path).unlink()
         hub = (ROOT / DESCRIPTORS).read_text()
         self.rejected(DESCRIPTORS, hub.rstrip() + "\n\n" + source.split("\n", 1)[1], "declare a descriptor in")
+
+    def test_typed_and_init_descriptor_outside_its_feature_folder(self):
+        ghost = ('extension NotchcastFeature {\n    static let ghost: Descriptor = .init(title: "", subtitle: "",'
+                 ' group: .system, defaultEnabled: false, dependencies: [], requiredGrants: [],'
+                 ' isSystemFeature: false, isSystemTweak: false)\n}\n')
+        for path, source in ((Path("Tinycast/Features/LowDisk/Model/SubfolderDescriptor.swift"), ghost),
+                             (Path("Tinycast/Features/LowDisk/LowDiskGhost.swift"),
+                              ghost.replace(": Descriptor = .init(", " = NotchcastFeature.Descriptor.init("))):
+            with self.subTest(path=path):
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, source, "declare a descriptor in Tinycast/Features/<its folder>/")
+                (self.root / path).unlink()
+
+    def test_descriptor_in_a_nested_code_folder(self):
+        source = (ROOT / HIDE).read_text()
+        (self.root / HIDE).unlink()
+        for folder in ("Notchcast/Island", "Launcher/Keys", "MachRemote/Integration"):
+            with self.subTest(folder=folder):
+                path = self.root / "Tinycast/Features" / folder / HIDE.name
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(source)
+                self.assertEqual(SHAPE.check(self.root), [])
+                path.unlink()
+        for folder in ("Notchcast", "Notchcast/Core", "Launcher/Keys/Model", "Launcher/Keys/Service",
+                       "Notchcast/Island/UI", "Notchcast/Settings"):
+            with self.subTest(folder=folder):
+                path = Path("Tinycast/Features") / folder / HIDE.name
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, source, "declare a descriptor in Tinycast/Features/<its folder>/")
+                (self.root / path).unlink()
+
+    def test_descriptor_cannot_restate_needs_island(self):
+        source = (ROOT / HIDE).read_text()
+        self.assertEqual(source.count("        isSystemTweak: false\n"), 1)
+        (self.root / HIDE).write_text(source.replace("        isSystemTweak: false\n",
+                                                     "        isSystemTweak: false,\n        needsIsland: false\n"))
+        result = subprocess.run(["swiftc", "-swift-version", "6", "-typecheck", str(SHAPE.FEATURE), str(SHAPE.GROUPS),
+                                 str(DESCRIPTORS), *(str(self.root / path) for path in DESCRIBED)],
+                                cwd=ROOT, text=True, capture_output=True)
+        self.assertNotEqual(result.returncode, 0, "needsIsland is derived from dependencies, never stated")
+        self.assertIn("needsIsland", result.stderr)
 
     def test_descriptor_file_names_its_one_feature(self):
         source = (ROOT / HIDE).read_text()

@@ -130,6 +130,23 @@ class HarnessInputsTest(unittest.TestCase):
         self.assertEqual(1, arguments.count(source))
         self.assertEqual(["-framework", "AppKit", "-framework", "Foundation"], arguments[:4])
 
+    def test_hub_consumer_gets_descriptors_at_any_depth(self):
+        hub = "Tinycast/Features/Notchcast/Core/NotchcastFeature.swift"
+        descriptors = ["Tinycast/Features/Example/ExampleDescriptor.swift",
+                       "Tinycast/Features/Launcher/Keys/LauncherAliasSpaceDescriptor.swift",
+                       "Tinycast/Features/Notchcast/Island/IslandDescriptor.swift"]
+        for path in (hub, *descriptors):
+            (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / path).touch()
+        (self.root / "Tests/nc-Example-hub-test.swift").write_text(f"// notchcast-sources: {hub}\n")
+        result = subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
+                                 'run() { printf "%s\\n" "$*"; }; source notchcast/test-harnesses.sh'],
+                                cwd=self.root, env=self.env, text=True, capture_output=True, check=True)
+        arguments = next(line.split()[1:] for line in result.stdout.splitlines()
+                         if line.startswith("nc-Example-hub-test "))
+        for path in [*descriptors, "Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift"]:
+            self.assertEqual(1, arguments.count(path), path)
+
     def test_runner_batches_conditional_inputs_in_one_bash_invocation(self):
         calls = self.root / "bash-calls"
         (self.root / "bin/bash").write_text(

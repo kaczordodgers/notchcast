@@ -723,7 +723,7 @@ extension NotchcastFeature {
 
     /// Shows only in the island, so its switch follows the island switch in Settings.
     var needsIsland: Bool {
-        if let descriptor { return descriptor.needsIsland }
+        if let descriptor { return descriptor.dependencies.contains(.island) }
         if isSystemFeature || isSystemTweak || settingsGroup == .clean { return false }
         return switch self {
         case .island: false
@@ -814,7 +814,8 @@ extension NotchcastFeature {
     }
 
     var isSystemTweak: Bool {
-        switch self {
+        if let descriptor { return descriptor.isSystemTweak }
+        return switch self {
         case .startupItems: true
         case .notificationCleanup: true
         case .sudoTouchID: true
@@ -893,7 +894,8 @@ extension NotchcastFeature {
     }
 
     var isSystemFeature: Bool {
-        switch self {
+        if let descriptor { return descriptor.isSystemFeature }
+        return switch self {
         case .katana: true
         default: settingsGroup == .systemTools || settingsGroup == .tools
         }
