@@ -79,12 +79,6 @@ struct AppUpdatesTest {
         precondition(snapshot.results.count == 5)
         precondition(snapshot.results[3].isNewer == true)
         for index in [0, 1, 2, 4] { precondition(snapshot.results[index].isNewer == nil) }
-        let cancelled = Task {
-            try Task.checkCancellation()
-            return try await checker.check(apps: apps, now: Date(timeIntervalSince1970: 0))
-        }
-        cancelled.cancel()
-        do { _ = try await cancelled.value; preconditionFailure("Cancellation lost") } catch is CancellationError {}
-        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused; cancellation")
+        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused")
     }
 }

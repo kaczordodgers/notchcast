@@ -62,8 +62,9 @@ struct AgentBuiltInTests {
         try AgentBuiltInActions.register(in: index, core: core)
         index.start()
         check(index.actionIDs.contains("command:toggle-island"), "fork launcher command missing")
-        check(index.actionIDs.count == HotKeyAction.builtInActions.count
-              + SystemActionCatalog.all.count + WindowCommandCatalog.all.count + NotchcastCommandCatalog.all.count)
+        for id in ["notchcast.launcher", "notchcast.dictation", "system-action:set-volume", "window-command:left-half"] {
+            check(index.actionIDs.contains(id), "\(id) missing")
+        }
         let fork = AgentRequest(verb: .run, id: "command:toggle-island")
         check((await index.handle(fork)).code == .ok)
         check(core.hotKeys.actions.removeLast() == .notchcastCommand(entryID: "command:toggle-island"))

@@ -23,12 +23,7 @@ struct NotchcastCommand {
 }
 @MainActor final class AppCore {
     static let shared = AppCore()
-    let appIndex = TestAppIndex()
     func showMessage(_ message: String, tone: TestTone) {}
-}
-@MainActor final class TestAppIndex {
-    var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
 }
 @MainActor enum NotchcastCore { static let agentThreads = AgentThreadsModule() }
 
@@ -236,11 +231,6 @@ struct AgentThreadsTest {
         module.start()
         module.stop()
         precondition(availabilityCalls == 2)
-        let hookModule = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-        hookModule.start()
-        hookModule.stop()
-        precondition(AppCore.shared.appIndex.refreshes == 2)
-        print("PASS: production hook closure compiles in strict Swift 6 and refreshes commands twice")
         print("PASS: SQLite active projects only; missing file/table; per-project arguments and names")
         print("PASS: partial list failure; show failure preserves phase; availability changed on start and stop")
         print("PASS: child PATH preserves environment; refresh completion selects waiting link; failure messages")

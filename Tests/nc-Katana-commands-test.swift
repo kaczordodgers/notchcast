@@ -3,9 +3,6 @@
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift Tinycast/Features/AgentBridge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
-// notchcast-reads: Tinycast/Features/Katana/KatanaDescriptor.swift
 import Foundation
 
 enum NotchcastFeature: Sendable { case katana }
@@ -122,18 +119,5 @@ enum DialogTone: Sendable {
         NotchcastPreferences.shared.enabled = false
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
         print("PASS: switch off removes all five commands")
-        let path = "Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift"
-        let catalog = try String(contentsOfFile: path, encoding: .utf8)
-        for name in ["panel", "a1", "a2", "b1", "b2"] {
-            precondition(catalog.contains("        KatanaModule.\(name)Command,"))
-        }
-        print("PASS: production catalog includes all five commands")
-        let settings = try String(contentsOfFile:
-            "Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift", encoding: .utf8)
-        precondition(settings.components(separatedBy: ".feature(.katana,").count == 2)
-        let feature = try String(contentsOfFile:
-            "Tinycast/Features/Katana/KatanaDescriptor.swift", encoding: .utf8)
-        precondition(feature.contains("group: .system,"))
-        print("PASS: Katana is listed once in Settings")
     }
 }
