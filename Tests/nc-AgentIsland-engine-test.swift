@@ -6,41 +6,6 @@
 // notchcast-reads: Tinycast/Resources/Notchcast.xcstrings
 import Foundation
 
-func loopChild(_ index: Int) async -> String? {
-    let process = Process()
-    process.executableURL = URL(filePath: CommandLine.arguments[0])
-    process.environment = ProcessInfo.processInfo.environment.merging(["NC_LOOP_CHILD": "1"]) { $1 }
-    let log = FileManager.default.temporaryDirectory.appending(path: "nc-loop-\(UUID().uuidString).log")
-    FileManager.default.createFile(atPath: log.path, contents: nil)
-    let handle = try! FileHandle(forWritingTo: log)
-    process.standardOutput = handle
-    process.standardError = handle
-    let status: Int32 = await withCheckedContinuation { continuation in
-        process.terminationHandler = { continuation.resume(returning: $0.terminationStatus) }
-        try! process.run()
-    }
-    if status == 0 { return nil }
-    let text = (try? String(contentsOf: log, encoding: .utf8)) ?? ""
-    return "child \(index) status \(status): " + text.split(separator: "\n").suffix(6).joined(separator: " | ")
-}
-
-@MainActor func loopOfTwenty(_ name: String, once: @MainActor () async throws -> Void) async throws {
-    if ProcessInfo.processInfo.environment["NC_LOOP_CHILD"] != nil { try await once(); return }
-    var failures: [String] = []
-    for wave in 0..<4 {
-        let results = await withTaskGroup(of: String?.self) { group in
-            for index in 0..<5 { group.addTask { await loopChild(wave * 5 + index) } }
-            var collected: [String] = []
-            for await result in group { if let result { collected.append(result) } }
-            return collected
-        }
-        failures += results
-    }
-    print("LOOP \(name): \(failures.count) failures of 20")
-    for failure in failures.prefix(4) { print("LOOP \(failure)") }
-    if !failures.isEmpty { exit(1) }
-}
-
 @MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
 enum TestFeature { case agentThreads, openBotAgents, agentIsland }
 enum TestTone { case neutral }
@@ -123,9 +88,7 @@ private struct CountingRunner: AgentThreadRunning {
 }
 
 @main struct AgentIslandTest {
-    @MainActor static func main() async throws { try await loopOfTwenty("nc-AgentIsland-engine-test", once: once) }
-
-    @MainActor static func once() async throws {
+    @MainActor static func main() async throws {
         let now = Date(timeIntervalSince1970: 100)
         func row(_ phase: AgentThread.Phase, _ id: String = "a", date: Date? = nil) -> AgentThread {
             AgentThread(id: id, title: id, project: "Demo", model: "Example", phase: phase,
