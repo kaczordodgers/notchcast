@@ -3,13 +3,12 @@ import Foundation
 
 @MainActor
 final class VoiceAskInput {
-    private let hub: EventTapHub
+    private let tap: EventTapSubscription
     private let module: VoiceAskModule
-    private var registration: UUID?
     private var heldKeys: Set<Int64> = []
 
     init(hub: EventTapHub, module: VoiceAskModule) {
-        self.hub = hub
+        tap = EventTapSubscription(hub: hub)
         self.module = module
         module.onStart = { [weak self] in self?.start() }
         module.onStop = { [weak self] in self?.stop() }
@@ -17,7 +16,7 @@ final class VoiceAskInput {
 
     private func start() {
         let types: [CGEventType] = [.keyDown, .keyUp, .flagsChanged, .leftMouseDown, .rightMouseDown]
-        registration = hub.register(mask: types.reduce(0) { $0 | (1 << $1.rawValue) }) { [weak self] event in
+        tap.observe(mask: types.reduce(0) { $0 | (1 << $1.rawValue) }) { [weak self] event in
             guard let self, !event.isSynthetic, !event.isRepeat else { return }
             let alone = heldKeys.isEmpty
             if event.type == .keyDown { heldKeys.insert(event.keyCode) }
@@ -32,8 +31,7 @@ final class VoiceAskInput {
     }
 
     private func stop() {
-        if let registration { hub.remove(registration) }
-        registration = nil
+        tap.stop()
         heldKeys.removeAll()
     }
 }

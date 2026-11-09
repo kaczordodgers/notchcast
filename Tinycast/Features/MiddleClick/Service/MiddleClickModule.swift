@@ -3,15 +3,14 @@ import Synchronization
 
 @MainActor
 final class MiddleClickModule: NotchcastModule {
-    private let hub: EventTapHub
+    private let tap: EventTapSubscription
     private var source: MiddleClickTouchSource?
-    private var registration: UUID?
     private var permissionTimer: Timer?
     private var wakeObserver: NotificationToken?
     private var nextSourceAttempt: TimeInterval = 0
     private let state = State()
 
-    init(hub: EventTapHub) { self.hub = hub }
+    init(hub: EventTapHub) { tap = EventTapSubscription(hub: hub) }
 
     func start() {
         refresh()
@@ -45,14 +44,13 @@ final class MiddleClickModule: NotchcastModule {
         state.reset()
         source?.stop()
         source = nil
-        if let registration { hub.remove(registration) }
-        registration = nil
+        tap.stop()
     }
 
     private func refresh() {
         state.refreshDragPreference()
         guard AXIsProcessTrusted() else { stopInput(); return }
-        guard registration == nil else { hub.refreshPermission(); return }
+        guard !tap.isActive else { return }
         let now = ProcessInfo.processInfo.systemUptime
         guard now >= nextSourceAttempt else { return }
         nextSourceAttempt = now + 60
@@ -65,7 +63,7 @@ final class MiddleClickModule: NotchcastModule {
         self.source = source
         let mask = [CGEventType.leftMouseDown, .leftMouseDragged, .leftMouseUp]
             .reduce(CGEventMask(0)) { $0 | (1 << $1.rawValue) }
-        registration = hub.registerSynchronous(mask: mask) { type, event in
+        tap.start(mask: mask, skipsSynthetic: true) { type, event in
             state.handle(type, event: event)
         }
     }
@@ -110,9 +108,7 @@ final class MiddleClickModule: NotchcastModule {
 
         func handle(_ type: CGEventType, event: CGEvent) -> EventTapHub.Verdict {
             storage.withLock {
-                guard $0.active,
-                      event.getIntegerValueField(.eventSourceUserData) != Paster.tinycastEventTag
-                else { return .pass }
+                guard $0.active else { return .pass }
                 let button: MiddleClickFilter.ButtonEvent
                 switch type {
                 case .leftMouseDown: button = .down

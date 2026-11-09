@@ -6,8 +6,7 @@ final class DictationIslandHUDService {
     private weak var panel: NSPanel?
     private var state: DictationDisplayState?
     private var origin = NSPoint.zero
-    private var messageID: UUID?
-    private var messageText: String?
+    private var progress: (notice: IslandActivityCenter.NoticeHandle, text: String)?
     private var generation = 0
 
     func show(panel: NSPanel, state: DictationDisplayState) {
@@ -27,12 +26,8 @@ final class DictationIslandHUDService {
     }
 
     private func dismiss() {
-        if let messageID, let message = IslandActivityCenter.shared.message,
-            message.id == messageID, message.text == messageText, message.isProgress {
-            IslandHUDRouter.dismiss()
-        }
-        messageID = nil
-        messageText = nil
+        if let progress { IslandActivityCenter.shared.dismiss(progress.notice) }
+        progress = nil
     }
 
     private func update() {
@@ -59,18 +54,13 @@ final class DictationIslandHUDService {
         }
         let text = presentation == .listening
             ? String(localized: "Dictation listening") : String(localized: "Transcribing dictation")
-        let message = IslandActivityCenter.shared.message
-        guard DictationIslandHUDPolicy.shouldShowProgress(
-            presentation: presentation,
-            ownsMessage: message != nil && message?.id == messageID
-                && message?.text == text && message?.isProgress == true) else { return }
-        guard IslandHUDRouter.showProgress(text, onCancel: nil) else {
+        if let progress, progress.text == text, IslandActivityCenter.shared.isShowing(progress.notice) { return }
+        guard let notice = IslandHUDRouter.progress(text) else {
             dismiss()
             panel.setFrameOrigin(origin)
             return
         }
-        messageID = IslandActivityCenter.shared.message?.id
-        messageText = text
+        progress = (notice, text)
         let rightEdge = NSScreen.screens.map(\.frame.maxX).max() ?? panel.frame.maxX
         // Keep the upstream key panel alive so Return and Escape retain their synchronous handlers.
         panel.setFrameOrigin(NSPoint(x: rightEdge + panel.frame.width, y: origin.y))

@@ -8,14 +8,9 @@
 import Foundation
 
 @MainActor enum NotchcastCore {}
-@MainActor enum IslandActivityCenter {
-    static let shared = Presenter()
-    final class Presenter {
-        enum Tone { case neutral }
-        func showMessage(_ text: String, tone: Tone, dwell: Double) {}
-    }
+@MainActor enum IslandHUDRouter {
+    @discardableResult static func post(_ text: String) -> UUID? { nil }
 }
-enum Theme { enum Duration { static let messageHUD = 3.0 } }
 
 @main
 enum BackupStatusTest {

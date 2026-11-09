@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 import AppKit
 
 enum Paster {
@@ -15,11 +16,11 @@ enum SystemLevelsService {
 
 @MainActor
 final class EventTapHub {
+    struct Event {}
     enum Verdict { case pass, swallow }
     typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
     var handlers: [UUID: SynchronousHandler] = [:]
     var masks: [CGEventMask] = []
-    var refreshes = 0
 
     func registerSynchronous(mask: CGEventMask, handler: @escaping SynchronousHandler) -> UUID {
         let id = UUID()
@@ -28,8 +29,8 @@ final class EventTapHub {
         return id
     }
 
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
     func remove(_ id: UUID) { handlers[id] = nil }
-    func refreshPermission() { refreshes += 1 }
 }
 
 @main @MainActor
@@ -135,9 +136,6 @@ struct MediaLevelKeysTests {
             check(event.flags.intersection([.maskShift, .maskAlternate]) == [.maskShift, .maskAlternate],
                   "Native fallback preserves fine-step modifiers")
         }
-        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
-        await drain()
-        check(hub.refreshes == 1, "Returning from permission settings refreshes the shared hub")
         result = .fallbackToNativeKeys
         check(handler(system, event(.volumeDown)) == .swallow, "Failed hardware starts intercepted")
         await drain()
@@ -173,10 +171,6 @@ struct MediaLevelKeysTests {
         monitor.stop()
         await drain()
         check(presses.count == 25, "Already-dispatched callbacks cannot outlive registration")
-        let refreshes = hub.refreshes
-        NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
-        await drain()
-        check(hub.refreshes == refreshes, "Off removes permission observation")
     }
 
     static func brightnessChecks() async {
