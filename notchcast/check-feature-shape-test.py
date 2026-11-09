@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Reject unsafe registrations and typecheck three concurrent feature appends."""
 
+import contextlib
 import importlib.util
+import io
 import os
 import re
 import subprocess
@@ -235,9 +237,11 @@ class FeatureShapeTests(unittest.TestCase):
         ghost = ('extension NotchcastFeature {\n    static let ghost: Descriptor = .init(title: "", subtitle: "",'
                  ' group: .system, defaultEnabled: false, dependencies: [], requiredGrants: [],'
                  ' isSystemFeature: false, isSystemTweak: false)\n}\n')
+        returned = ghost.replace("static let ghost: Descriptor = .init(", "static func ghost() -> Descriptor { .init(")
         for path, source in ((Path("Tinycast/Features/LowDisk/Model/SubfolderDescriptor.swift"), ghost),
                              (Path("Tinycast/Features/LowDisk/LowDiskGhost.swift"),
-                              ghost.replace(": Descriptor = .init(", " = NotchcastFeature.Descriptor.init("))):
+                              ghost.replace(": Descriptor = .init(", " = NotchcastFeature.Descriptor.init(")),
+                             (Path("Tinycast/Features/LowDisk/LowDiskGhost.swift"), returned.replace(")\n}", ") }\n}"))):
             with self.subTest(path=path):
                 (self.root / path).parent.mkdir(parents=True, exist_ok=True)
                 self.rejected(path, source, "declare a descriptor in Tinycast/Features/<its folder>/")
@@ -290,6 +294,10 @@ class FeatureShapeTests(unittest.TestCase):
         shipped = Path("Tinycast/Features/Launcher/LauncherScreen.swift")
         (self.root / shipped).parent.mkdir(parents=True, exist_ok=True)
         (self.root / shipped).write_text("struct LauncherScreen {}\n")
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(SHAPE.upstream_folders(self.root), set())
+        self.assertIn("no upstream/main ref", stderr.getvalue())
         run(self.root, "git", "init", "-q", "-b", "main")
         run(self.root, "git", "add", str(shipped))
         run(self.root, "git", "-c", "user.name=Upstream", "-c", "user.email=upstream@example.invalid",

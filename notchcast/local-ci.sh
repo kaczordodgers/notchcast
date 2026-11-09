@@ -79,7 +79,8 @@ echo merge > "$scratch/step"
 cd "$tree"
 git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$head" || true
 generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
-git checkout "$main" -- "${generated[@]}"
+generated=($(git ls-tree -r --name-only "$main" -- "${generated[@]}"))
+[ ${#generated[@]} -eq 0 ] || git checkout "$main" -- "${generated[@]}"
 if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Localizable.xcstrings; then
     python3 notchcast/xcstrings-union.py --git --main-ref "$main"
 fi
