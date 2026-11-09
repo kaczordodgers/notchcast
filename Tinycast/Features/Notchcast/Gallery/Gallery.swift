@@ -35,8 +35,7 @@ enum NotchcastGallery {
         Task { @MainActor in
             do {
                 let output = URL(filePath: directory, directoryHint: .isDirectory)
-                let pages = GalleryPages.island(core) + GalleryPages.launcher(core)
-                    + GalleryPages.notchcastSettings(core) + GalleryPages.settings(core)
+                let pages = GalleryPages.all(core)
                 guard !pages.isEmpty, Set(pages.map(\.name)).count == pages.count else {
                     throw GalleryFailure.invalidRegistry
                 }
@@ -95,6 +94,10 @@ struct GalleryPage {
 
 @MainActor
 enum GalleryPages {
+    static func all(_ core: AppCore) -> [GalleryPage] {
+        island(core) + launcher(core) + notchcastSettings(core) + settings(core)
+    }
+
     static func window(_ view: some View, size: CGSize, dark: Bool) -> NSWindow {
         let window = NSPanel(contentRect: CGRect(origin: .zero, size: size),
                              styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)

@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths-ignore:
       - Tinycast.xcodeproj/project.pbxproj
+      - Tinycast.xcodeproj/xcshareddata/xcschemes/Tinycast.xcscheme
       - Tinycast/Resources/RaycastRuntime.generated.js
       - README.md
 

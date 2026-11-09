@@ -194,6 +194,7 @@ class ReplayTests(unittest.TestCase):
             write("website/package-lock.json", "{}\n")
             write("project.yml", "name: Tinycast\n")
             write(CI.PBXPROJ, "project\n")
+            write(CI.SCHEME, "scheme\n")
             write(CI.RUNTIME_JS, "runtime\n")
             write("docs/screenshot.png", "png\n")
             write("docs/development.md", "kept\n")
