@@ -18,6 +18,7 @@ final class DownloadsModule: NotchcastModule {
         self.readInterfaces = readInterfaces ?? NetMergeInterfaceMonitor().readInterfaces
         state = DownloadsQueueController(file: file, destination: destination, tools: services.tools,
                                          releaseSpeech: services.releaseSpeech, report: report)
+        DownloadsIslandBridge.track(state)
     }
 
     func start() {

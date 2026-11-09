@@ -72,14 +72,24 @@ enum NotchcastDownloadLauncherCommands {
 
     private static func perform(_ action: NotchcastDownloadCommands.Action) {
         guard isEnabled(action), let downloads, let distill else { return }
-        let commands = NotchcastDownloadCommands(downloads: downloads, distill: distill, preferences: .shared,
-            status: { AppCore.shared.showMessage($0, tone: .danger) })
-        if action.usesDistill {
-            distill.commandTask?.cancel()
-            distill.commandTask = Task { await commands.perform(action) }
-        } else {
-            downloads.commandTask?.cancel()
-            downloads.commandTask = Task { await commands.perform(action) }
+        start(action, with: NotchcastDownloadCommands(downloads: downloads, distill: distill, preferences: .shared,
+            status: { AppCore.shared.showMessage($0, tone: .danger) }))
+    }
+
+    /// Links are read at invocation and every run queues its own; only a newer Run Distill replaces one.
+    static func start(_ action: NotchcastDownloadCommands.Action, with commands: NotchcastDownloadCommands) {
+        var commands = commands
+        switch action {
+        case .runDistill:
+            commands.distill.commandTask?.cancel()
+            commands.distill.commandTask = Task { [commands] in await commands.perform(action) }
+            return
+        case .video, .audio, .transcript, .webpage, .addDistill:
+            let text = commands.clipboard()
+            commands.clipboard = { text }
+        case .convert, .openDownloads, .openDistill:
+            break
         }
+        Task { [commands] in await commands.perform(action) }
     }
 }
