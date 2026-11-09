@@ -1,6 +1,8 @@
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionModule.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 import AppKit
 import Observation
 
@@ -10,11 +12,12 @@ enum ASCIIKeyboardLayout {
     @MainActor static func character(for code: Int, modifiers: UInt32) -> String? { nil }
 }
 @MainActor final class EventTapHub {
+    struct Event {}
     enum Verdict { case pass, swallow }
     func registerSynchronous(mask: CGEventMask,
                              handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID { UUID() }
+    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
     func remove(_ id: UUID) {}
-    func refreshPermission() {}
 }
 @MainActor @Observable final class QuitProtectionStore {
     @ObservationIgnored var reads = 0

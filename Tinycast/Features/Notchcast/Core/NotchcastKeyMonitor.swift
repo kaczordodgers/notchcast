@@ -25,11 +25,10 @@ final class NotchcastKeyMonitor {
     private let microphone: MicrophoneMuteModule
     private let preferences: NotchcastPreferences
     private let hub: EventTapHub
+    private let tap: EventTapSubscription
     private let routing = SharedRouting()
-    private var registration: UUID?
     private var activation: NotificationToken?
     private var installations: NotificationToken?
-    private var permissionRetry: Task<Void, Never>?
     private var applicationFolders: [DispatchSourceFileSystemObject] = []
 
     init(music: MusicNowPlayingModule, blocker: MusicLaunchBlocker, microphone: MicrophoneMuteModule,
@@ -39,6 +38,7 @@ final class NotchcastKeyMonitor {
         self.microphone = microphone
         self.preferences = preferences
         self.hub = hub
+        tap = EventTapSubscription(hub: hub)
         let center = NotificationCenter.default
         activation = NotificationToken(center.addObserver(
             forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
@@ -66,9 +66,7 @@ final class NotchcastKeyMonitor {
     }
 
     isolated deinit {
-        permissionRetry?.cancel()
         applicationFolders.forEach { $0.cancel() }
-        if let registration { hub.remove(registration) }
     }
 
     func run() {
@@ -86,47 +84,30 @@ final class NotchcastKeyMonitor {
         let soloist = preferences.isEnabled(.spotifyConnect)
             && music.soloist.isConnected && music.soloist.authState?.loggedIn == true
         routing.value.withLock { $0 = Routing(mute: mute, media: media, replace: replacing || soloist) }
-        microphone.model.hotKeyStatus = mute && !AXIsProcessTrusted() ? Int32(AXError.apiDisabled.rawValue) : nil
         if mute || media {
-            if registration == nil {
-                registration = hub.registerSynchronous(mask: (1 << NSEvent.EventType.systemDefined.rawValue)
-                    | EventTapPolicy.mask(for: .keyDown) | EventTapPolicy.mask(for: .keyUp)) { [weak self, routing] type, event in
-                    guard let key = Self.decode(type, event) else { return .pass }
-                    let state = routing.value.withLock { $0 }
-                    let enabled: Bool
-                    let swallow: Bool
-                    switch key {
-                    case .mute: enabled = state.mute; swallow = state.mute
-                    case .media: enabled = state.media; swallow = state.media && state.replace
-                    }
-                    if enabled {
-                        let decision: Key
-                        if case let .media(code, down, _) = key {
-                            decision = .media(code, down, replace: state.replace)
-                        } else { decision = key }
-                        DispatchQueue.main.async { [weak self] in self?.perform(decision) }
-                    }
-                    return swallow ? .swallow : .pass
+            tap.start(mask: (1 << NSEvent.EventType.systemDefined.rawValue)
+                | EventTapPolicy.mask(for: .keyDown) | EventTapPolicy.mask(for: .keyUp)) { [weak self, routing] type, event in
+                guard let key = Self.decode(type, event) else { return .pass }
+                let state = routing.value.withLock { $0 }
+                let enabled: Bool
+                let swallow: Bool
+                switch key {
+                case .mute: enabled = state.mute; swallow = state.mute
+                case .media: enabled = state.media; swallow = state.media && state.replace
                 }
-            }
-            hub.refreshPermission()
-        } else if let registration {
-            hub.remove(registration)
-            self.registration = nil
-        }
-        if registration != nil, !AXIsProcessTrusted() {
-            if permissionRetry == nil {
-                permissionRetry = Task { [weak self] in
-                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
-                    guard let self else { return }
-                    permissionRetry = nil
-                    update()
+                if enabled {
+                    let decision: Key
+                    if case let .media(code, down, _) = key {
+                        decision = .media(code, down, replace: state.replace)
+                    } else { decision = key }
+                    DispatchQueue.main.async { [weak self] in self?.perform(decision) }
                 }
+                return swallow ? .swallow : .pass
             }
         } else {
-            permissionRetry?.cancel()
-            permissionRetry = nil
+            tap.stop()
         }
+        microphone.model.hotKeyStatus = mute && !hub.isTrusted ? Int32(AXError.apiDisabled.rawValue) : nil
     }
 
     private nonisolated static func decode(_ type: CGEventType, _ event: CGEvent) -> Key? {

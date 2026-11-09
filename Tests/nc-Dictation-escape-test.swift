@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/DictationTrigger/Model/*.swift
 // notchcast-sources: Tinycast/Features/DictationTrigger/Service/DictationTriggerManager.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
 import AppKit
 import Carbon.HIToolbox
 import Observation
@@ -194,6 +195,7 @@ struct InjectedText { init(_ text: String) {} }
     func play(_ cue: Cue) {}
 }
 @MainActor enum Paster {
+    nonisolated static let tinycastEventTag: Int64 = 1
     static var copies: [String] = []
     static func copyPlainText(_ text: String) { copies.append(text) }
 }
@@ -214,6 +216,9 @@ enum Permissions { static func ensureAccessibility() {} }
         return id
     }
     func remove(_ id: UUID) { handlers[id] = nil }
+    enum Verdict { case pass, swallow }
+    func registerSynchronous(mask: CGEventMask,
+                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID { UUID() }
     func send(_ type: CGEventType, key: Int, flags: CGEventFlags = [], at time: TimeInterval) {
         let event = Event(
             type: type, flags: flags, keyCode: Int64(key), isRepeat: false, isSynthetic: false,
