@@ -95,6 +95,12 @@ struct ScreenshotModuleTest {
         command.run()
         precondition(module.commandTask == nil)
         NotchcastCore.instance = nil
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.clipboardFailed)
+                     == String(localized: "Could not copy to clipboard."))
+        precondition(ScreenshotModule.failureMessage(NSError(domain: "com.apple.ScreenCaptureKit", code: -3802))
+                     == String(localized: "Could not capture the screen."))
+        precondition(ScreenshotModule.failureMessage(CocoaError(.fileWriteNoPermission))
+                     == String(localized: "Could not save the screenshot."))
         print("PASS: screenshot module command, display selection, switch lifecycle and failure HUD")
     }
 
