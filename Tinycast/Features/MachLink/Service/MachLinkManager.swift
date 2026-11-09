@@ -4,7 +4,6 @@ import Network
 @MainActor
 final class MachLinkManager {
     static let serviceType = "_notchcast-link._tcp"
-    typealias Handler = @Sendable (MachLinkMessage) async throws -> MachLinkMessage
     typealias Route = @MainActor (MachLinkMessage) async throws -> MachLinkMessage
 
     private var listener: NWListener?
@@ -14,10 +13,6 @@ final class MachLinkManager {
     private(set) var peers: Set<NWBrowser.Result> = []
     var port: NWEndpoint.Port? { listener?.port }
     private(set) var serviceName: String?
-    var fanHandler: (@MainActor (RemoteFanRequest) async throws -> RemoteFanReport)?
-    var fanEnabled: @MainActor () -> Bool = {
-        [.machLink, .systemMonitor, .fanControl].allSatisfy { NotchcastPreferences.shared.isOn($0) }
-    }
 
     isolated deinit {
         listener?.cancel()
@@ -25,7 +20,7 @@ final class MachLinkManager {
         for task in requests.values { task.cancel() }
     }
 
-    func start(pairing: MachLinkPairing, name: String, handler: @escaping Handler) throws {
+    func start(pairing: MachLinkPairing, name: String) throws {
         stop()
         let listener = try NWListener(using: MachLinkTransport.parameters(pairing: pairing))
         self.listener = listener
@@ -50,7 +45,7 @@ final class MachLinkManager {
                                 try await MachLinkTransport.connected(connection)
                             }
                             let request = try await MachLinkTransport.receive(on: connection)
-                            let response = try await manager.response(to: request, fallback: handler)
+                            let response = try await manager.response(to: request)
                             guard response.id == request.id, response.method == request.method else {
                                 throw MachLinkMessage.Failure.invalidMessage
                             }
@@ -88,9 +83,8 @@ final class MachLinkManager {
         routes[method] = route
     }
 
-    private func response(to request: MachLinkMessage, fallback: Handler) async throws -> MachLinkMessage {
-        if let reply = try await peerResponse(to: request) { return reply }
-        guard let route = routes[request.method] else { return try await fallback(request) }
+    private func response(to request: MachLinkMessage) async throws -> MachLinkMessage {
+        guard let route = routes[request.method] else { throw MachLinkMessage.Failure.invalidMessage }
         return try await route(request)
     }
 

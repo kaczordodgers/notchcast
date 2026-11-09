@@ -15,17 +15,17 @@ extension TodoLinkCoordinator: NotchcastModule {
             try await channel.request(packet, method: "todo-sync", as: TodoLinkPacket.self)
         })
         coordinator.pairingIdentity = { channel.pairing?.id }
+        channel.manager.register("todo-sync") { [weak coordinator] request in
+            guard let coordinator else { throw MachLinkMessage.Failure.disconnected }
+            return try coordinator.response(to: request)
+        }
         return coordinator
     }
 
     func response(to request: MachLinkMessage) throws -> MachLinkMessage {
+        try Task.checkCancellation()
+        guard canSync else { throw MachLinkMessage.Failure.disconnected }
         let response = try respond(request.value(as: TodoLinkPacket.self))
         return try MachLinkMessage(id: request.id, method: request.method, value: response)
-    }
-
-    func peerResponse(to request: MachLinkMessage, via manager: MachLinkManager) async throws -> MachLinkMessage? {
-        try await manager.todoResponse(to: request, enabled: { self.canSync }, handler: {
-            try self.response(to: $0)
-        })
     }
 }

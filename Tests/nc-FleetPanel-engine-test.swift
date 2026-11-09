@@ -36,7 +36,14 @@ struct NotchcastCommand {
     static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
 }
 @MainActor final class TestLink { let channel = MachLinkChannel() }
+@MainActor final class MachLinkManager {
+    var routes: [String: @MainActor (MachLinkMessage) async throws -> MachLinkMessage] = [:]
+    func register(_ method: String, _ route: @escaping @MainActor (MachLinkMessage) async throws -> MachLinkMessage) {
+        routes[method] = route
+    }
+}
 @MainActor final class MachLinkChannel {
+    let manager = MachLinkManager()
     func request<T: Encodable, R: Decodable>(_ value: T, method: String, as: R.Type) async throws -> R {
         throw MachLinkMessage.Failure.disconnected
     }
@@ -152,9 +159,9 @@ private struct SlowRunner: AgentThreadRunning {
         precondition(timedOut.failure == .failed && started.duration(to: .now) < .seconds(1))
         timeoutGate.continuations.first?.resume(returning: snapshot)
         print("PASS: responder deadline returns failed without waiting for or cancelling the shared refresh")
-        let route: @Sendable (MachLinkMessage) async throws -> MachLinkMessage? = { request in
-            if request.method == "agent-threads" { return try await FleetMachLinkTransport.response(to: request) }
-            return nil
+        _ = NotchcastCore.fleetPanel
+        guard let route = NotchcastCore.macLink.channel.manager.routes["agent-threads"] else {
+            preconditionFailure("Fleet transport did not register its route")
         }
         do {
             _ = try await route(request)
@@ -162,8 +169,8 @@ private struct SlowRunner: AgentThreadRunning {
         } catch MachLinkMessage.Failure.disconnected {}
         NotchcastPreferences.shared.enabled = [.machLink]
         let routedOff = try await route(request)
-        let routedSnapshot = try routedOff?.value(as: FleetSnapshot.self)
-        precondition(routedSnapshot?.failure == .off)
+        let routedSnapshot = try routedOff.value(as: FleetSnapshot.self)
+        precondition(routedSnapshot.failure == .off)
         NotchcastPreferences.shared.enabled = []
         var reads = 0
         let off = try await FleetMachLinkTransport.response(to: request, linkEnabled: true,

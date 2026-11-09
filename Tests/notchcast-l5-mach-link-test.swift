@@ -49,9 +49,10 @@ struct MachLinkTest {
             fatalError("Pre-cancelled connection started")
         } catch is CancellationError { print("PASS cancel before start") }
         let server = MachLinkManager()
-        try server.start(pairing: pairing, name: "Harness") { request in
+        server.register("snapshot") { request in
             try MachLinkMessage(id: request.id, method: request.method, value: ["remaining": 42])
         }
+        try server.start(pairing: pairing, name: "Harness")
         defer { server.stop() }
         for _ in 0..<100 where server.port == nil { try await Task.sleep(for: .milliseconds(20)) }
         guard let port = server.port else { fatalError("Listener did not start") }

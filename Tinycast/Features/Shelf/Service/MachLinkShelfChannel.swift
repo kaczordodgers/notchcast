@@ -5,9 +5,15 @@ final class MachLinkShelfChannel: ShelfLinkStatus, ShelfTransport {
     let channel: MachLinkChannel
     let status: () -> Bool
 
-    init(channel: MachLinkChannel, status: @escaping () -> Bool) {
+    init(channel: MachLinkChannel, module: ShelfModule, status: @escaping () -> Bool) {
         self.channel = channel
         self.status = status
+        channel.manager.register("shelf-item") { [weak module] request in
+            guard NotchcastPreferences.shared.isOn(.machLink), NotchcastPreferences.shared.isOn(.shelfBetweenMacs),
+                  let module else { throw MachLinkMessage.Failure.disconnected }
+            _ = try await module.receive(request.value(as: ShelfItem.self))
+            return try MachLinkMessage(id: request.id, method: request.method, value: true)
+        }
     }
 
     var shelfPeerAvailable: Bool { status() && channel.peer != nil }
@@ -18,14 +24,5 @@ final class MachLinkShelfChannel: ShelfLinkStatus, ShelfTransport {
         guard try await channel.request(item, method: "shelf-item", as: Bool.self) else {
             throw ShelfEngine.Failure.invalidItem
         }
-    }
-}
-
-@MainActor
-enum ShelfMachLinkTransport {
-    static func response(to request: MachLinkMessage, module: ShelfModule) async throws -> MachLinkMessage {
-        guard request.method == "shelf-item" else { throw MachLinkMessage.Failure.invalidMessage }
-        _ = try await module.receive(request.value(as: ShelfItem.self))
-        return try MachLinkMessage(id: request.id, method: request.method, value: true)
     }
 }

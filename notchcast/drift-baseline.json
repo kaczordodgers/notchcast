@@ -46,7 +46,7 @@
     "Features/LiveDay -> Features/EventReminder": 1,
     "Features/MachBlockedDialog -> Features/AIUsage": 0,
     "Features/MachBlockedDialog -> Features/MachLink": 2,
-    "Features/MachLink -> Features/MachMBPFans": 2,
+    "Features/MachLink -> Features/MachMBPFans": 0,
     "Features/MachLink -> Features/RemoteScreen": 0,
     "Features/MachLink -> notchcast/root": 1,
     "Features/MachMBPFans -> Features/AIUsage": 0,

@@ -6,7 +6,6 @@ import SystemConfiguration
 @Observable
 final class AIUsageLinkModule: NotchcastModule {
     let channel = MachLinkChannel()
-    @ObservationIgnored var listenerRoute: (@Sendable (MachLinkMessage) async throws -> MachLinkMessage?)?
     private(set) var isRunning = false
     private(set) var isPaired = false
     private(set) var failed = false
@@ -73,16 +72,7 @@ final class AIUsageLinkModule: NotchcastModule {
         isPaired = isPaired || channel.pairing != nil
         guard isRunning, let pairing = channel.pairing else { return }
         let name = SCDynamicStoreCopyLocalHostName(nil) as String? ?? UUID().uuidString
-        try channel.manager.start(pairing: pairing, name: name) { [weak self] request in
-            guard let self else { throw MachLinkMessage.Failure.disconnected }
-            return try await self.respond(to: request)
-        }
+        try channel.manager.start(pairing: pairing, name: name)
         failed = false
     }
-
-    func respond(to request: MachLinkMessage) async throws -> MachLinkMessage {
-        guard let response = try await listenerRoute?(request) else { throw MachLinkMessage.Failure.invalidMessage }
-        return response
-    }
-
 }

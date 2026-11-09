@@ -36,13 +36,6 @@ struct AIUsageWiringTest {
         let channel = MachLinkChannel()
         let module = AIUsageModule(provider: provider, preferences: preferences, channel: channel)
         let link = AIUsageLinkModule(defaults: defaults)
-        link.listenerRoute = { request in
-            guard request.method == "fixture-route" else { return nil }
-            return try MachLinkMessage(id: request.id, method: request.method, value: true)
-        }
-        let routed = try await link.respond(to: MachLinkMessage(method: "fixture-route", value: true))
-        let accepted = try routed.value(as: Bool.self)
-        precondition(accepted)
         var missingNotices: [String] = []
         preferences.aiUsageCachePath = directory.path
         let defaultCacheModule = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
@@ -71,9 +64,7 @@ struct AIUsageWiringTest {
         let pairing = try MachLinkPairing.create()
         let server = MachLinkChannel()
         _ = AIUsageModule(provider: provider, preferences: preferences, channel: server)
-        try server.manager.start(pairing: pairing, name: "Usage fixture") { _ in
-            throw MachLinkMessage.Failure.invalidMessage
-        }
+        try server.manager.start(pairing: pairing, name: "Usage fixture")
         defer { server.manager.stop() }
         for _ in 0..<100 where server.manager.port == nil { try await Task.sleep(for: .milliseconds(20)) }
         channel.pairing = pairing
