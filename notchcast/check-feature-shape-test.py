@@ -21,6 +21,8 @@ PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
 HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
+# An arm of a feature that stays on the switches (the capture module), so the planted edits keep an anchor.
+ARM = "case .colorPicker: .captureAndDictation"
 
 
 def run(root, *args):
@@ -78,27 +80,27 @@ class FeatureShapeTests(unittest.TestCase):
     def test_shared_multi_case_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", "case .island, .islandExternalDisplays: .island"),
+            ARM, "case .colorPicker, .screenshot: .captureAndDictation"),
             "multi-case arm")
 
     def test_single_line_string_values(self):
         for value in ('"Other"', 'String(localized: "Other")'):
             with self.subTest(value=value):
                 source = (ROOT / SHAPE.FEATURE).read_text()
-                (self.root / SHAPE.FEATURE).write_text(source.replace(
-                    "case .island: .island", f"case .island: {value}"))
+                self.assertEqual(source.count(ARM), 1)
+                (self.root / SHAPE.FEATURE).write_text(source.replace(ARM, f"case .colorPicker: {value}"))
                 self.assertEqual(SHAPE.check(self.root), [])
 
     def test_two_switch_cases_on_one_line(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", 'case .island: "Other"; case .extra: "Extra"'),
+            ARM, 'case .colorPicker: "Other"; case .extra: "Extra"'),
             "own line")
 
     def test_multiline_string_value(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", 'case .island:\n            "Other"'),
+            ARM, 'case .colorPicker:\n            "Other"'),
             "keep each feature arm on one line")
 
     def test_shared_group_line(self):
@@ -114,7 +116,7 @@ class FeatureShapeTests(unittest.TestCase):
     def test_bare_case_before_multiline_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .island: .island", "case\n            .island, .islandExternalDisplays: .island"),
+            ARM, "case\n            .colorPicker, .screenshot: .captureAndDictation"),
             "multi-case arm")
 
     def test_enum_comma_on_next_line(self):
@@ -134,13 +136,13 @@ class FeatureShapeTests(unittest.TestCase):
     def test_repeated_switch_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .dayMarkets: .activities", "case .dayMarkets: .activities\n        case .dayMarkets: .system"),
-            "repeated case .dayMarkets in switch")
+            "case .treadmillWalk: .activities", "case .treadmillWalk: .activities\n        case .treadmillWalk: .system"),
+            "repeated case .treadmillWalk in switch")
 
-    def test_needs_island_multi_case_arm(self):
+    def test_default_enabled_multi_case_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .displayBrightness: false", "case .displayBrightness, .quitProtection: false"),
+            "case .captureEditor: false", "case .captureEditor, .treadmillWalk: false"),
             "multi-case arm")
 
     def test_union_duplicated_group_header(self):
@@ -208,8 +210,8 @@ class FeatureShapeTests(unittest.TestCase):
         self.rejected(PREFS, source + source, "expected one NotchcastPreferences class")
 
     def test_arm_for_described_feature(self):
-        for anchor, arm in (("case .pasteImage: .clipboard\n", "case .hideCommandM: .system\n"),
-                            ("case .pasteImage: false\n", "case .linkHealth: false\n")):
+        for anchor, arm in ((ARM + "\n", "case .hideCommandM: .system\n"),
+                            ("case .recording: [.screenRecording]\n", "case .linkHealth: []\n")):
             with self.subTest(arm=arm):
                 source = (ROOT / SHAPE.FEATURE).read_text()
                 self.assertEqual(source.count(anchor), 1)
@@ -285,10 +287,10 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_undescribed_feature_without_exhaustive_arm(self):
         source = (ROOT / SHAPE.FEATURE).read_text()
-        arm = '        case .pastePlain: String(localized: "Paste Plain Text", table: "Notchcast")\n'
+        arm = '        case .colorPicker: String(localized: "Color Picker", table: "Notchcast")\n'
         self.assertEqual(source.count(arm), 1)
         self.rejected(SHAPE.FEATURE, source.replace(arm, ""),
-                      ".pastePlain needs a descriptor or a title arm")
+                      ".colorPicker needs a descriptor or a title arm")
 
     def init_repository(self):
         (self.root / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
@@ -307,31 +309,31 @@ class FeatureShapeTests(unittest.TestCase):
         self.init_repository()
         feature = self.root / SHAPE.FEATURE
         run(self.root, "git", "switch", "-qc", "append", "base")
-        source = feature.read_text().replace("    case dayMarkets\n", "    case dayMarkets\n    case captureArea\n")
+        source = feature.read_text().replace("    case treadmillWalk\n", "    case treadmillWalk\n    case captureArea\n")
         for member, value in (("settingsGroup", ".activities"),
                               ("title", 'String(localized: "Capture Area")'),
                               ("subtitle", 'String(localized: "Capture an area.")')):
             start = source.index(f"    var {member}:")
             end = source.index("\n        }", start)
-            arm = re.search(r"^        case \.dayMarkets:[^\n]*", source[start:end], re.M)
+            arm = re.search(r"^        case \.treadmillWalk:[^\n]*", source[start:end], re.M)
             insertion = start + arm.end() + 1
             source = source[:insertion] + f"        case .captureArea: {value}\n" + source[insertion:]
         feature.write_text(source)
         run(self.root, "git", "add", ".")
-        run(self.root, "git", "commit", "-qm", "Append captureArea beside dayMarkets")
+        run(self.root, "git", "commit", "-qm", "Append captureArea beside treadmillWalk")
         run(self.root, "git", "switch", "-qc", "edit", "base")
-        feature.write_text(feature.read_text().replace("case .dayMarkets: .activities", "case .dayMarkets: .system"))
+        feature.write_text(feature.read_text().replace("case .treadmillWalk: .activities", "case .treadmillWalk: .system"))
         run(self.root, "git", "add", ".")
-        run(self.root, "git", "commit", "-qm", "Change dayMarkets group")
+        run(self.root, "git", "commit", "-qm", "Change treadmillWalk group")
         run(self.root, "git", "switch", "-q", "append")
         run(self.root, "git", "merge", "--no-ff", "--no-edit", "edit")
         self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
         merged = feature.read_text()
-        self.assertIn("case .dayMarkets: .activities", merged)
-        self.assertIn("case .dayMarkets: .system", merged)
+        self.assertIn("case .treadmillWalk: .activities", merged)
+        self.assertIn("case .treadmillWalk: .system", merged)
         self.assertIn("case .captureArea: .activities", merged)
-        self.rejected(SHAPE.FEATURE, merged, "repeated case .dayMarkets in switch")
-        print("PASS: captureArea append plus dayMarkets edit merges clean; checker rejects retained old arm", flush=True)
+        self.rejected(SHAPE.FEATURE, merged, "repeated case .treadmillWalk in switch")
+        print("PASS: captureArea append plus treadmillWalk edit merges clean; checker rejects retained old arm", flush=True)
 
     def test_three_branch_union_merge(self):
         self.init_repository()
