@@ -31,10 +31,10 @@ enum NotchcastCore {}
     @MainActor static func main() {
         let module = CleanModule()
         module.start()
-        precondition(module.coordinator.rootAvailable)
+        precondition(module.coordinator.helperCurrent)
         module.stop()
         module.start()
-        precondition(module.coordinator.rootAvailable)
+        precondition(module.coordinator.helperCurrent)
         module.stop()
         print("PASS: Scan remains reachable across module restarts for helper version rechecks")
     }
