@@ -323,8 +323,9 @@ struct TodoLinkTests {
         let coordinator = TodoLinkCoordinator.live(channel: channel, preferences: NotchcastPreferences(suiteName: suite))
         guard let route = channel.manager.routes["todo-sync"] else { preconditionFailure("todo-sync not registered") }
         let message = try MachLinkMessage(method: "todo-sync", value: true)
+        defer { coordinator.stop() }
         do {
-            _ = try await withExtendedLifetime(coordinator) { try await route(message) }
+            _ = try await route(message)
             preconditionFailure("stopped coordinator accepted")
         } catch MachLinkMessage.Failure.disconnected {}
         print("PASS: registered todo-sync route refuses a peer that cannot sync")
