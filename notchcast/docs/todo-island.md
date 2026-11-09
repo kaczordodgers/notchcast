@@ -22,10 +22,5 @@ an owner to react to wake or clock changes. The injected calendar supplies the t
 Each refresh atomically replaces the JSON file; the parent directory must exist. A failed write
 sets `failure` to `.snapshotWrite` while keeping the live snapshot available.
 
-`complete(_:) throws` issues store commands. Recognized recurrence strings advance through
-`TodoRecurrence`, leave the parent incomplete and reset descendants in one undoable batch.
-Unsupported recurrence throws `.unsupportedRecurrence` without modifying the task.
-`TodoIslandPresenting.update(_:)` is the typed presentation seam; nothing implements it here.
-
 The later look still needs approved design, page and completion controls, quick add, a count-free
 attention mark, hover/hotkey opening, and pin/refresh bindings.

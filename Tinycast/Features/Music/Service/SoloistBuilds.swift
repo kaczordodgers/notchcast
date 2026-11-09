@@ -183,14 +183,6 @@ final class SoloistInstaller: SoloistBuildSource {
         }
     }
 
-    nonisolated static func readDownload(_ file: URL) throws -> Data {
-        let size = try file.resourceValues(forKeys: [.fileSizeKey]).fileSize
-        guard let size, size <= SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive }
-        let data = try Data(contentsOf: file)
-        guard data.count <= SoloistArchiveRules.maxPacked else { throw SoloistFailure.archive }
-        return data
-    }
-
     private final class DownloadDelegate: NSObject, URLSessionTaskDelegate {
         func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
                         newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {

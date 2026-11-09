@@ -1,7 +1,4 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift
-// notchcast-sources: Tinycast/Features/AgentConsent/Model/*.swift
-// notchcast-sources: Tinycast/Features/AgentConsent/Service/AgentGrantStore.swift
-// notchcast-sources: Tinycast/Features/AgentConfirm/Model/*.swift
 // notchcast-sources: Tinycast/Features/Todo/Service/*.swift Tinycast/Features/Todo/TodoModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
@@ -33,7 +30,6 @@ struct TodoStoreTests {
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: root) }
         try await persistence(root.appending(path: "replay"))
-        try await workflowSections(root.appending(path: "workflow"))
         try await tornLine(root.appending(path: "torn"))
         try await corruptLines(root.appending(path: "corrupt"))
         try await lifecycle(root.appending(path: "module"))
@@ -53,7 +49,6 @@ struct TodoStoreTests {
         let initial = try fixture()
         precondition(initial.sections.count == 2)
         precondition(TodoState().sections.isEmpty)
-        precondition(TodoState.workflowSections == ["Backlog", "Up next", "In progress", "Blocked", "Someday"])
         precondition(task.priority == 4 && child.priority == 1)
         var edited = task
         edited.title = "Ship today"
@@ -260,31 +255,6 @@ struct TodoStoreTests {
             try replayed.perform(.addProject(project))
             preconditionFailure("closed write succeeded")
         } catch TodoStore.Failure.closed { }
-    }
-
-    static func workflowSections(_ directory: URL) async throws {
-        let store = try await TodoStore.open(directory: directory)
-        try store.perform(.addProject(project))
-        let existing = TodoSection(id: UUID().uuidString, name: "BACKLOG", projectID: project.id, order: 4)
-        try store.perform(.addSection(existing))
-        let before = store.state
-        try store.applyWorkflowSections(projectID: project.id)
-        precondition(store.state.sections.count == 5 && store.state.sections[existing.id] == existing)
-        let logURL = directory.appending(path: "commands.jsonl")
-        let bytes = try Data(contentsOf: logURL)
-        try store.applyWorkflowSections(projectID: project.id)
-        let unchanged = try Data(contentsOf: logURL)
-        precondition(bytes == unchanged)
-        let expected = store.state
-        try store.close()
-        let restored = try await TodoStore.open(directory: directory)
-        precondition(restored.state == expected)
-        try restored.undo()
-        precondition(restored.state == before)
-        try restored.undo()
-        precondition(restored.state.sections.isEmpty)
-        try restored.close()
-        print("PASS: workflow sections persist, skip existing names, repeat without a log write and undo in one step")
     }
 
     static func tornLine(_ directory: URL) async throws {

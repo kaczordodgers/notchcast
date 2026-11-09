@@ -440,10 +440,10 @@ struct AgentSessionTests {
             privateConfigURL: root.appendingPathComponent("missing-private.env"))
         module.start()
         await Task.yield()
-        expect(module.snapshot.sessions.isEmpty, "Enable remains lazy before demand")
-        module.setDemand(true)
+        expect(module.snapshot.sessions.isEmpty, "Enable remains lazy before a refresh")
+        module.refresh()
         for _ in 0..<100 where module.snapshot.sessions.isEmpty { try await Task.sleep(for: .milliseconds(10)) }
-        expect(module.snapshot.sessions.count == 1, "Demand starts off-main scan")
+        expect(module.snapshot.sessions.count == 1, "Refresh starts off-main scan")
         module.refresh()
         module.stop()
         try await Task.sleep(for: .milliseconds(30))

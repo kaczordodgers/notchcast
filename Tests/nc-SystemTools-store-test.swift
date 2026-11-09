@@ -9,7 +9,6 @@
 // notchcast-sources: Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
 // notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsHelperPolicy.swift
 // notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsStore.swift
-// notchcast-sources: Tinycast/Features/Tweaks/Model/SpotlightRootVerbs.swift
 import Foundation
 
 @main

@@ -43,11 +43,10 @@ struct TodoViewsTests {
         try today()
         try daylightSaving()
         try upcoming()
-        try projectAndDetail()
+        try projectTrees()
         try options()
         try deterministicOrdering()
-        try workflow()
-        print("PASS: Today, midnight/DST, Upcoming, project trees, detail, every group/sort and workflow idempotence")
+        print("PASS: Today, midnight/DST, Upcoming, project trees, every group/sort")
     }
 
     static func today() throws {
@@ -120,7 +119,7 @@ struct TodoViewsTests {
         print("PASS: Upcoming retains empty days and overdue bucket; bounds and completion filter")
     }
 
-    static func projectAndDetail() throws {
+    static func projectTrees() throws {
         let project = TodoProject(id: id(100), name: "Work")
         let early = TodoSection(id: id(101), name: "Early", projectID: project.id, order: 1)
         let late = TodoSection(id: id(102), name: "Late", projectID: project.id, order: 9)
@@ -152,20 +151,11 @@ struct TodoViewsTests {
         precondition(groups[0].tasks[0].subtasks[0].id == child.id)
         precondition(groups[0].tasks[0].subtasks[0].subtasks[0].id == grandchild.id)
         precondition(groups[3].tasks.isEmpty && views.project(id: id(999)).isEmpty)
-        guard let detail = TodoTaskDetail(id: child.id, state: initial),
-              let rootDetail = TodoTaskDetail(id: root.id, state: initial) else { preconditionFailure("missing detail") }
-        precondition(detail.ancestors.map(\.id) == [root.id] && detail.subtasks.map(\.id) == [grandchild.id])
-        precondition(TodoTaskDetail(id: grandchild.id, state: initial)?.ancestors.map(\.id) == [root.id, child.id])
-        precondition(rootDetail.task.description == "**Markdown**")
-        precondition(rootDetail.comments == [firstComment, secondComment, lastComment])
-        precondition(TodoTaskDetail(id: id(999), state: initial) == nil)
         var completed = initial
         try completed.apply(.completeTask(id: child.id, at: now))
         let filtered = TodoViews(state: completed, now: now, calendar: calendar())
         precondition(filtered.project(id: project.id)[0].tasks.map(\.id) == [grandchild.id, root.id])
-        precondition(TodoTaskDetail(id: root.id, state: completed)?.subtasks.map(\.id) == [grandchild.id])
-        precondition(TodoTaskDetail(id: root.id, state: completed, includeCompleted: true)?.subtasks[0].id == child.id)
-        print("PASS: project section order, nested subtasks, visible descendants and chronological detail comments")
+        print("PASS: project section order, nested subtasks and visible descendants")
     }
 
     static func options() throws {
@@ -267,45 +257,4 @@ struct TodoViewsTests {
         print("PASS: stable UUID sort ties, cross-project section order and project/label completion filtering")
     }
 
-    static func workflow() throws {
-        let project = TodoProject(id: id(100), name: "Work")
-        let other = TodoProject(id: id(101), name: "Other")
-        let backlog = TodoSection(id: id(102), name: "BACKLOG", projectID: project.id, order: 20)
-        let elsewhere = TodoSection(id: id(103), name: "Up next", projectID: other.id)
-        let initial = try state([], commands: [.addProject(project), .addProject(other),
-                                                .addSection(backlog), .addSection(elsewhere)])
-        var state = initial
-        var nextID = 200
-        guard let command = try state.workflowSectionsCommand(projectID: project.id, makeID: {
-            nextID += 1
-            return id(nextID)
-        }) else { preconditionFailure("missing workflow command") }
-        let inverse = try state.apply(command)
-        precondition(state.sections.count == 6 && state.sections[backlog.id] == backlog)
-        let names = state.sections.values.filter { $0.projectID == project.id }
-            .sorted { $0.order < $1.order }.map { $0.name.lowercased() }
-        precondition(names == TodoState.workflowSections.map { $0.lowercased() })
-        let noChange = try state.workflowSectionsCommand(projectID: project.id, makeID: {
-            preconditionFailure("idempotent call requested an ID")
-        })
-        precondition(noChange == nil)
-        try state.apply(inverse)
-        precondition(state == initial)
-        do {
-            _ = try state.workflowSectionsCommand(projectID: id(999), makeID: { id(300) })
-            preconditionFailure("accepted missing project")
-        } catch let error as TodoCommandError { precondition(error == .unknownID(.project, id(999))) }
-        var fullOrder = initial
-        try fullOrder.apply(.reorder(kind: .section, orders: [backlog.id: Int.max]))
-        let before = fullOrder
-        let compact = try fullOrder.workflowSectionsCommand(projectID: project.id, makeID: {
-            nextID += 1
-            return id(nextID)
-        })
-        guard let compact else { preconditionFailure("missing overflow plan") }
-        let undo = try fullOrder.apply(compact)
-        try fullOrder.apply(undo)
-        precondition(fullOrder == before)
-        print("PASS: workflow case-insensitive/project-local idempotence, atomic undo and order overflow")
-    }
 }

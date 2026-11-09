@@ -14,18 +14,12 @@ those inputs changes. Queries never mutate the snapshot.
   first and every section in manual order, including empty sections. Subtasks nest under their parents.
 - `label(name:options:) -> [TodoTaskGroup]`: case-insensitive label-name lookup, matching label IDs on
   tasks. Missing labels return an empty group; missing projects return no groups.
-- `TodoTaskDetail(id:state:includeCompleted:)`: optional detail with the original task (including its
-  Markdown description), root-to-parent ancestors, nested subtasks and chronological comments. Equal
-  comment timestamps retain their stored order. An explicitly requested completed task still has detail.
-- `TodoStore.applyWorkflowSections(projectID:) throws`: explicitly creates missing workflow sections.
-- `TodoState.workflowSectionsCommand(projectID:makeID:) throws -> TodoCommand?`: the pure command plan,
-  with injected IDs, used by the store helper.
 
 `TodoTaskNode` contains `task` and recursive `subtasks`. `TodoTaskGroup` contains a typed `id` and
 `tasks`. `TodoDayBucket` contains an overdue/day `id` and `groups`, so grouping also works within each
 Upcoming day. Flat lists include matching subtasks independently; project lists nest matching tasks
 within each group. If a parent is hidden or belongs to another group, its visible child becomes a root
-there. Detail similarly promotes active descendants of hidden completed subtasks.
+there.
 
 ## Ordering and options
 
@@ -51,15 +45,8 @@ each group for every Today sort. A timed task earlier today remains in today's U
 sort at local midnight; timed `due.date` values are fixed instants and `due.time` is display metadata.
 Calendar addition defines day boundaries, preserving short, long and repeated-hour DST days.
 
-The workflow helper uses the store's atomic batch: one perform, one persisted undo step. Name checks
-are case-insensitive and project-local. Existing sections keep their names, IDs and order; missing
-ones append in workflow order. A repeat performs no command and creates no undo entry. If integer
-orders leave no room to append, the same batch compacts existing orders while preserving their order.
-
 ## Proof
 
 `nc-Todo-views-test` compiles only shipped model files. It covers every query, grouping and sorting
 choice, Codable options and older task records, midnight rollover, both DST transitions and repeated
-hours, empty Upcoming days, project nesting, details and workflow command idempotence/inverses.
-`nc-Todo-store-test` additionally checks workflow persistence, no-op log stability and one-step undo
-after reopening the log. There are no views, window, island page or additional feature switch.
+hours, empty Upcoming days and project nesting. There are no views, window, island page or additional feature switch.

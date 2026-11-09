@@ -44,14 +44,16 @@ struct TodoIslandTests {
         now = calendar.date(byAdding: .minute, value: 1, to: now)!
         feed.refresh()
         precondition(feed.snapshot.attention == .overdue)
-        try feed.complete(task.id)
+        try store.perform(TodoCompletion.command(id: task.id, state: store.state, now: now, calendar: calendar))
+        feed.refresh()
         precondition(store.state.tasks[task.id]?.completedAt == now)
         precondition(feed.snapshot.attention == .none)
         var recurring = task
         recurring = TodoTask(id: UUID().uuidString, title: "Repeat", due: .init(
             date: now, isAllDay: true, recurrenceRule: "every day", normalized: ""))
         try store.perform(.addTask(recurring))
-        try feed.complete(recurring.id)
+        try store.perform(TodoCompletion.command(id: recurring.id, state: store.state, now: now, calendar: calendar))
+        feed.refresh()
         precondition(store.state.tasks[recurring.id]?.completedAt == nil)
         precondition(calendar.component(.day, from: store.state.tasks[recurring.id]!.due!.date) == 30)
         precondition(feed.snapshot.tomorrow.map(\.id) == [recurring.id])

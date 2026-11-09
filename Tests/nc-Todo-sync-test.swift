@@ -33,10 +33,7 @@ struct TodoSyncTests {
         try deletion()
         try replay()
         try relationships()
-        try transport()
         try vectors()
-        try agents()
-        try agentFailures()
         try reviewRegressions()
         try clockQuarantine()
         try json()
@@ -46,7 +43,7 @@ struct TodoSyncTests {
         try await persistence(root)
         try await quarantinePersistence(root.appending(path: "quarantine"))
         try await performance(root.appending(path: "performance"))
-        print("PASS: sync convergence, per-field LWW, deletes, duplicates, vectors, fake transport, legacy log, agents, JSON")
+        print("PASS: sync convergence, per-field LWW, deletes, duplicates, vectors, legacy log, JSON")
     }
 
     static func fixture() throws -> TodoReplication {
@@ -191,27 +188,6 @@ struct TodoSyncTests {
         print("PASS: delete wins over earlier/later edits; explicit undo restores; project and section conflicts stay valid")
     }
 
-    static func transport() throws {
-        let (left, right) = TodoFakeSyncTransport.pair()
-        let value = try fixture()
-        try left.send(value.envelopes(after: TodoVectorClock()))
-        let received = right.receive()
-        precondition(received == value.envelopes)
-        precondition(right.receive().isEmpty && left.receive().isEmpty)
-        try right.send(received)
-        precondition(left.receive() == received)
-        var retained: TodoFakeSyncTransport?
-        do {
-            let (sender, receiver) = TodoFakeSyncTransport.pair()
-            retained = sender
-            precondition(receiver.receive().isEmpty)
-        }
-        do {
-            try retained?.send([])
-            preconditionFailure("disconnected send succeeded")
-        } catch TodoFakeSyncTransport.Failure.disconnected { }
-    }
-
     static func replay() throws {
         var value = try fixture()
         let filter = TodoSavedFilter(id: UUID().uuidString, name: "Urgent", query: "p1")
@@ -288,100 +264,6 @@ struct TodoSyncTests {
         print("PASS: vector exchange retains holes and refuses conflicting operation identities")
     }
 
-    static var calendar: Calendar {
-        var value = Calendar(identifier: .gregorian)
-        value.timeZone = TimeZone(secondsFromGMT: 0) ?? value.timeZone
-        return value
-    }
-
-    @discardableResult
-    static func request(_ request: TodoAgentRequest, on replica: inout TodoReplication,
-                        at date: Date = now) throws -> TodoAgentResponse {
-        let plan = try TodoAgentAPI.plan(request, state: replica.state, now: date, calendar: calendar,
-                                        staleAfterMinutes: 10, makeID: { UUID().uuidString })
-        try replica.perform(plan.command)
-        return plan.response
-    }
-
-    static func agents() throws {
-        var value = try replica("agent")
-        let listed = try request(.list(query: "p1", sectionID: backlog.id), on: &value)
-        precondition(listed == .tasks([task]))
-        let lowPriority = try request(.list(query: "p4", sectionID: nil), on: &value)
-        precondition(lowPriority == .tasks([]))
-        try request(.claim(taskID: task.id, agent: "builder"), on: &value)
-        precondition(value.state.tasks[task.id]?.sectionID == progress.id)
-        precondition(value.state.tasks[task.id]?.claim?.agent == "builder")
-        precondition(value.state.tasks[task.id]?.comments.last?.text == "claimed by builder")
-        let claimed = value.state
-        try request(.claim(taskID: task.id, agent: "builder"), on: &value)
-        precondition(value.state == claimed)
-        do {
-            try request(.claim(taskID: task.id, agent: "other"), on: &value)
-            preconditionFailure("stole claim")
-        } catch TodoAgentError.claimedBy("builder") { }
-        try request(.comment(taskID: task.id, agent: "builder", text: "working"), on: &value,
-                    at: now.addingTimeInterval(9 * 60))
-        try request(.releaseExpired, on: &value, at: now.addingTimeInterval(10 * 60))
-        precondition(value.state.tasks[task.id]?.claim != nil)
-        try request(.move(taskID: task.id, agent: "builder", sectionID: blocked.id), on: &value,
-                    at: now.addingTimeInterval(11 * 60))
-        precondition(value.state.tasks[task.id]?.sectionID == blocked.id)
-        try request(.releaseExpired, on: &value, at: now.addingTimeInterval(21 * 60))
-        precondition(value.state.tasks[task.id]?.claim == nil && value.state.tasks[task.id]?.sectionID == blocked.id)
-        try request(.claim(taskID: task.id, agent: "builder"), on: &value, at: now.addingTimeInterval(22 * 60))
-        try request(.release(taskID: task.id, agent: "builder"), on: &value, at: now.addingTimeInterval(23 * 60))
-        precondition(value.state.tasks[task.id]?.claim == nil)
-        try request(.release(taskID: task.id, agent: "builder"), on: &value, at: now.addingTimeInterval(23 * 60))
-        try request(.complete(taskID: task.id, agent: "builder"), on: &value, at: now.addingTimeInterval(24 * 60))
-        precondition(value.state.tasks[task.id]?.completedAt == now.addingTimeInterval(24 * 60))
-        let completed = try request(.list(query: nil, sectionID: nil), on: &value)
-        precondition(completed == .tasks([]))
-        let unchanged = value.state
-        do {
-            try request(.list(query: "nonsense", sectionID: nil), on: &value)
-            preconditionFailure("invalid filter accepted")
-        } catch TodoAgentError.invalidFilter { }
-        precondition(value.state == unchanged)
-        let merged = try converged(value, replica("observer"))
-        precondition(merged.state.tasks[task.id]?.claim == nil)
-        print("PASS: agent filter priorities, claim ownership, dated comments, move, complete, release and fake-clock expiry")
-    }
-
-    static func agentFailures() throws {
-        var value = try replica("a")
-        try value.perform(.deleteSection(id: progress.id))
-        do {
-            try request(.claim(taskID: task.id, agent: "builder"), on: &value)
-            preconditionFailure("claim invented a workflow section")
-        } catch TodoAgentError.inProgressSectionRequired { }
-        do {
-            try request(.claim(taskID: task.id, agent: "  "), on: &value)
-            preconditionFailure("empty agent accepted")
-        } catch TodoAgentError.invalidAgent { }
-        let missing = UUID().uuidString
-        do {
-            try request(.comment(taskID: missing, agent: "builder", text: "hello"), on: &value)
-            preconditionFailure("missing task accepted")
-        } catch TodoAgentError.unknownTask(let id) { precondition(id == missing) }
-        try value.perform(.addSection(progress))
-        try request(.claim(taskID: task.id, agent: "builder"), on: &value)
-        let before = value.state
-        do {
-            try request(.move(taskID: task.id, agent: "other", sectionID: backlog.id), on: &value)
-            preconditionFailure("other agent moved claimed task")
-        } catch TodoAgentError.claimedBy { }
-        precondition(value.state == before)
-        try request(.release(taskID: task.id, agent: "builder"), on: &value, at: now.addingTimeInterval(600))
-        precondition(value.state.tasks[task.id]?.claim == nil)
-        do {
-            _ = try TodoAgentAPI.plan(.releaseExpired, state: value.state, now: now, calendar: calendar,
-                                      staleAfterMinutes: 0, makeID: { UUID().uuidString })
-            preconditionFailure("zero timeout accepted")
-        } catch TodoAgentError.invalidTimeout { }
-        print("PASS: typed agent failures, no implicit sections, atomic rejection and idempotent release after expiry")
-    }
-
     static func reviewRegressions() throws {
         let child = TodoTask(id: UUID().uuidString, title: "Independent deletion", projectID: project.id,
                              sectionID: backlog.id, parentID: task.id)
@@ -397,33 +279,7 @@ struct TodoSyncTests {
             precondition(merged.state.projects[project.id] != nil && merged.state.tasks[task.id] != nil)
             precondition(merged.state.tasks[child.id] == nil, "undo restored another replica's deletion")
         }
-        var claimed = try TodoReplication.merge(local: TodoReplication(replicaID: "agent"), remote: base.envelopes, now: now)
-        try request(.claim(taskID: child.id, agent: "builder"), on: &claimed)
-        precondition(claimed.state.tasks[child.id]?.parentID == task.id)
-        precondition(claimed.state.tasks[child.id]?.sectionID == backlog.id)
-        try request(.release(taskID: child.id, agent: "builder"), on: &claimed)
-        precondition(claimed.state.tasks[child.id]?.parentID == task.id)
-        try request(.claim(taskID: task.id, agent: "builder"), on: &claimed)
-        try request(.release(taskID: task.id, agent: "builder"), on: &claimed)
-        precondition(claimed.state.tasks[task.id]?.sectionID == backlog.id)
-        var recurring = task
-        recurring.due = .init(date: now, isAllDay: true, recurrenceRule: "every day", normalized: "daily")
-        try claimed.perform(.updateTask(recurring))
-        try claimed.perform(.completeTask(id: child.id, at: now))
-        try request(.complete(taskID: task.id, agent: "builder"), on: &claimed)
-        let next = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now))
-        precondition(claimed.state.tasks[task.id]?.due?.date == next)
-        precondition(claimed.state.tasks[task.id]?.completedAt == nil)
-        precondition(claimed.state.tasks[child.id]?.completedAt == nil)
-        recurring.due?.recurrenceRule = "unparseable recurrence"
-        try claimed.perform(.updateTask(recurring))
-        let before = claimed.state
-        do {
-            try request(.complete(taskID: task.id, agent: "builder"), on: &claimed)
-            preconditionFailure("unsupported recurrence ended series")
-        } catch TodoAgentError.unsupportedRecurrence { }
-        precondition(claimed.state == before)
-        print("PASS: undo preserves independent deletes; child claims keep parents; release respects moves; recurrence advances")
+        print("PASS: undo preserves independent deletes")
     }
 
     static func clockQuarantine() throws {
@@ -516,25 +372,9 @@ struct TodoSyncTests {
     }
 
     static func json() throws {
-        let requests: [TodoAgentRequest] = [.list(query: "p1", sectionID: nil), .claim(taskID: task.id, agent: "builder"),
-            .comment(taskID: task.id, agent: "builder", text: "hello"),
-            .move(taskID: task.id, agent: "builder", sectionID: progress.id),
-            .complete(taskID: task.id, agent: "builder"), .release(taskID: task.id, agent: "builder"), .releaseExpired]
-        for request in requests {
-            let decoded = try JSONDecoder().decode(TodoAgentRequest.self, from: JSONEncoder().encode(request))
-            precondition(decoded == request)
-        }
-        let responses: [TodoAgentResponse] = [.tasks([task]), .task(task), .released([task.id])]
-        for response in responses {
-            let decoded = try JSONDecoder().decode(TodoAgentResponse.self, from: JSONEncoder().encode(response))
-            precondition(decoded == response)
-        }
         let envelopes = try fixture().envelopes
         let decoded = try JSONDecoder().decode([TodoEnvelope].self, from: JSONEncoder().encode(envelopes))
         precondition(decoded == envelopes)
-        let error = TodoAgentError.claimedBy("builder")
-        let decodedError = try JSONDecoder().decode(TodoAgentError.self, from: JSONEncoder().encode(error))
-        precondition(decodedError == error)
     }
 
     static func persistence(_ root: URL) async throws {
@@ -559,10 +399,9 @@ struct TodoSyncTests {
         let second = try await TodoStore.open(directory: root.appending(path: "new"))
         try second.receive(reopened.replication.envelopes)
         precondition(!second.canUndo)
-        _ = try reopened.request(.claim(taskID: task.id, agent: "builder"), now: now, calendar: calendar,
-                                 staleAfterMinutes: 10, makeID: { UUID().uuidString })
-        _ = try second.request(.comment(taskID: task.id, agent: "observer", text: "concurrent"), now: now,
-                               calendar: calendar, staleAfterMinutes: 10, makeID: { UUID().uuidString })
+        try reopened.perform(.completeTask(id: task.id, at: now))
+        try second.perform(.addComment(taskID: task.id,
+                                       comment: TodoComment(id: UUID().uuidString, text: "concurrent", createdAt: now)))
         precondition(second.canUndo)
         try second.receive(second.replication.envelopes)
         precondition(second.canUndo)
@@ -591,6 +430,6 @@ struct TodoSyncTests {
         precondition(restored.state == expected)
         try restored.close()
         try peer.close()
-        print("PASS: legacy commands receive stable replica/order clocks; durable sync, claims, restart and duplicate delivery")
+        print("PASS: legacy commands receive stable replica/order clocks; durable sync, restart and duplicate delivery")
     }
 }

@@ -82,12 +82,4 @@ nonisolated struct SystemToolsProcessRunner: Sendable {
             _ = try run("/bin/kill", arguments: ["-\(signal.rawValue)", String(pid)])
         }
     }
-
-    @concurrent
-    func apply(_ plan: MacSetupPlan) async -> TweakPlanRunner.Receipt {
-        TweakPlanRunner().apply(plan) { preference, value in
-            let command = TweakCommand.preference(preference, value: value)
-            _ = try run(command.executable, arguments: command.arguments)
-        }
-    }
 }

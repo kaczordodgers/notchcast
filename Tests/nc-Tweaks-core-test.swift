@@ -47,12 +47,6 @@ struct TweakCoreTests {
         let again = try TweakProfile.data(bundleIdentifier: "test.channel", keepingAI: [], privacy: ["analytics"])
         let second = try PropertyListSerialization.propertyList(from: again, format: nil) as? NSDictionary
         precondition((profile as NSDictionary?) == second)
-        precondition(SpotlightIndexing.parse("/:\n Indexing disabled.\n").isOff)
-        precondition(!SpotlightIndexing.parse("/:\n Error: unknown indexing state.\n").isOff)
-        precondition(!SpotlightIndexing.parse("").isOff)
-        precondition(SpotlightIndexing.parse("/:\n Indexing enabled.\n").needsTurnOff(featureEnabled: true))
-        precondition(!SpotlightIndexing.parse("/:\n Indexing enabled.\n").needsTurnOff(featureEnabled: false))
-        precondition(SpotlightRootVerbs.turnOffIndexing.arguments == ["-a", "-i", "off"])
-        print("PASS: tweaks plans, Undo, injected failures, profiles, shared models and Spotlight")
+        print("PASS: tweaks plans, Undo, injected failures, profiles and shared models")
     }
 }
