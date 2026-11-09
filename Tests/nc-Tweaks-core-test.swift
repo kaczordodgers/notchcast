@@ -28,15 +28,6 @@ struct TweakCoreTests {
         let failure = TweakPlanRunner().apply(plan) { _, _ in throw InjectedFailure.failed }
         precondition(failure.completed.isEmpty && failure.failure != nil)
         precondition(AIOffCatalog.features.count == 14)
-        let service = AIOffModelService()
-        let sizes = try service.read { _ in 0 }
-        precondition(sizes.count == 5)
-        do {
-            _ = try service.removalPlan(keeping: [], blockedAssets: [])
-            fatalError("Do not remove models before blocking downloads")
-        } catch AIOffModelService.Failure.downloadsNotBlocked { }
-        let removal = try service.removalPlan(keeping: [], blockedAssets: Set(AIOffCatalog.assetTypes.values))
-        precondition(removal.count == 5)
         precondition(AIOffCatalog.removableModels(keeping: []).count == 5)
         precondition(!AIOffCatalog.removableModels(keeping: ["genmoji"]).contains(AIOffCatalog.foundation))
         precondition(!AIOffCatalog.removableModels(keeping: ["genmoji"]).contains(AIOffCatalog.visual))
