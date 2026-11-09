@@ -111,7 +111,7 @@ class Landing(unittest.TestCase):
         fixtures.git(self.root, 'clone', '-q', str(self.fixture.seed), str(remote))
         fixtures.git(remote, 'config', 'user.name', 'Fixture')
         fixtures.git(remote, 'config', 'user.email', 'fixture@example.com')
-        fixtures.git(remote, 'checkout', '-qb', 'main', self.fixture.upstream)
+        fixtures.git(remote, 'checkout', '-qB', 'main', self.fixture.upstream)
         fixtures.write(remote, 'Tinycast/Features/Launcher/NewUpstream.swift', 'struct NewUpstream {}\n')
         fixtures.git(remote, 'add', '.')
         fixtures.git(remote, 'commit', '-qm', 'New upstream source')
