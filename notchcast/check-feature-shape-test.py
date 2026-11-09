@@ -246,14 +246,14 @@ class FeatureShapeTests(unittest.TestCase):
     def test_descriptor_in_a_nested_code_folder(self):
         source = (ROOT / HIDE).read_text()
         (self.root / HIDE).unlink()
-        for folder in ("Notchcast/Island", "Launcher/Keys", "MachRemote/Integration"):
+        for folder in ("Notchcast/Island", "Distill/Convert", "MachRemote/Integration"):
             with self.subTest(folder=folder):
                 path = self.root / "Tinycast/Features" / folder / HIDE.name
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_text(source)
                 self.assertEqual(SHAPE.check(self.root), [])
                 path.unlink()
-        for folder in ("Notchcast", "Notchcast/Core", "Launcher/Keys/Model", "Launcher/Keys/Service",
+        for folder in ("Notchcast", "Notchcast/Core", "Distill/Convert/Model", "Distill/Convert/Service",
                        "Notchcast/Island/UI", "Notchcast/Settings"):
             with self.subTest(folder=folder):
                 path = Path("Tinycast/Features") / folder / HIDE.name
@@ -279,6 +279,31 @@ class FeatureShapeTests(unittest.TestCase):
         (self.root / HIDE.with_name("HideDescriptor.swift")).unlink()
         self.rejected(HIDE, source.replace("    static let hideCommandM", "    static let hideCommandK = hideCommandM\n"
                                            "    static let hideCommandM"), "declare exactly one descriptor")
+
+    def test_descriptor_file_the_hub_does_not_list(self):
+        path = Path("Tinycast/Features/Treadmill/TreadmillWalkDescriptor.swift")
+        (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+        self.rejected(path, (ROOT / HIDE).read_text().replace("static let hideCommandM", "static let treadmillWalk"),
+                      f"list .treadmillWalk: .treadmillWalk, in {DESCRIPTORS}")
+
+    def test_descriptor_in_an_upstream_folder(self):
+        shipped = Path("Tinycast/Features/Launcher/LauncherScreen.swift")
+        (self.root / shipped).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / shipped).write_text("struct LauncherScreen {}\n")
+        run(self.root, "git", "init", "-q", "-b", "main")
+        run(self.root, "git", "add", str(shipped))
+        run(self.root, "git", "-c", "user.name=Upstream", "-c", "user.email=upstream@example.invalid",
+            "commit", "-qm", "Upstream")
+        run(self.root, "git", "update-ref", "refs/remotes/upstream/main", "HEAD")
+        self.assertEqual(SHAPE.check(self.root), [])
+        source = (ROOT / HIDE).read_text()
+        (self.root / HIDE).unlink()
+        for folder in ("Launcher", "Launcher/Keys"):
+            with self.subTest(folder=folder):
+                path = Path("Tinycast/Features") / folder / HIDE.name
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, source, "upstream ships Features/Launcher/")
+                (self.root / path).unlink()
 
     def test_hub_entry_maps_another_descriptor(self):
         source = (ROOT / DESCRIPTORS).read_text()
