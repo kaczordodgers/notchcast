@@ -45,7 +45,10 @@ extension NotchcastAppProof {
 
     @discardableResult
     private static func shell(_ tool: String, _ arguments: [String]) throws -> Data {
-        let output = try ProcessRunner.runBlocking(.init(executable: URL(filePath: tool), arguments: arguments))
+        var environment = ProcessInfo.processInfo.environment
+        environment["LC_ALL"] = "en_US.UTF-8"
+        let output = try ProcessRunner.runBlocking(.init(executable: URL(filePath: tool), arguments: arguments,
+                                                         environment: environment))
         guard output.status == 0 else { throw ArchiveFallbackProofFailure("\(tool) exited \(output.status)") }
         return output.stdout
     }
