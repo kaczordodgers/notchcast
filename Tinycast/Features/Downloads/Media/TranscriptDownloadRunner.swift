@@ -20,10 +20,10 @@ struct TranscriptDownloadRunner: DownloadRunner {
         for automatic in [false, true] {
             let arguments = MediaArguments.captions(source: job.source, destination: staging, automatic: automatic,
                                                     language: language, cookies: job.options["cookiesFromBrowser"])
-            let result = try await context.spawn(executable: executable, arguments: arguments)
+            let result = try await fetch(arguments, executable, context, staging)
             if MediaArguments.retryCaptions(stderr: result.errors, wroteCaptions: try !captions(in: staging).isEmpty) {
                 try await Task.sleep(for: .seconds(5))
-                _ = try await context.spawn(executable: executable, arguments: arguments)
+                _ = try await fetch(arguments, executable, context, staging)
             }
             try Task.checkCancellation()
             for file in try captions(in: staging) {
@@ -37,6 +37,17 @@ struct TranscriptDownloadRunner: DownloadRunner {
         if let transcribe { return try await transcribe(job, context) }
         throw MediaFailure(detail: String(localized:
             "No captions are available. The Distill transcriber fallback is not connected yet.", table: "Notchcast"))
+    }
+
+    // yt-dlp exits 1 when one track hits 429, even after another track was written.
+    private func fetch(_ arguments: [String], _ executable: URL, _ context: DownloadRunContext,
+                       _ staging: URL) async throws -> ChildProcess.Result {
+        do {
+            return try await context.spawn(executable: executable, arguments: arguments)
+        } catch let failure as ChildProcess.Failure
+                    where failure.result.errors.contains("HTTP Error 429") || (try? captions(in: staging).isEmpty) == false {
+            return failure.result
+        }
     }
 
     private func captions(in folder: URL) throws -> [URL] {

@@ -124,7 +124,20 @@ import Foundation
         precondition(CaptionText.plainText(srt, automatic: false) == "Hello there")
         precondition(CaptionText.plainText("WEBVTT\n\nNOTE no captions", automatic: true) == "")
         try await runners()
+        if let directory = ProcessInfo.processInfo.environment["TINYCAST_TRANSCRIPT_LIVE_DIRECTORY"] {
+            try await live(URL(filePath: directory, directoryHint: .isDirectory))
+        }
         print("downloads-media-test: passed")
+    }
+
+    private static func live(_ directory: URL) async throws {
+        let context = DownloadRunContext(destination: directory)
+        for id in ["znWSzW0Zh_Y", "DIcJX1AjKuk", "12M2AIlM_nA", "TFCDWrEBaFM", "zHZPb7wdQuk", "GtJKFhztgdM", "keRiRVDhvoA"] {
+            let job = DownloadJob(id: id, kind: "transcript", source: "https://www.youtube.com/watch?v=\(id)", title: id, created: .now)
+            let output = try await TranscriptDownloadRunner().run(job, context: context)
+            precondition(output?.lastPathComponent.hasSuffix(" [\(id)].txt") == true, "live \(id): \(String(describing: output))")
+            print("LIVE \(output!.lastPathComponent)")
+        }
     }
 
     private static func runners() async throws {
@@ -150,6 +163,18 @@ import Foundation
         done
         if [ "$mode" = metadata ]; then
           printf 'pl\\n'
+        elif [ "$mode" = manual ] && [ "$language" = en ]; then
+          printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nHello\\n' > "$dest/Clip [en].en.vtt"
+          echo "ERROR: Unable to download video subtitles for 'en-US': HTTP Error 429: Too Many Requests" >&2
+          exit 1
+        elif [ "$mode" = manual ] && [ "$language" = de ]; then
+          if [ -e "$dest/limited" ]; then
+            printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nHallo\\n' > "$dest/Clip [de].de.vtt"
+          else
+            touch "$dest/limited"
+            echo "ERROR: Unable to download video subtitles for 'de': HTTP Error 429: Too Many Requests" >&2
+            exit 1
+          fi
         elif [ "$mode" = manual ]; then
           [ "$language" = pl ] || exit 1
           printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nDzień dobry\\n' > "$dest/Movie [id].pl.vtt"
@@ -176,5 +201,12 @@ import Foundation
         precondition(transcript?.lastPathComponent == "Movie [id].txt")
         let second = try await TranscriptDownloadRunner().run(job, context: context)
         precondition(second?.lastPathComponent == "Movie [id] (2).txt")
+        for (language, expected) in [("en", "Hello"), ("de", "Hallo")] {
+            var limited = job
+            limited.options["language"] = language
+            let saved = try await TranscriptDownloadRunner().run(limited, context: context)
+            let text = try String(contentsOf: saved!, encoding: .utf8)
+            precondition(text == expected, "429 exit 1 keeps \(language)")
+        }
     }
 }
