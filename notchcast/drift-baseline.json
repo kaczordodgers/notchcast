@@ -130,7 +130,6 @@
     "Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule+Commands.swift": 4,
     "Tinycast/Features/LinkQuickFixes/Commands/LinkQuickFixCommands.swift": 4,
     "Tinycast/Features/LiveTimer/LiveTimerCommands.swift": 2,
-    "Tinycast/Features/LowDisk/LowDiskCommands.swift": 1,
     "Tinycast/Features/MachBlockedDialog/BlockedDialogModule+Command.swift": 3,
     "Tinycast/Features/MachMBPFans/RemoteFanModule+Command.swift": 3,
     "Tinycast/Features/MachRemote/Integration/MachRemoteModule+Actions.swift": 3,
@@ -156,8 +155,7 @@
     "Tinycast/Features/Torrents/Commands/TorrentCommands.swift": 4,
     "Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift": 2,
     "Tinycast/Features/Treadmill/TreadmillCommands.swift": 1,
-    "Tinycast/Features/Tweaks/TweakProfileCommands.swift": 1,
-    "Tinycast/Features/WaitingAlerts/Service/WaitingAlertsModule.swift": 1
+    "Tinycast/Features/Tweaks/TweakProfileCommands.swift": 1
   },
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,

@@ -18,7 +18,7 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-SCHEMA, MODULES, SEARCH, DESCRIPTORS = SHAPE.LISTS
+SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
@@ -161,15 +161,82 @@ class FeatureShapeTests(unittest.TestCase):
     def test_list_entry_split_over_lines(self):
         source = (self.root / MODULES).read_text()
         self.rejected(MODULES, source.replace(
-            "[.island, .lowDiskWarning], module: lowDisk),", "[.island, .lowDiskWarning],\n                module: lowDisk),"),
+            "[.island, .systemNotices], module: systemNotices),", "[.island, .systemNotices],\n                module: systemNotices),"),
             "keep each list entry on one line")
 
     def test_repeated_module_entry(self):
         source = (self.root / MODULES).read_text()
         self.rejected(MODULES, source.replace(
-            ".init(requires: [.island, .lowDiskWarning], module: lowDisk),",
-            ".init(requires: [.island, .lowDiskWarning], module: lowDisk),\n            .init(requires: [.lowDiskWarning], module: lowDisk),"),
-            "repeated entry lowDisk")
+            ".init(requires: [.island, .systemNotices], module: systemNotices),",
+            ".init(requires: [.island, .systemNotices], module: systemNotices),\n            .init(requires: [.systemNotices], module: systemNotices),"),
+            "repeated entry systemNotices")
+
+    def test_repeated_registrant(self):
+        source = (self.root / REGISTRANTS).read_text()
+        line = "        LowDiskModule.self,\n"
+        self.assertEqual(source.count(line), 1)
+        self.rejected(REGISTRANTS, source.replace(line, line + line), "repeated entry LowDiskModule")
+
+    def test_two_registrants_on_one_line(self):
+        source = (self.root / REGISTRANTS).read_text()
+        self.rejected(REGISTRANTS, source.replace("LowDiskModule.self,", "LowDiskModule.self, LowDiskModule.self,"),
+                      "list one registrant per line")
+
+    def test_registrant_still_in_the_hub(self):
+        source = (self.root / MODULES).read_text()
+        anchor = "            .init(requires: [.island, .dayMarkets], module: markets),\n"
+        for case, edited in enumerate((source.replace("    static let battery", "    static let lowDisk = LowDiskModule()\n    static let battery"),
+                       source.replace("    static let battery", "    static private(set) var lowDisk: LowDiskModule?\n    static let battery"),
+                       source.replace(anchor, anchor + "            .init(requires: [.lowDiskWarning], module: LowDiskModule.shared),\n"))):
+            with self.subTest(case=case):
+                self.rejected(MODULES, edited, "LowDiskModule registers itself")
+        (self.root / MODULES).write_text(source)
+        self.assertEqual(SHAPE.check(self.root), [])
+
+    def test_register_outside_its_registration_file(self):
+        source = ("extension LowDiskModule: NotchcastRegistrant {\n"
+                  "    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] { [] }\n}\n")
+        home = Path("Tinycast/Features/LowDisk/LowDiskModule+Registration.swift")
+        (self.root / home).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / home).write_text(source)
+        self.assertEqual(SHAPE.check(self.root), [])
+        (self.root / home).unlink()
+        brace_below = source.replace("Entry] { [] }", "Entry]\n    {\n        []\n    }")
+        arrow_below = source.replace("AppCore) ->", "AppCore)\n        ->")
+        for path, code in ((Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), source),
+                           (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), brace_below),
+                           (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), arrow_below),
+                           (Path("Tinycast/Features/LowDisk/Service/LowDiskModule+Registration.swift"), source),
+                           (Path("Tinycast/Features/Notchcast/Core/LowDiskModule+Registration.swift"), source),
+                           (Path("Tinycast/Features/Notchcast/LowDiskModule+Registration.swift"), source)):
+            with self.subTest(path=path, brace_below=code is brace_below):
+                (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+                self.rejected(path, code, "implement register(_: AppCore) in")
+                (self.root / path).unlink()
+        protocol = Path("Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift")
+        (self.root / protocol).write_text((ROOT / protocol).read_text())
+        self.assertEqual(SHAPE.check(self.root), [])
+
+    def test_registration_missing_from_registrants(self):
+        home = Path("Tinycast/Features/LowDisk/LowDiskModule+Registration.swift")
+        (self.root / home).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / home).write_text((ROOT / home).read_text())
+        source = (self.root / REGISTRANTS).read_text()
+        (self.root / REGISTRANTS).write_text(source.replace("        LowDiskModule.self,\n", ""))
+        self.rejected(home, (ROOT / home).read_text(), f"list LowDiskModule.self, in {REGISTRANTS}")
+
+    def test_register_in_an_upstream_folder(self):
+        shipped = Path("Tinycast/Features/Launcher/LauncherScreen.swift")
+        (self.root / shipped).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / shipped).write_text("struct LauncherScreen {}\n")
+        run(self.root, "git", "init", "-q", "-b", "main")
+        run(self.root, "git", "add", str(shipped))
+        run(self.root, "git", "-c", "user.name=Upstream", "-c", "user.email=upstream@example.invalid",
+            "commit", "-qm", "Upstream")
+        run(self.root, "git", "update-ref", "refs/remotes/upstream/main", "HEAD")
+        self.rejected(Path("Tinycast/Features/Launcher/CopyPathModule+Registration.swift"),
+                      "extension CopyPathModule {\n    static func register(_ core: AppCore) -> [Entry] { [] }\n}\n",
+                      "upstream ships Features/Launcher/")
 
     def test_repeated_static(self):
         source = (self.root / MODULES).read_text()
