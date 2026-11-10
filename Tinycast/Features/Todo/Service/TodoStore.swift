@@ -118,14 +118,6 @@ final class TodoStore {
         return candidate.clockErrors
     }
 
-    func request(_ request: TodoAgentRequest, now: Date, calendar: Calendar,
-                 staleAfterMinutes: Int, makeID: () -> String) throws -> TodoAgentResponse {
-        let plan = try TodoAgentAPI.plan(request, state: state, now: now, calendar: calendar,
-                                        staleAfterMinutes: staleAfterMinutes, makeID: makeID)
-        if case .batch(let commands) = plan.command, !commands.isEmpty { try perform(plan.command) }
-        return plan.response
-    }
-
     func close() throws {
         guard !isClosed else { return }
         isClosed = true

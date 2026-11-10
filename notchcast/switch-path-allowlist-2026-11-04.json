@@ -10,7 +10,7 @@
   "captureTrimmer": "trim/export engine (deleted in the untangle) and a trimmer UI opened after a recording",
   "agentAnswer": "T3/bot transport, waiting-item source, reply UI",
   "killProcess": "a process-list launcher command calling stopProcesses, then unhide",
-  "macSetup": "preset picker UI calling apply, then unhide",
+  "macSetup": "a preset picker UI and the preset catalog it needs, then unhide",
   "backupRunNow": "a configuration source (Settings fields → configure) and a \"Back Up Now\" button/command",
   "backupBrowseRestore": "configuration source and a snapshot browser + restore UI",
   "markdownFiles": "an open route (AppCore.handleOpenURL / Open With / command) and an editor window view",

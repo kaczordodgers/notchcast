@@ -3,7 +3,7 @@ import Observation
 
 @MainActor @Observable
 final class TodoIslandFeed {
-    enum Failure: Error { case unsupportedRecurrence, snapshotWrite }
+    enum Failure: Error { case snapshotWrite }
 
     private(set) var snapshot: TodoIslandSnapshot
     private(set) var failure: Failure?
@@ -12,17 +12,15 @@ final class TodoIslandFeed {
     @ObservationIgnored private let fileURL: URL
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let calendar: Calendar
-    @ObservationIgnored private weak var presenter: (any TodoIslandPresenting)?
     @ObservationIgnored private var timer: Timer?
     @ObservationIgnored private var session: UUID?
 
     init(store: TodoStore, fileURL: URL, calendar: Calendar,
-         now: @escaping () -> Date, presenter: (any TodoIslandPresenting)? = nil) {
+         now: @escaping () -> Date) {
         self.store = store
         self.fileURL = fileURL
         self.calendar = calendar
         self.now = now
-        self.presenter = presenter
         snapshot = TodoIslandSnapshot(state: store.state, now: now(), calendar: calendar)
     }
 
@@ -51,7 +49,6 @@ final class TodoIslandFeed {
         } catch {
             failure = .snapshotWrite
         }
-        presenter?.update(snapshot)
         timer?.invalidate()
         guard let session else { return }
         let minute = calendar.dateInterval(of: .minute, for: date)?.end
@@ -67,15 +64,6 @@ final class TodoIslandFeed {
         }
         self.timer = timer
         RunLoop.main.add(timer, forMode: .common)
-    }
-
-    func complete(_ id: String) throws {
-        let command: TodoCommand
-        do { command = try TodoCompletion.command(id: id, state: store.state, now: now(), calendar: calendar) } catch {
-            throw Failure.unsupportedRecurrence
-        }
-        try store.perform(command)
-        refresh()
     }
 
     private func track() {

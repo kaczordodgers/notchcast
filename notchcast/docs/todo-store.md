@@ -10,7 +10,7 @@ The Foundation-only, `Codable`, `Equatable`, `Sendable` values are `TodoTask` (i
 
 Priority 1 is least urgent; priority 4 is most urgent and should display as P1. Due dates hold an injected `Date`, optional `DateComponents` time, `isAllDay`, optional `recurrenceRule` and `normalized` text. All-day dates have no time; timed dates require one. This pack does not parse dates or recurrence rules.
 
-`TodoState` exposes read-only dictionaries `tasks`, `projects`, `sections`, `labels` and `filters`, plus `static let workflowSections`. `mutating func apply(_ command: TodoCommand) throws -> TodoCommand` applies atomically and returns an inverse. A rejected command leaves the entire state unchanged; errors are `TodoCommandError` cases.
+`TodoState` exposes read-only dictionaries `tasks`, `projects`, `sections`, `labels` and `filters`. `mutating func apply(_ command: TodoCommand) throws -> TodoCommand` applies atomically and returns an inverse. A rejected command leaves the entire state unchanged; errors are `TodoCommandError` cases.
 
 `TodoCommand` supports task add/update/move/complete/uncomplete/delete; project, section, label and filter add/rename/delete; filter query updates; comments; ordering; and atomic batches. `reorder(kind:orders:)` assigns explicit integer orders by ID for any entity kind. `removeRecord(kind:id:)` lets inverse commands remove exact records without cascading twice; normal callers use the semantic delete commands.
 
@@ -90,45 +90,7 @@ then replays the local tail to reconstruct undo. Ordered new batches extend the 
 out-of-order batches rebuild it deterministically. Projection materialization validates dictionaries
 directly rather than synthesizing thousands of add commands and unused inverses.
 
-`@MainActor TodoSyncTransport` defines `send(_:) throws` and `receive() throws -> [TodoEnvelope]`.
-`TodoFakeSyncTransport.pair()` supplies two in-memory endpoints; it has no caller and no harness. Callers exchange vector
-clocks separately and send `replication.envelopes(after: peerClock)`. There is no real transport,
-socket, process, host address, authentication or connection lifecycle in this pack. Future peers come
-from user settings, and the integrating owner must gate that capability.
-
-## Agent requests
-
-`TodoAgentRequest`, `TodoAgentResponse`, `TodoAgentClaim` and `TodoAgentError` are Codable, Equatable,
-Sendable values. Requests support list (optional filter query and section ID), claim, comment, move,
-complete, release and releaseExpired. A task's optional `claim` is an assignee-free marker containing
-agent name, claim/activity dates and its previous section. Older task JSON decodes without it.
-
-`TodoAgentAPI.plan(_:state:now:calendar:staleAfterMinutes:makeID:) throws(TodoAgentError)` returns a
-`TodoAgentPlan` with an atomic command and response. The caller supplies the clock, calendar/time
-zone, timeout and comment-ID generator. `TodoStore.request(_:now:calendar:staleAfterMinutes:makeID:)`
-plans and persists through the normal command path. Pure callers apply the plan's command themselves.
-Failed planning changes nothing. There is no CLI process or local server yet.
-
-Lists exclude completed tasks, preserve order with ID as tie-breaker, and use `TodoFilterEngine`
-with project, section and label names resolved from the store. Comma-list results flatten with ID
-deduplication. `p1` means storage priority 4. Date operands resolve through the date parser using the
-injected calendar/time zone. Claim requires exactly one existing `In progress` section in the task's
-project and moves its subtree there. A subtask claim sets only the marker and preserves its parent
-and location. Both add a dated `claimed by <agent>` comment. The engine never creates workflow
-sections automatically.
-
-Claiming again as the same agent is idempotent; another agent cannot mutate an active claim. Comments
-and moves refresh its activity time; completion clears the marker. Recurring completion uses the
-same `TodoCompletion`/`TodoRecurrence` command path as the island feed: advance the due date, keep
-the series open and reset descendant completion. Unsupported recurrence returns a typed error.
-Release clears the marker and returns the subtree only if it is still in the recorded claim section.
-A deliberate move to another section is preserved. The previous section must still belong to the
-current project, otherwise the task returns to the project's unsectioned tasks. Before every
-successful request, claims idle for at
-least the injected N elapsed minutes auto-release; comments also count as activity. `releaseExpired`
-lets an owner run that sweep without another action. No timer is owned by the engine. Concurrent
-offline claims resolve by the claim field's last write wins rule, rather than promising a distributed
-lock. An agent must sync and inspect its marker before relying on exclusive ownership.
+Callers exchange vector clocks separately and send `replication.envelopes(after: peerClock)`.
 
 ## Todoist export import
 
@@ -155,11 +117,9 @@ task comments. Attachments and activity history are excluded.
 
 `Tests/nc-Todo-sync-test.swift` covers convergence in both orders, each task field's independent merge
 and conflicting last write, equal-clock ties, deletes versus edits, explicit restoration, relationship
-repair, idempotent delivery, vector gaps, old logs, durable received batches and claims,
-agent ownership and fake-clock expiry, filter priority mapping, typed failures and JSON round-trips.
-It exchanges envelopes in memory and uses UUID temporary directories.
+repair, idempotent delivery, vector gaps, old logs, durable received batches, typed failures and JSON
+round-trips. It uses UUID temporary directories.
 The sync harness compiles with optimization and reports timings for a 10,000-envelope open across
 500 receive records and receipt of 100 new envelopes onto 10,000. Timing is diagnostic because CPU
 contention changes wall-clock duration; state, persistence and undo remain assertions. It also
-guards independent deletion during project undo, Inbox orphan recovery, moved-claim release,
-subtask parent preservation, recurring agent completion and future-clock quarantine/retry.
+guards independent deletion during project undo, Inbox orphan recovery and future-clock quarantine/retry.

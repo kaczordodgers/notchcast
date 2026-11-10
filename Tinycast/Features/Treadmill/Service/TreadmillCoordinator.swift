@@ -161,12 +161,6 @@ final class TreadmillCoordinator {
         return history.summary(now: clock(), calendar: calendar())
     }
 
-    func lubricatedNow() throws {
-        let summary = try stats()
-        history.markLubricated(odometerKm: summary.odometerKm)
-        persist()
-    }
-
     func disconnect() {
         togglePending = false
         generation = UUID()

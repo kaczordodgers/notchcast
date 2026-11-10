@@ -30,6 +30,4 @@ They call TweaksModule.requestProfile and leave installation approval to macOS. 
 off does not remove an installed profile; remove it in System Settings. Per-item selectors remain
 deferred. Fake-backed command harnesses generate profile bytes without opening or writing files.
 
-Preset Apply/Undo controls remain deferred. MacSetupPlan receipts cover
-preference changes only; the broader preset catalog also contains service, power, Dock and profile
-actions that have no reversible runner in this wiring.
+Preset Apply/Undo controls remain deferred. MacSetupPlan receipts cover preference changes only.
