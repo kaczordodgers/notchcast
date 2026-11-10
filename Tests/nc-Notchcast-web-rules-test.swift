@@ -1,5 +1,4 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Model/WebRules.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/CopyPathEngine.swift
 // notchcast-sources: Tinycast/Features/Distill/Model/LinkCleaner.swift Tinycast/Features/URLCleaner/Model/URLCleanerPolicy.swift
 import CryptoKit
 import Foundation
@@ -22,9 +21,9 @@ import Foundation
         for name in ["", "q", "v", "list", "utm", "xutm_source", "ref", "id"] { assert(!WebRules.isTrackingParameter(name)) }
 
         // The three cleaners share the one list: each strips what only the other used to.
-        assert(CopyPathEngine.cleanLink("HTTPS://e.com/a?ttclid=1&igsh=2&spm=3&q=1#f") == "HTTPS://e.com/a?q=1#f")
-        assert(CopyPathEngine.cleanLink("https://e.com/?") == "https://e.com/?")
-        assert(CopyPathEngine.cleanLink("ftp://e.com/?utm_a=1") == nil)
+        assert(WebRules.cleanLink("HTTPS://e.com/a?ttclid=1&igsh=2&spm=3&q=1#f") == "HTTPS://e.com/a?q=1#f")
+        assert(WebRules.cleanLink("https://e.com/?") == "https://e.com/?")
+        assert(WebRules.cleanLink("ftp://e.com/?utm_a=1") == nil)
         assert(LinkCleaner.clean("https://e.com/a?_ga=1&mkt_tok=2&q=2#frag") == "https://e.com/a?q=2")
         assert(LinkCleaner.clean("https://e.com/?") == "https://e.com")
         assert(URLCleanerPolicy.clean("https://e.com/?ref_url=1&vero_id=2&q=2#f").text == "https://e.com/?q=2#f")

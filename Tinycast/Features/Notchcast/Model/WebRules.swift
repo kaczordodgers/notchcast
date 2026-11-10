@@ -10,6 +10,17 @@ nonisolated enum WebRules {
         return name.hasPrefix("utm_") || trackingParameters.contains(name)
     }
 
+    static func cleanLink(_ address: String) -> String? {
+        guard var parts = URLComponents(string: address),
+            isWebScheme(parts.scheme),
+            let host = parts.host, !host.isEmpty else { return nil }
+        guard let items = parts.percentEncodedQueryItems else { return address }
+        let kept = items.filter { !isTrackingParameter($0.name.removingPercentEncoding ?? $0.name) }
+        guard kept.count != items.count else { return address }
+        parts.percentEncodedQueryItems = kept.isEmpty ? nil : kept
+        return parts.string
+    }
+
     static func hex(_ bytes: some Sequence<UInt8>) -> String { bytes.map { String(format: "%02x", $0) }.joined() }
 
     /// 0 on success, else errno; `onlyIfMissing` leaves a flag macOS or another app already set.
