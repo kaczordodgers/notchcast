@@ -75,7 +75,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case dictationHistory
     case captureTrimmer
     case captureEditor
-    case agentAnswer
     case voiceAsk
     case recording
     case screenText
@@ -111,8 +110,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case startupItems
     case notificationCleanup
     case sudoTouchID
-    case killProcess
-    case macSetup
     case aiFeaturesOff
     case spotlightOff
     case privacyChoices
@@ -267,19 +264,16 @@ extension NotchcastFeature {
         .markdownFiles,
         .plainTextFiles,
         .buildStats,
-        .killProcess,
         .launcherAnswers,
-        .agentAnswer,
         .remoteScreen,
         .machMBPFans,
-        .macSetup,
         .machineSetupProfile,
         .commandRunner,
     ]
 
     static var systemToolsSettingsFeatures: [Self] {
-        [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
-         .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
+        [.startupItems, .notificationCleanup, .sudoTouchID,
+         .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
     }
 
     /// Shows only in the island, so its switch follows the island switch in Settings.
