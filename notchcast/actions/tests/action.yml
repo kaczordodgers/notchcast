@@ -2,15 +2,34 @@ name: Upstream tests
 description: Run upstream's Scripts/run-tests.sh in src, minus CI_SKIP_TESTS (config.env), harnesses the hosted VM cannot run.
 inputs:
   upstream:
-    description: The pristine upstream commit under our commits; a harness that fails there too is not ours.
-    required: true
+    description: The pristine upstream commit under our commits; a harness that also fails there is not ours. Default, the merge base with upstream main.
+    default: ''
+  only:
+    description: Harness names to run, space separated. Default, the whole suite.
+    default: ''
+  shard:
+    description: '"<index> <count>": run only this share of the harnesses. Default, all of them.'
+    default: ''
+  cache:
+    description: Names this job's cache of compiled harnesses; every job also falls back to main's "all".
+    default: all
 runs:
   using: composite
   steps:
+    - uses: actions/cache/restore@v6
+      with:
+        path: ${{ runner.temp }}/swiftc-cache
+        key: harness-bin-${{ inputs.cache }}-${{ github.run_id }}-${{ github.run_attempt }}
+        restore-keys: |
+          harness-bin-${{ inputs.cache }}-
+          harness-bin-all-
     - shell: bash
       working-directory: src
       env:
         UPSTREAM: ${{ inputs.upstream }}
+        NOTCHCAST_ONLY_TESTS: ${{ inputs.only }}
+        NOTCHCAST_SHARD: ${{ inputs.shard }}
+        NOTCHCAST_SWIFTC_CACHE: ${{ runner.temp }}/swiftc-cache
         LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
         NOTCHCAST_TEST_HELPER_EXECUTABLE: '1'
       run: bash "$GITHUB_ACTION_PATH/../../ci-tests.sh"
@@ -22,3 +41,16 @@ runs:
           [ -e "$f" ] || continue
           n="$(basename "$f" .failed)"; echo "::group::$n"; cat "${f%.failed}.log"; echo "::endgroup::"
         done
+    - name: Compiled harness cache
+      id: compiled
+      if: ${{ !cancelled() }}
+      shell: bash
+      env:
+        NOTCHCAST_SWIFTC_CACHE: ${{ runner.temp }}/swiftc-cache
+      run: python3 "$GITHUB_ACTION_PATH/../../swiftc-cache.py" finish
+    # A failed harness still compiled, so its binary is saved too; a job that compiled nothing saves nothing.
+    - uses: actions/cache/save@v6
+      if: ${{ !cancelled() && steps.compiled.outputs.stored != '0' && steps.compiled.outputs.stored != '' }}
+      with:
+        path: ${{ runner.temp }}/swiftc-cache
+        key: harness-bin-${{ inputs.cache }}-${{ github.run_id }}-${{ github.run_attempt }}
