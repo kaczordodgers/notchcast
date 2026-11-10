@@ -11,21 +11,21 @@ extension SmallCommandsModule {
     nonisolated static let passwordCommand = NotchcastCommand(
         slug: "generate-password", name: String(localized: "Generate Password", table: "Notchcast"), sfSymbol: "key", feature: .smallCommands,
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
-        run: { NotchcastCore.smallCommands.runFromLauncher(.password) })
+        run: { SmallCommandsModule.shared.runFromLauncher(.password) })
     nonisolated static let shortenCommand = NotchcastCommand(
         slug: "shorten-link", name: String(localized: "Shorten Link", table: "Notchcast"), sfSymbol: "link", feature: .smallCommands,
         argumentCount: 1, isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
-        run: { NotchcastCore.smallCommands.runFromLauncher(.shorten) })
+        run: { SmallCommandsModule.shared.runFromLauncher(.shorten) })
     nonisolated static let noiseCommand = NotchcastCommand(
         slug: "switch-noise-control", name: String(localized: "Switch Noise Control", table: "Notchcast"),
         sfSymbol: "airpodspro", feature: .smallCommands,
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
-        run: { NotchcastCore.smallCommands.runFromLauncher(.noise) })
+        run: { SmallCommandsModule.shared.runFromLauncher(.noise) })
     nonisolated static let airDropCommand = NotchcastCommand(
         slug: "airdrop-selection", name: String(localized: "AirDrop Selected Files", table: "Notchcast"),
         sfSymbol: "airplayaudio", feature: .smallCommands,
         isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
-        run: { NotchcastCore.smallCommands.runFromLauncher(.airDrop) })
+        run: { SmallCommandsModule.shared.runFromLauncher(.airDrop) })
 
     func runFromLauncher(_ action: Action, argument: String = "",
                          execute: ((Action) async throws -> String?)? = nil,
@@ -34,7 +34,7 @@ extension SmallCommandsModule {
                              return NSPasteboard.general.setString($0, forType: .string)
                          },
                          report: @escaping (String) -> Void = {
-                             AppCore.shared.showMessage($0, tone: .neutral)
+                             NotchcastHost.current.showMessage($0, .neutral)
                          }) {
         guard isRunning else { return }
         commandTask?.cancel()

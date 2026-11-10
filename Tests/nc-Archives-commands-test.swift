@@ -4,6 +4,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
@@ -19,19 +20,9 @@ struct AppEntry: Sendable {
     let settingsOwner: SettingsTab?
     let symbolName: String?
 }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    enum Tone { case danger }
-    let appIndex = AppIndex()
-    var messages: [String] = []
-    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
-}
-@MainActor final class AppIndex {
-    var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
-@MainActor enum NotchcastCore {
-    static let archives = ArchiveModule(preferences: .shared)
+enum DialogTone { case danger }
+extension ArchiveModule {
+    static let shared = ArchiveModule(preferences: .shared)
 }
 @MainActor final class FakeDefaults: ArchiveDefaultApplicationSetting {
     func setEnabled(_ enabled: Bool, application: URL) async throws {}
@@ -50,16 +41,20 @@ struct MissingTool: ArchiveToolLocating {
         let local = NotchcastPreferences(suiteName: suite)
         let module = ArchiveModule(preferences: local, locator: MissingTool(), defaultApplications: FakeDefaults())
         let commands = [ArchiveCommands.extractCommand, ArchiveCommands.cancelCommand]
+        var messages: [String] = []
+        var refreshes = 0
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
+        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
         preferences.set(.archives, true)
         ArchiveCompressionCommands.submit([], format: .zip)
-        precondition(AppCore.shared.messages.last == "The archive engine is not running.")
-        NotchcastCore.archives.start()
+        precondition(messages.last == "The archive engine is not running.")
+        ArchiveModule.shared.start()
         ArchiveCompressionCommands.submit([], format: .small)
-        precondition(AppCore.shared.messages.last == "No files selected in Finder.")
+        precondition(messages.last == "No files selected in Finder.")
         preferences.set(.archives, false)
         ArchiveCompressionCommands.run(.fast)
-        precondition(AppCore.shared.messages.last == "The archive engine is not running.")
-        NotchcastCore.archives.stop()
+        precondition(messages.last == "The archive engine is not running.")
+        ArchiveModule.shared.stop()
         preferences.set(.archives, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
         precondition(ArchiveCommands.submit([], to: module) == "The archive engine is not running.")
@@ -80,17 +75,17 @@ struct MissingTool: ArchiveToolLocating {
         await module.queue.waitUntilIdle()
         precondition(module.isRunning && module.queue.jobs.last?.state == .cancelled)
         precondition(module.queue.jobs.first?.state == .cancelled || module.queue.jobs.first?.state == .failed)
-        let refreshes = AppCore.shared.appIndex.refreshes
+        let refreshesBefore = refreshes
         preferences.set(.archives, false)
         for _ in 0..<100 { await Task.yield() }
         precondition(commands.allSatisfy { !$0.isEnabled() })
-        precondition(AppCore.shared.appIndex.refreshes > refreshes)
+        precondition(refreshes > refreshesBefore)
         precondition(ArchiveCommands.submit([archive], to: module) == nil)
         precondition(module.queue.jobs.count == 2)
         module.stop()
         preferences.set(.archives, true)
         ArchiveCommands.cancelAll(in: module)
-        precondition(AppCore.shared.messages.last == "The archive engine is not running.")
+        precondition(messages.last == "The archive engine is not running.")
         print("PASS: switch gating, index refresh, module routing, unsupported/empty input and cancellation")
     }
 }

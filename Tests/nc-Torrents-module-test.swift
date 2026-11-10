@@ -17,9 +17,8 @@
 import Foundation
 
 // notchcast-sources: Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift
-@MainActor enum NotchcastCore {
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
-}
+// notchcast-sources: Tinycast/Features/Torrents/TorrentModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 enum AppPaths {
     static func applicationSupport() -> URL { URL(fileURLWithPath: "/unused") }
 }
@@ -206,7 +205,10 @@ struct TorrentModuleTests {
         await module.manager.stop()
         let core = AppCore()
         precondition(!core.handleTorrentURL(URL(string: "https://example.invalid")!))
-        let shared = NotchcastCore.torrents.preferences
+        let entries = TorrentModule.register(core)
+        precondition(entries.count == 1 && entries[0].requires == [.torrents] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === TorrentModule.shared)
+        let shared = TorrentModule.shared.preferences
         let original = shared.isOn(.torrents)
         defer { shared.set(.torrents, original) }
         shared.set(.torrents, false)

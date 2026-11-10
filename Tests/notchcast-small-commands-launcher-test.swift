@@ -2,10 +2,11 @@
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AccessibilityText.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Model/WebRules.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
 
-@MainActor protocol NotchcastModule {}
-enum DialogTone {}
+enum DialogTone { case neutral }
 enum NotchcastFeature { case smallCommands }
 struct NotchcastCommand: Sendable {
     let slug: String
@@ -21,12 +22,7 @@ struct NotchcastCommand: Sendable {
     static let shared = NotchcastPreferences()
     func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
-@MainActor enum NotchcastCore { static let smallCommands = SmallCommandsModule() }
-@MainActor final class AppCore {
-    enum Tone { case neutral }
-    static let shared = AppCore()
-    func showMessage(_ text: String, tone: Tone) {}
-}
+@MainActor final class AppCore {}
 @main struct SmallTests {
     @MainActor static func main() async {
         precondition(SmallCommandsModule.shortenCommand.argumentCount == 1)
@@ -57,6 +53,9 @@ struct NotchcastCommand: Sendable {
         module.runFromLauncher(.password, execute: { _ in ranWhileStopped = true; return nil })
         for _ in 0..<20 { await Task.yield() }
         precondition(!ranWhileStopped)
+        let entries = SmallCommandsModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.smallCommands] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === SmallCommandsModule.shared)
         print("Verified four launcher actions reach fake runners, copy text, report completion and stop")
     }
 }

@@ -10,6 +10,7 @@
 // notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift
 // notchcast-sources: Tinycast/Features/Torrents/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import AppKit
 
 enum SettingsTab: Sendable { case notchcast }
@@ -23,18 +24,9 @@ struct AppEntry: Sendable {
     let settingsOwner: SettingsTab?
     let symbolName: String?
 }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    enum Tone { case danger }
-    let appIndex = AppIndex()
-    func showMessage(_ message: String, tone: Tone) {}
-}
-@MainActor final class AppIndex {
-    var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
-@MainActor enum NotchcastCore {
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: URL(filePath: "/unused")))
+enum DialogTone { case danger }
+extension TorrentModule {
+    static let shared = TorrentModule(session: TorrentAria2Session(stateDirectory: URL(filePath: "/unused")))
 }
 @MainActor final class FakeManager: TorrentQueueHost {
     var jobs: [TorrentJob] = []
@@ -57,11 +49,12 @@ struct AppEntry: Sendable {
         let commands = TorrentCommands.launcherCommands
         preferences.set(.torrents, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
-        let before = AppCore.shared.appIndex.refreshes
+        var refreshes = 0
+        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
         preferences.set(.torrents, false)
         for _ in 0..<100 { await Task.yield() }
         precondition(commands.allSatisfy { !$0.isEnabled() })
-        precondition(AppCore.shared.appIndex.refreshes > before)
+        precondition(refreshes > 0)
         let board = NSPasteboard.withUniqueName()
         defer { board.releaseGlobally() }
         let magnet = "magnet:?xt=urn:btih:0123456789012345678901234567890123456789"

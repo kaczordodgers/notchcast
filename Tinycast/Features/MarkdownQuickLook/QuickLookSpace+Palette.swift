@@ -11,7 +11,7 @@ extension PalettePanel {
         let key = event.type == .keyDown ? Int(event.keyCode) : -1
         let rows = core.fileSearch.results
         let url = rows.indices.contains(state.selection) ? rows[state.selection].url : nil
-        let coordinator = NotchcastCore.quickLook
+        let coordinator = QuickLookCoordinator.shared
         return coordinator.spaceInput.handle(
             screen: state.resetToken,
             arrow: key == kVK_UpArrow || key == kVK_DownArrow,

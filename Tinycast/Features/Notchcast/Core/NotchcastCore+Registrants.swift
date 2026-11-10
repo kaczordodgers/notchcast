@@ -11,5 +11,13 @@ extension NotchcastCore {
         CaptureTrimmerModule.self,
         CaptureEditorCoordinator.self,
         RecordingModule.self,
+        ClearNotificationsModule.self,
+        CopyPathModule.self,
+        SmallCommandsModule.self,
+        FinderToolsCoordinator.self,
+        PlainPasteModule.self,
+        TorrentModule.self,
+        ArchiveModule.self,
+        QuickLookCoordinator.self,
     ]
 }

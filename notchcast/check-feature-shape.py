@@ -97,14 +97,14 @@ CLASS_PINS = (
 # Lines a fork behaviour hangs on, in files no harness compiles: a path, then its needles in this order.
 HOOKS = (
     ("Tinycast/App/AppCore.swift", "func handleOpenURL(_ url: URL)", "if pendingURLs != nil",
-     "if NotchcastCore.archives.open(url) { return }", "if deepLinkCoordinator.handles(url)"),
-    ("Tinycast/App/AppCore.swift", "await NotchcastCore.archives.prepareForTermination()"),
+     "if ArchiveModule.shared.open(url) { return }", "if deepLinkCoordinator.handles(url)"),
+    ("Tinycast/App/AppCore.swift", "await ArchiveModule.shared.prepareForTermination()"),
     ("Tinycast/App/AppCore.swift", "if settings.extensionsEnabled { extensions.start("),
     ("Tinycast/App/AppDelegate.swift", "for url in urls", "AppCore.shared.handleOpenURL(url)"),
     ("Tinycast/App/MenuBarItem.swift",
      'Button("About \\(appName)") { AppCore.shared.settingsCoordinator.showAbout() }'),
     (COMMAND, '"command:nc-" + slug'),
-    ("Tinycast/Features/Archives/NotchcastArchiveModules.swift", "[.init(requires: [.archives], module: module)]"),
+    ("Tinycast/Features/Archives/ArchiveModule+Registration.swift", "[.init(requires: [.archives], module: shared)]"),
     ("Tinycast/Features/AgentThreads/AgentThreadsModule.swift",
      *2 * ("isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }",)),
     (APP_SETTINGS, "var extensionsEnabled: Bool { get { false } set { } }"),

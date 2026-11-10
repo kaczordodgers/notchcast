@@ -8,6 +8,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
+// notchcast-sources: Tinycast/Features/FinderTools/FinderToolsCoordinator+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: platform
 import Foundation
 import CoreGraphics
@@ -25,9 +27,7 @@ struct NotchcastCommand: Sendable {
     let run: @MainActor @Sendable () -> Void
 }
 
-@MainActor enum NotchcastCore {
-    static let finderTools = FinderToolsCoordinator(hub: EventTapHub())
-}
+@MainActor final class AppCore {}
 
 @main @MainActor
 struct FinderToolsServicesTest {
@@ -44,6 +44,11 @@ struct FinderToolsServicesTest {
         let hyper: CGEventFlags = [.maskCommand, .maskAlternate, .maskControl, .maskShift]
         precondition(FinderCommandService.originalKey(for: .rename)?.1 == hyper)
         precondition(FinderCommandService.originalKey(for: .forget) == nil)
+        let entries = FinderToolsCoordinator.register(AppCore())
+        precondition(entries.map(\.requires) == [[.finderCutPaste], [.finderRename]])
+        precondition(entries.allSatisfy { $0.requiresAny.isEmpty && $0.module is FinderToolsModule })
+        precondition(entries[0].module !== entries[1].module)
         print("PASS: shipped Finder services compile in Swift 6; disabled commands have no effects")
+        print("PASS: registration returns one module per switch, each requiring its own feature")
     }
 }

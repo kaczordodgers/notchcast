@@ -25,10 +25,7 @@ extension NotchcastCore {
     static let macLink = AIUsageLinkModule()
     static let tasksSync = TodoLinkCoordinator.live(channel: macLink.channel, preferences: .shared)
     static let github = GitHubModule()
-    static let clearNotifications = ClearNotificationsModule()
     static let answers = LauncherAnswersModule()
-    static let copyPath = CopyPathModule()
-    static let smallCommands = SmallCommandsModule()
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".urlCleaner")))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
@@ -47,11 +44,7 @@ extension NotchcastCore {
     static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents, enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) }, availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
-    static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
-    static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
-    static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule().configure()
     static let systemNotices = SystemNoticesModule()
     static let accessoryNotices = AccessoryNoticesModule()
@@ -63,7 +56,7 @@ extension NotchcastCore {
     static let weather = DayWeatherModule()
     static let markets = DayMarketsModule()
     static let quitProtection = QuitProtectionStore()
-    static let eventTapHub = EventTapHub()
+    static let eventTapHub = EventTapHub.shared
     static let showDesktop = ShowDesktopModule(hub: eventTapHub)
     static let hideCommandM = HideCommandMModule(hub: eventTapHub)
     static let middleClick = MiddleClickModule(hub: eventTapHub)
@@ -77,14 +70,11 @@ extension NotchcastCore {
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: NotchcastIdentity.supportRoot.appending(path: "Torrents")))
-    static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.live()
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: NotchcastIdentity.supportRoot.appendingPathComponent("DictationHistory"), now: Date.init))
     static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".editor"))!))
-    static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
@@ -100,8 +90,6 @@ extension NotchcastCore {
         self.voiceAsk = voiceAskModule
         voiceAskModule.configure(transport: VoiceAskCLITransport.production())
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)
-        let plainPasteModule = PlainPasteModule(clipboard: core.clipboardManager)
-        self.pastePlain = plainPasteModule
         let downloadServices = NotchcastDownloadServices(core: core)
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
@@ -125,10 +113,7 @@ extension NotchcastCore {
             .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
             .init(requires: [.audioPriority], module: AudioPriorityModule()),
             .init(requires: [.githubSearch], module: github),
-            .init(requires: [.clearNotifications], module: clearNotifications),
             .init(requires: [.launcherAnswers], module: answers),
-            .init(requires: [.copyPath], module: copyPath),
-            .init(requires: [.smallCommands], module: smallCommands),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
             .init(requires: [.tasksSync, .tasks, .machLink], module: tasksSync),
@@ -152,9 +137,6 @@ extension NotchcastCore {
             .init(requires: [.agentThreads], module: agentThreads),
             .init(requires: [.agentIsland], module: agentIsland),
             .init(requires: [.fleetPanel], module: fleetPanel),
-            .init(requires: [.finderCutPaste], module: finderCut),
-            .init(requires: [.finderRename], module: finderRename),
-            .init(requires: [.pastePlain], module: plainPasteModule),
             .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
@@ -180,13 +162,10 @@ extension NotchcastCore {
             .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.dictationEnglish], module: DictationEnglishModule(hub: eventTapHub, coordinator: core.dictationCoordinator)),
-            .init(requires: [.torrents], module: torrents),
-            .init(requires: [.archives], module: archives),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
-            .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
         ]
     }
