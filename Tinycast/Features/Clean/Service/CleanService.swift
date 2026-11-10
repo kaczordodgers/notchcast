@@ -102,13 +102,7 @@ struct CleanService: Sendable {
                   attributes[.appendOnly] as? Bool != true else { throw CocoaError(.fileReadNoPermission) }
             let modified = attributes[.modificationDate] as? Date ?? .distantFuture
             newest = max(newest, modified)
-            snapshot[entry.standardizedFileURL.path] = attributes.sorted { $0.key.rawValue < $1.key.rawValue }
-                .map { attribute in
-                    let value = (attribute.value as? Date).map {
-                        String($0.timeIntervalSinceReferenceDate.bitPattern)
-                    } ?? String(describing: attribute.value)
-                    return "\(attribute.key.rawValue)=\(value)"
-                }.joined(separator: "|")
+            snapshot[entry.standardizedFileURL.path] = Self.fingerprint(attributes)
             if type == .typeDirectory {
                 pending += try manager.contentsOfDirectory(at: entry, includingPropertiesForKeys: nil)
             } else {
@@ -116,5 +110,16 @@ struct CleanService: Sendable {
             }
         }
         return (size, newest, snapshot)
+    }
+
+    /// Every attribute as one string: a recheck before a trash compares these, so any change shows.
+    static func fingerprint(_ attributes: [FileAttributeKey: Any]) -> String {
+        attributes.sorted { $0.key.rawValue < $1.key.rawValue }
+            .map { attribute in
+                let value = (attribute.value as? Date).map {
+                    String($0.timeIntervalSinceReferenceDate.bitPattern)
+                } ?? String(describing: attribute.value)
+                return "\(attribute.key.rawValue)=\(value)"
+            }.joined(separator: "|")
     }
 }

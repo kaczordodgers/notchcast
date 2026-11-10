@@ -80,17 +80,13 @@
     "notchcast/root -> Features/SystemTools": 1
   },
   "clones": {
-    "Tinycast/Features/Clean/Service/CleanAIDataService.swift | Tinycast/Features/Clean/Service/CleanService.swift": 1,
-    "Tinycast/Features/Clean/Service/CleanPurgeService.swift | Tinycast/Features/Clean/Service/CleanService.swift": 1,
     "Tinycast/Features/FleetPanel/Service/FleetMachLinkTransport.swift | Tinycast/Features/MachMBPFans/Service/MachLinkFanTransport.swift": 0,
     "Tinycast/Features/FleetPanel/Service/FleetMachLinkTransport.swift | Tinycast/Features/Todo/TodoLinkWiring.swift": 0,
     "Tinycast/Features/MachRemote/Integration/SendFilesModule.swift | Tinycast/Features/MachRemote/Integration/UpdateRemoteModule.swift": 1,
     "Tinycast/Features/Notchcast/Gallery/GalleryPages+Island.swift | Tinycast/Features/Notchcast/Gallery/IslandMotionStage.swift": 1,
     "Tinycast/Features/Notchcast/Root/RootContract.swift | notchcast/root/RootContract.swift": 0,
     "Tinycast/Features/RemoteScreen/RemoteScreenModule.swift | Tinycast/Features/Todo/TodoLinkWiring.swift": 0,
-    "Tinycast/Features/Tweaks/Service/MacSetupService.swift | Tinycast/Features/Tweaks/Service/TypingPreferenceService.swift": 0,
-    "notchcast/root/BatterySMC.swift | notchcast/root/Power.swift": 1,
-    "notchcast/root/Power.swift | notchcast/root/Spotlight.swift": 1
+    "Tinycast/Features/Tweaks/Service/MacSetupService.swift | Tinycast/Features/Tweaks/Service/TypingPreferenceService.swift": 0
   },
   "constants": {
     "app.notchcast": 3,
@@ -164,19 +160,13 @@
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,
     "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
-    "Tinycast/Features/CommandRunner/Service/CommandRunnerModule.swift:CommandRunnerModule": 1,
     "Tinycast/Features/CommandRunner/Service/CommandRunnerToken.swift:CommandRunnerToken": 0,
     "Tinycast/Features/DictationEnglish/Service/DictationEnglishSettingsSection.swift:DictationEnglishSettingsSection": 1,
     "Tinycast/Features/DictationTrigger/UI/DictationTriggerSettingsSection.swift:DictationTriggerSettingsSection": 1,
     "Tinycast/Features/DisplayBrightness/Service/KeyboardBrightnessService.swift:KeyboardBrightnessService": 0,
     "Tinycast/Features/Music/NowPlayingAdapter/NowPlayingAdapter.swift:tinycastNowPlayingWatch": 1,
-    "Tinycast/Features/Notchcast/Island/IslandActivityViews.swift:IslandActivityGlyph": 1,
     "Tinycast/Features/Notchcast/Island/IslandAnalyserBars.swift:dismantleNSView": 1,
-    "Tinycast/Features/Notchcast/Island/IslandClosedRow.swift:IslandClosedRow": 1,
     "Tinycast/Features/Notchcast/Island/IslandPieces.swift:IslandRing": 1,
-    "Tinycast/Features/Notchcast/Island/NotchcastTheme.swift:capsuleArtwork": 1,
-    "Tinycast/Features/Notchcast/Island/NotchcastTheme.swift:homeActivityRow": 1,
-    "Tinycast/Features/Notchcast/Island/NotchcastTheme.swift:pageName": 1,
     "Tinycast/Features/Tweaks/Model/MacSetupRootVerbs.swift:MacSetupRootVerbs": 0,
     "Tinycast/Features/Tweaks/Model/TypingCatalog.swift:requiresLogout": 0
   },

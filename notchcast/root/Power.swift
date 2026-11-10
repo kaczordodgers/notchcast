@@ -13,8 +13,13 @@ enum Power {
 
     static func run(_ command: RootContract.Command) throws {
         guard let arguments = arguments(command) else { throw FanSMC.Failure.invalidValue }
+        try runTool("/usr/bin/pmset", arguments)
+    }
+
+    /// A fixed tool with an empty environment and no streams; any exit other than 0 refuses the change.
+    static func runTool(_ path: String, _ arguments: [String]) throws {
         let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/pmset")
+        process.executableURL = URL(fileURLWithPath: path)
         process.arguments = arguments
         process.environment = [:]
         process.currentDirectoryURL = URL(fileURLWithPath: "/")
