@@ -13,17 +13,9 @@ extension AppearanceThemeColors {
     }
 }
 
-/// Set by the launcher hung from the island (`NotchcastLauncherSurface`): its backdrop is then the island's black.
-@MainActor @Observable final class AppearanceIslandBackdrop {
-    static let shared = AppearanceIslandBackdrop()
-    var attached = false
-}
-
 extension AppearanceThemeColors {
-    /// A launcher hung from the island is the island's black, not glass.
     @MainActor static func backdrop(hidden: Bool) -> AnyShapeStyle {
-        if AppearanceIslandBackdrop.shared.attached, !hidden { return AnyShapeStyle(Color.black) }
-        return hidden ? AnyShapeStyle(Color.clear) : AnyShapeStyle(shared.backdrop)
+        hidden ? AnyShapeStyle(Color.clear) : AnyShapeStyle(shared.backdrop)
     }
 
     static func tinted(_ glass: Glass) -> Glass {
