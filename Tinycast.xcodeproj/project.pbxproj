@@ -1247,6 +1247,7 @@
 		98D0B2952ED9927D00EFBC76 /* TodoDateParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95EE36A1805571776CA7C48 /* TodoDateParser.swift */; };
 		98F10D7FC136B3DB58D1261F /* AgentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270CBE79D67F6E332CF5E0BD /* AgentSession.swift */; };
 		99464D43C2D497D792D6B347 /* DiskEjectService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E8FA3519CA45F856F4FB808 /* DiskEjectService.swift */; };
+		9947A9BF8DA784A08FDBD12B /* HotKeyManager+IslandToggle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 675CFC2959EC9451BC4312A7 /* HotKeyManager+IslandToggle.swift */; };
 		9969E6858C4FDC5CCCDEB5D8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C45190564C9D9F1722E83943 /* Assets.xcassets */; };
 		99749EAA32592C3AD639BC0C /* CompactBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18771DAA9CB0E2551741AE3C /* CompactBar.swift */; };
 		9989FE0F034BB518DCEC62C1 /* MachLinkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243005742EC21FE17C9ADFF3 /* MachLinkManager.swift */; };
@@ -3040,6 +3041,7 @@
 		666E0A469BE1984BEF1A9A50 /* CalcDimension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcDimension.swift; sourceTree = "<group>"; };
 		669FA6560666E46063407EC9 /* ThemedSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemedSurface.swift; sourceTree = "<group>"; };
 		673293E0A441625A6FC4296B /* TreadmillPadRejections.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreadmillPadRejections.swift; sourceTree = "<group>"; };
+		675CFC2959EC9451BC4312A7 /* HotKeyManager+IslandToggle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "HotKeyManager+IslandToggle.swift"; sourceTree = "<group>"; };
 		676760D8D30526B99A1F97B7 /* RoomPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPreviewController.swift; sourceTree = "<group>"; };
 		677036AB7EE67B050C2930D5 /* AXScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AXScreens.swift; sourceTree = "<group>"; };
 		6778F970DEDAD288BE67ED19 /* NotchcastDownloadRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastDownloadRunner.swift; sourceTree = "<group>"; };
@@ -6792,6 +6794,7 @@
 		738AC496215E70E696BBBE70 /* Island */ = {
 			isa = PBXGroup;
 			children = (
+				675CFC2959EC9451BC4312A7 /* HotKeyManager+IslandToggle.swift */,
 				DD702FFB47404394B257E141 /* IslandActivityViews.swift */,
 				336C77E9FBD59336176E8812 /* IslandAnalyserBars.swift */,
 				E930F04791F137830CB562A2 /* IslandBackupKeys.swift */,
@@ -11408,6 +11411,7 @@
 				507D6A26EA5451465B1BE5AF /* HotKeyAction.swift in Sources */,
 				B2404EBFB52B8199DC2536F6 /* HotKeyBinding.swift in Sources */,
 				ACD8CAE659B1C49EC8652576 /* HotKeyCenter.swift in Sources */,
+				9947A9BF8DA784A08FDBD12B /* HotKeyManager+IslandToggle.swift in Sources */,
 				3B9287776AF630BA94D3CB0C /* HotKeyManager+NotchcastCommands.swift in Sources */,
 				CC9A286B77E32C22B21A22BE /* HotKeyManager.swift in Sources */,
 				DB6DD4D14260500D36E18315 /* HotKeySettingsFile.swift in Sources */,

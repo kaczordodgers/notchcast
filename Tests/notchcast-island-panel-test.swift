@@ -87,6 +87,7 @@ struct IslandPanelTests {
         for notch in [CGRect(x: 656, y: 950, width: 200, height: 32), nil] {
             followsInterfaceSize(notch: notch)
             cardClicks(notch: notch)
+            pointerReachesController(notch: notch)
         }
         print("notchcast-island-panel: the canvas follows the interface size; the island stays where it was")
     }
@@ -101,6 +102,26 @@ struct IslandPanelTests {
         assert(!panel.cardTakesClick(at: CGPoint(x: 280, y: height - 54)), "the glyph opens the island")
         panel.setClosedState(.idle)
         assert(!panel.cardTakesClick(at: CGPoint(x: 430, y: height - 54)), "an old action frame is inactive")
+        panel.close()
+    }
+
+    /// Over the island the panel takes the pointer from the global monitor, and a non-key panel in an inactive app
+    /// gets mouse-moved events only through an always-active tracking area; leaving must still reach the controller.
+    static func pointerReachesController(notch: CGRect?) {
+        let panel = IslandPanel(screenFrame: CGRect(x: 0, y: 0, width: 1512, height: 982), hardwareNotch: notch)
+        let surface = panel.contentView!
+        let tracking: NSTrackingArea.Options = [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect]
+        precondition(surface.trackingAreas.contains { $0.options.isSuperset(of: tracking) },
+                     "the surface tracks the pointer while the app is inactive")
+        var seen: [NSEvent.EventType] = []
+        panel.onPointer = { seen.append($0.type) }
+        surface.mouseMoved(with: NSEvent.mouseEvent(
+            with: .mouseMoved, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: panel.windowNumber,
+            context: nil, eventNumber: 0, clickCount: 0, pressure: 0)!)
+        surface.mouseExited(with: NSEvent.enterExitEvent(
+            with: .mouseExited, location: .zero, modifierFlags: [], timestamp: 0, windowNumber: panel.windowNumber,
+            context: nil, eventNumber: 0, trackingNumber: 0, userData: nil)!)
+        precondition(seen == [.mouseMoved, .mouseExited], "moving and leaving reach the controller")
         panel.close()
     }
 
