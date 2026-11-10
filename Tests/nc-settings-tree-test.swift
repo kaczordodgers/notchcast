@@ -9,7 +9,7 @@ import Foundation
 @main
 struct NotchcastSettingsTreeTests {
     static func main() throws {
-        precondition(!NotchcastFeature.agentAnswer.isWired, "Settings and search exclude unwired features")
+        precondition(!NotchcastFeature.machineSetupProfile.isWired, "Settings and search exclude unwired features")
         let modules = NotchcastSettingsModule.allCases
         precondition(modules.count == 17, "Expected 17 modules")
         var featureCounts: [NotchcastFeature: Int] = [:]
