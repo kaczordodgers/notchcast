@@ -22,21 +22,21 @@ struct NotchcastDownloadCommands {
             case .openDownloads, .openDistill:
                 try openFolder(state.destination)
             case .runDistill:
-                try await distill.run()
+                distill.run()
             case .convert:
                 distill.convert()
             case .video, .audio, .transcript, .webpage, .addDistill:
                 let sources = Self.urls(in: clipboard())
                 guard !sources.isEmpty else { status(String(localized: "No Web Links in Clipboard", table: "Notchcast")); return }
                 if action == .addDistill {
-                    try distill.links?.add(text: sources.joined(separator: "\n"), now: .now)
+                    distill.add(text: sources.joined(separator: "\n"))
                 } else {
                     let kind: String
                     switch action {
-                    case .video: kind = "video"
-                    case .audio: kind = "audio"
-                    case .transcript: kind = "transcript"
-                    default: kind = "webpage"
+                    case .video: kind = MediaArguments.Format.video.kind
+                    case .audio: kind = MediaArguments.Format.audio.kind
+                    case .transcript: kind = TranscriptDownloadRunner.kind
+                    default: kind = WebpageRunner.kind
                     }
                     queue.enqueue(kind: kind, sources: sources)
                 }
