@@ -42946,7 +42946,7 @@
         }
       }
     },
-    "Task sync failed; check Mac Link. Retries on next change." : {
+    "Task sync failed; check Mac Link. Retries on next task change." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -42987,7 +42987,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сбой синхронизации; проверьте Mac Link. Повтор позже."
+            "value" : "Сбой синхр.; проверьте Mac Link. Повтор при изменении."
           }
         },
         "zh-Hans" : {

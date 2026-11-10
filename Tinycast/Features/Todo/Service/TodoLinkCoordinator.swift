@@ -209,10 +209,10 @@ final class TodoLinkCoordinator {
             message = String(localized: "Task sync exceeded the 8 MB transfer limit.", table: "Notchcast")
         case is TodoReplicationError:
             kind = "rejected"
-            message = String(localized: "Task sync failed; check Mac Link. Retries on next change.", table: "Notchcast")
+            message = String(localized: "Task sync failed; check Mac Link. Retries on next task change.", table: "Notchcast")
         default:
             kind = String(reflecting: error)
-            message = String(localized: "Task sync failed; check Mac Link. Retries on next change.", table: "Notchcast")
+            message = String(localized: "Task sync failed; check Mac Link. Retries on next task change.", table: "Notchcast")
         }
         if reported.insert(kind).inserted { showFailure(message) }
     }
