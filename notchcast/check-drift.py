@@ -228,9 +228,18 @@ def compare_baseline(root, base, baseline):
         path = Path(work) / 'baseline.json'
         path.write_text(git(root, 'show', f'{base}:notchcast/drift-baseline.json'))
         previous = read_baseline(path)
-    return [f'{rule}: {key}: {value} > {previous[rule].get(key, 0)}'
+    moved = {}  # A moved file keeps its budget: compare its `path` or `path:name` key under the old path.
+    for line in git(root, 'diff', '-M', '--name-status', base).splitlines():
+        status, _, paths = line.partition('\t')
+        if status.startswith('R'):
+            old, new = paths.split('\t')
+            moved[new] = old
+    def before(key):
+        path, colon, name = key.partition(':')
+        return moved.get(path, path) + colon + name
+    return [f'{rule}: {key}: {value} > {previous[rule].get(before(key), 0)}'
             for rule, counts in baseline.items() for key, value in counts.items()
-            if key not in previous[rule] or value > previous[rule][key]]
+            if before(key) not in previous[rule] or value > previous[rule][before(key)]]
 
 
 def report_counters(root, upstream, ours, our_tests, rev=None):
