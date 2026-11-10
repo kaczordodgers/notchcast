@@ -1,18 +1,16 @@
 extension NotchcastCore {
     static func makeDictationTrigger(_ core: AppCore) -> DictationTriggerModule {
-        let manager = DictationTriggerManager(
-            hub: eventTapHub,
-            isRecording: { [weak core] in core?.dictationCoordinator.triggerIsRecording == true }
-        ) { [weak core] action in
+        let family = DictationFamily.shared
+        family.bind(core.dictationCoordinator)
+        let manager = DictationTriggerManager(hub: eventTapHub, isRecording: { family.isRecording }) { action in
             switch action {
-            case .start:
-                core?.dictationCoordinator.triggerStarted(inEnglish: NotchcastPreferences.shared.isOn(.dictationEnglish))
-            case .finish: core?.dictationCoordinator.triggerFinished()
-            case .cancel: core?.dictationCoordinator.cancel()
+            case .start: family.start(inEnglish: NotchcastPreferences.shared.isOn(.dictationEnglish))
+            case .finish: family.finish()
+            case .cancel: family.cancel()
             }
         }
         return DictationTriggerModule(
-            available: { [weak core] in core?.dictationCoordinator.isEnabled == true },
+            available: { family.isAvailable },
             paused: { [weak core] in core?.hotKeys.recordingAction != nil },
             reserve: { [weak core] in core?.hotKeys.globeReserved = $0 },
             configure: { manager.setEnabled($0, isPaused: $1) },

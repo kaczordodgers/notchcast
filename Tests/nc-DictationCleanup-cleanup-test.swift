@@ -1,10 +1,9 @@
+// notchcast-sources: Tinycast/Features/DictationCleanup/Model/*.swift
+// notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanup.swift
+// notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupClient.swift
+// notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
 import Foundation
-
-@MainActor
-enum DictationCoordinator {
-    static var transcriptStage: (@Sendable (String, String?) async -> String)?
-    static var transcriptObserver: ((String, String) -> Void)?
-}
 
 private struct FakeClient: DictationCleanupClient {
     var output = "Cześć, jak się masz?"
@@ -201,7 +200,7 @@ struct CleanupTests {
             _ = try store.read()
             preconditionFailure("Accepted invalid settings")
         } catch {}
-        DictationCleanup.install()
+        DictationFamily.shared.setCleanup(true)
         let installed = DictationCoordinator.transcriptStage != nil
         expect(installed)
         print("Dictation cleanup: prompt, vocabulary, guard, transport, fallback, timeout and settings passed")

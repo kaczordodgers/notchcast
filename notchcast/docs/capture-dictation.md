@@ -64,6 +64,10 @@ the switch finishes any recording it started, preserving the text. This switch a
 `./Scripts/run-tests.sh nc-DictationTrigger-lifecycle-test` checks lifecycle, shortcut-recording pause,
 Globe reservation and Island independence with injected effects and isolated test preferences.
 
+## Dictation owner
+
+`DictationFamily` (`Features/Notchcast/Dictation/`, in the kernel so features depend on it; only its `+Live` file reads the cleanup and English features) is the one fork owner of dictation session state. It holds the upstream coordinator, which the Globe trigger and Dictate in English bind at start, and answers availability, recording and start, finish and cancel for both. It also holds the cleanup and history switches, installs the coordinator's transcript stages from them, and routes every finished transcript to the history sink once. The island HUD is not routed through it: upstream's panel hands it the display state. Cleanup and English both run through one live-settings read, and English keeps its own prompt and timeout. Dictate in English keeps swallowing a held grave key's repeats until key-up, even after fn is released. `./Scripts/run-tests.sh notchcast-dictation-family-test` checks session reads, stage installation, the history gate and English routing.
+
 ## Verification
 
 Dictation history settings show the latest 100 saved transcripts, newest first, with two-line text,
