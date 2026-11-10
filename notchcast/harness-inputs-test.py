@@ -9,6 +9,12 @@ import unittest
 
 ROOT = Path(__file__).resolve().parent.parent
 HIDDEN = "Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift"
+EXAMPLE = "Tinycast/Features/Example/Model/Example.swift"
+SYMBOL_SOURCES = {
+    "ProcessRunner": ["Tinycast/Features/Notchcast/Process/ProcessRunner.swift", "Tinycast/Platform/ProcessExit.swift"],
+    "WebRules": ["Tinycast/Features/Notchcast/Model/WebRules.swift"],
+    "NotchcastIdentity": ["Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift", "Tinycast/Platform/AppPaths.swift"],
+}
 
 
 class HarnessInputsTest(unittest.TestCase):
@@ -90,6 +96,7 @@ class HarnessInputsTest(unittest.TestCase):
             "Tests/fixtures/build-stats-v1.json": ["notchcast-build-stats-test"],
             "Tests/Fixtures/ai-usage/cache-shapes.json": ["notchcast-l5-ai-usage-test"],
             "notchcast/test-archives-fallback.py": ["nc-Archives-fallback-test"],
+            "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift": ["notchcast-root-client-test"],
         }
         for name in {name for names in cases.values() for name in names}:
             shutil.copy(ROOT / "Tests" / f"{name}.swift", self.root / "Tests")
@@ -146,6 +153,36 @@ class HarnessInputsTest(unittest.TestCase):
                          if line.startswith("nc-Example-hub-test "))
         for path in [*descriptors, "Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift"]:
             self.assertEqual(1, arguments.count(path), path)
+
+    def test_source_calling_a_shared_symbol_selects_on_each_of_its_files(self):
+        for symbol, files in SYMBOL_SOURCES.items():
+            for text, brings in ((f"{symbol}.shared", True), (f"{symbol}(1)", True),
+                                 (f"typealias {symbol} = Int\nHost{symbol}.shared", False)):
+                (self.root / EXAMPLE).write_text(text)
+                for changed in files:
+                    with self.subTest(text=text, changed=changed):
+                        self.assertEqual(brings, "nc-Example-conditional-test" in self.selected(changed))
+
+    def compiled_as_the_runner_does(self, name, *arguments):
+        script = 'name=$0; source notchcast/command-harness-sources.sh; printf "%s\\n" "$@"'
+        return subprocess.run(["bash", "-c", script, name, *arguments], cwd=self.root, env=self.env,
+                              text=True, capture_output=True, check=True).stdout.splitlines()
+
+    def test_shared_symbol_file_the_harness_lists_or_stubs_is_not_added(self):
+        identity, paths = SYMBOL_SOURCES["NotchcastIdentity"]
+        (self.root / EXAMPLE).write_text("NotchcastIdentity.current")
+        for path in (identity, paths):
+            (self.root / path).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / path).touch()
+        for name, text in (("listed", ""), ("stubbed", "import Foundation\nenum AppPaths {}\n"),
+                           ("nested", "enum Fixture {\n    enum AppPaths {}\n}\n")):
+            (self.root / f"Tests/nc-Example-{name}-test.swift").write_text(text)
+        listed = self.compiled_as_the_runner_does("nc-Example-listed-test", EXAMPLE, identity, paths)
+        self.assertEqual([1, 1], [listed.count(identity), listed.count(paths)])
+        stubbed = self.compiled_as_the_runner_does("nc-Example-stubbed-test", EXAMPLE)
+        self.assertEqual([1, 0], [stubbed.count(identity), stubbed.count(paths)])
+        nested = self.compiled_as_the_runner_does("nc-Example-nested-test", EXAMPLE)
+        self.assertEqual([1, 1], [nested.count(identity), nested.count(paths)])
 
     def test_runner_batches_conditional_inputs_in_one_bash_invocation(self):
         calls = self.root / "bash-calls"

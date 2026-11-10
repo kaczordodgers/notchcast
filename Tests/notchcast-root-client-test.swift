@@ -1,7 +1,7 @@
 // notchcast-kit: root platform
 // notchcast-sources: -parse-as-library
 // notchcast-reads: notchcast/root/*.swift Tinycast/Features/Clean/Model/CleanSystem*.swift
-// notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift
+// notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
 import Darwin
 import Foundation
 
@@ -404,17 +404,17 @@ struct RootClientTest {
         defer { try? FileManager.default.removeItem(at: directory) }
         let helper = directory.appendingPathComponent("helper")
         let sources = try FileManager.default.contentsOfDirectory(atPath: "notchcast/root")
-            .filter { $0.hasSuffix(".swift") }.sorted().map { "notchcast/root/\($0)" }
+            .filter { $0.hasSuffix(".swift") }.sorted().map { "notchcast/root/\($0)" } + [
+                "Tinycast/Features/Notchcast/Root/RootContract.swift",
+                "Tinycast/Features/SystemMonitor/Model/SMCValue.swift",
+                "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
+                "Tinycast/Features/Clean/Model/CleanSystemEntry.swift",
+                "Tinycast/Features/Clean/Model/CleanSystemPlan.swift",
+                "Tinycast/Features/Clean/Model/CleanSystemPolicy.swift"]
         let compiler = Process()
         compiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         compiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
-                              "-warnings-as-errors", "-O"] + sources + [
-                                "Tinycast/Features/Notchcast/Root/RootContract.swift",
-                                "Tinycast/Features/SystemMonitor/Model/SMCValue.swift",
-                                "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
-                                "Tinycast/Features/Clean/Model/CleanSystemEntry.swift",
-                                "Tinycast/Features/Clean/Model/CleanSystemPlan.swift",
-                                "Tinycast/Features/Clean/Model/CleanSystemPolicy.swift", "-o", helper.path]
+                              "-warnings-as-errors", "-O"] + sources + ["-o", helper.path]
         try compiler.run()
         compiler.waitUntilExit()
         precondition(compiler.terminationStatus == 0, "Helper compilation failed")
@@ -435,14 +435,9 @@ struct RootClientTest {
         let fanCompiler = Process()
         fanCompiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         fanCompiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
-                                 "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
-                                 "Tinycast/Features/Notchcast/Root/RootContract.swift", "notchcast/root/FanSMC.swift",
-                                 "Tinycast/Features/SystemMonitor/Model/SMCValue.swift",
-                                 "notchcast/root/BatterySMC.swift",
-                                 "notchcast/root/NativeChargeLimit.swift",
-                                 "notchcast/root/Power.swift",
-                                 "notchcast/root/Spotlight.swift", "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
-                                 "Tests/notchcast-root-client-test.swift", "-o", fanTests.path]
+                                 "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library"]
+            + sources.filter { $0 != "notchcast/root/main.swift" }
+            + ["Tests/notchcast-root-client-test.swift", "-o", fanTests.path]
         try fanCompiler.run()
         fanCompiler.waitUntilExit()
         precondition(fanCompiler.terminationStatus == 0, "Fan fixture compilation failed")
