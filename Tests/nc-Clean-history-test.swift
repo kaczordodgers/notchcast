@@ -37,6 +37,16 @@ struct CleanHistoryTests {
             print("PASS restore and audit")
         }
         try fixture { home, trash, _, restore in
+            guard home.path.hasPrefix("/private/var/") else { return }
+            let source = trash.appendingPathComponent("alias")
+            let target = home.appendingPathComponent("alias")
+            try Data("alias".utf8).write(to: source)
+            let spelled = { (url: URL) in String(url.path.dropFirst("/private".count)) }
+            try restore.restore(record(spelled(target), spelled(source)))
+            try check(Data(contentsOf: target) == Data("alias".utf8))
+            print("PASS restore takes the /var spelling a standardized URL gives through the shared safety rule")
+        }
+        try fixture { home, trash, _, restore in
             let source = trash.appendingPathComponent("item")
             let target = home.appendingPathComponent("item")
             try Data("trash".utf8).write(to: source)

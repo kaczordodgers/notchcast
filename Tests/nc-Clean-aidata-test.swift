@@ -88,15 +88,6 @@ struct CleanAIDataTest {
         let items = try await service.scan()
         let recorded = try manager.contentsOfDirectory(atPath: receipts.path)
         precondition(recorded.isEmpty)
-        if home.path.hasPrefix("/private/var/") {
-            let alias = URL(fileURLWithPath: String(home.path.dropFirst("/private".count)))
-            let aliased = CleanAIDataService(policy: .init(home: alias, age: CleanAIDataPolicy.defaultAge),
-                transport: AITrash(receipts: receipts), git: AIGit(receipt: pruneReceipt), now: { clock },
-                chatIdle: { _ in true }, copy: { _, _ in })
-            let aliasItems = try await aliased.scan()
-            precondition(aliasItems.count == items.count, "A /var alias home lost items: \(aliasItems.count)")
-            print("PASS: a /var alias home gets the same review as its /private path")
-        }
         let link = base.appendingPathComponent("link")
         try manager.createSymbolicLink(at: link, withDestinationURL: home)
         precondition(CleanService.physical(home, inside: home) && CleanService.physical(chat, inside: home))
