@@ -53,7 +53,7 @@ struct ConfirmationExpiryTests {
         let second = Task { await index.handle(AgentRequest(verb: .run, id: "second")) }
         // Yields, not a sleep: a runner's 10 ms sleep can outlast this request's 100 ms deadline.
         for _ in 0..<100 where screen.open == nil { await Task.yield() }
-        precondition(shown ==["first", "second"], "request after an expiry was not shown: \(shown)")
+        precondition(shown == ["first", "second"], "request after an expiry was not shown: \(shown)")
         screen.close(0)
         let reply = await second.value
         precondition(reply.code == .ok && runs == ["second"], "Allow once on the next dialog did not run it")
