@@ -33,16 +33,15 @@ struct DictationIslandHUDTest {
     static func settle() async { for _ in 0..<50 { await Task.yield() } }
 
     static func main() async {
-        for phase in [DictationIslandHUDPolicy.Phase.listening, .transcribing] {
-            for enabled in [true, false] {
-                for available in [true, false] {
-                    let result = DictationIslandHUDPolicy.presentation(
-                        phase: phase, enabled: enabled, islandAvailable: available)
-                    let expected: DictationIslandHUDPolicy.Presentation = enabled && available
-                        ? (phase == .listening ? .listening : .transcribing) : .capsule
-                    precondition(result == expected)
-                }
-            }
+        typealias Policy = DictationIslandHUDPolicy
+        let table: [(Policy.Phase, Bool, Bool, Policy.Presentation)] = [
+            (.listening, true, true, .listening), (.listening, true, false, .capsule),
+            (.listening, false, true, .capsule), (.listening, false, false, .capsule),
+            (.transcribing, true, true, .transcribing), (.transcribing, true, false, .capsule),
+            (.transcribing, false, true, .capsule), (.transcribing, false, false, .capsule)
+        ]
+        for (phase, enabled, available, expected) in table {
+            precondition(Policy.presentation(phase: phase, enabled: enabled, islandAvailable: available) == expected)
         }
         print("Dictation island routing: both phases and capsule fallback passed")
 

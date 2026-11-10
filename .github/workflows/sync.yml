@@ -10,6 +10,7 @@ on:
     branches: [main]
     paths-ignore:
       - Tinycast.xcodeproj/project.pbxproj
+      - Tinycast.xcodeproj/xcshareddata/xcschemes/Tinycast.xcscheme
       - Tinycast/Resources/RaycastRuntime.generated.js
       - README.md
 
@@ -30,9 +31,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Also replays our commits here, on Linux: a conflict is reported (issue notchcast-sync) without a macOS runner.
+    # actions: read and statuses: write let it skip testing a main that a green PR build already tested (reuse_pr_build).
     permissions:
       contents: read
-      statuses: read
+      actions: read
+      statuses: write
       pull-requests: read
       issues: write
     outputs:

@@ -68,15 +68,19 @@ struct AgentConfirmationTests {
         assert(transport.replies.last?.verdict == .deny)
         coordinator.receive(request("unknown"), now: now)
         assert(transport.replies.last?.verdict == .deny)
-        coordinator.receive(request(), now: now)
+        let pendingOnDisable = request()
+        coordinator.receive(pendingOnDisable, now: now)
         enabled = false
         coordinator.tick(now: now)
+        assert(transport.replies.last == .init(id: pendingOnDisable.id, verdict: .deny))
         assert(coordinator.engine.queue.isEmpty)
         coordinator.receive(request(), now: now)
         assert(transport.replies.last?.verdict == .deny)
         enabled = true
-        coordinator.receive(request(), now: now)
+        let pendingOnStop = request()
+        coordinator.receive(pendingOnStop, now: now)
         coordinator.stop()
+        assert(transport.replies.last == .init(id: pendingOnStop.id, verdict: .deny))
         assert(coordinator.engine.queue.isEmpty)
         print("Agent confirmation: queue, local decisions, grants, timeout, duplicate, malformed, disable passed")
     }

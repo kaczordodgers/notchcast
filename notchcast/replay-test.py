@@ -8,6 +8,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 sys.dont_write_bytecode = True
 SPEC = importlib.util.spec_from_file_location("ci", Path(__file__).with_name("ci.py"))
@@ -53,6 +54,115 @@ class SyncWorkflowTests(unittest.TestCase):
         self.assertRegex(self.job("main"), r"(?m)^    needs: plan$")
         self.assertNotIn("release", re.search(r"(?m)^    if: (.*)$", self.job("main"))[1])
         self.assertRegex(self.job("release"), r"(?m)^    needs: \[plan, main\]$")
+
+
+class TestedKeyTests(unittest.TestCase):
+    def test_key_ignores_regenerated_files_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            def git(*args):
+                return CI.run("git", *args, cwd=root)
+            def commit(files):
+                for name, text in files.items():
+                    (root / name).parent.mkdir(parents=True, exist_ok=True)
+                    (root / name).write_text(text)
+                git("add", ".")
+                git("commit", "-qm", "c")
+                return git("rev-parse", "HEAD")
+            git("init", "-q")
+            git("config", "user.name", "Test")
+            git("config", "user.email", "test@example.com")
+            git("config", "core.hooksPath", "/dev/null")
+            plain = commit({"code": "one\n"})
+            regenerated = [CI.PBXPROJ, CI.SCHEME, "README.md"]
+            generated = commit({name: "regenerated\n" for name in regenerated})
+            again = commit({name: "regenerated again\n" for name in regenerated})
+            runtime = commit({CI.RUNTIME_JS: "rebuilt\n"})
+            changed = commit({"code": "two\n"})
+            self.assertEqual(CI.tested_key(plain, root), CI.tested_key(generated, root))
+            self.assertEqual(CI.tested_key(generated, root), CI.tested_key(again, root))
+            self.assertEqual(CI.tested_key(plain, root), git("rev-parse", f"{plain}^{{tree}}"))
+            self.assertNotEqual(CI.tested_key(again, root), CI.tested_key(runtime, root))
+            self.assertNotEqual(CI.tested_key(runtime, root), CI.tested_key(changed, root))
+            self.assertEqual(git("diff", "--cached", "--name-only"), "")
+
+    RUNS = {1: {"name": "PR", "path": ".github/workflows/pr.yml", "conclusion": "success", "head_repository": {"full_name": "Fork/Repo"}, "html_url": "run-1"}}
+
+    def match(self, artifact, run=None):
+        runs = {7: dict(self.RUNS[1], **(run or {}))}
+        return CI.tested_run([dict({"workflow_run": {"id": 7}}, **artifact)], runs.__getitem__, "fork/repo")
+
+    def test_green_pr_run_of_our_repo_matches(self):
+        self.assertEqual(self.match({})["html_url"], "run-1")
+
+    def test_every_other_run_is_rejected(self):
+        for artifact, run in [({"expired": True}, None), ({}, {"conclusion": "failure"}), ({}, {"conclusion": None}),
+                              ({}, {"name": "Sync"}), ({}, {"path": ".github/workflows/other.yml"}),
+                              ({}, {"head_repository": {"full_name": "someone/repo"}}),
+                              ({}, {"head_repository": None})]:
+            with self.subTest(artifact=artifact, run=run):
+                self.assertIsNone(self.match(artifact, run))
+
+    def test_first_acceptable_artifact_wins_and_none_matches_nothing(self):
+        artifacts = [{"expired": True, "workflow_run": {"id": 1}}, {"workflow_run": {"id": 1}}]
+        self.assertEqual(CI.tested_run(artifacts, self.RUNS.__getitem__, "fork/repo")["html_url"], "run-1")
+        self.assertIsNone(CI.tested_run([], self.RUNS.__getitem__, "fork/repo"))
+
+    CFG = {"FORK_REPO": "fork/repo", "TESTED_CONTEXT": "ctx"}
+
+    def reuse(self, responses, close_error=None):
+        calls = []
+        def fake(*cmd, **kwargs):
+            calls.append(cmd)
+            response = responses(cmd)
+            if isinstance(response, Exception):
+                raise response
+            return response
+        closer = mock.Mock(side_effect=close_error)
+        with (mock.patch.object(CI, "tested_key", return_value="k" * 40), mock.patch.object(CI, "run", fake),
+              mock.patch.object(CI, "issue_close", closer)):
+            return CI.reuse_pr_build("main-sha", self.CFG), calls, closer
+
+    @staticmethod
+    def api(artifacts, run):
+        def respond(cmd):
+            path = cmd[-1] if cmd[2] != "-X" else None
+            if path and "/artifacts?" in path:
+                assert f"name=tested-tree-{'k' * 40}" in path
+                return json.dumps({"artifacts": artifacts})
+            return json.dumps(run) if path else ""
+        return respond
+
+    def test_match_posts_the_tested_status_with_the_run_url_and_closes_the_main_issue(self):
+        found, calls, closer = self.reuse(self.api([{"workflow_run": {"id": 1}}], self.RUNS[1]))
+        self.assertEqual(found["html_url"], "run-1")
+        posted = calls[-1]
+        self.assertEqual(posted[:4], ("gh", "api", "-X", "POST"))
+        self.assertIn("repos/fork/repo/statuses/main-sha", posted)
+        for part in ("state=success", "context=ctx", "target_url=run-1"):
+            self.assertIn(part, posted)
+        closer.assert_called_once_with("main")
+
+    def test_failing_issue_close_keeps_the_reuse(self):
+        found, _, closer = self.reuse(self.api([{"workflow_run": {"id": 1}}], self.RUNS[1]),
+                                      close_error=subprocess.CalledProcessError(1, "gh"))
+        self.assertEqual(found["html_url"], "run-1")
+        closer.assert_called_once_with("main")
+
+    def test_no_artifact_or_api_error_posts_nothing(self):
+        for responses in (self.api([], {}), lambda cmd: subprocess.CalledProcessError(1, cmd),
+                          lambda cmd: "not json", lambda cmd: json.dumps({})):
+            with self.subTest(responses=responses):
+                found, calls, closer = self.reuse(responses)
+                self.assertIsNone(found)
+                self.assertFalse([c for c in calls if "POST" in c])
+                closer.assert_not_called()
+
+    def test_failing_status_post_means_no_reuse(self):
+        base = self.api([{"workflow_run": {"id": 1}}], self.RUNS[1])
+        found, _, closer = self.reuse(lambda cmd: subprocess.CalledProcessError(1, cmd) if "POST" in cmd else base(cmd))
+        self.assertIsNone(found)
+        closer.assert_not_called()
 
 
 class ReplayTests(unittest.TestCase):
@@ -194,6 +304,7 @@ class ReplayTests(unittest.TestCase):
             write("website/package-lock.json", "{}\n")
             write("project.yml", "name: Tinycast\n")
             write(CI.PBXPROJ, "project\n")
+            write(CI.SCHEME, "scheme\n")
             write(CI.RUNTIME_JS, "runtime\n")
             write("docs/screenshot.png", "png\n")
             write("docs/development.md", "kept\n")
