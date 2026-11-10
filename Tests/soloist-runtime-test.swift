@@ -24,15 +24,6 @@ struct SoloistRuntimeTest {
         let root = FileManager.default.temporaryDirectory.appending(path: "soloist-runtime-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
         let files = SoloistFiles(root: root)
-        if CommandLine.arguments.contains("--live") {
-            let installer = SoloistInstaller(files: files)
-            let build = try await installer.install()
-            let output = try await SoloistProcess.run(build.executable, arguments: ["--version"])
-            print("LIVE: \(output.text.trimmingCharacters(in: .whitespacesAndNewlines)); "
-                  + "expires=\(build.expires.ISO8601Format()); days=\(build.daysRemaining(at: Date())); key=none")
-            check(try await installer.installed() == build)
-            return
-        }
         try keyChecks(root: root)
         try archiveChecks()
         try await installerChecks(root: root)
