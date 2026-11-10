@@ -14,12 +14,14 @@ if [ "$#" -eq 1 ] && [ -z "${NOTCHCAST_LAND_TOOLS:-}" ]; then
     fi
 fi
 remove_tools() {
+    [ -z "${hold_claimed:-}" ] || hold_release_claimed  # both EXIT traps run this
     [ -n "${NOTCHCAST_LAND_ORIGIN:-}" ] || return 0
     cd "$NOTCHCAST_LAND_ORIGIN"
     git worktree remove --force "$NOTCHCAST_LAND_TOOLS/tree" >/dev/null 2>&1 || true
     rm -rf "$NOTCHCAST_LAND_TOOLS"
 }
 trap remove_tools EXIT
+trap 'exit 1' HUP INT TERM
 source "$(dirname "$0")/local-build-status.sh"
 selector="$(cd "$(dirname "$0")" && pwd)/changed-harnesses.sh"
 cd "$(git rev-parse --show-toplevel)"
@@ -113,7 +115,7 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
     pr_title=$(jq -r '.title // ""' <<< "$metadata")
     pr_body=$(jq -r '.body // ""' <<< "$metadata")
     [ "$(jq -r .baseRefName <<< "$metadata")" = main ] || refuse 'PR base must be main'
-    check_hold "$pr"
+    hold_claim "$pr"
     head=$(python3 -c 'import json,sys; p=json.load(sys.stdin); assert p["state"] == "OPEN" and not p["isDraft"], "PR must be open and ready"; print(p["headRefOid"])' <<< "$metadata") || refuse 'PR must be open and ready'
     git fetch origin main "refs/pull/$pr/head" '+refs/notchcast/synced/*:refs/notchcast/synced/*'
     git cat-file -e "$head^{commit}" || refuse 'PR head unavailable'
@@ -142,7 +144,7 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
         || refuse "build is $verdict on ${head:0:8}: wait for it or fix it (cancel a pending one to use a green head that differs only in generated files)"
     if [ "$verdict" != success ]; then
         # A head that differs from a green head of this branch only in generated files needs no new build:
-        # CI regenerates them before every build, so the green build already proved this code.
+        # landing keeps main's copies of them (below), so the green build already proved what lands.
         branch=$(jq -r .headRefName <<< "$metadata")
         generated=$(python3 -c 'from notchcast.ci import GENERATED; print("\n".join(GENERATED))')
         proven=
@@ -166,7 +168,6 @@ cleanup() {
     remove_tools
 }
 trap cleanup EXIT
-trap 'exit 1' HUP INT TERM
 mkdir "$scratch/tmp"
 top=$(pwd)
 # Sync's rebase rewrites main, so a PR cut before it shares only upstream with the new main, and a plain merge sees
@@ -189,8 +190,8 @@ merge_onto() {
         git merge-recursive "$fork" -- HEAD "$head" >/dev/null 2>&1 || true
         git rev-parse "$head" > "$(git rev-parse --git-path MERGE_HEAD)"
     fi
-    # Generated files (ci.py GENERATED) keep main's version, conflicting or not: CI regenerates them before every
-    # build, so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
+    # Generated files (ci.py GENERATED) keep main's version, conflicting or not, and main's Generated workflow
+    # rewrites them, so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
     generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
     # Only the ones main has: a newly generated file is not on main until its first landing.
     generated=($(git ls-tree -r --name-only "$onto" -- "${generated[@]}"))
@@ -249,6 +250,7 @@ if [ "$check" -eq 0 ]; then
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
     for attempt in 1 2 3 4 5 6; do
+        hold_renew_claimed
         check_hold "$pr"  # a hold set while the harnesses ran wins
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"

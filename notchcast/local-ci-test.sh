@@ -63,6 +63,19 @@ grep -q 'local CI waits: landing is held for 330' "$scratch/other" || { cat "$sc
 wait "$other" || { cat "$scratch/other"; exit 1; }
 grep -q '^other: .*build-queue.py hold -- bash ' "$QUEUE_CALLS" || { cat "$QUEUE_CALLS"; echo 'FAIL: the waiting build did not run after release'; exit 1; }
 echo 'PASS: another PR waits for the hold, then builds in the normal lane'
+# land.sh's own auto hold is no reason to stall other PRs' builds or to reorder the queue.
+echo "330 $later auto" > "$HOLD_FILE"
+RUN=autoother bash "$script" 1 > "$scratch/autoother" 2>&1 &
+autoother=$!
+sleep 3
+grep -q '^autoother: .*build-queue.py hold -- bash ' "$QUEUE_CALLS" || { kill "$autoother" 2>/dev/null; cat "$scratch/autoother"; echo 'FAIL: waited on an auto hold'; exit 1; }
+wait "$autoother"
+! grep -q 'local CI waits' "$scratch/autoother" || { echo 'FAIL: wait message under an auto hold'; exit 1; }
+echo "1 $later auto" > "$HOLD_FILE"
+RUN=autoowner bash "$script" 1 > "$scratch/autoowner" 2>&1 || { cat "$scratch/autoowner"; exit 1; }
+grep -q '^autoowner: .*build-queue.py hold -- bash ' "$QUEUE_CALLS" || { cat "$QUEUE_CALLS"; echo 'FAIL: auto hold owner changed lane'; exit 1; }
+: > "$HOLD_FILE"
+echo 'PASS: local CI does not wait on, or reorder for, an auto hold'
 if DRIFT_FAIL=1 RUN=drift bash "$script" 1 > "$scratch/drift" 2>&1; then echo 'FAIL: drift passed'; exit 1; fi
 grep -q '^REFUSED: drift baseline grew$' "$scratch/drift" || { cat "$scratch/drift"; echo 'FAIL: no drift refusal'; exit 1; }
 grep -q '^failure: .*, drift; log: ' "$scratch/drift" || { cat "$scratch/drift"; echo 'FAIL: status step is not drift'; exit 1; }

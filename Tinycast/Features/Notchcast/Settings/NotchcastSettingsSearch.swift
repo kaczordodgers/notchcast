@@ -238,6 +238,7 @@ extension SettingsSearchCatalog {
         .init(group: .notchcast(feature: .musicNowPlaying), LocalizedStringResource("Show what is playing", table: "Notchcast"), keywords: ["now playing", "track", "cover", "media", "song"]),
         .init(group: .notchcast(feature: .musicLastPlayer), LocalizedStringResource("Resume last player", table: "Notchcast"), keywords: ["play key", "spotify", "media key"]),
         .init(group: .notchcast(feature: .musicBlockAppleMusic), LocalizedStringResource("Stop Apple Music opening on media keys", table: "Notchcast"), keywords: ["music app", "itunes", "media key", "play key"]),
+        .init(group: .notchcast(feature: .musicSharpCovers), LocalizedStringResource("Find sharp covers for Firefox and Zen", table: "Notchcast"), keywords: ["artwork", "album art", "youtube", "browser"]),
         .init(group: .notchcast(feature: .spotifyConnect), LocalizedStringResource("Spotify Connect speaker", table: "Notchcast"), keywords: ["soloist", "spotify", "speaker", "connect", "phone"]),
         .init(group: .notchcast(feature: .spotifyConnect), "API key", keywords: ["soloist", "key", "developer"]),
         .init(group: .notchcast(feature: .spotifyConnect), LocalizedStringResource("Device name", table: "Notchcast"), keywords: ["soloist", "speaker name"]),

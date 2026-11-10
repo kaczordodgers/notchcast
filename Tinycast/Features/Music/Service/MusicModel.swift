@@ -24,6 +24,7 @@ final class MusicModel {
     @ObservationIgnored private var playback: Task<Void, Never>?
     @ObservationIgnored private var replacementID = UUID()
     @ObservationIgnored private var commandFailure: Failure?
+    @ObservationIgnored var nowPlayingCover: (NowPlaying?) -> NowPlaying? = { $0 }
 
     init(defaults: UserDefaults, apps: PlayerApps = .workspace(),
          now: @escaping () -> Date = Date.init,
@@ -246,8 +247,8 @@ final class MusicModel {
         }
     }
 
-    private func present() {
-        nowPlaying = MusicSelection.pick(system: system.track, soloist: soloist.track)
+    func present() {
+        nowPlaying = nowPlayingCover(MusicSelection.pick(system: system.track, soloist: soloist.track))
         lastPlayer.hear(nowPlaying)
         failure = commandFailure
             ?? (system.failed ? .unreadable(.system) : nil)

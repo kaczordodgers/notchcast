@@ -18,18 +18,7 @@ enum CopyPathEngine {
         if let url = URL(string: address), url.isFileURL, url.host == nil || url.host == "localhost" {
             return paths([url.path(percentEncoded: false)], home: home)
         }
-        return cleanLink(address).map(Outcome.link) ?? .nothing
-    }
-
-    static func cleanLink(_ address: String) -> String? {
-        guard var parts = URLComponents(string: address),
-            WebRules.isWebScheme(parts.scheme),
-            let host = parts.host, !host.isEmpty else { return nil }
-        guard let items = parts.percentEncodedQueryItems else { return address }
-        let kept = items.filter { !WebRules.isTrackingParameter($0.name.removingPercentEncoding ?? $0.name) }
-        guard kept.count != items.count else { return address }
-        parts.percentEncodedQueryItems = kept.isEmpty ? nil : kept
-        return parts.string
+        return WebRules.cleanLink(address).map(Outcome.link) ?? .nothing
     }
 
     private static func display(_ raw: String, home: String) -> String {

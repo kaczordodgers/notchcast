@@ -1,6 +1,6 @@
 import AppKit
 
-/// Modules and their entries live in `NotchcastCore+Modules.swift`.
+/// Modules and their entries live in `NotchcastCore+Modules.swift`, after them `+Registrants.swift`.
 @MainActor
 enum NotchcastCore {
     static let grantStatuses = NotchcastGrantState()
@@ -40,7 +40,9 @@ enum NotchcastCore {
         guard controller == nil else { return }
         NotchcastHost.current = NotchcastHost(
             showMessage: { [weak core] in core?.showMessage($0, tone: $1) },
-            refreshNotchcastCommands: { [weak core] in core?.appIndex.refreshNotchcastCommands() }
+            refreshNotchcastCommands: { [weak core] in core?.appIndex.refreshNotchcastCommands() },
+            finderSelection: { try await CopyPathSystemReader.read(.finderSelection) },
+            browserAddresses: { try await CopyPathSystemReader.read(.browser(CopyPathTarget(processID: $0, bundleID: $1))) }
         )
         NSApp.servicesProvider = archiveServices
         ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
@@ -100,7 +102,8 @@ enum NotchcastCore {
             || !NotchcastPreferences.shared.isOn(.fanControl) {
             monitor.fans.restore(preservingPreference: true, silently: true)
         }
-        let controller = NotchcastModuleController(entries(core: core, monitor: monitor) + services.moduleEntries, preferences: preferences)
+        let modules = entries(core: core, monitor: monitor) + registrants.flatMap { $0.register(core) }
+        let controller = NotchcastModuleController(modules + services.moduleEntries, preferences: preferences)
         self.controller = controller
         controller.run()
         services.keys.run()

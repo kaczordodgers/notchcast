@@ -125,6 +125,7 @@ enum ForkSettingsBackupSchema {
         "remoteScreen",
         "machMBPFans",
         "musicBlockAppleMusic",
+        "musicSharpCovers",
         "spotifyConnect",
         "microphoneMute",
         "archives",

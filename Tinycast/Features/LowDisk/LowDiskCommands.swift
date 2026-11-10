@@ -5,5 +5,5 @@ extension LowDiskModule {
         slug: "check-disk-space", name: String(localized: "Check Disk Space", table: "Notchcast"),
         sfSymbol: "internaldrive", feature: .lowDiskWarning,
         isEnabled: { NotchcastPreferences.shared.isOn(.island) && NotchcastPreferences.shared.isOn(.lowDiskWarning) },
-        run: { NotchcastCore.lowDisk.manager.refresh() })
+        run: { LowDiskModule.shared.manager.refresh() })
 }

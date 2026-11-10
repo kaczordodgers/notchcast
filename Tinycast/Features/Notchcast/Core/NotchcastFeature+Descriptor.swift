@@ -37,6 +37,7 @@ extension NotchcastFeature {
         .musicNowPlaying: .musicNowPlaying,
         .musicLastPlayer: .musicLastPlayer,
         .musicBlockAppleMusic: .musicBlockAppleMusic,
+        .musicSharpCovers: .musicSharpCovers,
         .spotifyConnect: .spotifyConnect,
         .microphoneMute: .microphoneMute,
         .inUseMarks: .inUseMarks,
@@ -141,6 +142,14 @@ extension NotchcastFeature {
         .markdownFiles: .markdownFiles,
         .plainTextFiles: .plainTextFiles,
         .buildStats: .buildStats,
+        .switcherQuitKey: .switcherQuitKey,
+        .githubSearch: .githubSearch,
+        .clearNotifications: .clearNotifications,
+        .launcherAnswers: .launcherAnswers,
+        .copyPath: .copyPath,
+        .smallCommands: .smallCommands,
+        .launcherNumberKeys: .launcherNumberKeys,
+        .launcherAliasSpace: .launcherAliasSpace,
     ]
 
     var descriptor: Descriptor? { Self.descriptors[self] }

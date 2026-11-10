@@ -24,6 +24,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case musicNowPlaying
     case musicLastPlayer
     case musicBlockAppleMusic
+    case musicSharpCovers
     case spotifyConnect
     case microphoneMute
     case inUseMarks
@@ -162,16 +163,8 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .captureEditor: .captureAndDictation
         case .recording: .captureAndDictation
         case .editorSpellChecking: .system
-        case .switcherQuitKey: .launcher
         case .treadmillWalk: .activities
         case .treadmillHistory: .activities
-        case .githubSearch: .launcher
-        case .clearNotifications: .launcher
-        case .launcherAnswers: .launcher
-        case .copyPath: .launcher
-        case .smallCommands: .launcher
-        case .launcherNumberKeys: .launcher
-        case .launcherAliasSpace: .launcher
         default: preconditionFailure("\(self) has neither a descriptor nor a settingsGroup arm")
         }
     }
@@ -187,15 +180,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .captureTrimmer: String(localized: "Recording Trimmer", table: "Notchcast")
         case .captureEditor: String(localized: "Capture Editor", table: "Notchcast")
         case .recording: String(localized: "Screen Recording", table: "Notchcast")
-        case .switcherQuitKey: String(localized: "Switcher Quit Key", table: "Notchcast")
         case .editorSpellChecking: String(localized: "Editor Spell Checking", table: "Notchcast")
-        case .githubSearch: String(localized: "GitHub Search", table: "Notchcast")
-        case .clearNotifications: String(localized: "Clear Notifications", table: "Notchcast")
-        case .launcherAnswers: String(localized: "Currency Answers", table: "Notchcast")
-        case .copyPath: String(localized: "Copy Path")
-        case .smallCommands: String(localized: "Small Commands", table: "Notchcast")
-        case .launcherNumberKeys: String(localized: "Launcher Number Keys", table: "Notchcast")
-        case .launcherAliasSpace: String(localized: "Alias and Space", table: "Notchcast")
         default: preconditionFailure("\(self) has neither a descriptor nor a title arm")
         }
     }
@@ -211,15 +196,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.", table: "Notchcast")
         case .captureEditor: String(localized: "Mark up a capture and copy it.", table: "Notchcast")
         case .recording: String(localized: "Record an area, window or display with system audio.", table: "Notchcast")
-        case .switcherQuitKey: String(localized: "Press Q in an empty window search to quit the selected app.", table: "Notchcast")
         case .editorSpellChecking: String(localized: "Check spelling in the editor.", table: "Notchcast")
-        case .githubSearch: String(localized: "Search GitHub repositories and starred projects.", table: "Notchcast")
-        case .clearNotifications: String(localized: "Clear notifications from Notification Center. Requires English system language.", table: "Notchcast")
-        case .launcherAnswers: String(localized: "Currency answers using rates from NBP.", table: "Notchcast")
-        case .copyPath: String(localized: "Copy the frontmost document path or browser link.", table: "Notchcast")
-        case .smallCommands: String(localized: "Passwords, short links, noise control and AirDrop. Noise control requires English system language.", table: "Notchcast")
-        case .launcherNumberKeys: String(localized: "Open the first nine search results with Command-1 through Command-9.", table: "Notchcast")
-        case .launcherAliasSpace: String(localized: "Press Space after an exact alias to open its command.", table: "Notchcast")
         default: preconditionFailure("\(self) has neither a descriptor nor a subtitle arm")
         }
     }
@@ -230,11 +207,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         return switch self {
         case .scrollingCapture: [.screenRecording]
         case .screenshot: [.screenRecording]
-        case .switcherQuitKey: [.accessibility]
         case .recording: [.screenRecording]
-        case .clearNotifications: [.accessibility]
-        case .copyPath: [.accessibility]
-        case .smallCommands: [.accessibility]
         default: []
         }
     }
@@ -289,15 +262,7 @@ extension NotchcastFeature {
         if let descriptor { return descriptor.defaultEnabled }
         return switch self {
         case .captureEditor: false
-        case .switcherQuitKey: false
         case .treadmillWalk: false
-        case .githubSearch: false
-        case .clearNotifications: false
-        case .launcherAnswers: false
-        case .copyPath: false
-        case .smallCommands: false
-        case .launcherNumberKeys: false
-        case .launcherAliasSpace: false
         default: true
         }
     }

@@ -46,6 +46,7 @@ extension NotchcastSettingsModule {
                 .feature(.musicNowPlaying, settings: []),
                 .feature(.musicLastPlayer, settings: []),
                 .feature(.musicBlockAppleMusic, settings: []),
+                .feature(.musicSharpCovers, settings: []),
             ]),
             // ai-design-check-ignore-next-line sentence-case -- Spotify Connect is a product name.
             .init(title: LocalizedStringResource("Spotify Connect", table: "Notchcast"), items: [

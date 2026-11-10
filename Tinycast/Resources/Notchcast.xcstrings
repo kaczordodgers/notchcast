@@ -17588,6 +17588,58 @@
         }
       }
     },
+    "Find sharp covers for Firefox and Zen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scharfe Cover für Firefox und Zen finden"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar portadas nítidas para Firefox y Zen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trouver des pochettes nettes pour Firefox et Zen"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "FirefoxとZenの鮮明なジャケットを探す"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Firefox 및 Zen의 선명한 커버 찾기"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encontrar capas nítidas para Firefox e Zen"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Находить чёткие обложки для Firefox и Zen"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为 Firefox 和 Zen 查找清晰封面"
+          }
+        }
+      }
+    },
     "Finder" : {
       "localizations" : {
         "de" : {
@@ -31561,6 +31613,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "按需读取本地智能体会话元数据和令牌用量。"
+          }
+        }
+      }
+    },
+    "Read the browser’s saved session on this Mac and send the song title and artist to Apple." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die gespeicherte Browsersitzung auf diesem Mac lesen und Titel und Interpret des Songs an Apple senden."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lee la sesión guardada del navegador en este Mac y envía el título y el artista de la canción a Apple."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lire la session enregistrée du navigateur sur ce Mac et envoyer le titre et l’artiste du morceau à Apple."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "このMacに保存されたブラウザのセッションを読み取り、曲名とアーティストをAppleに送信します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 Mac에 저장된 브라우저 세션을 읽고 곡 제목과 아티스트를 Apple에 보냅니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lê a sessão guardada do navegador neste Mac e envia o título e o artista da música à Apple."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Читает сохранённый сеанс браузера на этом Mac и отправляет название песни и исполнителя в Apple."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取此 Mac 上浏览器保存的会话，并将歌曲标题和艺人发送给 Apple。"
           }
         }
       }
