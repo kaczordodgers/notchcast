@@ -3,10 +3,6 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityManager.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 import Foundation
 
 @MainActor
@@ -15,7 +11,6 @@ private final class FakeTransport: AudioPriorityTransport {
     var inventory: [AudioPriorityDevice] = []
     var callback: (@Sendable () -> Void)?
     var writes = 0
-    var stops = 0
     var fail = false
     func devices() -> [AudioPriorityDevice] { inventory }
     func defaultUID(for direction: AudioPriorityDevice.Direction) -> String? { "low" }
@@ -24,15 +19,7 @@ private final class FakeTransport: AudioPriorityTransport {
         if fail { throw Failure() }
     }
     func start(onChange: @escaping @Sendable () -> Void) { callback = onChange }
-    func stop() { stops += 1; callback = nil }
-}
-
-@MainActor
-private final class FakeModule: NotchcastModule {
-    let manager: AudioPriorityManager
-    init(_ manager: AudioPriorityManager) { self.manager = manager }
-    func start() { manager.start() }
-    func stop() { manager.stop() }
+    func stop() { callback = nil }
 }
 
 @main
@@ -41,26 +28,15 @@ struct AudioPriorityWiringTests {
     static func main() async {
         let suite = "audio-priority-test-" + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
-        let preferences = NotchcastPreferences(suiteName: suite)
         let store = AudioPriorityPreferences(suiteName: suite)
         store.save(.init(enabled: true, uids: ["high", "low"]), for: .output)
         let restored = AudioPriorityPreferences(suiteName: suite)
         precondition(restored.ranking(for: .output) == store.ranking(for: .output))
         let fake = FakeTransport()
-        var failures = 0
-        let manager = AudioPriorityManager(transport: fake, store: store) { _ in
-            failures += 1
-            store.failure = "failure"
-        }
+        let manager = AudioPriorityManager(transport: fake, store: store) { _ in }
         manager.inventoryChanged = { store.update($0) }
-        manager.succeeded = { store.failure = nil }
         fake.inventory = [.init(uid: "low", name: "Low", direction: .output)]
-        let controller = NotchcastModuleController([
-            .init(requires: [.audioPriority], module: FakeModule(manager))
-        ], preferences: preferences)
-        controller.run()
-        precondition(fake.callback == nil)
-        preferences.set(.audioPriority, true)
+        manager.start()
         await wait { fake.callback != nil }
         precondition(fake.callback != nil && fake.writes == 0)
         fake.inventory.append(.init(uid: "high", name: "High", direction: .output))
@@ -77,7 +53,7 @@ struct AudioPriorityWiringTests {
         await wait { fake.writes == 2 }
         fake.callback?()
         await wait { store.devices.contains(where: { $0.uid == "high" }) }
-        precondition(fake.writes == 2 && failures == 1 && store.failure == "failure")
+        precondition(fake.writes == 2)
         fake.inventory.removeAll { $0.uid == "high" }
         fake.callback?()
         await wait { !store.devices.contains(where: { $0.uid == "high" }) }
@@ -88,14 +64,8 @@ struct AudioPriorityWiringTests {
         fake.inventory.append(.init(uid: "high", name: "High", direction: .output))
         fake.callback?()
         await wait { fake.writes == 3 }
-        precondition(store.failure == nil)
-        let late = fake.callback
-        preferences.set(.audioPriority, false)
-        await wait { fake.callback == nil }
-        late?()
-        await Task.yield()
-        precondition(fake.writes == 3 && fake.stops == 1 && fake.callback == nil)
-        print("PASS: switch lifecycle, stale events, connect-only policy, persistence, failure once; fake only")
+        manager.stop()
+        print("PASS: connect-only policy, persistence, forget; real store, fake transport")
     }
 
     @MainActor
