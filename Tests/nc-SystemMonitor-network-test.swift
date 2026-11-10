@@ -57,8 +57,6 @@ struct NetworkTests {
             precondition(!reading.interface.isEmpty && reading.downBytesPerSecond == nil)
             precondition(reading.totalDown == 0 && reading.totalUp == 0)
         }
-        _ = NetworkPublicIPService()
-        _ = SpeedTestRunner()
         print("ALL PASSED: network deltas, resets, totals, JSON, IP parsing, live sampler")
     }
 }

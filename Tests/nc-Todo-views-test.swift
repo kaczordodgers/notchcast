@@ -284,7 +284,7 @@ struct TodoViewsTests {
         precondition(state.sections.count == 6 && state.sections[backlog.id] == backlog)
         let names = state.sections.values.filter { $0.projectID == project.id }
             .sorted { $0.order < $1.order }.map { $0.name.lowercased() }
-        precondition(names == TodoState.workflowSections.map { $0.lowercased() })
+        precondition(names == ["backlog", "up next", "in progress", "blocked", "someday"])
         let noChange = try state.workflowSectionsCommand(projectID: project.id, makeID: {
             preconditionFailure("idempotent call requested an ID")
         })

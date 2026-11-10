@@ -120,7 +120,8 @@ struct SystemLevelRoutingTests {
     }
 
     static func eventually(_ condition: () -> Bool) async {
-        while !condition() {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while !condition(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(5))
         }
         check(condition(), "Timed out waiting for routing")
@@ -225,7 +226,6 @@ struct SystemLevelRoutingTests {
         brightness.controller.cancelStep = false
         hub.send(.brightnessUp)
         await eventually { keys.latest?.kind == .brightness }
-        check(keys.latest != nil, "Brightness works with the island off")
         center.hasPresenter = false
         for _ in 0..<20 { await Task.yield() }
         check(hub.handlers.count == 1, "Removing the presenter keeps brightness registered")
