@@ -43,7 +43,7 @@ struct CopyPathService: Sendable {
         if target.browser != nil {
             let addresses = try await read(.browser(target))
             try Task.checkCancellation()
-            if let address = addresses.first, let link = CopyPathEngine.cleanLink(address) {
+            if let address = addresses.first, let link = WebRules.cleanLink(address) {
                 return .link(link)
             }
         }

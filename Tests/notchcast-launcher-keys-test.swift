@@ -1,5 +1,5 @@
-// notchcast-sources: Tinycast/Features/Launcher/Keys/LauncherNumberKeys.swift
-// notchcast-sources: Tinycast/Features/Launcher/Keys/LauncherAliasSpace.swift
+// notchcast-sources: Tinycast/Features/LauncherKeys/LauncherNumberKeys.swift
+// notchcast-sources: Tinycast/Features/LauncherKeys/LauncherAliasSpace.swift
 // notchcast-kit: core
 import Foundation
 

@@ -27,5 +27,5 @@ Pinned is the upstream commit or version our copy matches. `unrecorded` means no
 | mole | https://github.com/tw93/Mole | reference | 8c55e8c0 | `Tinycast/Features/Clean/` | `bin/purge.sh`, `lib/clean/`, `cmd/analyze/` |
 | petal | https://github.com/henrydennis/petal | reference | unrecorded | `Tinycast/Features/Clean/Service/CleanDiskDirectoryReader.swift` | `dirlist.rs` |
 | odysseus | https://github.com/odysseus-dev/odysseus | reference | unrecorded | `Tinycast/Features/AgentChatTools/Model/AgentTurnCompletion.swift` | `src/agent_loop.py` (branch `dev`) |
-| launcher-keys | https://github.com/sermelipharo/tinycast-space and https://github.com/seancxk/tinycast-fork | reference | unrecorded | `Tinycast/Features/Launcher/Keys/` | `.space/patches/0001-alias-space.patch`, `.space/patches/0016-launcher-keys.patch`; `patches/0001-alias-space.patch` |
+| launcher-keys | https://github.com/sermelipharo/tinycast-space and https://github.com/seancxk/tinycast-fork | reference | unrecorded | `Tinycast/Features/LauncherKeys/` | `.space/patches/0001-alias-space.patch`, `.space/patches/0016-launcher-keys.patch`; `patches/0001-alias-space.patch` |
 | net-merge | https://github.com/rohit267/net-merge | reference | unrecorded | `Tinycast/Features/NetMerge/` | releases; `internal/` |

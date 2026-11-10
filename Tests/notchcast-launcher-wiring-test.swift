@@ -1,22 +1,25 @@
-// notchcast-kit: core
-// notchcast-sources: Tinycast/Features/Launcher/GitHub/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/GitHub/Service/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/GitHub/GitHubModule.swift
-// notchcast-sources: Tinycast/Features/Launcher/ClearNotifications/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/ClearNotifications/Service/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule.swift
+// notchcast-kit: core host
+// notchcast-sources: Tinycast/Features/GitHub/Model/*.swift
+// notchcast-sources: Tinycast/Features/GitHub/Service/*.swift
+// notchcast-sources: Tinycast/Features/GitHub/GitHubModule.swift
+// notchcast-sources: Tinycast/Features/ClearNotifications/Model/*.swift
+// notchcast-sources: Tinycast/Features/ClearNotifications/Service/*.swift
+// notchcast-sources: Tinycast/Features/ClearNotifications/ClearNotificationsModule.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
-// notchcast-sources: Tinycast/Features/Launcher/Answers/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/Answers/Service/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/Answers/LauncherAnswersModule.swift
+// notchcast-sources: Tinycast/Features/Answers/Model/*.swift
+// notchcast-sources: Tinycast/Features/Answers/Service/*.swift
+// notchcast-sources: Tinycast/Features/Answers/LauncherAnswersModule.swift
 // notchcast-sources: Tinycast/Features/Calculator/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Service/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/CopyPathModule.swift
-// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/Service/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/CopyPathModule.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/Service/*.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/SmallCommandsModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Model/WebRules.swift
 import Foundation
+
+enum DialogTone {}
 
 @main
 @MainActor

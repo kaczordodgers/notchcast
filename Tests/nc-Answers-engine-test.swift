@@ -1,6 +1,6 @@
-// notchcast-sources: Tinycast/Features/Launcher/Answers/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/Answers/Service/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/Answers/LauncherAnswersModule.swift
+// notchcast-sources: Tinycast/Features/Answers/Model/*.swift
+// notchcast-sources: Tinycast/Features/Answers/Service/*.swift
+// notchcast-sources: Tinycast/Features/Answers/LauncherAnswersModule.swift
 // notchcast-sources: Tinycast/Features/Calculator/Model/*.swift
 // notchcast-kit: core
 import Foundation

@@ -29,7 +29,7 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 
 - A Dynamic Island around the notch, or a small pill on displays without one, on the built-in and external displays and over full-screen apps.
 - Home and Day pages: live activities, status messages, progress with Cancel, calendar events and calendar reminders. ⌘R refreshes a page, ⌘P pins the island open.
-- Opens on hover or by command, and opens the launcher right under it.
+- Opens on hover or by command (Toggle Island, Hyper+S, opens it pinned), and opens the launcher right under it.
 - Volume and brightness levels, now playing, dictation status, timers, low disk and Wi-Fi, Tailscale and battery notices show in the island.
 
 ### Launcher
@@ -51,6 +51,7 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 ### Capture
 
 - Screenshots and screen recordings of an area, window or display, with system audio.
+- Capture Area, and Capture Editor to mark up a capture with arrows, text, shapes and blur.
 - Capture Text (offline OCR), Scrolling Capture and a color picker.
 
 ### Dictation

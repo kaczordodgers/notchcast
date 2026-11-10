@@ -9,6 +9,8 @@ struct NotchcastCommand: Sendable {
     var legacyID: String?
     /// It opens a palette screen: hiding first would drop the back step and replay the island opening.
     var keepsPalette = false
+    /// Alias Space focuses a command's inline field instead of running it with nothing typed.
+    var argumentCount = 0
     var isEnabled: @MainActor @Sendable () -> Bool = { true }
     let run: @MainActor @Sendable () -> Void
 

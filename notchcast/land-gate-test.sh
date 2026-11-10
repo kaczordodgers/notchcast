@@ -26,8 +26,13 @@ case "$*" in
         fi ;;
     *variable\ get\ LANDING_HOLD*)
         [ -z "${HOLD_ERROR:-}" ] || { echo 'HTTP 502: Bad Gateway' >&2; exit 1; }
-        [ -n "${HOLD:-}" ] || { echo 'variable LANDING_HOLD was not found' >&2; exit 1; }
-        echo "$HOLD" ;;
+        ! rm "$STORE.fail-next-get" 2>/dev/null || { echo 'HTTP 502: Bad Gateway' >&2; exit 1; }
+        [ -s "$STORE" ] || { echo 'variable LANDING_HOLD was not found' >&2; exit 1; }
+        cat "$STORE" ;;
+    *variable\ set\ LANDING_HOLD*)
+        echo "set ${*: -1}" >> "$HOLD_LOG"; echo "${*: -1}" > "$STORE"
+        [ -z "${HOLD_ERROR_AFTER_SET:-}" ] || touch "$STORE.fail-next-get" ;;
+    *variable\ delete\ LANDING_HOLD*) echo delete >> "$HOLD_LOG"; rm -f "$STORE" ;;
     *) exit 3 ;;
 esac
 STUB
@@ -40,7 +45,11 @@ case "$1" in
     merge-base) echo fixture-base; exit 0 ;;
     diff) printf '%s\0' "${CHANGED_PATH:-unrelated.txt}"; exit 0 ;;
     rev-parse)
-        if [ "$2" = origin/main ]; then echo 'REACHED_MERGE' >&2; exit 77; fi ;;
+        if [ "$2" = origin/main ]; then
+            cp "$STORE" "$HELD_AT_MERGE" 2>/dev/null
+            [ -z "${REPLACE_WITH:-}" ] || echo "$REPLACE_WITH" > "$STORE"
+            echo 'REACHED_MERGE' >&2; exit 77
+        fi ;;
 esac
 exec "$REAL_GIT" "$@"
 STUB
@@ -52,8 +61,12 @@ export PATH="$scratch/bin:$PATH" HEAD_SHA=01234567890123456789012345678901234567
 # The script under test runs as is, not origin/main's copy.
 export NOTCHCAST_LAND_TOOLS=test CALLS="$scratch/calls" BASE_NAME=main BUILD=success DESIGN=success LEAKS=success LOCAL_BUILD=none
 export PROOF=none
+export STORE="$scratch/store" HOLD_LOG="$scratch/hold-log" HELD_AT_MERGE="$scratch/held-at-merge"
 run() {
     : > "$CALLS"
+    : > "$HOLD_LOG"
+    rm -f "$HELD_AT_MERGE"
+    if [ -n "${HOLD:-}" ]; then echo "$HOLD" > "$STORE"; else rm -f "$STORE"; fi
     status=0
     bash notchcast/land.sh 1 > "$scratch/output" 2>&1 || status=$?
 }
@@ -106,19 +119,50 @@ run
 ! grep -q check_name=proof "$CALLS"
 echo 'PASS: undeclared path needs no proof'
 later=$(($(date +%s) + 600))
+export HOLD=
+before=$(date +%s)
+run
+[ "$status" -eq 77 ] || { cat "$scratch/output"; echo 'FAIL: no hold refused'; exit 1; }
+read -r owner until auto < "$HELD_AT_MERGE" || { echo 'FAIL: no landing hold taken at the start'; exit 1; }
+[ "$owner" = 1 ] && [ "$auto" = auto ] && [ "$until" -ge $((before + 9000)) ] && [ "$until" -le $(($(date +%s) + 9000)) ] \
+    || { echo "FAIL: took '$owner $until $auto'"; exit 1; }
+[ ! -e "$STORE" ] && [ "$(sed -n 2p "$HOLD_LOG")" = delete ] || { cat "$HOLD_LOG"; echo 'FAIL: the hold was not released at exit'; exit 1; }
+echo 'PASS: land.sh takes an auto hold for its PR at the start and releases it at exit'
+NOTCHCAST_LAND_HOLD_MINUTES=5 run
+read -r owner until auto < "$HELD_AT_MERGE"
+[ "$until" -le $(($(date +%s) + 300)) ] || { echo 'FAIL: NOTCHCAST_LAND_HOLD_MINUTES ignored'; exit 1; }
+echo 'PASS: NOTCHCAST_LAND_HOLD_MINUTES sets the auto hold length'
+export BUILD=failure
+run
+grep -q 'REFUSED: build is failure' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: build failure accepted'; exit 1; }
+[ ! -e "$STORE" ] && [ "$(sed -n 2p "$HOLD_LOG")" = delete ] || { cat "$HOLD_LOG"; echo 'FAIL: the hold outlived a later refusal'; exit 1; }
+export BUILD=success
+echo 'PASS: a later refusal releases the hold'
 export HOLD="330 $later"
 run
 grep -q 'REFUSED: landing is held for 330 until' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: a hold for another PR was ignored'; exit 1; }
 ! grep -q check-runs "$CALLS"
-echo 'PASS: a hold for another PR refuses before any check'
+[ "$(cat "$STORE")" = "$HOLD" ] && [ ! -s "$HOLD_LOG" ] || { cat "$HOLD_LOG"; echo 'FAIL: a foreign hold was touched'; exit 1; }
+echo 'PASS: a hold for another PR refuses before any check and is left alone'
+export HOLD="330 $later auto"
+run
+grep -q 'REFUSED: landing is held for 330 until' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: a foreign auto hold was ignored'; exit 1; }
+echo 'PASS: a foreign auto hold refuses'
 export HOLD="1 $later"
 run
 [ "$status" -eq 77 ] || { cat "$scratch/output"; echo 'FAIL: the hold owner PR was refused'; exit 1; }
-echo 'PASS: the PR that owns the hold lands'
+[ "$(cat "$STORE")" = "$HOLD" ] && [ ! -s "$HOLD_LOG" ] || { cat "$HOLD_LOG"; echo 'FAIL: the owner took or released its own hold'; exit 1; }
+echo 'PASS: the PR that owns the hold lands and takes nothing'
 export HOLD="strings $later"
 NOTCHCAST_LAND_AS=strings run
 [ "$status" -eq 77 ] || { cat "$scratch/output"; echo 'FAIL: the named hold owner was refused'; exit 1; }
+[ ! -s "$HOLD_LOG" ] || { cat "$HOLD_LOG"; echo 'FAIL: the named owner took a hold'; exit 1; }
 echo 'PASS: NOTCHCAST_LAND_AS owner lands'
+export HOLD=
+REPLACE_WITH="330 $later" run
+[ "$status" -eq 77 ] && [ "$(cat "$STORE")" = "330 $later" ] && ! grep -q delete "$HOLD_LOG" \
+    || { cat "$HOLD_LOG"; echo 'FAIL: a hold replaced during the run was released'; exit 1; }
+echo 'PASS: a hold replaced during the run is not released'
 export HOLD="330 $(($(date +%s) - 1))"
 run
 [ "$status" -eq 77 ] || { cat "$scratch/output"; echo 'FAIL: an expired hold still refused'; exit 1; }
@@ -127,6 +171,11 @@ export HOLD= HOLD_ERROR=1
 run
 grep -q 'REFUSED: cannot read the landing hold' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: an unreadable hold was ignored'; exit 1; }
 echo 'PASS: an unreadable hold refuses'
+export HOLD_ERROR=
+HOLD_ERROR_AFTER_SET=1 run
+grep -q 'REFUSED: cannot read the landing hold' "$scratch/output" && [ ! -e "$STORE" ] && grep -q '^delete$' "$HOLD_LOG" \
+    || { cat "$scratch/output" "$HOLD_LOG"; echo 'FAIL: a claim that failed its read-back left the hold behind'; exit 1; }
+echo 'PASS: a claim that failed its read-back is released at exit'
 for bad in '330' "330 $later extra" '330 later' '330 1e9' "330 0$later"; do
     export HOLD="$bad" HOLD_ERROR=
     run
