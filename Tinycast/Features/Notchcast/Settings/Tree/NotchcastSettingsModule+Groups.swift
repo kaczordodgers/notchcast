@@ -221,7 +221,6 @@ extension NotchcastSettingsModule {
                 .feature(.agentCLI, settings: [.aiAndAgentsCLIInstall]),
                 .feature(.agentMCPServer, settings: []),
                 .feature(.agentChatTools, settings: [.aiAndAgentsChatTools]),
-                .feature(.agentAnswer, settings: []),
                 .feature(.voiceAsk, settings: [.aiAndAgentsVoiceDestination]),
                 .feature(.openBotAgents, settings: []),
             ]),
@@ -303,10 +302,6 @@ extension NotchcastSettingsModule {
             ]),
             .init(title: LocalizedStringResource("iPhone backup", table: "Notchcast"), items: [
                 .feature(.iPhoneBackupTweaks, settings: [.privacyAndStartupIPhoneBackup]),
-            ]),
-            .init(title: LocalizedStringResource("Tools", table: "Notchcast"), items: [
-                .feature(.killProcess, settings: []),
-                .feature(.macSetup, settings: []),
             ]),
         ]
         }
