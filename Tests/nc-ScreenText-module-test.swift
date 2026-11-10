@@ -80,7 +80,7 @@ enum ScreenTextService {
         precondition(output == ["Recognized fixture"])
         area.denied = true
         command.run()
-        precondition(messages ==[String(localized: "Screen Recording access is required.")])
+        precondition(messages == [String(localized: "Screen Recording access is required.")])
         let stops = area.stops
         preferences.set(.screenText, false)
         for _ in 0..<100 { await Task.yield() }
