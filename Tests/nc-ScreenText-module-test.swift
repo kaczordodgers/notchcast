@@ -5,10 +5,6 @@
 // notchcast-sources: Tinycast/Features/ScreenText/Model/ScreenTextResult.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift
 import AppKit
 import Observation
 
@@ -70,7 +66,7 @@ enum ScreenTextService {
             [.init(requires: [.screenText], module: module)], preferences: preferences)
         controller.run()
         let command = ScreenTextModule.launcherCommand
-        precondition(command.id == "command:nc-screen-text" && !command.isEnabled())
+        precondition(!command.isEnabled())
         command.run()
         precondition(area.starts == 0)
         preferences.set(.screenText, true)
@@ -88,18 +84,6 @@ enum ScreenTextService {
         precondition(area.stops > stops && !command.isEnabled())
         command.run()
         precondition(area.starts == 2)
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        for (path, needle) in [
-            ("Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift",
-             ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"),
-            ("Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift",
-             "Remove line breaks"),
-            ("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift", ".init(requires: [.screenText], module: screenText)"),
-            ("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift", "ScreenTextModule.launcherCommand")
-        ] {
-            let source = try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)
-            precondition(source.contains(needle), path)
-        }
-        print("PASS: OCR switch lifecycle, command recognition/output, permission HUD, settings and catalogue reachability")
+        print("PASS: OCR switch lifecycle, command recognition/output, permission HUD")
     }
 }

@@ -33,10 +33,13 @@ IslandController.launcherCommand,
 
 Register each feature on one line with a trailing comma and no other content on that line.
 Registration requires no changes in Tests. Git uses `merge=union` for this file so
-concurrent registrations merge cleanly. After every merge, check the file by hand:
-union merging can keep the same registration twice, and it keeps both the old and the
-new line when one branch removes or edits a registration while another adds one, so a
-removed command can come back.
+concurrent registrations merge cleanly. `check-feature-shape.py` rejects a registration kept
+twice and a non-private command `static` the catalog does not list (it does not see a static
+built from a list, such as `commands(...)[1]`). Union still keeps both the old and the
+new line when one branch removes or edits a registration while another adds one, so check
+after a merge that a removed command did not come back.
+
+Every command also has one `<slug> <owner>` line in `notchcast/command-slugs.txt` (sorted, `merge=union`). The checker prints the line to add for a new command and names a line no command matches; a slug or owner written as an expression is listed as that expression. The slug is persisted in `command:nc-<slug>` (hotkeys, aliases, deep links), so a changed line in that file is the sign that a rename needs a migration. The checker also requires `slug:` first and a `feature:` owner in every `NotchcastCommand(`.
 `notchcast/check-legacy-command-ids.py` guards Toggle Island's persisted legacy ID in its real source before the CI Debug build; change it only with a migration.
 
 The value takes `slug`, localized `name`, `sfSymbol`, optional `owner` (default
