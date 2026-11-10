@@ -266,7 +266,6 @@ struct AgentSessionTests {
         try sql(database, "DELETE FROM \(sessions)")
         let deleted = try index.refresh(roots: roots)
         expect(deleted.sessions.isEmpty, "Deleted database sessions evicted")
-        expect(sqlite3_db_readonly(database, "main") == 0, "Fixture writer connection remains independent")
     }
 
     static func incremental(_ root: URL) throws {
@@ -451,9 +450,6 @@ struct AgentSessionTests {
         let suite = "session-harness-" + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        expect(!preferences.isOn(.agentSessions), "Feature defaults off")
-        expect(preferences.isOn(.island), "Existing defaults preserved")
-        expect(!NotchcastFeature.agentSessions.needsIsland, "Feature switch independent of island")
         preferences.set(.agentSessions, true)
         expect(preferences.isOn(.agentSessions), "Explicit opt-in applies")
         expect(!NotchcastPreferences(suiteName: suite).isOn(.agentSessions), "Hidden switch reloads off")

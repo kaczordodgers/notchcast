@@ -47,6 +47,7 @@ jobs:
     environment: sync
     permissions:
       contents: read
+      statuses: read
     outputs:
       tag: ${{ steps.plan.outputs.tag }}
       main: ${{ steps.plan.outputs.main }}
@@ -90,15 +91,26 @@ jobs:
         if: steps.plan.outputs.tag != ''
         working-directory: src
         run: '"$XCODEGEN" generate --quiet'
+      - name: Find a green tested status
+        id: tested
+        if: steps.plan.outputs.tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN: ${{ steps.plan.outputs.main }}
+        run: |
+          source tools/notchcast/config.env
+          state=$(gh api "repos/$GITHUB_REPOSITORY/commits/$MAIN/status" \
+            --jq "[.statuses[] | select(.context == \"$TESTED_CONTEXT\")][0].state // empty") || state=
+          echo "green=$([ "$state" = success ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
       - uses: ./tools/notchcast/actions/tests
         id: tests
-        if: steps.plan.outputs.tag != ''
+        if: steps.plan.outputs.tag != '' && steps.tested.outputs.green != 'true'
         continue-on-error: true
         with:
           upstream: ${{ steps.baseline.outputs.upstream }}
       - name: Lint
         id: checks
-        if: steps.plan.outputs.tag != '' && steps.tests.outcome == 'success'
+        if: steps.plan.outputs.tag != '' && (steps.tests.outcome == 'success' || steps.tested.outputs.green == 'true')
         working-directory: src
         run: |
           command -v swiftlint >/dev/null || brew install --quiet swiftlint

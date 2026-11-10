@@ -53,9 +53,7 @@ struct IslandGeometryTests {
                        CGRect(x: 0, y: -400, width: 1920, height: 1080)]
         for (point, expected) in [(CGPoint(x: -300, y: 970), 0), (CGPoint(x: 1500, y: 670), 1)] {
             let selected = IslandGeometry.screenIndex(containing: point, frames: screens)
-            let open = screens.indices.map { $0 == selected }
-            expect(selected == expected && open.filter { $0 }.count == 1,
-                   "only the display under the pointer opens")
+            expect(selected == expected, "only the display under the pointer opens")
         }
         expect(IslandGeometry.screenIndex(containing: CGPoint(x: 4000, y: 0), frames: screens) == nil,
                "a removed or unknown display does not open another island")

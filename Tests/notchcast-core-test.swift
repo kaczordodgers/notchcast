@@ -38,6 +38,9 @@ struct NotchcastCoreTests {
             "islandStatusMessages", "islandLiveActivities", "launcherFromIsland"
         ]
         precondition(m0.isSubset(of: NotchcastFeature.allCases.map(\.rawValue)))
+        for feature in NotchcastFeature.allCases where feature.isWired {
+            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty, "Untitled switch: \(feature)")
+        }
         precondition(m0.allSatisfy { preferences.isOn(NotchcastFeature(rawValue: $0)!) })
         precondition(!preferences.isOn(.systemMonitor) && !preferences.isOn(.fanControl))
         for feature: NotchcastFeature in [.audioPriority, .cleanJunk, .cleanHistory, .cleanAIData,
@@ -50,7 +53,6 @@ struct NotchcastCoreTests {
         let l3: Set<NotchcastFeature> = [.lowDiskWarning, .systemNotices, .volumeLevels,
             .displayBrightness, .quitProtection, .liveTimers, .dayCalendar, .dayWeather, .dayMarkets]
         for feature in l3 {
-            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
             let needsAccessibility = [.volumeLevels, .displayBrightness, .quitProtection].contains(feature)
             precondition(feature.requiredGrants.contains(.accessibility) == needsAccessibility)
         }
@@ -60,7 +62,6 @@ struct NotchcastCoreTests {
         precondition(!NotchcastFeature.finderCutPaste.needsIsland)
         precondition(NotchcastFeature.finderRename.requiredGrants == [.accessibility])
         precondition(NotchcastFeature.accessoryNotices.requiredGrants == [.bluetooth])
-        precondition(NotchcastGrant.allCases.contains(.bluetooth))
         precondition(NotchcastFeature.pastePlain.subtitle.contains("launcher"))
         precondition(NotchcastFeature.dayCalendar.needsIsland)
         precondition(!NotchcastFeature.displayBrightness.needsIsland)
@@ -68,7 +69,6 @@ struct NotchcastCoreTests {
         precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == ($0.defaultEnabled && $0.isWired) })
         precondition(l3.filter(\.isWired).allSatisfy { preferences.isOn($0) })
         precondition(![.aiUsage, .aiUsageOtherMac, .machLink].contains { preferences.isOn($0) })
-        precondition(NotchcastFeature.allCases.allSatisfy { preferences.isOn($0) == ($0.defaultEnabled && $0.isWired) })
         precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
         precondition(!preferences.isOn(.torrentsKeepSharing))
         precondition(NotchcastFeature.torrents.dependencies.isEmpty)

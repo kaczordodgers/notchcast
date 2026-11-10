@@ -8,7 +8,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 import Foundation
 import CoreGraphics
 

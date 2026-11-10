@@ -240,6 +240,7 @@ final class PaletteWindowController: NSObject, NSWindowDelegate {
             panel?.level = .normal
             return
         }
+        if let panel, LauncherScreenshotHold.holds(panel) { return }
         core.paletteCoordinator.hidePalette(restoreFocus: false)
     }
 

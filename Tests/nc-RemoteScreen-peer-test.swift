@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
 // notchcast-sources: Tinycast/Features/RemoteScreen/Service/*.swift
 // notchcast-sources: Tinycast/Features/RemoteScreen/RemoteScreenAddress.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 import Foundation
 
 @main struct ScreenPeerTest {

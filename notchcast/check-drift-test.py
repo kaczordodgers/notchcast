@@ -61,6 +61,7 @@ class Gates(unittest.TestCase):
             raise AssertionError(result.stdout + result.stderr)
         git(cls.seed, 'add', '.')
         git(cls.seed, 'commit', '-qm', 'Baseline fixture')
+        git(cls.seed, 'update-ref', 'refs/remotes/origin/main', 'HEAD')
 
     @classmethod
     def tearDownClass(cls):
@@ -262,6 +263,35 @@ class Gates(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn(f'{LARGE_LINES + 1} > {LARGE_LINES}', result.stdout)
 
+    def move_large(self, count):
+        moved = 'Tinycast/Features/Battery/Moved.swift'
+        git(self.root, 'mv', LARGE, moved)
+        baseline = self.baseline()
+        del baseline['file-size'][LARGE]
+        baseline['file-size'][moved] = count
+        self.save_baseline(baseline)
+        return moved
+
+    def test_renamed_file_keeps_its_budget(self):
+        self.move_large(LARGE_LINES)
+        result = self.run_check('2', '--compare-base', 'HEAD')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_renamed_file_growth_is_refused(self):
+        moved = self.move_large(LARGE_LINES + 1)
+        result = self.run_check('2', '--compare-base', 'HEAD')
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(f'file-size: {moved}: {LARGE_LINES + 1} > {LARGE_LINES}', result.stdout)
+
+    def test_renamed_file_keeps_its_named_budget(self):
+        self.assertEqual(self.baseline()['dead'][LARGE + ':fixtureValue0'], 1)
+        moved = self.move_large(LARGE_LINES)
+        baseline = self.baseline()
+        baseline['dead'][moved + ':fixtureValue0'] = baseline['dead'].pop(LARGE + ':fixtureValue0')
+        self.save_baseline(baseline)
+        result = self.run_check('2', '--compare-base', 'HEAD')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_tightening_retains_zero_keys(self):
         write(self.root, LARGE, '')
         result = self.run_check('1,2,3,4', '--write-baseline')
@@ -317,6 +347,39 @@ class Gates(unittest.TestCase):
         result = self.run_check('1')
         self.assertEqual(result.returncode, 1)
         self.assertIn('baseline alerts must define every report counter', result.stderr)
+
+    def test_gate_run_prints_counters_and_threshold_lines(self):
+        write(self.root, TODO, 'struct DriftProbe {}\nstruct DriftProbeTwin {}\n')
+        write(self.root, 'Tinycast/Features/Todo/Near.swift', '\n' * 360)
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        lines = result.stdout.splitlines()
+        limit = sum(self.baseline()['dead'].values())
+        self.assertIn(f'GATE-THRESHOLD dead:{TODO}:DriftProbe 1 0', lines)
+        self.assertIn(f'GATE-THRESHOLD dead:{TODO}:DriftProbeTwin 1 0', lines)
+        self.assertIn(f'GATE-THRESHOLD file-lines:{LARGE} {LARGE_LINES} 349 known', lines)
+        self.assertIn('GATE-THRESHOLD file-lines:Tinycast/Features/Todo/Near.swift 360 349', lines)
+        self.assertIn(f'dead | {limit + 2} ({limit + 2} keys) | {limit}', lines)
+
+    def test_swapped_dead_declaration_prints_its_threshold_line(self):
+        write(self.root, 'Tinycast/Features/Todo/Existing.swift', 'struct TodoReplacement {}\n')
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn('GATE-THRESHOLD dead:Tinycast/Features/Todo/Existing.swift:TodoReplacement 1 0',
+                      result.stdout.splitlines())
+
+    def test_clean_gate_run_has_no_rule_threshold_line(self):
+        result = self.run_check()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        thresholds = [line for line in result.stdout.splitlines() if line.startswith('GATE-THRESHOLD')]
+        self.assertEqual(thresholds, [f'GATE-THRESHOLD file-lines:{LARGE} {LARGE_LINES} 349 known'])
+
+    def test_gate_subset_run_stays_quiet(self):
+        write(self.root, TODO, 'struct DriftProbe {}\n')
+        result = self.run_check('3')
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertNotIn('GATE-THRESHOLD', result.stdout)
+        self.assertNotIn('Counter |', result.stdout)
 
     def test_report_without_hook(self):
         home = Path(self.work.name) / 'home'

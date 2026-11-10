@@ -135,7 +135,7 @@ final class SoloistInstaller: SoloistBuildSource {
     }
 
     private nonisolated static func sha256(_ data: Data) -> String {
-        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        WebRules.hex(SHA256.hash(data: data))
     }
 
     @concurrent

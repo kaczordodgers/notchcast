@@ -12,8 +12,7 @@
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
 enum SettingsTab: Sendable { case notchcast, notchcastMusicAndSound }
@@ -259,7 +258,8 @@ struct AppEntry: Sendable {
  precondition(music.model.failure == .playbackFailed(""))
  precondition(AppCore.shared.messages.count == messages + 2, "rejected command shows a HUD")
  MusicCommands.openCurrentPlayer()
- precondition(!AppCore.shared.messages.isEmpty)
+ precondition(AppCore.shared.messages.count == messages + 3, "no player to open reports it")
+ precondition(AppCore.shared.messages.last == String(localized: "The current player is unavailable.", table: "Notchcast"))
  print("PASS: music and microphone commands, feature/island gating, speaker Settings consent, resume and failure HUDs")
  }
 }

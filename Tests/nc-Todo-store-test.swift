@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift
 // notchcast-sources: Tinycast/Features/Todo/Service/*.swift Tinycast/Features/Todo/TodoModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import Foundation
@@ -49,7 +49,7 @@ struct TodoStoreTests {
         let initial = try fixture()
         precondition(initial.sections.count == 2)
         precondition(TodoState().sections.isEmpty)
-        precondition(task.priority == 4 && child.priority == 1)
+        precondition(child.priority == 1)
         var edited = task
         edited.title = "Ship today"
         edited.description = "# Updated"

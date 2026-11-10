@@ -145,7 +145,8 @@ struct MusicModuleTests {
     }
 
     static func waitUntil(_ condition: @MainActor () -> Bool) async {
-        while !condition() {
+        let deadline = ContinuousClock.now + .seconds(5)
+        while !condition(), ContinuousClock.now < deadline {
             try? await Task.sleep(for: .milliseconds(10))
         }
     }

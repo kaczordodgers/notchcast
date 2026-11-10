@@ -6,7 +6,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/SystemTools/Model/*.swift Tinycast/Features/SystemTools/Service/*.swift
-// notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift
 import Foundation
 
 @main
@@ -54,7 +55,15 @@ struct TweaksStoreTests {
         ])], read: { _ in nil }, run: { reverted += $0 }, save: { _ in })
         try await missing.stop()
         precondition(reverted.isEmpty && missing.plans.isEmpty)
-        precondition(SystemToolsProcessRunner.allowedExecutables.contains("/bin/chflags"))
+        let catalogWrites = Array(FinderCatalog.writes.values) + Array(TypingCatalog.writes.values)
+        let emitted = catalogWrites.flatMap { writes in
+            let plan = TypingPreferencePlan(entries: writes.map { .init(write: $0, previous: nil) },
+                extraApply: [FinderCatalog.library(home: URL(filePath: "/fixture"), hidden: true)],
+                extraRevert: [FinderCatalog.library(home: URL(filePath: "/fixture"), hidden: false)])
+            return plan.apply + plan.revert
+        }
+        precondition(Set(emitted.map(\.executable)).isSubset(of: SystemToolsProcessRunner.allowedExecutables),
+                     "The runner refuses a tool a catalog emits")
         precondition(SystemToolsProcessRunner.allowedExecutables.contains("/usr/bin/killall"))
         do {
             _ = try SystemToolsProcessRunner().run("/untrusted/journal", arguments: [])

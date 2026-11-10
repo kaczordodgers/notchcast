@@ -50,8 +50,10 @@ struct NotchcastCommand: Sendable {
         }
         precondition(calls == 4 && copied.count == 2 && reports == ["Copied", "Copied", "Done", "Done"])
         module.stop()
-        module.runFromLauncher(.password, execute: { _ in preconditionFailure("Stopped") })
-        precondition(module.commandTask == nil)
+        var ranWhileStopped = false
+        module.runFromLauncher(.password, execute: { _ in ranWhileStopped = true; return nil })
+        for _ in 0..<20 { await Task.yield() }
+        precondition(!ranWhileStopped)
         print("Verified four launcher actions reach fake runners, copy text, report completion and stop")
     }
 }

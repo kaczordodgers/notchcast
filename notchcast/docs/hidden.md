@@ -1,6 +1,6 @@
 # Hidden features
 
-The one list of what Notchcast hides and how. Code stays compiled so upstream harnesses and future rebases retain their sources. `Tests/notchcast-hidden-features-test.swift` reads the table below and fails if a hidden item returns to the Settings sidebar, Settings search or the launcher.
+The one list of what Notchcast hides and how. Code stays compiled so upstream harnesses and future rebases retain their sources. `Tests/notchcast-hidden-features-test.swift` pins the hidden tabs, commands and forced-off flags of the table below and fails if a hidden item returns to the Settings sidebar, Settings search or the launcher.
 
 ## Upstream features
 

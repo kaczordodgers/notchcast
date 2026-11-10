@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Clean/Model/CleanSystem*.swift
 // notchcast-sources: Tinycast/Features/Clean/CleanSystemRootClient.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift notchcast/root/CleanSystem.swift
+// notchcast-kit: root
+// notchcast-sources: notchcast/root/CleanSystem.swift
 import Foundation
 import Synchronization
 import Darwin
