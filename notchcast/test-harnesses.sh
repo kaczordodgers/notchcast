@@ -52,10 +52,13 @@ if [ "$emit_db" -eq 0 ] && [ -z "$only" ] && [ -n "${NOTCHCAST_ONLY_TESTS:-}${CI
     awk -v only=" ${NOTCHCAST_ONLY_TESTS:-} " -v skip=" ${CI_SKIP_TESTS:-} " -v shard="${NOTCHCAST_SHARD:-0 1}" '
         BEGIN { split(shard, part, " "); alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.+" }
         only !~ /^ *$/ && !index(only, " " $2 " ") { next }
+        { skipped = index(skip, " " $2 " "); total += !skipped }
         { hash = 0; for (i = 1; i <= length($2); i++) hash = (hash * 31 + index(alphabet, substr($2, i, 1))) % 1000003 }
         hash % part[2] != part[1] { next }
-        index(skip, " " $2 " ") { print "skipped on the runner: " $2 > "/dev/stderr"; next }
-        { print }' "$QUEUE" > "$QUEUE.kept" || exit 1
+        skipped { print "skipped on the runner: " $2 > "/dev/stderr"; next }
+        { kept++; print }
+        END { if (part[2] > 1) print "shard " part[1] " of " part[2] ": " kept + 0 " of " total + 0 " harnesses" > "/dev/stderr" }
+        ' "$QUEUE" > "$QUEUE.kept" || exit 1
     mv "$QUEUE.kept" "$QUEUE"
     ran=$(($(wc -l < "$QUEUE")))
 fi
