@@ -11,9 +11,9 @@ from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).with_name("script-tests.py").resolve()
-DEFAULT = ["notchcast/nested/plain-test.py", "notchcast/plain-test.sh",
+DEFAULT = ["notchcast/nested/plain-test.py", "notchcast/plain-test.sh", "notchcast/land-test.sh",
            "notchcast/generated-retry-test.mjs", "notchcast/gallery/check-pixels-test.swift"]
-OPT_IN = ["notchcast/land-test.sh", "notchcast/install-app-test.sh", "notchcast/gallery/keychain-test.py"]
+OPT_IN = ["notchcast/install-app-test.sh", "notchcast/gallery/keychain-test.py"]
 
 
 class ScriptTestsTest(unittest.TestCase):
@@ -53,11 +53,11 @@ class ScriptTestsTest(unittest.TestCase):
     def test_execution_uses_each_interpreter(self):
         status, output, commands = self.invoke([])
         self.assertEqual(0, status)
-        self.assertIn("4 passed, 0 failed", output)
-        self.assertIn("3 opt-in tests excluded", output)
+        self.assertIn("5 passed, 0 failed", output)
+        self.assertIn("2 opt-in tests excluded", output)
         self.assertEqual(sorted([
-            ["python3", DEFAULT[0]], ["bash", DEFAULT[1]], ["node", DEFAULT[2]],
-            ["swift", "-swift-version", "6", DEFAULT[3]],
+            ["python3", DEFAULT[0]], ["bash", DEFAULT[1]], ["bash", DEFAULT[2]], ["node", DEFAULT[3]],
+            ["swift", "-swift-version", "6", DEFAULT[4]],
         ]), sorted(commands))
 
     def test_test_failure_fails_the_lane(self):

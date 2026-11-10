@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Discover fork script tests, keeping slow and host-integrated checks opt-in."""
+"""Discover fork script tests, keeping host-integrated checks opt-in."""
 import argparse
 from pathlib import Path
 import subprocess
@@ -9,12 +9,11 @@ import sys
 RUNTIMES = {".py": ["python3"], ".sh": ["bash"], ".mjs": ["node"],
             ".swift": ["swift", "-swift-version", "6"]}
 ALL_ONLY = {
-    Path("notchcast/land-test.sh"),
     Path("notchcast/install-app-test.sh"),
     Path("notchcast/gallery/keychain-test.py"),
 }
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("--all", action="store_true", help="include slow and host-integrated tests")
+parser.add_argument("--all", action="store_true", help="include host-integrated tests")
 parser.add_argument("--list", action="store_true", help="list selected tests without running them")
 args = parser.parse_args()
 discovered = sorted(path for suffix in RUNTIMES for path in Path("notchcast").rglob(f"*-test{suffix}"))
