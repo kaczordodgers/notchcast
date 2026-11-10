@@ -11,11 +11,9 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 `dependencies`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `requiredGrants` and `defaultEnabled` start with the fallback line `if let descriptor { return descriptor.<field> }` and keep arms only for:
 
 - the capture module (`colorPicker`, `screenshot`, `scrollingCapture`, `recording`, `captureTrimmer`, `captureEditor`) and Treadmill (`treadmillWalk`, `treadmillHistory`): kept out of this batch;
-- `switcherQuitKey`: its code is `Notchcast/Model/SwitcherQuitKeyPolicy.swift` and `Notchcast/Service/AppCore+SwitcherQuitKey.swift`, both in layer folders with no feature folder of their own; it moves when F2 gives it one;
-- `editorSpellChecking`: its only code is a patched line in upstream `Notes/`; it moves when it has a fork folder;
-- the features whose code sits in upstream's `Launcher/` (`githubSearch`, `clearNotifications`, `launcherAnswers`, `copyPath`, `smallCommands`, `launcherNumberKeys`, `launcherAliasSpace`): Phase 2c moves each to a fork folder of its own and describes it there.
+- `editorSpellChecking`: its only code is a patched line in upstream `Notes/`; it moves when it has a fork folder.
 
-`settingsGroup`, `title` and `subtitle` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these seventeen move. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
+`settingsGroup`, `title` and `subtitle` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these nine move. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
 
 ## Checks
 

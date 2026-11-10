@@ -1,15 +1,18 @@
-// notchcast-sources: Tinycast/Features/Launcher/SmallCommands/Model/*.swift Tinycast/Features/Launcher/SmallCommands/Service/*.swift Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule*.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/*.swift Tinycast/Features/Launcher/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift Tinycast/Features/SmallCommands/Service/*.swift Tinycast/Features/SmallCommands/SmallCommandsModule*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AccessibilityText.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Model/WebRules.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}
+enum DialogTone {}
 enum NotchcastFeature { case smallCommands }
 struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
     let feature: NotchcastFeature
+    var argumentCount = 0
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }
@@ -26,10 +29,10 @@ struct NotchcastCommand: Sendable {
 }
 @main struct SmallTests {
     @MainActor static func main() async {
-        precondition(SmallCommandsModule.argumentCount(entryID: SmallCommandsModule.shortenCommand.id) == 1)
+        precondition(SmallCommandsModule.shortenCommand.argumentCount == 1)
         for command in [SmallCommandsModule.passwordCommand, SmallCommandsModule.noiseCommand,
                         SmallCommandsModule.airDropCommand] {
-            precondition(SmallCommandsModule.argumentCount(entryID: command.id) == 0)
+            precondition(command.argumentCount == 0)
         }
         let module = SmallCommandsModule()
         module.start()

@@ -21,7 +21,7 @@ final class AirDropService: NSObject, NSSharingServiceDelegate {
 
     init(
         selection: @escaping @MainActor () async throws -> [URL] = {
-            try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) }
+            try await NotchcastHost.current.finderSelection().map { URL(filePath: $0) }
         },
         makeService: @escaping @MainActor ([URL]) -> NSSharingService? = { files in
             NSSharingService(named: .sendViaAirDrop).flatMap { $0.canPerform(withItems: files) ? $0 : nil }
