@@ -12,8 +12,6 @@ enum NotchcastTheme {
     static let maximumHeight = Theme.Size.panelHeight
     static let openRadius = Theme.Radius.panel
     static let openShoulder = Theme.Radius.row
-    /// The Home list's height allowance per activity row, kept until Home is redesigned.
-    static let homeActivityRow: CGFloat = 56
 
     /// The silhouette's corners follow its height, so a strip as tall as the camera keeps the cutout's own small
     /// corners and the open island reaches the caps (rule: `IslandSilhouette.shoulder` / `bottomRadius`).
@@ -29,8 +27,6 @@ enum NotchcastTheme {
             IslandSilhouette.bottomRadius(height: height, cap: radiusCap)
         }
         static let artwork = Theme.Radius.thumbnail
-        /// Concentric with the pill's end: the cap's radius less the cover's inset (18 − 5 = 13, a round cover).
-        static let capsuleArtwork = Closed.row / 2 - (Closed.row - Closed.artwork) / 2
     }
 
     /// Every closed state of both shapes: one row height, one set of insets, one type ramp.
@@ -65,8 +61,7 @@ enum NotchcastTheme {
         static let contentInset = Theme.Spacing.lg
         static let wingTextLimit: CGFloat = 100
         static let shoulder = Theme.Radius.thumbnail
-        /// Rows below the camera: `xl` from the sides, `sm` under the last.
-        static let dropInset = Theme.Spacing.xl
+        /// Rows below the camera: `sm` under the last.
         static let dropBottom = Theme.Spacing.sm
         static let lineSpacing: CGFloat = 0
         /// A card's button: a capsule concentric with the pill's end (18 − 5 = 13, half of 26).
@@ -128,7 +123,6 @@ enum NotchcastTheme {
         static let title = Theme.Typography.bar
         static let detail = Font.subheadline
         static let value = Theme.Typography.rowTrailing
-        static let pageName = Theme.Typography.bar
     }
 
     /// The island is drawn dark in every appearance, so its ink is the ramp's dark side. Everything is white for
