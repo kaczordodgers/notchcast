@@ -26,9 +26,12 @@ case "$*" in
         fi ;;
     *variable\ get\ LANDING_HOLD*)
         [ -z "${HOLD_ERROR:-}" ] || { echo 'HTTP 502: Bad Gateway' >&2; exit 1; }
+        ! rm "$STORE.fail-next-get" 2>/dev/null || { echo 'HTTP 502: Bad Gateway' >&2; exit 1; }
         [ -s "$STORE" ] || { echo 'variable LANDING_HOLD was not found' >&2; exit 1; }
         cat "$STORE" ;;
-    *variable\ set\ LANDING_HOLD*) echo "set ${*: -1}" >> "$HOLD_LOG"; echo "${*: -1}" > "$STORE" ;;
+    *variable\ set\ LANDING_HOLD*)
+        echo "set ${*: -1}" >> "$HOLD_LOG"; echo "${*: -1}" > "$STORE"
+        [ -z "${HOLD_ERROR_AFTER_SET:-}" ] || touch "$STORE.fail-next-get" ;;
     *variable\ delete\ LANDING_HOLD*) echo delete >> "$HOLD_LOG"; rm -f "$STORE" ;;
     *) exit 3 ;;
 esac
@@ -168,6 +171,11 @@ export HOLD= HOLD_ERROR=1
 run
 grep -q 'REFUSED: cannot read the landing hold' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: an unreadable hold was ignored'; exit 1; }
 echo 'PASS: an unreadable hold refuses'
+export HOLD_ERROR=
+HOLD_ERROR_AFTER_SET=1 run
+grep -q 'REFUSED: cannot read the landing hold' "$scratch/output" && [ ! -e "$STORE" ] && grep -q '^delete$' "$HOLD_LOG" \
+    || { cat "$scratch/output" "$HOLD_LOG"; echo 'FAIL: a claim that failed its read-back left the hold behind'; exit 1; }
+echo 'PASS: a claim that failed its read-back is released at exit'
 for bad in '330' "330 $later extra" '330 later' '330 1e9' "330 0$later"; do
     export HOLD="$bad" HOLD_ERROR=
     run

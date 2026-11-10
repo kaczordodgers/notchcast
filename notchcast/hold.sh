@@ -5,7 +5,7 @@
 # own PR at its start (so the first lander is never refused at the end) and releases it at exit; set refuses over another
 # owner's live hold unless --handover.
 #   notchcast/hold.sh set [--handover] <owner> <minutes> | release | show
-# land.sh sources this file for check_hold and hold_claim; the caller defines refuse.
+# land.sh sources this file for check_hold, hold_claim and hold_renew_claimed; the caller defines refuse.
 source "$(dirname "${BASH_SOURCE[0]}")/config.env"
 hold_repo=$FORK_REPO
 
@@ -57,10 +57,25 @@ hold_claim() {
         return 0
     fi
     value="$1 $(($(date +%s) + 10#$minutes * 60)) auto"
+    hold_claimed=$value  # before the set: a failed set may still have saved it, and exit must release it
     gh variable set LANDING_HOLD -R "$hold_repo" --body "$value" > /dev/null || refuse 'cannot set the landing hold; try again'
     current=$(hold_read) || refuse 'cannot read the landing hold (gh variable get LANDING_HOLD); try again'
     [ "$current" = "$value" ] || refuse 'another lander took the landing hold first; try again'
+}
+
+# land.sh, before each push: restarts its own auto hold's clock so a long run cannot outlive it; leaves any other hold to
+# check_hold. Warns rather than refuses when the hold cannot be read or set.
+hold_renew_claimed() {
+    local current value
+    [ -n "$hold_claimed" ] || return 0
+    if ! current=$(hold_read 2> /dev/null); then
+        echo 'WARN: cannot read the landing hold to renew it' >&2
+        return 0
+    fi
+    [ "$current" = "$hold_claimed" ] || return 0
+    value="${hold_claimed%% *} $(($(date +%s) + 10#${NOTCHCAST_LAND_HOLD_MINUTES:-150} * 60)) auto"
     hold_claimed=$value
+    gh variable set LANDING_HOLD -R "$hold_repo" --body "$value" > /dev/null || echo 'WARN: could not renew the landing hold' >&2
 }
 
 # Deletes the hold only if it is still exactly what hold_claim wrote; never one set or extended since.

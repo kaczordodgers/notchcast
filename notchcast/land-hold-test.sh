@@ -115,3 +115,17 @@ RACE_VALUE="330 $later" claim 7 || true
 grep -q '^REFUSED: another lander took the landing hold first' "$scratch/output" && [ "$(cat "$STORE")" = "330 $later" ] \
     || { cat "$scratch/output"; echo 'FAIL: lost write race'; exit 1; }
 echo 'PASS: hold_claim refuses when it lost a write race'
+renew() { (source "$hold"; hold_claimed=$1; hold_renew_claimed; echo "claimed=$hold_claimed") > "$scratch/output" 2>&1 || true; }
+soon=$(($(date +%s) + 60))
+echo "7 $soon auto" > "$STORE"
+NOTCHCAST_LAND_HOLD_MINUTES=150 renew "7 $soon auto"
+read -r owner until auto < "$STORE"
+[ "$owner" = 7 ] && [ "$auto" = auto ] && [ "$until" -ge $(($(date +%s) + 8990)) ] && grep -q "^claimed=7 $until auto$" "$scratch/output" \
+    || { cat "$STORE" "$scratch/output"; echo 'FAIL: hold_renew_claimed did not extend its own hold'; exit 1; }
+echo "330 $later" > "$STORE"
+renew "7 $soon auto"
+[ "$(cat "$STORE")" = "330 $later" ] && grep -q "^claimed=7 $soon auto$" "$scratch/output" \
+    || { cat "$STORE" "$scratch/output"; echo 'FAIL: hold_renew_claimed touched a replaced hold'; exit 1; }
+GH_FAIL=1 renew "7 $soon auto"
+grep -q '^WARN: cannot read the landing hold to renew it' "$scratch/output" || { cat "$scratch/output"; echo 'FAIL: renew read error'; exit 1; }
+echo 'PASS: hold_renew_claimed extends its own auto hold, leaves a replaced one, warns when unreadable'

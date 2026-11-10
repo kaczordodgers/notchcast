@@ -250,6 +250,7 @@ if [ "$check" -eq 0 ]; then
         || refuse "PR #$pr moved past ${head:0:8} during the check; run land.sh $pr again"
     # The new commit's only parent is $base, so this plain (never forced) push lands only while main is still $base.
     for attempt in 1 2 3 4 5 6; do
+        hold_renew_claimed
         check_hold "$pr"  # a hold set while the harnesses ran wins
         git push origin "$commit:refs/heads/main" && break
         [ "$attempt" -lt 6 ] || refuse "main moved during each of 6 pushes; run land.sh $pr again"
