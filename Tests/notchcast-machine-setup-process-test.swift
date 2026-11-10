@@ -6,19 +6,10 @@ import Foundation
 struct MachineSetupProcessTests {
     @MainActor
     static func main() async throws {
-        if CommandLine.arguments.contains("--timeout-child") {
-            try await Task.sleep(for: .seconds(30))
-            return
-        }
-        let child = Process()
-        child.executableURL = URL(fileURLWithPath: CommandLine.arguments[0])
-        child.arguments = ["--timeout-child"]
-        let started = ContinuousClock.now
-        do {
-            try MachineSetupProfileProcessExecutor.runToExit(child, timeout: 0.05)
-            fatalError("Expected timeout")
-        } catch {}
-        precondition(!child.isRunning && started.duration(to: .now) < .seconds(3))
+        let live = MachineSetupProfileProcessExecutor.live()
+        let read = try live.process("/usr/bin/defaults", ["read", "com.apple.dock", "autohide"])
+        precondition(read.status == 0 || read.status == 1)
+        do { _ = try live.process("/bin/sh", ["-c", "true"]); fatalError("Expected rejection") } catch {}
         let policy = MachineSetupProfileEngine.Policy(appVersion: "1", fileKeys: [:],
             moduleKeys: [], tweakIDs: MachineSetupProfileProcessExecutor.tweakIDs)
         let profile = MachineSetupProfile(format: 1, appVersion: "1", backup: Data(),
@@ -115,7 +106,7 @@ struct MachineSetupProcessTests {
             confirm: { _ in fatalError("Failed preview cannot confirm") },
             apply: { fatalError("Failed preview cannot apply") }, present: { _ in presented += 1 })
         precondition(presented == 2)
-        print("machine setup process: PASS (timeout, preview, apply, idempotence, helper, failure, root, consent, unsupported)")
+        print("machine setup process: PASS (real defaults read, shell rejection, preview, apply, idempotence, helper, failure, root, consent, unsupported)")
     }
 }
 

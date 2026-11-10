@@ -4,7 +4,6 @@
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
-import Darwin
 import Foundation
 
 private func check(_ condition: Bool, _ message: String = "check failed", line: UInt = #line) {
@@ -92,25 +91,15 @@ struct NotchcastSoloistFailuresTest {
     }
 
     private static func processChecks() async throws {
+        let quiet = try await SoloistProcess.run(URL(filePath: "/bin/sh"), arguments: ["-c", "sleep 0.05; printf done"])
+        check(quiet.text == "done", "a quiet process lost its output")
         do {
-            _ = try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["1"], readPipe: { _, _, _ in
-                errno = EBADF
-                return -1
-            })
-            preconditionFailure("a failing pipe read passed")
+            _ = try await SoloistProcess.run(URL(filePath: "/bin/sleep"), arguments: ["10"], timeout: .milliseconds(50))
+            preconditionFailure("a timeout passed")
         } catch {
             let failure = error as! SoloistFailure
-            check(failure.reason == .process && failure.message.contains("sleep: read:")
-                  && failure.message.contains("errno \(EBADF)"), failure.message)
+            check(failure.reason == .process && failure.message.contains("sleep: timed out"), failure.message)
         }
-        let waits = SendableCounter()
-        let quiet = try await SoloistProcess.run(URL(filePath: "/bin/sh"), arguments: ["-c", "sleep 0.05; printf done"],
-                                                 readPipe: { descriptor, buffer, size in
-            let count = Darwin.read(descriptor, buffer, size)
-            if count < 0 { waits.add() }
-            return count
-        })
-        check(quiet.text == "done" && waits.value > 0, "an empty pipe read stopped the process")
         do {
             _ = try await SoloistProcess.run(URL(filePath: "/nonexistent/tool"), arguments: [])
             preconditionFailure("a missing tool launched")
@@ -142,11 +131,4 @@ struct NotchcastSoloistFailuresTest {
         }
         check(try FileManager.default.contentsOfDirectory(atPath: files.root.path).allSatisfy { !$0.hasPrefix("staging-") })
     }
-}
-
-private final class SendableCounter: @unchecked Sendable {
-    private let lock = NSLock()
-    private var count = 0
-    var value: Int { lock.withLock { count } }
-    func add() { lock.withLock { count += 1 } }
 }

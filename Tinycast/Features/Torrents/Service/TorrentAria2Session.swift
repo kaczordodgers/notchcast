@@ -163,29 +163,13 @@ import Foundation
     }
 
     @concurrent private static func ownsListener(pid: Int32, port: UInt16) async throws -> Bool {
-        let command = Process()
-        let output = Pipe()
-        command.executableURL = URL(fileURLWithPath: "/usr/sbin/lsof")
-        command.arguments = ["-nP", "-a", "-p", String(pid), "-iTCP:\(port)", "-sTCP:LISTEN", "-Fpn"]
-        command.standardOutput = output
-        command.standardError = FileHandle.nullDevice
-        return try await withTaskCancellationHandler {
-            try Task.checkCancellation()
-            let exit = try command.runObservingExit()
-            try? output.fileHandleForWriting.close()
-            defer { try? output.fileHandleForReading.close() }
-            if Task.isCancelled, command.isRunning { kill(command.processIdentifier, SIGKILL) }
-            exit.wait()
-            try Task.checkCancellation()
-            let data = output.fileHandleForReading.readDataToEndOfFile()
-            guard let text = String(data: data, encoding: .utf8) else { throw TorrentFailure.listenerNotOwned }
-            let lines = text.split(separator: "\n").map(String.init)
-            let listeners = lines.filter { $0.hasPrefix("n") }
-            return command.terminationStatus == 0 && lines.contains("p\(pid)")
-                && listeners == ["n127.0.0.1:\(port)"]
-        } onCancel: {
-            if command.isRunning { kill(command.processIdentifier, SIGKILL) }
-        }
+        let output = try await ProcessRunner.run(.init(
+            executable: URL(fileURLWithPath: "/usr/sbin/lsof"),
+            arguments: ["-nP", "-a", "-p", String(pid), "-iTCP:\(port)", "-sTCP:LISTEN", "-Fpn"]))
+        guard let text = String(data: output.stdout, encoding: .utf8) else { throw TorrentFailure.listenerNotOwned }
+        let lines = text.split(separator: "\n").map(String.init)
+        let listeners = lines.filter { $0.hasPrefix("n") }
+        return output.status == 0 && lines.contains("p\(pid)") && listeners == ["n127.0.0.1:\(port)"]
     }
 
     private static func waitBriefly(_ process: Process) async {

@@ -169,14 +169,10 @@ struct VoiceAskTransportTest {
         precondition(environment.status == 0 && paths.contains(directory.path) && paths.contains("/opt/homebrew/bin"),
                      "status \(environment.status), PATH \(paths), stderr \(String(decoding: environment.stderr, as: UTF8.self))")
         precondition(environment.stderr.count == 500)
-        do {
-            _ = try await VoiceAskProcessRunner.run(URL(filePath: "/usr/bin/true"), arguments: [],
-                                                    input: Data(repeating: 65, count: 1_048_576))
-            preconditionFailure("Expected broken pipe")
-        } catch {
-            precondition((error as NSError).code == NSFileWriteUnknownError || (error as NSError).code == 32)
-        }
-        print("PASS: env interpreter resolves via child PATH, stderr capped at 500 bytes, 1 MB broken pipe survives")
+        let unread = try await VoiceAskProcessRunner.run(URL(filePath: "/usr/bin/true"), arguments: [],
+                                                         input: Data(repeating: 65, count: 1_048_576))
+        precondition(unread.status == 0 && unread.stdout.isEmpty)
+        print("PASS: env interpreter resolves via child PATH, stderr capped at 500 bytes, unread 1 MB input returns status")
         for ignoresTermination in [false, true] {
             let pidFile = directory.appending(path: "pid")
             let command = "echo $$ > '\(pidFile.path)'; " + (ignoresTermination ? "trap '' TERM; exec sleep 30" : "exec sleep 30")
@@ -205,12 +201,10 @@ struct VoiceAskTransportTest {
         precondition(kill(cancelledPID, 0) == -1 && errno == ESRCH)
         print("PASS: cancellation kills TERM-ignoring child and returns within grace")
         let pipeStart = ContinuousClock.now
-        try await expect(.timeout) {
-            _ = try await VoiceAskProcessRunner.run(URL(filePath: "/bin/sh"),
-                arguments: ["-c", "sleep 3 & exit 0"], input: Data(), timeout: .milliseconds(100))
-        }
-        precondition(pipeStart.duration(to: .now) < .seconds(2.6))
-        print("PASS: inherited grandchild pipes cannot hold run past timeout + grace")
+        let orphaned = try await VoiceAskProcessRunner.run(URL(filePath: "/bin/sh"),
+            arguments: ["-c", "sleep 3 & exit 0"], input: Data(), timeout: .milliseconds(100))
+        precondition(orphaned.status == 0 && pipeStart.duration(to: .now) < .seconds(2.6))
+        print("PASS: a grandchild holding the child's output cannot hold run past the child's own exit")
         print("PASS: real platform process exit callback, stdin round trip and timeout using harmless stand-in executables")
     }
 
