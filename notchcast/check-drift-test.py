@@ -283,13 +283,14 @@ class Gates(unittest.TestCase):
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn(f'file-size: {moved}: {LARGE_LINES + 1} > {LARGE_LINES}', result.stdout)
 
-    def test_new_path_without_rename_is_growth(self):
+    def test_renamed_file_keeps_its_named_budget(self):
+        self.assertEqual(self.baseline()['dead'][LARGE + ':fixtureValue0'], 1)
+        moved = self.move_large(LARGE_LINES)
         baseline = self.baseline()
-        baseline['file-size']['Tinycast/Features/Battery/Added.swift'] = 1
+        baseline['dead'][moved + ':fixtureValue0'] = baseline['dead'].pop(LARGE + ':fixtureValue0')
         self.save_baseline(baseline)
         result = self.run_check('2', '--compare-base', 'HEAD')
-        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
-        self.assertIn('file-size: Tinycast/Features/Battery/Added.swift: 1 > 0', result.stdout)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_tightening_retains_zero_keys(self):
         write(self.root, LARGE, '')
