@@ -110,13 +110,13 @@ struct LauncherKeysTest {
             }
             precondition(decision(query, enabled: false) == .ignore)
         }
+        precondition(LauncherNumberKeys.rowIndex(
+            digit: 1, query: "r", entryRows: [2, 5, 9], favoriteCount: 0,
+            hasLeadCard: false, enabled: false) == nil)
+        precondition(LauncherNumberKeys.rowIndex(
+            digit: 2, query: "r", entryRows: [2, 5, 9], favoriteCount: 9,
+            hasLeadCard: true, enabled: true) == 5)
         for feature in [NotchcastFeature.launcherNumberKeys, .launcherAliasSpace] {
-            precondition(LauncherNumberKeys.rowIndex(
-                digit: 1, query: "r", entryRows: [2, 5, 9], favoriteCount: 0,
-                hasLeadCard: false, enabled: false) == nil)
-            precondition(LauncherNumberKeys.rowIndex(
-                digit: 2, query: "r", entryRows: [2, 5, 9], favoriteCount: 9,
-                hasLeadCard: true, enabled: true) == 5)
             precondition(!feature.defaultEnabled && !feature.needsIsland)
             precondition(feature.settingsGroup == .launcher && feature.requiredGrants.isEmpty)
         }

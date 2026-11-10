@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/DictationEnglish/Service/DictationEnglishModule*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
+// notchcast-kit: input
 import AppKit
 import Carbon.HIToolbox
 
@@ -36,17 +36,6 @@ import Carbon.HIToolbox
     }
 }
 
-@MainActor final class DictationCoordinator {
-    static var englishTranscriptStage: (@Sendable (String, String?) async -> String)?
-    var triggerIsRecording = false
-    var starts = 0
-    var finishes = 0
-    var cancels = 0
-    func triggerStarted(inEnglish: Bool) { precondition(inEnglish); starts += 1; triggerIsRecording = true }
-    func triggerFinished() { finishes += 1; triggerIsRecording = false }
-    func cancelEnglish() { cancels += 1; triggerIsRecording = false }
-}
-
 enum Paster { static let tinycastEventTag: Int64 = 1 }
 enum DialogTone { case danger }
 @MainActor final class AppCore {
@@ -54,18 +43,6 @@ enum DialogTone { case danger }
     var messages: [String] = []
     func showMessage(_ message: String, tone: DialogTone) { messages.append(message) }
 }
-enum DictationEnglish {
-    static func process(
-        _ raw: String, language: String?, onFallback: @Sendable () async -> Void
-    ) async -> String {
-        await onFallback()
-        return raw
-    }
-}
-enum DictationCleanup {
-    static func observeTranscript(raw: String, cleaned: String) async {}
-}
-
 @main struct EnglishModuleTest {
     @MainActor static func main() async {
         let hub = EventTapHub()
@@ -81,7 +58,7 @@ enum DictationCleanup {
         hub.send()
         module.stop()
         module.stop()
-        precondition(coordinator.cancels == 1 && !coordinator.triggerIsRecording)
+        precondition(coordinator.englishCancels == 1 && !coordinator.triggerIsRecording)
         precondition(hub.handlers.isEmpty && hub.synchronous.isEmpty)
         hub.send()
         precondition(coordinator.starts == 2)

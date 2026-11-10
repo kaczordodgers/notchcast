@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule*.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
 
 import Foundation
 
@@ -24,12 +25,6 @@ import Foundation
     func saveAPIKey(_ value: String) throws {
         if fails { throw Failure.unavailable }
     }
-}
-@MainActor enum DictationCoordinator { static var transcriptStage: (() -> Void)? }
-@MainActor enum DictationCleanup {
-    static var installs = 0
-    static func install() { installs += 1; DictationCoordinator.transcriptStage = {} }
-    static func uninstall() { DictationCoordinator.transcriptStage = nil }
 }
 
 @main struct CleanupModuleTest {
@@ -58,7 +53,7 @@ import Foundation
         precondition(stops == 2 && failures == 5)
         let live = DictationCleanupModule.live()
         live.start()
-        precondition(DictationCleanup.installs == 1 && DictationCoordinator.transcriptStage != nil)
+        precondition(DictationCoordinator.transcriptStage != nil)
         live.stop()
         precondition(DictationCoordinator.transcriptStage == nil)
         print("PASS cleanup module lifecycle, persistence failures and live installation wiring")

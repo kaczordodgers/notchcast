@@ -3,6 +3,11 @@
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsQueueController.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsActivity.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsIslandBridge.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadRunner.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
@@ -91,25 +96,9 @@ struct DownloadsModuleTest {
         }
         try await eventually { queue.jobs.suffix(2).allSatisfy { $0.state == .done } }
         try await eventually { module.activity.runningCount == 1 }
-        var commandStarted = false
-        var commandCancelled = false
-        let command = Task {
-            commandStarted = true
-            do {
-                try await Task.sleep(for: .seconds(60))
-            } catch is CancellationError {
-                commandCancelled = true
-            } catch {
-                preconditionFailure(String(describing: error))
-            }
-        }
-        module.commandTask = command
-        try await eventually { commandStarted }
         preferences.set(.downloads, false)
         try await eventually { module.state.queue == nil }
         await module.state.settle()
-        await command.value
-        precondition(commandCancelled && module.commandTask == nil)
         precondition(module.activity.runningCount == 0 && releases > 0)
         precondition(queue.jobs.first { $0.kind == "audio" }?.state == .interrupted)
         module.start()

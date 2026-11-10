@@ -4,6 +4,7 @@ name: PR
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, converted_to_draft]
   workflow_dispatch:
 
 permissions:
@@ -15,6 +16,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
     runs-on: xcode-27
     timeout-minutes: 90
     steps:
@@ -33,3 +35,17 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: bash ../tools/notchcast/ci-build.sh
+      # Only after a green build: Sync's plan skips testing a main whose tree (GENERATED aside) a PR build already proved.
+      - name: Record the tested tree
+        id: tree
+        working-directory: src
+        run: |
+          echo "key=$(python3 ../tools/notchcast/ci.py tested-key HEAD)" >> "$GITHUB_OUTPUT"
+          git rev-parse HEAD > "$RUNNER_TEMP/tested-commit"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: tested-tree-${{ steps.tree.outputs.key }}
+          path: ${{ runner.temp }}/tested-commit
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 7

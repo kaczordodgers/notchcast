@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskModule.swift
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskCLI*.swift
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskProcessRunner.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift

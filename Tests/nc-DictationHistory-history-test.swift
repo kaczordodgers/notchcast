@@ -5,15 +5,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/DictationCleanup/Service/*.swift
-// notchcast-sources: Tinycast/Features/DictationCleanup/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
 import Foundation
-
-@MainActor
-enum DictationCoordinator {
-    static var transcriptStage: (@Sendable (String, String?) async -> String)?
-    static var transcriptObserver: ((String, String) -> Void)?
-}
 
 @main
 struct DictationHistoryTests {
@@ -24,8 +17,9 @@ struct DictationHistoryTests {
         let date = Date(timeIntervalSince1970: 2_000_000_000)
         let repository = DictationHistoryRepository(directory: directory, now: { date })
         let module = DictationHistoryModule(repository: repository)
-        module.setStageEnabled = { DictationCleanup.setHistoryEnabled($0) }
-        DictationCleanup.transcriptObserver = { module.enqueue(raw: $0, cleaned: $1) }
+        let family = DictationFamily.shared
+        module.setStageEnabled = { family.setHistory($0) }
+        family.historySink = { module.enqueue(raw: $0, cleaned: $1) }
         let suite = "history-test-" + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -51,21 +45,21 @@ struct DictationHistoryTests {
         let entries = try await module.recent()
         precondition(entries.count == 1 && entries[0].cleaned == "fixture raw")
         try await module.deleteAll()
-        DictationCleanup.observeTranscript(raw: "Wyślij raport.", cleaned: "Send the report.")
+        family.observeTranscript(raw: "Wyślij raport.", cleaned: "Send the report.")
         await module.waitUntilIdle()
         let english = try await module.recent()
         precondition(english.count == 1 && english[0].cleaned == "Send the report.")
         precondition(english[0].raw == "Wyślij raport.")
         let backup = try directory.resourceValues(forKeys: [.isExcludedFromBackupKey])
         precondition(backup.isExcludedFromBackup == true)
-        DictationCleanup.install()
+        family.setCleanup(true)
         module.stop()
         precondition(DictationCoordinator.transcriptStage != nil)
-        DictationCleanup.uninstall()
+        family.setCleanup(false)
         precondition(DictationCoordinator.transcriptStage == nil)
-        DictationCleanup.install()
+        family.setCleanup(true)
         module.start()
-        DictationCleanup.uninstall()
+        family.setCleanup(false)
         precondition(DictationCoordinator.transcriptStage != nil)
         let retained = await DictationCoordinator.transcriptStage!("history only", nil)
         DictationCoordinator.transcriptObserver?("history only", retained)

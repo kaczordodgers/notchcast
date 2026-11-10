@@ -30,12 +30,11 @@ extension RecordingModule {
     var isCommandActive: Bool { phase == .recording || phase == .paused }
 
     func recordScreen() {
-        guard let number = NSScreen.underCursor?.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")]
-            as? NSNumber else {
+        guard let displayID = NSScreen.underCursor?.displayID else {
             AppCore.shared.showMessage(Self.failureMessage(RecordingTarget.Failure.targetUnavailable), tone: .danger)
             return
         }
-        performRecordingCommand(.record(.display(number.uint32Value)))
+        performRecordingCommand(.record(.display(displayID)))
     }
 
     func recordArea() {

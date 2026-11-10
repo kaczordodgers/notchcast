@@ -15,14 +15,18 @@ final class AgentBridgeModule: NotchcastModule {
             let confirmation = AgentConfirmationAuthorization(grants: grants,
                 isEnabled: { NotchcastPreferences.shared.isOn(.agentConfirmation) },
                 timeout: AgentRequestTiming.confirmationTimeout) { action, message, choices in
-                await core.choose(title: action.title, message: message,
-                    symbol: "checkmark.shield", options: choices.map { choice in
-                        switch choice {
-                        case .allowOnce: DialogAction(title: String(localized: "Allow once", table: "Notchcast"))
-                        case .alwaysAllow: DialogAction(title: String(localized: "Always allow", table: "Notchcast"))
-                        case .deny: DialogAction(title: String(localized: "Deny", table: "Notchcast"), role: .cancel)
-                        }
-                    }, defaultIndex: choices.count - 1)
+                await withTaskCancellationHandler {
+                    await core.choose(title: action.title, message: message,
+                        symbol: "checkmark.shield", options: choices.map { choice in
+                            switch choice {
+                            case .allowOnce: DialogAction(title: String(localized: "Allow once", table: "Notchcast"))
+                            case .alwaysAllow: DialogAction(title: String(localized: "Always allow", table: "Notchcast"))
+                            case .deny: DialogAction(title: String(localized: "Deny", table: "Notchcast"), role: .cancel)
+                            }
+                        }, defaultIndex: choices.count - 1)
+                } onCancel: {
+                    Task { @MainActor in DialogPanel.dismissOpen() }
+                }
             }
             self.confirmation = confirmation
             // MCP shares the local CLI agent identity and its consent grants.

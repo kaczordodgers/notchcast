@@ -63,7 +63,6 @@ struct NotchcastCommand {
         precondition(WaitingAlertsEngine.notices(previous: [], current: approval) == approval)
         precondition(WaitingAlertsEngine.notices(previous: approval, current: approval).isEmpty)
         precondition(WaitingAlertsEngine.notices(previous: approval, current: []).isEmpty)
-        precondition(WaitingAlertsEngine.notices(previous: [], current: approval) == approval)
         precondition(WaitingAlertsEngine.message(approval, total: 3) == "Example is waiting for approval.")
         precondition(WaitingAlertsEngine.message(question, total: 1) == "Example has a question.")
         precondition(WaitingAlertsEngine.message(approval + question, total: 2) == "2 agents are waiting.")

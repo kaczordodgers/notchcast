@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Model/*.swift
-// notchcast-sources: Tinycast/Features/MachRemote/Service/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/MachRemote/Service/*.swift
 import Foundation
 
 // Runs only what follows the ssh call, under macOS's default shell, where `status` is read-only.

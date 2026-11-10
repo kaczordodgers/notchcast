@@ -2,7 +2,6 @@ import Foundation
 
 @MainActor
 final class DownloadsModule: NotchcastModule {
-    var commandTask: Task<Void, Never>?
     let state: DownloadsQueueController
     private let preferences: NotchcastPreferences
     private let services: NotchcastDownloadServices
@@ -18,6 +17,7 @@ final class DownloadsModule: NotchcastModule {
         self.readInterfaces = readInterfaces ?? NetMergeInterfaceMonitor().readInterfaces
         state = DownloadsQueueController(file: file, destination: destination, tools: services.tools,
                                          releaseSpeech: services.releaseSpeech, report: report)
+        DownloadsIslandBridge.track(state)
     }
 
     func start() {
@@ -36,8 +36,6 @@ final class DownloadsModule: NotchcastModule {
     }
 
     func stop() {
-        commandTask?.cancel()
-        commandTask = nil
         state.stop()
     }
 }

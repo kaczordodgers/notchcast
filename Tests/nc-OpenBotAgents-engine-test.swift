@@ -137,11 +137,14 @@ struct OpenBotTests {
         await expectFailure(.malformed) {
             _ = try await service(FixtureTransport([("[]", 200)])).pending(agent: "fixture-bot")
         }
-        for status in ["queued", "pending", "running", "completed", "failed", "interrupted", "cancelled", "future"] {
+        let statuses: [(String, OpenBotDelivery.Status)] = [
+            ("queued", .queued), ("pending", .pending), ("running", .running), ("completed", .completed),
+            ("failed", .failed), ("interrupted", .interrupted), ("cancelled", .cancelled), ("future", .unknown)]
+        for (status, expected) in statuses {
             let fixture = "{\"id\":\"fixture-delivery\",\"status\":\"\(status)\",\"answer\":null}"
             let delivery = try await service(FixtureTransport([(fixture, 200)]))
                 .delivery(agent: "fixture-bot", id: "fixture-delivery")
-            precondition(delivery.status == OpenBotDelivery.Status(rawValue: status) ?? .unknown)
+            precondition(delivery.status == expected, "\(status)")
             precondition(delivery.status.hasEnded == ["completed", "failed", "interrupted", "cancelled"].contains(status))
         }
         let receipt = """
