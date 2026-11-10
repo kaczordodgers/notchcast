@@ -42,8 +42,10 @@ wait "$two" || status=1
 [ "$status" -eq 0 ] || { cat "$scratch/one" "$scratch/two"; exit 1; }
 [ "$(sort -u "$EVENTS" | wc -l | tr -d ' ')" -eq 2 ] || { echo 'FAIL: concurrent runs share a worktree'; exit 1; }
 grep -q 'builder' "$NOTCHCAST_LOCAL_CI_DIR/logs/fixture.log"
-[ -z "$(find "$NOTCHCAST_LOCAL_CI_DIR" -name 'build.*' -print)" ]
+while read -r tree; do [ ! -e "$(dirname "$tree")" ]; done < "$EVENTS"
 echo 'PASS: concurrent same-head runs use distinct worktrees and retain the stable log'
+! grep -q "^$HOME/\|^$NOTCHCAST_LOCAL_CI_DIR/" "$EVENTS" || { cat "$EVENTS"; echo 'FAIL: tree under the home'; exit 1; }
+echo 'PASS: the build tree lives outside the home'
 grep -q '^one: .*build-queue.py hold -- bash ' "$QUEUE_CALLS" || { cat "$QUEUE_CALLS"; echo 'FAIL: no hold, normal lane'; exit 1; }
 # During a landing hold the owner's build takes the priority lane and every other PR's local CI waits.
 later=$(($(date +%s) + 600))
