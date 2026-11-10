@@ -24,6 +24,13 @@ enum PlayerCommand: Equatable { case play, togglePlayPause }
     func setEnabled(_ value: Bool) { isEnabled = value }
     func send(_ command: PlayerCommand) {}
     func openReplacement(startingPlayback: Bool) -> Task<Void, Never> { Task {} }
+    var nowPlayingCover: (Int?) -> Int? = { $0 }
+    func present() {}
+}
+@MainActor final class BrowserCoverFinder {
+    var onFound: () -> Void = {}
+    func cover(for track: Int?) -> Int? { track }
+    func reset() {}
 }
 @MainActor final class SystemNowPlayingSource {
     var onCommandFailure: (() -> Void)?

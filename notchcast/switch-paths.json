@@ -21,6 +21,7 @@
   "launcherAliasSpace": "hotkey: Space after exact alias (Tinycast/Palette/RootPaletteView.swift:1492)",
   "musicNowPlaying": "launcher command Open Current Player (Tinycast/Features/Music/Commands/MusicCommands.swift:20; catalog :37); note: no island view renders now-playing, so \"Show what is playing\" itself has no surface",
   "musicBlockAppleMusic": "automatic: launch blocker on media keys (Tinycast/Features/Music/Service/MusicBlockAppleMusicModule.swift:15, Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift:154)",
+  "musicSharpCovers": "default off: automatic, a Firefox-family track without a sharp cover gets its YouTube or Apple cover in the island (Tinycast/Features/Music/Service/MusicSharpCoversModule.swift:15, Tinycast/Features/Music/Service/BrowserCoverFinder.swift:47)",
   "spotifyConnect": "automatic: Soloist Connect speaker (Tinycast/Features/Music/Service/SpotifyConnectModule.swift:25) + Spotify settings section + launcher Speaker On/Off (Tinycast/Features/Music/Commands/MusicCommands+Playback.swift:14)",
   "accessoryBatteries": "settings rows list accessory battery levels, refreshed every 60 s (Tinycast/Features/Notchcast/Settings/NotchcastAccessoriesSettingsRows.swift:41); Settings is the only surface",
   "monitorAlerts": "automatic: threshold alerts posted as danger messages (Tinycast/Features/SystemMonitor/Store/MonitorModule.swift:63 → sink at Tinycast/Features/Notchcast/Core/NotchcastCore.swift:89)",

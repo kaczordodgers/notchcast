@@ -24,6 +24,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     case musicNowPlaying
     case musicLastPlayer
     case musicBlockAppleMusic
+    case musicSharpCovers
     case spotifyConnect
     case microphoneMute
     case inUseMarks

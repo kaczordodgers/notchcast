@@ -68,6 +68,7 @@ final class NotchcastServices {
     let music = CountingModule()
     let lastPlayer = CountingModule()
     let appleMusic = CountingModule()
+    let sharpCovers = CountingModule()
     let spotify = CountingModule()
     let microphone = CountingModule()
     let marks = CountingModule()
