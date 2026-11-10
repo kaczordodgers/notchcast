@@ -5,6 +5,7 @@ final class NotchcastServices {
     let music: MusicNowPlayingModule
     let lastPlayer: MusicLastPlayerModule
     let appleMusic: MusicBlockAppleMusicModule
+    let sharpCovers: MusicSharpCoversModule
     let spotify: SpotifyConnectModule
     let microphone: MicrophoneMuteModule
     let marks: InUseMarksModule
@@ -26,6 +27,7 @@ final class NotchcastServices {
         }
         lastPlayer = MusicLastPlayerModule(model: music.model)
         appleMusic = MusicBlockAppleMusicModule(music: music)
+        sharpCovers = MusicSharpCoversModule(model: music.model)
         spotify = SpotifyConnectModule(source: music.soloist, defaults: preferences.engineDefaults)
         let mute = MicrophoneMute(audio: CoreMicrophoneAudio(), defaults: preferences.engineDefaults)
         microphone = MicrophoneMuteModule(model: mute, showMessage: { [weak core] in core?.showMessage($0) },
