@@ -16,6 +16,7 @@ if [ "$1" = push ]; then
     exit 0
 fi
 if [ "$1" = fetch ]; then exit 0; fi
+if [ "$1" = diff ] && [ -n "${DIFF_FAILS:-}" ]; then echo 'fatal: bad object' >&2; exit 128; fi
 exec "$REAL_GIT" "$@"
 STUB
 chmod +x "$scratch/bin/git"
@@ -26,7 +27,7 @@ git config user.name Damian
 git config user.email 336236323+kaczordodgers@users.noreply.github.com
 echo base > base.txt
 mkdir notchcast
-echo 'GENERATED = ["generated.txt"]' > notchcast/ci.py
+printf 'RUNTIME_JS = "runtime.js"\nGENERATED = ["generated.txt", RUNTIME_JS]\n' > notchcast/ci.py
 git add .
 git commit -qm 'Fixture base'
 base=$(git rev-parse HEAD)
@@ -96,3 +97,35 @@ fi
 [ "$(wc -l < "$PUSHES")" -eq 2 ]
 [ "$(wc -l < "$scratch/rebuilt")" -eq 1 ]
 echo 'PASS: a generated-only move merges again, skips the harnesses and pushes'
+# An unreadable move must not pass as generated-only.
+: > "$PUSHES"
+rm -f "$scratch/rebuilt" "$scratch/harnessed"
+git update-ref refs/remotes/origin/main "$base"
+status=0
+(DIFF_FAILS=1 source "$scratch/retry") > "$scratch/output" 2>&1 || status=$?
+if [ "$status" -ne 1 ] || [ -e "$scratch/harnessed" ] || ! grep -q 'cannot read how main moved' "$scratch/output"; then
+    cat "$scratch/output"
+    echo 'FAIL: an unreadable move skipped the harnesses'
+    exit 1
+fi
+[ "$(wc -l < "$PUSHES")" -eq 1 ]
+echo 'PASS: an unreadable move refuses before the second push'
+# The runtime JS is generated but a harness loads it, so a move touching it reruns the harnesses.
+git switch -q --detach "$base"
+echo rebuilt > runtime.js
+git add runtime.js
+git commit -qm 'Fixture runtime'
+export MOVED=$(git rev-parse HEAD)
+git switch -q --detach "$head"
+: > "$PUSHES"
+rm -f "$scratch/rebuilt"
+git update-ref refs/remotes/origin/main "$base"
+status=0
+(source "$scratch/retry") > "$scratch/output" 2>&1 || status=$?
+if [ "$status" -ne 0 ] || [ ! -e "$scratch/harnessed" ] || ! grep -q 'rerunning harnesses' "$scratch/output"; then
+    cat "$scratch/output"
+    echo 'FAIL: a runtime JS move skipped the harnesses'
+    exit 1
+fi
+[ "$(wc -l < "$PUSHES")" -eq 2 ]
+echo 'PASS: a runtime JS move merges again and reruns the harnesses'
