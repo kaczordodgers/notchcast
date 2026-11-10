@@ -18,7 +18,7 @@ enum CopyPathEngine {
         if let url = URL(string: address), url.isFileURL, url.host == nil || url.host == "localhost" {
             return paths([url.path(percentEncoded: false)], home: home)
         }
-        return NotchcastLink.clean(address).map(Outcome.link) ?? .nothing
+        return WebRules.cleanLink(address).map(Outcome.link) ?? .nothing
     }
 
     private static func display(_ raw: String, home: String) -> String {

@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift Tinycast/Features/SmallCommands/Service/*.swift Tinycast/Features/SmallCommands/SmallCommandsModule*.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AccessibilityText.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Core/NotchcastLink.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Model/WebRules.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}
@@ -53,8 +53,10 @@ struct NotchcastCommand: Sendable {
         }
         precondition(calls == 4 && copied.count == 2 && reports == ["Copied", "Copied", "Done", "Done"])
         module.stop()
-        module.runFromLauncher(.password, execute: { _ in preconditionFailure("Stopped") })
-        precondition(module.commandTask == nil)
+        var ranWhileStopped = false
+        module.runFromLauncher(.password, execute: { _ in ranWhileStopped = true; return nil })
+        for _ in 0..<20 { await Task.yield() }
+        precondition(!ranWhileStopped)
         print("Verified four launcher actions reach fake runners, copy text, report completion and stop")
     }
 }

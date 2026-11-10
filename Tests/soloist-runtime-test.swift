@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/Music/Model/Soloist*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/Soloist*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupRestore.swift
@@ -24,15 +24,6 @@ struct SoloistRuntimeTest {
         let root = FileManager.default.temporaryDirectory.appending(path: "soloist-runtime-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
         let files = SoloistFiles(root: root)
-        if CommandLine.arguments.contains("--live") {
-            let installer = SoloistInstaller(files: files)
-            let build = try await installer.install()
-            let output = try await SoloistProcess.run(build.executable, arguments: ["--version"])
-            print("LIVE: \(output.text.trimmingCharacters(in: .whitespacesAndNewlines)); "
-                  + "expires=\(build.expires.ISO8601Format()); days=\(build.daysRemaining(at: Date())); key=none")
-            check(try await installer.installed() == build)
-            return
-        }
         try keyChecks(root: root)
         try archiveChecks()
         try await installerChecks(root: root)

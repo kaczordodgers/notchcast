@@ -76,7 +76,6 @@
     "Features/Torrents -> Features/NetMerge": 1,
     "Features/Treadmill -> Features/AgentBridge": 2,
     "Features/Tweaks -> Features/SystemTools": 1,
-    "Features/URLCleaner -> Features/Distill": 1,
     "notchcast/root -> Features/Clean": 1,
     "notchcast/root -> Features/SystemTools": 1
   },
@@ -99,7 +98,7 @@
     "com.apple.": 3,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
-    "com.apple.quarantine": 4,
+    "com.apple.quarantine": 3,
     "notchcast.appearance.surface": 2,
     "notchcast.appearance.theme.dark": 2,
     "notchcast.appearance.theme.light": 2,

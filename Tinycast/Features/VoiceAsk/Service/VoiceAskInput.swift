@@ -18,6 +18,8 @@ final class VoiceAskInput {
         let types: [CGEventType] = [.keyDown, .keyUp, .flagsChanged, .leftMouseDown, .rightMouseDown]
         tap.observe(mask: types.reduce(0) { $0 | (1 << $1.rawValue) }) { [weak self] event in
             guard let self, !event.isSynthetic, !event.isRepeat else { return }
+            // Secure Input hides key-ups from taps; a key the keyboard no longer holds is not held.
+            heldKeys = heldKeys.filter { CGEventSource.keyState(.combinedSessionState, key: CGKeyCode($0)) }
             let alone = heldKeys.isEmpty
             if event.type == .keyDown { heldKeys.insert(event.keyCode) }
             if event.type == .keyUp { heldKeys.remove(event.keyCode) }

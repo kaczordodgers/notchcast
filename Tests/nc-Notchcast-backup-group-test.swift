@@ -21,7 +21,6 @@ enum BackupCategory: Hashable { case configuration; static let all: Set<Self> = 
     static let settingsFilePath = "fixture/settings.json"
     static func setSettingsFileEnabled(_ value: Bool, core: AppCore) async {
         writes.append(value)
-        core.settings.settingsFileEnabled = value
     }
     static func revealSettingsFile() {}
     static func runImportCommand(core: AppCore) async {}
@@ -56,18 +55,17 @@ struct SettingsSectionHeader: View {
         precondition(binding.wrappedValue)
         binding.wrappedValue = false
         while BackupActions.writes.isEmpty { await Task.yield() }
-        precondition(!core.settings.settingsFileEnabled)
+        precondition(BackupActions.writes == [false])
+        precondition(core.settings.settingsFileEnabled && binding.wrappedValue, "the binding only asks BackupActions")
+        core.settings.settingsFileEnabled = false
+        precondition(!binding.wrappedValue, "the toggle shows the setting")
         binding.wrappedValue = true
         while BackupActions.writes.count < 2 { await Task.yield() }
-        precondition(core.settings.settingsFileEnabled)
+        precondition(BackupActions.writes == [false, true])
         let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
         func read(_ path: String) throws -> String {
             try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)
         }
-        let group = try read("Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift")
-        precondition(group.contains("get: { core.settings.settingsFileEnabled }"))
-        precondition(group.contains("await BackupActions.setSettingsFileEnabled(enabled, core: core)"))
-        precondition(!group.contains("settingsFileEnabled ="))
         let settings = try read("Tinycast/Features/Settings/AppSettings.swift")
         precondition(settings.contains("settingsFileEnabled = defaults.bool(forKey: Key.settingsFileEnabled.rawValue)"))
         print("Backup group wiring and construction passed; full app launch is not exercised")

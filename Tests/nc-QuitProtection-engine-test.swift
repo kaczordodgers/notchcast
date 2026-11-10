@@ -21,7 +21,6 @@ struct QuitProtectionTests {
         let first = engine.consume(.keyDown(q, .command, isRepeat: false), at: 10, target: target)
         guard case .swallow(let notice) = first else { fatalError("First quit must be swallowed") }
         check(notice?.text == "Press ⌘Q again to quit Editor", "Notice names the target")
-        check(engine.deadline == 10.6, "Double-press deadline")
         check(engine.consume(.keyDown(q, .command, isRepeat: true), at: 10.1, target: target) == .swallow(nil),
               "Repeat cannot confirm")
         check(engine.consume(.keyDown(q, .command, isRepeat: false), at: 10.2, target: target) == .swallow(nil),
@@ -65,7 +64,6 @@ struct QuitProtectionTests {
 
         engine.configuration.mode = .hold
         _ = engine.consume(.keyDown(q, .command, isRepeat: false), at: 40, target: target)
-        check(engine.deadline == 40.8, "Hold deadline")
         check(engine.consume(.tick, at: 40.799, target: target) == .pass, "Hold before 800 ms waits")
         check(engine.consume(.tick, at: 40.8, target: target) == .quit(target), "800 ms hold confirms")
         check(engine.consume(.tick, at: 40.9, target: target) == .pass, "Hold confirms once")

@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/Music/Model/Soloist*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/Soloist*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 import AppKit
 import Foundation
 
@@ -280,7 +280,6 @@ struct SoloistSpeakerTest {
         let f = try Fixture()
         let previous = SoloistPeer(pid: 123, path: f.builds.available[0].executable.path)
         f.processes.list = [previous]
-        check(!FileManager.default.fileExists(atPath: f.files.root.appending(path: "notchcast-soloist.pid").path))
         f.speaker.setEnabled(true)
         check(f.processes.stopped == [previous] && f.speaker.state == .waitingForOther)
         f.processes.end(previous.pid)

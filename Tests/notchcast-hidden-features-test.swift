@@ -9,7 +9,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/SearchRelevance.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
-// notchcast-reads: notchcast/docs/hidden.md Tinycast/App/AppCore.swift Tinycast/App/MenuBarItem.swift
+// notchcast-reads: Tinycast/App/AppCore.swift Tinycast/App/MenuBarItem.swift
 // notchcast-reads: Tinycast/Features/Settings/*.swift Tinycast/Windows/About/AboutView.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift
 // notchcast-reads: Tinycast/Features/AppleShortcuts/UI/AppleShortcutCoordinator.swift
@@ -29,22 +29,15 @@ struct HiddenFeaturesTest {
     static func main() throws {
         precondition(!SettingsSection.allCases.flatMap(\.tabs).contains(.extensions))
         precondition(SettingsTab(slug: "extensions") == nil)
-        let document = try String(contentsOfFile: "notchcast/docs/hidden.md", encoding: .utf8)
-        let rows = document.split(separator: "\n").filter { $0.hasPrefix("| Hidden |") }
-        precondition(rows.count == 7)
         let visible = SettingsSection.allCases.flatMap(\.tabs)
-        for row in rows {
-            let cells = row.split(separator: "|").map { $0.trimmingCharacters(in: .whitespaces) }
-            let slug = cells[2]
-            if slug != "none" {
-                let tab = SettingsTab.allCases.first { $0.slug == slug }!
-                precondition(!visible.contains(tab), "Visible hidden tab: \(slug)")
-                precondition(SettingsTab(slug: slug) == nil)
-                precondition(!SettingsSearchCatalog.entries.contains { $0.tab == tab })
-            }
-            if cells[3] != "none" {
-                precondition(NotchcastHidden.commands.contains(cells[3]))
-            }
+        let hiddenTabs: [SettingsTab] = [.extensions, .fallbacks, .appleShortcuts, .about, .backup]
+        precondition(NotchcastHidden.tabs == Set(hiddenTabs))
+        precondition(NotchcastHidden.commands == ["command:support", "command:import-from-raycast"])
+        precondition(!NotchcastHidden.fallbacksEnabled && !NotchcastHidden.supportEnabled)
+        for tab in hiddenTabs {
+            precondition(!visible.contains(tab), "Visible hidden tab: \(tab.slug)")
+            precondition(SettingsTab(slug: tab.slug) == nil)
+            precondition(!SettingsSearchCatalog.entries.contains { $0.tab == tab })
         }
         precondition(SettingsSection.advanced.tabs.isEmpty)
         for (title, anchor) in [("Sync settings file", SettingsAnchor.notchcastBackupSettingsFile),
@@ -91,7 +84,6 @@ struct HiddenFeaturesTest {
                 .components(separatedBy: "\n    }")[0]
             precondition(body.contains("get { false }") && body.contains("set { }"))
         }
-        precondition(!NotchcastHidden.fallbacksEnabled && !NotchcastHidden.supportEnabled)
         let fallback = try source("Features/Launcher/Service/FallbackStore.swift")
         let support = try source("Features/Support/UI/SupportCoordinator.swift")
         let reminder = try source("Features/Support/Service/SupportReminderStore.swift")

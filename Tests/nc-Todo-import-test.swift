@@ -38,10 +38,9 @@ struct TodoImportTests {
         for name in ["four", "five", "six"] {
             precondition(task(name).due?.recurrenceRule != nil)
         }
-        for (name, phrase) in [("four", "every monday at 9"), ("five", "every! 3 days"), ("six", "co tydzień")] {
-            let parsed = TodoDateParser.parse(phrase, now: now, calendar: calendar,
-                timeZone: zone, preferredLanguage: .english)
-            precondition(task(name).due?.recurrenceRule == parsed?.recurrence?.canonicalString)
+        for (name, rule) in [("four", "every 1 weeks on monday at 09:00"), ("five", "every! 3 days"),
+                             ("six", "every 1 weeks")] {
+            precondition(task(name).due?.recurrenceRule == rule, "\(name): \(task(name).due?.recurrenceRule ?? "nil")")
         }
         precondition(task("four").due?.date == ISO8601DateFormatter().date(from: "2026-11-09T08:00:00Z"))
         precondition(task("five").due?.recurrenceRule?.hasPrefix("every!") == true)

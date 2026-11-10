@@ -12,7 +12,8 @@
 // notchcast-sources: Tinycast/Features/AppUpdates/AppUpdatesModule.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Model/*.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift
-// notchcast-sources: Tinycast/Features/MacUpdate/MacUpdateModule.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/MacUpdate/MacUpdateModule.swift
 import Foundation
 
 @MainActor

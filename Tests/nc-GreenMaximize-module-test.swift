@@ -1,8 +1,6 @@
 // notchcast-sources: Tinycast/Features/GreenMaximize/Model/*.swift
 // notchcast-sources: Tinycast/Features/GreenMaximize/Service/*.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: platform input
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
