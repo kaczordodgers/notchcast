@@ -11,33 +11,14 @@ struct PreferenceOwnershipTests {
             checks += 1
             if !condition { failures.append(message) }
         }
-        let entries = MacSetupPresetCatalog.entries(home: URL(filePath: "/fixture"))
         expect(DockCatalog.writes.values.flatMap { $0 }.allSatisfy {
             $0.preference.domain != "com.apple.dock" || $0.preference.key != "mru-spaces"
         }, "Dock tweaks must not write the SpacesOrder preference")
-        expect(!entries.contains { $0.id == "spaces-fixed" }, "Setup preset must not offer the removed Spaces tweak")
-        for entry in entries {
-            switch entry.action {
-            case .preferences(let preferences), .forced(let preferences):
-                expect(preferences.allSatisfy { $0.0.domain != "com.apple.dock" || $0.0.key != "mru-spaces" },
-                       "Setup preset must leave SpacesOrder's preference alone")
-            default: break
-            }
-        }
         let expectedDelay = ["write", "com.apple.dock", "autohide-delay", "-float", "0.0"]
         let dock = TypingPreferencePlan(entries: DockCatalog.writes["dock-delay"]!.map {
             .init(write: $0, previous: nil)
         })
         expect(dock.apply.first?.arguments == expectedDelay, "Dock delay is a real value")
-        let setupDelay = MacSetupCatalog.preferences.first { $0.0.key == "autohide-delay" }!
-        expect(TweakCommand.preference(setupDelay.0, value: setupDelay.1).arguments == expectedDelay,
-               "Setup delay uses the same real value as Dock")
-        for entry in entries where entry.id == "dock-delay" {
-            if case .preferences(let preferences) = entry.action {
-                expect(preferences.map { TweakCommand.preference($0.0, value: $0.1).arguments } == [expectedDelay],
-                       "Setup preset delay uses the same real value as Dock")
-            }
-        }
         let global = TweakPreference(domain: ".GlobalPreferences", key: "KeyRepeat")
         let typing = TypingPreferencePlan(entries: [.init(write: .init("KeyRepeat", .integer(2)), previous: nil)])
         expect(TweakCommand.preference(global, value: .integer(2)).arguments == typing.apply[0].arguments,

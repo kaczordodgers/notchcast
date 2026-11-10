@@ -14,5 +14,4 @@ nonisolated enum TypingCatalog {
         "repeat-delay": [Write("InitialKeyRepeat", .integer(15))],
     ]
     static let preset: Set<String> = ["smart-punctuation", "double-space-period", "repeat-rate", "repeat-delay"]
-    static let requiresLogout: Set<String> = ["key-repeat", "repeat-rate", "repeat-delay"]
 }

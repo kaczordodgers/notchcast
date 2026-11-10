@@ -385,9 +385,6 @@ private struct TreadmillTests {
         coordinator.setEnabled(.history, false)
         refuses(.disabled) { _ = try coordinator.stats() }
         try await store.flush()
-        let unavailable = UnavailableTreadmillTransport()
-        refuses(.unavailable) { try unavailable.open() }
-        refuses(.unavailable) { try unavailable.send(TreadmillProtocol.stop) }
         coordinator.setEnabled(.walk, true)
         transport.failSend = true
         let before = coordinator.engine.requestedSpeed

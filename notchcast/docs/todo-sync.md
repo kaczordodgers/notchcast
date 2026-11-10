@@ -35,7 +35,7 @@ therefore loses nothing, retries are idempotent, and reopening reconstructs the 
 
 `TodoModule` reports store open/close through two callbacks. The Todo-owned `TodoLinkCoordinator`
 attaches to the active store and starts an exchange when enabled and when the store opens. Successful
-local commits, including undo and agent writes, debounce another exchange by two seconds. Receives
+local commits, including undo, debounce another exchange by two seconds. Receives
 do not trigger exchanges, preventing reciprocal request storms. There is no polling or automatic
 failure retry: the next local commit, store open or switch activation retries retained envelopes.
 An enabled peer can also initiate an exchange and retrieve this Mac's pending changes.
