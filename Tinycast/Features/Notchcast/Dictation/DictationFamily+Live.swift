@@ -3,15 +3,14 @@ import os
 
 extension DictationFamily {
     static let shared = DictationFamily(process: { raw, language, english, onFallback in
-        await DictationLiveProcessing.run(raw, language: language, english: english, onFallback: onFallback)
+        await live(raw, language: language, english: english, onFallback: onFallback)
     })
-}
 
-enum DictationLiveProcessing {
-    private static let logger = Logger(subsystem: NotchcastIdentity.releaseBundleIdentifier, category: "DictationFamily")
+    nonisolated private static let logger = Logger(
+        subsystem: NotchcastIdentity.releaseBundleIdentifier, category: "DictationFamily")
 
     @concurrent
-    static func run(
+    private static func live(
         _ raw: String, language: String?, english: Bool, onFallback: @Sendable () async -> Void
     ) async -> String {
         guard !Task.isCancelled else { return raw }
