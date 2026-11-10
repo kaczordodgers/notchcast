@@ -10,7 +10,8 @@ source "$TOOLS/notchcast/config.env"
 set +a
 # The queue filter in notchcast/test-harnesses.sh reads NOTCHCAST_ONLY_TESTS, NOTCHCAST_SHARD and CI_SKIP_TESTS.
 if [ -n "${NOTCHCAST_SWIFTC_CACHE:-}" ]; then
-  NOTCHCAST_SWIFTC_REAL=$(xcrun -f swiftc)
+  # The swiftc already on PATH, not the toolchain's binary: xcrun's shim is what supplies the SDK.
+  NOTCHCAST_SWIFTC_REAL=$(command -v swiftc)
   NOTCHCAST_SWIFTC_TOOLCHAIN="$("$NOTCHCAST_SWIFTC_REAL" --version 2>&1) $(xcrun --show-sdk-path) $(xcrun --show-sdk-version) $(sw_vers -buildVersion)"
   export NOTCHCAST_SWIFTC_REAL NOTCHCAST_SWIFTC_TOOLCHAIN
   mkdir -p "$NOTCHCAST_SWIFTC_CACHE" "$RUNNER_TEMP/swiftc-shim"
