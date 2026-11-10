@@ -53,16 +53,17 @@ final class DownloadQueue {
         }
     }
 
+    /// `options` is `DownloadJob.encode` of the runner's `Options`; a held job waits for `release`.
     @discardableResult
     func enqueue(
-        kind: String, sources: [String], options: [String: String] = [:], group: String? = nil
+        kind: String, sources: [String], options: Data? = nil, group: String? = nil, held: Bool = false
     ) -> [DownloadJob] {
         let now = clock()
         expire(now: now)
         let available = runners[kind] != nil
         let added = sources.map {
-            var job = DownloadJob(id: UUID().uuidString, kind: kind, source: $0, title: $0,
-                                  group: group, created: now, options: options)
+            var job = DownloadJob(id: UUID().uuidString, kind: kind, source: $0, title: $0, group: group,
+                                  state: held ? .held : .waiting, created: now, encodedOptions: options)
             if !available {
                 job.state = .failed
                 job.finished = now
@@ -74,6 +75,14 @@ final class DownloadQueue {
         save()
         pump()
         return added
+    }
+
+    func release(_ kind: String) {
+        for index in jobs.indices where jobs[index].kind == kind && jobs[index].state == .held {
+            jobs[index].state = .waiting
+        }
+        save()
+        pump()
     }
 
     func cancel(_ id: String) {
@@ -159,11 +168,6 @@ final class DownloadQueue {
                   let index = jobs.firstIndex(where: { $0.id == job.id }),
                   jobs[index].state == .running else { return }
             jobs[index].detail = detail
-        }, reportNetwork: { [weak self] usesIPhone in
-            guard !Task.isCancelled, let self, operations[job.id] == operation,
-                  let index = jobs.firstIndex(where: { $0.id == job.id }),
-                  jobs[index].state == .running else { return }
-            jobs[index].options["usesIPhone"] = usesIPhone ? "true" : "false"
         })
         let runningJob = jobs[index]
         tasks[job.id] = Task { [weak self, tools] in
