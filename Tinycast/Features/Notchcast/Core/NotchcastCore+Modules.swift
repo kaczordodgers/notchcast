@@ -47,14 +47,12 @@ extension NotchcastCore {
     static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents, enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) }, availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let waitingAlerts = WaitingAlertsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
     static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static private(set) var pastePlain: PlainPasteModule?
     static let linkQuickFixes = LinkQuickFixModule().configure()
-    static let lowDisk = LowDiskModule()
     static let systemNotices = SystemNoticesModule()
     static let accessoryNotices = AccessoryNoticesModule()
     static let systemLevels = SystemLevelsModule()
@@ -163,7 +161,6 @@ extension NotchcastCore {
             .init(requires: [.agentThreads], module: agentThreads),
             .init(requires: [.agentIsland], module: agentIsland),
             .init(requires: [.fleetPanel], module: fleetPanel),
-            .init(requires: [.waitingAlerts], module: waitingAlerts),
             .init(requires: [.finderCutPaste], module: finderCut),
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: plainPasteModule),
@@ -177,7 +174,6 @@ extension NotchcastCore {
             .init(requires: [.spacesOrder], module: spacesOrder),
             .init(requires: [.systemMonitor], module: monitor),
             .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
-            .init(requires: [.island, .lowDiskWarning], module: lowDisk),
             .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .accessoryNotices], module: accessoryNotices),
             .init(requires: [.island, .volumeLevels], module: systemLevels),
