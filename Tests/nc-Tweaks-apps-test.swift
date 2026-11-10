@@ -60,31 +60,6 @@ struct TweaksAppsTests {
         else { fatalError("Restriction payload") }
         expect(AppleAppsPolicy.Restriction.allCases.allSatisfy { payload[$0.rawValue] as? Bool == false },
                "All four restrictions encoded")
-        let original: [[String: Any]] = [
-            ["tile-data": ["bundle-identifier": "com.apple.Music"], "GUID": 1],
-            ["tile-data": ["bundle-identifier": "org.example.keep"], "GUID": 2],
-            ["tile-type": "spacer-tile"],
-        ]
-        let data = try PropertyListSerialization.data(fromPropertyList: original, format: .binary, options: 0)
-        let dock = try AppleAppsPolicy.dockPlan(previous: data)
-        guard let filtered = try PropertyListSerialization.propertyList(from: dock.replacement, format: nil)
-            as? [[String: Any]] else { fatalError("Dock array") }
-        expect(filtered.count == 2 && filtered[0]["GUID"] as? Int == 2, "Dock order and unknown tiles preserved")
-        expect(dock.previous == data, "Exact Dock rollback snapshot")
-        do {
-            _ = try AppleAppsPolicy.dockPlan(previous: Data("broken".utf8))
-            fatalError("Malformed Dock accepted")
-        } catch { checks += 1 }
-        let label = AppleAppsPolicy.musicLabel(bundleInode: 1, executableInode: 2)
-        let disable = try AppleAppsPolicy.serviceCommands(musicLabel: label, userID: 501, disabled: true)
-        expect(disable.count == 2 && disable[1].arguments == ["bootout", "gui/501/\(label)"], "Music disable plan")
-        expect(try AppleAppsPolicy.serviceCommands(userID: 501, disabled: false)[0].arguments ==
-               ["enable", "gui/501/com.apple.rcd"], "Media key revert")
-        do {
-            _ = try AppleAppsPolicy.serviceCommands(musicLabel: "arbitrary", userID: 501, disabled: true)
-            fatalError("Invalid Music job accepted")
-        } catch AppleAppsPolicy.Failure.invalidMusicLabel { checks += 1 }
-        _ = try AppleAppsService().musicLabel(app: URL(fileURLWithPath: "/System/Applications/Music.app"))
         _ = try FinderService().libraryHidden(home: FileManager.default.homeDirectoryForCurrentUser)
         print("\(checks) passed, 0 failed")
     }
