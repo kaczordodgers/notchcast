@@ -16,7 +16,7 @@ enum ShelfEngine {
         if item.kind != .file {
             guard let text = String(data: item.data, encoding: .utf8) else { throw Failure.invalidItem }
             if item.kind == .link {
-                guard let url = URL(string: text), ["https", "http"].contains(url.scheme),
+                guard let url = URL(string: text), WebRules.isWebScheme(url.scheme),
                       url.host != nil else { throw Failure.invalidItem }
             }
         }

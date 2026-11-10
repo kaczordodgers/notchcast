@@ -81,7 +81,7 @@ enum AgentThreadParser {
         switch link.scheme?.lowercased() {
         case "https": link.host?.isEmpty == false
         case "t3-thread": true
-        case "http": ["127.0.0.1", "localhost"].contains(link.host?.lowercased() ?? "")
+        case "http": WebRules.isLoopbackHost(link.host)
         default: false
         }
     }
