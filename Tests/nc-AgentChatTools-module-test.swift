@@ -29,6 +29,7 @@ struct ChatModuleTest {
         let module = AgentChatToolsModule(store: store, binaryPath: "/fixture/notchcast",
             isBinaryInstalled: { installed }, onChange: { changes += 1 }, defaults: defaults)
         let preferences = NotchcastPreferences(suiteName: suite)
+        preferences.set(.agentChatTools, false)
         let controller = NotchcastModuleController([
             .init(requires: [.agentChatTools], module: module)
         ], preferences: preferences)
