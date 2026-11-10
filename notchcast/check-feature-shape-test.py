@@ -202,8 +202,10 @@ class FeatureShapeTests(unittest.TestCase):
         self.assertEqual(SHAPE.check(self.root), [])
         (self.root / home).unlink()
         brace_below = source.replace("Entry] { [] }", "Entry]\n    {\n        []\n    }")
+        arrow_below = source.replace("AppCore) ->", "AppCore)\n        ->")
         for path, code in ((Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), source),
                            (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), brace_below),
+                           (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), arrow_below),
                            (Path("Tinycast/Features/LowDisk/Service/LowDiskModule+Registration.swift"), source),
                            (Path("Tinycast/Features/Notchcast/Core/LowDiskModule+Registration.swift"), source),
                            (Path("Tinycast/Features/Notchcast/LowDiskModule+Registration.swift"), source)):
