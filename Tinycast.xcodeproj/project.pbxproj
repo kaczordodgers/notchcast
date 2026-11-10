@@ -1163,6 +1163,7 @@
 		8E08C32F697A08726DA8136B /* MachineSetupProfileDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D221430D1B86128C710132 /* MachineSetupProfileDescriptor.swift */; };
 		8E2A6187A163EF32A2343330 /* EventTapPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B58093F753AA45E1C720244 /* EventTapPolicy.swift */; };
 		8E30C461429C894907FAD94D /* PaletteEscapeAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53D7E98E448F05816493DB37 /* PaletteEscapeAction.swift */; };
+		8E55023974C5BE1764509154 /* DialogPanel+Dismiss.swift in Sources */ = {isa = PBXBuildFile; fileRef = 690028BE9C41B7A9115F9C6C /* DialogPanel+Dismiss.swift */; };
 		8E909EB9EC4CE3F2ED09492A /* RecordingSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C74B9224477C2A1AB06F533 /* RecordingSource.swift */; };
 		8EA6DA7AFB9058F64DEDAFA7 /* HeatProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A934A2638FCAC654624CB908 /* HeatProtection.swift */; };
 		8EB3D557555A20B6917C3E16 /* TreadmillProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9385B78E5B08395783B23CE4 /* TreadmillProtocol.swift */; };
@@ -3062,6 +3063,7 @@
 		68952539C0BD045BA175CBB6 /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsRootView.swift; sourceTree = "<group>"; };
 		68D65D56887CE4DD42A57DB3 /* SendFilesDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SendFilesDescriptor.swift; sourceTree = "<group>"; };
 		68E7F15700B48B8DFF43451E /* CleanProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanProcessRunner.swift; sourceTree = "<group>"; };
+		690028BE9C41B7A9115F9C6C /* DialogPanel+Dismiss.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DialogPanel+Dismiss.swift"; sourceTree = "<group>"; };
 		691414A70831A15B70B2FBFA /* DistillTranscript.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistillTranscript.swift; sourceTree = "<group>"; };
 		692125D96BD979FA66437651 /* HostCommandProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostCommandProfile.swift; sourceTree = "<group>"; };
 		6929983954A5F035585DEF3E /* ArchiveModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveModule.swift; sourceTree = "<group>"; };
@@ -5477,6 +5479,7 @@
 				4994EFD82ED5589BCDD1C99C /* AgentBuiltInActions.swift */,
 				46DE2846407543D8628CAC23 /* AgentCLIModule.swift */,
 				6D2CE2F74817EFFFBDE1FFD7 /* AgentRequest+Audit.swift */,
+				690028BE9C41B7A9115F9C6C /* DialogPanel+Dismiss.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -11067,6 +11070,7 @@
 				62035C2C14F5B1B404A831F6 /* DeepLinkSource.swift in Sources */,
 				F93CD1542844003929AB1BDB /* DialogChip.swift in Sources */,
 				AB500AC3DEBFF6EB1CE42812 /* DialogController.swift in Sources */,
+				8E55023974C5BE1764509154 /* DialogPanel+Dismiss.swift in Sources */,
 				C215695FE671BC591DC99C2B /* DialogPanel.swift in Sources */,
 				9F82DA5A46BB39A6C6DD075D /* DialogRequest.swift in Sources */,
 				BA835EDCB6D17DE6BFE2D39E /* DialogTextField.swift in Sources */,
