@@ -78,7 +78,7 @@ extension NotchcastCore {
     static var dictationTrigger: DictationTriggerModule?
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: NotchcastIdentity.supportRoot.appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
-    static let dictationCleanup = DictationCleanupModule.live()
+    static let dictationCleanup = DictationCleanupModule.shared
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let editor = EditorCoordinator.shared

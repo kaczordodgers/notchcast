@@ -92,6 +92,7 @@ extension ForkSettingsBackupState {
                 current.promptAddition = restored.promptAddition
                 current.vocabulary = restored.vocabulary
                 try cleanupStore.save(current)
+                DictationCleanupModule.shared.load()
             }
             try ForkSettingsBackupRestore.apply(values, to: .shared)
         })
