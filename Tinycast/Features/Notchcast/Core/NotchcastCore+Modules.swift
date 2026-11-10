@@ -74,20 +74,13 @@ extension NotchcastCore {
     static let settingsBackup = ForkSettingsBackupModule()
     static let settingsBackupRestore = ForkSettingsBackupCoordinator()
     static let eventReminder = EventReminderModule(store: AppCore.shared.calendarStore)
-    static let colorPicker = ColorPickerModule()
-    static let screenshot = ScreenshotModule()
-    static let screenText = ScreenTextModule()
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
-    static let scrollingCapture = ScrollingCaptureModule()
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: NotchcastIdentity.supportRoot.appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.live()
-    static let captureTrimmer = CaptureTrimmerModule.live()
-    static let captureEditor = CaptureEditorCoordinator(reportFailure: { AppCore.shared.showMessage($0.localizedDescription, tone: .danger) })
     static let agentAnswer = AgentAnswerModule()
-    static let recording = RecordingModule()
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: NotchcastIdentity.supportRoot.appendingPathComponent("DictationHistory"), now: Date.init))
@@ -96,7 +89,6 @@ extension NotchcastCore {
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
-        CaptureEditorWindowController.shared.attach(to: captureEditor)
         agents.configure(core)
         agentCLI.configure(index: agents.index)
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
@@ -185,21 +177,14 @@ extension NotchcastCore {
             .init(requires: [.island, .dayMarkets], module: markets),
             .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: eventReminder),
-            .init(requires: [.colorPicker], module: colorPicker),
-            .init(requires: [.screenshot], module: screenshot),
-            .init(requires: [.screenText], module: screenText),
             .init(requires: [.agentChatTools], module: chatTools),
             .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.dictationEnglish], module: DictationEnglishModule(hub: eventTapHub, coordinator: core.dictationCoordinator)),
-            .init(requires: [.scrollingCapture], module: scrollingCapture),
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
-            .init(requires: [.captureTrimmer], module: captureTrimmer),
-            .init(requires: [.captureEditor], module: captureEditor),
             .init(requires: [.agentAnswer], module: agentAnswer),
-            .init(requires: [.recording], module: recording),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),

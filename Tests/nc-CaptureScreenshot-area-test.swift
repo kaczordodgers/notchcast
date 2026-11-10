@@ -1,6 +1,8 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
-// notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
@@ -18,18 +20,12 @@ struct NotchcastCommand: Sendable {
     let run: @MainActor @Sendable () -> Void
 }
 
-@MainActor enum NotchcastCore {
-    static var captureEditor: CaptureEditorCoordinator!
+extension ScreenshotModule {
     static var instance: ScreenshotModule?
-    static var screenshot: ScreenshotModule { instance! }
+    static var shared: ScreenshotModule { instance! }
 }
 
-@MainActor final class AppCore {
-    enum Tone { case danger }
-    static let shared = AppCore()
-    var messages: [String] = []
-    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
-}
+enum DialogTone { case danger }
 
 @MainActor enum ScreenshotService {
     static func capture(
@@ -40,6 +36,8 @@ struct NotchcastCommand: Sendable {
 
 @main struct CaptureScreenshotAreaTest {
     @MainActor static func main() async throws {
+        var messages: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
         let suite = "screenshot-area-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -53,7 +51,7 @@ struct NotchcastCommand: Sendable {
         defer { board.releaseGlobally() }
         let editor = CaptureEditorCoordinator(pasteboard: board)
         editor.start()
-        NotchcastCore.captureEditor = editor
+        let openInEditor: (URL?, Bool) throws -> Void = { try editor.openCapture(url: $0, clipboard: $1) }
         board.setString("Untouched", forType: .string)
         var captures: [CGRect] = []
         var files = 0
@@ -68,8 +66,9 @@ struct NotchcastCommand: Sendable {
             }
             return nil
         })
-        NotchcastCore.instance = module
-        defer { module.stop(); NotchcastCore.instance = nil }
+        module.openInEditor = openInEditor
+        ScreenshotModule.instance = module
+        defer { module.stop(); ScreenshotModule.instance = nil }
         let command = ScreenshotModule.areaCommand
         precondition(command.slug == "screenshot-area" && command.feature == .screenshot)
         command.run()
@@ -98,8 +97,8 @@ struct NotchcastCommand: Sendable {
         command.run()
         await module.commandTask?.value
         precondition(!editor.isOpen)
-        precondition(AppCore.shared.messages == [CaptureEditorCoordinator.Failure.noImage.localizedDescription])
-        AppCore.shared.messages.removeAll()
+        precondition(messages == [CaptureEditorCoordinator.Failure.noImage.localizedDescription])
+        messages.removeAll()
         NotchcastPreferences.shared.set(.captureEditor, false)
         precondition(board.string(forType: .string) == "Captured")
         let changes = board.changeCount
@@ -114,7 +113,7 @@ struct NotchcastCommand: Sendable {
         precondition(files == 1 && board.changeCount == changes)
         module.stop()
         command.run()
-        precondition(captures.count == 4 && AppCore.shared.messages.isEmpty)
+        precondition(captures.count == 4 && messages.isEmpty)
         let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let context = CGContext(data: nil, width: 100, height: 80, bitsPerComponent: 8, bytesPerRow: 0,
@@ -131,6 +130,7 @@ struct NotchcastCommand: Sendable {
             if case .clipboard = destination { return nil }
             return url
         })
+        flow.openInEditor = openInEditor
         flow.start()
         defer { flow.stop(); editor.stop() }
         NotchcastPreferences.shared.set(.captureEditor, true)
@@ -158,6 +158,10 @@ struct NotchcastCommand: Sendable {
         let catalog = try String(contentsOf: root.appendingPathComponent(
             "Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift"), encoding: .utf8)
         precondition(catalog.contains("ScreenshotModule.areaCommand,"))
+        let hub = try String(contentsOf: root.appendingPathComponent(
+            "Tinycast/Features/Notchcast/Core/NotchcastCore.swift"), encoding: .utf8)
+        precondition(hub.contains(
+            "ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }"))
         print("PASS: area command selection; primary and offset Quartz rects; cancel preserves clipboard; destination and stop")
     }
 }

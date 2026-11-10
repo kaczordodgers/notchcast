@@ -1,13 +1,15 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule.swift
+// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextModule+Command.swift
 // notchcast-sources: Tinycast/Features/ScreenText/Model/ScreenTextResult.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastCore+Registrants.swift
 // notchcast-reads: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift
 import AppKit
 import Observation
@@ -27,16 +29,11 @@ struct NotchcastCommand: Sendable {
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }
 }
-@MainActor enum NotchcastCore {
-    static var module: ScreenTextModule?
-    static var screenText: ScreenTextModule { module! }
+extension ScreenTextModule {
+    static var instance: ScreenTextModule?
+    static var shared: ScreenTextModule { instance! }
 }
-@MainActor final class AppCore {
-    enum Tone { case danger }
-    static let shared = AppCore()
-    var messages: [String] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append(text) }
-}
+enum DialogTone { case danger }
 @MainActor final class CaptureAreaService {
     var starts = 0
     var stops = 0
@@ -56,6 +53,8 @@ enum ScreenTextService {
 }
 @main @MainActor struct ScreenTextModuleTest {
     static func main() async throws {
+        var messages: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
         let suite = "screen-text-module-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -64,7 +63,7 @@ enum ScreenTextService {
         let module = ScreenTextModule(defaults: defaults, area: area, recognize: { _, _ in
             ScreenTextResult(content: "Recognized fixture", kind: .text)
         }, write: { output.append($0); return true })
-        NotchcastCore.module = module
+        ScreenTextModule.instance = module
         let preferences = NotchcastPreferences.shared
         let controller = NotchcastModuleController(
             [.init(requires: [.screenText], module: module)], preferences: preferences)
@@ -81,7 +80,7 @@ enum ScreenTextService {
         precondition(output == ["Recognized fixture"])
         area.denied = true
         command.run()
-        precondition(AppCore.shared.messages == [String(localized: "Screen Recording access is required.")])
+        precondition(messages ==[String(localized: "Screen Recording access is required.")])
         let stops = area.stops
         preferences.set(.screenText, false)
         for _ in 0..<100 { await Task.yield() }
@@ -94,7 +93,7 @@ enum ScreenTextService {
              ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"),
             ("Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift",
              "Remove line breaks"),
-            ("Tinycast/Features/Notchcast/Core/NotchcastCore+Modules.swift", ".init(requires: [.screenText], module: screenText)"),
+            ("Tinycast/Features/Notchcast/Core/NotchcastCore+Registrants.swift", "ScreenTextModule.self,"),
             ("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift", "ScreenTextModule.launcherCommand")
         ] {
             let source = try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)

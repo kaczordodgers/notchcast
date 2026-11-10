@@ -2,6 +2,9 @@
 // notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/View/*.swift
+// notchcast-sources: Tinycast/Features/CaptureEditor/CaptureEditorCoordinator+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
@@ -16,6 +19,9 @@
 import AppKit
 import SwiftUI
 import ImageIO
+
+enum DialogTone { case danger }
+@MainActor final class AppCore {}
 
 enum SystemSymbolName {
     static func resolve(_ name: String, isDark: Bool) -> String { name }
@@ -51,6 +57,15 @@ struct MenuThumbnail: View {
         preview.previewSucceeded()
         preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding)
         precondition(failures == 2)
+        let entries = CaptureEditorCoordinator.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.captureEditor] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === CaptureEditorCoordinator.shared)
+        precondition(CaptureEditorWindowController.shared.coordinator === CaptureEditorCoordinator.shared)
+        var dangers = 0
+        NotchcastHost.current.showMessage = { _, tone in if tone == .danger { dangers += 1 } }
+        CaptureEditorCoordinator.shared.reportPreviewFailure(CaptureEditorRender.Failure.encoding)
+        precondition(dangers == 1)
+        print("PASS: registration attaches the shared window host, one entry, failures reach the host seam")
         host.attach(to: coordinator)
         coordinator.start()
         let context = CGContext(data: nil, width: 320, height: 200, bitsPerComponent: 8, bytesPerRow: 0,

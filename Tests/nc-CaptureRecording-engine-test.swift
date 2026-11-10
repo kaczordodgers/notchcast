@@ -10,16 +10,11 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import AVFoundation
 import Foundation
 
-@MainActor final class AppCore {
-    enum Tone { case danger, neutral, success }
-    func showMessage(_ text: String, tone: Tone) {}
-    static let shared = AppCore()
-    var appIndex: AppCore { self }
-    func refreshNotchcastCommands() {}
-}
+enum DialogTone { case danger, neutral, success }
 import Synchronization
 
 @main

@@ -1,6 +1,8 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
-// notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule.swift
+// notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Command.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Model/*.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Service/*.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorValue.swift
@@ -17,21 +19,18 @@ struct NotchcastCommand: Sendable {
     let run: @MainActor @Sendable () -> Void
 }
 
-@MainActor enum NotchcastCore {
+extension ColorPickerModule {
     static var instance: ColorPickerModule?
-    static var colorPicker: ColorPickerModule { instance! }
+    static var shared: ColorPickerModule { instance! }
 }
 
-@MainActor final class AppCore {
-    enum Tone { case danger }
-    static let shared = AppCore()
-    var messages: [String] = []
-    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
-}
+enum DialogTone { case danger }
 
 @main
 struct ColorPickerModuleTest {
     @MainActor static func main() async {
+        var messages: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
         let suite = "color-module-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -46,7 +45,7 @@ struct ColorPickerModuleTest {
             callback = $0
         }, copy: { copied.append($0); return copySucceeds })
         let module = ColorPickerModule(service: service)
-        NotchcastCore.instance = module
+        ColorPickerModule.instance = module
         let controller = NotchcastModuleController([
             .init(requires: [.colorPicker], module: module)
         ], preferences: preferences)
@@ -55,7 +54,7 @@ struct ColorPickerModuleTest {
         precondition(command.slug == "pick-color")
         command.run()
         precondition(samples == 0)
-        precondition(AppCore.shared.messages.isEmpty)
+        precondition(messages.isEmpty)
         preferences.set(.colorPicker, true)
         await settle()
         command.run()
@@ -63,14 +62,14 @@ struct ColorPickerModuleTest {
         precondition(samples == 1 && copied == ["#FF0000"])
         command.run()
         command.run()
-        precondition(AppCore.shared.messages.isEmpty)
+        precondition(messages.isEmpty)
         callback?(nil)
-        precondition(AppCore.shared.messages.isEmpty)
-        AppCore.shared.messages.removeAll()
+        precondition(messages.isEmpty)
+        messages.removeAll()
         copySucceeds = false
         command.run()
         callback?(.blue)
-        precondition(AppCore.shared.messages == [String(localized: "Pick Color")])
+        precondition(messages == [String(localized: "Pick Color")])
         command.run()
         let stale = callback
         preferences.set(.colorPicker, false)
@@ -78,8 +77,8 @@ struct ColorPickerModuleTest {
         stale?(.green)
         command.run()
         precondition(samples == 4 && copied == ["#FF0000", "#0000FF"])
-        precondition(AppCore.shared.messages == [String(localized: "Pick Color")])
-        NotchcastCore.instance = nil
+        precondition(messages == [String(localized: "Pick Color")])
+        ColorPickerModule.instance = nil
         print("PASS: color module command, switch lifecycle, copy failure and stale callback")
     }
 

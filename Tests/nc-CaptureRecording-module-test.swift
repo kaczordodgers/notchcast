@@ -7,21 +7,20 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/CaptureRecording/RecordingModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import CoreMedia
 import Foundation
 
-@MainActor final class AppCore {
-    enum Tone { case danger, neutral, success }
-    var messages: [(String, Tone)] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append((text, tone)) }
-    static let shared = AppCore()
-    var appIndex: AppCore { self }
-    func refreshNotchcastCommands() {}
-}
+enum DialogTone { case danger, neutral, success }
+@MainActor final class AppCore {}
 
 @main
 struct RecordingModuleTests {
     @MainActor static func main() async throws {
+        var messages: [(String, DialogTone)] = []
+        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
         let suite = "recording-module-test-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -53,9 +52,12 @@ struct RecordingModuleTests {
         await settle { !module.enabled }
         await module.waitUntilIdle()
         precondition(source.stops > 0 && module.phase == .idle)
-        precondition(AppCore.shared.messages.last?.0 == "Recording failed.")
-        precondition(AppCore.shared.messages.last?.1 == .danger)
-        print("PASS switch-off save failure reports danger HUD")
+        precondition(messages.last?.0 == "Recording failed.")
+        precondition(messages.last?.1 == .danger)
+        let entries = RecordingModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.recording] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === RecordingModule.shared)
+        print("PASS switch-off save failure reports danger HUD; registration entry")
         print("PASS recording module switch, record entry point, writer failure message and teardown")
     }
 
