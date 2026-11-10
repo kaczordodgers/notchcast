@@ -44,9 +44,9 @@ CASES = (
     ("key file away from its descriptor", '"first": .bool,', '"stored",', '.first,',
      {Path("Tinycast/Features/Elsewhere/FirstBackupKeys.swift"): OWN_KEY}, 1, "put it beside FirstDescriptor.swift"),
     ("secret-shaped key allowed in a key file", '"first": .bool,', '"stored",', '.first,',
-     {KEYS: OWN_KEY.replace("first.size", "first.apiKey")}, 1, "first.apiKey is named like a secret"),
+     {KEYS: OWN_KEY.replace("first.size", "first.apiKey")}, 1, "this allowed key is named like a secret"),
     ("secret-shaped key allowed in the schema", '"first": .bool,\n"notchcast.editor.token": .bool,', '"stored",', '', {}, 1,
-     "notchcast.editor.token is named like a secret"),
+     "this allowed key is named like a secret"),
     ("secret-shaped key excluded", '"first": .bool,', '"stored",', '.first,',
      {KEYS: OWN_KEY.replace("first.cache", "first.token")}, 0, "PASS"),
 )
