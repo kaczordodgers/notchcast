@@ -80,10 +80,6 @@ extension NotchcastCore {
     static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: NotchcastIdentity.supportRoot.appending(path: "Torrents")))
     static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.live()
-    static let agentAnswer = AgentAnswerModule()
-    static let captureTrimmer = CaptureTrimmerModule.live()
-    static let captureEditor = CaptureEditorCoordinator(reportFailure: { AppCore.shared.showMessage($0.localizedDescription, tone: .danger) })
-    static let recording = RecordingModule()
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let dictationHistory = DictationHistoryModule(repository: .init(directory: NotchcastIdentity.supportRoot.appendingPathComponent("DictationHistory"), now: Date.init))
@@ -187,10 +183,6 @@ extension NotchcastCore {
             .init(requires: [.torrents], module: torrents),
             .init(requires: [.archives], module: archives),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
-            .init(requires: [.agentAnswer], module: agentAnswer),
-            .init(requires: [.captureTrimmer], module: captureTrimmer),
-            .init(requires: [.captureEditor], module: captureEditor),
-            .init(requires: [.recording], module: recording),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
