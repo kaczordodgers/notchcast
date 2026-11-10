@@ -16,7 +16,7 @@ nonisolated enum URLCleanerPolicy {
         let unchanged = Result(text: text, removed: [])
         guard !text.unicodeScalars.contains(where: { CharacterSet.whitespacesAndNewlines.contains($0) }),
               let url = URLComponents(string: text),
-              let scheme = url.scheme?.lowercased(), ["http", "https"].contains(scheme),
+              WebRules.isWebScheme(url.scheme),
               let host = url.host?.lowercased(), !host.isEmpty,
               let question = text.firstIndex(of: "?") else { return unchanged }
         let fragment = text.firstIndex(of: "#") ?? text.endIndex
@@ -28,7 +28,7 @@ nonisolated enum URLCleanerPolicy {
             guard let name = String(rawName).removingPercentEncoding?.lowercased() else { return true }
             let disabled = rules.disabled.contains { $0.lowercased() == name }
             let custom = (rules.custom + (rules.perSite[host] ?? [])).contains { $0.lowercased() == name }
-            guard !disabled, custom || LinkCleaner.isTrackingParameter(name) else { return true }
+            guard !disabled, custom || WebRules.isTrackingParameter(name) else { return true }
             removed.append(String(pair))
             return false
         }

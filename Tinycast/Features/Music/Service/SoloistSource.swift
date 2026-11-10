@@ -157,7 +157,7 @@ final class SoloistSource: NowPlayingSource {
         coverTask?.cancel()
         coverTask = nil
         guard let url, url != failedCoverURL,
-              ["https", "http"].contains(url.scheme), !attemptedCovers.contains(url) else { return }
+              WebRules.isWebScheme(url.scheme), !attemptedCovers.contains(url) else { return }
         let session = session
         coverTask = Task { [weak self] in
             do {
