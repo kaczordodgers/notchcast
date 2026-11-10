@@ -1,6 +1,6 @@
 // notchcast-sources: -lsqlite3 Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
-// notchcast-kit: platform
+// notchcast-kit: platform host
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
 // notchcast-reads: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 import Foundation
@@ -8,7 +8,7 @@ import SQLite3
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
 enum TestFeature { case agentThreads }
-enum TestTone { case neutral }
+enum DialogTone { case neutral }
 struct NotchcastCommand {
     let slug: String
     let name: String
@@ -20,10 +20,6 @@ struct NotchcastCommand {
 @MainActor final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
     func isOn(_ feature: TestFeature) -> Bool { true }
-}
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    func showMessage(_ message: String, tone: TestTone) {}
 }
 @MainActor enum NotchcastCore { static let agentThreads = AgentThreadsModule() }
 

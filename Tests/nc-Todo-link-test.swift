@@ -3,9 +3,7 @@
 // notchcast-sources: Tinycast/Features/Todo/Service/TodoIsland*.swift
 // notchcast-sources: Tinycast/Features/Todo/Service/TodoLinkCoordinator.swift
 // notchcast-sources: Tinycast/Features/Todo/TodoModule.swift Tinycast/Features/Todo/TodoLinkWiring.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift

@@ -1,10 +1,7 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core platform
 // notchcast-sources: Tinycast/Features/CleaningMode/Model/*.swift
 // notchcast-sources: Tinycast/Features/CleaningMode/Service/CleaningModeEngine.swift
 // notchcast-sources: Tinycast/Features/CleaningMode/CleaningModeModule.swift
@@ -12,7 +9,6 @@
 // notchcast-sources: Tinycast/Features/AppUpdates/AppUpdatesModule.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Model/*.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift
-// notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/MacUpdate/MacUpdateModule.swift
 import Foundation
 

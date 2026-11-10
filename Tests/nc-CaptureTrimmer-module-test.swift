@@ -1,7 +1,5 @@
 // notchcast-sources: Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
+// notchcast-kit: core
 
 import Foundation
 

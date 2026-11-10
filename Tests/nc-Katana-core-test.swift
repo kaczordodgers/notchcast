@@ -3,12 +3,9 @@
 
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift
 
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 import Foundation

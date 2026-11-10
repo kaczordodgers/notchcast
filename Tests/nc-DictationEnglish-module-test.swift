@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/DictationEnglish/Service/DictationEnglishModule*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
-// notchcast-kit: input
+// notchcast-kit: input host
 import AppKit
 import Carbon.HIToolbox
 
@@ -38,13 +38,10 @@ import Carbon.HIToolbox
 
 enum Paster { static let tinycastEventTag: Int64 = 1 }
 enum DialogTone { case danger }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    var messages: [String] = []
-    func showMessage(_ message: String, tone: DialogTone) { messages.append(message) }
-}
 @main struct EnglishModuleTest {
     @MainActor static func main() async {
+        var messages: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
         let hub = EventTapHub()
         let coordinator = DictationCoordinator()
         let module = DictationEnglishModule(hub: hub, coordinator: coordinator)
@@ -64,7 +61,7 @@ enum DialogTone { case danger }
         precondition(coordinator.starts == 2)
         let result = await DictationCoordinator.englishTranscriptStage!("fixture", "Polish")
         precondition(result == "fixture")
-        precondition(AppCore.shared.messages == [
+        precondition(messages == [
             String(localized: "English translation failed; using the original transcript")
         ])
         DictationCoordinator.englishTranscriptStage = nil

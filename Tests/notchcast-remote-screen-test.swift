@@ -1,9 +1,7 @@
 // notchcast-sources: Tinycast/Features/RemoteScreen/Model/*.swift
 // notchcast-sources: Tinycast/Features/RemoteScreen/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
-// notchcast-kit: root
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: root core
 import Foundation
 
 @main

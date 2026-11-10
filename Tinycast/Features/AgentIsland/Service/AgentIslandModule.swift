@@ -163,6 +163,6 @@ final class AgentIslandModule: NotchcastModule {
             case .idle: text = String(localized: "No agents active.", table: "Notchcast")
             case let .counts(waiting, working): text = String(localized: "\(waiting) waiting, \(working) working.", table: "Notchcast")
             }
-            AppCore.shared.showMessage(text, tone: .neutral)
+            NotchcastHost.current.showMessage(text, .neutral)
         } })
 }

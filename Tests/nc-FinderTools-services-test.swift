@@ -3,12 +3,8 @@
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator.swift
 // notchcast-sources: Tinycast/Features/FinderTools/FinderToolsModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Input/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core platform
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
-// notchcast-kit: platform
 import Foundation
 import CoreGraphics
 

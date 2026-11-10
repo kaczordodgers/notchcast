@@ -1,3 +1,4 @@
+// notchcast-kit: host
 // notchcast-sources: -strict-concurrency=complete -lsqlite3 Tinycast/Features/AgentIsland/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentIsland/Service/*.swift Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift Tinycast/Features/AgentThreads/AgentThreadsModule.swift
@@ -8,7 +9,7 @@ import Foundation
 
 @MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
 enum TestFeature { case agentThreads, openBotAgents, agentIsland }
-enum TestTone { case neutral }
+enum DialogTone { case neutral }
 struct NotchcastCommand {
     let slug: String
     let name: String
@@ -22,18 +23,12 @@ struct NotchcastCommand {
     var on = false
     func isOn(_ feature: TestFeature) -> Bool { on }
 }
-@MainActor final class TestAppIndex { func refreshNotchcastCommands() {} }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = TestAppIndex()
-    func showMessage(_ text: String, tone: TestTone) {}
-}
 @MainActor enum NotchcastCore {
-    static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let agentThreads = AgentThreadsModule(availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
     static let openBotAgents = OpenBotAgentsModule()
     static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents,
         enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) },
-        availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+        availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
 }
 
 private struct Projects: AgentThreadProjectReading {

@@ -2,9 +2,7 @@
 // notchcast-sources: Tinycast/Features/DictationIslandHUD/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastCore+RemoteResult.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
@@ -20,17 +18,11 @@ enum Theme { enum Duration { static let messageHUD: TimeInterval = 2.4 } }
     var phase: Phase = .listening
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    var huds: [String] = []
-    func showMessage(_ text: String, tone: DialogTone) { huds.append(text) }
-    // Upstream's hideProgress reaches the island through MessageHUDController.dismiss, i.e. this call.
-    func hideProgress() { IslandHUDRouter.dismiss() }
-}
-
 @main @MainActor
 struct DictationIslandHUDTest {
     static func settle() async { for _ in 0..<50 { await Task.yield() } }
+    // Upstream's hideProgress reaches the island through MessageHUDController.dismiss, i.e. this call.
+    static func hideProgress() { IslandHUDRouter.dismiss() }
 
     static func main() async {
         typealias Policy = DictationIslandHUDPolicy
@@ -62,7 +54,7 @@ struct DictationIslandHUDTest {
 
         pill.show(panel: panel, state: state)
         precondition(center.message?.text == listening && center.message?.isProgress == true)
-        AppCore.shared.hideProgress()
+        hideProgress()
         precondition(center.message?.text == listening, "upstream hideProgress leaves the dictation pill")
         state.phase = .transcribing
         await settle()
@@ -74,13 +66,15 @@ struct DictationIslandHUDTest {
         precondition(center.message == nil, "closing ends the pill's own notice")
         print("Dictation island pill: own handle, survives hideProgress, follows phase passed")
 
+        var huds: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in huds.append(text) }
         NotchcastCore.remoteResult("Backup done")
-        precondition(center.message?.text == "Backup done" && AppCore.shared.huds.isEmpty)
-        AppCore.shared.hideProgress()
+        precondition(center.message?.text == "Backup done" && huds.isEmpty)
+        hideProgress()
         precondition(center.message?.text == "Backup done", "upstream hideProgress leaves a remote result")
         center.hasPresenter = false
         NotchcastCore.remoteResult("No presenter")
-        precondition(AppCore.shared.huds == ["No presenter"], "with no presenter the result reaches the HUD")
+        precondition(huds == ["No presenter"], "with no presenter the result reaches the HUD")
         print("Remote result: island when presented, HUD otherwise, untouched by hideProgress passed")
     }
 }

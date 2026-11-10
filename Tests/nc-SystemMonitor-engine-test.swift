@@ -6,8 +6,7 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlertPreferences.swift
 // notchcast-sources: Tinycast/Features/SystemTools/Model/KillProcessEntry.swift
 // notchcast-sources: Tinycast/Features/SystemTools/Service/KillProcessService.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core
 import Foundation
 
 @MainActor

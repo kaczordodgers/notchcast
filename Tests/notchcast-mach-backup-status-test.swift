@@ -1,8 +1,6 @@
 // notchcast-sources: Tinycast/Features/BackupStatus/Model/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastCore+RemoteNotice.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
 import Foundation

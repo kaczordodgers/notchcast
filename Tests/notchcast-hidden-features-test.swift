@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift
 // notchcast-sources: Tinycast/Features/Settings/SettingsAnchor.swift

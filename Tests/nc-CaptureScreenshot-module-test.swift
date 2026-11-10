@@ -1,5 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
 import AppKit

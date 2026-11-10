@@ -2,10 +2,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/AIUsage/Model/*.swift
 // notchcast-sources: Tinycast/Features/AIUsage/Service/*.swift
 // notchcast-sources: Tinycast/Features/AIUsage/OtherMac/Model/*.swift

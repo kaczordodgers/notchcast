@@ -2,10 +2,7 @@
 // notchcast-sources: Tinycast/Features/AgentSessions/Pricing/*.swift
 // notchcast-sources: Tinycast/Features/AgentSessions/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentSessions/AgentSessionsModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core
 // notchcast-sources: -strict-concurrency=complete -warnings-as-errors
 import Foundation
 import SQLite3

@@ -2,12 +2,10 @@
 // notchcast-sources: Tinycast/Features/Music/Model/Soloist*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/Soloist*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
-// notchcast-kit: platform
+// notchcast-kit: platform core
 // notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupRestore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 import CryptoKit
 import Darwin
 import Foundation

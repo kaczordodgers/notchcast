@@ -94,6 +94,6 @@ final class FleetPanelModule: NotchcastModule {
         sfSymbol: "desktopcomputer", feature: .fleetPanel,
         isEnabled: { NotchcastPreferences.shared.isOn(.fleetPanel) },
         run: { NotchcastCore.fleetPanel.refresh {
-            AppCore.shared.showMessage(NotchcastCore.fleetPanel.message, tone: .neutral)
+            NotchcastHost.current.showMessage(NotchcastCore.fleetPanel.message, .neutral)
         } })
 }

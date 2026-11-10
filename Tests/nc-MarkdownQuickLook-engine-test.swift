@@ -1,9 +1,6 @@
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Model/*.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdown.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdownParser.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteInlineScanner.swift

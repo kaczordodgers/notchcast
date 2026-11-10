@@ -3,15 +3,11 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
-// notchcast-kit: input platform
+// notchcast-kit: input platform core host
 // notchcast-sources: Tinycast/Features/DisplayBrightness/Model/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
@@ -111,10 +107,4 @@ struct SystemLevelObservationTests {
     }
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = CommandIndexFixture()
-}
-@MainActor final class CommandIndexFixture {
-    func refreshNotchcastCommands() {}
-}
+enum DialogTone {}

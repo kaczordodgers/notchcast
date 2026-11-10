@@ -2,13 +2,13 @@
 // notchcast-sources: Tinycast/Features/FleetPanel/Service/*.swift Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
-// notchcast-kit: platform
+// notchcast-kit: platform host
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 import Foundation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
 enum TestFeature: Hashable { case fleetPanel, agentThreads, machLink }
-enum TestTone { case neutral }
+enum DialogTone { case neutral }
 struct NotchcastCommand {
     let slug: String
     let name: String
@@ -22,19 +22,10 @@ struct NotchcastCommand {
     var enabled: Set<TestFeature> = []
     func isOn(_ feature: TestFeature) -> Bool { enabled.contains(feature) }
 }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = TestIndex()
-    func showMessage(_ message: String, tone: TestTone) {}
-}
-@MainActor final class TestIndex {
-    var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
 @MainActor enum NotchcastCore {
     static let agentThreads = AgentThreadsModule()
     static let macLink = TestLink()
-    static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
+    static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
 }
 @MainActor final class TestLink { let channel = MachLinkChannel() }
 @MainActor final class MachLinkManager {
@@ -205,10 +196,12 @@ private struct SlowRunner: AgentThreadRunning {
         precondition(late.local == .sourceOff && late.remote == .linkDown)
         let sourceOff = await FleetLocalSource.read()
         precondition(sourceOff.failure == .off)
+        var refreshes = 0
+        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
         NotchcastCore.fleetPanel.start()
         await NotchcastCore.fleetPanel.waitUntilIdle()
         NotchcastCore.fleetPanel.stop()
-        precondition(AppCore.shared.appIndex.refreshes == 2)
+        precondition(refreshes == 2)
         NotchcastPreferences.shared.enabled = [.fleetPanel]
         precondition(FleetPanelModule.command.isEnabled())
         NotchcastPreferences.shared.enabled = []

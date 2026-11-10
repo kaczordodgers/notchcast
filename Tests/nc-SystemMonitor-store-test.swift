@@ -8,11 +8,7 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorModule.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlerts.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlertPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-kit: root platform
+// notchcast-kit: core root platform
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootHelperClient.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootWait.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootToolPath.swift

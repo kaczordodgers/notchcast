@@ -1,10 +1,7 @@
 // notchcast-sources: Tinycast/Features/DictationHistory/Model/*.swift
 // notchcast-sources: Tinycast/Features/DictationHistory/Service/DictationHistoryRepository.swift
 // notchcast-sources: Tinycast/Features/DictationHistory/Service/DictationHistoryModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
 import Foundation
 

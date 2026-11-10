@@ -4,20 +4,11 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingFiles.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingWriting.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingSource.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core host
 import CoreMedia
 import Foundation
 
-@MainActor final class AppCore {
-    enum Tone { case danger, neutral, success }
-    var messages: [(String, Tone)] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append((text, tone)) }
-    static let shared = AppCore()
-    var appIndex: AppCore { self }
-    func refreshNotchcastCommands() {}
-}
+enum DialogTone { case danger, neutral, success }
 
 @main
 struct RecordingModuleTests {
@@ -28,6 +19,8 @@ struct RecordingModuleTests {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: root) }
+        var messages: [(String, DialogTone)] = []
+        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
         let source = ScreenRecordingSource()
         let module = RecordingModule(defaults: defaults, defaultFolder: root, makeSource: { source }, sleep: {})
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -53,8 +46,8 @@ struct RecordingModuleTests {
         await settle { !module.enabled }
         await module.waitUntilIdle()
         precondition(source.stops > 0 && module.phase == .idle)
-        precondition(AppCore.shared.messages.last?.0 == "Recording failed.")
-        precondition(AppCore.shared.messages.last?.1 == .danger)
+        precondition(messages.last?.0 == "Recording failed.")
+        precondition(messages.last?.1 == .danger)
         print("PASS switch-off save failure reports danger HUD")
         print("PASS recording module switch, record entry point, writer failure message and teardown")
     }

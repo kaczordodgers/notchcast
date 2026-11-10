@@ -1,11 +1,10 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/LiveTimer/LiveTimerModule.swift
 
 // notchcast-sources: Tinycast/Features/LiveTimer/Model/*.swift
 
 // notchcast-sources: Tinycast/Features/LiveTimer/Service/*.swift
 
-// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift

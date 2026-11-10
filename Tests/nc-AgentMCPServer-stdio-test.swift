@@ -9,17 +9,9 @@
 // notchcast-sources: Tinycast/Features/AgentConsent/Model/AgentAuditEntry.swift
 // notchcast-sources: Tinycast/Features/AgentConsent/Model/AgentConsentPolicy.swift
 // notchcast-sources: Tinycast/Features/AgentConsent/Service/AgentAuditStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 import Foundation
 import Observation
-
-enum NotchcastFeature { case agentMCPServer }
-
-@MainActor @Observable
-final class NotchcastPreferences {
-    var enabled = false
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
-}
 
 @main
 @MainActor
@@ -99,7 +91,9 @@ struct StdioTest {
         index.start()
         let module = AgentMCPModule()
         module.configure(index: index)
-        let preferences = NotchcastPreferences()
+        let suite = "agent-mcp-stdio-\(UUID())"
+        defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
+        let preferences = NotchcastPreferences(suiteName: suite)
         let controller = NotchcastModuleController([
             .init(requires: [.agentMCPServer], module: module)
         ], preferences: preferences)
@@ -112,7 +106,7 @@ struct StdioTest {
         precondition(disabled[1]["id"] == .number(3) && executions == 0 && approvals == 0)
         print("PASS switch off returns JSON-RPC Server stopped over the fake app socket")
 
-        preferences.enabled = true
+        preferences.set(.agentMCPServer, true)
         for _ in 0..<20 { await Task.yield() }
         precondition(module.engine.isRunning)
         authorized = true
@@ -249,13 +243,13 @@ struct StdioTest {
         }
         let pending = Task { try await transcript([initialize, call], folder: folder, socket: socket) }
         while !waiting { await Task.yield() }
-        preferences.enabled = false
+        preferences.set(.agentMCPServer, false)
         for _ in 0..<20 { await Task.yield() }
         let cancelled = try await pending.value
         precondition(cancelled[1]["error"] != nil && executions == 1)
         precondition(audit.count == auditBeforeCancellation + 1 && audit.last?.1.code != .ok)
         precondition(!module.engine.isRunning)
-        preferences.enabled = true
+        preferences.set(.agentMCPServer, true)
         for _ in 0..<20 { await Task.yield() }
         let restarted = try await transcript([list], folder: folder, socket: socket)
         precondition(error(restarted[0], code: -32002))

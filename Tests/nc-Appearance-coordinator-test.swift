@@ -3,10 +3,7 @@
 // notchcast-sources: Tinycast/Features/Appearance/UI/AppearanceCoordinator.swift
 // notchcast-sources: Tinycast/Features/Appearance/UI/ThemeImportDialog.swift
 // notchcast-sources: Tinycast/Windows/Dialog/DialogRequest.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 import AppKit
 
 enum PaletteMode { case launcher, theme }

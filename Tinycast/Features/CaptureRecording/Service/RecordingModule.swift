@@ -65,7 +65,7 @@ final class RecordingModule: NotchcastModule {
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
         defaultFolder: URL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0],
         commandArea: CaptureAreaService = CaptureAreaService(),
-        refreshCommands: @escaping () -> Void = { AppCore.shared.appIndex.refreshNotchcastCommands() },
+        refreshCommands: @escaping () -> Void = { NotchcastHost.current.refreshNotchcastCommands() },
         makeSource: @escaping @MainActor () -> any RecordingSource = { ScreenRecordingSource() },
         makeWriter: @escaping WriterFactory = { try await RecordingWriter.create(url: $0, format: $1) },
         sleep: @escaping @Sendable () async throws -> Void = { try await Task.sleep(for: .seconds(1)) },
@@ -104,12 +104,12 @@ final class RecordingModule: NotchcastModule {
                     do {
                         _ = try await finish()
                         if reportSave {
-                            AppCore.shared.showMessage(String(localized: "Recording saved", table: "Notchcast"), tone: .success)
+                            NotchcastHost.current.showMessage(String(localized: "Recording saved", table: "Notchcast"), .success)
                         }
                     } catch {
                         lastError = error
                         if reportSave {
-                            AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
+                            NotchcastHost.current.showMessage(Self.failureMessage(error), .danger)
                         }
                     }
                 } else {

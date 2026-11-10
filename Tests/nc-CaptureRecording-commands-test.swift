@@ -6,9 +6,7 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingSource.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift Tinycast/Features/CaptureArea/Service/*.swift
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core host
 import AppKit
 import CoreMedia
 
@@ -25,13 +23,12 @@ struct NotchcastCommand: Sendable {
 
 enum SettingsTab { case notchcast }
 
+enum DialogTone { case danger, neutral, success }
+
 @MainActor final class AppCore {
-    enum Tone { case danger, neutral, success }
     static let shared = AppCore()
-    var appIndex: AppCore { self }
-    func refreshNotchcastCommands() {}
-    var messages: [(String, Tone)] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append((text, tone)) }
+    var messages: [(String, DialogTone)] = []
+    func showMessage(_ text: String, tone: DialogTone) { messages.append((text, tone)) }
 }
 
 @MainActor enum NotchcastCore {
@@ -54,6 +51,7 @@ enum SettingsTab { case notchcast }
                                      refreshCommands: { refreshes += 1 },
                                      makeSource: { source }, sleep: {})
         NotchcastCore.recording = module
+        NotchcastHost.current.showMessage = { AppCore.shared.showMessage($0, tone: $1) }
         let preferences = NotchcastPreferences.shared
         let previous = preferences.isOn(.recording)
         defer { preferences.set(.recording, previous) }

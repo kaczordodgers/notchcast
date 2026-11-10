@@ -1,10 +1,6 @@
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
-// notchcast-kit: platform
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: platform core
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift

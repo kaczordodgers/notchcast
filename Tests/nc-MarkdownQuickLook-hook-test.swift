@@ -3,10 +3,7 @@
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Service/QuickLookSystemPresenter.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Model/QuickLookRequest.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Model/QuickLookSpacePolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 import Foundation
 
 @main

@@ -1,9 +1,6 @@
 // notchcast-sources: Tinycast/Features/Music/Model/*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastServicesModules.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
@@ -16,8 +13,6 @@ final class CountingModule: NotchcastModule {
     func start() {}
     func stop() {}
 }
-
-@MainActor final class AppCore {}
 
 @MainActor
 final class NotchcastServices {

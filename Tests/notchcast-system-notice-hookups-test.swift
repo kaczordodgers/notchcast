@@ -1,19 +1,14 @@
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/LowDisk/Model/LowDiskEngine.swift
 // notchcast-sources: Tinycast/Features/LowDisk/LowDiskModule.swift
 // notchcast-sources: Tinycast/Features/LowDisk/LowDiskModule+Notice.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Notice.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}
 enum DialogTone {}
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = Index()
-    final class Index { func refreshNotchcastCommands() {} }
-}
 @MainActor final class LowDiskManager {
     var onNotice: ((LowDiskEngine.Space) -> Void)?
     func start() {}

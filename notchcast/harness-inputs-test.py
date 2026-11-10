@@ -94,6 +94,7 @@ class HarnessInputsTest(unittest.TestCase):
         }
         for name in {name for names in cases.values() for name in names}:
             shutil.copy(ROOT / "Tests" / f"{name}.swift", self.root / "Tests")
+        shutil.copytree(ROOT / "Tests/Kit", self.root / "Tests/Kit", dirs_exist_ok=True)
         for changed, names in cases.items():
             with self.subTest(changed=changed):
                 selected = self.selected(changed)
