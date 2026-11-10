@@ -25,6 +25,8 @@ git init -q
 git config user.name Damian
 git config user.email 336236323+kaczordodgers@users.noreply.github.com
 echo base > base.txt
+mkdir notchcast
+echo 'GENERATED = ["generated.txt"]' > notchcast/ci.py
 git add .
 git commit -qm 'Fixture base'
 base=$(git rev-parse HEAD)
@@ -44,6 +46,7 @@ pr=1
 pr_files=consumer.txt
 generated=(generated.txt)
 printf 'Fixture squash\n' > "$scratch/message"
+MAINTAINER_NAME=$(git config user.name) MAINTAINER_EMAIL=$(git config user.email)
 refuse() { echo "REFUSED: $*"; exit 1; }
 merge_onto() { echo rebuilt >> "$scratch/rebuilt"; }
 harnesses() { refuse 'selected harness detects removed API in disjoint file'; }
@@ -71,3 +74,25 @@ if [ "$status" -ne 1 ] || ! grep -q 'landing is held for 330' "$scratch/output";
 fi
 [ ! -s "$PUSHES" ]
 echo 'PASS: a hold set during the check refuses before the push'
+# Main moving only in a generated file (the Generated workflow's push) merges again but skips the harnesses.
+HOLD=
+git switch -q --detach "$base"
+echo regenerated > generated.txt
+git add generated.txt
+git commit -qm 'Fixture generated'
+export MOVED=$(git rev-parse HEAD)
+git switch -q --detach "$head"
+: > "$PUSHES"
+rm -f "$scratch/rebuilt"
+git update-ref refs/remotes/origin/main "$base"
+harnesses() { echo harnesses >> "$scratch/harnessed"; }
+status=0
+(source "$scratch/retry") > "$scratch/output" 2>&1 || status=$?
+if [ "$status" -ne 0 ] || [ -e "$scratch/harnessed" ] || ! grep -q 'only in generated files' "$scratch/output"; then
+    cat "$scratch/output"
+    echo 'FAIL: a generated-only move reran the harnesses'
+    exit 1
+fi
+[ "$(wc -l < "$PUSHES")" -eq 2 ]
+[ "$(wc -l < "$scratch/rebuilt")" -eq 1 ]
+echo 'PASS: a generated-only move merges again, skips the harnesses and pushes'

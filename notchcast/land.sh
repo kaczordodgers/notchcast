@@ -255,10 +255,17 @@ if [ "$check" -eq 0 ]; then
         git fetch --quiet origin main '+refs/notchcast/synced/*:refs/notchcast/synced/*'
         moved_to=$(git rev-parse origin/main)
         [ "$moved_to" != "$base" ] || refuse "push to main failed and main did not move from ${base:0:8}"
-        echo "main moved ${base:0:8} -> ${moved_to:0:8}; merging again and rerunning harnesses"
+        previous=$base
         base=$moved_to
-        merge_onto "$base"
-        harnesses "$base"
+        # Trees, not the commit range: a Sync rewrite of main changes real files and still reruns.
+        if [ -z "$(git diff --name-only "$previous" "$base" | grep -vxF -f <(python3 -c 'from notchcast.ci import GENERATED; print("\n".join(GENERATED))') || true)" ]; then
+            echo "main moved ${previous:0:8} -> ${base:0:8} only in generated files; merged again without rerunning harnesses"
+            merge_onto "$base"
+        else
+            echo "main moved ${previous:0:8} -> ${base:0:8}; merging again and rerunning harnesses"
+            merge_onto "$base"
+            harnesses "$base"
+        fi
         commit=$(GIT_AUTHOR_NAME="$MAINTAINER_NAME" GIT_AUTHOR_EMAIL="$MAINTAINER_EMAIL" \
             GIT_COMMITTER_NAME="$MAINTAINER_NAME" GIT_COMMITTER_EMAIL="$MAINTAINER_EMAIL" \
             git commit-tree "HEAD^{tree}" -p "$base" -F "$scratch/message")
