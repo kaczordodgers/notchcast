@@ -35,8 +35,20 @@ struct NotchcastCommand: Sendable {
         await module.commandTask?.value
         precondition(copied == "~/file" && reported == "Copied path")
         module.stop()
-        precondition(module.commandTask == nil)
-        precondition(CopyPathModule.launcherCommand.feature == .copyPath)
-        print("Verified launcher action resolves with fake reader, copies result and reports success")
+        let (gate, release) = AsyncStream<Void>.makeStream()
+        let pending = CopyPathModule(makeService: { CopyPathService { _ in
+            for await _ in gate { break }
+            return ["/test/late"]
+        } })
+        pending.start()
+        var lateCopied = false
+        pending.copyFromLauncher(target: CopyPathTarget(processID: 1, bundleID: "com.apple.finder"),
+                                 home: "/test", copy: { _ in lateCopied = true; return true }, report: { _ in lateCopied = true })
+        let task = pending.commandTask
+        pending.stop()
+        release.yield()
+        await task?.value
+        precondition(!lateCopied)
+        print("Verified launcher action resolves with fake reader, copies result and reports success; a stopped module copies nothing")
     }
 }

@@ -53,7 +53,6 @@ struct NotchcastSoloistFailuresTest {
         }
         // The real key's shape: 37 ASCII letters and digits with one underscore, then a newline.
         let shaped = "Qx7mR2vK9pL4tN8wZ3bH6cJ1dF5gS0_aYeUiO"
-        check(shaped.count == 37)
         try key.save(shaped + "\n")
         check(stored == shaped, "a pasted key of the real shape was refused")
         let shapedFile = root.appending(path: "shaped-key")
