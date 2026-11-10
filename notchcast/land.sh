@@ -144,7 +144,7 @@ elif [ "$#" -eq 1 ] && [[ "$1" =~ ^[0-9]+$ ]]; then
         || refuse "build is $verdict on ${head:0:8}: wait for it or fix it (cancel a pending one to use a green head that differs only in generated files)"
     if [ "$verdict" != success ]; then
         # A head that differs from a green head of this branch only in generated files needs no new build:
-        # CI regenerates them before every build, so the green build already proved this code.
+        # landing keeps main's copies of them (below), so the green build already proved what lands.
         branch=$(jq -r .headRefName <<< "$metadata")
         generated=$(python3 -c 'from notchcast.ci import GENERATED; print("\n".join(GENERATED))')
         proven=
@@ -190,8 +190,8 @@ merge_onto() {
         git merge-recursive "$fork" -- HEAD "$head" >/dev/null 2>&1 || true
         git rev-parse "$head" > "$(git rev-parse --git-path MERGE_HEAD)"
     fi
-    # Generated files (ci.py GENERATED) keep main's version, conflicting or not: CI regenerates them before every
-    # build, so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
+    # Generated files (ci.py GENERATED) keep main's version, conflicting or not, and main's Generated workflow
+    # rewrites them, so the PR's copies never land and the green head still proves the code. Any other conflict is refused.
     generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
     # Only the ones main has: a newly generated file is not on main until its first landing.
     generated=($(git ls-tree -r --name-only "$onto" -- "${generated[@]}"))
