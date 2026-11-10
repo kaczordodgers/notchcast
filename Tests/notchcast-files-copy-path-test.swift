@@ -1,5 +1,6 @@
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Model/*.swift
-// notchcast-sources: Tinycast/Features/Launcher/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Model/WebRules.swift
 import Foundation
 
 @main
@@ -48,10 +49,10 @@ struct CopyPathTest {
         precondition(CopyPathEngine.paths([home + "/"], home: home + "/") == .path("~"))
         precondition(CopyPathEngine.document("file://server/a", home: home) == .nothing)
         precondition(CopyPathEngine.document("untitled", home: home) == .nothing)
-        precondition(CopyPathEngine.cleanLink("javascript:alert(1)") == nil)
-        precondition(CopyPathEngine.cleanLink("https:///a") == nil)
-        precondition(CopyPathEngine.cleanLink("https://example.com/?%75tm_source=x&FBCLID=y") == "https://example.com/")
-        precondition(CopyPathEngine.cleanLink("https://example.com/?q=x&q=y#z") == "https://example.com/?q=x&q=y#z")
+        precondition(WebRules.cleanLink("javascript:alert(1)") == nil)
+        precondition(WebRules.cleanLink("https:///a") == nil)
+        precondition(WebRules.cleanLink("https://example.com/?%75tm_source=x&FBCLID=y") == "https://example.com/")
+        precondition(WebRules.cleanLink("https://example.com/?q=x&q=y#z") == "https://example.com/?q=x&q=y#z")
         precondition(CopyPathService.Failure.appleEvent(-1743) == .needsAutomation)
         precondition(CopyPathService.Failure.appleEvent(-1712) == .timedOut)
         do {
