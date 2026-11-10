@@ -9,7 +9,6 @@
   "notchcast/docs/architecture.md": {"UPSTREAM_REPO": 1},
   "notchcast/docs/branch-cleanup.md": {"FORK_REPO": 1},
   "notchcast/docs/design-system.md": {"UPSTREAM_REPO": 1},
-  "notchcast/docs/distill.md": {"MAINTAINER_NAME": 1},
   "notchcast/docs/island-closed.md": {"MAINTAINER_NAME": 2},
   "notchcast/docs/machine-setup-profile.md": {"MAINTAINER_NAME": 1},
   "notchcast/docs/shipping.md": {"UPSTREAM_REPO": 5},

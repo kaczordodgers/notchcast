@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Downloads/Webpage/*.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-kit: platform
