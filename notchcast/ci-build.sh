@@ -43,6 +43,9 @@ bash "$TOOLS/notchcast/check-identity.sh" app "$RUNNER_TEMP/DerivedData/Build/Pr
 step lint
 command -v swiftlint >/dev/null || brew install --quiet swiftlint
 ./Scripts/lint.sh
-step harnesses
-bash "$TOOLS/notchcast/ci-tests.sh"
+# pr.yml runs the harnesses in shards beside this job; local-ci.sh runs them here.
+if [ -z "${NOTCHCAST_HARNESSES_SHARDED:-}" ]; then
+    step harnesses
+    bash "$TOOLS/notchcast/ci-tests.sh"
+fi
 step complete
