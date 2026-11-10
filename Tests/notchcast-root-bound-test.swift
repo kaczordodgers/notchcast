@@ -1,4 +1,5 @@
-// notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: root platform
+// notchcast-sources: -parse-as-library
 import Foundation
 
 private final class StuckProcess: Process, @unchecked Sendable {

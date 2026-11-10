@@ -235,7 +235,7 @@ private struct CountingRunner: AgentThreadRunning {
         while !joined { await Task.yield() }
         precondition(foreignDelivered && counter.passes == beforeJoin + 1 && counter.cancellations == 0)
         counted.setVisible(true)
-        try await Task.sleep(for: .milliseconds(200))
+        while countedState.status != .ready { await Task.yield() }
         let beforeVisibleRefresh = counter.passes
         var visibleDone = false
         counted.refresh { _ in visibleDone = true }

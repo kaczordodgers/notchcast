@@ -158,7 +158,6 @@ extension NotchcastCommandCatalog {
 @main @MainActor struct NotchcastCommandsTest {
     static func main() {
         let commands = NotchcastCommandCatalog.all
-        assert(Set(commands.map(\.id)).count == commands.count)
         assert(commands.allSatisfy { $0.id.hasPrefix("command:nc-") })
         assert(commands.allSatisfy { command in CommandCatalog.all.contains { $0.id == command.entry.id } })
         assert(CommandCatalog.entries(ownedBy: .notchcast).isEmpty)

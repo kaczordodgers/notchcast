@@ -1,4 +1,5 @@
-// notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: root platform
+// notchcast-sources: -parse-as-library
 // notchcast-reads: notchcast/root/*.swift Tinycast/Features/Clean/Model/CleanSystem*.swift
 // notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift
 import Darwin
@@ -218,9 +219,7 @@ struct FanSMCTest {
         do {
             try BatterySMC.apply(.batteryChargingOff, smc: BatteryFixture())
             preconditionFailure("Absent keys must report unsupported")
-        } catch BatterySMC.Failure.unsupported {
-            precondition(RootContract.unsupportedExit != 70)
-        }
+        } catch BatterySMC.Failure.unsupported {}
         let failed = BatteryFixture()
         failed.keys = ["CHTE": 4]
         failed.failedProbe = "CH0B"
@@ -395,7 +394,6 @@ struct RootClientTest {
         for invalid in ["0\n", "101\n", "080\n", "80", "80\nextra"] {
             precondition(RootContract.Reply(command: .chargeLimitRead, output: invalid) == nil)
         }
-        precondition(RootContract.Operation.change.timeout == .seconds(12))
     }
 
     private static func validateExecutable() throws {

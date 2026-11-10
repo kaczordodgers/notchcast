@@ -46,15 +46,15 @@ struct SendFilesTests {
         precondition(FileManager.default.fileExists(atPath: root.appendingPathComponent("Downloads/a file").path))
         precondition(!FileManager.default.fileExists(atPath: root.appendingPathComponent("Downloads/a file.notchcast-claim").path))
         let source = URL(fileURLWithPath: "/tmp/a file's name")
-        for address in ["", "-bad", "host;echo bad", "user@2001:db8::1"] {
+        for (address, runs) in [("", false), ("-bad", false), ("host;echo bad", false), ("user@2001:db8::1", true)] {
             let fake = FakeRemoteShell()
             fake.sshAlias = address
             var notices: [String] = []
             let coordinator = SendFilesCoordinator(shell: fake, post: { notices.append($0) })
             coordinator.sendFinderSelection([source])
             await coordinator.waitForCompletion()
-            precondition(fake.calls.isEmpty == !MachSSH.isValid(address))
-            if !MachSSH.isValid(address) {
+            precondition(fake.calls.isEmpty == !runs)
+            if !runs {
                 precondition(notices == [String(localized: "Set the remote Mac address in Settings")])
             }
         }

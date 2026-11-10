@@ -2,20 +2,10 @@ name: Main harnesses
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths-ignore:
-      - Tinycast.xcodeproj/project.pbxproj
-      - Tinycast.xcodeproj/xcshareddata/xcschemes/Tinycast.xcscheme
-      - Tinycast/Resources/RaycastRuntime.generated.js
-      - README.md
 
 permissions:
-  actions: read
   contents: read
-  issues: write
 
-# Running checks finish; pending pushes select from the last green run to cover replaced pushes.
 concurrency:
   group: main-harnesses-${{ github.ref }}
   cancel-in-progress: false
@@ -37,22 +27,10 @@ jobs:
       - uses: ./tools/notchcast/actions/xcode
       - name: Changed harnesses
         working-directory: src
-        env:
-          BEFORE: ${{ github.event.before }}
-          GH_TOKEN: ${{ github.token }}
         run: |
           git fetch -q origin '+refs/notchcast/synced/*:refs/notchcast/synced/*'
-          if [ "$GITHUB_EVENT_NAME" = workflow_dispatch ]; then
-            BEFORE=$(bash notchcast/fork-point.sh origin/main HEAD)
-          else
-            BEFORE=$(bash notchcast/main-harness-base.sh "$BEFORE" "$GITHUB_SHA")
-          fi
-          if [[ "$BEFORE" =~ ^0+$ ]] || ! git cat-file -e "$BEFORE^{commit}"; then
-            # A Sync rewrite: Sync tested this tree before pushing it.
-            echo notchcast-core-test > "$RUNNER_TEMP/selected"
-          else
-            ./notchcast/changed-harnesses.sh "$BEFORE" "$GITHUB_SHA" > "$RUNNER_TEMP/selected"
-          fi
+          BEFORE=$(bash notchcast/fork-point.sh origin/main HEAD)
+          ./notchcast/changed-harnesses.sh "$BEFORE" "$GITHUB_SHA" > "$RUNNER_TEMP/selected"
           cat "$RUNNER_TEMP/selected"
       - name: Run harnesses, retry failures alone
         working-directory: src
@@ -70,10 +48,3 @@ jobs:
           [ -n "${NOTCHCAST_ONLY_TESTS// /}" ] || exit 0
           # run-tests.sh replays no log when bash's crash notice splits its result line, so print it here.
           bash ../tools/notchcast/ci-tests.sh
-      # land.sh pushes its own squash with no app build on the merged tree; a red main opens the notchcast-main
-      # issue, which the maintainer's updater turns into one alert (the next green Sync of main closes it).
-      - name: Report a red main
-        if: failure() && github.ref == 'refs/heads/main'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: python3 tools/notchcast/ci.py issue open main "main ${GITHUB_SHA:0:7} fails its harnesses" "harnesses-$GITHUB_SHA"

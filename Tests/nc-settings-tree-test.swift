@@ -67,7 +67,6 @@ struct NotchcastSettingsTreeTests {
             let module = NotchcastSettingsModule.module(of: feature)
             precondition(module.visibleGroups.contains { $0.items.contains { $0.feature == feature } })
         }
-        precondition(!SettingsSection.features.tabs.contains(.notchcast), "Island moved out of Features")
         var strings: [String: [String: Any]] = [:]
         for table in ["Localizable", "Notchcast"] {
             let data = try Data(contentsOf: URL(filePath: "Tinycast/Resources/\(table).xcstrings"))

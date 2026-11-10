@@ -4,8 +4,7 @@
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
 // notchcast-sources: Tinycast/Features/Downloads/Model/DownloadTool.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 import Darwin
 import Foundation
 

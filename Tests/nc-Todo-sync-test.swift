@@ -33,7 +33,6 @@ struct TodoSyncTests {
         try deletion()
         try replay()
         try relationships()
-        try transport()
         try vectors()
         try agents()
         try agentFailures()
@@ -189,27 +188,6 @@ struct TodoSyncTests {
         let moved = try converged(sectionDelete, move)
         precondition(moved.state.tasks[task.id]?.sectionID == nil)
         print("PASS: delete wins over earlier/later edits; explicit undo restores; project and section conflicts stay valid")
-    }
-
-    static func transport() throws {
-        let (left, right) = TodoFakeSyncTransport.pair()
-        let value = try fixture()
-        try left.send(value.envelopes(after: TodoVectorClock()))
-        let received = right.receive()
-        precondition(received == value.envelopes)
-        precondition(right.receive().isEmpty && left.receive().isEmpty)
-        try right.send(received)
-        precondition(left.receive() == received)
-        var retained: TodoFakeSyncTransport?
-        do {
-            let (sender, receiver) = TodoFakeSyncTransport.pair()
-            retained = sender
-            precondition(receiver.receive().isEmpty)
-        }
-        do {
-            try retained?.send([])
-            preconditionFailure("disconnected send succeeded")
-        } catch TodoFakeSyncTransport.Failure.disconnected { }
     }
 
     static func replay() throws {

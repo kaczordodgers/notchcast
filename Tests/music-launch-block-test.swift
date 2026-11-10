@@ -3,7 +3,7 @@
 // notchcast-sources: Tinycast/Features/Music/Model/MusicLaunchPolicy.swift
 // notchcast-sources: Tinycast/Features/Music/Service/MusicLaunchBlocker.swift
 // notchcast-sources: Tinycast/Features/Music/Service/PlayerApps.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 import AppKit
 
 @MainActor
