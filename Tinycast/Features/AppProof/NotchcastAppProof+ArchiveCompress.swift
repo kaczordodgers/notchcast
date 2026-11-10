@@ -36,13 +36,8 @@ extension NotchcastAppProof {
     }
 
     private static func run(_ tool: String, _ arguments: [String]) throws {
-        let process = Process()
-        process.executableURL = URL(filePath: tool)
-        process.arguments = arguments
-        process.standardError = FileHandle.nullDevice
-        try process.run()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else { throw ArchiveProofFailure("\(tool) exited \(process.terminationStatus)") }
+        let output = try ProcessRunner.runBlocking(.init(executable: URL(filePath: tool), arguments: arguments))
+        guard output.status == 0 else { throw ArchiveProofFailure("\(tool) exited \(output.status)") }
     }
 }
 
