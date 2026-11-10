@@ -5,7 +5,7 @@ extension ForkSettingsBackupState {
     static var live: Self {
         Self(snapshot: {
             var values = ForkSettingsBackupRestore.snapshot(.shared)
-            values["screenText.removeLineBreaks"] = NotchcastCore.screenText.removeLineBreaks
+            values["screenText.removeLineBreaks"] = NotchcastCore.screenTextRemovesLineBreaks
             let editor = NotchcastCore.editor.editorPreferences
             values["notchcast.editor.font"] = editor.font.rawValue
             values["notchcast.editor.theme"] = editor.theme.rawValue
@@ -44,7 +44,7 @@ extension ForkSettingsBackupState {
         }, validate: validateLive, apply: { values in
             try validateLive(values)
             if let value = values["screenText.removeLineBreaks"] as? Bool {
-                NotchcastCore.screenText.removeLineBreaks = value
+                NotchcastCore.screenTextRemovesLineBreaks = value
             }
             let editor = NotchcastCore.editor.editorPreferences
             if let value = values["notchcast.editor.font"] as? String,
@@ -68,7 +68,7 @@ extension ForkSettingsBackupState {
             }
             if let value = values["notchcast.colorPicker.format"] as? String {
                 AppearanceStore.preferences.set(value, forKey: "notchcast.colorPicker.format")
-                if let format = ColorPickerFormat(rawValue: value) { NotchcastCore.colorPicker.format = format }
+                if let format = ColorPickerFormat(rawValue: value) { ColorPickerModule.shared.format = format }
             }
             let appearance = AppearanceStore.current ?? AppearanceStore()
             if let value = values["notchcast.appearance.surface"] as? String,

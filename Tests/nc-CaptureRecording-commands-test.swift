@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift Tinycast/Features/CaptureArea/Service/*.swift
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 import AppKit
@@ -25,21 +26,16 @@ struct NotchcastCommand: Sendable {
 
 enum SettingsTab { case notchcast }
 
-@MainActor final class AppCore {
-    enum Tone { case danger, neutral, success }
-    static let shared = AppCore()
-    var appIndex: AppCore { self }
-    func refreshNotchcastCommands() {}
-    var messages: [(String, Tone)] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append((text, tone)) }
-}
+enum DialogTone { case danger, neutral, success }
 
-@MainActor enum NotchcastCore {
-    static var recording = RecordingModule()
+extension RecordingModule {
+    static var shared = RecordingModule()
 }
 
 @main struct RecordingCommandTests {
     @MainActor static func main() async throws {
+        var messages: [(String, DialogTone)] = []
+        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -53,7 +49,7 @@ enum SettingsTab { case notchcast }
         let module = RecordingModule(defaults: defaults, defaultFolder: root, commandArea: area,
                                      refreshCommands: { refreshes += 1 },
                                      makeSource: { source }, sleep: {})
-        NotchcastCore.recording = module
+        RecordingModule.shared = module
         let preferences = NotchcastPreferences.shared
         let previous = preferences.isOn(.recording)
         defer { preferences.set(.recording, previous) }
@@ -89,8 +85,8 @@ enum SettingsTab { case notchcast }
         precondition(refreshes == 4)
         RecordingCommands.stop.run()
         await module.commandTask?.value
-        precondition(AppCore.shared.messages.last?.0 == "No recording is in progress.")
-        precondition(AppCore.shared.messages.last?.1 == .danger)
+        precondition(messages.last?.0 == "No recording is in progress.")
+        precondition(messages.last?.1 == .danger)
         let count = source.starts
         RecordingCommands.area.run()
         precondition(source.starts == count && module.phase == .idle)
@@ -107,8 +103,8 @@ enum SettingsTab { case notchcast }
         let publishedAfter = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "mp4" }.count
         precondition(publishedAfter == publishedBefore + 1 && !module.enabled)
-        precondition(AppCore.shared.messages.last?.0 == "Recording saved")
-        precondition(AppCore.shared.messages.last?.1 == .success)
+        precondition(messages.last?.0 == "Recording saved")
+        precondition(messages.last?.1 == .success)
         precondition(!RecordingCommands.stop.isEnabled())
         module.start()
         preferences.set(.recording, true)
