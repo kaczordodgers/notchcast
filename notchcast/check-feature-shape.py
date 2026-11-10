@@ -104,6 +104,8 @@ HOOKS = (
     ("Tinycast/App/MenuBarItem.swift",
      'Button("About \\(appName)") { AppCore.shared.settingsCoordinator.showAbout() }'),
     (COMMAND, '"command:nc-" + slug'),
+    ("Tinycast/Features/Notchcast/Core/NotchcastCore.swift",
+     "ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }"),
     ("Tinycast/Features/Archives/NotchcastArchiveModules.swift", "[.init(requires: [.archives], module: module)]"),
     ("Tinycast/Features/AgentThreads/AgentThreadsModule.swift",
      *2 * ("isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }",)),

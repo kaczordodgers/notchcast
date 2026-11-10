@@ -7,14 +7,14 @@ exports and backups. Switches follow the existing Notchcast default of on.
 
 ## Color picker
 
-`NotchcastCore.colorPicker` owns `ColorPickerModule` and its native `ColorPickerService`.
+`ColorPickerModule.shared` is the registered module and owns its native `ColorPickerService`.
 The switch enables on-demand sampling; disabling invalidates pending sampler output. Enabling never
 opens the sampler. The format picker persists the engine's six formats, with uppercase hex as default.
 Pick Color (`command:nc-pick-color`) invokes `ColorPickerModule.pick(completion:)` from the launcher.
 
 ## Screenshots
 
-`NotchcastCore.screenshot` owns `ScreenshotModule`. The switch enables on-demand capture; disabling
+`ScreenshotModule.shared` is the registered module. The switch enables on-demand capture; disabling
 cancels its current operation. Changing the output destination or folder also cancels a pending capture,
 and caller cancellation propagates to the engine. No capture or permission prompt runs at startup.
 
@@ -30,7 +30,7 @@ Permissions pane has no Screen Recording row. The engine asks for access only wh
 
 ## Recording
 
-`NotchcastCore.recording` owns `RecordingModule`. Enabling prepares the on-demand engine without
+`RecordingModule.shared` is the registered module. Enabling prepares the on-demand engine without
 capturing or requesting access. Disabling cancels countdown, startup, recording or finalization and
 discards its temporary file. It works independently of Island and adds no launcher command or page.
 
