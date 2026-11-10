@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-"""Keep feature registrations safe for append-only union merges."""
+"""Keep feature registrations safe for append-only union merges, and hold the spec facts no harness can run."""
 
+import plistlib
 import re
 import sys
 import subprocess
@@ -12,13 +13,17 @@ GROUPS = FEATURE.with_name("NotchcastFeature+SettingsGroup.swift")
 DESCRIPTORS = FEATURE.with_name("NotchcastFeature+Descriptor.swift")
 MODULES = FEATURE.with_name("NotchcastCore+Modules.swift")
 REGISTRANTS = FEATURE.with_name("NotchcastCore+Registrants.swift")
+CATALOG = Path("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift")
+TREE = Path("Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift")
+SEARCH = Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift")
 # Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
 LISTS = {
     Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift"): r'^"([^"]+)"',
     MODULES: r"module: ([\w.]+)",
-    Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
+    SEARCH: r"^(.*?)(?:, keywords: .*)?\),$",
     DESCRIPTORS: r"^\.(\w+):",
     REGISTRANTS: r"^(\w+)\.self,$",
+    CATALOG: r"^([\w.\[\]]+),$",
 }
 # The feature's code folder at any depth, beside its layers: harnesses glob Model/ and Service/.
 FEATURE_FOLDER = r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))(?:(?!(?:Model|Service|UI|Settings)/)\w+/)+"
@@ -31,6 +36,119 @@ DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b
                                     r"|->\s*(?:NotchcastFeature\.)?Descriptor\b")
 # Switches without a default: a feature without a descriptor needs an arm in each.
 EXHAUSTIVE = ("settingsGroup", "title", "subtitle")
+
+# One line per command, "<slug> <owning feature>": a slug is a persisted id (hotkeys, deeplinks), so it never changes.
+SLUGS = Path("notchcast/command-slugs.txt")
+COMMAND = Path("Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift")
+PLIST = Path("Tinycast/Info.plist")
+SETTINGS = TREE.with_name("NotchcastSetting.swift")
+BACKUPS = TREE.with_name("NotchcastBackupGroups.swift")
+APP_SETTINGS = Path("Tinycast/Features/Settings/AppSettings.swift")
+ARCHIVE_FORMATS = Path("Tinycast/Features/Archives/Model/ArchiveFormat.swift")
+MACH_LINK = Path("Tinycast/Features/MachLink/Service/MachLinkManager.swift")
+LOCAL_NETWORK = "Notchcast connects to your other Mac on the local network."
+# Imported types that are not ours to name: Info.plist declares them because macOS ships no declaration.
+FOREIGN_TYPES = {"org.bittorrent.torrent", "com.rarlab.rar-archive"}
+# What a harness used to assert about one feature, as Swift text; changing a value here is a spec change.
+PINS = {
+    "archives": {"group": ".archives", "dependencies": "[]", "requiredGrants": "[]", "module": ".filesAndClipboard"},
+    "archivesInPlace": {"group": ".archives", "defaultEnabled": "false", "dependencies": "[.archives]",
+                        "requiredGrants": "[]", "module": ".filesAndClipboard"},
+    "archivesDefaultApp": {"group": ".archives", "defaultEnabled": "false", "dependencies": "[.archives]",
+                           "requiredGrants": "[]", "module": ".filesAndClipboard"},
+    "captureEditor": {"group": ".captureAndDictation", "defaultEnabled": "false", "wired": "true"},
+    "recording": {"group": ".captureAndDictation", "requiredGrants": "[.screenRecording]"},
+    "screenshot": {"needsIsland": "false", "requiredGrants": "[.screenRecording]"},
+    "screenText": {"settings": "[.captureScreenTextLineBreaks]"},
+    "scrollingCapture": {"settings": "[]"},
+    "dictationHistory": {"defaultEnabled": "true"},
+    "globeDictation": {"needsIsland": "false", "requiredGrants": "[.accessibility, .microphone]"},
+    "markdownFiles": {"group": ".system", "needsIsland": "false"},
+    "plainTextFiles": {"needsIsland": "false"},
+    "finderCutPaste": {"group": ".finder", "needsIsland": "false", "requiredGrants": "[.accessibility]"},
+    "finderRename": {"group": ".finder", "needsIsland": "false", "requiredGrants": "[.accessibility]"},
+    "startupItems": {"wired": "true"},
+    "notificationCleanup": {"wired": "true", "requiredGrants": "[.accessibility]"},
+    "sudoTouchID": {"wired": "true"},
+    "killProcess": {"wired": "false"},
+    "macSetup": {"wired": "false"},
+    "aiFeaturesOff": {"wired": "true"},
+    "spotlightOff": {"wired": "true"},
+    "privacyChoices": {"wired": "true"},
+    "quickLookSpace": {"group": ".launcher", "needsIsland": "false", "requiredGrants": "[]"},
+    "backupRunNow": {"group": ".system", "needsIsland": "false", "isSystemFeature": "false"},
+    "backupBrowseRestore": {"group": ".system", "needsIsland": "false", "isSystemFeature": "false"},
+    "openBotAgents": {"defaultEnabled": "false", "wired": "true", "needsIsland": "false"},
+    "musicNowPlaying": {"requiredGrants": "[]"},
+    "musicLastPlayer": {"requiredGrants": "[.accessibility]"},
+    "musicBlockAppleMusic": {"requiredGrants": "[.accessibility]"},
+    "spotifyConnect": {"requiredGrants": "[]"},
+    "microphoneMute": {"requiredGrants": "[.accessibility]"},
+    "inUseMarks": {"requiredGrants": "[]"},
+    "tasks": {"group": ".tasks", "needsIsland": "false", "dependencies": "[]", "requiredGrants": "[]"},
+    "tasksSync": {"group": ".tasks", "dependencies": "[.tasks, .machLink]"},
+    "katana": {"group": ".system", "isSystemFeature": "true"},
+    "treadmillWalk": {"needsIsland": "false"},
+    "treadmillHistory": {"needsIsland": "false"},
+}
+# The same for a class of features: every feature whose first fact has that value keeps the second.
+CLASS_PINS = (
+    ("isSystemTweak", "true", "needsIsland", "false"),
+    ("group", ".torrents", "needsIsland", "false"),
+)
+# Lines a fork behaviour hangs on, in files no harness compiles: a path, then its needles in this order.
+HOOKS = (
+    ("Tinycast/App/AppCore.swift", "func handleOpenURL(_ url: URL)", "if pendingURLs != nil",
+     "if NotchcastCore.archives.open(url) { return }", "if deepLinkCoordinator.handles(url)"),
+    ("Tinycast/App/AppCore.swift", "await NotchcastCore.archives.prepareForTermination()"),
+    ("Tinycast/App/AppCore.swift", "if settings.extensionsEnabled { extensions.start("),
+    ("Tinycast/App/AppDelegate.swift", "for url in urls", "AppCore.shared.handleOpenURL(url)"),
+    ("Tinycast/App/MenuBarItem.swift",
+     'Button("About \\(appName)") { AppCore.shared.settingsCoordinator.showAbout() }'),
+    (COMMAND, '"command:nc-" + slug'),
+    ("Tinycast/Features/AgentThreads/AgentThreadsModule.swift",
+     *2 * ("isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }",)),
+    (APP_SETTINGS, "var extensionsEnabled: Bool { get { false } set { } }"),
+    (APP_SETTINGS, "var appleShortcutsEnabled: Bool { get { false } set { } }"),
+    (APP_SETTINGS, "var supportRemindersEnabled: Bool { get { false } set { } }"),
+    (BACKUPS, 'SettingsRowTitle(.notchcastBackupSettingsFile, "Sync settings file")'),
+    (BACKUPS, "get: { core.settings.settingsFileEnabled }"),
+    (TREE.with_name("NotchcastGrantsSection.swift"), "grantStatuses.values[grant]"),
+    ("Tinycast/Features/Notchcast/Settings/NotchcastGrant+Settings.swift",
+     "@concurrent", "func readIsGranted() async -> Bool"),
+    ("Tinycast/Features/Notchcast/Settings/Rows/CaptureSettingRows.swift", "Remove line breaks"),
+    ("Tinycast/Features/Settings/SettingsSidebarView.swift", "SettingsSection.allCases.filter { !$0.tabs.isEmpty }"),
+    ("Tinycast/Features/Settings/SettingsSearchCatalog.swift", "filter { !NotchcastHidden.tabs.contains($0.tab) }"),
+    ("Tinycast/Features/Settings/SettingsCoordinator.swift", "showSettings(tab: .about)"),
+    ("Tinycast/Features/Settings/SettingsDetailView.swift", "case .about: AboutView()"),
+    ("Tinycast/Windows/About/AboutView.swift", "Released under AGPL-3.0"),
+    ("Tinycast/Windows/About/AboutView.swift", "if NotchcastHidden.supportEnabled { support }"),
+    ("Tinycast/Features/AppleShortcuts/UI/AppleShortcutCoordinator.swift", "guard settings.appleShortcutsEnabled else"),
+    ("Tinycast/Features/Launcher/Model/CommandCatalog.swift",
+     "filter { !NotchcastHidden.commands.contains($0.rawValue) }"),
+    ("Tinycast/Features/Launcher/UI/LauncherCoordinator.swift",
+     "guard !NotchcastHidden.commands.contains(id.rawValue) else { return }"),
+    ("Tinycast/Features/Launcher/UI/LauncherCoordinator.swift", "guard core.settings.extensionsEnabled"),
+    ("Tinycast/Features/Launcher/UI/AppActionsMenu.swift", "&& core.settings.extensionsEnabled"),
+    ("Tinycast/Features/Launcher/Service/FallbackStore.swift", "NotchcastHidden.fallbacksEnabled &&"),
+    ("Tinycast/Features/LauncherKeys/LauncherScreen+AliasSpace.swift", "guard core.settings.extensionsEnabled"),
+    ("Tinycast/Features/Support/UI/SupportCoordinator.swift", "guard NotchcastHidden.supportEnabled else { return }"),
+    ("Tinycast/Features/Support/Service/SupportReminderStore.swift",
+     "guard NotchcastHidden.supportEnabled else { return }"),
+    ("Tinycast/Features/Extensions/Service/ExtensionManager.swift", "guard isEnabled, showsInLauncher else"),
+    ("Tinycast/Features/Extensions/UI/ExtensionCoordinator.swift",
+     "func showStoreInstall(_ install: ExtensionDeepLink.StoreInstall) { guard settings.extensionsEnabled else { return }"),
+    ("Tinycast/Features/HotKeys/Service/HotKeyManager.swift",
+     "NotchcastHidden.commands.contains(id.rawValue) { return nil }"),
+    ("Tinycast/Features/HotKeys/Service/HotKeyManager.swift", "var boundExtensionCommandEntryIDs: [String] { []"),
+    ("Tinycast/Palette/RootPaletteView.swift", "guard settings.extensionsEnabled, vm.mode"),
+)
+# Text that must stay out: a path or glob, then the needle.
+ABSENT = (
+    ("Tinycast/App/MenuBarItem.swift", "showSupport"),
+    (BACKUPS, "settingsFileEnabled ="),
+    (TREE.with_name("*.swift"), ".isGranted"),
+)
 
 
 def mask_literals(source):
@@ -269,6 +387,210 @@ def registration_errors(root):
     return errors
 
 
+def feature_facts(root):
+    """Each feature's facts as Swift text, from its descriptor or its switch arms, with its place in the settings tree."""
+    errors = []
+    source = (root / FEATURE).read_text()
+    start = source.index("enum NotchcastFeature")
+    facts = {case[1]: {"at": (FEATURE, source.count("\n", 0, start + case.start()) + 1)}
+             for case in re.finditer(r"^    case (\w+)$", source[start:source.index("\n    var ", start)], re.M)}
+    sections = re.split(r"^    var (\w+)\b", source, flags=re.M)
+    for member, body in zip(sections[1::2], sections[2::2]):
+        arms = dict(re.findall(r"^\s*case \.(\w+): (.+)$", body, re.M))
+        default = re.search(r"^\s*default: (?!preconditionFailure)(.+)$|descriptor\?\.\w+ \?\? (.+)$", body, re.M)
+        for name, known in facts.items():
+            value = arms.get(name) or (default and (default[1] or default[2]))
+            if value:
+                known["group" if member == "settingsGroup" else member] = value
+    fields = set(re.findall(r"^        let (\w+):", (root / DESCRIPTORS).read_text(), re.M))
+    for path in sorted((root / "Tinycast/Features").rglob("*Descriptor.swift")):
+        relative = path.relative_to(root)
+        text = path.read_text()
+        declared = re.search(r"^\s*static let (\w+) = Self\($", text, re.M)
+        if not DESCRIPTOR_FILE.fullmatch(relative.as_posix()) or not declared or declared[1] not in facts:
+            continue
+        stated = dict(re.findall(r"^\s+(\w+): (.+?),?$", text[declared.end():], re.M))
+        number = text.count("\n", 0, declared.start()) + 1
+        if fields - set(stated):
+            errors.append((relative, number, "start each descriptor field on a line of its own"))
+        facts[declared[1]].update(stated, at=(relative, number))
+    unwired = set(re.findall(r"\.(\w+)", source.split("static let unwired", 1)[-1].split("]", 1)[0]))
+    for name, known in facts.items():
+        known["needsIsland"] = str("island" in re.findall(r"\.(\w+)", known.get("dependencies", ""))).lower()
+        known["wired"] = str(name not in unwired).lower()
+    module = None
+    for number, line in enumerate((root / TREE).read_text().split("\n"), 1):
+        opened = re.match(r"\s*case \.(\w+): \[", line)
+        module = f".{opened[1]}" if opened else module
+        item = re.search(r"\.feature\(\.(\w+), settings: (\[.*?\])\)", line)
+        if item and "module" in facts.get(item[1], {}):
+            errors.append((TREE, number, f".{item[1]} is already in the settings tree; place a feature once"))
+        elif item and item[1] in facts:
+            facts[item[1]].update(module=module, settings=item[2])
+    errors.extend((*known["at"], f".{name} has no place in the settings tree; add it to a group in {TREE}")
+                  for name, known in facts.items() if "module" not in known)
+    return facts, errors
+
+
+def feature_errors(root):
+    """The pinned facts hold, and every feature shows a localized title and subtitle."""
+    facts, errors = feature_facts(root)
+    for name, pins in PINS.items():
+        known = facts.get(name, {"at": (FEATURE, 1)})
+        errors.extend((*known["at"], f".{name} {fact} is {known.get(fact)}; the spec pins {value} (PINS in {Path(__file__).name})")
+                      for fact, value in pins.items() if known.get(fact) != value)
+    for when, equals, fact, value in CLASS_PINS:
+        errors.extend((*known["at"], f".{name} {fact} is {known.get(fact)}; a feature whose {when} is {equals} keeps {value}")
+                      for name, known in facts.items() if known.get(when) == equals and known.get(fact) != value)
+    errors.extend((*known["at"], f".{name} needs a localized, non-empty {text}")
+                  for name, known in facts.items() for text in ("title", "subtitle")
+                  if not re.match(r'String\(localized: "[^"]', known.get(text, "")))
+    return errors
+
+
+def command_slugs(expression, source):
+    """A literal slug, or the literals a same-file factory or assignment feeds the slug; else the expression itself."""
+    if expression.startswith('"'):
+        return [expression[1:-1]]
+    name = re.escape(expression)
+    factory = re.search(rf"\bfunc (\w+)\(\s*_ {name}:", source)
+    return re.findall(rf'\b{factory[1]}\(\s*"([^"]+)"' if factory else rf'\b{name} = "([^"]+)"', source) or [expression]
+
+
+def command_errors(root):
+    """A command names its owner and keeps its slug; a command a type holds as a static is listed in the catalog."""
+    errors = []
+    declared = {}
+    catalog = set(re.findall(r"^\s+([\w.]+)(?:\[\d+\])?,$", (root / CATALOG).read_text(), re.M))
+    for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
+        source = path.read_text()
+        if "NotchcastCommand" not in source:
+            continue
+        relative = path.relative_to(root)
+        code = mask_literals(source)
+        for call in re.finditer(r"\bNotchcastCommand\(", code):
+            depth, end = 1, call.end()
+            while depth and end < len(code):
+                depth += (code[end] == "(") - (code[end] == ")")
+                end += 1
+            number = code.count("\n", 0, call.start()) + 1
+            slug = re.match(r'\s*slug:\s*("(?:\\.|[^"\\])*"|[\w.]+)', source[call.end():end])
+            owner = re.search(r"\bfeature:\s*\.?([\w.]+)", code[call.end():end])
+            if not slug or not owner:
+                errors.append((relative, number, "a command states slug: first and names its owner, feature: .<feature>"))
+                continue
+            for name in command_slugs(slug[1], source):
+                if name in declared:
+                    errors.append((relative, number, f"repeated command slug {name} (first at {declared[name][0]}:{declared[name][1]})"))
+                declared.setdefault(name, (relative, number, owner[1]))
+        factories = set(re.findall(r"\bfunc (\w+)\([^{]*?\)\s*->\s*NotchcastCommand\b", code)) | {"NotchcastCommand"}
+        types = [(match.start(), match[1]) for match in re.finditer(
+            r"^(?:@\w+\s+)*(?:final\s+)?(?:enum|extension|struct|class)\s+([\w.]+)", code, re.M)]
+        for static in re.finditer(r"^(?![^\n=]*\bprivate\s)[^\n=]*\bstatic\s+(?:let|var)\s+(\w+)\s*(?::\s*NotchcastCommand\s*)?=\s*(\w+)\b", code, re.M):
+            holders = [name for start, name in types if start < static.start()]
+            if holders and static[2] in factories and f"{holders[-1]}.{static[1]}" not in catalog:
+                errors.append((relative, code.count("\n", 0, static.start()) + 1, f"list {holders[-1]}.{static[1]}, in {CATALOG}"))
+    listed = {entry: number for number, entry in enumerate((root / SLUGS).read_text().split("\n"), 1) if entry}
+    lines = {f"{name} {owner}": (path, number) for name, (path, number, owner) in declared.items()}
+    errors.extend((path, number, f"add the line `{entry}` to {SLUGS}")
+                  for entry, (path, number) in lines.items() if entry not in listed)
+    errors.extend((SLUGS, number, f"`{entry}` matches no command; a slug and its owner are persisted,"
+                                  " so restore them, or drop this line with the command")
+                  for entry, number in listed.items() if entry not in lines)
+    return errors
+
+
+def module_errors(root):
+    """A hub entry for the module named after a feature requires that feature; an optional module is built once."""
+    errors = []
+    facts, _ = feature_facts(root)
+    hub = mask_literals((root / MODULES).read_text())
+    entries = [(number, re.findall(r"\.(\w+)", entry[1]), entry[2]) for number, entry in (
+        (number, re.search(r"\.init\(requires: \[(.*?)\](?:, requiresAny: .*?)?, module: (.+)\),$", line))
+        for number, line in enumerate(hub.split("\n"), 1)) if entry]
+    assigned = re.findall(r"^\s*(?:self\.)?(\w+) = (\w+)$", hub, re.M)
+    for static in re.finditer(r"\bstatic (?:private\(set\) )?var (\w+): (\w+Module)\?$", hub, re.M):
+        locals_ = [local for name, local in assigned if name == static[1]]
+        if len(locals_) != 1 or hub.count(f"{static[2]}(") > 1 or sum(module == locals_[0] for _, _, module in entries) != 1:
+            errors.append((MODULES, hub.count("\n", 0, static.start()) + 1,
+                           f"build {static[2]} once, assign it to {static[1]} once and run that one in one entry"))
+    holders = {local: name for name, local in assigned}
+    errors.extend((MODULES, number, f"the entry that runs {module} requires .{holders.get(module, module)}")
+                  for number, requires, module in entries
+                  if holders.get(module, module) in facts and holders.get(module, module) not in requires)
+    return errors
+
+
+def source_errors(root):
+    """Hook lines stay where the fork needs them, and every setting and backup anchor has its view."""
+    errors = []
+    for path, *needles in HOOKS:
+        text, position = " ".join((root / path).read_text().split()), 0
+        for needle in needles:
+            found = text.find(needle, position)
+            if found < 0:
+                errors.append((path, 1, f"hook missing or out of order: {needle}"))
+                break
+            position = found + len(needle)
+    for pattern, needle in ABSENT:
+        for path in sorted(root.glob(str(pattern))):
+            text = path.read_text()
+            if needle in text:
+                errors.append((path.relative_to(root), text.count("\n", 0, text.index(needle)) + 1, f"keep {needle} out of this file"))
+    rows = "\n".join(path.read_text() for path in sorted((root / TREE.parent).glob("NotchcastSettingRows+*.swift")))
+    settings = (root / SETTINGS).read_text()
+    for case in re.finditer(r"^    case (\w+)$", settings, re.M):
+        arms = rows.split(f"case .{case[1]}:")
+        arm = re.split(r"case |default:", arms[1])[0] if len(arms) == 2 else ""
+        if "SettingRow(" not in arm or "EmptyView" in arm:
+            errors.append((SETTINGS, settings.count("\n", 0, case.start()) + 1,
+                           f".{case[1]} needs exactly one arm that shows a row, in NotchcastSettingRows+*.swift"))
+    search = (root / SEARCH).read_text()
+    backups = (root / BACKUPS).read_text()
+    errors.extend((SEARCH, search.count("\n", 0, anchor.start()) + 1, f"give .{anchor[1]} a SettingsSectionHeader in {BACKUPS}")
+                  for anchor in re.finditer(r"\bstatic let (notchcastBackup\w+) = ", search)
+                  if f"SettingsSectionHeader(.{anchor[1]})" not in backups)
+    return errors
+
+
+def plist_errors(root):
+    """Info.plist declares the archive types the code opens and the one Bonjour service it browses."""
+    errors = []
+    with (root / PLIST).open("rb") as file:
+        plist = plistlib.load(file)
+    formats = re.search(r"static let typeIdentifiers = \[(.*?)\]", (root / ARCHIVE_FORMATS).read_text(), re.S)
+    archives = [kind for kind in plist.get("CFBundleDocumentTypes", []) if kind.get("CFBundleTypeName") == "Archives"]
+    if (len(archives) != 1 or archives[0].get("LSHandlerRank") != "Alternate" or not formats
+            or set(archives[0].get("LSItemContentTypes", [])) != set(re.findall(r'"([^"]+)"', formats[1]))):
+        errors.append((PLIST, 1, "declare one Archives document type, ranked Alternate, listing ArchiveFormat.typeIdentifiers"))
+    extensions = []
+    for imported in plist.get("UTImportedTypeDeclarations", []):
+        identifier = imported.get("UTTypeIdentifier", "")
+        if not identifier.startswith("app.notchcast.") and identifier not in FOREIGN_TYPES:
+            errors.append((PLIST, 1, f"imported type {identifier} is neither app.notchcast.* nor in FOREIGN_TYPES"))
+        tags = imported.get("UTTypeTagSpecification", {}).get("public.filename-extension", [])
+        extensions += tags if isinstance(tags, list) else []
+    if "001" not in extensions:
+        errors.append((PLIST, 1, "an imported type carries the split-archive extension 001"))
+    service = re.search(r'static let serviceType = "([^"]+)"', (root / MACH_LINK).read_text())
+    if not service or plist.get("NSBonjourServices") != [service[1]]:
+        errors.append((PLIST, 1, "NSBonjourServices lists exactly MachLinkManager.serviceType"))
+    if plist.get("NSLocalNetworkUsageDescription") != LOCAL_NETWORK:
+        errors.append((PLIST, 1, f"NSLocalNetworkUsageDescription reads: {LOCAL_NETWORK}"))
+    return errors
+
+
+def fact_errors(root):
+    """The spec facts harnesses used to restate from source text; a file a rule cannot read fails that rule."""
+    errors = []
+    for rule in (feature_errors, command_errors, module_errors, source_errors, plist_errors):
+        try:
+            errors.extend(f"{path}:{line}: {message}" for path, line, message in rule(root))
+        except (OSError, ValueError) as error:
+            errors.append(f"{rule.__name__}: {error}")
+    return errors
+
+
 def check(root):
     errors = []
     declarations = {"NotchcastFeature": [], "SettingsGroup": []}
@@ -317,16 +639,17 @@ def main():
     if len(sys.argv) > 2:
         print(f"usage: {sys.argv[0]} [repository-root]", file=sys.stderr)
         return 2
-    errors = check(Path(sys.argv[1]) if len(sys.argv) == 2 else ROOT)
-    if subprocess.run([sys.executable, str(ROOT / "notchcast/check-switch-paths.py"),
-                       str(Path(sys.argv[1]) if len(sys.argv) == 2 else ROOT)]).returncode:
+    root = Path(sys.argv[1]) if len(sys.argv) == 2 else ROOT
+    errors = check(root) + fact_errors(root)
+    if subprocess.run([sys.executable, str(ROOT / "notchcast/check-switch-paths.py"), str(root)]).returncode:
         errors.append("switch user paths failed")
     if errors:
         print("\n".join(errors), file=sys.stderr)
         return 1
-    print("PASS: feature cases, switch arms, modules, search entries and settings use one line each, with no repeats;"
+    print("PASS: feature cases, switch arms, modules, search entries, commands and settings use one line each, with no repeats;"
           " described features keep no arm and their descriptor in their own folder;"
-          " registrants register from their own folder and leave the hub")
+          " registrants register from their own folder and leave the hub;"
+          " pinned facts, command slugs and owners, module entries, setting rows, hooks and Info.plist hold")
     return 0
 
 

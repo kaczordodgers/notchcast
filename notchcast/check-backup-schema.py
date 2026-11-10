@@ -23,6 +23,8 @@ KEYS_FILE = re.compile(shape.DESCRIPTOR_FILE.pattern.replace("Descriptor", "Back
 KEYS_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.BackupKeys\b|\bBackupKeys\s*(?:\.init\s*)?\("
                               r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?BackupKeys\b"
                               r"|->\s*(?:NotchcastFeature\.)?BackupKeys\b")
+SECRET_NAME = re.compile(r"(?i)soloist|spotify|api.?key|secret|token|password")
+SECRET_ALLOWED = "is named like a secret; a backup never carries one, so list it as excluded"
 
 
 def body(source, pattern, opening, closing):
@@ -85,6 +87,8 @@ def check(root):
         source, offset = body(schema, rf"\bstatic\s+let\s+{name}\b[^=]*=", "[", "]")
         for key, line in entries(source, offset, keyed):
             declared.setdefault(key, []).append(f"{SCHEMA}:{line}")
+            if keyed and SECRET_NAME.search(key):
+                errors.append(f"{SCHEMA}:{line}: {key} {SECRET_ALLOWED}")
             if key not in raw_values and key not in SCHEMA_KEYS:
                 errors.append(f"{SCHEMA}:{line}: {key} is a feature's own key; "
                               "declare it in <Name>BackupKeys.swift in that feature's folder")
@@ -131,6 +135,8 @@ def check(root):
             keys, offset = body(source, rf"\b{label}\s*:", "[", "]")
             for key, line in entries(keys, offset, keyed):
                 declared.setdefault(key, []).append(f"{relative}:{line}")
+                if keyed and SECRET_NAME.search(key):
+                    errors.append(f"{relative}:{line}: {key} {SECRET_ALLOWED}")
     errors.extend(f"{SCHEMA}:{line}: .{name} has no {name[:1].upper() + name[1:]}BackupKeys.swift"
                   for name, line in listed.items() if name not in files)
     for key, places in declared.items():

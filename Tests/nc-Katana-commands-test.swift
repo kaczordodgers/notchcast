@@ -78,7 +78,6 @@ enum DialogTone: Sendable {
             precondition(module.client.channel == channel)
             precondition(AppCore.shared.messages[0].1 == .success)
             precondition(command.name == "Select Katana \(channel.title)")
-            precondition(command.slug == "katana-\(channel.title.lowercased())")
             precondition(AppCore.shared.messages[0].0 == "Katana \(channel.title) Selected")
             print("PASS: \(command.name) selects \(channel.rawValue) and reports success")
         }

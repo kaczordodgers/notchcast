@@ -6,6 +6,7 @@ import importlib.util
 import io
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -18,13 +19,72 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS = SHAPE.LISTS
+SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS, CATALOG = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
 HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
 # A capture-module arm: it stays on the switches, so planted edits keep an anchor.
 ARM = "case .colorPicker: .captureAndDictation"
+AI_COMMAND = "Tinycast/Features/Tweaks/TweakProfileCommands.swift"
+SCREEN_TEXT = ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"
+PASTE_ENTRY = ".init(requires: [.pastePlain], module: plainPasteModule)"
+ARCHIVES_HOOK = "        if NotchcastCore.archives.open(url) { return }\n"
+DEEP_LINK_HOOK = "        if deepLinkCoordinator.handles(url) {"
+# One planted break of the shipped tree per spec fact: its rule, the error it must raise, the file, then old and new text.
+BREAKS = (
+    ("feature-pins", ".archivesInPlace defaultEnabled is true; the spec pins false",
+     "Tinycast/Features/Archives/ArchivesInPlaceDescriptor.swift", "defaultEnabled: false", "defaultEnabled: true"),
+    ("feature-pins", ".captureEditor defaultEnabled is true; the spec pins false",
+     SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: true"),
+    ("feature-pins", ".killProcess wired is true; the spec pins false", SHAPE.FEATURE, "        .killProcess,\n", ""),
+    ("feature-pins", ".screenText settings is []; the spec pins [.captureScreenTextLineBreaks]",
+     SHAPE.TREE, SCREEN_TEXT, ".feature(.screenText, settings: [])"),
+    ("feature-pins", ".sudoTouchID needsIsland is true; a feature whose isSystemTweak is true keeps false",
+     "Tinycast/Features/SystemTools/SudoTouchIDDescriptor.swift", "dependencies: []", "dependencies: [.island]"),
+    ("feature-text", ".screenshot needs a localized, non-empty title",
+     SHAPE.FEATURE, 'case .screenshot: String(localized: "Screenshots", table: "Notchcast")', 'case .screenshot: ""'),
+    ("settings-item-once", ".scrollingCapture is already in the settings tree",
+     SHAPE.TREE, SCREEN_TEXT, ".feature(.scrollingCapture, settings: [])"),
+    ("settings-item-once", ".screenText has no place in the settings tree",
+     SHAPE.TREE, SCREEN_TEXT, ".feature(.scrollingCapture, settings: [])"),
+    ("command-owner", "a command states slug: first and names its owner",
+     AI_COMMAND, 'sfSymbol: "brain", feature: .aiFeaturesOff,', 'sfSymbol: "brain",'),
+    ("command-slugs", "add the line `ai-off aiFeaturesOff`", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "ai-off"'),
+    ("command-slugs", "`ai-features-off aiFeaturesOff` matches no command", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "ai-off"'),
+    ("command-slugs", "add the line `ai-features-off privacyChoices`",
+     AI_COMMAND, 'sfSymbol: "brain", feature: .aiFeaturesOff,', 'sfSymbol: "brain", feature: .privacyChoices,'),
+    ("command-slugs", "repeated command slug privacy-choices", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "privacy-choices"'),
+    ("command-slugs", 'hook missing or out of order: "command:nc-" + slug', SHAPE.COMMAND, '"command:nc-" + slug', '"command:" + slug'),
+    ("command-listed", "list SmallCommandsModule.airDropCommand, in", CATALOG, "        SmallCommandsModule.airDropCommand,\n", ""),
+    ("module-entry-requires", "the entry that runs plainPasteModule requires .pastePlain",
+     MODULES, PASTE_ENTRY, ".init(requires: [], module: plainPasteModule)"),
+    ("module-built-once", "build PlainPasteModule once", MODULES, "        self.pastePlain = plainPasteModule\n", ""),
+    ("module-built-once", "build PlainPasteModule once",
+     MODULES, "self.pastePlain = plainPasteModule", "self.pastePlain = PlainPasteModule(clipboard: core.clipboardManager)"),
+    ("module-built-once", "build PlainPasteModule once", MODULES, PASTE_ENTRY, ".init(requires: [.pastePlain], module: chatTools)"),
+    ("setting-row-arm", ".captureScreenTextLineBreaks needs exactly one arm that shows a row",
+     SHAPE.TREE.with_name("NotchcastSettingRows+C.swift"),
+     "ScreenTextLineBreaksSettingRow(module: NotchcastCore.screenText)", "EmptyView()"),
+    ("backup-anchor-header", "give .notchcastBackupExport a SettingsSectionHeader",
+     SHAPE.BACKUPS, "SettingsSectionHeader(.notchcastBackupExport)", "SettingsSectionHeader(.notchcastBackupImport)"),
+    ("source-hooks", "hook missing or out of order: await NotchcastCore.archives.prepareForTermination()",
+     "Tinycast/App/AppCore.swift", "await NotchcastCore.archives.prepareForTermination()", ""),
+    ("source-hooks", "hook missing or out of order: if deepLinkCoordinator.handles(url)",
+     "Tinycast/App/AppCore.swift", ARCHIVES_HOOK, "", DEEP_LINK_HOOK, ARCHIVES_HOOK + "        do {"),
+    ("source-hooks", "hook missing or out of order: var extensionsEnabled: Bool { get { false } set { } }",
+     SHAPE.APP_SETTINGS, "var extensionsEnabled: Bool {\n        get { false }", "var extensionsEnabled: Bool {\n        get { true }"),
+    ("source-hooks", "keep showSupport out of this file",
+     "Tinycast/App/MenuBarItem.swift", "showAbout() }", "showAbout() }\n            Button(\"Support\") { showSupport() }"),
+    ("plist", "declare one Archives document type", SHAPE.PLIST, "<string>Alternate</string>", "<string>Owner</string>"),
+    ("plist", "declare one Archives document type", SHAPE.ARCHIVE_FORMATS, '"public.zip-archive", ', ""),
+    ("plist", "imported type com.example.zoo-archive is neither app.notchcast.* nor in FOREIGN_TYPES", SHAPE.PLIST,
+     "<key>UTTypeIdentifier</key>\n\t\t\t<string>app.notchcast.zoo-archive<", "<key>UTTypeIdentifier</key>\n\t\t\t<string>com.example.zoo-archive<"),
+    ("plist", "an imported type carries the split-archive extension 001", SHAPE.PLIST, "<string>001</string>", "<string>002</string>"),
+    ("plist", "NSBonjourServices lists exactly MachLinkManager.serviceType",
+     SHAPE.PLIST, "<string>_notchcast-link._tcp</string>", "<string>_other-link._tcp</string>"),
+    ("plist", "NSLocalNetworkUsageDescription reads", SHAPE.PLIST, SHAPE.LOCAL_NETWORK, "Uses the network."),
+)
 
 
 def run(root, *args):
@@ -525,6 +585,43 @@ class FeatureShapeTests(unittest.TestCase):
         self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
         self.assertIn("repeated assignment fanMode", "\n".join(SHAPE.check(self.root)))
         print("PASS: setting appends merge clean and typecheck; checker rejects an edited assignment kept twice", flush=True)
+
+
+class FeatureFactTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-facts-")
+        cls.addClassCleanup(temporary.cleanup)
+        cls.root = Path(temporary.name)
+        for path in (*ROOT.glob("Tinycast/**/*.swift"), ROOT / SHAPE.PLIST, ROOT / SHAPE.SLUGS):
+            copy = cls.root / path.relative_to(ROOT)
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, copy)
+
+    def test_shipped_tree_holds_every_fact(self):
+        self.assertEqual(SHAPE.fact_errors(self.root), [])
+
+    def test_each_planted_break_is_caught(self):
+        for rule, message, path, *swaps in BREAKS:
+            with self.subTest(rule=rule, message=message):
+                shipped = broken = (self.root / path).read_text()
+                for old, new in zip(swaps[::2], swaps[1::2]):
+                    self.assertIn(old, broken)
+                    broken = broken.replace(old, new, 1)
+                (self.root / path).write_text(broken)
+                try:
+                    errors = SHAPE.fact_errors(self.root)
+                finally:
+                    (self.root / path).write_text(shipped)
+                self.assertIn(message, "\n".join(errors))
+                for error in errors:
+                    self.assertRegex(error, r"^[\w/+.-]+:\d+: ")
+
+    def test_unreadable_tree_fails_every_rule(self):
+        with tempfile.TemporaryDirectory() as empty:
+            errors = SHAPE.fact_errors(Path(empty))
+        self.assertEqual([error.split(":")[0] for error in errors],
+                         ["feature_errors", "command_errors", "module_errors", "source_errors", "plist_errors"])
 
 
 if __name__ == "__main__":
