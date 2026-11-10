@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift Tinycast/Features/Todo/Service/TodoStore*.swift
-// notchcast-sources: Tinycast/Features/Todo/Commands/*.swift Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
-// notchcast-kit: core
+// notchcast-sources: Tinycast/Features/Todo/Commands/*.swift
+// notchcast-kit: core command
 import Foundation
 import Observation
 
@@ -13,12 +13,6 @@ final class RefreshState {
     var value = 0
 }
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry {
-    enum Kind { case command }
-    init(id: String, name: String, url: URL, bundleID: String?, kind: Kind,
-         settingsOwner: SettingsTab?, symbolName: String) {}
-}
 @MainActor final class AppCore {
     static let shared = AppCore()
     func showMessage(_ message: String) { preconditionFailure("Production feedback used") }

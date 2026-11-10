@@ -5,23 +5,11 @@
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
-// notchcast-kit: core platform
+// notchcast-kit: core platform command
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
-enum SettingsTab: Sendable { case notchcast, notchcastMusicAndSound }
-struct AppEntry: Sendable {
- let id: String
- let name: String
- let url: URL
- let bundleID: String?
- enum Kind: Sendable { case command }
- let kind: Kind
- let settingsOwner: SettingsTab?
- let symbolName: String?
-}
 
 @MainActor final class AppCore {
  static let shared = AppCore()

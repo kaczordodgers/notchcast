@@ -5,6 +5,7 @@
 // notchcast-sources: Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Command.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: -strict-concurrency=complete -warnings-as-errors
+// notchcast-kit: command
 import Foundation
 import Synchronization
 
@@ -16,15 +17,6 @@ final class NotchcastPreferences {
         precondition(feature == .openBotAgents)
         return enabled
     }
-}
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
 }
 
 @MainActor

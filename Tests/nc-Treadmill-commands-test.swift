@@ -3,21 +3,10 @@
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillCommands.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
-// notchcast-kit: core
+// notchcast-kit: core command
 import Foundation
 
-enum SettingsTab: Sendable { case notchcast }
 enum DialogTone: Sendable { case neutral, success, danger }
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    var feature: NotchcastFeature? = nil
-    var owner: SettingsTab? = .notchcast
-    var legacyID: String?
-    var isEnabled: @MainActor @Sendable () -> Bool = { true }
-    let run: @MainActor @Sendable () -> Void
-}
 @MainActor enum NotchcastCore { static var treadmill: TreadmillCoordinator! }
 @MainActor final class AppCore {
     static let shared = AppCore()
@@ -117,4 +106,3 @@ struct NotchcastCommand: Sendable {
         await coordinator.stopForTermination()
     }
 }
-

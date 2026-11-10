@@ -2,25 +2,17 @@
 // notchcast-sources: Tinycast/Features/FleetPanel/Service/*.swift Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
-// notchcast-kit: platform host
+// notchcast-kit: platform host command
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 import Foundation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
-enum TestFeature: Hashable { case fleetPanel, agentThreads, machLink }
+enum NotchcastFeature: Hashable { case fleetPanel, agentThreads, machLink }
 enum DialogTone { case neutral }
-struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: TestFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
-}
 @MainActor final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
-    var enabled: Set<TestFeature> = []
-    func isOn(_ feature: TestFeature) -> Bool { enabled.contains(feature) }
+    var enabled: Set<NotchcastFeature> = []
+    func isOn(_ feature: NotchcastFeature) -> Bool { enabled.contains(feature) }
 }
 @MainActor enum NotchcastCore {
     static let agentThreads = AgentThreadsModule()

@@ -3,32 +3,17 @@
 // notchcast-sources: Tinycast/Features/Shelf/Service/ShelfLinkStatus.swift
 // notchcast-sources: Tinycast/Features/Shelf/ShelfModule*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum NotchcastFeature: Sendable { case shelfBetweenMacs, machLink }
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    var isEnabled: @MainActor @Sendable () -> Bool = { true }
-    let run: @MainActor @Sendable () -> Void
-}
-
-enum SettingsTab { case notchcastTwoMacs }
 
 @MainActor enum SettingsActionCommands {
     static var openedShelf = false
     static func show(_ tab: SettingsTab, _ feature: NotchcastFeature) {
         openedShelf = feature == .shelfBetweenMacs
     }
-}
-
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = true
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
 }
 
 @MainActor enum NotchcastCore {

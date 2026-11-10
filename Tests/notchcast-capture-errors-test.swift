@@ -4,16 +4,9 @@
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import AppKit
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastPreferences.Feature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
 
 @MainActor final class ScreenshotModule {
     enum Destination { case clipboard, file }
@@ -51,11 +44,7 @@ enum ColorPickerService {
     func openCapture(url: URL?, clipboard: Bool) throws { throw Failure.noImage }
 }
 
-@MainActor final class NotchcastPreferences {
-    enum Feature { case screenshot, colorPicker, captureEditor }
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: Feature) -> Bool { true }
-}
+enum NotchcastFeature { case screenshot, colorPicker, captureEditor }
 
 @MainActor final class AppCore {
     enum Tone { case danger }

@@ -14,12 +14,9 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 import Synchronization
-
-enum Paster {
-    static let tinycastEventTag: Int64 = 0x54494E59
-}
 
 func CGDisplayBounds(_ display: UInt32) -> CGRect {
     CGRect(x: Int(display - 1) * 100, y: 0, width: 100, height: 100)
@@ -31,28 +28,13 @@ enum BrightnessDisplayService {
     static func isAvailable(_ id: BrightnessDisplay.ID) -> Bool { available }
 }
 
-@MainActor
-final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
-    var handlers: [UUID: SynchronousHandler] = [:]
-
-    func registerSynchronous(mask: CGEventMask, handler: @escaping SynchronousHandler) -> UUID {
-        let id = UUID()
-        handlers[id] = handler
-        return id
-    }
-
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { handlers[id] = nil }
-
+extension EventTapHub {
     func send(_ key: MediaLevelKey, fine: Bool = false, location: CGPoint = .init(x: 150, y: 50)) {
         guard let event = NSEvent.otherEvent(
             with: .systemDefined, location: .zero, modifierFlags: fine ? [.shift, .option] : [],
             timestamp: 0, windowNumber: 0, context: nil, subtype: 8,
             data1: key.rawValue << 16 | 0xA00, data2: -1)?.cgEvent,
-              let handler = handlers.values.first else { fatalError("Expected a registered handler") }
+              let handler else { fatalError("Expected a registered handler") }
         event.location = location
         precondition(handler(CGEventType(rawValue: 14)!, event) == .swallow)
         let release = NSEvent.otherEvent(
@@ -146,11 +128,11 @@ struct SystemLevelRoutingTests {
         ], preferences: preferences)
         controller.run()
         await levels.service.settled()
-        check(hub.handlers.count == 1, "Brightness stays registered without a HUD presenter")
+        check(hub.synchronousHandlers.count == 1, "Brightness stays registered without a HUD presenter")
         check(hardware.state.withLock { $0.writes } == 0, "No presenter performs no custom steps")
         center.hasPresenter = true
         for _ in 0..<20 { await Task.yield() }
-        check(hub.handlers.count == 1, "One hub consumer handles both features")
+        check(hub.synchronousHandlers.count == 1, "One hub consumer handles both features")
         hub.send(.volumeUp)
         await eventually { keys.latest?.percent == 56 }
         check(notices == 1, "Published notice reaches the presenter once")
@@ -200,23 +182,23 @@ struct SystemLevelRoutingTests {
         try? await Task.sleep(for: .milliseconds(50))
         check(replays.count == 2, "Switching brightness off cancels already-dispatched fallback")
         preferences.set(.displayBrightness, true)
-        await eventually { hub.handlers.count == 1 }
+        await eventually { hub.synchronousHandlers.count == 1 }
         preferences.set(.volumeLevels, false)
         await eventually { !levels.service.isRunning && keys.latest == nil }
-        check(hub.handlers.count == 1, "Brightness remains registered with volume off")
+        check(hub.synchronousHandlers.count == 1, "Brightness remains registered with volume off")
         let event = NSEvent.otherEvent(with: .systemDefined, location: .zero, modifierFlags: [], timestamp: 0,
                                       windowNumber: 0, context: nil, subtype: 8, data1: 0xA00, data2: -1)!.cgEvent!
-        check(hub.handlers.values.first!(CGEventType(rawValue: 14)!, event) == .pass,
+        check(hub.synchronousHandlers.values.first!(CGEventType(rawValue: 14)!, event) == .pass,
               "Disabled volume passes untouched")
         preferences.set(.displayBrightness, false)
-        await eventually { hub.handlers.isEmpty }
+        await eventually { hub.synchronousHandlers.isEmpty }
         preferences.set(.volumeLevels, true)
         preferences.set(.displayBrightness, true)
-        await eventually { hub.handlers.count == 1 && levels.service.isRunning }
+        await eventually { hub.synchronousHandlers.count == 1 && levels.service.isRunning }
         let writes = hardware.state.withLock { $0.writes }
         hub.send(.volumeDown)
         preferences.set(.island, false)
-        await eventually { hub.handlers.count == 1 && !levels.service.isRunning }
+        await eventually { hub.synchronousHandlers.count == 1 && !levels.service.isRunning }
         check(hardware.state.withLock { $0.writes } == writes, "Disabling the island rejects already-dispatched keys")
         check(keys.latest == nil, "Off clears published key state")
         brightness.controller.cancelStep = false
@@ -224,7 +206,7 @@ struct SystemLevelRoutingTests {
         await eventually { keys.latest?.kind == .brightness }
         center.hasPresenter = false
         for _ in 0..<20 { await Task.yield() }
-        check(hub.handlers.count == 1, "Removing the presenter keeps brightness registered")
+        check(hub.synchronousHandlers.count == 1, "Removing the presenter keeps brightness registered")
         check(center.activities.isEmpty, "Removing the presenter clears its activity")
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")
     }

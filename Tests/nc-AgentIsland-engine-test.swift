@@ -1,28 +1,16 @@
-// notchcast-kit: host
+// notchcast-kit: host command
 // notchcast-sources: -strict-concurrency=complete -lsqlite3 Tinycast/Features/AgentIsland/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentIsland/Service/*.swift Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/Model/*.swift Tinycast/Features/OpenBotAgents/Service/*.swift
 // notchcast-reads: Tinycast/Resources/Notchcast.xcstrings
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 @MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
-enum TestFeature { case agentThreads, openBotAgents, agentIsland }
+enum NotchcastFeature { case agentThreads, openBotAgents, agentIsland }
 enum DialogTone { case neutral }
-struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: TestFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var on = false
-    func isOn(_ feature: TestFeature) -> Bool { on }
-}
 @MainActor enum NotchcastCore {
     static let agentThreads = AgentThreadsModule(availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
     static let openBotAgents = OpenBotAgentsModule()
@@ -84,6 +72,7 @@ private struct CountingRunner: AgentThreadRunning {
 
 @main struct AgentIslandTest {
     @MainActor static func main() async throws {
+        NotchcastPreferences.shared.enabled = false
         let now = Date(timeIntervalSince1970: 100)
         func row(_ phase: AgentThread.Phase, _ id: String = "a", date: Date? = nil) -> AgentThread {
             AgentThread(id: id, title: id, project: "Demo", model: "Example", phase: phase,
@@ -171,7 +160,7 @@ private struct CountingRunner: AgentThreadRunning {
         module.start()
         precondition(module.presentation == .init())
         precondition(!AgentIslandModule.command.isEnabled())
-        NotchcastPreferences.shared.on = true
+        NotchcastPreferences.shared.enabled = true
         precondition(AgentIslandModule.command.isEnabled())
         precondition(module.openItem(source: .t3, thread: failed) == failed.link)
         precondition(module.openItem(source: .openBot, thread: failed) == nil)

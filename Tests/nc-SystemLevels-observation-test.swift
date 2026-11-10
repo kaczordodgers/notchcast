@@ -12,35 +12,15 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 import Synchronization
-
-enum Paster {
-    static let tinycastEventTag: Int64 = 0x54494E59
-}
 
 func CGDisplayBounds(_ display: UInt32) -> CGRect { .zero }
 
 @MainActor
 enum BrightnessDisplayService {
     static func isAvailable(_ id: BrightnessDisplay.ID) -> Bool { true }
-}
-
-@MainActor
-final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
-    var handlers: [UUID: SynchronousHandler] = [:]
-
-    func registerSynchronous(mask: CGEventMask, handler: @escaping SynchronousHandler) -> UUID {
-        let id = UUID()
-        handlers[id] = handler
-        return id
-    }
-
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { handlers[id] = nil }
 }
 
 @MainActor
