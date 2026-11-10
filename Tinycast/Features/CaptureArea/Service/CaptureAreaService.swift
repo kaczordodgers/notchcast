@@ -67,7 +67,7 @@ final class CaptureAreaService {
         callback?(selection)
     }
 
-    private final class OverlayWindow: NSWindow {
+    final class OverlayWindow: NSWindow {
         override var canBecomeKey: Bool { true }
     }
 
