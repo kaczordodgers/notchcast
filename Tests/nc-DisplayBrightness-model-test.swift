@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/DisplayBrightness/Model/*.swift
+// notchcast-sources: Tinycast/Features/DisplayBrightness/Service/*.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Service/NSScreen+DisplayID.swift
 import Foundation
 
 @main

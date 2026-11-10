@@ -82,7 +82,7 @@ enum ScreenshotService {
         }
         switch request {
         case .rect(let rect):
-            guard ScreenshotFilename.isValid(rect: rect) else {
+            guard ScreenshotRequest.isValid(rect: rect) else {
                 throw ScreenshotRequest.Failure.invalidRect
             }
             guard let display = content.displays.first(where: { $0.frame.contains(rect) }) else {
@@ -126,11 +126,11 @@ enum ScreenshotService {
     ) async throws -> URL {
         let directory = try folder ?? FileManager.default.url(
             for: .desktopDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
-        let stem = ScreenshotFilename.stem(date: date, timeZone: timeZone)
         var collision = 0
         while true {
             try Task.checkCancellation()
-            let url = directory.appendingPathComponent(ScreenshotFilename.name(stem: stem, collision: collision))
+            let url = directory.appendingPathComponent(date.captureFileName(
+                kind: "Screenshot", extension: "png", timeZone: timeZone, collision: collision))
             do {
                 try data.write(to: url, options: .withoutOverwriting)
                 return url
