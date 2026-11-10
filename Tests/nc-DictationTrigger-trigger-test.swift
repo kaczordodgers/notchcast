@@ -2,8 +2,7 @@
 // notchcast-sources: Tinycast/Features/DictationTrigger/Service/*.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationCapture.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationSpectrum.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: input
 import AppKit
 import Carbon.HIToolbox
 import Synchronization

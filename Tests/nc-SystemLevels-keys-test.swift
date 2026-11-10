@@ -1,7 +1,6 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: input
 import AppKit
 
 enum Paster {

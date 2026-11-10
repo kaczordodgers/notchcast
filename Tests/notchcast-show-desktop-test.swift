@@ -1,6 +1,5 @@
 // notchcast-sources: Tinycast/Features/ShowDesktop/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: input
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }

@@ -1,4 +1,5 @@
-// notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: root platform
+// notchcast-sources: -parse-as-library
 // notchcast-reads: notchcast/root/*.swift Tinycast/Features/Clean/Model/CleanSystem*.swift
 // notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift
 import Darwin
