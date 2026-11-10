@@ -1,5 +1,4 @@
 import Foundation
-import CoreFoundation
 
 @main
 struct PreferenceOwnershipTests {
@@ -19,15 +18,7 @@ struct PreferenceOwnershipTests {
             .init(write: $0, previous: nil)
         })
         expect(dock.apply.first?.arguments == expectedDelay, "Dock delay is a real value")
-        let global = TweakPreference(domain: ".GlobalPreferences", key: "KeyRepeat")
         let typing = TypingPreferencePlan(entries: [.init(write: .init("KeyRepeat", .integer(2)), previous: nil)])
-        expect(TweakCommand.preference(global, value: .integer(2)).arguments == typing.apply[0].arguments,
-               "Both models write the same global domain")
-        expect(TweakCommand.preference(global, value: .absent).arguments == typing.revert[0].arguments,
-               "Both models delete from the same global domain")
-        expect(TweakCommand.preference(.init(domain: global.domain, key: global.key, currentHost: true),
-                                       value: .integer(2)).arguments == ["-currentHost"] + typing.apply[0].arguments,
-               "Current-host writes retain the canonical global domain")
         let legacy = TypingPreferencePlan(entries: [.init(
             write: .init("com.apple.dock", "mru-spaces", .bool(false)), previous: .bool(true))])
         var recorded: [TypingPreferencePlan.Command] = []
@@ -41,33 +32,6 @@ struct PreferenceOwnershipTests {
         expect(!recorded.contains { $0.arguments.contains("mru-spaces") },
                "Old tweak journal must not restore SpacesOrder's preference")
         expect(recorded.contains { $0.arguments.contains("KeyRepeat") }, "Unrelated journals still restore")
-        let folder = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: folder) }
-        let domain = "app.notchcast.tests." + UUID().uuidString
-        let realPreference = TweakPreference(domain: domain, key: "real-value")
-        do {
-            CFPreferencesSetAppValue(realPreference.key as CFString, NSNumber(value: 0.25), domain as CFString)
-            expect(CFPreferencesAppSynchronize(domain as CFString), "Fixture preference is synchronized")
-            defer {
-                CFPreferencesSetAppValue(realPreference.key as CFString, nil, domain as CFString)
-                CFPreferencesAppSynchronize(domain as CFString)
-            }
-            let realPlan = try MacSetupPlan(desired: [(realPreference, .real(0))],
-                                            readings: [realPreference: .real(0.25)])
-            let realStore = MacSetupRollbackStore(url: folder.appending(path: "real.json"))
-            let receipt = await MacSetupService(store: realStore, write: { _, _ in }).apply(realPlan)
-            expect(receipt.failure == nil, "Service reads a real preference without rejecting or changing its type")
-            expect(receipt.completed == realPlan.changes, "Service completes the real-valued change")
-        }
-        let rollback = MacSetupRollbackStore(url: folder.appending(path: "rollback.json"))
-        let oldSpaces = TweakPreference(domain: "com.apple.dock", key: "mru-spaces")
-        try rollback.save([.init(preference: oldSpaces, before: .bool(true), after: .bool(false)),
-                           .init(preference: global, before: .integer(6), after: .integer(2))])
-        var restored: [TweakPreference] = []
-        try rollback.rollback(read: { $0 == oldSpaces ? .bool(false) : .integer(2) },
-                              write: { preference, _ in restored.append(preference) })
-        expect(restored == [global], "Old setup journal ignores the removed preference and restores the rest")
         for failure in failures { print("FAIL: \(failure)") }
         print("Preference ownership: \(checks - failures.count) passed, \(failures.count) failed")
         if !failures.isEmpty { exit(1) }
