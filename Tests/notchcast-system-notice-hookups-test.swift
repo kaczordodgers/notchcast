@@ -9,6 +9,11 @@ import Foundation
 
 @MainActor protocol NotchcastModule {}
 enum DialogTone {}
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    let appIndex = Index()
+    final class Index { func refreshNotchcastCommands() {} }
+}
 @MainActor final class LowDiskManager {
     var onNotice: ((LowDiskEngine.Space) -> Void)?
     func start() {}
