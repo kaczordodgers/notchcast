@@ -12,7 +12,7 @@ struct MachLinkFanTransport: RemoteFanTransport {
 }
 
 extension RemoteFanModule {
-    /// Hub glue sets this before modules register, so the registration names no Mac Link type.
+    /// Set by hub glue in `start` before registrants register; `register` returns [] while nil.
     static var linkChannel: MachLinkChannel?
 }
 
