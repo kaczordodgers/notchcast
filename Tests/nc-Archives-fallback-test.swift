@@ -258,7 +258,7 @@ struct ArchivesFallbackTest {
 
     @MainActor static func realTools(_ root: URL) async throws {
         let tools = ArchiveFallbackTools()
-        let missing = ["unar", "lsar", "zstd"].filter { (try? tools.require($0)) == nil }
+        let missing = ["hatchzip", "unar", "lsar", "zstd"].filter { (try? tools.require($0)) == nil }
         guard missing.isEmpty else {
             print("SKIP: real-tool fixtures: \(missing.joined(separator: ", ")) not installed")
             return

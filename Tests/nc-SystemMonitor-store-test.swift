@@ -224,7 +224,7 @@ struct MonitorStoreTests {
                                   demand: 1, at: Date())
         await until("store naps before the page opens") { pace.isParked }
         let page = continuity.beginDemand()
-        await until("first page sample") { continuity.latest.cpu != nil }
+        await until("first page sample") { !continuity.histories.isEmpty }
         precondition(continuity.latest.cpu?.usage != nil, "first page sample retains CPU baseline")
         precondition(continuity.latest.network.map { $0.downBytesPerSecond != nil } ?? true,
                      "first page sample retains network baseline")
