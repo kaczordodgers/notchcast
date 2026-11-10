@@ -8,6 +8,12 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadDestinations.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsQueueController.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsActivity.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsIslandBridge.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadLauncherCommands.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands+Action.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadRunner.swift
@@ -96,6 +102,7 @@ struct NotchcastDownloadsWiringTest {
         try await testDistill(distill: distill, preferences: preferences, webpageCalls: webpageCalls)
         try await testConvert(distill: distill, preferences: preferences)
         try await testWebpageWithoutTools(services: services, preferences: preferences, root: root)
+        try await testQuickCommands(downloads: downloads, distill: distill, preferences: preferences)
         try await testProgressAndStop(downloads: downloads, distill: distill, preferences: preferences)
         print("notchcast-downloads-wiring-test: passed switches, lifecycle, commands, live options, progress and engine seams")
     }
@@ -335,6 +342,23 @@ struct NotchcastDownloadsWiringTest {
         await module.state.settle()
     }
 
+    private static func testQuickCommands(
+        downloads: DownloadsModule, distill: DistillModule, preferences: NotchcastPreferences
+    ) async throws {
+        let queue = downloads.state.queue!
+        let before = queue.jobs.count
+        var commands = NotchcastDownloadCommands(downloads: downloads, distill: distill, preferences: preferences)
+        commands.status = { preconditionFailure($0) }
+        let links = ["https://example.com/quick-one", "https://example.com/quick-two"]
+        for link in links {
+            commands.clipboard = { link }
+            NotchcastDownloadLauncherCommands.start(.webpage, with: commands)
+        }
+        try await eventually { queue.jobs.count == before + 2 }
+        precondition(Set(queue.jobs.suffix(2).map(\.source)) == Set(links), "Both quick runs keep their own link")
+        try await eventually { queue.jobs.allSatisfy(\.state.isFinished) }
+    }
+
     private static func testProgressAndStop(
         downloads: DownloadsModule, distill: DistillModule, preferences: NotchcastPreferences
     ) async throws {
@@ -382,15 +406,14 @@ struct NotchcastDownloadsWiringTest {
           case "$1" in
             --paths) shift; dest="$1";;
             -o) shift; template="$1";;
-            --dump-single-json) mode=metadata;;
             --write-subs|--write-auto-subs) mode=captions;;
-            --print) shift; [ "$1" != '%(language)s' ] || mode=language;;
+            --print) shift; case "$1" in '%(language)s') mode=language;; '%(.{'*) mode=metadata;; esac;;
           esac
           shift
         done
         case "$mode" in
           language) printf 'en\\n';;
-          metadata) printf '{"title":"Sample","id":"sample-id","channel":"Channel"}\\n';;
+          metadata) printf '\\n{"title":"Sample","id":"sample-id","channel":"Channel"}\\n{"title":"Next","id":"n"}\\n';;
           captions) exit 0;;
           download)
             if [ -n "$dest" ]; then
@@ -431,15 +454,23 @@ struct NotchcastDownloadsWiringTest {
     }
 }
 
-@MainActor
-enum NotchcastDownloadLauncherCommands {
-    static weak var downloads: DownloadsModule?
-    static weak var distill: DistillModule?
-    static func trackAvailability(_ core: AppCore) {}
+enum SettingsTab { case notchcast }
+
+struct NotchcastCommand: Sendable {
+    let slug: String
+    let name: String
+    let sfSymbol: String
+    var feature: NotchcastFeature?
+    var owner: SettingsTab?
+    var isEnabled: @MainActor @Sendable () -> Bool
+    let run: @MainActor @Sendable () -> Void
 }
 
 @MainActor
 final class AppCore {
+    struct AppIndex { func refreshNotchcastCommands() {} }
+    static let shared = AppCore()
+    let appIndex = AppIndex()
     enum Tone { case danger }
     func showMessage(_ message: String, tone: Tone) { preconditionFailure(message) }
     struct Settings {
