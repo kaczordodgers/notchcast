@@ -21,6 +21,8 @@ fi
 status=0
 ./Scripts/run-tests.sh || status=$?
 BIN="${TMPDIR:-/tmp}/tinycast-harness"
+# run-tests.sh prints a log only on failure, so a green harness's skipped real-tool path stays visible here.
+grep -h '^SKIP:' "$BIN"/*.log 2>/dev/null | sed 's/^/::notice::/' || true
 if [ "$status" -ne 0 ] && ls "$BIN"/*.failed >/dev/null 2>&1; then
   failed="$(for f in "$BIN"/*.failed; do basename "$f" .failed; done)"
   mkdir -p "$RUNNER_TEMP/first-try" && cp "$BIN"/*.log "$RUNNER_TEMP/first-try/" 2>/dev/null || true
