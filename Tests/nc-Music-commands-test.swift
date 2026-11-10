@@ -12,8 +12,7 @@
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
 enum SettingsTab: Sendable { case notchcast, notchcastMusicAndSound }

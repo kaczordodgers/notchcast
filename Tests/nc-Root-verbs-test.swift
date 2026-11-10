@@ -1,4 +1,5 @@
-// notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/RootContract.swift
+// notchcast-kit: root
+// notchcast-sources: -parse-as-library
 // notchcast-sources: Tinycast/Features/Battery/Model/*.swift Tinycast/Features/Battery/Service/*.swift
 import Foundation
 

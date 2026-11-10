@@ -6,7 +6,7 @@
 // notchcast-sources: Tinycast/Features/AIUsage/AIUsageModule.swift
 // notchcast-sources: Tinycast/Features/MachLink/AIUsageLinkModule.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
+// notchcast-kit: root
 // notchcast-sources: Tinycast/Features/MachLink/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
