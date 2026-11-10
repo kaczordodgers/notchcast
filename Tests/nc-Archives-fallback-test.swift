@@ -258,9 +258,9 @@ struct ArchivesFallbackTest {
 
     @MainActor static func realTools(_ root: URL) async throws {
         let tools = ArchiveFallbackTools()
-        guard (try? tools.require("unar")) != nil, (try? tools.require("lsar")) != nil,
-              (try? tools.require("zstd")) != nil else {
-            print("NOT VERIFIED: install unar and zstd to run real-tool fixtures")
+        let missing = ["unar", "lsar", "zstd"].filter { (try? tools.require($0)) == nil }
+        guard missing.isEmpty else {
+            print("SKIP: real-tool fixtures: \(missing.joined(separator: ", ")) not installed")
             return
         }
         let script = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
