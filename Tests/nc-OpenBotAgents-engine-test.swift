@@ -254,8 +254,6 @@ struct OpenBotTests {
         await gated.waitUntilIdle()
         gated.stop()
         precondition(availability == 2)
-        precondition(!NotchcastFeature.openBotAgents.defaultEnabled)
-        precondition(NotchcastFeature.openBotAgents.isWired && !NotchcastFeature.openBotAgents.needsIsland)
         let commands = [OpenBotAgentsModule.refreshCommand]
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
         NotchcastPreferences.shared.enabled = true

@@ -112,7 +112,6 @@ extension TreadmillCoordinator { static var shared: TreadmillCoordinator! }
         precondition(all.filter { $0.isEnabled() }.isEmpty)
         preferences.set(.treadmillWalk, true)
         precondition(all.allSatisfy { $0.isEnabled() })
-        precondition(all.allSatisfy { $0.feature == .treadmillWalk }, "Catalog gates commands by their owner feature")
         print("Treadmill commands: switch off excludes all five commands; switch on enables all five")
         transport.fail = false
         await coordinator.stopForTermination()

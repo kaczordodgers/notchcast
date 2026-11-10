@@ -6,10 +6,12 @@ import importlib.util
 import io
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,13 +20,101 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS = SHAPE.LISTS
+SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS, CATALOG = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
 HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
 # A capture-module arm: it stays on the switches, so planted edits keep an anchor.
 ARM = "case .colorPicker: .captureAndDictation"
+AI_COMMAND = "Tinycast/Features/Tweaks/TweakProfileCommands.swift"
+SCREEN_TEXT = ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"
+PASTE_ENTRY = ".init(requires: [.pastePlain], module: plainPasteModule)"
+ARCHIVES_HOOK = "        if NotchcastCore.archives.open(url) { return }\n"
+DEEP_LINK_HOOK = "        if deepLinkCoordinator.handles(url) {"
+ARCHIVE_ENTRIES = "Tinycast/Features/Archives/NotchcastArchiveModules.swift"
+GLOBE = "Tinycast/Features/DictationTrigger/GlobeDictationDescriptor.swift"
+# A fact the checker finds nowhere must fail, not pass: the error, the file, then the text every copy of which is replaced.
+UNREAD = (
+    (".startupItems wired is None; the spec pins true", SHAPE.FEATURE, "static let unwired", "static let notWired"),
+    ("found no Descriptor field", DESCRIPTORS, "        let ", "        var "),
+    ("found no module static", MODULES, "    static let ", "    static var "),
+    ("found no setting", SHAPE.SETTINGS, "    case ", "  case "),
+    ("found no backup anchor", SEARCH, "static let notchcastBackup", "static let backup"),
+    (".screenText has no place in the settings tree", SHAPE.TREE, "case .", "case  ."),
+)
+# One planted break of the shipped tree per spec fact: its rule, the error it must raise, the file, then old and new text.
+BREAKS = (
+    ("feature-pins", ".archivesInPlace defaultEnabled is true; the spec pins false",
+     "Tinycast/Features/Archives/ArchivesInPlaceDescriptor.swift", "defaultEnabled: false", "defaultEnabled: true"),
+    ("feature-pins", ".captureEditor defaultEnabled is true; the spec pins false",
+     SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: true"),
+    ("feature-pins", ".startupItems wired is false; the spec pins true", SHAPE.FEATURE, "        .todoIsland,\n", "        .todoIsland,\n        .startupItems,\n"),
+    ("feature-pins", ".screenText settings is []; the spec pins [.captureScreenTextLineBreaks]",
+     SHAPE.TREE, SCREEN_TEXT, ".feature(.screenText, settings: [])"),
+    ("feature-pins", ".sudoTouchID needsIsland is true; a feature whose isSystemTweak is true keeps false",
+     "Tinycast/Features/SystemTools/SudoTouchIDDescriptor.swift", "dependencies: []", "dependencies: [.island]"),
+    ("feature-text", ".screenshot needs a localized, non-empty title",
+     SHAPE.FEATURE, 'case .screenshot: String(localized: "Screenshots", table: "Notchcast")', 'case .screenshot: ""'),
+    ("settings-item-once", ".scrollingCapture is already in the settings tree",
+     SHAPE.TREE, SCREEN_TEXT, ".feature(.scrollingCapture, settings: [])"),
+    ("settings-item-once", ".screenText has no place in the settings tree",
+     SHAPE.TREE, SCREEN_TEXT, ".feature(.scrollingCapture, settings: [])"),
+    ("command-owner", "a command states slug: first and names its owner",
+     AI_COMMAND, 'sfSymbol: "brain", feature: .aiFeaturesOff,', 'sfSymbol: "brain",'),
+    ("command-slugs", "add the line `ai-off aiFeaturesOff`", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "ai-off"'),
+    ("command-slugs", "`ai-features-off aiFeaturesOff` matches no command", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "ai-off"'),
+    ("command-slugs", "add the line `ai-features-off privacyChoices`",
+     AI_COMMAND, 'sfSymbol: "brain", feature: .aiFeaturesOff,', 'sfSymbol: "brain", feature: .privacyChoices,'),
+    ("command-slugs", "repeated command slug privacy-choices", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "privacy-choices"'),
+    ("command-slugs", 'hook missing or out of order: "command:nc-" + slug', SHAPE.COMMAND, '"command:nc-" + slug', '"command:" + slug'),
+    ("command-listed", "list SmallCommandsModule.airDropCommand, in", CATALOG, "        SmallCommandsModule.airDropCommand,\n", ""),
+    ("module-entry-requires", "the entry that runs plainPasteModule requires .pastePlain",
+     MODULES, PASTE_ENTRY, ".init(requires: [], module: plainPasteModule)"),
+    ("module-built-once", "build PlainPasteModule once", MODULES, "        self.pastePlain = plainPasteModule\n", ""),
+    ("module-built-once", "build PlainPasteModule once",
+     MODULES, "self.pastePlain = plainPasteModule", "self.pastePlain = PlainPasteModule(clipboard: core.clipboardManager)"),
+    ("module-built-once", "build PlainPasteModule once", MODULES, PASTE_ENTRY, ".init(requires: [.pastePlain], module: chatTools)"),
+    ("module-entry-once", "run screenText in exactly one entry", MODULES, "            .init(requires: [.screenText], module: screenText),\n", ""),
+    ("module-entry-once", "run scrollingCapture in exactly one entry",
+     MODULES, "            .init(requires: [.scrollingCapture], module: scrollingCapture),\n", ""),
+    ("module-entry-once", "run captureEditor in exactly one entry",
+     MODULES, "            .init(requires: [.captureEditor], module: captureEditor),\n", ""),
+    ("module-entry-once", "run module in one entry", ARCHIVE_ENTRIES, "module: module)]",
+     "module: module), .init(requires: [.archivesInPlace], module: module)]"),
+    ("module-entry-requires", "the entry that runs tasks requires .tasks", SHAPE.MODULES.with_name("NotchcastServicesModules.swift"),
+     ".init(requires: [.tasks], module: tasks)", ".init(requires: [.island], module: tasks)"),
+    ("source-hooks", "hook missing or out of order: [.init(requires: [.archives], module: module)]",
+     ARCHIVE_ENTRIES, "requires: [.archives]", "requires: []"),
+    ("feature-pins", ".globeDictation needsIsland is true; the spec pins false",
+     GLOBE, "dependencies: [],", "dependencies: [\n            .island\n        ],"),
+    ("feature-pins", "open the descriptor with `static let <feature> = Self(`", GLOBE, "= Self(", "= NotchcastFeature.Descriptor("),
+    ("feature-pins", ".captureEditor defaultEnabled reads `[`; state the whole value on one line",
+     SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: ["),
+    ("setting-one-case", "declare only one enum case per line", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay, islandRowless\n"),
+    ("setting-row", ".probeNoRow needs exactly one arm", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay\n    case probeNoRow // new\n"),
+    ("setting-row-arm", ".captureScreenTextLineBreaks needs exactly one arm that shows a row",
+     SHAPE.TREE.with_name("NotchcastSettingRows+C.swift"),
+     "ScreenTextLineBreaksSettingRow(module: NotchcastCore.screenText)", "EmptyView()"),
+    ("backup-anchor-header", "give .notchcastBackupExport a SettingsSectionHeader",
+     SHAPE.BACKUPS, "SettingsSectionHeader(.notchcastBackupExport)", "SettingsSectionHeader(.notchcastBackupImport)"),
+    ("source-hooks", "hook missing or out of order: await NotchcastCore.archives.prepareForTermination()",
+     "Tinycast/App/AppCore.swift", "await NotchcastCore.archives.prepareForTermination()", ""),
+    ("source-hooks", "hook missing or out of order: if deepLinkCoordinator.handles(url)",
+     "Tinycast/App/AppCore.swift", ARCHIVES_HOOK, "", DEEP_LINK_HOOK, ARCHIVES_HOOK + "        do {"),
+    ("source-hooks", "hook missing or out of order: var extensionsEnabled: Bool { get { false } set { } }",
+     SHAPE.APP_SETTINGS, "var extensionsEnabled: Bool {\n        get { false }", "var extensionsEnabled: Bool {\n        get { true }"),
+    ("source-hooks", "keep showSupport out of this file",
+     "Tinycast/App/MenuBarItem.swift", "showAbout() }", "showAbout() }\n            Button(\"Support\") { showSupport() }"),
+    ("plist", "declare one Archives document type", SHAPE.PLIST, "<string>Alternate</string>", "<string>Owner</string>"),
+    ("plist", "declare one Archives document type", SHAPE.ARCHIVE_FORMATS, '"public.zip-archive", ', ""),
+    ("plist", "imported type com.example.zoo-archive is neither app.notchcast.* nor in FOREIGN_TYPES", SHAPE.PLIST,
+     "<key>UTTypeIdentifier</key>\n\t\t\t<string>app.notchcast.zoo-archive<", "<key>UTTypeIdentifier</key>\n\t\t\t<string>com.example.zoo-archive<"),
+    ("plist", "an imported type carries the split-archive extension 001", SHAPE.PLIST, "<string>001</string>", "<string>002</string>"),
+    ("plist", "NSBonjourServices lists exactly MachLinkManager.serviceType",
+     SHAPE.PLIST, "<string>_notchcast-link._tcp</string>", "<string>_other-link._tcp</string>"),
+    ("plist", "NSLocalNetworkUsageDescription reads", SHAPE.PLIST, SHAPE.LOCAL_NETWORK, "Uses the network."),
+)
 
 
 def run(root, *args):
@@ -525,6 +615,69 @@ class FeatureShapeTests(unittest.TestCase):
         self.assertEqual(run(self.root, "git", "diff", "--name-only", "--diff-filter=U"), "")
         self.assertIn("repeated assignment fanMode", "\n".join(SHAPE.check(self.root)))
         print("PASS: setting appends merge clean and typecheck; checker rejects an edited assignment kept twice", flush=True)
+
+
+class FeatureFactTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-facts-")
+        cls.addClassCleanup(temporary.cleanup)
+        cls.root = Path(temporary.name)
+        for path in (*ROOT.glob("Tinycast/**/*.swift"), ROOT / SHAPE.PLIST, ROOT / SHAPE.SLUGS):
+            copy = cls.root / path.relative_to(ROOT)
+            copy.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(path, copy)
+
+    def test_shipped_tree_holds_every_fact(self):
+        self.assertEqual(SHAPE.fact_errors(self.root), [])
+
+    def test_a_comment_above_a_descriptor_field_passes(self):
+        path = self.root / GLOBE
+        shipped = path.read_text()
+        self.assertIn("        dependencies: [],\n", shipped)
+        path.write_text(shipped.replace("        dependencies: [],\n", "        // note: kept off the island\n        dependencies: [],\n", 1))
+        try:
+            self.assertEqual(SHAPE.fact_errors(self.root), [])
+        finally:
+            path.write_text(shipped)
+
+    def test_each_planted_break_is_caught(self):
+        for rule, message, path, *swaps in BREAKS:
+            with self.subTest(rule=rule, message=message):
+                shipped = broken = (self.root / path).read_text()
+                for old, new in zip(swaps[::2], swaps[1::2]):
+                    self.assertIn(old, broken)
+                    broken = broken.replace(old, new, 1)
+                (self.root / path).write_text(broken)
+                try:
+                    errors = SHAPE.fact_errors(self.root)
+                finally:
+                    (self.root / path).write_text(shipped)
+                self.assertIn(message, "\n".join(errors))
+                for error in errors:
+                    self.assertRegex(error, r"^[\w/+.-]+:\d+: ")
+
+    def test_a_fact_found_nowhere_fails(self):
+        for message, path, old, new in UNREAD:
+            with self.subTest(message=message):
+                shipped = (self.root / path).read_text()
+                self.assertIn(old, shipped)
+                (self.root / path).write_text(shipped.replace(old, new))
+                try:
+                    errors = SHAPE.fact_errors(self.root)
+                finally:
+                    (self.root / path).write_text(shipped)
+                self.assertIn(message, "\n".join(errors))
+        with unittest.mock.patch.object(SHAPE, "CLASS_PINS", (("group", ".nowhere", "needsIsland", "false"),)):
+            self.assertIn("no feature's group is .nowhere", "\n".join(SHAPE.fact_errors(self.root)))
+        with unittest.mock.patch.object(SHAPE, "ABSENT", (("Tinycast/App/Gone.swift", "showSupport"),)):
+            self.assertIn("found no file to keep showSupport out of", "\n".join(SHAPE.fact_errors(self.root)))
+
+    def test_unreadable_tree_fails_every_rule(self):
+        with tempfile.TemporaryDirectory() as empty:
+            errors = SHAPE.fact_errors(Path(empty))
+        self.assertEqual([error.split(":")[0] for error in errors],
+                         ["feature_errors", "command_errors", "module_errors", "source_errors", "plist_errors"])
 
 
 if __name__ == "__main__":

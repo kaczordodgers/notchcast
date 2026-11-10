@@ -64,8 +64,6 @@ struct ScreenshotLifecycleTest {
             preconditionFailure("Disabled capture started")
         } catch ScreenshotRequest.Failure.disabled {}
         precondition(probe.calls == 0 && module.destination == .clipboard && module.folder == nil)
-        precondition(!NotchcastFeature.screenshot.needsIsland)
-        precondition(NotchcastFeature.screenshot.requiredGrants == [.screenRecording])
 
         preferences.set(.screenshot, true)
         preferences.set(.island, false)

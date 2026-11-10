@@ -331,8 +331,6 @@ private struct TreadmillTests {
         transport.maintainsConnection = false
         print("Treadmill safety: fresh switch off; timeout emits Stop; late running rejected; restart waits for idle")
         module.start()
-        expect(!NotchcastFeature.treadmillWalk.needsIsland && !NotchcastFeature.treadmillHistory.needsIsland,
-               "Treadmill switches work without island")
         coordinator.setEnabled(.history, true)
         expect(transport.opens == 0 && transport.sent.isEmpty, "Enabling never opens transport")
         coordinator.setEnabled(.walk, false)

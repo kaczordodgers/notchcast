@@ -30,7 +30,6 @@ enum NotchcastFeature { case pastePlain }
 @main @MainActor struct PlainPasteCommandTest {
     static func main() {
         let command = PlainPasteModule.launcherCommand
-        precondition(command.slug == "paste-plain-text")
         precondition(!command.isEnabled())
         NotchcastPreferences.shared.enabled = true
         precondition(command.isEnabled())
