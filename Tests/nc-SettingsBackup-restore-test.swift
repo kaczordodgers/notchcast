@@ -28,6 +28,7 @@
 // notchcast-sources: Tinycast/Features/Appearance/Model/AppearanceSurfaceStyle.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift
+// notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
 import Foundation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
@@ -71,6 +72,10 @@ extension LiveTimerModule { static let shared = LiveTimerModule() }
 extension DayMarketsModule { static let shared = DayMarketsModule() }
 extension DayWeatherModule { static let shared = DayWeatherModule() }
 extension QuitProtectionStore { static let shared = QuitProtectionStore() }
+extension DictationCleanupModule {
+    static let shared = DictationCleanupModule(
+        store: .live(bundleIdentifier: Bundle.main.bundleIdentifier!)!, install: { }, uninstall: { })
+}
 extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackupCoordinator() }
 @MainActor final class EventReminderModule {
     static let shared = EventReminderModule()
@@ -164,6 +169,7 @@ struct NotchcastCommand: Sendable {
             precondition(restored.vocabulary.first?.misheardForms == ["tiny cast"])
             precondition(NotchcastPreferences.shared.isOn(.dictationCleanup) == enabled)
             precondition(restored.isEnabled && restored.baseURL == cleanup.baseURL)
+            precondition(DictationCleanupModule.shared.settings == restored, "live cleanup module kept a stale copy")
         }
         print("PASS: legacy cleanup archive restores settings and preserves both switch states")
         var changed = complete
