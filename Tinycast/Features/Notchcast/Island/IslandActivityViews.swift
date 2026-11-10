@@ -1,14 +1,5 @@
 import SwiftUI
 
-/// Home's row and the open header reuse the closed pieces, so an activity reads the same open or closed.
-struct IslandActivityGlyph: View {
-    let activity: IslandActivity
-
-    var body: some View {
-        IslandGlyph(symbol: activity.shownSymbol, tone: activity.tone)
-    }
-}
-
 struct IslandActivityValue: View {
     let activity: IslandActivity
 
