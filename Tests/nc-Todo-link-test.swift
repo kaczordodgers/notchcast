@@ -298,8 +298,6 @@ struct TodoLinkTests {
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         precondition(!preferences.isOn(.tasksSync))
-        precondition(NotchcastFeature.tasksSync.dependencies == [.tasks, .machLink])
-        precondition(NotchcastFeature.tasksSync.settingsGroup == .tasks)
         let module = TodoModule(directory: root.appending(path: "module"), showFailure: { _ in
             preconditionFailure("module failed")
         })

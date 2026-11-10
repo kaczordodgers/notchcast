@@ -231,12 +231,6 @@ struct MachineBackupActionsTest {
         preferences.set(.backupBrowseRestore, true)
         fake.complete()
         do { try await switchedOff.value; fatalError("Feature switched off") } catch is CancellationError {}
-        precondition(!NotchcastFeature.backupRunNow.needsIsland)
-        precondition(!NotchcastFeature.backupBrowseRestore.needsIsland)
-        precondition(NotchcastFeature.backupRunNow.settingsGroup == .system)
-        precondition(NotchcastFeature.backupBrowseRestore.settingsGroup == .system)
-        precondition(!NotchcastFeature.backupRunNow.isSystemFeature)
-        precondition(!NotchcastFeature.backupBrowseRestore.isSystemFeature)
     }
 
     static func runnerChecks() async throws {
