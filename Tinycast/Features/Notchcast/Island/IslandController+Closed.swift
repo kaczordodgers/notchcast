@@ -59,7 +59,6 @@ extension IslandController {
 
     /// The launcher replaces an open island it hangs from or would sit under, pinned or not.
     private func launcherDidShow(_ palette: NSWindow) {
-        NotchcastLauncherSurface.shared.keepAbove(palette)
         // The compact bar's window carries a glass outset around the visible capsule.
         let frame = palette.frame
         let launcher = frame.height < NotchcastTheme.Launcher.size.height
@@ -68,10 +67,5 @@ extension IslandController {
         if isOpen, let openPanel, NotchcastLauncherPlacement.displaces(openPanel, launcher: launcher, host: host) {
             close()
         }
-        guard let host else {
-            palette.alphaValue = 1
-            return
-        }
-        host.growIntoLauncher(launcher, window: palette)
     }
 }
