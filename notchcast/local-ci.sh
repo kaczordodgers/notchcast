@@ -21,7 +21,8 @@ head=$(jq -r .headRefOid <<< "$metadata")
 export HEAD_SHA=$head BASE_SHA=$(jq -r .baseRefOid <<< "$metadata")
 root="${NOTCHCAST_LOCAL_CI_DIR:-$HOME/Library/Caches/notchcast/local-ci}"
 mkdir -p "$root/logs"
-scratch=$(mktemp -d "$root/build.XXXXXX")
+# Debug builds embed absolute source paths that no flag remaps, so build outside the home.
+scratch=$(mktemp -d "$(getconf DARWIN_USER_TEMP_DIR)notchcast-ci.XXXXXX")
 tree="$scratch/tree"
 log="$scratch/build.log"
 stable_log="$root/logs/$head.log"
