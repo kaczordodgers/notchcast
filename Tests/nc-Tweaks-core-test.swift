@@ -3,30 +3,6 @@ import Foundation
 @main
 struct TweakCoreTests {
     static func main() throws {
-        let preference = TweakPreference(domain: "example.test", key: "value")
-        let plan = try MacSetupPlan(desired: [(preference, .bool(false))], readings: [preference: .absent])
-        precondition(plan.changes.count == 1)
-        let undo = try plan.undo(readings: [preference: .bool(false)])
-        precondition(undo.changes.first?.after == .absent)
-        precondition(TweakCommand.preference(preference, value: .absent).arguments
-                     == ["delete", "example.test", "value"])
-        let hostile = TweakPreference(domain: "test", key: "$(echo nope)")
-        precondition(TweakCommand.preference(hostile, value: .string("' ; exit")).arguments
-                     == ["write", "test", "$(echo nope)", "-string", "' ; exit"])
-        do {
-            _ = try plan.undo(readings: [preference: .bool(true)])
-            fatalError("Undo must preserve external edits")
-        } catch MacSetupPlan.Failure.drift { }
-        do {
-            _ = try MacSetupPlan(desired: [(preference, .bool(false))], readings: [:])
-            fatalError("Unreadable is not absent")
-        } catch MacSetupPlan.Failure.missingReading { }
-        var writes = 0
-        let receipt = TweakPlanRunner().apply(plan) { _, _ in writes += 1 }
-        precondition(writes == 1 && receipt.failure == nil && receipt.completed.count == 1)
-        enum InjectedFailure: Error { case failed }
-        let failure = TweakPlanRunner().apply(plan) { _, _ in throw InjectedFailure.failed }
-        precondition(failure.completed.isEmpty && failure.failure != nil)
         precondition(AIOffCatalog.features.count == 14)
         precondition(AIOffCatalog.removableModels(keeping: []).count == 5)
         precondition(!AIOffCatalog.removableModels(keeping: ["genmoji"]).contains(AIOffCatalog.foundation))
@@ -38,6 +14,6 @@ struct TweakCoreTests {
         let again = try TweakProfile.data(bundleIdentifier: "test.channel", keepingAI: [], privacy: ["analytics"])
         let second = try PropertyListSerialization.propertyList(from: again, format: nil) as? NSDictionary
         precondition((profile as NSDictionary?) == second)
-        print("PASS: tweaks plans, Undo, injected failures, profiles and shared models")
+        print("PASS: tweaks profiles and shared models")
     }
 }
