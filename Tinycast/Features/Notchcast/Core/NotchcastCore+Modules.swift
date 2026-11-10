@@ -78,7 +78,7 @@ extension NotchcastCore {
     static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
-    static func entries(core: AppCore) ->[NotchcastModuleController.Entry] {
+    static func entries(core: AppCore) -> [NotchcastModuleController.Entry] {
         agents.configure(core)
         agentCLI.configure(index: agents.index)
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
