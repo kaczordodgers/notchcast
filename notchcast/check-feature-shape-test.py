@@ -201,14 +201,19 @@ class FeatureShapeTests(unittest.TestCase):
         (self.root / home).write_text(source)
         self.assertEqual(SHAPE.check(self.root), [])
         (self.root / home).unlink()
-        for path in (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"),
-                     Path("Tinycast/Features/LowDisk/Service/LowDiskModule+Registration.swift"),
-                     Path("Tinycast/Features/Notchcast/Core/LowDiskModule+Registration.swift"),
-                     Path("Tinycast/Features/Notchcast/LowDiskModule+Registration.swift")):
-            with self.subTest(path=path):
+        brace_below = source.replace("Entry] { [] }", "Entry]\n    {\n        []\n    }")
+        for path, code in ((Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), source),
+                           (Path("Tinycast/Features/LowDisk/LowDiskCommands.swift"), brace_below),
+                           (Path("Tinycast/Features/LowDisk/Service/LowDiskModule+Registration.swift"), source),
+                           (Path("Tinycast/Features/Notchcast/Core/LowDiskModule+Registration.swift"), source),
+                           (Path("Tinycast/Features/Notchcast/LowDiskModule+Registration.swift"), source)):
+            with self.subTest(path=path, brace_below=code is brace_below):
                 (self.root / path).parent.mkdir(parents=True, exist_ok=True)
-                self.rejected(path, source, "implement register(_: AppCore) in")
+                self.rejected(path, code, "implement register(_: AppCore) in")
                 (self.root / path).unlink()
+        protocol = Path("Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift")
+        (self.root / protocol).write_text((ROOT / protocol).read_text())
+        self.assertEqual(SHAPE.check(self.root), [])
 
     def test_registration_missing_from_registrants(self):
         home = Path("Tinycast/Features/LowDisk/LowDiskModule+Registration.swift")
