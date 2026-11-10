@@ -132,4 +132,3 @@ struct NotchcastSoloistFailuresTest {
         check(try FileManager.default.contentsOfDirectory(atPath: files.root.path).allSatisfy { !$0.hasPrefix("staging-") })
     }
 }
-
