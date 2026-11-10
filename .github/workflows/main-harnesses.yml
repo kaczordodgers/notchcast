@@ -8,8 +8,9 @@ on:
 permissions:
   contents: read
 
+# Per event, so a push never cancels a dispatched run: only a newer push replaces a push run.
 concurrency:
-  group: main-harnesses-${{ github.ref }}
+  group: main-harnesses-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
@@ -35,7 +36,7 @@ jobs:
       - name: Shards
         id: shards
         run: |
-          count=$(grep -c . "$RUNNER_TEMP/selected")
+          count=$(grep -c . "$RUNNER_TEMP/selected" || true)
           shards=$(( (count + 39) / 40 ))
           [ "$shards" -le 3 ] || shards=3
           echo "tests=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")" >> "$GITHUB_OUTPUT"
@@ -43,6 +44,8 @@ jobs:
           echo "$count harnesses in $shards shard(s)"
   harnesses:
     needs: plan
+    # An empty selection skips this job and the run still concludes success; an empty matrix would fail it.
+    if: ${{ needs.plan.outputs.shards != '[]' }}
     runs-on: xcode-27
     timeout-minutes: 30
     strategy:
