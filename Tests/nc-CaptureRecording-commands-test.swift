@@ -25,18 +25,14 @@ enum SettingsTab { case notchcast }
 
 enum DialogTone { case danger, neutral, success }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    var messages: [(String, DialogTone)] = []
-    func showMessage(_ text: String, tone: DialogTone) { messages.append((text, tone)) }
-}
-
-@MainActor enum NotchcastCore {
-    static var recording = RecordingModule()
+extension RecordingModule {
+    static var shared = RecordingModule()
 }
 
 @main struct RecordingCommandTests {
     @MainActor static func main() async throws {
+        var messages: [(String, DialogTone)] = []
+        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: root) }
@@ -50,8 +46,7 @@ enum DialogTone { case danger, neutral, success }
         let module = RecordingModule(defaults: defaults, defaultFolder: root, commandArea: area,
                                      refreshCommands: { refreshes += 1 },
                                      makeSource: { source }, sleep: {})
-        NotchcastCore.recording = module
-        NotchcastHost.current.showMessage = { AppCore.shared.showMessage($0, tone: $1) }
+        RecordingModule.shared = module
         let preferences = NotchcastPreferences.shared
         let previous = preferences.isOn(.recording)
         defer { preferences.set(.recording, previous) }
@@ -87,8 +82,8 @@ enum DialogTone { case danger, neutral, success }
         precondition(refreshes == 4)
         RecordingCommands.stop.run()
         await module.commandTask?.value
-        precondition(AppCore.shared.messages.last?.0 == "No recording is in progress.")
-        precondition(AppCore.shared.messages.last?.1 == .danger)
+        precondition(messages.last?.0 == "No recording is in progress.")
+        precondition(messages.last?.1 == .danger)
         let count = source.starts
         RecordingCommands.area.run()
         precondition(source.starts == count && module.phase == .idle)
@@ -105,8 +100,8 @@ enum DialogTone { case danger, neutral, success }
         let publishedAfter = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: nil)
             .filter { $0.pathExtension == "mp4" }.count
         precondition(publishedAfter == publishedBefore + 1 && !module.enabled)
-        precondition(AppCore.shared.messages.last?.0 == "Recording saved")
-        precondition(AppCore.shared.messages.last?.1 == .success)
+        precondition(messages.last?.0 == "Recording saved")
+        precondition(messages.last?.1 == .success)
         precondition(!RecordingCommands.stop.isEnabled())
         module.start()
         preferences.set(.recording, true)

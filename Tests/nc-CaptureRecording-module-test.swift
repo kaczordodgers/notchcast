@@ -5,22 +5,25 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingWriting.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingSource.swift
 // notchcast-kit: core host
+// notchcast-sources: Tinycast/Features/CaptureRecording/RecordingModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import CoreMedia
 import Foundation
 
 enum DialogTone { case danger, neutral, success }
+@MainActor final class AppCore {}
 
 @main
 struct RecordingModuleTests {
     @MainActor static func main() async throws {
+        var messages: [(String, DialogTone)] = []
+        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
         let suite = "recording-module-test-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
         defer { try? FileManager.default.removeItem(at: root) }
-        var messages: [(String, DialogTone)] = []
-        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
         let source = ScreenRecordingSource()
         let module = RecordingModule(defaults: defaults, defaultFolder: root, makeSource: { source }, sleep: {})
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -48,7 +51,10 @@ struct RecordingModuleTests {
         precondition(source.stops > 0 && module.phase == .idle)
         precondition(messages.last?.0 == "Recording failed.")
         precondition(messages.last?.1 == .danger)
-        print("PASS switch-off save failure reports danger HUD")
+        let entries = RecordingModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.recording] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === RecordingModule.shared)
+        print("PASS switch-off save failure reports danger HUD; registration entry")
         print("PASS recording module switch, record entry point, writer failure message and teardown")
     }
 

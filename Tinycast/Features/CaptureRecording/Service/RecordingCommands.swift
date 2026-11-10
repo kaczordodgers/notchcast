@@ -5,23 +5,23 @@ enum RecordingCommands {
     nonisolated static let screen = NotchcastCommand(
         slug: "record-screen", name: String(localized: "Record Screen", table: "Notchcast"), sfSymbol: "record.circle",
         feature: .recording, isEnabled: { NotchcastPreferences.shared.isOn(.recording) },
-        run: { NotchcastCore.recording.recordScreen() })
+        run: { RecordingModule.shared.recordScreen() })
     nonisolated static let area = NotchcastCommand(
         slug: "record-area", name: String(localized: "Record Area", table: "Notchcast"), sfSymbol: "viewfinder",
         feature: .recording, isEnabled: { NotchcastPreferences.shared.isOn(.recording) },
-        run: { NotchcastCore.recording.recordArea() })
+        run: { RecordingModule.shared.recordArea() })
     nonisolated static let pause = NotchcastCommand(
         slug: "pause-recording", name: String(localized: "Pause or Resume Recording", table: "Notchcast"), sfSymbol: "pause.circle",
         feature: .recording, isEnabled: {
-            NotchcastPreferences.shared.isOn(.recording) && NotchcastCore.recording.isCommandActive
+            NotchcastPreferences.shared.isOn(.recording) && RecordingModule.shared.isCommandActive
         },
-        run: { NotchcastCore.recording.performRecordingCommand(.pause) })
+        run: { RecordingModule.shared.performRecordingCommand(.pause) })
     nonisolated static let stop = NotchcastCommand(
         slug: "stop-recording", name: String(localized: "Stop Recording", table: "Notchcast"), sfSymbol: "stop.circle",
         feature: .recording, isEnabled: {
-            NotchcastPreferences.shared.isOn(.recording) && NotchcastCore.recording.isCommandActive
+            NotchcastPreferences.shared.isOn(.recording) && RecordingModule.shared.isCommandActive
         },
-        run: { NotchcastCore.recording.performRecordingCommand(.finish) })
+        run: { RecordingModule.shared.performRecordingCommand(.finish) })
 }
 
 extension RecordingModule {
@@ -31,7 +31,7 @@ extension RecordingModule {
 
     func recordScreen() {
         guard let displayID = NSScreen.underCursor?.displayID else {
-            AppCore.shared.showMessage(Self.failureMessage(RecordingTarget.Failure.targetUnavailable), tone: .danger)
+            NotchcastHost.current.showMessage(Self.failureMessage(RecordingTarget.Failure.targetUnavailable), .danger)
             return
         }
         performRecordingCommand(.record(.display(displayID)))
@@ -45,7 +45,7 @@ extension RecordingModule {
                 guard let self, self.enabled, let selection else { return }
                 self.performRecordingCommand(.record(.area(selection.rect)))
             }
-        } catch { AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger) }
+        } catch { NotchcastHost.current.showMessage(Self.failureMessage(error), .danger) }
     }
 
     func performRecordingCommand(_ command: Command) {
@@ -56,7 +56,7 @@ extension RecordingModule {
 
     func executeRecordingCommand(
         _ command: Command,
-        report: (String, Bool) -> Void = { AppCore.shared.showMessage($0, tone: $1 ? .danger : .success) },
+        report: (String, Bool) -> Void = { NotchcastHost.current.showMessage($0, $1 ? .danger : .success) },
         reveal: (URL) -> Void = { NSWorkspace.shared.activateFileViewerSelecting([$0]) }
     ) async {
         do {

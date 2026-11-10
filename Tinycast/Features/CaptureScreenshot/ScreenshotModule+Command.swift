@@ -5,7 +5,7 @@ extension ScreenshotModule {
         slug: "screenshot-area", name: String(localized: "Capture Area", table: "Notchcast"),
         sfSymbol: "camera.viewfinder", feature: .screenshot,
         isEnabled: { NotchcastPreferences.shared.isOn(.screenshot) },
-        run: { NotchcastCore.screenshot.captureArea() })
+        run: { ScreenshotModule.shared.captureArea() })
 
     func captureArea() {
         guard enabled else { return }
@@ -18,26 +18,26 @@ extension ScreenshotModule {
                         let url = try await self?.capture(.rect(selection.rect))
                         if NotchcastPreferences.shared.isOn(.captureEditor), let self {
                             do {
-                                try NotchcastCore.captureEditor.openCapture(url: url, clipboard: self.destination != .file)
+                                try self.openInEditor(url, self.destination != .file)
                             } catch {
-                                AppCore.shared.showMessage(error.localizedDescription, tone: .danger)
+                                NotchcastHost.current.showMessage(error.localizedDescription, .danger)
                             }
                         }
                     } catch is CancellationError {
                     } catch {
-                        AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
+                        NotchcastHost.current.showMessage(Self.failureMessage(error), .danger)
                     }
                 }
             }
         } catch {
-            AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
+            NotchcastHost.current.showMessage(Self.failureMessage(error), .danger)
         }
     }
 
     nonisolated static let launcherCommand = NotchcastCommand(
         slug: "screenshot-display", name: String(localized: "Capture Screen", table: "Notchcast"), sfSymbol: "camera", feature: .screenshot,
         isEnabled: { NotchcastPreferences.shared.isOn(.screenshot) },
-        run: { NotchcastCore.screenshot.captureDisplay() })
+        run: { ScreenshotModule.shared.captureDisplay() })
 
     func captureDisplay() {
         guard let displayID = NSScreen.underCursor?.displayID else { return }
@@ -47,7 +47,7 @@ extension ScreenshotModule {
                 _ = try await self?.capture(.display(displayID))
             } catch is CancellationError {
             } catch {
-                AppCore.shared.showMessage(Self.failureMessage(error), tone: .danger)
+                NotchcastHost.current.showMessage(Self.failureMessage(error), .danger)
             }
         }
     }
