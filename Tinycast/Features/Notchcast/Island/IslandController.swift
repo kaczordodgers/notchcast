@@ -39,6 +39,8 @@ final class IslandController: NotchcastModule {
 
     func configurePages(_ core: AppCore) {
         guard pages == nil else { return }
+        core.hotKeys.seedIslandToggle(commandID: Self.launcherCommand.entry.id,
+                                      marker: NotchcastPreferences.shared.engineDefaults)
         let pages = IslandPagesCoordinator(core: core, island: self)
         self.pages = pages
         openContent = AnyView(IslandPagesView().environment(self).environment(pages).environment(core.palette))
@@ -128,7 +130,10 @@ final class IslandController: NotchcastModule {
     }
 
     func toggle() {
-        if isOpen { close() } else { open(page: page) }
+        guard !isOpen else { return close() }
+        // Opened on purpose: only Escape or the command again closes it.
+        open(page: page)
+        input.setPinned(true)
     }
 
     func selectPage(_ page: IslandPage) {
@@ -154,6 +159,7 @@ final class IslandController: NotchcastModule {
             }
             panel.onKey = { [weak self] in self?.handleKey($0) ?? false }
             panel.onFocus = { [weak self] in self?.hasKeyboardFocus = $0 }
+            panel.onPointer = { [weak self] in self?.pointerEvent($0) }
         }
         updateContent()
         applyPreferences()
