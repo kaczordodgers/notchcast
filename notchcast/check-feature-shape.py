@@ -237,7 +237,10 @@ def registration_errors(root):
     """A registrant registers from <Type>+Registration.swift in its own fork folder, and keeps nothing in the hub."""
     errors = []
     upstream = upstream_folders(root)
-    listed = re.findall(r"^\s*(\w+)\.self,$", mask_literals((root / REGISTRANTS).read_text()), re.M)
+    registrants = mask_literals((root / REGISTRANTS).read_text())
+    listed = re.findall(r"^\s*(\w+)\.self,$", registrants, re.M)
+    errors.extend((REGISTRANTS, number, "list one registrant per line")
+                  for number, line in enumerate(registrants.split("\n"), 1) if len(re.findall(r"\.self\b", line)) > 1)
     for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
         relative = path.relative_to(root)
         source = path.read_text()

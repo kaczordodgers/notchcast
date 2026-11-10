@@ -177,6 +177,11 @@ class FeatureShapeTests(unittest.TestCase):
         self.assertEqual(source.count(line), 1)
         self.rejected(REGISTRANTS, source.replace(line, line + line), "repeated entry LowDiskModule")
 
+    def test_two_registrants_on_one_line(self):
+        source = (self.root / REGISTRANTS).read_text()
+        self.rejected(REGISTRANTS, source.replace("LowDiskModule.self,", "LowDiskModule.self, LowDiskModule.self,"),
+                      "list one registrant per line")
+
     def test_registrant_still_in_the_hub(self):
         source = (self.root / MODULES).read_text()
         anchor = "            .init(requires: [.island, .dayMarkets], module: markets),\n"
