@@ -13,7 +13,6 @@ final class IslandPanel: NSPanel {
     var cardButtonFrame = CGRect.zero
     private var expandedContent = AnyView(EmptyView())
     private var headerContent = AnyView(EmptyView())
-    /// The launcher this island grew into, while it is up.
     private(set) var launcherFrame: CGRect?
     /// Where the silhouette is heading, in screen space; a closed change morphs from it.
     private var shownOutline: IslandOutline?
@@ -66,7 +65,6 @@ final class IslandPanel: NSPanel {
         }
     }
 
-    /// Tall enough for the launcher to grow inside it: the notch's band (or the pill's gap) and the launcher.
     static func canvasHeight(_ notch: CGRect?) -> CGFloat {
         let band = notch?.height ?? NotchcastTheme.Closed.topGap
         return max(NotchcastTheme.maximumHeight, band + NotchcastTheme.Launcher.size.height)
@@ -79,7 +77,6 @@ final class IslandPanel: NSPanel {
             contentHeight: canvasHeight(notch), headerHeight: 0, maximumHeight: canvasHeight(notch))
     }
 
-    /// The launcher scales with the interface size, so the canvas it grows inside follows; the shape stays put.
     func fitCanvas() {
         let canvas = Self.canvasFrame(screen: screenFrame, notch: hardwareNotch)
         guard frame != canvas else { return }

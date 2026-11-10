@@ -29,7 +29,7 @@ Two owners: upstream's `PaletteWindowController` (launcher visible / key, `previ
 | Open | launcher key | `NotchcastLauncherPlacement.displaces`: hangs from it, or its open body covers or touches the launcher | Closed | `close()`, pin cleared: the launcher replaces the island |
 | Open | launcher key | otherwise (placement off, launcher at its own spot, or on another display) | Open | none: pin kept, the launcher takes key |
 | Closed | launcher key | any | Closed | none: the island stays as it is above the launcher hung under it |
-| Closed | island open | — | Open | morph; key unless hover |
+| Closed | island open | not while the launcher is up: pointer hover and click are ignored | Open | morph; key unless hover |
 | Open | island dismiss | pin allows | Closed | morph; key handed back by re-ordering |
 
 Placement's predicate: placement on, the island visible and on the active space, on the launcher's display. A full-screen space without the island (Full Screen off) places the launcher at its own spot.

@@ -48,9 +48,11 @@ extension IslandController {
         ]
     }
 
-    /// Islands the launcher hid come back once it has gone; the occlusion news arrives a turn late.
+    /// Hover and click must not open an island under the launcher.
+    var launcherIsUp: Bool { NSApp.windows.contains { $0 is PalettePanel && $0.isVisible } }
+
     func restoreAfterLauncher() {
-        guard !NSApp.windows.contains(where: { $0 is PalettePanel && $0.isVisible }) else { return }
+        guard !launcherIsUp else { return }
         panels.forEach { $0.launcherDidClose() }
     }
 
