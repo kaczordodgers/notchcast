@@ -21,14 +21,14 @@ extension MusicCommands {
                 AppCore.shared.settingsCoordinator.showSettings(
                     tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
             } else if preferences.isOn(.spotifyConnect) == on {
-                AppCore.shared.showMessage(on
+                NotchcastHost.current.showMessage(on
                     ? String(localized: "Spotify Connect Speaker is already on.", table: "Notchcast")
-                    : String(localized: "Spotify Connect Speaker is already off.", table: "Notchcast"))
+                    : String(localized: "Spotify Connect Speaker is already off.", table: "Notchcast"), .success)
             } else {
                 preferences.set(.spotifyConnect, on)
-                AppCore.shared.showMessage(on
+                NotchcastHost.current.showMessage(on
                     ? String(localized: "Starting…")
-                    : String(localized: "Spotify Connect Speaker is off.", table: "Notchcast"))
+                    : String(localized: "Spotify Connect Speaker is off.", table: "Notchcast"), .success)
             }
         })
     }

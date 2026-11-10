@@ -27,6 +27,6 @@ enum MusicCommands {
     }
 
     static func report() {
-        AppCore.shared.showMessage(String(localized: "The current player is unavailable.", table: "Notchcast"), tone: .danger)
+        NotchcastHost.current.showMessage(String(localized: "The current player is unavailable.", table: "Notchcast"), .danger)
     }
 }
