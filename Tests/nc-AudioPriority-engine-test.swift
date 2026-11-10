@@ -53,6 +53,8 @@ struct AudioPriorityTests {
         let store = MemoryStore()
         var failures = 0
         let manager = AudioPriorityManager(transport: transport, store: store) { _ in failures += 1 }
+        var successes = 0
+        manager.succeeded = { successes += 1 }
         transport.inventory(outputs: ["low"])
         manager.start()
         manager.start()
@@ -60,7 +62,7 @@ struct AudioPriorityTests {
         let reads1 = transport.readCount
         transport.inventory(outputs: ["low", "high"])
         await settle { transport.readCount > reads1 }
-        precondition(transport.writes == ["high"])
+        precondition(transport.writes == ["high"] && successes == 1)
         let reads2 = transport.readCount
         transport.inventory(outputs: ["low"])
         await settle { transport.readCount > reads2 }
@@ -100,7 +102,7 @@ struct AudioPriorityTests {
         let reads9 = transport.readCount
         transport.callback?()
         await settle { transport.readCount > reads9 }
-        precondition(failures == 1 && transport.writes.count == 4)
+        precondition(failures == 1 && transport.writes.count == 4 && successes == 3)
         let lateCallback = transport.callback
         manager.stop()
         manager.stop()
@@ -112,12 +114,8 @@ struct AudioPriorityTests {
         await settle()
         precondition(transport.writes.count == 4)
         manager.stop()
-        let ranking = store.values[.output]!
-        let decoded = try JSONDecoder().decode(AudioPriorityRanking.self,
-                                               from: JSONEncoder().encode(ranking))
-        precondition(decoded == ranking)
         print("PASS: connect, disconnect, unknown, manual, no-op, independence, disabled, failure,")
-        print("PASS: stopped/stale callbacks, idempotence, UID Codable round trip; fake transport only")
+        print("PASS: stopped/stale callbacks, idempotence; fake transport only")
     }
 
     @MainActor

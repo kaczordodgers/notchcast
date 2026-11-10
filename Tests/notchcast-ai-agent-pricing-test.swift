@@ -19,7 +19,10 @@ struct PricingTests {
     @MainActor
     static func main() throws {
         let engine = try AgentPricingCatalog.bundled()
-        precondition(engine.table.updated == "2026-10-30")
+        for price in engine.table.claude.models + engine.table.codex.models {
+            let cost = engine.cost(Usage(modelID: price.id, inputTokens: 1_000_000))
+            precondition((cost ?? 0) > 0, "Bundled model \(price.id) must price a 1M-token usage")
+        }
         var usage = Usage(inputTokens: 1_000_000, outputTokens: 1_000_000)
         precondition(engine.cost(usage) == 10)
         usage.modelID = "gpt-4.1-20260102"

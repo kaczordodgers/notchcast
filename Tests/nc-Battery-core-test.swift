@@ -1,3 +1,5 @@
+// notchcast-sources: Tinycast/Features/Battery/Model/*.swift Tinycast/Features/Battery/Service/*.swift
+// notchcast-kit: root
 import Foundation
 
 @main
@@ -46,21 +48,21 @@ struct BatteryCoreTests {
               "battery floor boundary")
         awake.until = now
         check(awake.evaluate(now: now, onBattery: false, percent: nil, locked: false) == .expired, "deadline")
-        check(LidClosedPolicy.plan(enabled: true, helperReady: true, keepAwakeHolding: false) == .sleepOn,
+        check(LidClosedPolicy.plan(enabled: true, helperReady: true, keepAwakeHolding: false) == .batterySleepOn,
               "lid follows actual hold")
-        var calls: [BatteryRootVerbs] = []
+        var calls: [RootContract.Command] = []
         let service = ChargePlanService()
         try service.apply(.init(charging: false, adapter: false), watchdogReady: false) { calls.append($0) }
-        check(calls == [.chargingOff], "drain pauses charging without touching adapter")
+        check(calls == [.batteryChargingOff], "drain pauses charging without touching adapter")
         calls = []
         enum Injected: Error { case failure }
         do {
             try service.apply(.init(charging: false, adapter: false), watchdogReady: true) {
                 calls.append($0)
-                if $0 == .adapterOff { throw Injected.failure }
+                if $0 == .batteryAdapterOff { throw Injected.failure }
             }
         } catch Injected.failure {}
-        check(calls == [.chargingOff, .adapterOff], "failure never enables charging")
+        check(calls == [.batteryChargingOff, .batteryAdapterOff], "failure never enables charging")
         var released: [UInt32] = []
         do {
             _ = try KeepAwakePlanService().acquire(types: awake.assertionTypes, create: {

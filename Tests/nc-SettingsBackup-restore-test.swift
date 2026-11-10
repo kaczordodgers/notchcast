@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
 // notchcast-sources: -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist
 // notchcast-sources: -Xlinker Tests/fixtures/settings-backup-info.plist

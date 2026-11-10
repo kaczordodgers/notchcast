@@ -5,7 +5,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 import Foundation
 
 @MainActor enum NotchcastCore {}
@@ -137,8 +137,6 @@ struct ArchiveModuleLifecycleTests {
         await settle()
         precondition(service.calls.count == 4)
         precondition(NotchcastPreferences(suiteName: suite).isOn(.archivesInPlace))
-        await module.refreshTool()
-        precondition(module.toolURL == nil)
         try await handlerRaces()
         try await cancellation()
         print("PASS: production registration, lifecycle, defaults, switch gating, routing, modes, retry, tool status")

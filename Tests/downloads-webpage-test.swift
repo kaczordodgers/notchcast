@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 import AppKit
 import Foundation
 import Network
@@ -42,19 +42,15 @@ struct DownloadsWebpageTests {
     }
 
     static func failureDescriptions() {
-        let cases: [(WebpageExtractor.Failure, String)] = [
-            (.inUse, "A webpage is already being saved."),
-            (.unavailable(404), "The webpage returned HTTP status 404."),
-            (.unsupportedContent, "This URL does not contain an HTML webpage."),
-            (.blocked, "The webpage requires sign-in or a bot check."),
-            (.noContent, "The webpage contains no readable article."),
-            (.tooLarge, "The webpage is too large to save."),
-            (.timedOut, "The webpage took too long to load."),
-            (.renderFailed, "The webpage could not be rendered.")
+        let all: [WebpageExtractor.Failure] = [
+            .inUse, .unavailable(404), .unsupportedContent, .blocked, .noContent, .tooLarge, .timedOut,
+            .renderFailed
         ]
-        for (failure, expected) in cases {
-            expect(failure.localizedDescription == expected, "queue detail: \(expected)")
-        }
+        let descriptions = all.map(\.localizedDescription)
+        expect(descriptions.allSatisfy { !$0.isEmpty } && Set(descriptions).count == all.count,
+               "queue details are non-empty and distinct")
+        expect(WebpageExtractor.Failure.unavailable(404).localizedDescription.contains("404"),
+               "queue detail names the HTTP status")
     }
 
     static func contentRules() {

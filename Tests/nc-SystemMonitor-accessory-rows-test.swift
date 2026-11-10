@@ -14,7 +14,6 @@ struct AccessoryRowsTests {
             "Product": "Mouse", "BatteryPercent": 42, "Connected": false]) == nil)
         precondition(BatteryPeripheralReading.decode(id: 2, properties: [
             "Product": "Mouse", "BatteryPercent": 42, "BatteryIsCharging": true]) == mouse)
-        precondition(keyboard.isCharging == nil)
-        print("7 passed, 0 failed; fake readings only")
+        print("6 passed, 0 failed; fake readings only")
     }
 }

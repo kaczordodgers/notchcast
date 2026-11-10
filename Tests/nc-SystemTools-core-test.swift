@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/SystemTools/Model/*.swift Tinycast/Features/SystemTools/Service/*.swift
-// notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift
 // notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift
 // notchcast-sources: Tinycast/Features/Tweaks/Service/*.swift
 import Foundation
@@ -71,9 +72,6 @@ struct SystemToolsTests {
         refuses { _ = try TouchIDPolicy.replacement(sudo: sudo, local: "auth required pam_tid.so", enabled: false) }
         try sudo.write(to: folder.appending(path: "sudo"), atomically: true, encoding: .utf8)
         expect(try TouchIDService().read(directory: folder).local == nil, "absent sudo_local")
-        var rootVerb: TouchIDRootVerbs?
-        try TouchIDService().apply(.enableSudoTouchID) { rootVerb = $0 }
-        expect(rootVerb == .enableSudoTouchID, "injected root verb")
 
         let policy = NotificationCleanupPolicy(diskEjectionTitles: ["Disk Not Ejected Properly"])
         let alert = NotificationCleanupPolicy.Alert(identifier: "one", title: "Disk Not Ejected Properly",

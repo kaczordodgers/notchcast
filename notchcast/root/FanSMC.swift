@@ -26,18 +26,11 @@ enum FanSMC {
     }
 
     static func decode(_ bytes: [UInt8], info: Info) throws -> Double {
-        guard bytes.count == info.size else { throw Failure.invalidValue }
-        let value: Double
-        switch (info.type, info.size) {
-        case ("flt ", 4):
-            let bits = bytes.reversed().reduce(UInt32(0)) { $0 << 8 | UInt32($1) }
-            value = Double(Float(bitPattern: bits))
-        case ("fpe2", 2): value = Double(bytes.reduce(UInt32(0)) { $0 << 8 | UInt32($1) }) / 4
-        case ("ui8 ", 1), ("ui16", 2), ("ui32", 4):
-            value = Double(bytes.reduce(UInt32(0)) { $0 << 8 | UInt32($1) })
-        default: throw Failure.invalidValue
-        }
-        guard value.isFinite, value >= 0 else { throw Failure.invalidValue }
+        // The helper reads only the types its encoder can write back.
+        _ = try encode(0, info: info)
+        let decoded = SMCValue( // drift: keep the helper decodes with the app's one SMC decoder
+            info: .init(size: info.size, type: info.type, attributes: 0), bytes: bytes)
+        guard let value = decoded.number, value >= 0 else { throw Failure.invalidValue }
         return value
     }
 

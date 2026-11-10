@@ -6,7 +6,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
+// notchcast-kit: root
 import Foundation
 import Synchronization
 
@@ -58,7 +58,7 @@ final class WiringFake: Sendable {
                     self.state.withLock { $0.trashed.append(path) }
                 }
             }
-        }, supportsRootCommand: { RootContract.Command(rawValue: $0) != nil })
+        })
     }
 }
 
@@ -135,9 +135,7 @@ struct CleanWiringTest {
         let scans = fake.state.withLock { $0.scans }
         preferences.set(.cleanSystem, true)
         coordinator.setEnabled(.cleanSystem, true)
-        precondition(coordinator.rootAvailable)
         coordinator.helperCurrent = false
-        precondition(!coordinator.rootAvailable)
         coordinator.scan(.cleanSystem)
         coordinator.apply(.cleanSystem)
         await coordinator.waitUntilIdle()

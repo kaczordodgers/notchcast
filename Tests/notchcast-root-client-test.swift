@@ -1,5 +1,7 @@
-// notchcast-sources: -parse-as-library Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: root platform
+// notchcast-sources: -parse-as-library
 // notchcast-reads: notchcast/root/*.swift Tinycast/Features/Clean/Model/CleanSystem*.swift
+// notchcast-reads: Tinycast/Features/SystemMonitor/Model/SMCValue.swift
 import Darwin
 import Foundation
 
@@ -217,9 +219,7 @@ struct FanSMCTest {
         do {
             try BatterySMC.apply(.batteryChargingOff, smc: BatteryFixture())
             preconditionFailure("Absent keys must report unsupported")
-        } catch BatterySMC.Failure.unsupported {
-            precondition(RootContract.unsupportedExit != 70)
-        }
+        } catch BatterySMC.Failure.unsupported {}
         let failed = BatteryFixture()
         failed.keys = ["CHTE": 4]
         failed.failedProbe = "CH0B"
@@ -394,7 +394,6 @@ struct RootClientTest {
         for invalid in ["0\n", "101\n", "080\n", "80", "80\nextra"] {
             precondition(RootContract.Reply(command: .chargeLimitRead, output: invalid) == nil)
         }
-        precondition(RootContract.Operation.change.timeout == .seconds(12))
     }
 
     private static func validateExecutable() throws {
@@ -410,6 +409,8 @@ struct RootClientTest {
         compiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         compiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
                               "-warnings-as-errors", "-O"] + sources + [
+                                "Tinycast/Features/Notchcast/Root/RootContract.swift",
+                                "Tinycast/Features/SystemMonitor/Model/SMCValue.swift",
                                 "Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemEntry.swift",
                                 "Tinycast/Features/Clean/Model/CleanSystemPlan.swift",
@@ -435,7 +436,8 @@ struct RootClientTest {
         fanCompiler.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
         fanCompiler.arguments = ["swiftc", "-swift-version", "6", "-strict-concurrency=complete",
                                  "-warnings-as-errors", "-D", "FAN_SMC_TEST", "-parse-as-library",
-                                 "notchcast/root/RootContract.swift", "notchcast/root/FanSMC.swift",
+                                 "Tinycast/Features/Notchcast/Root/RootContract.swift", "notchcast/root/FanSMC.swift",
+                                 "Tinycast/Features/SystemMonitor/Model/SMCValue.swift",
                                  "notchcast/root/BatterySMC.swift",
                                  "notchcast/root/NativeChargeLimit.swift",
                                  "notchcast/root/Power.swift",

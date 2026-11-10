@@ -233,25 +233,64 @@ def compare_baseline(root, base, baseline):
             if key not in previous[rule] or value > previous[rule][key]]
 
 
-def report_counters(root, upstream, ours, our_tests):
+def report_counters(root, upstream, ours, our_tests, rev=None):
     counters = {('file-lines', path): len(text.splitlines()) for path, text in ours.items() if path != HUB}
     counters.update({('test-lines', path): len(text.splitlines()) for path, text in our_tests.items()})
     counters['waivers', 'all'] = sum(bool(WAIVER.search(line)) for text in (ours | our_tests).values()
                                      for line in text.splitlines())
     for name, pattern in PATTERNS.items():
         counters[name, 'all'] = sum(len(re.findall(pattern, text)) for text in ours.values())
-    diff = git(root, 'diff', '--diff-filter=M', '--numstat', upstream)
+    diff = git(root, 'diff', '--diff-filter=M', '--numstat', upstream, *([rev] if rev else []))
     counters['upstream-patch-lines', 'all'] = sum(int(line.split('\t')[0]) for line in diff.splitlines()
                                                if '.generated.' not in line.split('\t')[2]
                                                and line.split('\t')[2] not in ('README.md', 'Tinycast.xcodeproj/project.pbxproj')
                                                and line.split('\t')[0].isdigit())
-    log = git(root, 'log', '--first-parent', f'{upstream}..HEAD', '--format=%x1e%s%x1f%b')
+    log = git(root, 'log', '--first-parent', f'{upstream}..{rev or "HEAD"}', '--format=%x1e%s%x1f%b')
     waived_fixes = 0
     for entry in log.split('\x1e'):
         subject, _, body = entry.lstrip().partition('\x1f')
         if re.match(r'^(?:Notchcast: )?Fix ', subject, re.I) and re.search(r'^No test: \S', body, re.M):
             waived_fixes += 1
     counters['fix-no-test', 'all'] = waived_fixes
+    return counters
+
+
+def main_counters(root, upstream):
+    if subprocess.run(['git', '-C', str(root), 'rev-parse', '-q', '--verify', 'refs/remotes/origin/main'],
+                      capture_output=True).returncode:
+        return {}
+    try:
+        base = git(root, 'merge-base', 'HEAD', 'refs/remotes/origin/main')
+        fork = git(root, 'merge-base', base, upstream)
+    except subprocess.CalledProcessError:
+        return {}
+    added = set(git(root, 'diff', '--diff-filter=A', '--name-only', fork, base, '--', '*.swift').splitlines())
+    with tempfile.TemporaryDirectory(prefix='drift-main.') as work:
+        present = git(root, 'ls-tree', '--name-only', base, '--', 'Tinycast', 'notchcast/root', 'Tests').split()
+        archive = subprocess.run(['git', '-C', str(root), 'archive', base, *present],
+                                 capture_output=True, check=True).stdout
+        subprocess.run(['tar', '-x', '-C', work], input=archive, check=True)
+        prod = {p: text for p, text in (sources(Path(work), 'Tinycast') | sources(Path(work), 'notchcast/root')).items()
+                if p in added}
+        tests = {p: text for p, text in sources(Path(work), 'Tests').items() if p in added}
+    return report_counters(root, fork, prod, tests, base)
+
+
+def print_counters(root, upstream, observed, ours, our_tests, baseline, known):
+    print('Counter | Current | Baseline / threshold')
+    for rule, counts in observed.items():
+        print(f'{rule} | {sum(counts.values())} ({len(counts)} keys) | {sum(baseline[rule].values())}')
+        for key, value in sorted(counts.items()):
+            if value > baseline[rule].get(key, 0):
+                print(f'GATE-THRESHOLD {rule}:{key.replace(" | ", "|")} {value} {baseline[rule].get(key, 0)}')
+    counters = report_counters(root, upstream, ours, our_tests)
+    for (counter, key), value in sorted(counters.items()):
+        limit = baseline['alerts'][counter]
+        if key == 'all':
+            print(f'{counter} | {value} | {limit} | {key}')
+        if value > limit:
+            mark = ' known' if value <= known.get((counter, key), limit) else ''
+            print(f'GATE-THRESHOLD {counter if key == "all" else f"{counter}:{key}"} {value} {limit}{mark}')
     return counters
 
 
@@ -332,16 +371,7 @@ def main():
         return 0
     baseline = read_baseline(path)
     if args.report:
-        print('Counter | Current | Baseline / threshold')
-        for rule, counts in observed.items():
-            print(f'{rule} | {sum(counts.values())} ({len(counts)} keys) | {sum(baseline[rule].values())}')
-        largest = sorted(ours, key=lambda p: (-len(ours[p].splitlines()), p))[:10]
-        for file in largest:
-            print(f'largest | {file} | {len(ours[file].splitlines())} lines')
-        counters = report_counters(root, upstream, ours, our_tests)
-        for (counter, key), value in sorted(counters.items()):
-            if counter not in ('file-lines', 'test-lines') or value > baseline['alerts'][counter]:
-                print(f'{counter} | {value} | {baseline["alerts"][counter]} | {key}')
+        counters = print_counters(root, upstream, observed, ours, our_tests, baseline, {})
         for rule in ('dead', 'test-only'):
             for key in observed.get(rule, {}):
                 print(f'{rule} | {key}')
@@ -355,6 +385,8 @@ def main():
         print(f'gate {gate}: {"FAIL" if failed else "PASS"} ({count} keys)')
     for problem in problems:
         print(problem)
+    if args.gates == '1,2,3,4':  # land.sh and local-ci.sh run all four; the pre-push subset stays quiet
+        print_counters(root, upstream, observed, ours, our_tests, baseline, main_counters(root, upstream))
     return bool(problems)
 
 

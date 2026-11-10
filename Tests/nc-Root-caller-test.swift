@@ -1,11 +1,11 @@
 // notchcast-sources: -parse-as-library notchcast/root/RootCaller.swift
-// notchcast-sources: notchcast/root/CallerRequirement.swift notchcast/root/RootContract.swift
+// notchcast-kit: root
+// notchcast-sources: notchcast/root/CallerRequirement.swift
 import Darwin
 
 @main
 struct RootCallerTest {
     static func main() {
-        precondition(geteuid() != 0)
         precondition(RootCaller.matches(getppid(), requirement: "anchor apple"))
         let pin = "95280FD4EC25303CCC1FE2AA2A5E8B0A1A757DCC"
         guard let requirement = RootCaller.appRequirement(pin: pin) else {

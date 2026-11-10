@@ -28,39 +28,12 @@ struct NotchcastSettingRowsB: View {
         case .tweaksTyping:
             NotchcastKeyRepeatSpeedSettingRow()
             NotchcastKeyRepeatDelaySettingRow()
-            NotchcastAutocorrectSettingRow()
-            NotchcastSmartPunctuationSettingRow()
-            NotchcastDoubleSpacePeriodSettingRow()
-            NotchcastAutoCapitalizeSettingRow()
-            NotchcastKeyRepeatSettingRow()
+            ForEach(TweakToggle.typing) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: NotchcastCore.typingTweaks) }
         case .tweaksFinder:
-            NotchcastShowLibrarySettingRow()
             NotchcastNewFinderWindowsSettingRow()
-            NotchcastFileExtensionsSettingRow()
-            NotchcastHiddenFilesSettingRow()
-            NotchcastPathBarSettingRow()
-            NotchcastStatusBarSettingRow()
-            NotchcastFoldersFirstSettingRow()
-            NotchcastSearchThisFolderSettingRow()
-            NotchcastExtensionWarningSettingRow()
-            NotchcastPathInTitleSettingRow()
-            NotchcastNetworkDsStoreSettingRow()
-            NotchcastTrash30DaysSettingRow()
-            NotchcastSaveLocallySettingRow()
-            NotchcastExpandedSaveSettingRow()
-            NotchcastListViewSettingRow()
-            NotchcastUsbDsStoreSettingRow()
-            NotchcastDesktopDisksSettingRow()
+            ForEach(TweakToggle.finder) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: NotchcastCore.finderTweaks) }
         case .tweaksDock:
-            NotchcastDockRecentsSettingRow()
-            NotchcastDockDelaySettingRow()
-            NotchcastDockBounceSettingRow()
-            NotchcastMinimizeToAppSettingRow()
-            NotchcastWindowAnimationsSettingRow()
-            NotchcastTileMarginsSettingRow()
-            NotchcastScreenshotShadowSettingRow()
-            NotchcastClickToDesktopSettingRow()
-            NotchcastDesktopWidgetsSettingRow()
+            ForEach(TweakToggle.dock) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: NotchcastCore.dockTweaks) }
         case .privacyAndStartupLaunchAgents:
             NotchcastStartupItemsSettingRow()
         case .privacyAndStartupAppleApps:
