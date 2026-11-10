@@ -205,6 +205,14 @@ class FeatureShapeTests(unittest.TestCase):
                 self.rejected(path, source, "implement register(_: AppCore) in")
                 (self.root / path).unlink()
 
+    def test_registration_missing_from_registrants(self):
+        home = Path("Tinycast/Features/LowDisk/LowDiskModule+Registration.swift")
+        (self.root / home).parent.mkdir(parents=True, exist_ok=True)
+        (self.root / home).write_text((ROOT / home).read_text())
+        source = (self.root / REGISTRANTS).read_text()
+        (self.root / REGISTRANTS).write_text(source.replace("        LowDiskModule.self,\n", ""))
+        self.rejected(home, (ROOT / home).read_text(), f"list LowDiskModule.self, in {REGISTRANTS}")
+
     def test_register_in_an_upstream_folder(self):
         shipped = Path("Tinycast/Features/Launcher/LauncherScreen.swift")
         (self.root / shipped).parent.mkdir(parents=True, exist_ok=True)

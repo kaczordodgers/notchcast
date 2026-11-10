@@ -237,6 +237,7 @@ def registration_errors(root):
     """A registrant registers from <Type>+Registration.swift in its own fork folder, and keeps nothing in the hub."""
     errors = []
     upstream = upstream_folders(root)
+    listed = re.findall(r"^\s*(\w+)\.self,$", mask_literals((root / REGISTRANTS).read_text()), re.M)
     for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
         relative = path.relative_to(root)
         source = path.read_text()
@@ -247,14 +248,17 @@ def registration_errors(root):
         if not implementation:
             continue
         number = code.count("\n", 0, implementation.start()) + 1
-        if not REGISTRATION_FILE.fullmatch(relative.as_posix()):
+        place = REGISTRATION_FILE.fullmatch(relative.as_posix())
+        if not place:
             errors.append((relative, number, "implement register(_: AppCore) in "
                                              "Tinycast/Features/<its folder>/<Type>+Registration.swift"))
         elif relative.parts[2] in upstream:
             errors.append((relative, number, f"upstream ships Features/{relative.parts[2]}/; "
                                              "register from a fork folder of its own"))
+        elif place[1] not in listed:
+            errors.append((relative, number, f"list {place[1]}.self, in {REGISTRANTS}"))
     hub = mask_literals((root / MODULES).read_text()).split("\n")
-    for name in re.findall(r"^\s*(\w+)\.self,$", mask_literals((root / REGISTRANTS).read_text()), re.M):
+    for name in listed:
         held = re.compile(rf"\bstatic\s+(?:[\w()]+\s+)*(?:let|var)\s+\w+\s*[:=]\s*{name}\b|\bmodule:\s*{name}\b")
         errors.extend((MODULES, number, f"{name} registers itself; drop its static and entry here")
                       for number, line in enumerate(hub, 1) if held.search(line))
