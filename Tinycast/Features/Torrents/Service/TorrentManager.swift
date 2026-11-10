@@ -282,13 +282,10 @@ import Observation
         let files = (status.files ?? []).map { URL(fileURLWithPath: $0.path).standardizedFileURL }
             .filter { $0.path.hasPrefix(destination.path + "/") }
         if status.status == "complete" || status.seeder == "true" {
-            let value = "0083;\(String(Int(Date().timeIntervalSince1970), radix: 16));Notchcast;"
             for file in files {
-                guard getxattr(file.path, "com.apple.quarantine", nil, 0, 0, 0) < 0 else { continue }
-                let result = value.withCString { bytes in
-                    setxattr(file.path, "com.apple.quarantine", bytes, strlen(bytes), 0, 0)
+                guard WebRules.stampQuarantine(file.path, onlyIfMissing: true) == 0 else {
+                    throw TorrentFailure.download(code: "quarantine", message: "Quarantine failed")
                 }
-                guard result == 0 else { throw TorrentFailure.download(code: "quarantine", message: "Quarantine failed") }
             }
         }
         return files

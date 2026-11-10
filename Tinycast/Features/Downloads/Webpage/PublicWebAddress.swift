@@ -18,7 +18,7 @@ enum PublicWebAddress {
     }
 
     static func validate(_ url: URL) throws {
-        guard ["http", "https"].contains(url.scheme?.lowercased() ?? ""),
+        guard WebRules.isWebScheme(url.scheme),
               let host = url.host, !host.isEmpty, url.user == nil, url.password == nil,
               url.port == nil || url.port == 80 || url.port == 443 else { throw Refusal.invalidURL }
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]")).lowercased()

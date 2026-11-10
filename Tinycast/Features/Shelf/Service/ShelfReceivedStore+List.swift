@@ -72,10 +72,9 @@ extension ShelfReceivedStore {
             let url = destination.appendingPathComponent(filename)
             do {
                 try entry.item.data.write(to: url, options: [.withoutOverwriting])
-                let value = "0083;\(String(Int(Date().timeIntervalSince1970), radix: 16));Notchcast;"
-                let result = value.withCString { setxattr(url.path, "com.apple.quarantine", $0, strlen($0), 0, 0) }
-                guard result == 0 else {
-                    let failure = POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+                let status = WebRules.stampQuarantine(url.path)
+                guard status == 0 else {
+                    let failure = POSIXError(POSIXErrorCode(rawValue: status) ?? .EIO)
                     try FileManager.default.removeItem(at: url)
                     throw failure
                 }
