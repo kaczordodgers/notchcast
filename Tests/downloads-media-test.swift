@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
@@ -20,8 +20,8 @@ import Foundation
         precondition(!native.contains("--downloader") && !native.contains("--cookies-from-browser"))
         precondition(native.contains("mp4") && native.suffix(2) == ["--", source])
         let audio = MediaArguments.download(source: source, destination: destination, format: .audio,
-                                            aria2Path: "/opt/homebrew/bin/aria2c", cookies: "firefox:profile")
-        precondition(audio.contains("mp3") && audio.contains("firefox:profile"))
+                                            aria2Path: "/opt/homebrew/bin/aria2c")
+        precondition(audio.contains("mp3") && !audio.contains("--cookies-from-browser"))
         precondition(audio.contains("aria2c:-x 16 -s 16 -k 1M --file-allocation=none"))
         precondition(MediaArguments.retryNatively(stderr: "HTTP Error 403: Forbidden", source: source, usedAria2: true))
         precondition(!MediaArguments.retryNatively(stderr: "403", source: source, usedAria2: false))
@@ -134,7 +134,7 @@ import Foundation
         let context = DownloadRunContext(destination: directory)
         for id in ["znWSzW0Zh_Y", "DIcJX1AjKuk", "12M2AIlM_nA", "TFCDWrEBaFM", "zHZPb7wdQuk", "GtJKFhztgdM", "keRiRVDhvoA"] {
             let job = DownloadJob(id: id, kind: "transcript", source: "https://www.youtube.com/watch?v=\(id)", title: id, created: .now)
-            let output = try await TranscriptDownloadRunner().run(job, context: context)
+            let output = try await TranscriptDownloadRunner(transcribe: { _, _ in nil }).run(job, context: context)
             precondition(output?.lastPathComponent.hasSuffix(" [\(id)].txt") == true, "live \(id): \(String(describing: output))")
             print("LIVE \(output!.lastPathComponent)")
         }
@@ -159,10 +159,11 @@ import Foundation
             --sub-langs) shift; language="$1";;
             --print) shift; [ "$1" != '%(language)s' ] || mode=metadata;;
           esac
+          source="$1"
           shift
         done
         if [ "$mode" = metadata ]; then
-          printf 'pl\\n'
+          case "$source" in */en|*/de) echo "${source##*/}";; *) echo pl;; esac
         elif [ "$mode" = manual ] && [ "$language" = en ]; then
           printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nHello\\n' > "$dest/Clip [en].en.vtt"
           echo "ERROR: Unable to download video subtitles for 'en-US': HTTP Error 429: Too Many Requests" >&2
@@ -192,19 +193,20 @@ import Foundation
         let lookup = DownloadToolLookup(directories: [root, URL(filePath: "/usr/bin"), URL(filePath: "/bin")])
         let context = DownloadRunContext(destination: root, tools: lookup)
         let job = DownloadJob(id: UUID().uuidString, kind: "video", source: "https://example.com/video",
-                              title: "Video", state: .waiting, created: Date(), options: [:])
-        let output = try await MediaDownloadRunner(format: .video).run(job, context: context)
+                              title: "Video", state: .waiting, created: Date())
+        let output = try await MediaDownloadRunner(format: .video, aria2Enabled: { true }).run(job, context: context)
         precondition(output?.lastPathComponent == "movie.mp4")
-        let transcript = try await TranscriptDownloadRunner().run(job, context: context)
+        let captions = TranscriptDownloadRunner(transcribe: { _, _ in nil })
+        let transcript = try await captions.run(job, context: context)
         let text = try String(contentsOf: transcript!, encoding: .utf8)
         precondition(text == "Dzień dobry")
         precondition(transcript?.lastPathComponent == "Movie [id].txt")
-        let second = try await TranscriptDownloadRunner().run(job, context: context)
+        let second = try await captions.run(job, context: context)
         precondition(second?.lastPathComponent == "Movie [id] (2).txt")
         for (language, expected) in [("en", "Hello"), ("de", "Hallo")] {
             var limited = job
-            limited.options["language"] = language
-            let saved = try await TranscriptDownloadRunner().run(limited, context: context)
+            limited.source = "https://example.com/" + language
+            let saved = try await captions.run(limited, context: context)
             let text = try String(contentsOf: saved!, encoding: .utf8)
             precondition(text == expected, "429 exit 1 keeps \(language)")
         }
