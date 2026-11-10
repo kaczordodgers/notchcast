@@ -4,7 +4,6 @@
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
-import Darwin
 import Foundation
 
 private func check(_ condition: Bool, _ message: String = "check failed", line: UInt = #line) {
@@ -134,9 +133,3 @@ struct NotchcastSoloistFailuresTest {
     }
 }
 
-private final class SendableCounter: @unchecked Sendable {
-    private let lock = NSLock()
-    private var count = 0
-    var value: Int { lock.withLock { count } }
-    func add() { lock.withLock { count += 1 } }
-}

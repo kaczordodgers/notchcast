@@ -6,13 +6,20 @@ import Foundation
 
 @main
 struct ProcessRunnerTest {
+    static let marker = Data("process-runner-test \(UUID())".utf8)
+
     static func request(_ path: String, _ arguments: [String] = []) -> ProcessRunner.Request {
-        .init(executable: URL(filePath: path), arguments: arguments)
+        .init(executable: URL(filePath: path), arguments: arguments, input: marker)
     }
 
+    // Parallel harnesses share the temp folder, so count only runs whose stdin is our marker.
     static func leftovers() -> Int {
-        let names = (try? FileManager.default.contentsOfDirectory(atPath: NSTemporaryDirectory())) ?? []
-        return names.filter { $0.hasPrefix("notchcast-run-") }.count
+        let temp = FileManager.default.temporaryDirectory
+        let names = (try? FileManager.default.contentsOfDirectory(atPath: temp.path)) ?? []
+        return names.filter { name in
+            guard name.hasPrefix("notchcast-run-") else { return false }
+            return (try? Data(contentsOf: temp.appending(path: "\(name)/in"))) == marker
+        }.count
     }
 
     @MainActor static func failure(_ operation: () async throws -> some Any) async -> (any Error)? {
@@ -24,18 +31,18 @@ struct ProcessRunnerTest {
     }
 
     @MainActor static func main() async throws {
-        let before = leftovers()
-
         let echo = try await ProcessRunner.run(request("/bin/echo", ["hello"]))
         check(echo.status == 0 && echo.stdout == Data("hello\n".utf8) && echo.stderr.isEmpty)
         check((try await ProcessRunner.run(request("/usr/bin/true"))).status == 0)
 
         var failing = request("/bin/sh", ["-c", "echo out; echo err >&2; exit 3"])
-        failing.stderr = .capture
+        failing.stderr = .capture(limit: .max)
         let failed = try await ProcessRunner.run(failing)
         check(failed.status == 3)
         check(failed.stdout == Data("out\n".utf8))
         check(failed.stderr == Data("err\n".utf8))
+        failing.stderr = .capture(limit: 2)
+        check((try await ProcessRunner.run(failing)).stderr == Data("er".utf8))
         failing.stderr = .merge
         let merged = try await ProcessRunner.run(failing)
         check(merged.stdout == Data("out\nerr\n".utf8) && merged.stderr.isEmpty)
@@ -56,7 +63,7 @@ struct ProcessRunnerTest {
         var limited = request("/bin/echo", ["0123456789"])
         limited.outputLimit = 5
         check(await failure { try await ProcessRunner.run(limited) } as? ProcessRunner.Failure == .outputLimit)
-        limited.stderr = .capture
+        limited.stderr = .capture(limit: .max)
         limited.arguments = ["-n", "ab"]
         limited.outputLimit = 2
         check((try await ProcessRunner.run(limited)).stdout.count == 2)
@@ -84,6 +91,7 @@ struct ProcessRunnerTest {
 
         let running = Task { try await ProcessRunner.run(request("/bin/sleep", ["30"])) }
         try await Task.sleep(for: .milliseconds(200))
+        check(leftovers() == 1)
         let cancelStart = ContinuousClock.now
         running.cancel()
         do { _ = try await running.value; preconditionFailure("cancel returned output") } catch {
@@ -111,10 +119,11 @@ struct ProcessRunnerTest {
         let located = await ExecutableLocator.locate("echo")
         check(located != nil)
         let viaLocator = try await ProcessRunner.run(.init(executable: located!, arguments: ["located"],
-                                                           environment: ExecutableLocator.environment(running: located!)))
+                                                           environment: ExecutableLocator.environment(running: located!),
+                                                           input: marker))
         check(viaLocator.stdout == Data("located\n".utf8))
 
-        check(leftovers() == before)
+        check(leftovers() == 0)
         print("PASS: success, non-zero exit, stderr modes, stdin, environment, directory, output limit, launch failure")
         print("PASS: timeout, grace kill of a child that ignores TERM, custom stop signal, cancel, pre-cancel")
         print("PASS: blocking entry point success, failure, timeout, cancel; temporary files removed")

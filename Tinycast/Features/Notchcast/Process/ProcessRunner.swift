@@ -2,10 +2,10 @@ import Darwin
 import Foundation
 import Synchronization
 
-/// Runs one program to its exit: a timeout and cancellation stop it, and its output is read back from files.
+/// Runs one program to its exit; a timeout or cancellation stops it, and output is read from files.
 nonisolated enum ProcessRunner {
     struct Request: Sendable {
-        enum ErrorOutput: Sendable { case discard, capture, merge }
+        enum ErrorOutput: Sendable { case discard, capture(limit: Int), merge }
 
         var executable: URL
         var arguments: [String] = []
@@ -64,7 +64,6 @@ nonisolated enum ProcessRunner {
     private final class Job: Sendable {
         private struct State {
             var process: Process
-            var launched = false
             var stop: Stop?
             var timers: [DispatchWorkItem] = []
         }
@@ -135,9 +134,7 @@ nonisolated enum ProcessRunner {
 
         func launch() throws -> ProcessExit {
             try state.withLock { state in
-                guard state.stop == nil else { throw CancellationError() }
                 let exit = try state.process.runObservingExit()
-                state.launched = true
                 if let timeout = request.timeout {
                     let timer = DispatchWorkItem { @Sendable in self.stop(.timedOut) }
                     DispatchQueue.global().asyncAfter(deadline: .now() + timeout.seconds, execute: timer)
@@ -149,9 +146,8 @@ nonisolated enum ProcessRunner {
 
         func stop(_ reason: Stop) {
             state.withLock { state in
-                guard state.stop == nil, !state.launched || state.process.isRunning else { return }
+                guard state.stop == nil, state.process.isRunning else { return }
                 state.stop = reason
-                guard state.launched else { return }
                 kill(state.process.processIdentifier, request.stopSignal)
                 let killer = DispatchWorkItem { @Sendable in
                     self.state.withLock { state in
@@ -169,8 +165,9 @@ nonisolated enum ProcessRunner {
             try Task.checkCancellation()
             if stop == .cancelled { throw CancellationError() }
             let stdout = try Self.read(stdoutFile, limit: request.outputLimit, failing: true)
-            let stderr = request.stderr == .capture
-                ? try Self.read(stderrFile, limit: request.outputLimit, failing: false) : Data()
+            let stderr = if case .capture(let limit) = request.stderr {
+                try Self.read(stderrFile, limit: limit, failing: false)
+            } else { Data() }
             return Output(status: status, stdout: stdout, stderr: stderr)
         }
 
