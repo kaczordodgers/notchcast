@@ -4,7 +4,7 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
+// notchcast-kit: root
 // notchcast-sources: Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
 // notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsHelperPolicy.swift
 // notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsStore.swift

@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Battery/Model/*.swift Tinycast/Features/Battery/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
+// notchcast-kit: root
 import Foundation
 
 @main

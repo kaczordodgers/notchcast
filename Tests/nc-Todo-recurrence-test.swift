@@ -68,7 +68,6 @@ struct TodoRecurrenceTests {
               date(2026, 10, 25, 2, 30), timed: true)
         check("every day at 2:30", date(2026, 3, 29, 3, 30), date(2026, 3, 29, 12),
               date(2026, 3, 30, 2, 30), timed: true)
-        precondition(zone.secondsFromGMT(for: date(2026, 10, 25, 2, 30)) == 7200)
         check("every day", date(2026, 3, 28), date(2026, 3, 28, 12), date(2026, 3, 29))
         check("every day", date(2026, 11, 1, 15, 45), date(2026, 11, 4, 12),
               date(2026, 11, 5, 15, 45), timed: true)

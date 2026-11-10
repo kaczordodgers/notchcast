@@ -1,8 +1,6 @@
 // notchcast-sources: Tinycast/Features/PasteTools/Model/*.swift
 // notchcast-sources: Tinycast/Features/PasteTools/Service/PasteImageModule.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: platform input
 import AppKit
 import Carbon.HIToolbox
 
