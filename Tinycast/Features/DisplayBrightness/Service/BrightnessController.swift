@@ -57,9 +57,8 @@ final class BrightnessController {
 
     func refresh() async {
         let names = Dictionary(NSScreen.screens.compactMap { screen -> (UInt32, String)? in
-            guard let number = screen.deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as? NSNumber
-            else { return nil }
-            return (number.uint32Value, screen.localizedName)
+            guard let displayID = screen.displayID else { return nil }
+            return (displayID, screen.localizedName)
         }, uniquingKeysWith: { first, _ in first })
         _ = await perform(.refresh(names: names))
     }
