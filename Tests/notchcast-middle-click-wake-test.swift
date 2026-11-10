@@ -1,8 +1,6 @@
 // notchcast-sources: Tinycast/Features/MiddleClick/Model/*.swift
 // notchcast-sources: Tinycast/Features/MiddleClick/Service/MiddleClickModule.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapPolicy.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: platform input
 import AppKit
 
 @main

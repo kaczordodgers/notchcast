@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/MacUpdate/Model/*.swift
-// notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift
 import Foundation
 import Darwin
 
