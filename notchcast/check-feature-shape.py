@@ -118,6 +118,8 @@ HOOKS = (
     ("Tinycast/Features/Settings/SettingsSidebarView.swift", "SettingsSection.allCases.filter { !$0.tabs.isEmpty }"),
     ("Tinycast/Features/Settings/SettingsSearchCatalog.swift", "filter { !NotchcastHidden.tabs.contains($0.tab) }"),
     ("Tinycast/Windows/About/AboutView.swift", "if NotchcastHidden.supportEnabled { support }"),
+    ("Tinycast/Windows/About/AboutView.swift", "AGPL-3.0"),
+    ("Tinycast/App/AppDelegate.swift", "await NotchcastCore.stopForTermination()"),
     ("Tinycast/Features/Launcher/Model/CommandCatalog.swift",
      "filter { !NotchcastHidden.commands.contains($0.rawValue) }"),
     ("Tinycast/Features/Launcher/UI/LauncherCoordinator.swift",

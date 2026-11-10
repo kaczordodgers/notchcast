@@ -164,7 +164,7 @@ struct ConfirmationWiringTests {
             tables.append(label)
             precondition(table.children.isEmpty, "Expired request bookkeeping retained: \(label)")
         }
-        precondition(!tables.isEmpty, "Found no per-request table to check for expired requests")
+        precondition(tables.count == 3, "Expected 3 per-request dictionaries, found \(tables)")
         held = nil
         let fresh = Task { await expiring.authorize(dangerous, parameters: .null) }
         for _ in 0..<10_000 where held == nil { await Task.yield() }
