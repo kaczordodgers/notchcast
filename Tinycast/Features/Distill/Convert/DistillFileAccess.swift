@@ -52,11 +52,11 @@ nonisolated enum DistillFileAccess {
         }
         try check(source, in: root)
         guard try identity(source) == before else { throw DistillConversion.Failure.sourceChanged }
-        return Snapshot(identity: before, hash: digest.finalize().map { String(format: "%02x", $0) }.joined())
+        return Snapshot(identity: before, hash: WebRules.hex(digest.finalize()))
     }
 
     static func hash(_ data: Data) -> String {
-        SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
+        WebRules.hex(SHA256.hash(data: data))
     }
 
     static func text(_ source: URL) throws -> String {
