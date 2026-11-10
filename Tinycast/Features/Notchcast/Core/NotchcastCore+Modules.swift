@@ -71,7 +71,6 @@ extension NotchcastCore {
     static let spacesOrder = SpacesOrderModule()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
-    static let settingsBackupRestore = ForkSettingsBackupCoordinator.shared
     static let eventReminder = EventReminderModule.shared
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
