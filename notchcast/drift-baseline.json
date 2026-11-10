@@ -107,10 +107,6 @@
     "notchcast.screenshot.folder": 2
   },
   "core-lookups": {
-    "Tinycast/Features/AgentBridge/UI/AgentBridgeModule.swift": 3,
-    "Tinycast/Features/AgentIsland/Service/AgentIslandModule.swift": 1,
-    "Tinycast/Features/AgentSessions/AgentSessionsModule+Command.swift": 1,
-    "Tinycast/Features/AgentThreads/AgentThreadsModule.swift": 2,
     "Tinycast/Features/Archives/Commands/ArchiveCommands.swift": 3,
     "Tinycast/Features/Archives/Commands/ArchiveCompressionCommands.swift": 3,
     "Tinycast/Features/Battery/Commands/BatteryModule+Command.swift": 1,
@@ -118,9 +114,6 @@
     "Tinycast/Features/CopyPath/CopyPathModule+Command.swift": 1,
     "Tinycast/Features/DictationHistory/UI/DictationHistorySettingsSection.swift": 2,
     "Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift": 3,
-    "Tinycast/Features/FleetPanel/Service/FleetLocalSource.swift": 1,
-    "Tinycast/Features/FleetPanel/Service/FleetPanelModule.swift": 2,
-    "Tinycast/Features/Katana/KatanaModule+Commands.swift": 1,
     "Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule+Command.swift": 0,
     "Tinycast/Features/Launcher/CopyPath/CopyPathModule+Command.swift": 0,
     "Tinycast/Features/Launcher/SmallCommands/ShortenLinkArgumentsAccessory.swift": 0,
@@ -136,7 +129,6 @@
     "Tinycast/Features/Microphone/Commands/MicrophoneMuteCommands.swift": 1,
     "Tinycast/Features/Music/Commands/MusicCommands+Playback.swift": 2,
     "Tinycast/Features/Music/Commands/MusicCommands.swift": 2,
-    "Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Command.swift": 1,
     "Tinycast/Features/PasteTools/Service/PlainPasteModule+Command.swift": 1,
     "Tinycast/Features/RemoteScreen/RemoteScreenModule+Command.swift": 2,
     "Tinycast/Features/SettingsBackup/ForkSettingsBackupCoordinator.swift": 2,
@@ -152,7 +144,6 @@
     "Tinycast/Features/Todo/Commands/TodoCommands.swift": 1,
     "Tinycast/Features/Torrents/Commands/TorrentCommands.swift": 4,
     "Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift": 2,
-    "Tinycast/Features/Treadmill/TreadmillCommands.swift": 1,
     "Tinycast/Features/Tweaks/TweakProfileCommands.swift": 1
   },
   "dead": {

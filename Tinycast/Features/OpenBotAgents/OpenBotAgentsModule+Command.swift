@@ -4,7 +4,7 @@ extension OpenBotAgentsModule: NotchcastModule {
     nonisolated static let refreshCommand = NotchcastCommand(
         slug: "refresh-openbot-agents", name: String(localized: "Refresh OpenBot Agents", table: "Notchcast"),
         sfSymbol: "arrow.clockwise", feature: .openBotAgents, isEnabled: { NotchcastPreferences.shared.isOn(.openBotAgents) },
-        run: { NotchcastCore.openBotAgents.refresh(reportResult: true) })
+        run: { OpenBotAgentsModule.shared.refresh(reportResult: true) })
 
     static func report(count: Int?, failure: OpenBotFailure?) {
         let text: String
@@ -23,6 +23,6 @@ extension OpenBotAgentsModule: NotchcastModule {
             default: text = String(localized: "OpenBot is unreachable.", table: "Notchcast")
             }
         }
-        AppCore.shared.showMessage(text, tone: .neutral)
+        NotchcastHost.current.showMessage(text, .neutral)
     }
 }

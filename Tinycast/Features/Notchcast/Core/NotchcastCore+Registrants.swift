@@ -11,5 +11,12 @@ extension NotchcastCore {
         CaptureTrimmerModule.self,
         CaptureEditorCoordinator.self,
         RecordingModule.self,
+        KatanaModule.self,
+        TreadmillCoordinator.self,
+        AgentSessionsModule.self,
+        OpenBotAgentsModule.self,
+        AgentThreadsModule.self,
+        AgentIslandModule.self,
+        FleetPanelModule.self,
     ]
 }

@@ -19,12 +19,12 @@ enum NotchcastCore {
 
     static func stopForTermination() async {
         tasksSync.stop()
-        katana.stop()
+        KatanaModule.shared.stop()
         cleaning.stop()
         appUpdates.stop()
         await macUpdate.stopForTermination()
         dictationTrigger?.stop()
-        await treadmill.stopForTermination()
+        await TreadmillCoordinator.shared.stopForTermination()
         settingsBackup.stop()
         CaptureTrimmerModule.shared.stop()
         voiceAsk?.stop()
@@ -89,6 +89,7 @@ enum NotchcastCore {
         shelf.linkStatus = shelfChannel
         shelf.transport = shelfChannel
         ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }
+        FleetPanelModule.shared.transport = FleetMachLinkTransport(channel: macLink.channel)
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
         for module in [tweaks, typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {
