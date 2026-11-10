@@ -6,6 +6,7 @@ final class AgentBridgeModule: NotchcastModule {
     let index = AgentActionIndex()
     private(set) var configured = false
     private var confirmation: AgentConfirmationAuthorization?
+    var devicesReady: (AgentActionIndex) -> Void = { _ in }
 
     func configure(_ core: AppCore) {
         guard !configured else { return }
@@ -43,7 +44,7 @@ final class AgentBridgeModule: NotchcastModule {
                 }
             }
             try AgentBuiltInActions.register(in: index, core: core)
-            for device in NotchcastAgentDevice.all { device.configure(index) }
+            devicesReady(index)
             try index.register(.init(id: "notchcast.features", title: String(localized: "Notchcast", table: "Notchcast"), read: {
                 .object(Dictionary(uniqueKeysWithValues: NotchcastFeature.allCases.map {
                     ($0.rawValue, AgentJSON.bool(NotchcastPreferences.shared.isOn($0)))

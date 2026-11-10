@@ -62,7 +62,7 @@ The existing CLI uses `get device.treadmill`, `get device.katana` and
 All device mutations are dangerous, including stop, pause and channel selection. The index defaults
 to declining them. Never install an unconditional authorization callback in production.
 
-A device feature hands its backend to the bridge from its own folder: `<Name>AgentDevice.swift` supplies one `NotchcastAgentDevice`, listed in `NotchcastAgentDevice.all` (`Tinycast/Features/Notchcast/Core/NotchcastAgentDevice.swift`). `AgentBridgeModule` configures each with the index and names no device feature.
+`AgentBridgeModule` names no device feature: it calls its `devicesReady` closure with the index, and `NotchcastCore.start` sets that closure to configure Katana and the treadmill.
 
 The backend must validate its device generation and destination after every suspension, enforce
 device-specific limits, and report failures. A tone ID references an existing local library entry;

@@ -90,7 +90,7 @@
   "torrentsKeepSharing": "sub-option of torrents, seeding after download: TorrentModule.swift:62",
   "editorSpellChecking": "read when the upstream Notes editor renders: Tinycast/Features/Notes/UI/NotesView.swift:56 (NoteEditorView spellCheckingEnabled)",
   "quickLookSpace": "key: Space on a selected File Search result opens Quick Look (Tinycast/Palette/PalettePanel.swift:180 → Tinycast/Features/SwitcherQuitKey/AppCore+SwitcherQuitKey.swift:7 → Tinycast/Features/MarkdownQuickLook/QuickLookSpace+Palette.swift)",
-  "agentConfirmation": "automatic: an agent request that needs consent shows upstream's confirm dialog with Allow once / Always allow / Deny (Tinycast/Features/AgentBridge/UI/AgentBridgeModule.swift:15 → Tinycast/Features/AgentConfirm/Service/AgentConfirmationAuthorization.swift)",
+  "agentConfirmation": "automatic: an agent request that needs consent shows upstream's confirm dialog with Allow once / Always allow / Deny (Tinycast/Features/AgentBridge/UI/AgentBridgeModule.swift:16 → Tinycast/Features/AgentConfirm/Service/AgentConfirmationAuthorization.swift)",
   "agentChatTools": "settings button Add Notchcast to AI chat (Tinycast/Features/AgentChatTools/Service/AgentChatToolsSettingsSection.swift:19) registers the notchcast mcp server with the chat client",
   "agentMCPServer": "CLI verb notchcast mcp (Tinycast/Features/AgentBridge/Model/AgentRequest.swift:10), started by the chat client after Add Notchcast to AI chat; gated off with a JSON-RPC error"
 }

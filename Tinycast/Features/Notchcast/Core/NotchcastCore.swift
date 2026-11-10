@@ -89,6 +89,7 @@ enum NotchcastCore {
         shelf.linkStatus = shelfChannel
         shelf.transport = shelfChannel
         ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }
+        agents.devicesReady = { KatanaModule.shared.configure(index: $0); TreadmillCoordinator.shared.configure(index: $0) }
         FleetPanelModule.shared.transport = FleetMachLinkTransport(channel: macLink.channel)
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
