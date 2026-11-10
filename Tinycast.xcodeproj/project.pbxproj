@@ -624,6 +624,7 @@
 		4B5EDBD483DFFEAC3BDDD72D /* MusicLaunchBlocker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C7DF440B42A3C578B5466FF /* MusicLaunchBlocker.swift */; };
 		4B7E0EB3EB9ABF2E1918286D /* FinderImageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FCD5C7B3C2751E33CE470A60 /* FinderImageService.swift */; };
 		4B9EECF34475F915D15908DD /* TodoReplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2A9BEAFC68C106DB8A4FF17 /* TodoReplication.swift */; };
+		4BD515D1971ED08305A0939F /* LauncherScreenshotHold.swift in Sources */ = {isa = PBXBuildFile; fileRef = 030E4D8D09748A79BB47E61F /* LauncherScreenshotHold.swift */; };
 		4BE078BC3EDD7D96E8885538 /* BackupStatusDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF60BA1F1EAC314C01FF0506 /* BackupStatusDescriptor.swift */; };
 		4BEBC6655F1D7D9264896CD0 /* DictationEnglish.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3E81EA358338948852AC24A /* DictationEnglish.swift */; };
 		4C1787D99E49A84C0647C5D8 /* BackupCategorySelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7945C129A685FC29FBA70EE4 /* BackupCategorySelection.swift */; };
@@ -2213,6 +2214,7 @@
 		029E778D787F1C312F783D63 /* NotchcastCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastCore.swift; sourceTree = "<group>"; };
 		02BCAB1F3B6930FE0B819F6D /* OnboardingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingState.swift; sourceTree = "<group>"; };
 		02E816B806F2103D0EF184E5 /* NoteMarkdownRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteMarkdownRenderer.swift; sourceTree = "<group>"; };
+		030E4D8D09748A79BB47E61F /* LauncherScreenshotHold.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherScreenshotHold.swift; sourceTree = "<group>"; };
 		030E67F6AC9A292F385FB5A5 /* ChatCopyButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCopyButton.swift; sourceTree = "<group>"; };
 		030FFD818E3C58B33A5D327F /* KatanaSysEx.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KatanaSysEx.swift; sourceTree = "<group>"; };
 		0333973AAC2B1F4653902175 /* FileIndexCrawler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileIndexCrawler.swift; sourceTree = "<group>"; };
@@ -4898,6 +4900,7 @@
 				CF076B0E11381FF7B11A4EF3 /* IslandPanel+LauncherPlacement.swift */,
 				C2281CFB07504F37753059B9 /* LauncherAliasSpaceTrace.swift */,
 				2DDDFDBB580C45A386B5E33A /* LauncherFromIslandDescriptor.swift */,
+				030E4D8D09748A79BB47E61F /* LauncherScreenshotHold.swift */,
 				B6217DA86445AED30A1D4F67 /* NotchcastCommand.swift */,
 				7D32C50562D6A5656C48B0DB /* NotchcastCommandCatalog.swift */,
 				361CEDE35F1081E9ADC733F4 /* NotchcastCommandCatalog+All.swift */,
@@ -11564,6 +11567,7 @@
 				633DCA2F00A274C375EB4423 /* LauncherRankingStore.swift in Sources */,
 				0BEA1D793049EC2165590CC3 /* LauncherScreen+AliasSpace.swift in Sources */,
 				7FF6A0A4702E1C1365F2D76A /* LauncherScreen.swift in Sources */,
+				4BD515D1971ED08305A0939F /* LauncherScreenshotHold.swift in Sources */,
 				48C031F740C82893A6544F67 /* LauncherSettingRows.swift in Sources */,
 				6E6C27BE575CACD8A0070311 /* LauncherSettingsFile.swift in Sources */,
 				2E05FC5D5A0C2BACE7DB8CDD /* LauncherSuggestions.swift in Sources */,
