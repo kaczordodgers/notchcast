@@ -83,7 +83,7 @@ A registration names only its own folder, `Notchcast/Core` kernel types and upst
 
 Registrant entries start after every hub entry, in list order, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one. Music, Microphone and Tasks register last; the kernel's `NotchcastServices` then builds the key monitor and Spotify settings on their `shared` modules, and is `nil` until `NotchcastCore.start` has run.
 
-A module whose launch repair must not run from a harness (`BatteryModule.shared.repairAtLaunch()`, the fan restore on `MonitorModule.shared`) keeps that line in `NotchcastCore.start`; `register` only builds and returns.
+A module whose launch repair must not run from a harness (`BatteryModule.shared.repairAtLaunch()`, the fan restore on `MonitorModule.shared`) keeps that line in `NotchcastCore.start`; `register` only builds and returns. Wiring left in `NotchcastCore.start` for a registered module gets a `HOOKS` line in `check-feature-shape.py`, since no harness compiles the hub, and a planted break in `check-feature-shape-test.py` that quoted a moved hub line is retargeted to a hub module no group is moving.
 
 ## Moving a feature
 
