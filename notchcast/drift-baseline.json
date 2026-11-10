@@ -43,7 +43,7 @@
     "Features/Katana -> Features/AgentBridge": 1,
     "Features/LinkHealth -> Features/AIUsage": 0,
     "Features/LinkHealth -> Features/MachLink": 1,
-    "Features/LiveDay -> Features/EventReminder": 1,
+    "Features/LiveDay -> Features/EventReminder": 0,
     "Features/MachBlockedDialog -> Features/AIUsage": 0,
     "Features/MachBlockedDialog -> Features/MachLink": 2,
     "Features/MachLink -> Features/MachMBPFans": 0,

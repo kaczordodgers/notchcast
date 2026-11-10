@@ -4,7 +4,7 @@ struct EditorDocumentRepository: Sendable {
     static func kind(of url: URL) throws -> Bool {
         guard url.isFileURL else { throw EditorFailure.unsupportedFile }
         switch url.pathExtension.lowercased() {
-        case "md", "markdown": return true
+        case let suffix where EditorTextPolicy.markdownExtensions.contains(suffix): return true
         case "txt", "text": return false
         default: throw EditorFailure.unsupportedFile
         }

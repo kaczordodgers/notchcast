@@ -204,6 +204,9 @@ struct EditorDocumentTests {
         precondition(!EditorTextPolicy.accepts("text", after: " text", brainDump: true))
         let base = URL(fileURLWithPath: "/tmp/editor/folder/file.md")
         precondition(EditorTextPolicy.relativeMarkdownLink("../other.md", from: base)?.path == "/tmp/editor/other.md")
+        let longSuffix = EditorTextPolicy.relativeMarkdownLink("notes.MARKDOWN", from: base)
+        precondition(longSuffix?.path == "/tmp/editor/folder/notes.MARKDOWN")
+        precondition(EditorTextPolicy.relativeMarkdownLink("notes.txt", from: base) == nil)
         precondition(EditorTextPolicy.relativeMarkdownLink("https://example.com/file.md", from: base) == nil)
     }
 
