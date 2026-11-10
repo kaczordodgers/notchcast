@@ -58,23 +58,26 @@ enum SettingsActionCommands {
     var excludedCalendarIDs: Set<String> = []
     func setExcludedCalendars(_ ids: Set<String>) { excludedCalendarIDs = ids }
 }
-@MainActor struct ReminderStub { let calendar = CalendarStub() }
 enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
 @MainActor final class ColorPickerModule {
     static let shared = ColorPickerModule()
     var format = ColorPickerFormat.hex
 }
-@MainActor enum NotchcastCore {
-    static let editor = EditorStub()
-    static let settingsBackupRestore = ForkSettingsBackupCoordinator()
-    static var screenTextRemovesLineBreaks = false
-    static let timers = LiveTimerModule()
-    static let markets = DayMarketsModule()
-    static let weather = DayWeatherModule()
-    static let quitProtection = QuitProtectionStore()
-    static let eventReminder = ReminderStub()
+@MainActor final class ScreenTextModule {
+    static let shared = ScreenTextModule()
+    var removeLineBreaks = false
 }
-@MainActor final class EditorStub {
+extension LiveTimerModule { static let shared = LiveTimerModule() }
+extension DayMarketsModule { static let shared = DayMarketsModule() }
+extension DayWeatherModule { static let shared = DayWeatherModule() }
+extension QuitProtectionStore { static let shared = QuitProtectionStore() }
+extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackupCoordinator() }
+@MainActor final class EventReminderModule {
+    static let shared = EventReminderModule()
+    let calendar = CalendarStub()
+}
+@MainActor final class EditorCoordinator {
+    static let shared = EditorCoordinator()
     let editorPreferences = EditorPreferences(defaults: UserDefaults(suiteName: Bundle.main.bundleIdentifier! + ".editor")!)
 }
 @MainActor final class AppearanceThemeColors {
@@ -199,7 +202,7 @@ struct NotchcastCommand: Sendable {
         _ = try ForkSettingsBackupState.live.snapshot()
         precondition(appearance.revision == revision)
         try ForkSettingsBackupState.live.apply(changed)
-        let editor = NotchcastCore.editor.editorPreferences
+        let editor = EditorCoordinator.shared.editorPreferences
         precondition(editor.font == .system && editor.theme == .system && !editor.pairsAutomatically)
         precondition(editorDefaults.string(forKey: "font") == "system")
         precondition(editorDefaults.string(forKey: "theme") == "system")

@@ -102,9 +102,9 @@ extension ForkSettingsBackupCoordinator {
         name: String(localized: "Restore Settings Backup", table: "Notchcast"), sfSymbol: "clock.arrow.circlepath", feature: .settingsBackup,
         run: {
             SettingsActionCommands.show(NotchcastSettingsModule.module(of: .settingsBackup).tab, .settingsBackup)
-            NotchcastCore.settingsBackupRestore.restore()
+            ForkSettingsBackupCoordinator.shared.restore()
         })
     nonisolated static let openCommand = NotchcastCommand(slug: "open-settings-backup-folder",
         name: String(localized: "Open Settings Backup Folder", table: "Notchcast"), sfSymbol: "folder", feature: .settingsBackup,
-        run: { NotchcastCore.settingsBackupRestore.openFolder() })
+        run: { ForkSettingsBackupCoordinator.shared.openFolder() })
 }

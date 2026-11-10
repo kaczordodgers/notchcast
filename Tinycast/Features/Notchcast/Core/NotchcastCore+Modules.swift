@@ -59,10 +59,10 @@ extension NotchcastCore {
     static let brightness = DisplayBrightnessModule()
     static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)
     static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: systemLevels, brightness: brightness, present: { levelNoticePresenter.present($0) })
-    static let timers = LiveTimerModule()
-    static let weather = DayWeatherModule()
-    static let markets = DayMarketsModule()
-    static let quitProtection = QuitProtectionStore()
+    static let timers = LiveTimerModule.shared
+    static let weather = DayWeatherModule.shared
+    static let markets = DayMarketsModule.shared
+    static let quitProtection = QuitProtectionStore.shared
     static let eventTapHub = EventTapHub()
     static let showDesktop = ShowDesktopModule(hub: eventTapHub)
     static let hideCommandM = HideCommandMModule(hub: eventTapHub)
@@ -71,9 +71,8 @@ extension NotchcastCore {
     static let spacesOrder = SpacesOrderModule()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let battery = BatteryModule(preferences: .shared, runner: .live)
-    static let settingsBackup = ForkSettingsBackupModule()
-    static let settingsBackupRestore = ForkSettingsBackupCoordinator()
-    static let eventReminder = EventReminderModule(store: AppCore.shared.calendarStore)
+    static let settingsBackupRestore = ForkSettingsBackupCoordinator.shared
+    static let eventReminder = EventReminderModule.shared
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
@@ -82,8 +81,7 @@ extension NotchcastCore {
     static let dictationCleanup = DictationCleanupModule.live()
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
-    static let dictationHistory = DictationHistoryModule(repository: .init(directory: NotchcastIdentity.supportRoot.appendingPathComponent("DictationHistory"), now: Date.init))
-    static let editor = EditorCoordinator(preferences: .shared, editorPreferences: EditorPreferences(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".editor"))!))
+    static let editor = EditorCoordinator.shared
     static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
@@ -174,7 +172,6 @@ extension NotchcastCore {
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
-            .init(requires: [.settingsBackup], module: settingsBackup),
             .init(requires: [.island, .islandLiveActivities, .eventReminder], module: eventReminder),
             .init(requires: [.agentChatTools], module: chatTools),
             .init(requires: [.agentMCPServer], module: agentMCPServer),
@@ -184,7 +181,6 @@ extension NotchcastCore {
             .init(requires: [.archives], module: archives),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.voiceAsk], module: voiceAskModule),
-            .init(requires: [.dictationHistory], module: dictationHistory),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
             .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),

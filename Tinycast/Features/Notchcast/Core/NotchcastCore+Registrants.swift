@@ -11,5 +11,7 @@ extension NotchcastCore {
         CaptureTrimmerModule.self,
         CaptureEditorCoordinator.self,
         RecordingModule.self,
+        ForkSettingsBackupModule.self,
+        DictationHistoryModule.self,
     ]
 }
