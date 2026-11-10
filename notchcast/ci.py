@@ -7,7 +7,7 @@
     ci.py app-info <tag> <dir>              name, bundle id, version and build of upstream's release zip
     ci.py issue open <kind> <title> <cause> [<details.md>] | issue close <kind>
     ci.py design-notice <tree> <old upstream> <new upstream>
-    ci.py tested-key [<commit>]             tree of the commit without GENERATED: pr.yml names its artifact by it, plan looks main's up
+    ci.py tested-key [<commit>]             tree of the commit without project, scheme, README: pr.yml names its artifact by it, plan looks main's up
 
 Our commits are merge-base(main, upstream main)..main. Replaying cherry-picks them in order without the GENERATED
 files, so those never conflict and never travel in our diffs. Two commits are made afresh instead of picked:
@@ -107,11 +107,12 @@ def rebase_hold(prs, moved_at, now):
 
 
 def tested_key(commit="HEAD", cwd=None):
-    """Tree of commit without GENERATED: CI regenerates those before every build, so they never change what is tested."""
+    """Tree of commit without the project, scheme and README: CI regenerates or never tests those. The runtime stays in:
+    CI never rebuilds it and harnesses load it."""
     with tempfile.TemporaryDirectory() as scratch:
         env = {"GIT_INDEX_FILE": f"{scratch}/index"}
         run("git", "read-tree", commit, cwd=cwd, env=env)
-        run("git", "update-index", "--force-remove", "--", *GENERATED, cwd=cwd, env=env)
+        run("git", "update-index", "--force-remove", "--", PBXPROJ, SCHEME, "README.md", cwd=cwd, env=env)
         return run("git", "write-tree", cwd=cwd, env=env)
 
 
@@ -122,7 +123,8 @@ def tested_run(artifacts, fetch_run, fork_repo):
             continue
         found = fetch_run(artifact["workflow_run"]["id"])
         head = (found.get("head_repository") or {}).get("full_name") or ""
-        if found.get("name") == "PR" and found.get("conclusion") == "success" and head.lower() == fork_repo.lower():
+        if (found.get("name") == "PR" and found.get("path") == ".github/workflows/pr.yml"
+                and found.get("conclusion") == "success" and head.lower() == fork_repo.lower()):
             return found
     return None
 
@@ -141,10 +143,15 @@ def reuse_pr_build(main, cfg):
         run("gh", "api", "-X", "POST", f"repos/{repo}/statuses/{main}", "-f", "state=success", "-f",
             f"context={cfg['TESTED_CONTEXT']}", "-f", "description=Tree built and tested green by a PR build",
             "-f", f"target_url={found['html_url']}")
-        return found
     except (subprocess.CalledProcessError, ValueError, KeyError, TypeError, AttributeError) as error:
         print(f"::notice::PR build reuse skipped: {error}")
         return None
+    # The main job, whose step closes it, does not run on reuse.
+    try:
+        issue_close("main")
+    except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as error:
+        print(f"::notice::notchcast-main issue not closed: {error}")
+    return found
 
 
 def plan():

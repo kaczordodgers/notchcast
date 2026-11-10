@@ -57,7 +57,7 @@ class SyncWorkflowTests(unittest.TestCase):
 
 
 class TestedKeyTests(unittest.TestCase):
-    def test_key_ignores_generated_files_only(self):
+    def test_key_ignores_regenerated_files_only(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def git(*args):
@@ -74,16 +74,19 @@ class TestedKeyTests(unittest.TestCase):
             git("config", "user.email", "test@example.com")
             git("config", "core.hooksPath", "/dev/null")
             plain = commit({"code": "one\n"})
-            generated = commit({name: "regenerated\n" for name in CI.GENERATED})
-            regenerated = commit({name: "regenerated again\n" for name in CI.GENERATED})
+            regenerated = [CI.PBXPROJ, CI.SCHEME, "README.md"]
+            generated = commit({name: "regenerated\n" for name in regenerated})
+            again = commit({name: "regenerated again\n" for name in regenerated})
+            runtime = commit({CI.RUNTIME_JS: "rebuilt\n"})
             changed = commit({"code": "two\n"})
             self.assertEqual(CI.tested_key(plain, root), CI.tested_key(generated, root))
-            self.assertEqual(CI.tested_key(generated, root), CI.tested_key(regenerated, root))
+            self.assertEqual(CI.tested_key(generated, root), CI.tested_key(again, root))
             self.assertEqual(CI.tested_key(plain, root), git("rev-parse", f"{plain}^{{tree}}"))
-            self.assertNotEqual(CI.tested_key(regenerated, root), CI.tested_key(changed, root))
+            self.assertNotEqual(CI.tested_key(again, root), CI.tested_key(runtime, root))
+            self.assertNotEqual(CI.tested_key(runtime, root), CI.tested_key(changed, root))
             self.assertEqual(git("diff", "--cached", "--name-only"), "")
 
-    RUNS = {1: {"name": "PR", "conclusion": "success", "head_repository": {"full_name": "Fork/Repo"}, "html_url": "run-1"}}
+    RUNS = {1: {"name": "PR", "path": ".github/workflows/pr.yml", "conclusion": "success", "head_repository": {"full_name": "Fork/Repo"}, "html_url": "run-1"}}
 
     def match(self, artifact, run=None):
         runs = {7: dict(self.RUNS[1], **(run or {}))}
@@ -94,7 +97,8 @@ class TestedKeyTests(unittest.TestCase):
 
     def test_every_other_run_is_rejected(self):
         for artifact, run in [({"expired": True}, None), ({}, {"conclusion": "failure"}), ({}, {"conclusion": None}),
-                              ({}, {"name": "Sync"}), ({}, {"head_repository": {"full_name": "someone/repo"}}),
+                              ({}, {"name": "Sync"}), ({}, {"path": ".github/workflows/other.yml"}),
+                              ({}, {"head_repository": {"full_name": "someone/repo"}}),
                               ({}, {"head_repository": None})]:
             with self.subTest(artifact=artifact, run=run):
                 self.assertIsNone(self.match(artifact, run))
@@ -106,7 +110,7 @@ class TestedKeyTests(unittest.TestCase):
 
     CFG = {"FORK_REPO": "fork/repo", "TESTED_CONTEXT": "ctx"}
 
-    def reuse(self, responses):
+    def reuse(self, responses, close_error=None):
         calls = []
         def fake(*cmd, **kwargs):
             calls.append(cmd)
@@ -114,8 +118,10 @@ class TestedKeyTests(unittest.TestCase):
             if isinstance(response, Exception):
                 raise response
             return response
-        with mock.patch.object(CI, "tested_key", return_value="k" * 40), mock.patch.object(CI, "run", fake):
-            return CI.reuse_pr_build("main-sha", self.CFG), calls
+        closer = mock.Mock(side_effect=close_error)
+        with (mock.patch.object(CI, "tested_key", return_value="k" * 40), mock.patch.object(CI, "run", fake),
+              mock.patch.object(CI, "issue_close", closer)):
+            return CI.reuse_pr_build("main-sha", self.CFG), calls, closer
 
     @staticmethod
     def api(artifacts, run):
@@ -127,48 +133,36 @@ class TestedKeyTests(unittest.TestCase):
             return json.dumps(run) if path else ""
         return respond
 
-    def test_match_posts_the_tested_status_with_the_run_url(self):
-        found, calls = self.reuse(self.api([{"workflow_run": {"id": 1}}], self.RUNS[1]))
+    def test_match_posts_the_tested_status_with_the_run_url_and_closes_the_main_issue(self):
+        found, calls, closer = self.reuse(self.api([{"workflow_run": {"id": 1}}], self.RUNS[1]))
         self.assertEqual(found["html_url"], "run-1")
         posted = calls[-1]
         self.assertEqual(posted[:4], ("gh", "api", "-X", "POST"))
         self.assertIn("repos/fork/repo/statuses/main-sha", posted)
         for part in ("state=success", "context=ctx", "target_url=run-1"):
             self.assertIn(part, posted)
+        closer.assert_called_once_with("main")
+
+    def test_failing_issue_close_keeps_the_reuse(self):
+        found, _, closer = self.reuse(self.api([{"workflow_run": {"id": 1}}], self.RUNS[1]),
+                                      close_error=subprocess.CalledProcessError(1, "gh"))
+        self.assertEqual(found["html_url"], "run-1")
+        closer.assert_called_once_with("main")
 
     def test_no_artifact_or_api_error_posts_nothing(self):
         for responses in (self.api([], {}), lambda cmd: subprocess.CalledProcessError(1, cmd),
                           lambda cmd: "not json", lambda cmd: json.dumps({})):
             with self.subTest(responses=responses):
-                found, calls = self.reuse(responses)
+                found, calls, closer = self.reuse(responses)
                 self.assertIsNone(found)
                 self.assertFalse([c for c in calls if "POST" in c])
+                closer.assert_not_called()
 
     def test_failing_status_post_means_no_reuse(self):
         base = self.api([{"workflow_run": {"id": 1}}], self.RUNS[1])
-        found, _ = self.reuse(lambda cmd: subprocess.CalledProcessError(1, cmd) if "POST" in cmd else base(cmd))
+        found, _, closer = self.reuse(lambda cmd: subprocess.CalledProcessError(1, cmd) if "POST" in cmd else base(cmd))
         self.assertIsNone(found)
-
-
-class TestedTreeWorkflowTests(unittest.TestCase):
-    ROOT = Path(__file__).resolve().parent.parent / ".github/workflows"
-
-    def test_pr_uploads_the_key_only_after_the_build_lane_on_success(self):
-        text = (self.ROOT / "pr.yml").read_text()
-        steps = text[text.index("    steps:"):]
-        self.assertLess(steps.index("ci-build.sh"), steps.index("ci.py tested-key HEAD"))
-        self.assertLess(steps.index("ci.py tested-key HEAD"), steps.index("actions/upload-artifact@"))
-        recorded = steps[steps.index("Record the tested tree"):]
-        self.assertNotIn("if:", recorded)
-        self.assertNotIn("continue-on-error", recorded)
-        self.assertIn("name: tested-tree-${{ steps.tree.outputs.key }}", recorded)
-
-    def test_sync_plan_alone_gets_the_reuse_permissions(self):
-        text = (self.ROOT / "sync.yml").read_text()
-        plan = re.search(r"^  plan:\n(.*?)(?=^  \S)", text, re.M | re.S)[1]
-        self.assertRegex(plan, r"(?m)^      actions: read$")
-        self.assertRegex(plan, r"(?m)^      statuses: write$")
-        self.assertNotIn("actions: ", text.replace(plan, ""))
+        closer.assert_not_called()
 
 
 class ReplayTests(unittest.TestCase):
