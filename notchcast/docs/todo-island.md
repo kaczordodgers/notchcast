@@ -15,7 +15,7 @@ Rows carry ID, title, optional timed due instant, priority (4 is highest) and op
 Attention examines all candidates before truncation: overdue dates take precedence over due timed
 tasks today. All-day tasks need no attention until the following day. No count accompanies attention.
 
-`TodoIslandFeed(store:fileURL:calendar:now:presenter:)` borrows the active store.
+`TodoIslandFeed(store:fileURL:calendar:now:)` borrows the active store.
 The owner calls `start()` and `stop()`. Observation recomputes after a store mutation lands;
 one nonrepeating timer targets the next calendar minute or day boundary. `refresh()` also permits
 an owner to react to wake or clock changes. The injected calendar supplies the time zone.
