@@ -29,8 +29,6 @@ extension IslandController {
             action: link.map { link in { Task { _ = await MeetingLauncher.join(link, browserBundleID: nil) } } }))
     }
 
-    /// The launcher taking key starts the opening: the island under it grows into its frame. The launcher leaving
-    /// the screen brings the island back.
     func watchLauncher() {
         let center = NotificationCenter.default
         launcherObservations = [
@@ -45,7 +43,6 @@ extension IslandController {
             NotificationToken(center.addObserver(
                 forName: NSWindow.didChangeOcclusionStateNotification, object: nil, queue: .main
             ) { [weak self] _ in
-                // Ordered in or out only: the black island itself covers the launcher while it grows.
                 MainActor.assumeIsolated { self?.restoreAfterLauncher() }
             }, center: center),
         ]

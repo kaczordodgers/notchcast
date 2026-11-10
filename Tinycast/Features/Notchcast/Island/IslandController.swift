@@ -268,7 +268,8 @@ final class IslandController: NotchcastModule {
         let preferences = NotchcastPreferences.shared
         let previousHover = input.pendingHover
         input.pointer(inside: inside, now: ProcessInfo.processInfo.systemUptime,
-                      hoverEnabled: preferences.isOn(.islandHoverOpen),
+                      hoverEnabled: preferences.isOn(.islandHoverOpen)
+                          && !NSApp.windows.contains { $0 is PalettePanel && $0.isVisible },
                       delay: preferences.islandHoverDelay.rawValue)
         if [.leftMouseDown, .rightMouseDown, .otherMouseDown].contains(event.type), !inside {
             dismiss(.outsideClick)

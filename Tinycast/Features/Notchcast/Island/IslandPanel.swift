@@ -21,7 +21,6 @@ final class IslandPanel: NSPanel {
     var onKey: ((NSEvent) -> Bool)?
     var onFocus: ((Bool) -> Void)?
     var onPointer: ((NSEvent) -> Void)?
-    /// False while the launcher hides the island, so hovering its empty spot never opens it.
     var containsPointer: Bool {
         launcherFrame == nil
             && surface.containsIsland(surface.convert(convertPoint(fromScreen: NSEvent.mouseLocation), from: nil))
