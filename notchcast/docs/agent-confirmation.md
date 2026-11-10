@@ -6,7 +6,7 @@ Deadlines expire queued as well as visible requests. Duplicate IDs invalidate a 
 cannot be replayed during the coordinator lifetime. Always allow delegates to AgentGrantStore and
 is restricted to parameterless consent-class actions; parameterized actions ignore stored grants and offer only Allow once and Deny. Dangerous actions need an explicit choice every time.
 
-A timed-out dialog stays on screen until dismissed; requests queued behind it time out as Deny (exit 5).
+A dialog closes when its request times out, is cancelled or the bridge stops; requests queued behind it time out as Deny (exit 5).
 An approved action retains the prompt queue until its run returns, including any upstream confirmation; while an unrelated dialog is open, an agent request is denied immediately (exit 5).
 
 ## Integration boundary
