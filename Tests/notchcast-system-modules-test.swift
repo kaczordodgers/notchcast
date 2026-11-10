@@ -67,14 +67,14 @@ struct SystemModuleTests {
         precondition(effects == [true, false])
         let module = TweaksModule(key: UUID().uuidString)
         let controller = NotchcastModuleController([
-            .init(requires: [], requiresAny: [.macSetup, .privacyChoices], module: module)
+            .init(requires: [], requiresAny: [.aiFeaturesOff, .privacyChoices], module: module)
         ], preferences: preferences)
         controller.run()
         precondition(!module.running)
-        preferences.set(.macSetup, true)
+        preferences.set(.aiFeaturesOff, true)
         for _ in 0..<20 { await Task.yield() }
         precondition(module.running)
-        preferences.set(.macSetup, false)
+        preferences.set(.aiFeaturesOff, false)
         for _ in 0..<20 { await Task.yield() }
         precondition(!module.running)
         print("Module switch lifecycle and asynchronous store reversal passed with fake effects")

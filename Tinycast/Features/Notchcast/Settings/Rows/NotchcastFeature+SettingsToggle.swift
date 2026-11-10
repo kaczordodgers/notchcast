@@ -24,8 +24,8 @@ extension NotchcastFeature {
             Task { await NotchcastCore.appleAppsTweaks.setFeature(self, enabled: on) }
         case .iPhoneBackupTweaks:
             Task { await NotchcastCore.iPhoneBackupTweaks.setFeature(self, enabled: on) }
-        case .startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
-             .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices:
+        case .startupItems, .notificationCleanup, .sudoTouchID,
+             .aiFeaturesOff, .spotlightOff, .privacyChoices:
             guard SystemToolsHelperPolicy.available(self) else { return }
             Task { await NotchcastCore.systemTools.set(self, enabled: on) }
         default:
@@ -46,8 +46,8 @@ extension NotchcastFeature {
 
     @MainActor var helperLocked: Bool {
         switch self {
-        case .startupItems, .notificationCleanup, .sudoTouchID, .killProcess,
-             .macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices:
+        case .startupItems, .notificationCleanup, .sudoTouchID,
+             .aiFeaturesOff, .spotlightOff, .privacyChoices:
             !SystemToolsHelperPolicy.available(self)
         default:
             false
