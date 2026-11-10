@@ -7,14 +7,11 @@ enum NotchcastLauncherPlacement {
             && NotchcastPreferences.shared.isOn(.launcherFromIsland)
     }
 
-    /// Resolved once per summon, before the palette is ordered front, so it also dresses the palette for the island.
     static func anchor(on screen: NSScreen, width: CGFloat) -> CGPoint? {
         let frame = NotchcastLauncherSurface.preferredScreen?.frame ?? screen.frame
         let island = NSApp.windows.compactMap { $0 as? IslandPanel }.first { $0.displayFrame == frame }
-        let anchor = NotchcastLauncherGeometry.anchor(
+        return NotchcastLauncherGeometry.anchor(
             attachment: island?.launcherAttachment, width: width, active: isActive)
-        NotchcastLauncherSurface.shared.prepare(attached: anchor != nil)
-        return anchor
     }
 
     /// The island a launcher at `frame` hangs from, by the same rule `anchor` placed it with.
