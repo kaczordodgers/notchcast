@@ -46,8 +46,7 @@ JS
         run "$name"
     fi
 done <<< "$harness_inputs"
-# CI narrows the finished queue here: a selection, one "<index> <count>" shard by a hash of the name
-# (so a harness keeps its shard, and its cached binary, when others come and go), then the hosted runner's skips.
+# CI narrows the queue: a selection, a name-hash shard "<index> <count>", then the runner's skips.
 if [ "$emit_db" -eq 0 ] && [ -z "$only" ] && [ -n "${NOTCHCAST_ONLY_TESTS:-}${CI_SKIP_TESTS:-}${NOTCHCAST_SHARD:-}" ]; then
     awk -v only=" ${NOTCHCAST_ONLY_TESTS:-} " -v skip=" ${CI_SKIP_TESTS:-} " -v shard="${NOTCHCAST_SHARD:-0 1}" '
         BEGIN { split(shard, part, " "); alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.+" }
