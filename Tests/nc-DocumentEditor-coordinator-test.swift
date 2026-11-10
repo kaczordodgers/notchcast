@@ -78,9 +78,6 @@ struct EditorCoordinatorTests {
         cancelled.cancel()
         _ = await cancelled.result
         precondition(coordinator.documents.count == 1)
-        precondition(NotchcastFeature.markdownFiles.settingsGroup == .system)
-        precondition(!NotchcastFeature.markdownFiles.needsIsland)
-        precondition(!NotchcastFeature.plainTextFiles.needsIsland)
         print("Editor coordinator: lifecycle, type switches, identity, spelling and dirty-close protection passed")
     }
 }

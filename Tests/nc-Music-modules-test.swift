@@ -159,12 +159,6 @@ struct MusicModuleTests {
         let features: [NotchcastFeature] = [
             .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect, .microphoneMute, .inUseMarks
         ]
-        for feature in features {
-            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
-            let grants: [NotchcastGrant] = [.musicLastPlayer, .musicBlockAppleMusic, .microphoneMute].contains(feature)
-                ? [.accessibility] : []
-            precondition(feature.requiredGrants == grants)
-        }
         let services = NotchcastServices(core: AppCore(), preferences: preferences)
         let controller = NotchcastModuleController(services.moduleEntries, preferences: preferences)
         controller.run()

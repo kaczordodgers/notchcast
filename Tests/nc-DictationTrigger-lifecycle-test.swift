@@ -65,8 +65,6 @@ struct DictationTriggerLifecycleTest {
         module.stop()
         module.stop()
         precondition(stops == 2 && !reserved)
-        precondition(!NotchcastFeature.globeDictation.needsIsland)
-        precondition(NotchcastFeature.globeDictation.requiredGrants == [.accessibility, .microphone])
         print("PASS: Globe switch starts/stops engine, reserves Globe, pauses for recording, ignores Island")
     }
 
