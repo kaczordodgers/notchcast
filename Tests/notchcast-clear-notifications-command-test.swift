@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/Launcher/ClearNotifications/Model/*.swift Tinycast/Features/Launcher/ClearNotifications/Service/*.swift Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule*.swift
+// notchcast-sources: Tinycast/Features/ClearNotifications/Model/*.swift Tinycast/Features/ClearNotifications/Service/*.swift Tinycast/Features/ClearNotifications/ClearNotificationsModule*.swift
 import Foundation
 import Synchronization
 

@@ -19,7 +19,7 @@ struct ShortenLinkService: Sendable {
 
     func shorten(_ address: String) async throws -> String {
         try Task.checkCancellation()
-        guard let link = CopyPathEngine.cleanLink(address),
+        guard let link = WebRules.cleanLink(address),
             !link.contains(where: \.isWhitespace),
             let host = URL(string: link)?.host(), !Self.isPrivate(host) else { throw Failure.noLink }
         let allowed = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "-._~"))
@@ -41,7 +41,7 @@ struct ShortenLinkService: Sendable {
     private static func firstLink(in text: String) -> String? {
         guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else { return nil }
         for match in detector.matches(in: text, range: NSRange(text.startIndex..., in: text)) {
-            if let url = match.url, let clean = CopyPathEngine.cleanLink(url.absoluteString) { return clean }
+            if let url = match.url, let clean = WebRules.cleanLink(url.absoluteString) { return clean }
         }
         return nil
     }
