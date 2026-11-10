@@ -22,7 +22,7 @@ struct ConfirmationExpiryProbe {
 
     static func ms(_ duration: Duration) -> Int { Int(duration / .milliseconds(1)) }
 
-    static func scenario(answerDelay: Duration?) async throws -> String {
+    static func scenario(yielding: Bool = false, answerDelay: Duration?) async throws -> String {
         let suite = "test.confirmation.expiryprobe." + UUID().uuidString
         let grants = try AgentGrantStore(bundleIdentifier: suite)
         defer {
@@ -60,7 +60,7 @@ struct ConfirmationExpiryProbe {
         var polls = 0
         for _ in 0..<100 where screen.open == nil {
             polls += 1
-            try await Task.sleep(for: .milliseconds(10))
+            if yielding { await Task.yield() } else { try await Task.sleep(for: .milliseconds(10)) }
         }
         if let answerDelay { try await Task.sleep(for: answerDelay) }
         let window = ms(clock.now - start)
@@ -89,6 +89,13 @@ struct ConfirmationExpiryProbe {
             print("PROBE round \(round): \(line)")
         }
         print("PROBE natural failures: \(failures)/40")
+        var yieldFailures = 0
+        for round in 0..<200 {
+            let line = try await scenario(yielding: true, answerDelay: nil)
+            if line.hasPrefix("FAIL") { yieldFailures += 1 }
+            if round < 5 || line.hasPrefix("FAIL") { print("PROBE yield round \(round): \(line)") }
+        }
+        print("PROBE yield-wait failures: \(yieldFailures)/200")
         print("PROBE forced late answer (150ms): \(try await scenario(answerDelay: .milliseconds(150)))")
         print("PROBE forced answer inside the window (50ms): \(try await scenario(answerDelay: .milliseconds(50)))")
         exit(1)
