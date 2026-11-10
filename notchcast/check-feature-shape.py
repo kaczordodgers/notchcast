@@ -399,7 +399,8 @@ def call_arguments(source, start):
     for index in range(start, len(code)):
         depth += (code[index] in "([{") - (code[index] in ")]}")
         if depth == 0 or (depth == 1 and code[index] == ","):
-            label, _, value = source[begin:index].partition(":")
+            colon = code.find(":", begin, index)
+            label, value = (code[begin:colon], source[colon + 1:index]) if colon >= 0 else (code[begin:index], "")
             stated[label.strip()] = re.sub(r"(?<=[\[(]) | (?=[\])])", "", " ".join(value.split()))
             begin = index + 1
         if depth == 0:
@@ -592,7 +593,7 @@ def source_errors(root):
     rows = "\n".join(path.read_text() for path in sorted((root / TREE.parent).glob("NotchcastSettingRows+*.swift")))
     settings = (root / SETTINGS).read_text()
     errors.extend((SETTINGS, line, message) for line, message in case_errors(mask_literals(settings)))
-    cases = list(re.finditer(r"^    case (\w+)$", settings, re.M))
+    cases = list(re.finditer(r"^    case (\w+)\b", settings, re.M))
     if not cases:
         errors.append((SETTINGS, 1, "found no setting; declare each as `case <name>` on its own line"))
     for case in cases:

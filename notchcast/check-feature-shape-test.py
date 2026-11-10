@@ -92,6 +92,7 @@ BREAKS = (
     ("feature-pins", ".captureEditor defaultEnabled reads `[`; state the whole value on one line",
      SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: ["),
     ("setting-one-case", "declare only one enum case per line", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay, islandRowless\n"),
+    ("setting-row", ".probeNoRow needs exactly one arm", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay\n    case probeNoRow // new\n"),
     ("setting-row-arm", ".captureScreenTextLineBreaks needs exactly one arm that shows a row",
      SHAPE.TREE.with_name("NotchcastSettingRows+C.swift"),
      "ScreenTextLineBreaksSettingRow(module: NotchcastCore.screenText)", "EmptyView()"),
@@ -629,6 +630,16 @@ class FeatureFactTests(unittest.TestCase):
 
     def test_shipped_tree_holds_every_fact(self):
         self.assertEqual(SHAPE.fact_errors(self.root), [])
+
+    def test_a_comment_above_a_descriptor_field_passes(self):
+        path = self.root / GLOBE
+        shipped = path.read_text()
+        self.assertIn("        dependencies: [],\n", shipped)
+        path.write_text(shipped.replace("        dependencies: [],\n", "        // note: kept off the island\n        dependencies: [],\n", 1))
+        try:
+            self.assertEqual(SHAPE.fact_errors(self.root), [])
+        finally:
+            path.write_text(shipped)
 
     def test_each_planted_break_is_caught(self):
         for rule, message, path, *swaps in BREAKS:
