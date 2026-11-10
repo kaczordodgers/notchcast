@@ -5,13 +5,10 @@ nonisolated enum YtDlpAudio {
         let title: String
         let channel: String?
 
-        private enum CodingKeys: String, CodingKey { case title, fulltitle, id, channel, uploader, type = "_type" }
+        private enum CodingKeys: String, CodingKey { case title, fulltitle, id, channel, uploader }
 
         init(from decoder: any Decoder) throws {
             let values = try decoder.container(keyedBy: CodingKeys.self)
-            guard try values.decodeIfPresent(String.self, forKey: .type) != "playlist" else {
-                throw CocoaError(.fileReadUnsupportedScheme)
-            }
             title = try values.decodeIfPresent(String.self, forKey: .title)
                 ?? values.decodeIfPresent(String.self, forKey: .fulltitle)
                 ?? values.decode(String.self, forKey: .id)
@@ -23,7 +20,8 @@ nonisolated enum YtDlpAudio {
     static let format = "bestaudio[ext=m4a]/bestaudio/best"
 
     static func metadataArguments(link: String) -> [String] {
-        ["--ignore-config", "--no-playlist", "--skip-download", "--dump-single-json", "--", link]
+        ["--ignore-config", "--no-playlist", "--skip-download",
+         "--print", "%(.{id,title,fulltitle,channel,uploader})j", "--", link]
     }
 
     static func audioArguments(link: String, folder: URL) -> [String] {
