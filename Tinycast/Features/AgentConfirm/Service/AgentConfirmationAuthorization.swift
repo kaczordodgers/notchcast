@@ -74,6 +74,7 @@ final class AgentConfirmationAuthorization {
         actions.removeValue(forKey: id)
         messages.removeValue(forKey: id)
         timers.removeValue(forKey: id)?.cancel()
+        if shown?.id == id { shown?.task.cancel() }
         guard approved else { return nil }
         return { [self] in
             presenting = false
