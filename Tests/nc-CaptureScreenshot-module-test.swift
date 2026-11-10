@@ -101,6 +101,13 @@ struct ScreenshotModuleTest {
                      == String(localized: "Could not capture the screen."))
         precondition(ScreenshotModule.failureMessage(CocoaError(.fileWriteNoPermission))
                      == String(localized: "Could not save the screenshot."))
+        for denied in [CaptureFailure.permissionDenied, ScreenshotRequest.Failure.permissionDenied] as [any Error] {
+            precondition(ScreenshotModule.failureMessage(denied) == String(localized: "Screen Recording access is required."))
+        }
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.disabled)
+                     == String(localized: "Capture is disabled."))
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.invalidRect)
+                     == String(localized: "Capture area is unavailable."))
         print("PASS: screenshot module command, display selection, switch lifecycle and failure HUD")
     }
 

@@ -96,6 +96,8 @@ def rewrite(source, keys):
             continue
         if re.search(r'DownloadTool\(name:\s*$', before):
             continue
+        if re.search(r'\bcaptureFileName\(kind:\s*$', before):
+            continue
         if re.search(r'\.(?:appending\(path:|appendingPathComponent\()\s*$', before):
             continue
         if re.search(r'"com\.apple\.[^"]+":\s*$', before):
