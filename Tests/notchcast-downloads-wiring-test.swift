@@ -32,7 +32,7 @@
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationModel.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/ExecutableLocator.swift
 import Foundation
 import Observation
 import Synchronization

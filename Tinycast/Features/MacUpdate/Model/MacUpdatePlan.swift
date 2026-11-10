@@ -8,19 +8,17 @@ nonisolated struct MacUpdateCommand: Equatable, Sendable {
     var path: String
     var arguments: [String]
     var timeout: Duration = .seconds(900)
-    var searchPath = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 }
 
 nonisolated enum MacUpdatePlan: Sendable {
     case commands([MacUpdateCommand])
     case skipped(String)
 
-    static func make(
-        _ step: MacUpdateStep, home: String,
-        exists: (String) -> Bool, resolve: (String) -> String
-    ) -> Self {
-        let folders = ["/opt/homebrew/bin", "/usr/local/bin"]
-        let brew = folders.map { $0 + "/brew" }.first(where: exists)
+    static let tools = ["brew", "mas", "npm", "claude", "codex"]
+
+    /// `tools` maps each of `Self.tools` the Mac has to its path.
+    static func make(_ step: MacUpdateStep, tools: [String: String], resolve: (String) -> String) -> Self {
+        let brew = tools["brew"]
         switch step {
         case .homebrewUpdate, .homebrewUpgrade:
             guard let brew else { return .skipped("missing-homebrew") }
@@ -28,15 +26,12 @@ nonisolated enum MacUpdatePlan: Sendable {
                 path: brew, arguments: [step == .homebrewUpdate ? "update" : "upgrade"],
                 timeout: .seconds(step == .homebrewUpdate ? 900 : 3600))])
         case .appStore:
-            guard let mas = folders.map({ $0 + "/mas" }).first(where: exists) else {
-                return .skipped("missing-mas")
-            }
+            guard let mas = tools["mas"] else { return .skipped("missing-mas") }
             return .commands([MacUpdateCommand(path: mas, arguments: ["upgrade"], timeout: .seconds(3600))])
         case .commandLineTools:
             var commands: [MacUpdateCommand] = []
             for (name, package) in [("claude", "@anthropic-ai/claude-code"), ("codex", "@openai/codex")] {
-                guard let path = (folders + [home + "/.local/bin"]).map({ $0 + "/" + name })
-                    .first(where: exists) else { continue }
+                guard let path = tools[name] else { continue }
                 let real = resolve(path)
                 let parts = real.split(separator: "/")
                 if let index = parts.firstIndex(of: "Caskroom"), parts.indices.contains(index + 1),
@@ -45,12 +40,8 @@ nonisolated enum MacUpdatePlan: Sendable {
                         path: brew, arguments: ["upgrade", "--cask", "--greedy", String(parts[index + 1])],
                         timeout: .seconds(1800)))
                 } else if real.contains("/node_modules/") {
-                    guard let npm = folders.map({ $0 + "/npm" }).first(where: exists) else { continue }
-                    let resolved = resolve(npm)
-                    let directory = URL(filePath: resolved).deletingLastPathComponent().path
-                    commands.append(MacUpdateCommand(path: resolved,
-                        arguments: ["install", "-g", package + "@latest"],
-                        searchPath: directory + ":" + folders.joined(separator: ":") + ":/usr/bin:/bin"))
+                    guard let npm = tools["npm"] else { continue }
+                    commands.append(MacUpdateCommand(path: npm, arguments: ["install", "-g", package + "@latest"]))
                 } else if name == "claude" {
                     commands.append(MacUpdateCommand(path: path, arguments: ["update"]))
                 }

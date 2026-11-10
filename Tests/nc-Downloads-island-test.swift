@@ -7,7 +7,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/NotificationToken.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/ExecutableLocator.swift
 import Foundation
 
 @main

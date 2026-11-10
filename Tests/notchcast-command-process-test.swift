@@ -3,7 +3,7 @@
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/DownloadTool.swift
+// notchcast-sources: Tinycast/Features/Downloads/Model/DownloadTool.swift Tinycast/Platform/ExecutableLocator.swift
 // notchcast-kit: platform
 import Darwin
 import Foundation

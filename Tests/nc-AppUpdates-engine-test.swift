@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/AppUpdates/Model/*.swift Tinycast/Features/AppUpdates/Service/*.swift
 // notchcast-kit: platform
+// notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
 import Foundation
 
 @main
@@ -79,6 +80,16 @@ struct AppUpdatesTest {
         precondition(snapshot.results.count == 5)
         precondition(snapshot.results[3].isNewer == true)
         for index in [0, 1, 2, 4] { precondition(snapshot.results[index].isNewer == nil) }
-        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused")
+        let intelRoot = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        let intelBrew = intelRoot.appending(path: "usr/local/bin/brew")
+        let intelFolder = intelBrew.deletingLastPathComponent().path
+        try FileManager.default.createDirectory(atPath: intelFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: intelRoot) }
+        try Data("#!/bin/sh\necho \"$0 $* $HOMEBREW_NO_AUTO_UPDATE ${PATH%%:*}\"\n".utf8).write(to: intelBrew)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: intelBrew.path)
+        let intel = try await AppUpdateBrewRunner(locate: { $0 == "brew" ? intelBrew : nil }).outdated()
+        precondition(String(bytes: intel, encoding: .utf8)
+            == "\(intelBrew.path) outdated --cask --json=v2 1 \(intelFolder)\n", "Homebrew outside /opt/homebrew")
+        print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused; located brew")
     }
 }

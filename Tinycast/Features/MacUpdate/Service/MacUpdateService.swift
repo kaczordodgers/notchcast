@@ -12,24 +12,25 @@ final class MacUpdateService {
     }
 
     private let runner: any MacUpdateProcessRunning
-    private let home: String
     private let appRoot: String
     private let exists: (String) -> Bool
     private let resolve: (String) -> String
     private let locked: () -> Bool
     private let lockTimeout: Duration
+    private let locate: @Sendable (String) async -> String?
     private var task: Task<Void, Never>?
 
-    init(runner: any MacUpdateProcessRunning, home: String, appRoot: String,
+    init(runner: any MacUpdateProcessRunning, home _: String, appRoot: String,
          exists: @escaping (String) -> Bool, resolve: @escaping (String) -> String,
-         locked: @escaping () -> Bool, lockTimeout: Duration = .seconds(120)) {
+         locked: @escaping () -> Bool, lockTimeout: Duration = .seconds(120),
+         locate: @escaping @Sendable (String) async -> String? = { await ExecutableLocator.locate($0)?.path }) {
         self.runner = runner
-        self.home = home
         self.appRoot = appRoot
         self.exists = exists
         self.resolve = resolve
         self.locked = locked
         self.lockTimeout = lockTimeout
+        self.locate = locate
     }
 
     func run() -> AsyncStream<Progress>? {
@@ -54,11 +55,13 @@ final class MacUpdateService {
     }
 
     private func perform(_ progress: AsyncStream<Progress>.Continuation) async {
+        var tools: [String: String] = [:]
+        for name in MacUpdatePlan.tools { tools[name] = await locate(name) }
         for step in MacUpdateStep.allCases {
             func emit(_ state: State) { progress.yield(Progress(step: step, state: state)) }
             do {
                 try Task.checkCancellation()
-                switch MacUpdatePlan.make(step, home: home, exists: exists, resolve: resolve) {
+                switch MacUpdatePlan.make(step, tools: tools, resolve: resolve) {
                 case .skipped(let reason): emit(.skipped(reason))
                 case .commands(let commands):
                     emit(.running)

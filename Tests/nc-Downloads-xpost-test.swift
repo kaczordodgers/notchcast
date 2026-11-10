@@ -1,8 +1,8 @@
 // notchcast-sources: Tinycast/Features/Downloads/Webpage/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
-// notchcast-sources: Tinycast/Platform/AppPaths.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/ExecutableLocator.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift Tinycast/Platform/ProcessExit.swift
 import Foundation
 
 @main
