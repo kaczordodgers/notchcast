@@ -31,7 +31,7 @@ struct NotchcastCommand: Sendable {
 
 @MainActor final class NSScreen {
     static var underCursor: NSScreen? = NSScreen()
-    let deviceDescription = [NSDeviceDescriptionKey("NSScreenNumber"): NSNumber(value: 42)]
+    let displayID: UInt32? = 42
 }
 
 @MainActor final class AppCore {
@@ -95,6 +95,19 @@ struct ScreenshotModuleTest {
         command.run()
         precondition(module.commandTask == nil)
         NotchcastCore.instance = nil
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.clipboardFailed)
+                     == String(localized: "Could not copy to clipboard."))
+        precondition(ScreenshotModule.failureMessage(NSError(domain: "com.apple.ScreenCaptureKit", code: -3802))
+                     == String(localized: "Could not capture the screen."))
+        precondition(ScreenshotModule.failureMessage(CocoaError(.fileWriteNoPermission))
+                     == String(localized: "Could not save the screenshot."))
+        for denied in [CaptureFailure.permissionDenied, ScreenshotRequest.Failure.permissionDenied] as [any Error] {
+            precondition(ScreenshotModule.failureMessage(denied) == String(localized: "Screen Recording access is required."))
+        }
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.disabled)
+                     == String(localized: "Capture is disabled."))
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.invalidRect)
+                     == String(localized: "Capture area is unavailable."))
         print("PASS: screenshot module command, display selection, switch lifecycle and failure HUD")
     }
 

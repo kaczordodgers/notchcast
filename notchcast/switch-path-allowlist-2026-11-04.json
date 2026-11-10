@@ -7,7 +7,7 @@
   "inUseMarks": "closed-island camera/mic mark view reading InUseMarks",
   "treadmillHistory": "totals/goals/lubrication view and reminder posting",
   "agentPricing": "same sessions view showing pricingReport",
-  "captureTrimmer": "trimmer UI (opened after a recording) calling save",
+  "captureTrimmer": "trim/export engine (deleted in the untangle) and a trimmer UI opened after a recording",
   "agentAnswer": "T3/bot transport, waiting-item source, reply UI",
   "killProcess": "a process-list launcher command calling stopProcesses, then unhide",
   "macSetup": "a preset picker UI and the preset catalog it needs, then unhide",

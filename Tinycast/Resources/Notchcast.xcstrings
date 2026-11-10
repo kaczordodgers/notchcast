@@ -42946,54 +42946,54 @@
         }
       }
     },
-    "Task sync failed; check Mac Link and try again." : {
+    "Task sync failed; check Mac Link. Retries on next task change." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufgabensynchronisierung fehlgeschlagen; prüfe Mac Link und versuche es erneut."
+            "value" : "Sync fehlgeschlagen; prüfe Mac Link. Erneut bei Änderung."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La sincronización de tareas falló; comprueba Mac Link e inténtalo de nuevo."
+            "value" : "Sincronización fallida; revisa Mac Link. Se reintenta al cambiar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La synchronisation des tâches a échoué ; vérifiez Mac Link et réessayez."
+            "value" : "Échec de synchro ; vérifiez Mac Link. Réessai au changement."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "タスク同期に失敗しました。Mac Linkを確認して再試行してください。"
+            "value" : "同期に失敗。Mac Linkを確認してください。次の変更で再試行。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "작업 동기화에 실패했습니다. Mac Link를 확인하고 다시 시도하세요."
+            "value" : "작업 동기화 실패. Mac Link를 확인하세요. 다음 변경 시 재시도합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A sincronização de tarefas falhou; verifique o Mac Link e tente novamente."
+            "value" : "Falha na sincronização; verifique o Mac Link. Repete ao editar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось синхронизировать задачи; проверьте Mac Link и повторите попытку."
+            "value" : "Сбой синхр.; проверьте Mac Link. Повтор при изменении."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "任务同步失败；请检查 Mac Link 后重试。"
+            "value" : "任务同步失败；请检查 Mac Link。下次更改时重试。"
           }
         }
       }
@@ -52536,6 +52536,110 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "窗口与显示器"
+          }
+        }
+      }
+    },
+    "X returned HTTP status %lld for this post." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X hat für diesen Beitrag den HTTP-Status %lld zurückgegeben."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X devolvió el estado HTTP %lld para esta publicación."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X a renvoyé le statut HTTP %lld pour cette publication."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X がこのポストに HTTP ステータス %lld を返しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X가 이 게시물에 대해 HTTP 상태 %lld을(를) 반환했습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O X devolveu o estado HTTP %lld para esta publicação."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X вернул статус HTTP %lld для этого поста."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X 为此帖子返回了 HTTP 状态 %lld。"
+          }
+        }
+      }
+    },
+    "X returned no readable post for this link." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X hat für diesen Link keinen lesbaren Beitrag geliefert."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X no devolvió ninguna publicación legible para este enlace."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X n’a renvoyé aucune publication lisible pour ce lien."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X はこのリンクで読み取れるポストを返しませんでした。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X가 이 링크에 대해 읽을 수 있는 게시물을 반환하지 않았습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O X não devolveu nenhuma publicação legível para esta ligação."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X не вернул читаемый пост по этой ссылке."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "X 未为此链接返回可读的帖子。"
           }
         }
       }

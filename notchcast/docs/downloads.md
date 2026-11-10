@@ -29,7 +29,7 @@ Interfaces are read only for eligible jobs at launch; unplugging never cancels a
 
 `NotchcastDownloadCommands` supplies nine typed entries with localized titles, English search keywords, SF Symbols, feature requirements and actions. Entries are filtered by the live switches and actions check the switches again after queue startup. Empty clipboard input produces a status callback, which defaults to the system beep. Clipboard, status and folder-opening effects are injectable. Entries remain unregistered until the launcher command hook lands.
 
-Both modules expose `DownloadsActivity`, computed from observable queue jobs: running count, oldest running title, fraction and stage. A future island consumer can also build one activity value from both queues' jobs. No island presentation is registered yet.
+Both modules expose `DownloadsActivity`, computed from observable queue jobs: running count, oldest running title, fraction and stage. `DownloadsIslandBridge` mirrors the Downloads queue on the island: one transfer activity while any job waits or runs, showing the running title, done of total for the batch since the queue was last idle, and the running fraction; each job that newly fails posts one danger message, and failures already in the queue file at load are never announced. Distill has no island presentation. Download commands read the clipboard when invoked and never cancel each other; only a newer Run Distill replaces a running one.
 
 ## Verification
 

@@ -69,7 +69,7 @@ final class ScrollingCaptureModule: NotchcastModule {
             let data = try await ScrollingCaptureSession.pngData(for: image)
             try Task.checkCancellation()
             guard enabled else { return }
-            guard write(data) else { report(String(localized: "Could not copy to clipboard.", table: "Notchcast"), .danger); return }
+            guard write(data) else { report(CaptureFailure.clipboardFailed.message, .danger); return }
             if limited { report(String(localized: "Scrolling capture reached the 20,000 pixel limit.", table: "Notchcast"), .neutral) }
         } catch is CancellationError {
         } catch {
@@ -81,11 +81,12 @@ final class ScrollingCaptureModule: NotchcastModule {
     isolated deinit { task?.cancel() }
 
     static func failureMessage(_ error: any Error) -> String {
-        if error is CaptureAreaService.Failure { return String(localized: "Screen Recording access is required.", table: "Notchcast") }
-        switch error as? ScrollingCaptureSession.Failure {
-        case .permissionDenied: return String(localized: "Screen Recording access is required.", table: "Notchcast")
-        case .invalidRect, .displayUnavailable: return String(localized: "Capture area is unavailable.", table: "Notchcast")
-        default: return String(localized: "Could not capture the screen.", table: "Notchcast")
+        let failure: CaptureFailure = switch error {
+        case let shared as CaptureFailure: shared
+        case ScrollingCaptureSession.Failure.permissionDenied: .permissionDenied
+        case ScrollingCaptureSession.Failure.invalidRect, ScrollingCaptureSession.Failure.displayUnavailable: .areaUnavailable
+        default: .captureFailed
         }
+        return failure.message
     }
 }

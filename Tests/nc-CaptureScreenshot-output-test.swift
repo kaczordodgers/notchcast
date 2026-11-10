@@ -1,3 +1,6 @@
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/Date+CaptureFileName.swift
 import AppKit
 
 @main
@@ -5,12 +8,13 @@ struct ScreenshotOutputTest {
     static func main() async throws {
         let zone = TimeZone(secondsFromGMT: 0)!
         let date = Date(timeIntervalSince1970: 0)
-        let stem = ScreenshotFilename.stem(date: date, timeZone: zone)
-        precondition(stem == "Screenshot 1970-01-01 at 00.00.00")
-        precondition(ScreenshotFilename.name(stem: stem, collision: 2) == "\(stem) (2).png")
-        precondition(ScreenshotFilename.isValid(rect: CGRect(x: -100, y: -200, width: 20, height: 30)))
-        precondition(!ScreenshotFilename.isValid(rect: .zero))
-        precondition(!ScreenshotFilename.isValid(rect: CGRect(x: CGFloat.infinity, y: 0, width: 20, height: 30)))
+        let stem = "Screenshot 1970-01-01 at 00.00.00"
+        precondition(date.captureFileName(kind: "Screenshot", extension: "png", timeZone: zone) == "\(stem).png")
+        precondition(date.captureFileName(
+            kind: "Screenshot", extension: "png", timeZone: zone, collision: 2) == "\(stem) (2).png")
+        precondition(ScreenshotRequest.isValid(rect: CGRect(x: -100, y: -200, width: 20, height: 30)))
+        precondition(!ScreenshotRequest.isValid(rect: .zero))
+        precondition(!ScreenshotRequest.isValid(rect: CGRect(x: CGFloat.infinity, y: 0, width: 20, height: 30)))
         let board = NSPasteboard.withUniqueName()
         defer { board.releaseGlobally() }
         do {
