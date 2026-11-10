@@ -42946,54 +42946,54 @@
         }
       }
     },
-    "Task sync failed; check Mac Link and try again." : {
+    "Task sync failed; check Mac Link. Retries on next task change." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aufgabensynchronisierung fehlgeschlagen; prüfe Mac Link und versuche es erneut."
+            "value" : "Sync fehlgeschlagen; prüfe Mac Link. Erneut bei Änderung."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La sincronización de tareas falló; comprueba Mac Link e inténtalo de nuevo."
+            "value" : "Sincronización fallida; revisa Mac Link. Se reintenta al cambiar."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "La synchronisation des tâches a échoué ; vérifiez Mac Link et réessayez."
+            "value" : "Échec de synchro ; vérifiez Mac Link. Réessai au changement."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "タスク同期に失敗しました。Mac Linkを確認して再試行してください。"
+            "value" : "同期に失敗。Mac Linkを確認してください。次の変更で再試行。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "작업 동기화에 실패했습니다. Mac Link를 확인하고 다시 시도하세요."
+            "value" : "작업 동기화 실패. Mac Link를 확인하세요. 다음 변경 시 재시도합니다."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "A sincronização de tarefas falhou; verifique o Mac Link e tente novamente."
+            "value" : "Falha na sincronização; verifique o Mac Link. Repete ao editar."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Не удалось синхронизировать задачи; проверьте Mac Link и повторите попытку."
+            "value" : "Сбой синхр.; проверьте Mac Link. Повтор при изменении."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "任务同步失败；请检查 Mac Link 后重试。"
+            "value" : "任务同步失败；请检查 Mac Link。下次更改时重试。"
           }
         }
       }
