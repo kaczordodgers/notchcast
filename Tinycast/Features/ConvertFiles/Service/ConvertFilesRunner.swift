@@ -19,7 +19,10 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
 
     @concurrent
     func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? {
-        let options = try job.options(Options.self)
+        guard let options = try job.options(Options.self) else {
+            throw ConvertFilesPlan.Failure(message: String(
+                localized: "This conversion was queued by an older version. Add the files again.", table: "Notchcast"))
+        }
         let sources = options.sources.map { URL(fileURLWithPath: $0) }
         var occupied = Set<URL>()
         for parent in Set(sources.map { $0.deletingLastPathComponent() }) {

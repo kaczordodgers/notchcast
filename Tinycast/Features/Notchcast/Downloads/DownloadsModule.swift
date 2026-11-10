@@ -15,8 +15,9 @@ final class DownloadsModule: NotchcastModule {
         self.preferences = preferences
         self.services = services
         self.readInterfaces = readInterfaces ?? NetMergeInterfaceMonitor().readInterfaces
-        state = DownloadsQueueController(file: file, destination: destination, tools: services.tools,
-                                         releaseSpeech: services.releaseSpeech, report: report)
+        state = DownloadsQueueController(
+            file: file, destination: destination, speechKinds: [TranscriptDownloadRunner.kind],
+            tools: services.tools, releaseSpeech: services.releaseSpeech, report: report)
         DownloadsIslandBridge.track(state)
     }
 

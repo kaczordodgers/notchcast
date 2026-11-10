@@ -12,8 +12,9 @@ struct NotchcastDownloadServices: Sendable {
         try FileManager.default.trashItem(at: source, resultingItemURL: nil)
     }
 
-    var distillRunner: DistillRunner {
-        DistillRunner(transcriber: transcriber, workDirectory: workDirectory, saveWebpage: saveWebpage)
+    func distillRunner(timestamps: @escaping @MainActor @Sendable () -> Bool) -> DistillRunner {
+        DistillRunner(transcriber: transcriber, workDirectory: workDirectory, timestamps: timestamps,
+                      saveWebpage: saveWebpage)
     }
 
     var transcriptRunner: TranscriptDownloadRunner {

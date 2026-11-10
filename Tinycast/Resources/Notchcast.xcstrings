@@ -47488,6 +47488,58 @@
         }
       }
     },
+    "This conversion was queued by an older version. Add the files again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Konvertierung wurde von einer älteren Version eingereiht. Füge die Dateien erneut hinzu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta conversión se puso en cola con una versión anterior. Añade los archivos de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette conversion a été mise en file d’attente par une version antérieure. Ajoutez à nouveau les fichiers."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この変換は以前のバージョンでキューに追加されました。ファイルをもう一度追加してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 변환은 이전 버전에서 대기열에 추가되었습니다. 파일을 다시 추가하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta conversão foi colocada na fila por uma versão anterior. Adicione os arquivos novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это преобразование было поставлено в очередь более старой версией. Добавьте файлы снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此转换由旧版本加入队列。请重新添加文件。"
+          }
+        }
+      }
+    },
     "This download type is not available." : {
       "localizations" : {
         "de" : {

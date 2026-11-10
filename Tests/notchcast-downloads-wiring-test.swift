@@ -16,7 +16,6 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands+Action.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadRunner.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadServices*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
@@ -166,7 +165,8 @@ struct NotchcastDownloadsWiringTest {
         let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: root) }
         let state = DownloadsQueueController(file: root.appending(path: "queue.json"), destination: root,
-            maxConcurrent: 1, tools: DownloadToolLookup(), releaseSpeech: services.releaseSpeech,
+            maxConcurrent: 1, speechKinds: [DistillRunner.kind], tools: DownloadToolLookup(),
+            releaseSpeech: services.releaseSpeech,
             report: { preconditionFailure($0) })
         state.start { $0.register(SpeechRunner(transcriber: services.transcriber)) }
         await state.settle()

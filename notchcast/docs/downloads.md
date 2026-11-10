@@ -8,12 +8,13 @@
 - Disabling Convert unregisters its runner and cancels its unfinished jobs. Disabling either module stops and releases its queue.
 - Clipboard actions accept only explicit HTTP or HTTPS links, deduplicate them and reject embedded credentials. Distill additionally applies the engine's link cleaner.
 - A Distill link is one job in the Distill queue from the moment it is added: held until Run Distill releases it. There is no second link store, so no transfer between stores can repeat or lose a link.
-- A job's options are its runner's own `Options` type, encoded on the job. A producer builds that type, so a misspelt or missing field is a compile error and a payload the runner cannot decode fails the job.
+- A job's options are its runner's own `Options` type, encoded on the job. A producer builds that type, so a misspelt or missing field is a compile error and a payload the runner cannot decode fails the job. Only Convert Files has options; its job stored without them, as an older build queued it, fails with a message to add the files again.
+- Each queue controller is given the job kinds that use the speech worker, as the runners' own `kind` values: transcript for Downloads, distill and convert for Distill.
 - Transcription reuses a separate Dictation model store and selected model with automatic language detection. Running a command never installs tools or downloads a speech model.
 
 ## Ownership and storage
 
-`NotchcastCore` owns `DownloadsModule` and `DistillModule` through its module controller. Their wiring lives in `Tinycast/Features/Notchcast/Downloads/`; the engines remain in `Features/Downloads/` and `Features/Distill/`. The job contract every runner implements (`DownloadJob`, `DownloadState`, `DownloadProgress`, `DownloadTool`, `DownloadRunner`, `DownloadRunContext` and the `JobOutput` publication helper) lives in the kernel folder `Features/Notchcast/Jobs/`, so Distill, Convert Files and Media Tools depend on it without depending on Downloads.
+`NotchcastCore` owns `DownloadsModule` and `DistillModule` through its module controller. Their wiring lives in `Tinycast/Features/Notchcast/Downloads/`; the engines remain in `Features/Downloads/` and `Features/Distill/`. The job contract every runner implements (`DownloadJob`, `DownloadState`, `DownloadProgress`, `DownloadTool`, `DownloadRunner`, `DownloadRunContext` and the `JobOutput` publication helper) lives in the kernel folder `Features/Notchcast/Jobs/`. Distill, Convert Files and Media Tools name only that contract, but the contract still depends on Downloads: `DownloadRunContext` builds a `ChildProcess` and holds a `DownloadToolLookup`, both in `Features/Downloads/Service/`.
 
 The current bundle's Application Support directory holds `Notchcast/downloads.json` and `Notchcast/distill.json`. Downloads writes to `~/Downloads`; Distill writes to `~/Downloads/Distill/Raw` and runs one job at a time. Temporary transcription audio lives in the current bundle's `Notchcast/Transcription` cache directory.
 

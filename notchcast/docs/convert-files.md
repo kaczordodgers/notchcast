@@ -4,7 +4,7 @@
 an optional page range and an injected set of occupied outputs. It performs no IO.
 
 `ConvertFilesRunner` implements `DownloadRunner` with kind `convert-files`.
-Job options are `ConvertFilesRunner.Options`: the absolute `sources` paths, `target` and `pages`. A job without them fails rather than converting a guessed source.
+Job options are `ConvertFilesRunner.Options`: the absolute `sources` paths, `target` and `pages`. A job without them, as an older build queued it, fails with a message to add the files again rather than converting a guessed source.
 Its injected `process` closure receives an executable, argv and the shared download context.
 The only result notification is `post`, called on the main actor for each success or failure.
 Successful batch outputs remain available when another item fails. Cancellation propagates.

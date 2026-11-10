@@ -20,8 +20,8 @@ import Foundation
         precondition(!native.contains("--downloader") && !native.contains("--cookies-from-browser"))
         precondition(native.contains("mp4") && native.suffix(2) == ["--", source])
         let audio = MediaArguments.download(source: source, destination: destination, format: .audio,
-                                            aria2Path: "/opt/homebrew/bin/aria2c", cookies: "firefox:profile")
-        precondition(audio.contains("mp3") && audio.contains("firefox:profile"))
+                                            aria2Path: "/opt/homebrew/bin/aria2c")
+        precondition(audio.contains("mp3") && !audio.contains("--cookies-from-browser"))
         precondition(audio.contains("aria2c:-x 16 -s 16 -k 1M --file-allocation=none"))
         precondition(MediaArguments.retryNatively(stderr: "HTTP Error 403: Forbidden", source: source, usedAria2: true))
         precondition(!MediaArguments.retryNatively(stderr: "403", source: source, usedAria2: false))
@@ -159,10 +159,11 @@ import Foundation
             --sub-langs) shift; language="$1";;
             --print) shift; [ "$1" != '%(language)s' ] || mode=metadata;;
           esac
+          source="$1"
           shift
         done
         if [ "$mode" = metadata ]; then
-          printf 'pl\\n'
+          case "$source" in */en|*/de) echo "${source##*/}";; *) echo pl;; esac
         elif [ "$mode" = manual ] && [ "$language" = en ]; then
           printf 'WEBVTT\\n\\n00:00:00.000 --> 00:00:01.000\\nHello\\n' > "$dest/Clip [en].en.vtt"
           echo "ERROR: Unable to download video subtitles for 'en-US': HTTP Error 429: Too Many Requests" >&2
@@ -193,7 +194,7 @@ import Foundation
         let context = DownloadRunContext(destination: root, tools: lookup)
         let job = DownloadJob(id: UUID().uuidString, kind: "video", source: "https://example.com/video",
                               title: "Video", state: .waiting, created: Date())
-        let output = try await MediaDownloadRunner(format: .video).run(job, context: context)
+        let output = try await MediaDownloadRunner(format: .video, aria2Enabled: { true }).run(job, context: context)
         precondition(output?.lastPathComponent == "movie.mp4")
         let captions = TranscriptDownloadRunner(transcribe: { _, _ in nil })
         let transcript = try await captions.run(job, context: context)
@@ -204,7 +205,7 @@ import Foundation
         precondition(second?.lastPathComponent == "Movie [id] (2).txt")
         for (language, expected) in [("en", "Hello"), ("de", "Hallo")] {
             var limited = job
-            limited.encodedOptions = try DownloadJob.encode(TranscriptDownloadRunner.Options(language: language))
+            limited.source = "https://example.com/" + language
             let saved = try await captions.run(limited, context: context)
             let text = try String(contentsOf: saved!, encoding: .utf8)
             precondition(text == expected, "429 exit 1 keeps \(language)")

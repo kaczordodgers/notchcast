@@ -1,8 +1,6 @@
 import Foundation
 
 nonisolated enum LinkCleaner {
-    // Only the main site's mirrors are rewritten; music. and studio. links keep their own host.
-    private static let youtubeHosts: Set<String> = ["youtube.com", "www.youtube.com", "m.youtube.com"]
     private static let tail = #"(?:[^\s<>"'`()\]]|\([^\s<>"'`()]*\))"#
     private static let pattern = try? NSRegularExpression(
         pattern: #"(?:https?://|www\.)\#(tail)+|[A-Za-z0-9][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/\#(tail)*"#,
@@ -37,7 +35,7 @@ nonisolated enum LinkCleaner {
             guard let id = parts.path.split(separator: "/").first else { return nil }
             return youtube(String(id))
         }
-        if youtubeHosts.contains(host) {
+        if WebRules.isYouTubeHost(host) {
             parts.scheme = "https"
             parts.host = "www.youtube.com"
             if parts.path == "/watch" {

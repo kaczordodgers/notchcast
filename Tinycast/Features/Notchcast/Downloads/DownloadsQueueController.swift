@@ -9,6 +9,7 @@ final class DownloadsQueueController {
     let destination: URL
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let maxConcurrent: Int
+    @ObservationIgnored private let speechKinds: Set<String>
     @ObservationIgnored private let tools: DownloadToolLookup
     @ObservationIgnored private let report: (String) -> Void
     @ObservationIgnored private var operation: UUID?
@@ -16,12 +17,14 @@ final class DownloadsQueueController {
     @ObservationIgnored private let releaseSpeech: @MainActor @Sendable () async -> Void
     @ObservationIgnored private var speechPending = false
 
-    init(file: URL, destination: URL, maxConcurrent: Int = 3,
+    /// `speechKinds` are the job kinds that hold the speech worker until none of them is due.
+    init(file: URL, destination: URL, maxConcurrent: Int = 3, speechKinds: Set<String>,
          tools: DownloadToolLookup, releaseSpeech: @escaping @MainActor @Sendable () async -> Void = {},
          report: @escaping (String) -> Void) {
         self.file = file
         self.destination = destination
         self.maxConcurrent = maxConcurrent
+        self.speechKinds = speechKinds
         self.tools = tools
         self.report = report
         self.releaseSpeech = releaseSpeech
@@ -76,9 +79,7 @@ final class DownloadsQueueController {
 
     private func trackSpeech(_ id: UUID, queue: DownloadQueue) {
         guard operation == id else { return }
-        let pending = withObservationTracking {
-            queue.jobs.contains { ["transcript", "distill", "convert"].contains($0.kind) && $0.state.isDue }
-        } onChange: { [weak self, weak queue] in
+        let pending = withObservationTracking { speechIsDue(queue) } onChange: { [weak self, weak queue] in
             Task { @MainActor [weak self, weak queue] in
                 guard let queue else { return }
                 self?.trackSpeech(id, queue: queue)
@@ -88,13 +89,14 @@ final class DownloadsQueueController {
         speechPending = pending
         if becameIdle {
             Task { [weak self, weak queue] in
-                guard let self, let queue, operation == id,
-                      !queue.jobs.contains(where: {
-                          ["transcript", "distill", "convert"].contains($0.kind) && $0.state.isDue
-                      }) else { return }
+                guard let self, let queue, operation == id, !speechIsDue(queue) else { return }
                 await releaseSpeech()
             }
         }
+    }
+
+    private func speechIsDue(_ queue: DownloadQueue) -> Bool {
+        queue.jobs.contains { speechKinds.contains($0.kind) && $0.state.isDue }
     }
 
     func settle() async { await transition?.value }

@@ -17,7 +17,8 @@ final class DistillModule: NotchcastModule {
         self.preferences = preferences
         self.services = services
         state = DownloadsQueueController(
-            file: file, destination: destination, maxConcurrent: 1, tools: services.tools,
+            file: file, destination: destination, maxConcurrent: 1,
+            speechKinds: [DistillRunner.kind, DistillConvertRunner.kind], tools: services.tools,
             releaseSpeech: services.releaseSpeech, report: report)
     }
 
@@ -27,10 +28,7 @@ final class DistillModule: NotchcastModule {
         operation = id
         state.start { [weak self] queue in
             guard let self, operation == id else { return }
-            var runner = services.distillRunner
-            runner.timestamps = { [preferences] in preferences.isOn(.distillTimestamps) }
-            // A web link needs no tool, so the runner reports a missing one itself.
-            queue.register(NotchcastDownloadRunner(runner, tools: []))
+            queue.register(services.distillRunner(timestamps: { [preferences] in preferences.isOn(.distillTimestamps) }))
             trackConvert(id, queue: queue)
         }
     }

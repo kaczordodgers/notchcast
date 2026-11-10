@@ -6,15 +6,18 @@ nonisolated struct DistillRunner: DownloadRunner {
     static let kind = "distill"
     let transcriber: DistillTranscriber
     let workDirectory: URL
-    let saveWebpage: SaveWebpage
     /// Read when a job begins, so one that waited in the queue follows the switch as it is then.
-    var timestamps: @MainActor @Sendable () -> Bool = { false }
+    let timestamps: @MainActor @Sendable () -> Bool
+    let saveWebpage: SaveWebpage
     var kind: String { Self.kind }
-    let tools: [DownloadTool] = [.ytDlp, .ffmpeg]
+    // A web link needs no tool, so a media link reports a missing one when it runs.
+    let tools: [DownloadTool] = []
 
-    init(transcriber: DistillTranscriber, workDirectory: URL, saveWebpage: @escaping SaveWebpage) {
+    init(transcriber: DistillTranscriber, workDirectory: URL,
+         timestamps: @escaping @MainActor @Sendable () -> Bool, saveWebpage: @escaping SaveWebpage) {
         self.transcriber = transcriber
         self.workDirectory = workDirectory
+        self.timestamps = timestamps
         self.saveWebpage = saveWebpage
     }
 

@@ -17,8 +17,8 @@ struct DownloadJob: Codable, Sendable, Identifiable, Equatable {
 
     static func encode(_ options: some Encodable) throws -> Data { try JSONEncoder().encode(options) }
 
-    /// A job queued without options decodes as one whose every option is unset.
-    func options<Options: Decodable>(_ type: Options.Type = Options.self) throws -> Options {
-        try JSONDecoder().decode(type, from: encodedOptions ?? Data("{}".utf8))
+    /// Nil when the job carries none, as one queued by a build that stored options differently does.
+    func options<Options: Decodable>(_ type: Options.Type = Options.self) throws -> Options? {
+        try encodedOptions.map { try JSONDecoder().decode(type, from: $0) }
     }
 }

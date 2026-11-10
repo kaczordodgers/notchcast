@@ -193,13 +193,14 @@ struct DistillTest {
             tools: DownloadToolLookup(directories: [bin]),
             report: { value in stages.withLock { $0.append(value.stage ?? "") } })
         let work = root.appending(path: "runner-work")
-        let runner = DistillRunner(transcriber: DistillTranscriber { _ in "A transcript." }, workDirectory: work) { _, target in
+        let runner = DistillRunner(transcriber: DistillTranscriber { _ in "A transcript." }, workDirectory: work,
+                                   timestamps: { false }) { _, target in
             target.appending(path: "webpage.md")
         }
         let job = DownloadJob(id: UUID().uuidString, kind: "distill", source: "https://youtu.be/abc",
                               title: "Fixture", created: .distantPast)
         let registered: any DownloadRunner = runner
-        precondition(registered.kind == "distill" && registered.tools == [.ytDlp, .ffmpeg])
+        precondition(registered.kind == "distill" && registered.tools.isEmpty, "a web link needs no tool")
         let result = try await registered.run(job, context: context)!
         try check(String(contentsOf: result, encoding: .utf8) == "A transcript.\n")
         precondition(stages.withLock { $0 } == ["Transcribing 1 of 1"])
@@ -213,7 +214,7 @@ struct DistillTest {
             ready.continuation.yield(())
             try await Task.sleep(for: .seconds(60))
             return "Late text"
-        }, workDirectory: work, saveWebpage: runner.saveWebpage)
+        }, workDirectory: work, timestamps: { false }, saveWebpage: runner.saveWebpage)
         let cancelled = Task {
             try await slow.run(source: "https://youtu.be/cancelled", destination: root.appending(path: "cancelled-output"),
                                context: context)

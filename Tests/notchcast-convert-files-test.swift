@@ -57,6 +57,14 @@ struct ConvertFilesTests {
             _ = try await cancelled.run(job, context: context)
             preconditionFailure("Cancellation swallowed")
         } catch is CancellationError {}
+        var legacy = job
+        legacy.encodedOptions = nil
+        do {
+            _ = try await fake.run(legacy, context: context)
+            preconditionFailure("A job without options ran")
+        } catch let failure as ConvertFilesPlan.Failure {
+            precondition(failure.message.contains("Add the files again"), "an older build's job says what to do")
+        }
         let other = url("failed.txt")
         try "failure".write(to: other, atomically: true, encoding: .utf8)
         var batch = job
