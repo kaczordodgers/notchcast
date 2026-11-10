@@ -32,7 +32,7 @@ enum ForkSettingsBackupSchema {
         .agentActions,
         .lowDiskWarning,
         .spacesOrder,
-        .island,
+        .islandHoverOpen,
     ]
 
     private static let listedAllowed: [String: NotchcastFeature.BackupValue] = [
