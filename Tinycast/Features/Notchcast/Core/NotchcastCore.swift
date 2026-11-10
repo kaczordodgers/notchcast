@@ -34,6 +34,7 @@ enum NotchcastCore {
             await battery.waitUntilIdle()
             await monitor?.fans.waitUntilIdle()
         }
+        await DictationHistoryModule.shared.waitUntilIdle()
     }
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
