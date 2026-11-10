@@ -111,7 +111,7 @@ struct ProcessRunnerTest {
             check(error as? ProcessRunner.Failure == .timedOut)
         }
         let blockedCancel = Task.detached { try ProcessRunner.runBlocking(request("/bin/sleep", ["30"])) }
-        // The strict one-thread pool is held by the blocking run, so a timer task could never wake to cancel it.
+        // The blocking run holds the strict one-thread pool, so a timer task could never wake.
         DispatchQueue.global().asyncAfter(deadline: .now() + 0.2) { blockedCancel.cancel() }
         check((await failure { try await blockedCancel.value }) is CancellationError)
 
