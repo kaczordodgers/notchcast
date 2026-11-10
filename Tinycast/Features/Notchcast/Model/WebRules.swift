@@ -3,10 +3,7 @@ import Foundation
 nonisolated enum WebRules {
     static func isWebScheme(_ scheme: String?) -> Bool { ["http", "https"].contains(scheme?.lowercased() ?? "") }
 
-    static func isLoopbackHost(_ host: String?, ipv4Only: Bool = false) -> Bool {
-        let host = (host ?? "").lowercased().trimmingCharacters(in: CharacterSet(charactersIn: "[]"))
-        return ipv4Only ? host == "127.0.0.1" : ["127.0.0.1", "localhost", "::1"].contains(host)
-    }
+    static func isLoopbackHost(_ host: String?) -> Bool { ["127.0.0.1", "localhost", "::1"].contains(host?.lowercased() ?? "") }
 
     static func isTrackingParameter(_ name: String) -> Bool {
         let name = name.lowercased()

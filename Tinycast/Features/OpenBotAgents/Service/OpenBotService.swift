@@ -5,7 +5,7 @@ struct OpenBotCredentials: Sendable {
     let token: String
 
     init(url: String, token: String) throws {
-        guard let parts = URLComponents(string: url), parts.scheme == "http", WebRules.isLoopbackHost(parts.host, ipv4Only: true),
+        guard let parts = URLComponents(string: url), parts.scheme == "http", parts.host == "127.0.0.1",
               let port = parts.port, (1...65535).contains(port), parts.user == nil, parts.password == nil,
               parts.query == nil, parts.fragment == nil, parts.path.isEmpty || parts.path == "/",
               let baseURL = parts.url else { throw OpenBotFailure.invalidURL }

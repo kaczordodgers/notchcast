@@ -10,13 +10,11 @@ import Foundation
         for scheme in [nil, "", "ftp", "file", "magnet", "httpx", "t3-thread"] { assert(!WebRules.isWebScheme(scheme)) }
         assert(WebRules.isWebScheme(URL(string: "HTTPS://example.com/#frag")?.scheme))
 
-        for host in ["127.0.0.1", "localhost", "LocalHost", "::1", "[::1]"] { assert(WebRules.isLoopbackHost(host)) }
-        for host in [nil, "", "127.0.0.2", "localhost.evil.com", "example.com", "0.0.0.0", "::2"] {
+        for host in ["127.0.0.1", "localhost", "LocalHost", "::1"] { assert(WebRules.isLoopbackHost(host)) }
+        for host in [nil, "", "127.0.0.2", "localhost.evil.com", "example.com", "0.0.0.0", "::2", "[::1]", "[127.0.0.1]"] {
             assert(!WebRules.isLoopbackHost(host))
         }
         assert(WebRules.isLoopbackHost(URL(string: "http://[::1]:8080/")?.host))
-        assert(WebRules.isLoopbackHost("127.0.0.1", ipv4Only: true))
-        for host in ["localhost", "::1", "[::1]", "127.0.0.2", ""] { assert(!WebRules.isLoopbackHost(host, ipv4Only: true)) }
 
         for name in ["utm_source", "UTM_Campaign", "fbclid", "GCLID", "ttclid", "igsh", "ref_url", "spm", "_ga", "mkt_tok"] {
             assert(WebRules.isTrackingParameter(name))

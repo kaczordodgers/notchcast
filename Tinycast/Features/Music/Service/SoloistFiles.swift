@@ -24,7 +24,7 @@ struct SoloistFiles: Sendable {
         guard let text = try? String(contentsOf: portFile, encoding: .utf8),
               let port = UInt16(text.trimmingCharacters(in: .whitespacesAndNewlines)), port != 0 else { return nil }
         if let address = try? String(contentsOf: addressFile, encoding: .utf8),
-           !WebRules.isLoopbackHost(address.trimmingCharacters(in: .whitespacesAndNewlines), ipv4Only: true) { return nil }
+           address.trimmingCharacters(in: .whitespacesAndNewlines) != "127.0.0.1" { return nil }
         return Int(port)
     }
 
