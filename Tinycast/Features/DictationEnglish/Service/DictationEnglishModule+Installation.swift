@@ -3,15 +3,11 @@ import Carbon.HIToolbox
 
 extension DictationEnglishModule {
     convenience init(hub: EventTapHub, coordinator: DictationCoordinator) {
-        DictationCoordinator.englishTranscriptStage = { raw, language in
-            let translated = await DictationEnglish.process(raw, language: language) {
-                await MainActor.run {
-                    AppCore.shared.showMessage(
-                        String(localized: "English translation failed; using the original transcript", table: "Notchcast"), tone: .danger)
-                }
-            }
-            await DictationCleanup.observeTranscript(raw: raw, cleaned: translated)
-            return translated
+        let family = DictationFamily.shared
+        family.bind(coordinator)
+        family.installEnglish {
+            AppCore.shared.showMessage(
+                String(localized: "English translation failed; using the original transcript", table: "Notchcast"), tone: .danger)
         }
         let swallowing = EventTapSubscription(hub: hub)
         self.init(register: { action in
@@ -30,13 +26,6 @@ extension DictationEnglishModule {
         }, remove: {
             hub.remove($0)
             swallowing.stop()
-        }, toggle: { [weak coordinator] in
-            guard let coordinator else { return }
-            if coordinator.triggerIsRecording {
-                coordinator.triggerFinished()
-            } else {
-                coordinator.triggerStarted(inEnglish: true)
-            }
-        }, onStop: { [weak coordinator] in coordinator?.cancelEnglish() })
+        }, toggle: { family.toggleEnglish() }, onStop: { family.cancelEnglish() })
     }
 }
