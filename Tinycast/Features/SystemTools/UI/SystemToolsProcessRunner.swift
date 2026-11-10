@@ -1,5 +1,4 @@
 import Foundation
-import Darwin
 
 nonisolated struct SystemToolsProcessRunner: Sendable {
     enum Failure: Error { case invalidExecutable, timedOut, failed(Int32) }
@@ -9,42 +8,21 @@ nonisolated struct SystemToolsProcessRunner: Sendable {
     ]
 
     func run(_ executable: String, arguments: [String], timeout: TimeInterval = 5) throws -> String {
-        try Task.checkCancellation()
         guard Self.allowedExecutables.contains(executable) else {
             throw Failure.invalidExecutable
         }
-        let outputURL = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
-        guard FileManager.default.createFile(atPath: outputURL.path, contents: nil) else {
-            throw CocoaError(.fileWriteUnknown)
+        let request = ProcessRunner.Request(
+            executable: URL(filePath: executable), arguments: arguments, environment: [:],
+            timeout: .seconds(timeout))
+        let output: ProcessRunner.Output
+        do { output = try ProcessRunner.runBlocking(request) } catch ProcessRunner.Failure.timedOut {
+            throw Failure.timedOut
         }
-        defer { try? FileManager.default.removeItem(at: outputURL) }
-        let output = try FileHandle(forWritingTo: outputURL)
-        defer { try? output.close() }
-        let process = Process()
-        process.executableURL = URL(filePath: executable)
-        process.arguments = arguments
-        process.environment = [:]
-        process.standardInput = FileHandle.nullDevice
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        let exit = try process.runObservingExit()
-        let deadline = Date().addingTimeInterval(timeout)
-        while process.isRunning {
-            if Task.isCancelled {
-                Darwin.kill(process.processIdentifier, SIGKILL)
-                exit.wait()
-                throw CancellationError()
-            }
-            if Date() >= deadline {
-                Darwin.kill(process.processIdentifier, SIGKILL)
-                exit.wait()
-                throw Failure.timedOut
-            }
-            Thread.sleep(forTimeInterval: 0.01)
+        guard output.status == 0 else { throw Failure.failed(output.status) }
+        guard let text = String(data: output.stdout, encoding: .utf8) else {
+            throw CocoaError(.fileReadInapplicableStringEncoding)
         }
-        exit.wait()
-        guard process.terminationStatus == 0 else { throw Failure.failed(process.terminationStatus) }
-        return try String(contentsOf: outputURL, encoding: .utf8)
+        return text
     }
 
     @concurrent

@@ -27,12 +27,7 @@ extension NotchcastAppProof {
         }
         let tarball = root.appending(path: "a.tar.bz2")
         try shell("/usr/bin/tar", ["-cjf", tarball.path, "-C", root.path, "Łódź"])
-        let listingFile = root.appending(path: "listing")
-        _ = files.createFile(atPath: listingFile.path, contents: nil)
-        let listingHandle = try FileHandle(forWritingTo: listingFile)
-        defer { try? listingHandle.close() }
-        try shell("/usr/bin/bsdtar", ["-tvf", tarball.path], output: listingHandle)
-        let listing = try ArchiveFallbackListing.bsdtar(Data(contentsOf: listingFile))
+        let listing = try ArchiveFallbackListing.bsdtar(shell("/usr/bin/bsdtar", ["-tvf", tarball.path]))
         try ArchiveRules.validate(listing, archiveBytes: Int64(Data(contentsOf: tarball).count))
         let unsafe = Data("-rw-r--r--  0 user group 1 Jan 1 2026 ../x\n".utf8)
         do {
@@ -48,17 +43,14 @@ extension NotchcastAppProof {
         }
     }
 
-    private static func shell(_ tool: String, _ arguments: [String], output: FileHandle = .nullDevice) throws {
-        let process = Process()
-        process.executableURL = URL(filePath: tool)
-        process.arguments = arguments
-        process.standardOutput = output
-        process.standardError = FileHandle.nullDevice
-        try process.run()
-        process.waitUntilExit()
-        guard process.terminationStatus == 0 else {
-            throw ArchiveFallbackProofFailure("\(tool) exited \(process.terminationStatus)")
-        }
+    @discardableResult
+    private static func shell(_ tool: String, _ arguments: [String]) throws -> Data {
+        var environment = ProcessInfo.processInfo.environment
+        environment["LC_ALL"] = "en_US.UTF-8"
+        let output = try ProcessRunner.runBlocking(.init(executable: URL(filePath: tool), arguments: arguments,
+                                                         environment: environment))
+        guard output.status == 0 else { throw ArchiveFallbackProofFailure("\(tool) exited \(output.status)") }
+        return output.stdout
     }
 }
 

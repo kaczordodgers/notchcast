@@ -17,8 +17,8 @@ struct MachineSetupProfileProcessExecutor: MachineSetupProfileExecutor {
 
     enum Failure: Error { case unsupportedPayload, rootExecution, stepFailed }
 
-    typealias ProcessRunner = (String, [String]) throws -> Result
-    let process: ProcessRunner
+    typealias Launch = (String, [String]) throws -> Result
+    let process: Launch
     let isRoot: () -> Bool
     private(set) var report: [Step] = []
 
