@@ -29,6 +29,7 @@ struct MachLinkRestartTest {
         precondition(unchanged.listener === third.listener && unchanged.browser === third.browser,
                      "failure of a replaced listener or browser restarted the current ones")
         third.listener.stateUpdateHandler?(.failed(failure))
+        try await Task.sleep(for: .milliseconds(200))
         manager.stop()
         try await Task.sleep(for: .seconds(3))
         precondition((try? objects(of: manager)) == nil, "failure before stop() restarted a stopped manager")

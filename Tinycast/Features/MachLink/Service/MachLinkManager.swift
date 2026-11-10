@@ -17,7 +17,6 @@ final class MachLinkManager {
     private var restart: Task<Void, Never>?
 
     isolated deinit {
-        restart?.cancel()
         listener?.cancel()
         browser?.cancel()
         for task in requests.values { task.cancel() }
@@ -85,7 +84,7 @@ final class MachLinkManager {
         browser.start(queue: .main)
     }
 
-    /// A failed listener or browser is terminal; restart after a delay so a stuck failure never spins.
+    /// A failed listener or browser is terminal; restart after a delay so failures never spin.
     private func restartAfterFailure() {
         restart?.cancel()
         restart = Task { [weak self] in
