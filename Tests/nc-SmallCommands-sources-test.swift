@@ -1,14 +1,17 @@
 // notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift Tinycast/Features/SmallCommands/Service/*.swift Tinycast/Features/SmallCommands/SmallCommandsModule*.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Platform/AccessibilityText.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Core/NotchcastLink.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}
+enum DialogTone {}
 enum NotchcastFeature { case smallCommands }
 struct NotchcastCommand: Sendable {
     let slug: String
     let name: String
     let sfSymbol: String
     let feature: NotchcastFeature
+    var argumentCount = 0
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }

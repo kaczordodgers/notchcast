@@ -14,7 +14,7 @@ extension SmallCommandsModule {
         run: { NotchcastCore.smallCommands.runFromLauncher(.password) })
     nonisolated static let shortenCommand = NotchcastCommand(
         slug: "shorten-link", name: String(localized: "Shorten Link", table: "Notchcast"), sfSymbol: "link", feature: .smallCommands,
-        isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
+        argumentCount: 1, isEnabled: { NotchcastPreferences.shared.isOn(.smallCommands) },
         run: { NotchcastCore.smallCommands.runFromLauncher(.shorten) })
     nonisolated static let noiseCommand = NotchcastCommand(
         slug: "switch-noise-control", name: String(localized: "Switch Noise Control", table: "Notchcast"),
@@ -87,9 +87,7 @@ extension SmallCommandsModule {
     static func frontAddress() async -> String? {
         guard let app = NSWorkspace.shared.menuBarOwningApplication,
               app.processIdentifier != ProcessInfo.processInfo.processIdentifier else { return nil }
-        let target = CopyPathTarget(processID: app.processIdentifier, bundleID: app.bundleIdentifier)
-        if target.browser != nil,
-           let addresses = try? await CopyPathSystemReader.read(.browser(target)),
+        if let addresses = try? await NotchcastHost.current.browserAddresses(app.processIdentifier, app.bundleIdentifier),
            let address = ShortenLinkService.pick(argument: "", frontAddress: addresses.first, clipboard: nil) {
             return address
         }

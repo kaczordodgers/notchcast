@@ -19,7 +19,10 @@
 // notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift
 // notchcast-sources: Tinycast/Features/SmallCommands/Service/*.swift
 // notchcast-sources: Tinycast/Features/SmallCommands/SmallCommandsModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Core/NotchcastLink.swift
 import Foundation
+
+enum DialogTone {}
 
 @main
 @MainActor

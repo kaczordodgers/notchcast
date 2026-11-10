@@ -2,8 +2,11 @@
 // notchcast-sources: Tinycast/Features/SmallCommands/Service/*.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Core/NotchcastLink.swift
 import AppKit
 import Synchronization
+
+enum DialogTone {}
 
 @main
 struct SmallCommandsTest {

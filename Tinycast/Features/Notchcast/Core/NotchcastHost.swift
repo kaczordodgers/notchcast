@@ -5,4 +5,6 @@ struct NotchcastHost {
 
     var showMessage: @MainActor (String, DialogTone) -> Void = { _, _ in }
     var refreshNotchcastCommands: @MainActor () -> Void = {}
+    var finderSelection: @MainActor () async throws -> [String] = { [] }
+    var browserAddresses: @MainActor (_ processID: Int32, _ bundleID: String?) async throws -> [String] = { _, _ in [] }
 }
