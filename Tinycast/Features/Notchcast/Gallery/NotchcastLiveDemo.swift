@@ -57,8 +57,8 @@ enum NotchcastLiveDemo {
         let frame = CGRect(x: screen.frame.midX - 500, y: screen.frame.maxY - 600, width: 1000, height: 600)
         let menuBar = max(screen.frame.maxY - screen.visibleFrame.maxY, 24)
         let window = NSWindow(contentRect: frame, styleMask: .borderless, backing: .buffered, defer: false)
-        // The island's own level, ordered behind this app's island: another island app at that level stays under it.
-        window.level = NSWindow.Level(rawValue: NSWindow.Level.statusBar.rawValue + 1)
+        // Under the palette's level: the launcher hung under the island is recorded over it.
+        window.level = .floating
         window.ignoresMouseEvents = true
         window.hasShadow = false
         window.collectionBehavior = [.canJoinAllSpaces, .stationary, .ignoresCycle]
@@ -70,7 +70,6 @@ enum NotchcastLiveDemo {
             return true
         })
         window.orderFrontRegardless()
-        for island in NSApp.windows where island is IslandPanel && island.isVisible { island.orderFrontRegardless() }
         return window
     }
 

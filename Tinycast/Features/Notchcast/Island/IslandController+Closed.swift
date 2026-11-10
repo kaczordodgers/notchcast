@@ -29,8 +29,6 @@ extension IslandController {
             action: link.map { link in { Task { _ = await MeetingLauncher.join(link, browserBundleID: nil) } } }))
     }
 
-    /// The launcher taking key starts the opening: the island under it grows into its frame. The launcher leaving
-    /// the screen brings the island back.
     func watchLauncher() {
         let center = NotificationCenter.default
         launcherObservations = [
@@ -45,21 +43,21 @@ extension IslandController {
             NotificationToken(center.addObserver(
                 forName: NSWindow.didChangeOcclusionStateNotification, object: nil, queue: .main
             ) { [weak self] _ in
-                // Ordered in or out only: the black island itself covers the launcher while it grows.
                 MainActor.assumeIsolated { self?.restoreAfterLauncher() }
             }, center: center),
         ]
     }
 
-    /// Islands the launcher hid come back once it has gone; the occlusion news arrives a turn late.
+    /// Hover and click must not open an island under the launcher.
+    var launcherIsUp: Bool { NSApp.windows.contains { $0 is PalettePanel && $0.isVisible } }
+
     func restoreAfterLauncher() {
-        guard !NSApp.windows.contains(where: { $0 is PalettePanel && $0.isVisible }) else { return }
+        guard !launcherIsUp else { return }
         panels.forEach { $0.launcherDidClose() }
     }
 
     /// The launcher replaces an open island it hangs from or would sit under, pinned or not.
     private func launcherDidShow(_ palette: NSWindow) {
-        NotchcastLauncherSurface.shared.keepAbove(palette)
         // The compact bar's window carries a glass outset around the visible capsule.
         let frame = palette.frame
         let launcher = frame.height < NotchcastTheme.Launcher.size.height
@@ -68,10 +66,5 @@ extension IslandController {
         if isOpen, let openPanel, NotchcastLauncherPlacement.displaces(openPanel, launcher: launcher, host: host) {
             close()
         }
-        guard let host else {
-            palette.alphaValue = 1
-            return
-        }
-        host.growIntoLauncher(launcher, window: palette)
     }
 }
