@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 import AppKit
 import Observation
 
@@ -33,13 +34,12 @@ struct NotchcastCommand: Sendable {
     func showMessage(_ text: String, tone: Tone) { messages.append(text); tones.append(tone) }
 }
 @MainActor final class CaptureAreaService {
-    enum Failure: Error { case denied }
     var starts = 0
     var stops = 0
     var denied = false
     func start(_ select: (CaptureAreaSelection?) -> Void) throws {
         starts += 1
-        if denied { throw Failure.denied }
+        if denied { throw CaptureFailure.permissionDenied }
         select(.init(rect: CGRect(x: 0, y: 0, width: 2, height: 2), displayID: 1, displayFrame: .zero))
     }
     func stop() { stops += 1 }

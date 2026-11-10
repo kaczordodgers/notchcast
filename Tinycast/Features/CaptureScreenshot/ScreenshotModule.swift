@@ -85,6 +85,22 @@ final class ScreenshotModule: NotchcastModule {
         return result
     }
 
+    static func failureMessage(_ error: any Error) -> String {
+        let failure = error as NSError
+        if failure.domain == NSCocoaErrorDomain && (512..<1024).contains(failure.code) {
+            return String(localized: "Could not save the screenshot.", table: "Notchcast")
+        }
+        let shared: CaptureFailure = switch error {
+        case let shared as CaptureFailure: shared
+        case ScreenshotRequest.Failure.permissionDenied: .permissionDenied
+        case ScreenshotRequest.Failure.clipboardFailed: .clipboardFailed
+        case ScreenshotRequest.Failure.disabled: .disabled
+        case ScreenshotRequest.Failure.invalidRect, ScreenshotRequest.Failure.targetUnavailable: .areaUnavailable
+        default: .captureFailed
+        }
+        return shared.message
+    }
+
     private var outputDestination: ScreenshotRequest.Destination {
         switch destination {
         case .clipboard: .clipboard

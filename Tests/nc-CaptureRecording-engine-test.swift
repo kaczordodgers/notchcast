@@ -44,9 +44,10 @@ struct RecordingTests {
 
     private static func timelineAndNaming() throws {
         let date = Date(timeIntervalSince1970: 0)
-        expect(RecordingNaming.filename(date: date, timeZone: .gmt) ==
+        expect(date.captureFileName(kind: "Recording", extension: "mp4", timeZone: .gmt) ==
             "Recording 1970-01-01 at 00.00.00.mp4", "stable POSIX filename")
-        expect(RecordingNaming.filename(date: date, timeZone: .gmt, collision: 2) ==
+        expect(date.captureFileName(
+            kind: "Recording", extension: "mp4", timeZone: .gmt, collision: 2) ==
             "Recording 1970-01-01 at 00.00.00 (2).mp4", "collision suffix")
         expect(!RecordingTarget.isValid(CGRect(x: CGFloat.infinity, y: 0, width: 10, height: 10)), "reject infinite rect")
         expect(!RecordingTarget.isValid(CGRect(x: 0, y: 0, width: -1, height: 10)), "reject negative rect")

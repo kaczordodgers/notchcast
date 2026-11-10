@@ -39,7 +39,7 @@ enum ScreenTextTest {
         do {
             try denied.start { _ in preconditionFailure("Denied selection must not start") }
             preconditionFailure("Permission denial must throw")
-        } catch CaptureAreaService.Failure.screenRecordingDenied {
+        } catch CaptureFailure.permissionDenied {
             precondition(requestedPermission)
         }
         precondition(ScreenTextResult.removingLineBreaks("  Hello\nworld \n\nNext\nparagraph ")
