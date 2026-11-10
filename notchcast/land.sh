@@ -237,7 +237,7 @@ harnesses "$base"
 echo 'PASS: merged-tree harnesses'
 # Squash here, not on GitHub: GitHub ignores .gitattributes merge=union and calls union-only overlaps conflicts.
 # Not covered without an Xcode build of this tree: code no selected harness compiles (UI, AppCore wiring,
-# resources); the PR build covered the head alone, and the main harness job, Sync and Snapshot follow on main.
+# resources); the PR build covered the head alone, and Sync and Snapshot follow on main.
 if [ "$check" -eq 0 ]; then
     squash_message > "$scratch/message"
     notchcast/check-identity.sh message "$scratch/message" || refuse 'commit message names something private'
