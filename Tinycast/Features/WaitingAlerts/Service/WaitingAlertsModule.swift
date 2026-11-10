@@ -22,8 +22,8 @@ final class WaitingAlertsModule: NotchcastModule {
     init(watcher: any WaitingAlertsWatching = WaitingAlertsWatcher(),
          path: String = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".t3/userdata").path,
          reader: any WaitingAlertsReading = WaitingAlertsReader(),
-         post: @escaping @MainActor (String) -> Void = { AppCore.shared.showMessage($0, tone: .neutral) },
-         availabilityChanged: @escaping @MainActor () -> Void = {}) {
+         post: @escaping @MainActor (String) -> Void = { NotchcastHost.current.showMessage($0, .neutral) },
+         availabilityChanged: @escaping @MainActor () -> Void = { NotchcastHost.current.refreshNotchcastCommands() }) {
         self.watcher = watcher
         self.path = path
         self.reader = reader
@@ -102,5 +102,5 @@ final class WaitingAlertsModule: NotchcastModule {
         sfSymbol: "bubble.left", feature: .waitingAlerts,
         isEnabled: {
             NotchcastPreferences.shared.isOn(.waitingAlerts)
-        }, run: { NotchcastCore.waitingAlerts.refresh(report: true) })
+        }, run: { WaitingAlertsModule.shared.refresh(report: true) })
 }
