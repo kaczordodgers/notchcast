@@ -23,7 +23,8 @@ Missing keys stay untouched. Restore opens a list ordered by creation date, newe
 Unreadable or invalid files remain visible with a reason and a disabled Restore button.
 Selecting a copy validates and holds that exact file's data through confirmation; no fallback occurs.
 Switches apply through `NotchcastPreferences.set`; unwired switches present in the backup are
-written as false so restore cannot enable hidden features. Other values use setters and store APIs.
+written as false so restore cannot enable hidden features, and a snapshot records them as false too,
+so every saved value is the one a restore sets. Other values use setters and store APIs.
 Declining or cancelling the dialog does not apply anything. Concurrent restore calls are ignored;
 opening the folder has its own task. Missing backups show an empty state.
 The command reveals the backup section. Cancelling, restoring or leaving it clears the copy list.
