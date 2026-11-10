@@ -250,13 +250,11 @@ final class RecordingModule: NotchcastModule {
     }
 
     static func failureMessage(_ error: any Error) -> String {
-        if error is CaptureAreaService.Failure {
-            return String(localized: "Screen Recording access is required.", table: "Notchcast")
-        }
+        if let shared = error as? CaptureFailure { return shared.message }
         return switch error as? RecordingTarget.Failure {
-        case .permissionDenied: String(localized: "Screen Recording access is required.", table: "Notchcast")
-        case .disabled: String(localized: "Capture is disabled.", table: "Notchcast")
-        case .invalidTarget, .targetUnavailable: String(localized: "Capture area is unavailable.", table: "Notchcast")
+        case .permissionDenied: CaptureFailure.permissionDenied.message
+        case .disabled: CaptureFailure.disabled.message
+        case .invalidTarget, .targetUnavailable: CaptureFailure.areaUnavailable.message
         case .busy: String(localized: "A recording is already in progress.", table: "Notchcast")
         case .notRecording: String(localized: "No recording is in progress.", table: "Notchcast")
         case .noFrames: String(localized: "The recording contains no frames.", table: "Notchcast")

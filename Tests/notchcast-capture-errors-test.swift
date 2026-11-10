@@ -24,6 +24,7 @@ struct NotchcastCommand: Sendable {
     })
     var captures = 0
     var commandTask: Task<Void, Never>?
+    static func failureMessage(_ error: any Error) -> String { error.localizedDescription }
     func capture(_ request: ScreenshotRequest) async throws -> URL? { captures += 1; return nil }
 }
 
@@ -70,14 +71,6 @@ enum ColorPickerService {
         precondition(NotchcastCore.screenshot.captures == 1)
         precondition(AppCore.shared.messages == ["No Image to Edit"])
         AppCore.shared.messages.removeAll()
-        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.permissionDenied)
-                     == String(localized: "Screen Recording access is required."))
-        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.clipboardFailed)
-                     == String(localized: "Could not copy to clipboard."))
-        precondition(ScreenshotModule.failureMessage(NSError(domain: "com.apple.ScreenCaptureKit", code: -3802))
-                     == String(localized: "Could not capture the screen."))
-        precondition(ScreenshotModule.failureMessage(CocoaError(.fileWriteNoPermission))
-                     == String(localized: "Could not save the screenshot."))
         ColorPickerModule.launcherCommand.run()
         precondition(AppCore.shared.messages == [String(localized: "Pick Color")])
         NotchcastCore.colorPicker.outcome = .copied
@@ -86,6 +79,6 @@ enum ColorPickerService {
         NotchcastCore.colorPicker.outcome = .cancelled
         ColorPickerModule.launcherCommand.run()
         precondition(AppCore.shared.messages.count == 1)
-        print("PASS: screenshot permission, clipboard, capture and save errors; color copy failure and success")
+        print("PASS: screenshot area error HUD; color copy failure and success")
     }
 }

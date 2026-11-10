@@ -18,7 +18,7 @@ enum RecordingFiles {
         while true {
             try Task.checkCancellation()
             let destination = folder.appendingPathComponent(
-                RecordingNaming.filename(date: date, timeZone: timeZone, collision: collision))
+                date.captureFileName(kind: "Recording", extension: "mp4", timeZone: timeZone, collision: collision))
             do {
                 try FileManager.default.moveItem(at: source, to: destination)
                 if Task.isCancelled {

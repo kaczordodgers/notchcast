@@ -133,7 +133,7 @@ enum SettingsTab { case notchcast }
         source.denied = true
         await module.executeRecordingCommand(.record(.display(1)), report: { if $1 { failures.append($0) } })
         precondition(failures.last == "Screen Recording access is required.")
-        precondition(RecordingModule.failureMessage(CaptureAreaService.Failure.screenRecordingDenied)
+        precondition(RecordingModule.failureMessage(CaptureFailure.permissionDenied)
             == "Screen Recording access is required.")
         precondition(RecordingModule.failureMessage(RecordingTarget.Failure.invalidTarget) == "Capture area is unavailable.")
         precondition(RecordingModule.failureMessage(RecordingTarget.Failure.targetUnavailable) == "Capture area is unavailable.")
