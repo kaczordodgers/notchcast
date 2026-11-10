@@ -90,7 +90,7 @@ struct CleanAIDataTest {
         precondition(recorded.isEmpty)
         let link = base.appendingPathComponent("link")
         try manager.createSymbolicLink(at: link, withDestinationURL: home)
-        precondition(CleanService.physical(home, inside: home) && CleanService.physical(chat, inside: home))
+        precondition(!CleanService.physical(home, inside: home) && CleanService.physical(chat, inside: home))
         precondition(!CleanService.physical(link.appendingPathComponent(".claude"), inside: base))
         precondition(!CleanService.physical(home.appendingPathComponent(".claude/.."), inside: home))
         precondition(!CleanService.physical(sentinel, inside: home))

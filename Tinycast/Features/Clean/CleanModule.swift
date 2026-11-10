@@ -10,7 +10,7 @@ final class CleanModule: NotchcastModule {
     private var running = false
     private weak var core: AppCore?
     private let preferences = NotchcastPreferences.shared
-    lazy var coordinator: CleanCoordinator = CleanCoordinator(
+    lazy var coordinator = CleanCoordinator(
         transport: .init(scan: Self.scan),
         isOn: { [preferences] in preferences.isOn($0) },
         question: { [weak self] feature, count, bytes in
@@ -22,7 +22,6 @@ final class CleanModule: NotchcastModule {
         }, optimizeQuestion: { [weak self] task in
             await self?.ask(title: task.title, message: task.question) ?? false
         }, report: { [weak self] error in
-            if case .helperUpdate? = error as? Failure { self?.coordinator.helperCurrent = false }
             self?.core?.showMessage(error.localizedDescription, tone: .danger)
         })
 
@@ -193,7 +192,7 @@ final class CleanModule: NotchcastModule {
     nonisolated private static func helper<T>(_ body: () async throws -> T) async throws -> T {
         do { return try await body() } catch CleanSystemRootClient.Failure.helperUpdate,
             RootHelperClient.Failure.reinstallRequired, RootHelperClient.Failure.unsafePath(.missing) {
-            throw Failure.helperUpdate
+            throw CleanCoordinator.HelperUpdate()
         }
     }
 
@@ -224,12 +223,11 @@ final class CleanModule: NotchcastModule {
     }
 
     private enum Failure: LocalizedError {
-        case itemsChanged, helperUpdate, toolFailed, skipped(Int)
+        case itemsChanged, toolFailed, skipped(Int)
         var errorDescription: String? {
             switch self {
             case .skipped(let count): String(localized: "\(count) entries skipped")
             case .itemsChanged: String(localized: "Some items changed or could not be processed. Scan again to review them.", table: "Notchcast")
-            case .helperUpdate: String(localized: "Needs the Notchcast helper update", table: "Notchcast")
             case .toolFailed: String(localized: "The Clean tool could not complete the request.", table: "Notchcast")
             }
         }
@@ -281,7 +279,7 @@ final class CleanModule: NotchcastModule {
 
         private func read(_ path: URL) async throws -> CleanAIDataGitState? {
             func git(_ arguments: [String]) async throws -> String {
-                let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/usr/bin/git"),
+                let result = try await CleanTool.run(URL(fileURLWithPath: "/usr/bin/git"),
                     ["--no-optional-locks", "-c", "core.fsmonitor=false", "-C", path.path] + arguments, timeout: 5)
                 guard result.code == 0, result.error.isEmpty else { throw Failure.toolFailed }
                 return result.output.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -311,7 +309,7 @@ final class CleanModule: NotchcastModule {
 
     private struct Tools: CleanOptimizeProcessTransport, CleanOptimizeDatabaseTransport {
         @concurrent func run(_ request: CleanOptimizeRequest) async throws -> CleanOptimizeRequest.Result {
-            .exited(try await CleanProcessRunner.execute(request.executable, request.arguments, timeout: request.timeout).code)
+            .exited(try await CleanTool.run(request.executable, request.arguments, timeout: request.timeout).code)
         }
 
         @concurrent func count(at database: URL, timeout: TimeInterval) async throws -> Int {
@@ -323,7 +321,7 @@ final class CleanModule: NotchcastModule {
         }
 
         static func idle(_ path: URL, recursive: Bool = false) async throws -> Bool? {
-            let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/usr/sbin/lsof"),
+            let result = try await CleanTool.run(URL(fileURLWithPath: "/usr/sbin/lsof"),
                 ["-nP", "-t"] + (recursive ? ["+D", path.path] : ["--", path.path]), timeout: 5)
             guard result.error.isEmpty else { return nil }
             if result.code == 0 { return false }

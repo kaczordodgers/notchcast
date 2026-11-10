@@ -70,11 +70,11 @@ struct CleanService: Sendable {
         return outcomes
     }
 
-    /// The one trash-safety check: `url` is `root` or inside it, and every component from `/` exists
-    /// and is not a symbolic link.
+    /// The one trash-safety check: inside `root`, and no component from `/` is missing or a link.
     static func physical(_ url: URL, inside root: URL = URL(fileURLWithPath: "/")) -> Bool {
         let components = physicalComponents(url)
-        guard components.starts(with: physicalComponents(root)),
+        let base = physicalComponents(root)
+        guard components.count > base.count, components.starts(with: base),
               !components.contains(where: { $0 == "." || $0 == ".." }) else { return false }
         var path = ""
         return components.allSatisfy { component in
