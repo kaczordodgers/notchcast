@@ -4,9 +4,11 @@
 // notchcast-sources: Tinycast/Features/SystemNotices/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Notice.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}
+enum DialogTone {}
 @MainActor final class AppCore {
     static let shared = AppCore()
     let appIndex = Index()
@@ -36,14 +38,17 @@ import Foundation
 }
 @main struct NoticeTests {
     @MainActor static func main() {
+        var refreshes = 0
+        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
         let disk = LowDiskModule()
         disk.start()
+        precondition(refreshes == 1)
         let space = LowDiskEngine.Space(free: 1_000_000, total: 100_000_000)
         disk.manager.onNotice?(space)
         precondition(disk.latest == space)
         precondition(IslandHUDRouter.messages.last?.hasPrefix("Low disk space:") == true)
         disk.stop()
-        precondition(disk.manager.onNotice == nil)
+        precondition(disk.manager.onNotice == nil && refreshes == 2)
         let system = SystemNoticesModule()
         system.start()
         for notice in [SystemNoticeEngine.Notice.wifi(available: false), .wifi(available: true),

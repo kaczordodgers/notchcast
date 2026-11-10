@@ -26,7 +26,9 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 - a `*Descriptor.swift` that does not hold exactly the one descriptor it is named for, or whose descriptor the hub does not list;
 - a `*Descriptor.swift` under a folder upstream ships at `merge-base HEAD upstream/main` (skipped when there is no `upstream/main` ref; drift gate 1 still refuses it at landing);
 - a hub line that maps a feature to another feature's descriptor;
-- a feature with neither a descriptor nor an arm in `settingsGroup`, `title` and `subtitle`.
+- a feature with neither a descriptor nor an arm in `settingsGroup`, `title` and `subtitle`;
+- a `register(_: AppCore)` implementation anywhere but a `<Type>+Registration.swift` in an allowed folder (the descriptor's rules), or under a folder upstream ships;
+- a registrant listed twice, or listed while `NotchcastCore+Modules.swift` still holds a `static` of its type or an entry `module: <Type>...`.
 
 It cannot tell whether the folder is the feature's own; review that. Harnesses that compile `NotchcastFeature.swift` receive the hub file and every descriptor from `notchcast/command-harness-sources.sh`, so adding a descriptor edits no harness header; `land.sh` typechecks the same set:
 
@@ -36,6 +38,33 @@ swiftc -swift-version 6 -warnings-as-errors -typecheck Tinycast/Features/Notchca
 ```
 
 `NotchcastFeature*.swift` alone no longer typechecks: the hub list names every descriptor.
+
+## Registering a module
+
+A feature owns its module instance and hands the controller its entries; the hub no longer holds a `static let` or an entry for it, and nothing outside the hub reads `NotchcastCore.<module>`. `LowDisk/` and `WaitingAlerts/` are the reference.
+
+1. Beside the descriptor, add `<Module>+Registration.swift` (`Tinycast/Features/LowDisk/LowDiskModule+Registration.swift`):
+
+   ```swift
+   extension LowDiskModule: NotchcastRegistrant {
+       static let shared = LowDiskModule()
+
+       static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+           [.init(requires: [.island, .lowDiskWarning], module: shared)]
+       }
+   }
+   ```
+
+   Move the hub's initializer into `shared` unchanged, and its `requires`/`requiresAny` into the entry unchanged. A module built from `core` uses `static private(set) var shared: <Module>?`, set in `register`. Start-time glue the hub ran only for this module (a callback, a `configure(core)`) moves into `register`, before `return`. One file may return several entries.
+2. Append `<Module>.self,` to `registrants` in `Tinycast/Features/Notchcast/Core/NotchcastCore+Registrants.swift` (`merge=union`), one per line. `notchcast/check-feature-shape.py` refuses a `+Registration.swift` whose type is missing from the list, and a line holding two entries.
+3. Delete the module's `static let` and its entry line from `NotchcastCore+Modules.swift`.
+4. Rewrite every `NotchcastCore.<module>` to `<Module>.shared`: commands, settings and the feature's other files read the instance it owns (`run: { LowDiskModule.shared.manager.refresh() }`). `stopForTermination` in `NotchcastCore.swift` is the one hub line that may name `<Module>.shared`; keep its order. The module and its registration reach the app only through the host seam `Core/NotchcastHost.swift`, which `NotchcastCore.start` sets before any module starts: `AppCore.shared.showMessage(m, tone: t)` becomes `NotchcastHost.current.showMessage(m, t)`, and `AppCore.shared.appIndex.refreshNotchcastCommands()` becomes `NotchcastHost.current.refreshNotchcastCommands()`. `register(_ core: AppCore)` still receives `core` for glue the seam does not cover.
+5. Lower `core-lookups` in `notchcast/drift-baseline.json` for every file you cleaned; drop a key that reaches 0.
+6. A harness that stubbed `NotchcastCore.<module>` compiles the real `+Registration.swift`, `Core/NotchcastModule.swift` and `Core/NotchcastRegistrant.swift` through `// notchcast-sources:` instead, and checks the entries `register` returns (`Tests/nc-WaitingAlerts-engine-test.swift`). A harness compiling code that uses the seam adds `Core/NotchcastHost.swift` (plus `enum DialogTone {}`, with the cases the code names, when it lacks the real one) and drops its `AppCore` stub once no other file it compiles calls `AppCore`; a harness that calls `register` keeps at least an empty `final class AppCore {}`. It can set `NotchcastHost.current`'s closures to count messages and refreshes (`Tests/notchcast-system-notice-hookups-test.swift`).
+
+A registration names only its own folder, `Notchcast/Core` kernel types and upstream. Wiring between two fork features (feature A reading feature B's module, such as Shelf's link status reading Mac Link and Link Health) stays in `NotchcastCore.start` as hub glue, so drift gate 1 `boundaries` never rises; such a module moves only when that glue can read both sides' `shared`.
+
+Registrant entries start after every hub entry and before the services' entries, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one.
 
 ## Moving a feature
 
