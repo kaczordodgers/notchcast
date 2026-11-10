@@ -1,25 +1,16 @@
 // notchcast-sources: Tinycast/Features/DictationTrigger/DictationTriggerModule*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
 
 import Observation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
 @MainActor enum NotchcastCore { static let eventTapHub = 0 }
-@MainActor @Observable final class Coordinator {
-    var isEnabled = true
-    var triggerIsRecording = false
-    var starts = 0
-    var finishes = 0
-    var cancels = 0
-    func triggerStarted(inEnglish: Bool) { precondition(inEnglish); starts += 1 }
-    func triggerFinished() { finishes += 1 }
-    func cancel() { cancels += 1 }
-}
 @MainActor @Observable final class HotKeys {
     var recordingAction: String?
     var globeReserved = false
 }
 @MainActor final class AppCore {
-    let dictationCoordinator = Coordinator()
+    let dictationCoordinator = DictationCoordinator()
     let hotKeys = HotKeys()
 }
 @MainActor final class NotchcastPreferences {

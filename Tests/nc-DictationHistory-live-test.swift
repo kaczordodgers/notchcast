@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/Dictation/Model/*.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationCoordinator.swift
-// notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanup+Installation.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift
 import AppKit
 import Observation
 
@@ -14,9 +14,9 @@ struct DictationHistoryLiveTest {
             let fixture = Fixture()
             fixture.settings.dictationLiveInsertion = true
             var records: [(String, String)] = []
-            DictationCleanup.transcriptObserver = { records.append(($0, $1)) }
-            DictationCleanup.setHistoryEnabled(true)
-            DictationCleanup.install()
+            DictationFamily.shared.historySink = { records.append(($0, $1)) }
+            DictationFamily.shared.setHistory(true)
+            DictationFamily.shared.setCleanup(true)
             fixture.coordinator.pressed()
             try await wait { fixture.panel.isVisible }
             for words in ["First chunk", "Second chunk", "Third chunk"] {
@@ -41,7 +41,7 @@ struct DictationHistoryLiveTest {
         Fixture.expectsError = false
         let fixture = Fixture()
         var records: [(String, String)] = []
-        DictationCleanup.transcriptObserver = { records.append(($0, $1)) }
+        DictationFamily.shared.historySink = { records.append(($0, $1)) }
         fixture.coordinator.pressed()
         try await wait { fixture.panel.isVisible }
         fixture.models.answer = "raw tail"
@@ -180,8 +180,13 @@ enum DialogTone { case danger }
 
 @MainActor enum DictationCleanup {
     static var inputs: [String] = []
-    static func process(_ raw: String, language: String?) async -> String {
-        inputs.append(raw)
-        return "cleaned tail"
-    }
+}
+
+extension DictationFamily {
+    static let shared = DictationFamily(process: { raw, _, _, _ in
+        await MainActor.run {
+            DictationCleanup.inputs.append(raw)
+            return "cleaned tail"
+        }
+    })
 }
