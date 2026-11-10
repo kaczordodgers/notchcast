@@ -11,6 +11,11 @@ enum NotchcastCore {
 
     static func setFanMode(_ mode: FanControl.Mode) { monitor?.fans.set(mode) }
     static var confirmMacUpdate: () async -> Bool = { false }
+    /// Hub glue: the settings backup reads Screen Text's option without naming its folder.
+    static var screenTextRemovesLineBreaks: Bool {
+        get { ScreenTextModule.shared.removeLineBreaks }
+        set { ScreenTextModule.shared.removeLineBreaks = newValue }
+    }
 
     static func stopForTermination() async {
         tasksSync.stop()
@@ -21,10 +26,10 @@ enum NotchcastCore {
         dictationTrigger?.stop()
         await treadmill.stopForTermination()
         settingsBackup.stop()
-        captureTrimmer.stop()
+        CaptureTrimmerModule.shared.stop()
         voiceAsk?.stop()
-        recording.stop()
-        await recording.waitUntilIdle()
+        RecordingModule.shared.stop()
+        await RecordingModule.shared.waitUntilIdle()
         await editor.flushForTermination()
         machineBackup.stop()
         await machineBackup.waitUntilIdle()
@@ -83,6 +88,7 @@ enum NotchcastCore {
         }
         shelf.linkStatus = shelfChannel
         shelf.transport = shelfChannel
+        ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
         for module in [tweaks, typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {

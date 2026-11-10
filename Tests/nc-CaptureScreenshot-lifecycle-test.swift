@@ -1,11 +1,15 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-kit: core
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Registration.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
 import Foundation
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
+
+@MainActor final class AppCore {}
 
 @MainActor
 private final class CaptureProbe {
@@ -111,7 +115,10 @@ struct ScreenshotLifecycleTest {
         await expectCancellation(fifth)
         precondition(probe.calls == 5 && probe.outputs == 1)
         module.stop()
-        print("PASS: screenshot switch starts/stops capture; destination and caller cancellation stop output")
+        let entries = ScreenshotModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.screenshot] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === ScreenshotModule.shared)
+        print("PASS: screenshot switch starts/stops capture; destination and caller cancellation stop output; registration entry")
     }
 
     @MainActor

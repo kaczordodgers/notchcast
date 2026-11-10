@@ -1,7 +1,9 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule.swift
+// notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 // notchcast-reads: Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift
@@ -23,17 +25,11 @@ struct NotchcastCommand: Sendable {
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }
 }
-@MainActor enum NotchcastCore {
-    static var module: ScrollingCaptureModule?
-    static var scrollingCapture: ScrollingCaptureModule { module! }
+extension ScrollingCaptureModule {
+    static var instance: ScrollingCaptureModule?
+    static var shared: ScrollingCaptureModule { instance! }
 }
-@MainActor final class AppCore {
-    enum Tone { case neutral, danger }
-    static let shared = AppCore()
-    var messages: [String] = []
-    var tones: [Tone] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append(text); tones.append(tone) }
-}
+enum DialogTone { case neutral, danger }
 @MainActor final class CaptureAreaService {
     var starts = 0
     var stops = 0
@@ -59,11 +55,14 @@ struct NotchcastCommand: Sendable {
 }
 @main @MainActor struct ScrollingModuleTest {
     static func main() async throws {
+        var messages: [String] = []
+        var tones: [DialogTone] = []
+        NotchcastHost.current.showMessage = { messages.append($0); tones.append($1) }
         let area = CaptureAreaService()
         let session = ScrollingCaptureSession()
         var output: [Data] = []
         let module = ScrollingCaptureModule(area: area, session: session, write: { output.append($0); return true })
-        NotchcastCore.module = module
+        ScrollingCaptureModule.instance = module
         let preferences = NotchcastPreferences.shared
         let controller = NotchcastModuleController(
             [.init(requires: [.scrollingCapture], module: module)], preferences: preferences)
@@ -77,14 +76,14 @@ struct NotchcastCommand: Sendable {
         precondition(command.isEnabled())
         command.run()
         precondition(session.starts == 1 && session.state == .capturing)
-        precondition(AppCore.shared.tones == [.neutral])
+        precondition(tones == [.neutral])
         command.run()
         for _ in 0..<100 { await Task.yield() }
         precondition(session.stops == 1 && output == [Data([1, 2, 3])])
         area.denied = true
         command.run()
-        precondition(AppCore.shared.messages.last == String(localized: "Screen Recording access is required."))
-        precondition(AppCore.shared.tones.last == .danger)
+        precondition(messages.last == String(localized: "Screen Recording access is required."))
+        precondition(tones.last == .danger)
         preferences.set(.scrollingCapture, false)
         for _ in 0..<100 { await Task.yield() }
         precondition(session.cancels == 1 && area.stops == 1 && !command.isEnabled())
