@@ -26,14 +26,14 @@ struct NotchcastSettingRowsC: View {
             URLCleanerSiteParametersSettingRow(module: NotchcastCore.urlCleaner)
             URLCleanerLastRemovedSettingRow(module: NotchcastCore.urlCleaner)
         case .captureScreenshotDestination:
-            ScreenshotDestinationSettingRow(module: NotchcastCore.screenshot)
-            ScreenshotFolderSettingRow(module: NotchcastCore.screenshot)
+            ScreenshotDestinationSettingRow(module: ScreenshotModule.shared)
+            ScreenshotFolderSettingRow(module: ScreenshotModule.shared)
         case .captureScreenTextLineBreaks:
-            ScreenTextLineBreaksSettingRow(module: NotchcastCore.screenText)
+            ScreenTextLineBreaksSettingRow(module: ScreenTextModule.shared)
         case .captureColorFormat:
-            ColorFormatSettingRow(module: NotchcastCore.colorPicker)
+            ColorFormatSettingRow(module: ColorPickerModule.shared)
         case .captureRecordingOptions:
-            RecordingFolderSettingRow(module: NotchcastCore.recording)
+            RecordingFolderSettingRow(module: RecordingModule.shared)
         case .dictationCleanup:
             DictationCleanupEndpointSettingRow(module: NotchcastCore.dictationCleanup)
             DictationCleanupEffortSettingRow(module: NotchcastCore.dictationCleanup)
