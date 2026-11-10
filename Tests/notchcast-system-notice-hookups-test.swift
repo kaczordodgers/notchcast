@@ -46,6 +46,7 @@ enum DialogTone {}
         precondition(disk.manager.onNotice == nil && refreshes == 2)
         let system = SystemNoticesModule()
         system.start()
+        precondition(refreshes == 3)
         for notice in [SystemNoticeEngine.Notice.wifi(available: false), .wifi(available: true),
                        .tailscale(.connected), .lowBattery(percent: 10, threshold: 10)] {
             system.manager.onNotice?(notice)
@@ -56,7 +57,7 @@ enum DialogTone {}
         precondition(IslandHUDRouter.ids == ["lowDisk", "system.wifi", "system.wifi",
                                                          "system.tailscale", "system.battery"])
         system.stop()
-        precondition(system.manager.onNotice == nil)
+        precondition(system.manager.onNotice == nil && refreshes == 4)
         print("Verified low disk and system notice callbacks reach the island router and detach on stop")
     }
 }
