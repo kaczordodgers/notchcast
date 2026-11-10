@@ -39,7 +39,9 @@ nonisolated struct DistillRunner: DownloadRunner {
         try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: work) }
         let metadata = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.metadataArguments(link: cleaned))
-        let media = try JSONDecoder().decode(YtDlpAudio.Media.self, from: Data(metadata.utf8))
+        // A playlist link prints one JSON line per entry; the first is the linked media.
+        let first = metadata.split(whereSeparator: \.isNewline).first ?? ""
+        let media = try JSONDecoder().decode(YtDlpAudio.Media.self, from: Data(first.utf8))
         _ = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.audioArguments(link: cleaned, folder: work))
         try Task.checkCancellation()
         let files = try FileManager.default.contentsOfDirectory(at: work, includingPropertiesForKeys: [.isRegularFileKey])
