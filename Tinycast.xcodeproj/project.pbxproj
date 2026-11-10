@@ -1945,6 +1945,7 @@
 		EC39E2815103B5C4BEE8AED6 /* ExtensionFormKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57640B0DA3F71E66CECA871C /* ExtensionFormKey.swift */; };
 		EC89200804A0B3ABDAD773F1 /* SMCClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63ACACD34C2AB8BAA0B6D401 /* SMCClient.swift */; };
 		ECAE658F8DCCE74E49FDFFC2 /* ExtensionSearchAccessoryButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB044816D6A7BC72E676A6C /* ExtensionSearchAccessoryButton.swift */; };
+		ECC322F7C3D8C024C05B86F5 /* ProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = E85ABD969754DA0BF99BFD65 /* ProcessRunner.swift */; };
 		ECC5A3C233BE1D14D5BF9DE6 /* KeepAwakeBackupKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = F09F06D7A1A9DDD73AC66906 /* KeepAwakeBackupKeys.swift */; };
 		ECD777BD408E9DC2C93CFC1B /* CalcUnitExpression.swift in Sources */ = {isa = PBXBuildFile; fileRef = 639F73227BB0A4B9CD889D81 /* CalcUnitExpression.swift */; };
 		ECE4FEB90D3B0E9D00331B00 /* ShelfItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55D0385486258EBA1638D9D6 /* ShelfItem.swift */; };
@@ -4119,6 +4120,7 @@
 		E7CB45E85566001834934DF1 /* WindowCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowCommand.swift; sourceTree = "<group>"; };
 		E7D5244DA7C7D17A80F33442 /* ExtensionMenuBarManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionMenuBarManager.swift; sourceTree = "<group>"; };
 		E7E8F5B471A74F44F43FE021 /* DictationCleanupPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationCleanupPrompt.swift; sourceTree = "<group>"; };
+		E85ABD969754DA0BF99BFD65 /* ProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunner.swift; sourceTree = "<group>"; };
 		E85E7BB12081ED624DA03987 /* URLCleanerSystemPasteboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLCleanerSystemPasteboard.swift; sourceTree = "<group>"; };
 		E8A4DEF28F120FE354EB5599 /* QuickAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickAction.swift; sourceTree = "<group>"; };
 		E8C0FC7C3DC5ADFF24EA6E8C /* ScreenTextService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTextService.swift; sourceTree = "<group>"; };
@@ -7443,6 +7445,7 @@
 				1BFEE2F988B62F1206130D8E /* Launcher */,
 				0FEF343AED458F6CB7E5188A /* Model */,
 				B805B33938472F24D4CC5A24 /* Pages */,
+				FC9CC8116575BB50003FF0CE /* Process */,
 				C3194696FFE806C870A2D779 /* Root */,
 				24F7CBB9C6C56820CD1B9FC3 /* Service */,
 				8008DA9053F8235B82C72694 /* Settings */,
@@ -10128,6 +10131,14 @@
 			);
 			sourceTree = "<group>";
 		};
+		FC9CC8116575BB50003FF0CE /* Process */ = {
+			isa = PBXGroup;
+			children = (
+				E85ABD969754DA0BF99BFD65 /* ProcessRunner.swift */,
+			);
+			path = Process;
+			sourceTree = "<group>";
+		};
 		FCF0B265883B60146C913937 /* UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -11957,6 +11968,7 @@
 				06B5CEA1D07ECA38A816658F /* PrivacyChoicesDescriptor.swift in Sources */,
 				5CB834F0059FC98C26E7A515 /* ProcessExit.swift in Sources */,
 				C5362E24767E311CEC231547 /* ProcessReading.swift in Sources */,
+				ECC322F7C3D8C024C05B86F5 /* ProcessRunner.swift in Sources */,
 				CD318D4C52A8B33B3DF0F32F /* ProcessSampler.swift in Sources */,
 				4D462D0F116A5C04E4DEFCCF /* PseudoTerminal.swift in Sources */,
 				DB5EBB3599B36C8D59036FCA /* PublicWebAddress.swift in Sources */,
