@@ -14,16 +14,13 @@ final class NotchcastPreferences {
 }
 
 @MainActor
-final class NotchcastLauncherSurface {
-    static let shared = NotchcastLauncherSurface()
+enum NotchcastLauncherSurface {
     static var preferredScreen: NSScreen? { nil }
-    func prepare(attached: Bool) {}
 }
 
 @MainActor
 final class IslandPanel: NSPanel {
     var displayFrame: CGRect { frame }
-    var hardwareNotch: CGRect?
     var shown = false
     var activeSpace = true
     var closedBodyFrame = CGRect.zero
@@ -44,14 +41,12 @@ struct NotchcastLauncherPlacementTests {
         }
         assert(anchor() == nil, "a hidden island hangs nothing")
         panel.shown = true
-        panel.hardwareNotch = CGRect(x: -1070, y: 1248, width: 200, height: 32)
         panel.closedBodyFrame = CGRect(x: -1070, y: 1248, width: 200, height: 32)
-        assert(anchor() == CGPoint(x: -1345, y: 1248), "the launcher's top sits under the notch, part of the black")
+        assert(anchor() == CGPoint(x: -1345, y: 1240), "the launcher hangs a gap under the notch")
         panel.closedBodyFrame = CGRect(x: -1114, y: 1212, width: 288, height: 68)
-        assert(anchor() == CGPoint(x: -1345, y: 1248), "a grown message leaves the launcher under the notch")
-        panel.hardwareNotch = nil
+        assert(anchor() == CGPoint(x: -1345, y: 1204), "a row grown below the notch pushes the launcher under it")
         panel.closedBodyFrame = CGRect(x: 2470, y: 1045, width: 180, height: 31)
-        assert(anchor() == CGPoint(x: 2185, y: 1076), "on a monitor the launcher's top is level with the pill's")
+        assert(anchor() == CGPoint(x: 2185, y: 1037), "on a monitor the launcher hangs a gap under the pill")
         for feature in [NotchcastFeature.island, .launcherFromIsland] {
             NotchcastPreferences.shared.enabled.remove(feature)
             assert(anchor() == nil)
@@ -67,7 +62,7 @@ struct NotchcastLauncherPlacementTests {
         print("Passed: notch, grown message, monitor pill, hidden island, disabled preferences, hosting island")
     }
 
-    /// Only the island the launcher was hung from grows into it.
+    /// Only the island the launcher was hung from hosts it.
     static func hostingIsland() {
         func island(_ display: CGRect) -> IslandPanel {
             let panel = IslandPanel(contentRect: display, styleMask: .borderless, backing: .buffered, defer: false)
@@ -85,7 +80,7 @@ struct NotchcastLauncherPlacementTests {
         assert(NotchcastLauncherPlacement.island(hosting: underExternal, among: panels) === external)
         external.activeSpace = false
         assert(NotchcastLauncherPlacement.island(hosting: underExternal, among: panels) == nil,
-               "a full-screen space without the island: the launcher sits at its own spot and nothing grows")
+               "a full-screen space without the island: the launcher sits at its own spot")
         external.activeSpace = true
         external.shown = false
         assert(NotchcastLauncherPlacement.island(hosting: underExternal, among: panels) == nil)

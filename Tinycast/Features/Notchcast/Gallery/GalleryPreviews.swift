@@ -48,4 +48,5 @@ private func settle(_ window: NSWindow, _ duration: Duration) {
 #Preview("launcher-root-dark") { galleryPreview("launcher-root-dark") }
 #Preview("settings-general-dark") { galleryPreview("settings-general-dark") }
 #Preview("settings-notchcast-island-dark") { galleryPreview("settings-notchcast-island-dark") }
+#Preview("launcher-root-light") { galleryPreview("launcher-root-light") }
 #endif
