@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +32,17 @@ SCREEN_TEXT = ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"
 PASTE_ENTRY = ".init(requires: [.pastePlain], module: plainPasteModule)"
 ARCHIVES_HOOK = "        if NotchcastCore.archives.open(url) { return }\n"
 DEEP_LINK_HOOK = "        if deepLinkCoordinator.handles(url) {"
+ARCHIVE_ENTRIES = "Tinycast/Features/Archives/NotchcastArchiveModules.swift"
+GLOBE = "Tinycast/Features/DictationTrigger/GlobeDictationDescriptor.swift"
+# A fact the checker finds nowhere must fail, not pass: the error, the file, then the text every copy of which is replaced.
+UNREAD = (
+    (".killProcess wired is None; the spec pins false", SHAPE.FEATURE, "static let unwired", "static let notWired"),
+    ("found no Descriptor field", DESCRIPTORS, "        let ", "        var "),
+    ("found no module static", MODULES, "    static let ", "    static var "),
+    ("found no setting", SHAPE.SETTINGS, "    case ", "  case "),
+    ("found no backup anchor", SEARCH, "static let notchcastBackup", "static let backup"),
+    (".screenText has no place in the settings tree", SHAPE.TREE, "case .", "case  ."),
+)
 # One planted break of the shipped tree per spec fact: its rule, the error it must raise, the file, then old and new text.
 BREAKS = (
     ("feature-pins", ".archivesInPlace defaultEnabled is true; the spec pins false",
@@ -63,6 +75,23 @@ BREAKS = (
     ("module-built-once", "build PlainPasteModule once",
      MODULES, "self.pastePlain = plainPasteModule", "self.pastePlain = PlainPasteModule(clipboard: core.clipboardManager)"),
     ("module-built-once", "build PlainPasteModule once", MODULES, PASTE_ENTRY, ".init(requires: [.pastePlain], module: chatTools)"),
+    ("module-entry-once", "run screenText in exactly one entry", MODULES, "            .init(requires: [.screenText], module: screenText),\n", ""),
+    ("module-entry-once", "run scrollingCapture in exactly one entry",
+     MODULES, "            .init(requires: [.scrollingCapture], module: scrollingCapture),\n", ""),
+    ("module-entry-once", "run captureEditor in exactly one entry",
+     MODULES, "            .init(requires: [.captureEditor], module: captureEditor),\n", ""),
+    ("module-entry-once", "run module in one entry", ARCHIVE_ENTRIES, "module: module)]",
+     "module: module), .init(requires: [.archivesInPlace], module: module)]"),
+    ("module-entry-requires", "the entry that runs tasks requires .tasks", SHAPE.MODULES.with_name("NotchcastServicesModules.swift"),
+     ".init(requires: [.tasks], module: tasks)", ".init(requires: [.island], module: tasks)"),
+    ("source-hooks", "hook missing or out of order: [.init(requires: [.archives], module: module)]",
+     ARCHIVE_ENTRIES, "requires: [.archives]", "requires: []"),
+    ("feature-pins", ".globeDictation needsIsland is true; the spec pins false",
+     GLOBE, "dependencies: [],", "dependencies: [\n            .island\n        ],"),
+    ("feature-pins", "open the descriptor with `static let <feature> = Self(`", GLOBE, "= Self(", "= NotchcastFeature.Descriptor("),
+    ("feature-pins", ".captureEditor defaultEnabled reads `[`; state the whole value on one line",
+     SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: ["),
+    ("setting-one-case", "declare only one enum case per line", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay, islandRowless\n"),
     ("setting-row-arm", ".captureScreenTextLineBreaks needs exactly one arm that shows a row",
      SHAPE.TREE.with_name("NotchcastSettingRows+C.swift"),
      "ScreenTextLineBreaksSettingRow(module: NotchcastCore.screenText)", "EmptyView()"),
@@ -616,6 +645,22 @@ class FeatureFactTests(unittest.TestCase):
                 self.assertIn(message, "\n".join(errors))
                 for error in errors:
                     self.assertRegex(error, r"^[\w/+.-]+:\d+: ")
+
+    def test_a_fact_found_nowhere_fails(self):
+        for message, path, old, new in UNREAD:
+            with self.subTest(message=message):
+                shipped = (self.root / path).read_text()
+                self.assertIn(old, shipped)
+                (self.root / path).write_text(shipped.replace(old, new))
+                try:
+                    errors = SHAPE.fact_errors(self.root)
+                finally:
+                    (self.root / path).write_text(shipped)
+                self.assertIn(message, "\n".join(errors))
+        with unittest.mock.patch.object(SHAPE, "CLASS_PINS", (("group", ".nowhere", "needsIsland", "false"),)):
+            self.assertIn("no feature's group is .nowhere", "\n".join(SHAPE.fact_errors(self.root)))
+        with unittest.mock.patch.object(SHAPE, "ABSENT", (("Tinycast/App/Gone.swift", "showSupport"),)):
+            self.assertIn("found no file to keep showSupport out of", "\n".join(SHAPE.fact_errors(self.root)))
 
     def test_unreadable_tree_fails_every_rule(self):
         with tempfile.TemporaryDirectory() as empty:

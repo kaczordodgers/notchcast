@@ -30,18 +30,22 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 
 It also holds the facts a harness could only restate, each as a rule over every feature (`fact_errors`):
 
-- feature-pins: a spec value of one feature (`PINS`: group, settings module, `defaultEnabled`, dependencies, grants, `needsIsland`, `isWired`, its settings rows) or of a class of features (`CLASS_PINS`) differs from the source. A spec value worth keeping goes there, not into a harness;
+- feature-pins: a spec value of one feature (`PINS`: group, settings module, `defaultEnabled`, dependencies, grants, `needsIsland`, `isWired`, its settings rows) or of a class of features (`CLASS_PINS`) differs from the source. A descriptor value written over several lines is read whole; a switch-arm value that does not close its brackets on its line is refused. A spec value worth keeping goes there, not into a harness;
 - feature-text: a title or subtitle that is not a non-empty `String(localized:)`;
 - settings-item-once: a feature placed twice or not at all in `NotchcastSettingsModule+Groups.swift`;
 - command-owner, command-slugs, command-listed: see [command-hook.md](command-hook.md);
-- module-entry-requires: a hub entry that runs a module named after a feature without requiring that feature;
+- module-entry-requires: an entry, in any file that states module entries, that runs a module named after a feature without requiring that feature;
+- module-entry-once: a hub `static let` holding a `NotchcastModule` (a `*Module` type, or one declared `: NotchcastModule`) that exactly one hub entry does not run, or a module that two entries of one file run;
 - module-built-once: an optional hub module built twice, or not run by exactly one entry;
+- setting-one-case: two settings on one `case` line of `NotchcastSetting.swift`;
 - setting-row-arm: a `NotchcastSetting` without exactly one non-empty row arm in `NotchcastSettingRows+*.swift`;
 - backup-anchor-header: a `notchcastBackup…` search anchor without its `SettingsSectionHeader`;
-- source-hooks: a one-line hook in a file no harness compiles (`HOOKS`, needles in order) missing or reordered, or a forbidden text (`ABSENT`) present;
+- source-hooks: a one-line hook (`HOOKS`, needles in order) missing or reordered, or a forbidden text (`ABSENT`) present. `HOOKS` also pins `NotchcastArchiveModules.swift` to its one entry, requiring `.archives`;
 - plist: `Info.plist` archive document types, imported type identifiers, the Bonjour service and the local network text.
 
-`check-backup-schema.py` refuses a backup key named like a secret (backup-no-secret-names). Each rule has a failing and a passing case in `check-feature-shape-test.py` (`BREAKS`) or `check-backup-schema-test.py`.
+A rule that finds nothing to check fails instead of passing: a descriptor it cannot open, no `unwired` list, a class pin no feature belongs to, an `ABSENT` path with no file, no module static, no setting, no backup anchor.
+
+`check-backup-schema.py` refuses a backup key named like a secret (backup-no-secret-names). Each rule has a failing and a passing case in `check-feature-shape-test.py` (`BREAKS`, `UNREAD`) or `check-backup-schema-test.py`.
 
 It cannot tell whether the folder is the feature's own; review that. Harnesses that compile `NotchcastFeature.swift` receive the hub file and every descriptor from `notchcast/command-harness-sources.sh`, so adding a descriptor edits no harness header; `land.sh` typechecks the same set:
 

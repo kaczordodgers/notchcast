@@ -106,6 +106,7 @@ HOOKS = (
     ("Tinycast/App/MenuBarItem.swift",
      'Button("About \\(appName)") { AppCore.shared.settingsCoordinator.showAbout() }'),
     (COMMAND, '"command:nc-" + slug'),
+    ("Tinycast/Features/Archives/NotchcastArchiveModules.swift", "[.init(requires: [.archives], module: module)]"),
     ("Tinycast/Features/AgentThreads/AgentThreadsModule.swift",
      *2 * ("isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }",)),
     (APP_SETTINGS, "var extensionsEnabled: Bool { get { false } set { } }"),
@@ -149,6 +150,9 @@ ABSENT = (
     (BACKUPS, "settingsFileEnabled ="),
     (TREE.with_name("*.swift"), ".isGranted"),
 )
+# A module entry in any file that states one: its requires list, then the module it runs.
+ENTRY = re.compile(r"\.init\(requires: \[(.*?)\](?:, requiresAny: .*?)?, module: (.+?)\)(?=[,\]]|$)", re.M)
+MODULE_TYPE = re.compile(r"\b(?:class|extension) (\w+)\s*:[^{\n]*\bNotchcastModule\b")
 
 
 def mask_literals(source):
@@ -387,6 +391,22 @@ def registration_errors(root):
     return errors
 
 
+def call_arguments(source, start):
+    """The labelled arguments of the call whose `(` ends at start, as {label: value}; a value on several lines reads as one."""
+    code = mask_literals(source)
+    stated = {}
+    depth, begin = 1, start
+    for index in range(start, len(code)):
+        depth += (code[index] in "([{") - (code[index] in ")]}")
+        if depth == 0 or (depth == 1 and code[index] == ","):
+            label, _, value = source[begin:index].partition(":")
+            stated[label.strip()] = re.sub(r"(?<=[\[(]) | (?=[\])])", "", " ".join(value.split()))
+            begin = index + 1
+        if depth == 0:
+            break
+    return stated
+
+
 def feature_facts(root):
     """Each feature's facts as Swift text, from its descriptor or its switch arms, with its place in the settings tree."""
     errors = []
@@ -403,21 +423,32 @@ def feature_facts(root):
             if value:
                 known["group" if member == "settingsGroup" else member] = value
     fields = set(re.findall(r"^        let (\w+):", (root / DESCRIPTORS).read_text(), re.M))
+    if not fields:
+        errors.append((DESCRIPTORS, 1, "found no Descriptor field; declare each as `let <name>:` on its own line"))
     for path in sorted((root / "Tinycast/Features").rglob("*Descriptor.swift")):
         relative = path.relative_to(root)
+        if not DESCRIPTOR_FILE.fullmatch(relative.as_posix()):
+            continue
         text = path.read_text()
         declared = re.search(r"^\s*static let (\w+) = Self\($", text, re.M)
-        if not DESCRIPTOR_FILE.fullmatch(relative.as_posix()) or not declared or declared[1] not in facts:
+        if not declared or declared[1] not in facts:
+            errors.append((relative, 1, "open the descriptor with `static let <feature> = Self(` at the end of a line"))
             continue
-        stated = dict(re.findall(r"^\s+(\w+): (.+?),?$", text[declared.end():], re.M))
+        stated = call_arguments(text, declared.end())
         number = text.count("\n", 0, declared.start()) + 1
         if fields - set(stated):
-            errors.append((relative, number, "start each descriptor field on a line of its own"))
+            errors.append((relative, number, f"state every descriptor field; found no {', '.join(sorted(fields - set(stated)))}"))
         facts[declared[1]].update(stated, at=(relative, number))
-    unwired = set(re.findall(r"\.(\w+)", source.split("static let unwired", 1)[-1].split("]", 1)[0]))
+    unwired = re.search(r"\bstatic let unwired\b[^\[\n]*\[(.*?)\]", source, re.S)
     for name, known in facts.items():
-        known["needsIsland"] = str("island" in re.findall(r"\.(\w+)", known.get("dependencies", ""))).lower()
-        known["wired"] = str(name not in unwired).lower()
+        for fact, value in known.items():
+            code = mask_literals(value) if fact != "at" else ""
+            if any(code.count(opening) != code.count(closing) for opening, closing in ("()", "[]", "{}")):
+                errors.append((*known["at"], f".{name} {fact} reads `{value}`; state the whole value on one line"))
+        if "dependencies" in known:
+            known["needsIsland"] = str("island" in re.findall(r"\.(\w+)", known["dependencies"])).lower()
+        if unwired:
+            known["wired"] = str(name not in re.findall(r"\.(\w+)", unwired[1])).lower()
     module = None
     for number, line in enumerate((root / TREE).read_text().split("\n"), 1):
         opened = re.match(r"\s*case \.(\w+): \[", line)
@@ -425,7 +456,7 @@ def feature_facts(root):
         item = re.search(r"\.feature\(\.(\w+), settings: (\[.*?\])\)", line)
         if item and "module" in facts.get(item[1], {}):
             errors.append((TREE, number, f".{item[1]} is already in the settings tree; place a feature once"))
-        elif item and item[1] in facts:
+        elif item and module and item[1] in facts:
             facts[item[1]].update(module=module, settings=item[2])
     errors.extend((*known["at"], f".{name} has no place in the settings tree; add it to a group in {TREE}")
                   for name, known in facts.items() if "module" not in known)
@@ -440,8 +471,11 @@ def feature_errors(root):
         errors.extend((*known["at"], f".{name} {fact} is {known.get(fact)}; the spec pins {value} (PINS in {Path(__file__).name})")
                       for fact, value in pins.items() if known.get(fact) != value)
     for when, equals, fact, value in CLASS_PINS:
+        members = [(name, known) for name, known in facts.items() if known.get(when) == equals]
+        if not members:
+            errors.append((FEATURE, 1, f"no feature's {when} is {equals}; the class pin on {fact} holds nothing (CLASS_PINS)"))
         errors.extend((*known["at"], f".{name} {fact} is {known.get(fact)}; a feature whose {when} is {equals} keeps {value}")
-                      for name, known in facts.items() if known.get(when) == equals and known.get(fact) != value)
+                      for name, known in members if known.get(fact) != value)
     errors.extend((*known["at"], f".{name} needs a localized, non-empty {text}")
                   for name, known in facts.items() for text in ("title", "subtitle")
                   if not re.match(r'String\(localized: "[^"]', known.get(text, "")))
@@ -501,23 +535,38 @@ def command_errors(root):
 
 
 def module_errors(root):
-    """A hub entry for the module named after a feature requires that feature; an optional module is built once."""
+    """In any file a module runs in one entry, which requires the feature it is named after; a hub module runs in exactly one."""
     errors = []
     facts, _ = feature_facts(root)
     hub = mask_literals((root / MODULES).read_text())
-    entries = [(number, re.findall(r"\.(\w+)", entry[1]), entry[2]) for number, entry in (
-        (number, re.search(r"\.init\(requires: \[(.*?)\](?:, requiresAny: .*?)?, module: (.+)\),$", line))
-        for number, line in enumerate(hub.split("\n"), 1)) if entry]
     assigned = re.findall(r"^\s*(?:self\.)?(\w+) = (\w+)$", hub, re.M)
+    holders = {local: name for name, local in assigned}
+    types, ran = set(), {}
+    for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
+        source = path.read_text()
+        types.update(MODULE_TYPE.findall(source))
+        if ".init(requires:" not in source:
+            continue
+        relative, code = path.relative_to(root), mask_literals(source)
+        for entry in ENTRY.finditer(code):
+            number, owner = code.count("\n", 0, entry.start()) + 1, holders.get(entry[2], entry[2])
+            if entry[2] in ran.setdefault(relative, []):
+                errors.append((relative, number, f"run {entry[2]} in one entry"))
+            ran[relative].append(entry[2])
+            if owner in facts and owner not in re.findall(r"\.(\w+)", entry[1]):
+                errors.append((relative, number, f"the entry that runs {entry[2]} requires .{owner}"))
+    entries = ran.get(MODULES, [])
     for static in re.finditer(r"\bstatic (?:private\(set\) )?var (\w+): (\w+Module)\?$", hub, re.M):
         locals_ = [local for name, local in assigned if name == static[1]]
-        if len(locals_) != 1 or hub.count(f"{static[2]}(") > 1 or sum(module == locals_[0] for _, _, module in entries) != 1:
+        if len(locals_) != 1 or hub.count(f"{static[2]}(") > 1 or entries.count(locals_[0]) != 1:
             errors.append((MODULES, hub.count("\n", 0, static.start()) + 1,
                            f"build {static[2]} once, assign it to {static[1]} once and run that one in one entry"))
-    holders = {local: name for name, local in assigned}
-    errors.extend((MODULES, number, f"the entry that runs {module} requires .{holders.get(module, module)}")
-                  for number, requires, module in entries
-                  if holders.get(module, module) in facts and holders.get(module, module) not in requires)
+    statics = [static for static in re.finditer(r"\bstatic let (\w+) = (\w+)\b", hub)
+               if static[2].endswith("Module") or static[2] in types]
+    if not statics:
+        errors.append((MODULES, 1, "found no module static; declare each as `static let <name> = <Type>(`"))
+    errors.extend((MODULES, hub.count("\n", 0, static.start()) + 1, f"run {static[1]} in exactly one entry of this file")
+                  for static in statics if sum(bool(re.match(rf"{static[1]}\b", module)) for module in entries) != 1)
     return errors
 
 
@@ -533,13 +582,20 @@ def source_errors(root):
                 break
             position = found + len(needle)
     for pattern, needle in ABSENT:
-        for path in sorted(root.glob(str(pattern))):
+        paths = sorted(root.glob(str(pattern)))
+        if not paths:
+            errors.append((pattern, 1, f"found no file to keep {needle} out of (ABSENT)"))
+        for path in paths:
             text = path.read_text()
             if needle in text:
                 errors.append((path.relative_to(root), text.count("\n", 0, text.index(needle)) + 1, f"keep {needle} out of this file"))
     rows = "\n".join(path.read_text() for path in sorted((root / TREE.parent).glob("NotchcastSettingRows+*.swift")))
     settings = (root / SETTINGS).read_text()
-    for case in re.finditer(r"^    case (\w+)$", settings, re.M):
+    errors.extend((SETTINGS, line, message) for line, message in case_errors(mask_literals(settings)))
+    cases = list(re.finditer(r"^    case (\w+)$", settings, re.M))
+    if not cases:
+        errors.append((SETTINGS, 1, "found no setting; declare each as `case <name>` on its own line"))
+    for case in cases:
         arms = rows.split(f"case .{case[1]}:")
         arm = re.split(r"case |default:", arms[1])[0] if len(arms) == 2 else ""
         if "SettingRow(" not in arm or "EmptyView" in arm:
@@ -547,9 +603,11 @@ def source_errors(root):
                            f".{case[1]} needs exactly one arm that shows a row, in NotchcastSettingRows+*.swift"))
     search = (root / SEARCH).read_text()
     backups = (root / BACKUPS).read_text()
+    anchors = list(re.finditer(r"\bstatic let (notchcastBackup\w+) = ", search))
+    if not anchors:
+        errors.append((SEARCH, 1, "found no backup anchor; declare each as `static let notchcastBackup<Name> = `"))
     errors.extend((SEARCH, search.count("\n", 0, anchor.start()) + 1, f"give .{anchor[1]} a SettingsSectionHeader in {BACKUPS}")
-                  for anchor in re.finditer(r"\bstatic let (notchcastBackup\w+) = ", search)
-                  if f"SettingsSectionHeader(.{anchor[1]})" not in backups)
+                  for anchor in anchors if f"SettingsSectionHeader(.{anchor[1]})" not in backups)
     return errors
 
 
