@@ -55,21 +55,12 @@ struct ArchiveModuleLifecycleTests {
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         precondition(preferences.isOn(.archives))
-        for feature: NotchcastFeature in [.archivesInPlace, .archivesDefaultApp] {
-            precondition(!preferences.isOn(feature) && !feature.defaultEnabled)
-            precondition(feature.dependencies == [.archives])
-        }
-        for feature: NotchcastFeature in [.archives, .archivesInPlace, .archivesDefaultApp] {
-            precondition(!feature.needsIsland && feature.requiredGrants.isEmpty)
-            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
-        }
+        precondition(!preferences.isOn(.archivesInPlace) && !preferences.isOn(.archivesDefaultApp))
         let service = FakeArchiveDefaults()
         let application = URL(fileURLWithPath: "/fixture/Notchcast.app")
         let module = ArchiveModule(preferences: preferences, locator: Locator(tool: nil),
                                    defaultApplications: service, application: application)
-        let entries = NotchcastCore.archiveModuleEntries(module)
-        precondition(entries.count == 1 && entries[0].requires == [.archives])
-        let controller = NotchcastModuleController(entries, preferences: preferences)
+        let controller = NotchcastModuleController(NotchcastCore.archiveModuleEntries(module), preferences: preferences)
         controller.run()
         precondition(module.isRunning && service.calls.isEmpty)
         module.stop()

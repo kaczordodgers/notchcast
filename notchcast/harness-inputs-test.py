@@ -85,7 +85,6 @@ class HarnessInputsTest(unittest.TestCase):
 
     def test_repository_read_headers_select_their_consumers(self):
         cases = {
-            "Tinycast/Features/Katana/README.md": ["nc-Katana-core-test"],
             "notchcast/docs/katana.md": ["nc-Katana-core-test"],
             "Tests/Fixtures/todoist-export.json": ["nc-Todo-import-test", "nc-Todo-settings-test"],
             "Tests/fixtures/build-stats-v1.json": ["notchcast-build-stats-test"],

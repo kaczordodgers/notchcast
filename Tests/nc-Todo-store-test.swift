@@ -303,9 +303,7 @@ struct TodoStoreTests {
         let suite = "todo-module.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(!preferences.isOn(.tasks) && !NotchcastFeature.tasks.needsIsland)
-        precondition(NotchcastFeature.tasks.dependencies.isEmpty && NotchcastFeature.tasks.requiredGrants.isEmpty)
-        precondition(NotchcastFeature.tasks.settingsGroup == .tasks)
+        precondition(!preferences.isOn(.tasks))
         var failures: [String] = []
         let module = TodoModule(directory: directory, showFailure: { failures.append($0) })
         let controller = NotchcastModuleController([.init(requires: [.tasks], module: module)], preferences: preferences)

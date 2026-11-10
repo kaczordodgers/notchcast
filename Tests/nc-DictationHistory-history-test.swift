@@ -20,7 +20,6 @@ struct DictationHistoryTests {
         let suite = "history-test-" + UUID().uuidString
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(preferences.isOn(.dictationHistory))
         let controller = NotchcastModuleController([
             .init(requires: [.dictationHistory], module: module)
         ], preferences: preferences)

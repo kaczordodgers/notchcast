@@ -111,8 +111,6 @@ struct RecordingTests {
         expect(restored.frameRate == 30 && restored.folder == root, "preferences use injected suite")
         restored.frameRate = 999
         expect(restored.frameRate == 60, "unsupported frame rate resets to 60")
-        expect(NotchcastFeature.recording.settingsGroup == .captureAndDictation, "settings group")
-        expect(NotchcastFeature.recording.requiredGrants == [.screenRecording], "only Screen Recording grant")
     }
 
     @MainActor

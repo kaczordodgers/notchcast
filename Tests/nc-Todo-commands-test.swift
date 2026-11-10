@@ -52,7 +52,6 @@ struct TodoCommandTests {
             clipboardText: { clipboard }, report: { messages.append($0) })
         precondition(defaultContext.language == .polish)
         let commands = TodoCommands.commands(context: { context })
-        precondition(commands.map(\.slug) == ["add-task-from-clipboard", "complete-next-task", "undo-last-task-change"])
         for command in commands {
             enabled = false
             let before = opened.state

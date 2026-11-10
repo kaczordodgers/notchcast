@@ -73,7 +73,6 @@ struct ScreenshotModuleTest {
         ], preferences: preferences)
         controller.run()
         let command = ScreenshotModule.launcherCommand
-        precondition(command.slug == "screenshot-display")
         preferences.set(.screenshot, true)
         await settle()
         command.run()

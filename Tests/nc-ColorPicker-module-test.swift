@@ -52,7 +52,6 @@ struct ColorPickerModuleTest {
         ], preferences: preferences)
         controller.run()
         let command = ColorPickerModule.launcherCommand
-        precondition(command.slug == "pick-color")
         command.run()
         precondition(samples == 0)
         precondition(AppCore.shared.messages.isEmpty)

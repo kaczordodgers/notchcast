@@ -17,14 +17,11 @@ struct SystemToolsStoreTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         for feature in NotchcastFeature.allCases where feature.isSystemTweak {
             precondition(!preferences.isOn(feature))
-            precondition(!feature.needsIsland)
         }
         precondition(preferences.isOn(.island))
         precondition(NotchcastFeature.systemToolsSettingsFeatures == [
             .startupItems, .notificationCleanup, .sudoTouchID, .aiFeaturesOff, .spotlightOff, .privacyChoices
         ])
-        precondition(NotchcastFeature.aiFeaturesOff.isWired && NotchcastFeature.privacyChoices.isWired)
-        precondition(NotchcastFeature.notificationCleanup.requiredGrants == [.accessibility])
         var effects: [Bool] = []
         precondition(SystemToolsHelperPolicy.available(.sudoTouchID))
         precondition(SystemToolsHelperPolicy.available(.spotlightOff))

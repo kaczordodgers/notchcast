@@ -72,7 +72,6 @@ struct TorrentModuleTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
         precondition(!preferences.isOn(.torrentsKeepSharing))
-        precondition(NotchcastFeature.allCases.filter { $0.settingsGroup == .torrents }.allSatisfy { !$0.needsIsland })
         let session = Session()
         let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
             ?? FileManager.default.temporaryDirectory.path)

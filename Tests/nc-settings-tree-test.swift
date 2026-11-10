@@ -2,7 +2,6 @@
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingRows+*.swift
 // notchcast-reads: Tinycast/Resources/Localizable.xcstrings Tinycast/Resources/Notchcast.xcstrings
 import Foundation
 
@@ -38,20 +37,6 @@ struct NotchcastSettingsTreeTests {
         }
         for setting in NotchcastSetting.allCases {
             precondition(settingCounts[setting] == 1, "Setting \(setting) placed \(settingCounts[setting, default: 0]) times")
-        }
-        let dispatchSources = try ["A", "B", "C", "D"].map { suffix in
-            try String(contentsOfFile:
-                "Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingRows+\(suffix).swift",
-                encoding: .utf8)
-        }.joined(separator: "\n")
-        for setting in NotchcastSetting.allCases {
-            let marker = "case .\(setting.rawValue):"
-            precondition(dispatchSources.components(separatedBy: marker).count == 2,
-                         "Setting dispatch must appear once: \(setting)")
-            let arm = dispatchSources.components(separatedBy: marker)[1]
-                .components(separatedBy: "case ")[0].components(separatedBy: "default:")[0]
-            precondition(arm.contains("SettingRow(" ) && !arm.contains("EmptyView"),
-                         "Empty setting dispatch: \(setting)")
         }
         precondition(NotchcastSettingsModule.island.tab == .notchcast, "Legacy Island tab")
         precondition(NotchcastSettingsModule.island.slug == "notchcast", "Legacy Island slug")

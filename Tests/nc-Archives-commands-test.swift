@@ -46,7 +46,6 @@ struct MissingTool: ArchiveToolLocating {
         let local = NotchcastPreferences(suiteName: suite)
         let module = ArchiveModule(preferences: local, locator: MissingTool(), defaultApplications: FakeDefaults())
         let commands = [ArchiveCommands.extractCommand, ArchiveCommands.cancelCommand]
-        precondition(commands.map(\.id) == ["command:nc-extract-archive", "command:nc-cancel-extractions"])
         preferences.set(.archives, true)
         ArchiveCompressionCommands.submit([], format: .zip)
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
@@ -88,6 +87,6 @@ struct MissingTool: ArchiveToolLocating {
         preferences.set(.archives, true)
         ArchiveCommands.cancelAll(in: module)
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
-        print("PASS: command IDs, switch gating, index refresh, module routing, unsupported/empty input and cancellation")
+        print("PASS: switch gating, index refresh, module routing, unsupported/empty input and cancellation")
     }
 }

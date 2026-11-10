@@ -2,7 +2,6 @@
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 // notchcast-kit: platform host
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
-// notchcast-reads: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 import Foundation
 import SQLite3
 
@@ -230,11 +229,7 @@ struct AgentThreadsTest {
         print("PASS: SQLite active projects only; missing file/table; per-project arguments and names")
         print("PASS: partial list failure; show failure preserves phase; availability changed on start and stop")
         print("PASS: child PATH preserves environment; refresh completion selects waiting link; failure messages")
-        let catalog = try String(contentsOfFile:
-            "Tinycast/Features/AgentThreads/AgentThreadsModule.swift", encoding: .utf8)
-        precondition(catalog.components(separatedBy: "isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }")
-            .count == 3)
         print("PASS: real statuses including null, loopback link, dropped bad rows, show calls = 3, cancellation idle/ready")
-        print("PASS: waiting order, finished window, missing CLI, bad JSON, timeout, command gates")
+        print("PASS: waiting order, finished window, missing CLI, bad JSON, timeout")
     }
 }

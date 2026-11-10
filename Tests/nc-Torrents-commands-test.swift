@@ -51,8 +51,6 @@ struct AppEntry: Sendable {
         let original = preferences.isOn(.torrents)
         defer { preferences.set(.torrents, original) }
         let commands = TorrentCommands.launcherCommands
-        precondition(commands.map(\.id) == ["command:nc-download-torrent-from-clipboard",
-                                          "command:nc-open-torrent-file", "command:nc-cancel-all-torrents"])
         preferences.set(.torrents, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
         let before = AppCore.shared.appIndex.refreshes

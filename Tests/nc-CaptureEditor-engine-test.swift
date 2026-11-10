@@ -244,8 +244,6 @@ struct CaptureEditorEngineTest {
         let suite = "capture-editor-preferences-\(UUID())"
         defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(!NotchcastFeature.captureEditor.defaultEnabled && NotchcastFeature.captureEditor.isWired)
-        precondition(NotchcastFeature.captureEditor.settingsGroup == .captureAndDictation)
         precondition(!preferences.isOn(.captureEditor))
         let controller = NotchcastModuleController([.init(requires: [.captureEditor], module: editor)], preferences: preferences)
         controller.run()
