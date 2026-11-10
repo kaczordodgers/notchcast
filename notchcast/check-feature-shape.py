@@ -70,8 +70,6 @@ PINS = {
     "startupItems": {"wired": "true"},
     "notificationCleanup": {"wired": "true", "requiredGrants": "[.accessibility]"},
     "sudoTouchID": {"wired": "true"},
-    "killProcess": {"wired": "false"},
-    "macSetup": {"wired": "false"},
     "aiFeaturesOff": {"wired": "true"},
     "spotlightOff": {"wired": "true"},
     "privacyChoices": {"wired": "true"},

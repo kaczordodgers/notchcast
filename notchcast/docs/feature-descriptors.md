@@ -87,6 +87,22 @@ Registrant entries start after every hub entry and before the services' entries,
 
 Record every feature's values on the base (`title`, `subtitle`, `settingsGroup`, `needsIsland`, `defaultEnabled`, `dependencies`, `requiredGrants`, `isSystemFeature`, `isSystemTweak`, `isWired`), write each descriptor with the value that applied (its arm, or the default and the system-feature guards), delete every arm of the moved features, add the hub lines, and diff the same values after. Strings keep their localization keys and tables, so the catalog does not change.
 
+## Retiring a feature
+
+Dropping a feature deletes its case, descriptor, hub line, every list and settings-tree entry naming it, its module registration, its line in `ForkSettingsBackupSchema`, its line in `switch-path-allowlist-*.json`, its `Notchcast.xcstrings` keys, and every type and harness check only it used. Seams it shares with a kept feature stay. Record and diff the values as in "Moving a feature"; only the retired rows may change. What it left on disk is handled by these rules, not by a `Tinycast/Migrations/` file, which would add upstream footprint ([docs/migrations.md](../../docs/migrations.md): a migration only tidies, and skipping it must be harmless):
+
+- **Switch default.** The `<rawValue>` Bool in the fork suite stays where it is. `NotchcastPreferences` reads only `allCases`, so nothing reads it again.
+- **Never reuse a retired raw value** for a new case: a stored `true` would switch the new feature on. The table below lists them.
+- **Backups.** A switch in `listedExcluded` was never written to a backup, and restore refuses any key outside `allowed`, so deleting its line changes nothing. A switch in `listedAllowed` is in existing backups, and restore refuses an unknown key, so it cannot be retired until restore tolerates it; that needs its own change first.
+- **`settings.json` and launcher visibility.** Fork switches have no `SettingsFileKey`. A feature with commands also deletes its catalog lines; its stored visibility and hotkey entries then name a command that no longer exists and are ignored, as for any removed command.
+- **Files and other keys.** A feature that wrote files or other keys names them in the table. One a user could not reach left none.
+
+| Retired | Was | Left on disk |
+| --- | --- | --- |
+| `agentAnswer` | unwired since #209, module empty | the Bool switch only |
+| `killProcess` | unwired, no command; `KillProcessService`, `KillProcessEntry` and the `stopProcesses` seam stay (System Monitor stops processes through them) | the Bool switch only |
+| `macSetup` | unwired; `TweaksModule.apply` had no caller since #235 | the Bool switch only; no `mac-setup-rollback-*.json` journal could be written. `macSetupPlans` is the shared tweak journal and stays |
+
 ## What stays out of the descriptor
 
 `Descriptor` is plain data that harnesses compile with the hub alone, so anything that needs a view, a module or another feature's types lives beside it in the same folder instead:

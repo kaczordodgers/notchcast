@@ -11,18 +11,10 @@ final class TweaksModule: NotchcastModule {
     private var wantsEnabled = false
     private let profileRunner: (Data, String) async throws -> Void
     private let journalFailure: String?
-    private var setupBusy = false
-    private let setupService: MacSetupService
 
     init(key: String = "macSetupPlans", setupProfileRunner: TweakProfileRunner = .system,
          profileRunner: @escaping (Data, String) async throws -> Void = TweaksModule.openProfile) {
         self.setupProfileRunner = setupProfileRunner
-        setupService = MacSetupService(store: .init(url: URL.applicationSupportDirectory
-            .appendingPathComponent(Bundle.main.bundleIdentifier ?? "app.notchcast.dev")
-            .appendingPathComponent("mac-setup-rollback-\(key).json")), write: { preference, value in
-                let command = TweakCommand.preference(preference, value: value)
-                _ = try SystemToolsProcessRunner().run(command.executable, arguments: command.arguments)
-            })
         self.profileRunner = profileRunner
         let defaults = UserDefaults(suiteName:
             (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
@@ -99,20 +91,6 @@ final class TweaksModule: NotchcastModule {
         let data = try TweakProfile.data(bundleIdentifier: identifier, keepingAI: keepingAI, privacy: privacy)
         let folder = URL.cachesDirectory.appending(path: identifier).appending(path: "TweakProfiles")
         return try await setupProfileRunner.requestApproval(data: data, folder: folder)
-    }
-
-    func apply(_ plan: MacSetupPlan) async -> TweakPlanRunner.Receipt? {
-        guard running, !setupBusy else { return nil }
-        setupBusy = true
-        defer { setupBusy = false }
-        return await setupService.apply(plan)
-    }
-
-    func rollback() async throws {
-        guard !setupBusy else { throw MacSetupPlan.Failure.drift }
-        setupBusy = true
-        defer { setupBusy = false }
-        try await setupService.rollback()
     }
 
     func showLibrary() async {

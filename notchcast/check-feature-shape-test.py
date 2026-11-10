@@ -36,7 +36,7 @@ ARCHIVE_ENTRIES = "Tinycast/Features/Archives/NotchcastArchiveModules.swift"
 GLOBE = "Tinycast/Features/DictationTrigger/GlobeDictationDescriptor.swift"
 # A fact the checker finds nowhere must fail, not pass: the error, the file, then the text every copy of which is replaced.
 UNREAD = (
-    (".killProcess wired is None; the spec pins false", SHAPE.FEATURE, "static let unwired", "static let notWired"),
+    (".startupItems wired is None; the spec pins true", SHAPE.FEATURE, "static let unwired", "static let notWired"),
     ("found no Descriptor field", DESCRIPTORS, "        let ", "        var "),
     ("found no module static", MODULES, "    static let ", "    static var "),
     ("found no setting", SHAPE.SETTINGS, "    case ", "  case "),
@@ -49,7 +49,7 @@ BREAKS = (
      "Tinycast/Features/Archives/ArchivesInPlaceDescriptor.swift", "defaultEnabled: false", "defaultEnabled: true"),
     ("feature-pins", ".captureEditor defaultEnabled is true; the spec pins false",
      SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: true"),
-    ("feature-pins", ".killProcess wired is true; the spec pins false", SHAPE.FEATURE, "        .killProcess,\n", ""),
+    ("feature-pins", ".startupItems wired is false; the spec pins true", SHAPE.FEATURE, "        .todoIsland,\n", "        .todoIsland,\n        .startupItems,\n"),
     ("feature-pins", ".screenText settings is []; the spec pins [.captureScreenTextLineBreaks]",
      SHAPE.TREE, SCREEN_TEXT, ".feature(.screenText, settings: [])"),
     ("feature-pins", ".sudoTouchID needsIsland is true; a feature whose isSystemTweak is true keeps false",
