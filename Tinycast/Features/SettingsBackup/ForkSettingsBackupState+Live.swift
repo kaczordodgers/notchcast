@@ -5,16 +5,12 @@ extension ForkSettingsBackupState {
     static var live: Self {
         Self(snapshot: {
             var values = ForkSettingsBackupRestore.snapshot(.shared)
-            values["screenText.removeLineBreaks"] = ScreenTextModule.shared.removeLineBreaks
+            for feature in NotchcastBackupState.all { values.merge(feature.snapshot()) { _, value in value } }
             let editor = EditorCoordinator.shared.editorPreferences
             values["notchcast.editor.font"] = editor.font.rawValue
             values["notchcast.editor.theme"] = editor.theme.rawValue
             values["notchcast.editor.pairsAutomatically"] = editor.pairsAutomatically
-            values.merge(quitValues(QuitProtectionStore.shared)) { _, value in value }
-            values["notchcast.liveTimer.defaultDuration"] = LiveTimerModule.shared.store.defaultDuration
-            values["notchcast.liveTimer.playSound"] = LiveTimerModule.shared.store.playSoundWhenTimeIsUp
             values["notchcast.day.marketSymbols"] = DayMarketsModule.shared.store.symbols
-            values["notchcast.day.excludedCalendars"] = EventReminderModule.shared.calendar.excludedCalendarIDs.sorted()
             capture("notchcast.day.weatherPlace", into: &values) { try json(DayWeatherModule.shared.store.place) }
             let defaults = AppearanceStore.preferences
             values["notchcast.colorPicker.format"] = defaults.string(forKey: "notchcast.colorPicker.format") ?? "hex"
@@ -43,26 +39,14 @@ extension ForkSettingsBackupState {
             return values
         }, validate: validateLive, apply: { values in
             try validateLive(values)
-            if let value = values["screenText.removeLineBreaks"] as? Bool {
-                ScreenTextModule.shared.removeLineBreaks = value
-            }
+            for feature in NotchcastBackupState.all { feature.apply(values) }
             let editor = EditorCoordinator.shared.editorPreferences
             if let value = values["notchcast.editor.font"] as? String,
                let font = EditorPreferences.FontPreset(rawValue: value) { editor.font = font }
             if let value = values["notchcast.editor.theme"] as? String,
                let theme = EditorPreferences.ThemePreset(rawValue: value) { editor.theme = theme }
             if let value = values["notchcast.editor.pairsAutomatically"] as? Bool { editor.pairsAutomatically = value }
-            if let value = values["notchcast.liveTimer.defaultDuration"] as? Double {
-                LiveTimerModule.shared.store.defaultDuration = value
-            }
-            if let value = values["notchcast.liveTimer.playSound"] as? Bool {
-                LiveTimerModule.shared.store.playSoundWhenTimeIsUp = value
-            }
-            applyQuit(values, to: QuitProtectionStore.shared)
             if let value = values["notchcast.day.marketSymbols"] as? [String] { DayMarketsModule.shared.store.setSymbols(value) }
-            if let value = values["notchcast.day.excludedCalendars"] as? [String] {
-                EventReminderModule.shared.calendar.setExcludedCalendars(Set(value))
-            }
             if let value = values["notchcast.day.weatherPlace"] as? String {
                 DayWeatherModule.shared.store.select(try decode(DayWeatherPlace?.self, value))
             }

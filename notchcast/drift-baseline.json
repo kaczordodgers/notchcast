@@ -60,7 +60,6 @@
     "Features/SettingsBackup -> Features/DictationCleanup": 1,
     "Features/SettingsBackup -> Features/DocumentEditor": 1,
     "Features/SettingsBackup -> Features/LiveDay": 1,
-    "Features/SettingsBackup -> Features/QuitProtection": 1,
     "Features/Shelf -> Features/AIUsage": 0,
     "Features/Shelf -> Features/MachLink": 1,
     "Features/SystemLevels -> Features/DisplayBrightness": 1,

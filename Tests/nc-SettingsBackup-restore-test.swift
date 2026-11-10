@@ -29,6 +29,11 @@
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastBackupState.swift
+// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextBackupState.swift
+// notchcast-sources: Tinycast/Features/LiveTimer/LiveTimersBackupState.swift
+// notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionBackupState.swift
+// notchcast-sources: Tinycast/Features/EventReminder/DayCalendarBackupState.swift
 import Foundation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
@@ -273,11 +278,11 @@ struct NotchcastCommand: Sendable {
         let preferences = NotchcastPreferences(suiteName: suite)
         let store = QuitProtectionStore(defaults: defaults)
         let state = ForkSettingsBackupState(snapshot: {
-            ForkSettingsBackupRestore.snapshot(preferences).merging(ForkSettingsBackupState.quitValues(store)) { _, new in new }
+            ForkSettingsBackupRestore.snapshot(preferences).merging(store.backupValues) { _, new in new }
         }, validate: ForkSettingsBackupEngine.validate, apply: {
             try ForkSettingsBackupEngine.validate($0)
             try ForkSettingsBackupRestore.apply($0, to: preferences)
-            ForkSettingsBackupState.applyQuit($0, to: store)
+            store.applyBackup($0)
         })
         let saved = try state.snapshot()
         for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks,
