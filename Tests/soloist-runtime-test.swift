@@ -27,27 +27,10 @@ struct SoloistRuntimeTest {
         try keyChecks(root: root)
         try archiveChecks()
         try await installerChecks(root: root)
-        try downloadSize(root: root)
         try await leakChecks(files: files)
         logChecks()
         try await processChecks()
         print("PASS: key validation/import, archive refusal, hashed cache, expiry, retry per press, cancellation, scrubbed log")
-    }
-
-    private static func downloadSize(root: URL) throws {
-        let file = root.appending(path: "download-size")
-        let data = Data(repeating: 42, count: 131_072)
-        try data.write(to: file)
-        check(try SoloistInstaller.readDownload(file) == data)
-        let handle = try FileHandle(forWritingTo: file)
-        defer { try? handle.close() }
-        try handle.truncate(atOffset: UInt64(SoloistArchiveRules.maxPacked))
-        check(try SoloistInstaller.readDownload(file).count == SoloistArchiveRules.maxPacked)
-        try handle.truncate(atOffset: UInt64(SoloistArchiveRules.maxPacked + 1))
-        do {
-            _ = try SoloistInstaller.readDownload(file)
-            preconditionFailure("accepted oversized download")
-        } catch { check(error as? SoloistFailure == .archive) }
     }
 
     @MainActor

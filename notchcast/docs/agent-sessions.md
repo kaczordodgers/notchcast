@@ -2,7 +2,7 @@
 
 ## Invariants
 
-- The feature defaults off. Enabling it performs no filesystem scan until a consumer requests a refresh or calls `setDemand(true)`.
+- The feature defaults off. Enabling it performs no filesystem scan until a consumer requests a refresh.
 - Only metadata and usage aggregates survive parsing. Prompts, replies, tool arguments and credentials are never retained, persisted or sent over the network.
 - Every path is checked before filesystem access. A path with a component starting with a prefix from the private `NOTCHCAST_AGENT_SESSIONS_EXCLUDE` key (see `notchcast/README.md`) is rejected, including an injected scan root. Symlinks are skipped, including in root ancestors and SQLite sidecars.
 - JSONL reads are bounded to 64 KiB and individual lines to 256 KiB. Incomplete lines wait for a newline; malformed or oversized lines do not prevent later records from being indexed.
@@ -18,7 +18,7 @@ OpenCode uses a read-only SQLite connection with `query_only` and a read transac
 
 ## Consumer API
 
-`NotchcastCore.agentSessions` exposes the module and its observable `pricingReport`. A consumer calls `setDemand(true)` while visible and unlocked, and `setDemand(false)` when hidden or locked. Demand triggers a scan and a thirty-second refresh loop. The gated Refresh Agent Session Logs command calls `refresh()` without continuous demand. `stop()` cancels work and releases the index, snapshot and priced totals. No island page or FSEvents watcher is installed.
+`NotchcastCore.agentSessions` exposes the module and its observable `pricingReport`. The gated Refresh Agent Session Logs command calls `refresh()`, which runs one scan; nothing polls. `stop()` cancels work and releases the index, snapshot and priced totals. No island page or FSEvents watcher is installed.
 
 `AgentSessionIndex.refresh(roots:)` is the synchronous service boundary for callers already off the main actor. It returns sessions, source issues and read statistics. JSONL checkpoints use inode, size, modification time and byte offset; replacement or truncation resets a file. Database checkpoints use session creation/update times, message update times and row counts; changed sessions are rebuilt so in-place updates replace prior totals. Deleted sources and sessions are evicted.
 
@@ -32,6 +32,6 @@ Streamed response deduplication retains the latest 256 response IDs per file. Co
 
 ## Verification
 
-`./Scripts/run-tests.sh notchcast-ai-agent-session-logs-test` compiles the shipped model, services, module and switch with strict concurrency and warnings as errors. It uses only generated temporary fixtures and covers all four formats, both database schemas, malformed lines, a 24 MiB oversized line, partial appends, replacement, truncation, deletion, model changes, cumulative counters, demand and cancellation. An access observer fails before any filesystem operation on an excluded component; the excluded fixture is an empty directory removed with `rmdir`, without opening it.
+`./Scripts/run-tests.sh notchcast-ai-agent-session-logs-test` compiles the shipped model, services, module and switch with strict concurrency and warnings as errors. It uses only generated temporary fixtures and covers all four formats, both database schemas, malformed lines, a 24 MiB oversized line, partial appends, replacement, truncation, deletion, model changes, cumulative counters, refresh and cancellation. An access observer fails before any filesystem operation on an excluded component; the excluded fixture is an empty directory removed with `rmdir`, without opening it.
 
 Format references are the catalogue's documented reader source paths. Vendor format context: [Codex protocol](https://github.com/openai/codex/blob/main/codex-rs/protocol/src/protocol.rs) and [OpenCode source](https://github.com/anomalyco/opencode). No local agent logs were inspected during implementation. A full app build and live checks belong to landing verification.

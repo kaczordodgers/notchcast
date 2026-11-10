@@ -1,8 +1,6 @@
 import Foundation
 
 struct TodoState: Codable, Equatable, Sendable {
-    static let workflowSections = ["Backlog", "Up next", "In progress", "Blocked", "Someday"]
-
     private(set) var tasks: [String: TodoTask] = [:]
     private(set) var projects: [String: TodoProject] = [:]
     private(set) var sections: [String: TodoSection] = [:]

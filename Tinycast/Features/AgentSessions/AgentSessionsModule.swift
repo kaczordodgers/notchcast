@@ -4,7 +4,6 @@ import Observation
 @MainActor
 @Observable
 final class AgentSessionsModule: NotchcastModule {
-    static let pollInterval: Duration = .seconds(30)
     private(set) var snapshot = AgentSessionIndex.Snapshot()
     private(set) var pricingReport: AgentPricingEngine.Report?
     private let preferences: NotchcastPreferences
@@ -17,7 +16,6 @@ final class AgentSessionsModule: NotchcastModule {
     private let roots: [AgentSessionIndex.Root]
     private let privateConfigURL: URL
     private var enabled = false
-    private var demanded = false
     private var operation = UUID()
 
     init(roots: [AgentSessionIndex.Root] = AgentSessionIndex.Root.defaults(
@@ -41,7 +39,6 @@ final class AgentSessionsModule: NotchcastModule {
         lifetime = UUID()
         watchPricingSwitch()
         availabilityChanged()
-        if demanded { refresh() }
     }
 
     func stop() {
@@ -55,12 +52,6 @@ final class AgentSessionsModule: NotchcastModule {
         index = .init(calendar: index.calendar)
     }
 
-    func setDemand(_ demanded: Bool) {
-        guard self.demanded != demanded else { return }
-        self.demanded = demanded
-        if demanded { refresh() } else { cancel() }
-    }
-
     func refresh() {
         guard enabled else { return }
         cancel()
@@ -69,24 +60,19 @@ final class AgentSessionsModule: NotchcastModule {
         let privateConfigURL = privateConfigURL
         let initial = index
         task = Task { [weak self] in
-            var current = initial
-            repeat {
-                do {
-                    let (updated, snapshot) = try await Self.scan(current, roots: roots, privateConfigURL: privateConfigURL)
-                    guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
-                    self.index = updated
-                    if self.snapshot.sessions != snapshot.sessions || self.snapshot.issues != snapshot.issues {
-                        let usageChanged = self.snapshot.sessions != snapshot.sessions
-                        self.snapshot = snapshot
-                        if usageChanged { self.updatePricing() }
-                    }
-                    current = updated
-                    guard self.demanded else { self.task = nil; return }
-                } catch {
-                    return
+            do {
+                let (updated, snapshot) = try await Self.scan(initial, roots: roots, privateConfigURL: privateConfigURL)
+                guard let self, !Task.isCancelled, self.enabled, self.operation == identity else { return }
+                self.index = updated
+                if self.snapshot.sessions != snapshot.sessions || self.snapshot.issues != snapshot.issues {
+                    let usageChanged = self.snapshot.sessions != snapshot.sessions
+                    self.snapshot = snapshot
+                    if usageChanged { self.updatePricing() }
                 }
-                do { try await Task.sleep(for: Self.pollInterval) } catch { return }
-            } while !Task.isCancelled
+                self.task = nil
+            } catch {
+                return
+            }
         }
     }
 

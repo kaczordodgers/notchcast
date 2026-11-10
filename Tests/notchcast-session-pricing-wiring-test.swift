@@ -73,7 +73,6 @@ struct SessionPricingWiringTests {
         module.refresh()
         await module.waitUntilIdle()
         precondition(pricingRuns.withLock { $0 } == runs + 1 && module.pricingReport?.total.costUSD == 20)
-        precondition(AgentSessionsModule.pollInterval == .seconds(30), "Bound recursive polling")
         precondition(accesses.withLock { $0.allSatisfy { !$0.pathComponents.contains("private-fixture") } })
         preferences.set(.agentPricing, false)
         for _ in 0..<20 { await Task.yield() }
@@ -81,13 +80,6 @@ struct SessionPricingWiringTests {
         preferences.set(.agentPricing, true)
         for _ in 0..<20 { await Task.yield() }
         precondition(pricingRuns.withLock { $0 } == runs + 2, "Switch change prices exactly once")
-        module.setDemand(true)
-        try await Task.sleep(for: .milliseconds(500))
-        let pollAccesses = accesses.withLock { $0.count }
-        try await Task.sleep(for: .milliseconds(2200))
-        precondition(accesses.withLock { $0.count } == pollAccesses,
-                     "Demand must not recursively walk again after only two seconds")
-        module.setDemand(false)
         module.stop()
         let excludedFixture = fixture.replacingOccurrences(of: "synthetic", with: "excluded-session")
         try Data(excludedFixture.utf8).write(to: excluded.appendingPathComponent("session.jsonl"))
