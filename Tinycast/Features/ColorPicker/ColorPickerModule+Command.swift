@@ -5,8 +5,8 @@ extension ColorPickerModule {
         slug: "pick-color", name: String(localized: "Pick Color", table: "Notchcast"), sfSymbol: "eyedropper", feature: .colorPicker,
         isEnabled: { NotchcastPreferences.shared.isOn(.colorPicker) },
         run: {
-            NotchcastCore.colorPicker.pick { outcome in
-                if outcome == .copyFailed { AppCore.shared.showMessage(String(localized: "Pick Color", table: "Notchcast"), tone: .danger) }
+            ColorPickerModule.shared.pick { outcome in
+                if outcome == .copyFailed { NotchcastHost.current.showMessage(String(localized: "Pick Color", table: "Notchcast"), .danger) }
             }
         })
 }
