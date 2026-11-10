@@ -37,6 +37,7 @@ extension NotchcastFeature {
         .musicNowPlaying: .musicNowPlaying,
         .musicLastPlayer: .musicLastPlayer,
         .musicBlockAppleMusic: .musicBlockAppleMusic,
+        .musicSharpCovers: .musicSharpCovers,
         .spotifyConnect: .spotifyConnect,
         .microphoneMute: .microphoneMute,
         .inUseMarks: .inUseMarks,
