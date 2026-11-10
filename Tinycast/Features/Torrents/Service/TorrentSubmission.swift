@@ -27,7 +27,7 @@ struct TorrentSubmission: Sendable {
         }
         guard data.count <= 16 * 1024 * 1024 else { throw TorrentFailure.invalidTorrent }
         let metainfo = try TorrentMetainfo.read(data)
-        let hash = Insecure.SHA1.hash(data: metainfo.info).map { String(format: "%02x", $0) }.joined()
+        let hash = WebRules.hex(Insecure.SHA1.hash(data: metainfo.info))
         try Task.checkCancellation()
         return Self(payload: .torrent(data), infoHash: hash, name: metainfo.name)
     }
