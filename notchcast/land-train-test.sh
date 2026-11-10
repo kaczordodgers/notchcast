@@ -205,6 +205,31 @@ land 1
 [ "$(origin rev-parse main)" = "$base" ] && [ ! -e "$FIXTURE/closed" ] && [ ! -e "$FIXTURE/hold" ] || fail 'a refused PR left something behind'
 echo 'PASS: a single red PR refuses as before and lands nothing'
 
+# notchcast-core-test is red on main itself, so every PR's tree inherits it.
+fixture
+echo 'red-with: src/shared.txt' > Tests/notchcast-core-test.swift
+git commit --quiet -am 'Fixture: main is red'
+git push --quiet origin main
+base=$(git rev-parse HEAD)
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+open_pr 3 pr-one 'Add one' src/one.txt
+land 1 2 3
+[ "$status" -eq 1 ] && [ "$(grep -c REFUSED "$FIXTURE/output")" -eq 1 ] && grep -q '^REFUSED: main is red: notchcast-core-test$' "$FIXTURE/output" \
+    && ! grep -q DROPPED "$FIXTURE/output" || fail 'a red main did not refuse once without dropping a PR'
+[ "$(origin rev-parse main)" = "$base" ] && [ ! -e "$FIXTURE/closed" ] && [ ! -e "$FIXTURE/hold" ] || fail 'a red main left something behind'
+echo 'PASS: a harness red on main refuses the train once and drops nobody'
+
+fixture
+open_pr 1 pr-b 'Add B' src/b.txt
+open_pr 2 pr-c 'Add C' src/c.txt
+for args in '1 2 1' '1 1'; do
+    land $args
+    [ "$status" -eq 1 ] && grep -q '^REFUSED: PR named more than once: 1$' "$FIXTURE/output" || fail "land.sh $args was not refused"
+    [ "$(origin rev-parse main)" = "$base" ] && [ ! -e "$FIXTURE/closed" ] && [ ! -s "$PASSES" ] || fail "land.sh $args did something"
+done
+echo 'PASS: a PR named twice refuses the train before anything runs'
+
 fixture
 open_pr 1 pr-b 'Add B' src/b.txt src/clipboard-text.txt
 TESTED=1 land 1

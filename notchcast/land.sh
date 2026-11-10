@@ -149,11 +149,15 @@ tree_at() {
 top=$(pwd)
 scratch=$(mktemp -d)
 cleanup() {
+    local code=$?
     cd "$top"  # out of the scratch tree before it goes
     git worktree remove --force "$scratch/base" >/dev/null 2>&1 || true
     git worktree remove --force "$scratch/tree" >/dev/null 2>&1 || true
     rm -rf "$scratch"
     remove_tools
+    # Bash 3.2 runs this with status 0 after an unbound-variable abort, so only a finished run exits 0.
+    [ "$code" -ne 0 ] || [ -n "${finished:-}" ] || code=1
+    exit "$code"
 }
 trap cleanup EXIT
 mkdir "$scratch/tmp"
@@ -167,6 +171,8 @@ if [ "${1:-}" = --check ] && [ "$#" -eq 3 ]; then
         '{headRefOid: $head, title: $title, body: $body}' > "$scratch/pr-check.json"
     train=(check)
 elif [ "$#" -ge 1 ] && [[ "$*" =~ ^[0-9]+(\ [0-9]+)*$ ]]; then
+    repeated=$(printf '%s\n' "$@" | sort | uniq -d | paste -sd' ' -)
+    [ -z "$repeated" ] || refuse "PR named more than once: $repeated"
     hold_claim "$@"
     train=("$@")
     if [ -n "$hold_pr" ] && [ "$#" -gt 1 ]; then
@@ -242,21 +248,29 @@ harnesses() {
     fi
     run_harnesses $names
 }
-# Sets breaker to the first PR whose squash turns the harnesses $1 red: halves the train, rerunning only those.
+# Runs those of the harnesses $2 that exist at commit $1 on its tree. Sets failed.
+harnesses_at() {
+    local name names=
+    tree_at "$1"
+    for name in $2; do
+        [ ! -e "Tests/$name.swift" ] || names="$names $name"
+    done
+    run_harnesses $names
+}
+# Sets breaker to the first PR whose squash turns the harnesses $1 red, by halving; refuses if main is red too.
 breaking_pr() {
-    local low=0 high=$((${#train[@]} - 1)) mid name names
+    local low=0 high=$((${#train[@]} - 1)) mid
     while [ "$low" -lt "$high" ]; do
         mid=$(((low + high) / 2))
-        tree_at "$(< "$scratch/commit-${train[$mid]}")"
-        names=
-        for name in $1; do
-            [ ! -e "Tests/$name.swift" ] || names="$names $name"
-        done
         echo "bisecting: $1 on the train up to #${train[$mid]}"
-        run_harnesses $names
+        harnesses_at "$(< "$scratch/commit-${train[$mid]}")" "$1"
         if [ -n "$failed" ]; then high=$mid; else low=$((mid + 1)); fi
     done
     breaker=${train[$low]}
+    [ "$low" -eq 0 ] || return 0
+    echo "bisecting: $1 on main ${base:0:8}"
+    harnesses_at "$base" "$1"
+    [ -z "$failed" ] || refuse "main is red: $failed"
 }
 rerun=1
 pushes=0
@@ -273,7 +287,7 @@ while :; do
         echo 'PASS: merged-tree harnesses'
         rerun=0
     fi
-    [ "$check" -eq 0 ] || exit 0
+    [ "$check" -eq 0 ] || { finished=1; exit 0; }
     wait_for_sync
     for pr in "${train[@]}"; do
         load "$pr"
@@ -317,3 +331,4 @@ done
 prepare_drift_tools "$base"
 drift_report "$base" "$tip"
 [ -z "$unclosed" ] || refuse "landed on main as $tip, but closing$unclosed failed: close by hand, do not rerun land.sh"
+finished=1
