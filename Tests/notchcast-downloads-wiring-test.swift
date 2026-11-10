@@ -18,7 +18,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadCommands+Action.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadRunner.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadServices*.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Webpage/*.swift
@@ -26,7 +26,6 @@
 // notchcast-sources: Tinycast/Features/Distill/Convert/*.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DistillRunner.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DistillTranscriber.swift
-// notchcast-sources: Tinycast/Features/Distill/Service/DistillQueue.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DownloadRunContext+Distill.swift
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationAudioChunks.swift
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationModel.swift
@@ -82,8 +81,7 @@ struct NotchcastDownloadsWiringTest {
             destination: root.appending(path: "Downloads"), report: { preconditionFailure($0) })
         let distill = DistillModule(
             preferences: preferences, services: services, file: root.appending(path: "distill.json"),
-            linksFile: root.appending(path: "links.json"), destination: root.appending(path: "Distill/Raw"),
-            report: { preconditionFailure($0) })
+            destination: root.appending(path: "Distill/Raw"), report: { preconditionFailure($0) })
         let features = [NotchcastFeature.downloads, .downloadsAria2, .distill, .distillTimestamps, .distillConvert]
         precondition(features.allSatisfy { !preferences.isOn($0) }, "Downloads and Distill start off")
         features.forEach { preferences.set($0, true) }
@@ -234,7 +232,9 @@ struct NotchcastDownloadsWiringTest {
         precondition(downloads.state.queue != nil && distill.state.queue != nil)
         commands.clipboard = { "https://youtu.be/abc https://www.youtube.com/watch?v=abc&utm_source=x" }
         await commands.perform(.addDistill)
-        precondition(distill.links?.links.count == 1 && distill.state.queue?.jobs.isEmpty == true)
+        precondition(distill.state.queue?.jobs.map(\.state) == [.held], "An added link waits for Run Distill")
+        await commands.perform(.addDistill)
+        precondition(distill.state.queue?.jobs.count == 1, "A held link is not added twice")
     }
 
     private static func testMedia(downloads: DownloadsModule, preferences: NotchcastPreferences, root: URL) async throws {
@@ -273,18 +273,19 @@ struct NotchcastDownloadsWiringTest {
         distill: DistillModule, preferences: NotchcastPreferences, webpageCalls: borrowing Mutex<Int>
     ) async throws {
         let queue = distill.state.queue!
-        try await distill.run()
+        distill.run()
         try await eventually { queue.jobs.allSatisfy { $0.state.isFinished } }
-        precondition(distill.links?.links.isEmpty == true && queue.jobs.count == 1 && queue.jobs[0].state == .done)
+        precondition(queue.jobs.count == 1 && queue.jobs[0].state == .done)
         try check(String(contentsOfFile: queue.jobs[0].output!, encoding: .utf8).hasPrefix("[00:00:00]"))
         preferences.set(.distillTimestamps, false)
-        try distill.links?.add(text: "https://youtu.be/next https://example.com/article", now: .now)
-        try await distill.run()
+        distill.add(text: "https://youtu.be/next https://example.com/article")
+        precondition(queue.jobs.suffix(2).allSatisfy { $0.state == .held })
+        distill.run()
         try await eventually { queue.jobs.allSatisfy { $0.state.isFinished } }
         precondition(queue.jobs.count == 3 && queue.jobs.allSatisfy { $0.state == .done })
         try check(!String(contentsOfFile: queue.jobs[1].output!, encoding: .utf8).contains("[00:00:00]"))
         precondition(webpageCalls.withLock { $0 } == 1 && distill.state.queue === queue)
-        try await distill.run()
+        distill.run()
         precondition(queue.jobs.count == 3)
     }
 
@@ -330,12 +331,12 @@ struct NotchcastDownloadsWiringTest {
         var services = services
         services.tools = DownloadToolLookup(directories: [], home: root)
         let module = DistillModule(preferences: preferences, services: services,
-                                  file: root.appending(path: "web-only.json"), linksFile: root.appending(path: "web-links.json"),
+                                  file: root.appending(path: "web-only.json"),
                                   destination: root.appending(path: "web-only"), report: { preconditionFailure($0) })
         module.start()
         await module.state.settle()
-        try module.links?.add(text: "https://example.com/article", now: .now)
-        try await module.run()
+        module.add(text: "https://example.com/article")
+        module.run()
         try await eventually { module.state.queue?.jobs.last?.state.isFinished == true }
         precondition(module.state.queue?.jobs.last?.state == .done)
         module.stop()
@@ -382,7 +383,7 @@ struct NotchcastDownloadsWiringTest {
         preferences.set(.distill, false)
         await drain()
         await distill.state.settle()
-        precondition(distill.state.queue == nil && distill.links == nil)
+        precondition(distill.state.queue == nil)
         precondition(distillQueue.jobs.last?.state == .interrupted)
         downloads.start()
         downloads.stop()

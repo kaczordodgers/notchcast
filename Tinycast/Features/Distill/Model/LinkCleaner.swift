@@ -1,8 +1,8 @@
 import Foundation
 
 nonisolated enum LinkCleaner {
+    // Only the main site's mirrors are rewritten; music. and studio. links keep their own host.
     private static let youtubeHosts: Set<String> = ["youtube.com", "www.youtube.com", "m.youtube.com"]
-    private static let xHosts: Set<String> = ["x.com", "twitter.com", "mobile.twitter.com"]
     private static let tail = #"(?:[^\s<>"'`()\]]|\([^\s<>"'`()]*\))"#
     private static let pattern = try? NSRegularExpression(
         pattern: #"(?:https?://|www\.)\#(tail)+|[A-Za-z0-9][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/\#(tail)*"#,
@@ -51,8 +51,7 @@ nonisolated enum LinkCleaner {
             items.removeAll { ["si", "feature", "pp"].contains($0.name.lowercased()) }
             if parts.path == "/playlist" { items.removeAll { $0.name != "list" } }
         }
-        let bareHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-        if xHosts.contains(bareHost) { items.removeAll { ["s", "t"].contains($0.name) } }
+        if WebRules.isXHost(host) { items.removeAll { ["s", "t"].contains($0.name) } }
         parts.queryItems = items.isEmpty ? nil : items
         if parts.path.hasSuffix("/") { parts.path.removeLast() }
         return parts.string
@@ -61,7 +60,7 @@ nonisolated enum LinkCleaner {
     static func key(_ canonical: String) -> String {
         guard var parts = URLComponents(string: canonical), let host = parts.host?.lowercased() else { return canonical }
         let bareHost = host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
-        parts.host = xHosts.contains(bareHost) ? "x.com" : bareHost
+        parts.host = WebRules.isXHost(host) ? "x.com" : bareHost
         parts.scheme = "https"
         return parts.string ?? canonical
     }

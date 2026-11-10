@@ -1,7 +1,7 @@
 # Media tools engine
 
 On-demand native compression, GIF creation and text extraction. No files are overwritten:
-each operation stages beside its input and publishes with an exclusive hard link. The tools
+each operation stages beside its input and publishes `<name> processed.<ext>` through `JobOutput.publish`, an exclusive rename that numbers a taken name ` (2)`. The tools
 command controller owns cancellation and discards staged output. No polling or media objects
 remain while idle.
 

@@ -77,7 +77,7 @@ final class DownloadsQueueController {
     private func trackSpeech(_ id: UUID, queue: DownloadQueue) {
         guard operation == id else { return }
         let pending = withObservationTracking {
-            queue.jobs.contains { ["transcript", "distill", "convert"].contains($0.kind) && !$0.state.isFinished }
+            queue.jobs.contains { ["transcript", "distill", "convert"].contains($0.kind) && $0.state.isDue }
         } onChange: { [weak self, weak queue] in
             Task { @MainActor [weak self, weak queue] in
                 guard let queue else { return }
@@ -90,7 +90,7 @@ final class DownloadsQueueController {
             Task { [weak self, weak queue] in
                 guard let self, let queue, operation == id,
                       !queue.jobs.contains(where: {
-                          ["transcript", "distill", "convert"].contains($0.kind) && !$0.state.isFinished
+                          ["transcript", "distill", "convert"].contains($0.kind) && $0.state.isDue
                       }) else { return }
                 await releaseSpeech()
             }

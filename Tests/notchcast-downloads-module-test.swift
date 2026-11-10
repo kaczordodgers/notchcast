@@ -13,7 +13,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
@@ -26,12 +26,13 @@ enum MediaArguments {
 
 struct MediaDownloadRunner: DownloadRunner {
     let format: MediaArguments.Format
+    var aria2Enabled: @MainActor @Sendable () -> Bool
     var networkInterfaces: @MainActor @Sendable () -> [NetMergePolicy.Interface]
     var kind: String { format.rawValue }
     let tools: [DownloadTool] = []
 
     func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? {
-        await context.report(DownloadProgress(stage: job.options["aria2Enabled"]))
+        await context.report(DownloadProgress(stage: String(await aria2Enabled())))
         try await Task.sleep(for: .seconds(60))
         return nil
     }

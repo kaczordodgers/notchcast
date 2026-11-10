@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
@@ -134,7 +134,7 @@ import Foundation
         let context = DownloadRunContext(destination: directory)
         for id in ["znWSzW0Zh_Y", "DIcJX1AjKuk", "12M2AIlM_nA", "TFCDWrEBaFM", "zHZPb7wdQuk", "GtJKFhztgdM", "keRiRVDhvoA"] {
             let job = DownloadJob(id: id, kind: "transcript", source: "https://www.youtube.com/watch?v=\(id)", title: id, created: .now)
-            let output = try await TranscriptDownloadRunner().run(job, context: context)
+            let output = try await TranscriptDownloadRunner(transcribe: { _, _ in nil }).run(job, context: context)
             precondition(output?.lastPathComponent.hasSuffix(" [\(id)].txt") == true, "live \(id): \(String(describing: output))")
             print("LIVE \(output!.lastPathComponent)")
         }
@@ -192,19 +192,20 @@ import Foundation
         let lookup = DownloadToolLookup(directories: [root, URL(filePath: "/usr/bin"), URL(filePath: "/bin")])
         let context = DownloadRunContext(destination: root, tools: lookup)
         let job = DownloadJob(id: UUID().uuidString, kind: "video", source: "https://example.com/video",
-                              title: "Video", state: .waiting, created: Date(), options: [:])
+                              title: "Video", state: .waiting, created: Date())
         let output = try await MediaDownloadRunner(format: .video).run(job, context: context)
         precondition(output?.lastPathComponent == "movie.mp4")
-        let transcript = try await TranscriptDownloadRunner().run(job, context: context)
+        let captions = TranscriptDownloadRunner(transcribe: { _, _ in nil })
+        let transcript = try await captions.run(job, context: context)
         let text = try String(contentsOf: transcript!, encoding: .utf8)
         precondition(text == "Dzień dobry")
         precondition(transcript?.lastPathComponent == "Movie [id].txt")
-        let second = try await TranscriptDownloadRunner().run(job, context: context)
+        let second = try await captions.run(job, context: context)
         precondition(second?.lastPathComponent == "Movie [id] (2).txt")
         for (language, expected) in [("en", "Hello"), ("de", "Hallo")] {
             var limited = job
-            limited.options["language"] = language
-            let saved = try await TranscriptDownloadRunner().run(limited, context: context)
+            limited.encodedOptions = try DownloadJob.encode(TranscriptDownloadRunner.Options(language: language))
+            let saved = try await captions.run(limited, context: context)
             let text = try String(contentsOf: saved!, encoding: .utf8)
             precondition(text == expected, "429 exit 1 keeps \(language)")
         }

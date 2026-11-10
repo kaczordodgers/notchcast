@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsIslandBridge.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsQueueController.swift

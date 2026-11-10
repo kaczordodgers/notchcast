@@ -4,7 +4,7 @@
 an optional page range and an injected set of occupied outputs. It performs no IO.
 
 `ConvertFilesRunner` implements `DownloadRunner` with kind `convert-files`.
-Job options are `target`, `pages`, and an optional JSON array of absolute paths in `sources`.
+Job options are `ConvertFilesRunner.Options`: the absolute `sources` paths, `target` and `pages`. A job without them fails rather than converting a guessed source.
 Its injected `process` closure receives an executable, argv and the shared download context.
 The only result notification is `post`, called on the main actor for each success or failure.
 Successful batch outputs remain available when another item fails. Cancellation propagates.
@@ -17,7 +17,7 @@ Native image, PDF and data work runs in process off the main actor through `@con
 Cancellation is checked between files, PDF pages and data records, and before publishing.
 No native conversion needs a toolchain or child process. External conversions continue to use
 the injected process runner and resolve tools through `DownloadToolLookup`.
-Outputs stage in unique sibling scratch folders and publish using exclusive rename.
+Outputs stage in unique sibling scratch folders and publish through `JobOutput.publish`, an exclusive rename.
 Existing outputs are never replaced, including when another writer creates the chosen name.
 
 Implemented operations include PDF merge, split, page ranges and selectable text extraction; ImageIO encoding,

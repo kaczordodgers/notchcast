@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift Tinycast/Features/NetMerge/Model/*.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/Distill/Model/*.swift Tinycast/Features/Distill/Service/DistillRunner.swift
@@ -81,8 +81,8 @@ struct MediaNetworkTest {
                 for _ in 0..<12 {
                     group.addTask {
                         let job = DownloadJob(id: UUID().uuidString, kind: "transcript", source: "fixture",
-                            title: "Same", state: .waiting, created: Date(), options: [:])
-                        return try await TranscriptDownloadRunner().run(job, context: context)!
+                            title: "Same", state: .waiting, created: Date())
+                        return try await TranscriptDownloadRunner(transcribe: { _, _ in nil }).run(job, context: context)!
                     }
                 }
                 var urls = [URL]()
@@ -132,7 +132,7 @@ struct MediaNetworkTest {
         let lookup = DownloadToolLookup(directories: [root, URL(filePath: "/usr/bin"), URL(filePath: "/bin")])
         let runner = MediaDownloadRunner(format: .video, networkInterfaces: { enabled ? interfaces : [] })
         let job = DownloadJob(id: UUID().uuidString, kind: "video", source: "https://example.com/video",
-                              title: "Video", state: .waiting, created: Date(), options: [:])
+                              title: "Video", state: .waiting, created: Date())
         _ = try await runner.run(job, context: DownloadRunContext(destination: root, tools: lookup))
         let log = (try? String(contentsOf: root.appending(path: "probes"), encoding: .utf8)) ?? ""
         precondition(log.split(separator: "\n").count == probes)

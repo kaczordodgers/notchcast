@@ -1,7 +1,13 @@
 import Foundation
 
 nonisolated enum MediaArguments {
-    enum Format: Sendable { case video, audio }
+    enum Format: Sendable {
+        case video, audio
+
+        var kind: String { self == .video ? "video" : "audio" }
+    }
+
+    static let rateLimitPause: Duration = .seconds(5)
 
     static func download(source: String, destination: URL, format: Format,
                          aria2Path: String? = nil, cookies: String? = nil,
@@ -49,9 +55,11 @@ nonisolated enum MediaArguments {
                "--sleep-subtitles", "3", "--sub-format", "vtt/srt", "--", source]
     }
 
+    static func isRateLimited(_ stderr: String) -> Bool { stderr.contains("HTTP Error 429") }
+
     // yt-dlp reports a rate-limited subtitle fetch on stderr yet still exits 0.
     static func retryCaptions(stderr: String, wroteCaptions: Bool) -> Bool {
-        !wroteCaptions && stderr.contains("HTTP Error 429")
+        !wroteCaptions && isRateLimited(stderr)
     }
 
     static func originalLanguage(source: String, cookies: String?) -> [String] {
@@ -61,9 +69,7 @@ nonisolated enum MediaArguments {
     }
 
     static func retryNatively(stderr: String, source: String, usedAria2: Bool) -> Bool {
-        guard usedAria2, let host = URL(string: source)?.host?.lowercased(),
-              host == "youtu.be" || host == "youtube.com" || host.hasSuffix(".youtube.com") else { return false }
-        return stderr.contains("403")
+        usedAria2 && WebRules.isYouTubeHost(URL(string: source)?.host) && stderr.contains("403")
     }
 
     private static func common(destination: URL, cookies: String?) -> [String] {

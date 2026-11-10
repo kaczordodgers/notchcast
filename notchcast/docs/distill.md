@@ -1,19 +1,10 @@
 # Distill engine
 
-`DistillQueue` stores cleaned, deduplicated links in an explicitly supplied file. Import callers supply
-the old Orion or Damian Tools queue URL; the source is read only and an import marker is committed
-with the added links. Removing imported links does not import them again on the next launch.
+Distill has one store: its `DownloadQueue` file. "Add to Distill" cleans and deduplicates the links with `LinkCleaner` and enqueues each as a job in the `held` state; "Run Distill" releases the held jobs to `waiting`. A link that is already held, waiting or running is not added again. Held jobs persist with the queue and survive a restart.
 
-`DistillRunner`, registered as kind `distill`, fetches media metadata and native
-audio with yt-dlp, transcribes it, then publishes `Channel - Title.txt`. Filenames replace filesystem
-reserved characters and limit each component to 100 UTF-8 bytes. Existing files receive a numbered
-suffix. Publication uses a same-directory hard link so the complete file appears without replacing
-another file. An empty transcript is an error. The caller supplies the destination; the Notchcast module defaults to `~/Downloads/Distill/Raw`. No output is ingested or deleted by Distill.
+`DistillRunner`, registered as kind `distill`, fetches media metadata and native audio with yt-dlp through `DownloadRunContext.withDistillAudio`, transcribes it, then publishes `Channel - Title.txt`. Filenames replace filesystem reserved characters and limit each component to 100 UTF-8 bytes. Publication goes through `JobOutput.publish`, the one helper every job output uses: an exclusive rename that never replaces a file and numbers a taken name ` (2)`, ` (3)` and so on. An empty transcript is an error. The caller supplies the destination; the Notchcast module defaults to `~/Downloads/Distill/Raw`. No output is ingested or deleted by Distill.
 
-Unknown web hosts and Spotify go to the injected webpage saver; the default reports it is not connected.
-Browser cookies are off. All child commands use `DownloadRunContext.spawn`, which owns process-group
-cancellation and failure details. Supply a queue with `maxConcurrent: 1` for serial Distill batches.
-The context supplies the destination; the `timestamps` job option enables chunk times when `true`.
+Unknown web hosts and Spotify go to the webpage saver, which the caller always supplies. Browser cookies are off. All child commands use `DownloadRunContext.spawn`, which owns process-group cancellation and failure details. Supply a queue with `maxConcurrent: 1` for serial Distill batches. The context supplies the destination; the runner's `timestamps` closure is read when a job begins and enables chunk times.
 
 ## File transcription API for Convert
 
