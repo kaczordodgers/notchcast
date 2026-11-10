@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/SystemTools/Model/*.swift Tinycast/Features/SystemTools/Service/*.swift
 // notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift Tinycast/Features/Tweaks/Service/*.swift
 // notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsProcessRunner.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 import Foundation
 
 @main

@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/AppUpdates/Model/*.swift Tinycast/Features/AppUpdates/Service/*.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
 import Foundation
 
 @main

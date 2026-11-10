@@ -1,6 +1,7 @@
 // notchcast-sources: -parse-as-library Tinycast/Features/SystemMonitor/Model/SMCValue.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Model/SMCSensorReading.swift
-// notchcast-sources: notchcast/root/FanSMC.swift Tinycast/Features/Notchcast/Root/RootContract.swift
+// notchcast-kit: root
+// notchcast-sources: notchcast/root/FanSMC.swift
 import Foundation
 
 @main

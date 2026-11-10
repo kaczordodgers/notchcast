@@ -2,7 +2,8 @@
 // notchcast-sources: Tinycast/Features/FleetPanel/Service/*.swift Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Features/MachLink/Model/MachLinkMessage.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 import Foundation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }

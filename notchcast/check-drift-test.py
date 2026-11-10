@@ -263,6 +263,35 @@ class Gates(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn(f'{LARGE_LINES + 1} > {LARGE_LINES}', result.stdout)
 
+    def move_large(self, count):
+        moved = 'Tinycast/Features/Battery/Moved.swift'
+        git(self.root, 'mv', LARGE, moved)
+        baseline = self.baseline()
+        del baseline['file-size'][LARGE]
+        baseline['file-size'][moved] = count
+        self.save_baseline(baseline)
+        return moved
+
+    def test_renamed_file_keeps_its_budget(self):
+        self.move_large(LARGE_LINES)
+        result = self.run_check('2', '--compare-base', 'HEAD')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_renamed_file_growth_is_refused(self):
+        moved = self.move_large(LARGE_LINES + 1)
+        result = self.run_check('2', '--compare-base', 'HEAD')
+        self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+        self.assertIn(f'file-size: {moved}: {LARGE_LINES + 1} > {LARGE_LINES}', result.stdout)
+
+    def test_renamed_file_keeps_its_named_budget(self):
+        self.assertEqual(self.baseline()['dead'][LARGE + ':fixtureValue0'], 1)
+        moved = self.move_large(LARGE_LINES)
+        baseline = self.baseline()
+        baseline['dead'][moved + ':fixtureValue0'] = baseline['dead'].pop(LARGE + ':fixtureValue0')
+        self.save_baseline(baseline)
+        result = self.run_check('2', '--compare-base', 'HEAD')
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_tightening_retains_zero_keys(self):
         write(self.root, LARGE, '')
         result = self.run_check('1,2,3,4', '--write-baseline')

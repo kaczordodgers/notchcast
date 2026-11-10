@@ -9,7 +9,7 @@
 
 ## Model
 
-`AgentThreadParser` decodes list arrays or a threads envelope, plus show envelopes. Preparing, queued and starting map to starting; running stays running; waiting maps to approval waiting when its pending count is positive, otherwise input waiting. Completed stays completed; failed, interrupted, cancelled and rolled_back map to failed. Missing or null status means idle; idle and unknown statuses become stale. Invalid JSON or an unsupported top-level shape fails the refresh; unusable rows are dropped individually. Links accept HTTPS, t3-thread, and HTTP only on localhost or 127.0.0.1. The clock is injected into selection. Only starting, running and waiting list rows fetch show details, one process each; idle and finished rows require no show calls.
+`AgentThreadParser` decodes list arrays or a threads envelope, plus show envelopes. Preparing, queued and starting map to starting; running stays running; waiting maps to approval waiting when its pending count is positive, otherwise input waiting. Completed stays completed; failed, interrupted, cancelled and rolled_back map to failed. Missing or null status means idle; idle and unknown statuses become stale. Invalid JSON or an unsupported top-level shape fails the refresh; unusable rows are dropped individually. Links accept HTTPS, t3-thread, and HTTP only on localhost, 127.0.0.1 or [::1]. The clock is injected into selection. Only starting, running and waiting list rows fetch show details, one process each; idle and finished rows require no show calls.
 
 ## Service
 

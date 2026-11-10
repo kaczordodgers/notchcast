@@ -6,7 +6,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Root/*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: root platform
 // notchcast-sources: Tinycast/Features/SystemMonitor/Model/BatteryReading.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/BatteryService.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/PowerRegistryAccess.swift

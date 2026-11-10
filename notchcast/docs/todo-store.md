@@ -91,8 +91,7 @@ out-of-order batches rebuild it deterministically. Projection materialization va
 directly rather than synthesizing thousands of add commands and unused inverses.
 
 `@MainActor TodoSyncTransport` defines `send(_:) throws` and `receive() throws -> [TodoEnvelope]`.
-`TodoFakeSyncTransport.pair()` supplies two in-memory, explicitly owned endpoints; receive drains its
-inbox and sending after the peer has been released throws `disconnected`. Callers exchange vector
+`TodoFakeSyncTransport.pair()` supplies two in-memory endpoints; it has no caller and no harness. Callers exchange vector
 clocks separately and send `replication.envelopes(after: peerClock)`. There is no real transport,
 socket, process, host address, authentication or connection lifecycle in this pack. Future peers come
 from user settings, and the integrating owner must gate that capability.
@@ -156,9 +155,9 @@ task comments. Attachments and activity history are excluded.
 
 `Tests/nc-Todo-sync-test.swift` covers convergence in both orders, each task field's independent merge
 and conflicting last write, equal-clock ties, deletes versus edits, explicit restoration, relationship
-repair, idempotent delivery, vector gaps, fake transport, old logs, durable received batches and claims,
+repair, idempotent delivery, vector gaps, old logs, durable received batches and claims,
 agent ownership and fake-clock expiry, filter priority mapping, typed failures and JSON round-trips.
-It uses only an in-memory transport and UUID temporary directories.
+It exchanges envelopes in memory and uses UUID temporary directories.
 The sync harness compiles with optimization and reports timings for a 10,000-envelope open across
 500 receive records and receipt of 100 new envelopes onto 10,000. Timing is diagnostic because CPU
 contention changes wall-clock duration; state, persistence and undo remain assertions. It also

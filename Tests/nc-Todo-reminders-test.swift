@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/AgentConsent/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentConsent/Service/AgentGrantStore.swift
 // notchcast-sources: Tinycast/Features/AgentConfirm/Model/*.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 import AppKit
 
 @main

@@ -1,7 +1,7 @@
 // notchcast-sources: -parse-as-library Tinycast/Features/Music/Model/NowPlaying.swift
 // notchcast-sources: Tinycast/Features/Music/Model/NowPlayingAdapterReply.swift
 // notchcast-sources: Tinycast/Features/Music/Service/SystemNowPlayingSource.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 import Foundation
 
 @main

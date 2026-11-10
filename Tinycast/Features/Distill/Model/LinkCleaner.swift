@@ -1,11 +1,6 @@
 import Foundation
 
 nonisolated enum LinkCleaner {
-    static func isTrackingParameter(_ name: String) -> Bool { tracking.contains(name) || name.hasPrefix("utm_") }
-    private static let tracking: Set<String> = [
-        "fbclid", "gclid", "dclid", "msclkid", "yclid", "twclid", "wbraid", "gbraid", "mc_cid",
-        "mc_eid", "_hsenc", "_hsmi", "igshid", "igsh", "ref_src", "ref_url", "spm"
-    ]
     private static let youtubeHosts: Set<String> = ["youtube.com", "www.youtube.com", "m.youtube.com"]
     private static let xHosts: Set<String> = ["x.com", "twitter.com", "mobile.twitter.com"]
     private static let tail = #"(?:[^\s<>"'`()\]]|\([^\s<>"'`()]*\))"#
@@ -31,15 +26,13 @@ nonisolated enum LinkCleaner {
             text = "https://" + text
         }
         guard var parts = URLComponents(string: text), let scheme = parts.scheme?.lowercased(),
-            ["http", "https"].contains(scheme), let host = parts.host?.lowercased(), host.contains("."),
+            WebRules.isWebScheme(scheme), let host = parts.host?.lowercased(), host.contains("."),
             !host.hasPrefix("."), !host.hasSuffix("."), parts.user == nil, parts.password == nil else { return nil }
         parts.scheme = scheme
         parts.host = host
         parts.fragment = nil
         if (scheme == "https" && parts.port == 443) || (scheme == "http" && parts.port == 80) { parts.port = nil }
-        var items = (parts.queryItems ?? []).filter {
-            !tracking.contains($0.name.lowercased()) && !$0.name.lowercased().hasPrefix("utm_")
-        }
+        var items = (parts.queryItems ?? []).filter { !WebRules.isTrackingParameter($0.name) }
         if host == "youtu.be" {
             guard let id = parts.path.split(separator: "/").first else { return nil }
             return youtube(String(id))
