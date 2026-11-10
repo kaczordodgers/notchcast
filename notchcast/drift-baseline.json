@@ -160,7 +160,6 @@
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,
     "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
-    "Tinycast/Features/CommandRunner/Service/CommandRunnerToken.swift:CommandRunnerToken": 0,
     "Tinycast/Features/DictationEnglish/Service/DictationEnglishSettingsSection.swift:DictationEnglishSettingsSection": 1,
     "Tinycast/Features/DictationTrigger/UI/DictationTriggerSettingsSection.swift:DictationTriggerSettingsSection": 1,
     "Tinycast/Features/DisplayBrightness/Service/KeyboardBrightnessService.swift:KeyboardBrightnessService": 0,

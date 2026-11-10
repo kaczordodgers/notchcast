@@ -7,24 +7,6 @@ struct IslandItemParts {
     let item: IslandClosedItem
     var onButtonFrame: (CGRect) -> Void = { _ in }
 
-    /// How tall the leading mark is, so the pill's end centres it on its cap.
-    var leadingHeight: CGFloat {
-        switch item {
-        case .music: NotchcastTheme.Closed.artwork
-        case .card(let card):
-            if case .meeting = card.kind { Theme.Size.calendarBarHeight } else { NotchcastTheme.Closed.glyph }
-        case .activity, .message: NotchcastTheme.Closed.glyph
-        }
-    }
-
-    /// A trailing button is centred on the cap; text and bars keep the text inset.
-    var trailingInset: CGFloat {
-        if case .card(let card) = item, card.action != nil {
-            return (NotchcastTheme.Closed.row - NotchcastTheme.Closed.button) / 2
-        }
-        return NotchcastTheme.Closed.textInset
-    }
-
     @ViewBuilder var leading: some View {
         switch item {
         case .activity(let activity):
