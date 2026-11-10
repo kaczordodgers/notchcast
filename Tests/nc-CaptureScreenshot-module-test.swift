@@ -1,6 +1,7 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-kit: core command
-// notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule*.swift
+// notchcast-kit: core host command
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
+// notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
 import AppKit
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
@@ -10,14 +11,9 @@ import AppKit
     func stop() {}
 }
 
-@MainActor enum NotchcastCore {
-    static let captureEditor = EditorProbe()
+extension ScreenshotModule {
     static var instance: ScreenshotModule?
-    static var screenshot: ScreenshotModule { instance! }
-}
-
-@MainActor final class EditorProbe {
-    func openCapture(url: URL?, clipboard: Bool) throws {}
+    static var shared: ScreenshotModule { instance! }
 }
 
 @MainActor final class NSScreen {
@@ -25,12 +21,7 @@ import AppKit
     let displayID: UInt32? = 42
 }
 
-@MainActor final class AppCore {
-    enum Tone { case danger }
-    static let shared = AppCore()
-    var messages: [String] = []
-    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
-}
+enum DialogTone { case danger }
 
 @MainActor enum ScreenshotService {
     static func capture(
@@ -44,6 +35,8 @@ import AppKit
 @main
 struct ScreenshotModuleTest {
     @MainActor static func main() async {
+        var messages: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
         let suite = "screenshot-module-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -58,7 +51,7 @@ struct ScreenshotModuleTest {
             if shouldFail { throw ScreenshotRequest.Failure.permissionDenied }
             return nil
         })
-        NotchcastCore.instance = module
+        ScreenshotModule.instance = module
         let controller = NotchcastModuleController([
             .init(requires: [.screenshot], module: module)
         ], preferences: preferences)
@@ -68,11 +61,11 @@ struct ScreenshotModuleTest {
         await settle()
         command.run()
         await module.commandTask?.value
-        precondition(calls == 1 && AppCore.shared.messages.isEmpty)
+        precondition(calls == 1 && messages.isEmpty)
         shouldFail = true
         command.run()
         await module.commandTask?.value
-        precondition(calls == 2 && AppCore.shared.messages == [String(localized: "Screen Recording access is required.")])
+        precondition(calls == 2 && messages == [String(localized: "Screen Recording access is required.")])
         preferences.set(.screenshot, false)
         await settle()
         precondition(module.commandTask == nil)
@@ -84,7 +77,7 @@ struct ScreenshotModuleTest {
         NSScreen.underCursor = nil
         command.run()
         precondition(module.commandTask == nil)
-        NotchcastCore.instance = nil
+        ScreenshotModule.instance = nil
         precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.clipboardFailed)
                      == String(localized: "Could not copy to clipboard."))
         precondition(ScreenshotModule.failureMessage(NSError(domain: "com.apple.ScreenCaptureKit", code: -3802))

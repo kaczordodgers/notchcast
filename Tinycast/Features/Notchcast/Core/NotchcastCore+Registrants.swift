@@ -4,5 +4,12 @@ extension NotchcastCore {
     static let registrants: [any NotchcastRegistrant.Type] = [
         LowDiskModule.self,
         WaitingAlertsModule.self,
+        ColorPickerModule.self,
+        ScreenshotModule.self,
+        ScreenTextModule.self,
+        ScrollingCaptureModule.self,
+        CaptureTrimmerModule.self,
+        CaptureEditorCoordinator.self,
+        RecordingModule.self,
     ]
 }

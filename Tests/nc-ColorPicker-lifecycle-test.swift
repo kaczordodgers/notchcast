@@ -1,12 +1,16 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-kit: core
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule.swift
+// notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Registration.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Model/*.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Service/*.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorValue.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorFormat.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorSpaces.swift
 import AppKit
+
+@MainActor final class AppCore {}
 
 @main
 struct ColorPickerLifecycleTest {
@@ -68,7 +72,10 @@ struct ColorPickerLifecycleTest {
         await settle()
         module.pick { precondition($0 == .cancelled) }
         precondition(samples == 3)
-        print("PASS: color picker switch gates sampling, stops stale copies and preserves format")
+        let entries = ColorPickerModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.colorPicker] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === ColorPickerModule.shared)
+        print("PASS: color picker switch gates sampling, stops stale copies and preserves format; registration entry")
     }
 
     @MainActor

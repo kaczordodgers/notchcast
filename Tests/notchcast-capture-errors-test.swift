@@ -4,11 +4,14 @@
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-kit: command
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import AppKit
 
 @MainActor final class ScreenshotModule {
+    static let shared = ScreenshotModule()
+    var openInEditor: (URL?, Bool) throws -> Void = { _, _ in }
     enum Destination { case clipboard, file }
     let destination = Destination.clipboard
     let enabled = true
@@ -22,18 +25,13 @@ import AppKit
 }
 
 @MainActor final class ColorPickerModule {
+    static let shared = ColorPickerModule()
     var outcome = ColorPickerService.Outcome.copyFailed
     func pick(completion: (ColorPickerService.Outcome) -> Void) { completion(outcome) }
 }
 
 enum ColorPickerService {
     enum Outcome { case copied, copyFailed, cancelled }
-}
-
-@MainActor enum NotchcastCore {
-    static let captureEditor = CaptureEditorProbe()
-    static let screenshot = ScreenshotModule()
-    static let colorPicker = ColorPickerModule()
 }
 
 @MainActor final class CaptureEditorProbe {
@@ -45,29 +43,27 @@ enum ColorPickerService {
 }
 
 enum NotchcastFeature { case screenshot, colorPicker, captureEditor }
-
-@MainActor final class AppCore {
-    enum Tone { case danger }
-    static let shared = AppCore()
-    var messages: [String] = []
-    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
-}
+enum DialogTone { case danger }
 
 @main @MainActor struct CaptureErrorsTest {
     static func main() async {
-        NotchcastCore.screenshot.captureArea()
-        await NotchcastCore.screenshot.commandTask?.value
-        precondition(NotchcastCore.screenshot.captures == 1)
-        precondition(AppCore.shared.messages == ["No Image to Edit"])
-        AppCore.shared.messages.removeAll()
+        var messages: [String] = []
+        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
+        let editor = CaptureEditorProbe()
+        ScreenshotModule.shared.openInEditor = { try editor.openCapture(url: $0, clipboard: $1) }
+        ScreenshotModule.shared.captureArea()
+        await ScreenshotModule.shared.commandTask?.value
+        precondition(ScreenshotModule.shared.captures == 1)
+        precondition(messages == ["No Image to Edit"])
+        messages.removeAll()
         ColorPickerModule.launcherCommand.run()
-        precondition(AppCore.shared.messages == [String(localized: "Pick Color")])
-        NotchcastCore.colorPicker.outcome = .copied
+        precondition(messages == [String(localized: "Pick Color")])
+        ColorPickerModule.shared.outcome = .copied
         ColorPickerModule.launcherCommand.run()
-        precondition(AppCore.shared.messages.count == 1)
-        NotchcastCore.colorPicker.outcome = .cancelled
+        precondition(messages.count == 1)
+        ColorPickerModule.shared.outcome = .cancelled
         ColorPickerModule.launcherCommand.run()
-        precondition(AppCore.shared.messages.count == 1)
+        precondition(messages.count == 1)
         print("PASS: screenshot area error HUD; color copy failure and success")
     }
 }

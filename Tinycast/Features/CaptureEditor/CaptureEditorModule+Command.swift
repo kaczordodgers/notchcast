@@ -7,9 +7,9 @@ extension CaptureEditorCoordinator {
         isEnabled: { NotchcastPreferences.shared.isOn(.captureEditor) },
         run: {
             do {
-                try NotchcastCore.captureEditor.openFromClipboardOrLast()
+                try CaptureEditorCoordinator.shared.openFromClipboardOrLast()
             } catch {
-                AppCore.shared.showMessage(error.localizedDescription, tone: .danger)
+                NotchcastHost.current.showMessage(error.localizedDescription, .danger)
             }
         })
 }
