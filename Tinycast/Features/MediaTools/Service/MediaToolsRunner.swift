@@ -53,15 +53,8 @@ struct MediaToolsRunner: Sendable {
             try text.write(to: staged, atomically: false, encoding: .utf8)
         }
         try Task.checkCancellation()
-        for index in 1...10000 {
-            let name = input.deletingPathExtension().lastPathComponent + " processed (\(index))." + suffix
-            let destination = input.deletingLastPathComponent().appendingPathComponent(name)
-            do {
-                try FileManager.default.linkItem(at: staged, to: destination)
-                return destination
-            } catch CocoaError.fileWriteFileExists { continue }
-        }
-        throw Failure.encoding
+        return try JobOutput.publish(staged, in: input.deletingLastPathComponent(),
+                                     stem: input.deletingPathExtension().lastPathComponent + " processed", suffix: "." + suffix)
     }
 
     private func image(_ input: URL, output: URL, dimension: Int) throws {

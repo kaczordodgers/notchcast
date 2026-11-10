@@ -19832,58 +19832,6 @@
         }
       }
     },
-    "Invalid file paths." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ungültige Dateipfade."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rutas de archivo no válidas."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chemins de fichiers non valides."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ファイルパスが無効です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "파일 경로가 올바르지 않습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Caminhos de arquivo inválidos."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Недопустимые пути файлов."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件路径无效。"
-          }
-        }
-      }
-    },
     "Island" : {
       "localizations" : {
         "de" : {
@@ -24653,58 +24601,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未选择归档。"
-          }
-        }
-      }
-    },
-    "No captions are available. The Distill transcriber fallback is not connected yet." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Untertitel verfügbar. Die Distill-Transkription als Ersatz ist noch nicht verbunden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No hay subtítulos disponibles. La transcripción alternativa de Distill aún no está conectada."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun sous-titre disponible. La transcription de secours Distill n’est pas encore connectée."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "字幕がありません。代替の Distill 文字起こしはまだ接続されていません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "자막이 없습니다. 대체 Distill 받아쓰기가 아직 연결되지 않았습니다."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Субтитры недоступны. Резервная транскрипция Distill ещё не подключена."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Não há legendas disponíveis. A transcrição alternativa do Distill ainda não está ligada."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有可用字幕。Distill 备用转录尚未连接。"
           }
         }
       }
@@ -47592,6 +47488,58 @@
         }
       }
     },
+    "This conversion was queued by an older version. Add the files again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Konvertierung wurde von einer älteren Version eingereiht. Füge die Dateien erneut hinzu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta conversión se puso en cola con una versión anterior. Añade los archivos de nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cette conversion a été mise en file d’attente par une version antérieure. Ajoutez à nouveau les fichiers."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この変換は以前のバージョンでキューに追加されました。ファイルをもう一度追加してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 변환은 이전 버전에서 대기열에 추가되었습니다. 파일을 다시 추가하세요."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esta conversão foi colocada na fila por uma versão anterior. Adicione os arquivos novamente."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Это преобразование было поставлено в очередь более старой версией. Добавьте файлы снова."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此转换由旧版本加入队列。请重新添加文件。"
+          }
+        }
+      }
+    },
     "This download type is not available." : {
       "localizations" : {
         "de" : {
@@ -51860,58 +51808,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Avisa quando os backups falham ou ficam desatualizados."
-          }
-        }
-      }
-    },
-    "Webpage saving is not connected to Distill yet." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Speichern von Webseiten ist noch nicht mit Distill verbunden."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "El guardado de páginas web aún no está conectado a Distill."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "L’enregistrement de pages web n’est pas encore connecté à Distill."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Webページの保存はまだDistillに接続されていません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "웹페이지 저장이 아직 Distill에 연결되지 않았습니다."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "O salvamento de páginas da web ainda não está conectado ao Distill."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Сохранение веб-страниц ещё не подключено к Distill."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "网页保存尚未连接到 Distill。"
           }
         }
       }
