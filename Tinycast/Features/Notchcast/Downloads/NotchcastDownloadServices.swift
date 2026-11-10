@@ -32,7 +32,8 @@ struct NotchcastDownloadServices: Sendable {
         defer { try? FileManager.default.removeItem(at: work) }
         let metadata = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.metadataArguments(link: cleaned))
         struct Metadata: Decodable { let title: String; let id: String }
-        let media = try JSONDecoder().decode(Metadata.self, from: Data(metadata.utf8))
+        let first = metadata.split(whereSeparator: \.isNewline).first ?? ""
+        let media = try JSONDecoder().decode(Metadata.self, from: Data(first.utf8))
         _ = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.audioArguments(link: cleaned, folder: work))
         let files = try FileManager.default.contentsOfDirectory(at: work, includingPropertiesForKeys: [.isRegularFileKey])
         let audio = try files.filter {

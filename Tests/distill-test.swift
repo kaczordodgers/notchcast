@@ -232,8 +232,9 @@ struct DistillTest {
         #!/usr/bin/python3
         import sys, json
         a = sys.argv
-        if '--dump-single-json' in a:
+        if '--print' in a:
             print(json.dumps({'title': 'Title', 'channel': 'Channel'}))
+            print(json.dumps({'title': 'Second entry'}))
         elif '-o' in a:
             open(a[a.index('-o') + 1].replace('%(ext)s', 'm4a'), 'wb').write(b'0')
         else:
