@@ -29,5 +29,3 @@ presets: disable all AI features, or disable every catalogued privacy restrictio
 They call TweaksModule.requestProfile and leave installation approval to macOS. Turning a switch
 off does not remove an installed profile; remove it in System Settings. Per-item selectors remain
 deferred. Fake-backed command harnesses generate profile bytes without opening or writing files.
-
-Preset Apply/Undo controls remain deferred. MacSetupPlan receipts cover preference changes only.

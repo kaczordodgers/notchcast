@@ -88,7 +88,7 @@
     "Tinycast/Features/Notchcast/Gallery/GalleryPages+Island.swift | Tinycast/Features/Notchcast/Gallery/IslandMotionStage.swift": 1,
     "Tinycast/Features/Notchcast/Root/RootContract.swift | notchcast/root/RootContract.swift": 0,
     "Tinycast/Features/RemoteScreen/RemoteScreenModule.swift | Tinycast/Features/Todo/TodoLinkWiring.swift": 0,
-    "Tinycast/Features/Tweaks/Service/MacSetupService.swift | Tinycast/Features/Tweaks/Service/TypingPreferenceService.swift": 1,
+    "Tinycast/Features/Tweaks/Service/MacSetupService.swift | Tinycast/Features/Tweaks/Service/TypingPreferenceService.swift": 0,
     "notchcast/root/BatterySMC.swift | notchcast/root/Power.swift": 1,
     "notchcast/root/Power.swift | notchcast/root/Spotlight.swift": 1
   },

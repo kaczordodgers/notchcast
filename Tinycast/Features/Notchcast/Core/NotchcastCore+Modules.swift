@@ -86,7 +86,6 @@ extension NotchcastCore {
     static let dictationCleanup = DictationCleanupModule.live()
     static let captureTrimmer = CaptureTrimmerModule.live()
     static let captureEditor = CaptureEditorCoordinator(reportFailure: { AppCore.shared.showMessage($0.localizedDescription, tone: .danger) })
-    static let agentAnswer = AgentAnswerModule()
     static let recording = RecordingModule()
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
@@ -121,8 +120,8 @@ extension NotchcastCore {
             .init(requires: [.agentActions], module: agents),
             .init(requires: [.agentActions, .agentCLI], module: agentCLI),
             .init(requires: [.appearance], module: core.appearanceCoordinator),
-            .init(requires: [], requiresAny: [.startupItems, .notificationCleanup, .sudoTouchID, .killProcess], module: systemTools),
-            .init(requires: [], requiresAny: [.macSetup, .aiFeaturesOff, .spotlightOff, .privacyChoices], module: tweaks),
+            .init(requires: [], requiresAny: [.startupItems, .notificationCleanup, .sudoTouchID], module: systemTools),
+            .init(requires: [], requiresAny: [.aiFeaturesOff, .spotlightOff, .privacyChoices], module: tweaks),
             .init(requires: [.typingTweaks], module: typingTweaks),
             .init(requires: [.finderTweaks], module: finderTweaks),
             .init(requires: [.dockTweaks], module: dockTweaks),
@@ -198,7 +197,6 @@ extension NotchcastCore {
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.captureTrimmer], module: captureTrimmer),
             .init(requires: [.captureEditor], module: captureEditor),
-            .init(requires: [.agentAnswer], module: agentAnswer),
             .init(requires: [.recording], module: recording),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [.dictationHistory], module: dictationHistory),
