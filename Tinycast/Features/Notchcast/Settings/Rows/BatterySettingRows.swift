@@ -11,9 +11,9 @@ struct NotchcastChargePercentSettingRow: View {
             }
         } label: {
             SettingsRowTitle(.notchcastChargePercent, LocalizedStringResource("Charge limit percent", table: "Notchcast"))
-            if let limit = NotchcastCore.battery.nativeLimit {
+            if let limit = BatteryModule.shared.nativeLimit {
                 Text(Double(limit) / 100, format: .percent)
-            } else if NotchcastCore.battery.nativeLimitAvailable {
+            } else if BatteryModule.shared.nativeLimitAvailable {
                 Text("Off")
             }
         }
@@ -42,29 +42,29 @@ struct NotchcastBatteryStatusSettingRow: View {
         Group {
             if feature == .batterySailing || feature == .batteryHeatProtection
                 || feature == .batteryCalibration,
-                NotchcastCore.battery.chargingUnsupported
+                BatteryModule.shared.chargingUnsupported
             {
                 Text("Not supported on this Mac", tableName: "Notchcast").foregroundStyle(.secondary)
             }
             if feature != .systemMonitor && feature != .fanControl && feature != .keepAwake,
-                NotchcastCore.battery.needsHelperUpdate
-                    || (feature == .batteryChargeLimit && !NotchcastCore.battery.nativeLimitAvailable)
+                BatteryModule.shared.needsHelperUpdate
+                    || (feature == .batteryChargeLimit && !BatteryModule.shared.nativeLimitAvailable)
             {
                 Text("Needs the Notchcast helper update", tableName: "Notchcast").foregroundStyle(.secondary)
             }
             // Mac-wide helper state shows once, under the charge limit.
-            if feature == .batteryChargeLimit, let failure = NotchcastCore.battery.failure {
+            if feature == .batteryChargeLimit, let failure = BatteryModule.shared.failure {
                 if failure as? RootHelperClient.Failure == .reinstallRequired {
                     Text("Needs the Notchcast helper update", tableName: "Notchcast").foregroundStyle(.secondary)
                 } else {
                     Text(failure.localizedDescription).foregroundStyle(.secondary)
                 }
             }
-            if feature == .batteryChargeLimit, !NotchcastCore.battery.helperInstalled {
+            if feature == .batteryChargeLimit, !BatteryModule.shared.helperInstalled {
                 Text("The privileged helper is not installed.", tableName: "Notchcast").foregroundStyle(.secondary)
             }
         }
-        .onAppear { if feature == .batteryChargeLimit { NotchcastCore.battery.refreshHelper() } }
+        .onAppear { if feature == .batteryChargeLimit { BatteryModule.shared.refreshHelper() } }
     }
 }
 

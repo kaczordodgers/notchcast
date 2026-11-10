@@ -45,15 +45,9 @@ struct AppEntry: Sendable {
  var refreshes = 0
  func refreshNotchcastCommands() { refreshes += 1 }
 }
-@MainActor enum NotchcastCore {
- static var services: Services?
- struct Services {
- let music: MusicNowPlayingModule
- let microphone: MicrophoneMuteModule
- let spotify: Spotify
- }
- struct Spotify { let key: SoloistKey }
-}
+extension MusicNowPlayingModule { static var shared: MusicNowPlayingModule? }
+extension MicrophoneMuteModule { static var shared: MicrophoneMuteModule? }
+extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
 @MainActor final class CommandSource: NowPlayingSource {
     var commands: [PlayerCommand] = []
     func watch(_ onChange: @escaping @MainActor () -> Void) {}
@@ -170,7 +164,9 @@ struct AppEntry: Sendable {
  microphone.start()
  var hasKey = false
  let key = SoloistKey(read: { hasKey ? "fixture" : nil }, write: { _ in }, presence: { hasKey })
- NotchcastCore.services = .init(music: music, microphone: microphone, spotify: .init(key: key))
+ MusicNowPlayingModule.shared = music
+ MicrophoneMuteModule.shared = microphone
+ SpotifyConnectModule.shared = SpotifyConnectModule(source: music.soloist, defaults: defaults, key: key)
  let muteCommands = [MicrophoneMuteCommands.muteLauncherCommand, MicrophoneMuteCommands.unmuteLauncherCommand]
  precondition(muteCommands.allSatisfy { $0.isEnabled() })
  muteCommands[0].run()
@@ -188,7 +184,10 @@ struct AppEntry: Sendable {
      microphone.setMuted(false)
      preferences.set(feature, true)
  }
- defer { music.stop(); microphone.stop(); NotchcastCore.services = nil }
+ defer {
+     music.stop(); microphone.stop()
+     MusicNowPlayingModule.shared = nil; MicrophoneMuteModule.shared = nil; SpotifyConnectModule.shared = nil
+ }
  let commands = MusicCommands.launcherCommands
  precondition(commands.map(\.id) == ["command:nc-open-current-player"])
  precondition(commands.allSatisfy { $0.isEnabled() })

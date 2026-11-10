@@ -24,10 +24,9 @@ struct AppEntry {
     static let shared = AppCore()
     func showMessage(_ message: String) { preconditionFailure("Production feedback used") }
 }
-@MainActor enum NotchcastCore {
-    struct Services { var tasks: Tasks }
-    struct Tasks { var store: TodoStore? }
-    static var services: Services?
+@MainActor final class TodoModule {
+    static var shared: TodoModule?
+    var store: TodoStore?
 }
 
 @main @MainActor

@@ -16,7 +16,7 @@ extension MusicCommands {
         NotchcastCommand(slug: slug, name: name, sfSymbol: "hifispeaker", feature: .musicNowPlaying, isEnabled: { enabled }, run: {
             guard enabled else { return }
             let preferences = NotchcastPreferences.shared
-            if on, (try? NotchcastCore.services?.spotify.key.isSaved) != true {
+            if on, (try? SpotifyConnectModule.shared?.key.isSaved) != true {
                 preferences.set(.spotifyConnect, true)
                 AppCore.shared.settingsCoordinator.showSettings(
                     tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
@@ -35,7 +35,7 @@ extension MusicCommands {
 
     static func resumeLastPlayer() {
         guard NotchcastPreferences.shared.isEnabled(.musicLastPlayer),
-              let model = NotchcastCore.services?.music.model else { return }
+              let model = MusicNowPlayingModule.shared?.model else { return }
         guard model.nowPlaying != nil || model.canResume else { report(); return }
         model.send(.play)
     }

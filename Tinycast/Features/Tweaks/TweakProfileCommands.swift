@@ -26,7 +26,7 @@ enum TweakProfileCommands {
                     await core.confirm(title: feature.title, message: message,
                         symbol: "gearshape", confirmTitle: String(localized: "Open…"))
                 }, request: { kept, privacy in
-                    _ = try await NotchcastCore.tweaks.requestProfile(keepingAI: kept, privacy: privacy)
+                    _ = try await TweaksModule.shared.requestProfile(keepingAI: kept, privacy: privacy)
                 })
         } catch { core.showMessage(error.localizedDescription) }
     }

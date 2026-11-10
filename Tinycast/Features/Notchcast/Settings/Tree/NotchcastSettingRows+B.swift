@@ -28,12 +28,12 @@ struct NotchcastSettingRowsB: View {
         case .tweaksTyping:
             NotchcastKeyRepeatSpeedSettingRow()
             NotchcastKeyRepeatDelaySettingRow()
-            ForEach(TweakToggle.typing) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: NotchcastCore.typingTweaks) }
+            ForEach(TweakToggle.typing) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: TweaksModule.typing) }
         case .tweaksFinder:
             NotchcastNewFinderWindowsSettingRow()
-            ForEach(TweakToggle.finder) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: NotchcastCore.finderTweaks) }
+            ForEach(TweakToggle.finder) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: TweaksModule.finder) }
         case .tweaksDock:
-            ForEach(TweakToggle.dock) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: NotchcastCore.dockTweaks) }
+            ForEach(TweakToggle.dock) { NotchcastTweaksPreferenceSettingRow(toggle: $0, module: TweaksModule.dock) }
         case .privacyAndStartupLaunchAgents:
             NotchcastStartupItemsSettingRow()
         case .privacyAndStartupAppleApps:

@@ -4,7 +4,11 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastServicesModules.swift
+// notchcast-sources: Tinycast/Features/Music/MusicNowPlayingModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Microphone/Settings/MicrophoneFailure+Settings.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
@@ -62,25 +66,7 @@ final class CountingModule: NotchcastModule {
 }
 
 @MainActor final class AppCore {}
-
-@MainActor
-final class NotchcastServices {
-    let music = CountingModule()
-    let lastPlayer = CountingModule()
-    let appleMusic = CountingModule()
-    let sharpCovers = CountingModule()
-    let spotify = CountingModule()
-    let microphone = CountingModule()
-    let marks = CountingModule()
-    let tasks = CountingModule()
-    let keys = Keys()
-
-    init(core: AppCore, preferences: NotchcastPreferences) {}
-
-    final class Keys {
-        func run() {}
-    }
-}
+enum DialogTone { case success, danger }
 
 @main
 @MainActor
@@ -165,11 +151,23 @@ struct MusicModuleTests {
                 ? [.accessibility] : []
             precondition(feature.requiredGrants == grants)
         }
-        let services = NotchcastServices(core: AppCore(), preferences: preferences)
-        let controller = NotchcastModuleController(services.moduleEntries, preferences: preferences)
+        precondition(MusicNowPlayingModule.shared == nil && MicrophoneMuteModule.shared == nil)
+        let registered = MusicNowPlayingModule.register(AppCore()) + MicrophoneMuteModule.register(AppCore())
+        precondition(registered.count == 7 && registered.allSatisfy { $0.requiresAny.isEmpty })
+        precondition(registered[0].module === MusicNowPlayingModule.shared)
+        precondition(registered[1].module is MusicLastPlayerModule)
+        precondition(registered[2].module === MusicBlockAppleMusicModule.shared)
+        precondition(registered[3].module is MusicSharpCoversModule)
+        precondition(registered[4].module === SpotifyConnectModule.shared)
+        precondition(registered[5].module === MicrophoneMuteModule.shared)
+        precondition(registered[6].module === InUseMarksModule.shared)
+        precondition(registered[3].requires == [.island, .musicNowPlaying, .musicSharpCovers])
+        let counted = registered.map { _ in CountingModule() }
+        let controller = NotchcastModuleController(zip(registered, counted).map {
+            .init(requires: $0.requires, module: $1)
+        }, preferences: preferences)
         controller.run()
-        let modules = [services.music, services.lastPlayer, services.appleMusic,
-                       services.spotify, services.microphone, services.marks]
+        let modules = [counted[0], counted[1], counted[2], counted[4], counted[5], counted[6]]
         precondition(modules.map(\.starts) == [1, 1, 1, 0, 1, 0])
         preferences.set(.spotifyConnect, true)
         preferences.set(.inUseMarks, true)

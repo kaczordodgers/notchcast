@@ -62,7 +62,9 @@ A feature owns its module instance and hands the controller its entries; the hub
 
 A registration names only its own folder, `Notchcast/Core` kernel types and upstream. Wiring between two fork features (feature A reading feature B's module, such as Shelf's link status reading Mac Link and Link Health) stays in `NotchcastCore.start` as hub glue, so drift gate 1 `boundaries` never rises; such a module moves only when that glue can read both sides' `shared`.
 
-Registrant entries start after every hub entry and before the services' entries, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one.
+Registrant entries start after every hub entry, in list order, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one. Music, Microphone and Tasks register last; the kernel's `NotchcastServices` then builds the key monitor and Spotify settings on their `shared` modules, and is `nil` until `NotchcastCore.start` has run.
+
+A module whose launch repair must not run from a harness (`BatteryModule.shared.repairAtLaunch()`, the fan restore on `MonitorModule.shared`) keeps that line in `NotchcastCore.start`; `register` only builds and returns.
 
 ## Moving a feature
 
