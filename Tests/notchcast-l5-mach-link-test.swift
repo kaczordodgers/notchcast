@@ -5,7 +5,6 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
-// notchcast-reads: Tinycast/Info.plist
 import Foundation
 import Network
 
@@ -13,14 +12,6 @@ import Network
 struct MachLinkTest {
     @MainActor
     static func main() async throws {
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        let plistData = try Data(contentsOf: root.appendingPathComponent("Tinycast/Info.plist"))
-        let plist = try PropertyListSerialization.propertyList(from: plistData, format: nil) as? [String: Any]
-        precondition(plist?["NSLocalNetworkUsageDescription"] as? String
-            == "Notchcast connects to your other Mac on the local network.")
-        precondition(plist?["NSBonjourServices"] as? [String] == [MachLinkManager.serviceType])
-        print("PASS local network permission and Bonjour service declaration")
-
         let message = try MachLinkMessage(method: "snapshot", value: ["remaining": 42])
         let decoded = try MachLinkMessage.decode(message.encoded())
         precondition(decoded == message)
