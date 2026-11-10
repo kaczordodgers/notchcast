@@ -154,13 +154,7 @@ struct CleanAIDataService: Sendable {
                 throw CocoaError(.fileReadNoPermission)
             }
             newest = max(newest, attributes[.modificationDate] as? Date ?? .distantFuture)
-            values[entry.path] = attributes.sorted { $0.key.rawValue < $1.key.rawValue }
-                .map { attribute in
-                    let value = (attribute.value as? Date).map {
-                        String($0.timeIntervalSinceReferenceDate.bitPattern)
-                    } ?? String(describing: attribute.value)
-                    return "\(attribute.key.rawValue)=\(value)"
-                }.joined(separator: "|")
+            values[entry.path] = CleanService.fingerprint(attributes)
             if type == .typeDirectory {
                 pending += try FileManager().contentsOfDirectory(at: entry, includingPropertiesForKeys: nil)
             }
