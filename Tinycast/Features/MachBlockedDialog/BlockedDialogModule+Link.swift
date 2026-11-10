@@ -1,6 +1,9 @@
 import Foundation
 
 extension BlockedDialogModule {
+    /// Hub glue sets this before modules register, so the registration names no Mac Link type.
+    static var linkChannel: MachLinkChannel?
+
     static func linked(to channel: MachLinkChannel) -> BlockedDialogModule {
         channel.manager.register("dialogs") { request in
             guard NotchcastPreferences.shared.isOn(.machBlockedDialogAlert) else {

@@ -11,5 +11,11 @@ extension NotchcastCore {
         CaptureTrimmerModule.self,
         CaptureEditorCoordinator.self,
         RecordingModule.self,
+        MachRemoteModule.self,
+        ShelfModule.self,
+        RemoteFanModule.self,
+        RemoteScreenModule.self,
+        BlockedDialogModule.self,
+        LinkQuickFixModule.self,
     ]
 }

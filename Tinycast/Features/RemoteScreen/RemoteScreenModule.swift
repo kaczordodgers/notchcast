@@ -2,6 +2,8 @@ import AppKit
 
 @MainActor
 final class RemoteScreenModule: NotchcastModule {
+    /// Hub glue sets this before modules register, so the registration names no Mac Link type.
+    static var linkChannel: MachLinkChannel?
     let coordinator: RemoteScreenCoordinator
 
     init(channel: MachLinkChannel) {

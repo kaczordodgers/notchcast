@@ -11,6 +11,11 @@ struct MachLinkFanTransport: RemoteFanTransport {
     }
 }
 
+extension RemoteFanModule {
+    /// Hub glue sets this before modules register, so the registration names no Mac Link type.
+    static var linkChannel: MachLinkChannel?
+}
+
 extension MonitorModule {
     func registerRemoteFanRoute(on channel: MachLinkChannel, preferences: NotchcastPreferences = .shared) {
         channel.manager.register("mbp-fans") { [weak self] request in
