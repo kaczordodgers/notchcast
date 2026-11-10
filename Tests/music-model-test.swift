@@ -3,7 +3,7 @@
 // notchcast-sources: Tinycast/Features/Music/Model/LastPlayer.swift
 // notchcast-sources: Tinycast/Features/Music/Service/MusicModel.swift
 // notchcast-sources: Tinycast/Features/Music/Service/PlayerApps.swift
-// notchcast-sources: Tinycast/Platform/NotificationToken.swift
+// notchcast-kit: platform
 import Foundation
 
 @MainActor

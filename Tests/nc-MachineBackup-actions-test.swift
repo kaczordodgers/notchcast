@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/MachineBackup/Model/*.swift Tinycast/Features/MachineBackup/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift Tinycast/Platform/ProcessExit.swift
+// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
 import Foundation
 import Synchronization
 
