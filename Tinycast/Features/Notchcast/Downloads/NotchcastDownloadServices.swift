@@ -12,8 +12,9 @@ struct NotchcastDownloadServices: Sendable {
         try FileManager.default.trashItem(at: source, resultingItemURL: nil)
     }
 
-    var distillRunner: DistillRunner {
-        DistillRunner(transcriber: transcriber, workDirectory: workDirectory, saveWebpage: saveWebpage)
+    func distillRunner(timestamps: @escaping @MainActor @Sendable () -> Bool) -> DistillRunner {
+        DistillRunner(transcriber: transcriber, workDirectory: workDirectory, timestamps: timestamps,
+                      saveWebpage: saveWebpage)
     }
 
     var transcriptRunner: TranscriptDownloadRunner {
@@ -27,24 +28,12 @@ struct NotchcastDownloadServices: Sendable {
         guard let cleaned = LinkCleaner.clean(job.source), let url = URL(string: cleaned), YtDlpAudio.isMedia(url) else {
             throw MediaFailure(detail: String(localized: "Transcript fallback requires a supported media link.", table: "Notchcast"))
         }
-        let work = workDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
-        try FileManager.default.createDirectory(at: work, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: work) }
-        let metadata = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.metadataArguments(link: cleaned))
-        struct Metadata: Decodable { let title: String; let id: String }
-        let first = metadata.split(whereSeparator: \.isNewline).first ?? ""
-        let media = try JSONDecoder().decode(Metadata.self, from: Data(first.utf8))
-        _ = try await context.distillSpawn(.ytDlp, arguments: YtDlpAudio.audioArguments(link: cleaned, folder: work))
-        let files = try FileManager.default.contentsOfDirectory(at: work, includingPropertiesForKeys: [.isRegularFileKey])
-        let audio = try files.filter {
-            guard $0.lastPathComponent.hasPrefix("audio."),
-                  !["part", "ytdl", "json"].contains($0.pathExtension) else { return false }
-            return try $0.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile == true
+        return try await context.withDistillAudio(link: cleaned, workDirectory: workDirectory) { media, audio, work in
+            let text = try await transcriber.text(file: audio, workDirectory: work, context: context)
+            let title = media.id.map { "\(media.title) [\($0)]" } ?? media.title
+            return try DistillRunner.save(text, name: DistillTranscript.fileName(channel: nil, title: title),
+                                          in: context.destination)
         }
-        guard audio.count == 1 else { throw CocoaError(.fileReadCorruptFile) }
-        let text = try await transcriber.text(file: audio[0], workDirectory: work, context: context)
-        return try DistillRunner.save(text,
-            name: DistillTranscript.fileName(channel: nil, title: "\(media.title) [\(media.id)]"), in: context.destination)
     }
 
     var convertRunner: DistillConvertRunner {
