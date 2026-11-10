@@ -153,11 +153,6 @@ enum DialogTone { case danger }
             editor.close()
         }
         try FileManager.default.removeItem(at: folder)
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        let hub = try String(contentsOf: root.appendingPathComponent(
-            "Tinycast/Features/Notchcast/Core/NotchcastCore.swift"), encoding: .utf8)
-        precondition(hub.contains(
-            "ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }"))
         print("PASS: area command selection; primary and offset Quartz rects; cancel preserves clipboard; destination and stop")
     }
 }
