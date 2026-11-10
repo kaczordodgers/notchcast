@@ -69,6 +69,8 @@ BREAKS = (
     ("command-slugs", "repeated command slug privacy-choices", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "privacy-choices"'),
     ("command-slugs", 'hook missing or out of order: "command:nc-" + slug', SHAPE.COMMAND, '"command:nc-" + slug', '"command:" + slug'),
     ("command-listed", "list SmallCommandsModule.airDropCommand, in", CATALOG, "        SmallCommandsModule.airDropCommand,\n", ""),
+    ("command-listed", "list KatanaModule.b2Command, in", CATALOG, "        KatanaModule.b2Command,\n", ""),
+    ("command-listed", "list TodoCommands.completeNext, in", CATALOG, "        TodoCommands.completeNext,\n", ""),
     ("module-entry-requires", "the entry that runs plainPasteModule requires .pastePlain",
      MODULES, PASTE_ENTRY, ".init(requires: [], module: plainPasteModule)"),
     ("module-built-once", "build PlainPasteModule once", MODULES, "        self.pastePlain = plainPasteModule\n", ""),
@@ -266,6 +268,12 @@ class FeatureShapeTests(unittest.TestCase):
         line = "        LowDiskModule.self,\n"
         self.assertEqual(source.count(line), 1)
         self.rejected(REGISTRANTS, source.replace(line, line + line), "repeated entry LowDiskModule")
+
+    def test_catalog_entry_listed_twice(self):
+        source = (self.root / CATALOG).read_text()
+        line = "        KatanaModule.a2Command,\n"
+        self.assertEqual(source.count(line), 1)
+        self.rejected(CATALOG, source.replace(line, line + line), "repeated entry KatanaModule.a2Command")
 
     def test_two_registrants_on_one_line(self):
         source = (self.root / REGISTRANTS).read_text()

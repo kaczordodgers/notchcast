@@ -516,7 +516,7 @@ def command_errors(root):
                 if name in declared:
                     errors.append((relative, number, f"repeated command slug {name} (first at {declared[name][0]}:{declared[name][1]})"))
                 declared.setdefault(name, (relative, number, owner[1]))
-        factories = set(re.findall(r"\bfunc (\w+)\([^{]*?\)\s*->\s*NotchcastCommand\b", code)) | {"NotchcastCommand"}
+        factories = set(re.findall(r"\bfunc (\w+)\([^{]*?\)\s*->\s*\[?NotchcastCommand\b", code)) | {"NotchcastCommand"}
         types = [(match.start(), match[1]) for match in re.finditer(
             r"^(?:@\w+\s+)*(?:final\s+)?(?:enum|extension|struct|class)\s+([\w.]+)", code, re.M)]
         for static in re.finditer(r"^(?![^\n=]*\bprivate\s)[^\n=]*\bstatic\s+(?:let|var)\s+(\w+)\s*(?::\s*NotchcastCommand\s*)?=\s*(\w+)\b", code, re.M):
