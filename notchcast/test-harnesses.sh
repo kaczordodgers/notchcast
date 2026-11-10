@@ -46,3 +46,16 @@ JS
         run "$name"
     fi
 done <<< "$harness_inputs"
+# CI and land.sh narrow the finished queue here: a selection, one "<index> <count>" shard by a hash of the name
+# (so a harness keeps its shard, and its cached binary, when others come and go), then the hosted runner's skips.
+if [ "$emit_db" -eq 0 ] && [ -z "$only" ] && [ -n "${NOTCHCAST_ONLY_TESTS:-}${CI_SKIP_TESTS:-}${NOTCHCAST_SHARD:-}" ]; then
+    awk -v only=" ${NOTCHCAST_ONLY_TESTS:-} " -v skip=" ${CI_SKIP_TESTS:-} " -v shard="${NOTCHCAST_SHARD:-0 1}" '
+        BEGIN { split(shard, part, " "); alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.+" }
+        only !~ /^ *$/ && !index(only, " " $2 " ") { next }
+        { hash = 0; for (i = 1; i <= length($2); i++) hash = (hash * 31 + index(alphabet, substr($2, i, 1))) % 1000003 }
+        hash % part[2] != part[1] { next }
+        index(skip, " " $2 " ") { print "skipped on the runner: " $2 > "/dev/stderr"; next }
+        { print }' "$QUEUE" > "$QUEUE.kept" || exit 1
+    mv "$QUEUE.kept" "$QUEUE"
+    ran=$(($(wc -l < "$QUEUE")))
+fi

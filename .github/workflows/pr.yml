@@ -15,10 +15,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  checks:
     if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
     runs-on: xcode-27
-    timeout-minutes: 90
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
         with:
@@ -34,13 +34,52 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          NOTCHCAST_HARNESSES_SHARDED: '1'
         run: bash ../tools/notchcast/ci-build.sh
-      # Only after a green build: Sync's plan skips testing a main whose tree (GENERATED aside) a PR build already proved.
+  # The whole suite, split by harness name (notchcast/test-harnesses.sh), beside the checks job.
+  harnesses:
+    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
+    runs-on: xcode-27
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          path: tools
+          persist-credentials: false
+      - uses: actions/checkout@v7
+        with:
+          path: src
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./tools/notchcast/actions/xcode
+      - uses: ./tools/notchcast/actions/tests
+        with:
+          shard: ${{ matrix.shard }} ${{ strategy.job-total }}
+          cache: pr-${{ matrix.shard }}of${{ strategy.job-total }}
+  # land.sh reads the check named build: green only when the checks job and every shard are.
+  build:
+    needs: [checks, harnesses]
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checks and every harness shard passed
+        if: needs.checks.result != 'success' || needs.harnesses.result != 'success'
+        run: |
+          echo "::error::checks: ${{ needs.checks.result }}, harnesses: ${{ needs.harnesses.result }}"
+          exit 1
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      # Only after a green build: Sync's plan and land.sh skip testing a tree (GENERATED aside) a PR build already proved.
       - name: Record the tested tree
         id: tree
-        working-directory: src
         run: |
-          echo "key=$(python3 ../tools/notchcast/ci.py tested-key HEAD)" >> "$GITHUB_OUTPUT"
+          echo "key=$(python3 notchcast/ci.py tested-key HEAD)" >> "$GITHUB_OUTPUT"
           git rev-parse HEAD > "$RUNNER_TEMP/tested-commit"
       - uses: actions/upload-artifact@v7
         with:

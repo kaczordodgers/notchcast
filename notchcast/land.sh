@@ -226,12 +226,20 @@ merge_onto() {
     notchcast/check-bundle-readme.sh || refuse 'two README.md files under Tinycast/ break the Xcode build'
 }
 harnesses() {
-    local name
+    local run count
     TMPDIR="$scratch/tmp" "$selector" "$1" HEAD > "$scratch/selected"
-    while IFS= read -r name; do
-        [ -n "$name" ] || continue
-        TMPDIR="$scratch/tmp" ./Scripts/run-tests.sh "$name" || refuse "$name failed"
-    done < "$scratch/selected"
+    # A green PR build ran the whole suite on exactly this tree, less what the hosted runner cannot run (CI_SKIP_TESTS).
+    if run=$(python3 "$(dirname "$selector")/ci.py" tested-run HEAD 2>/dev/null); then
+        echo "merged tree already tested by $run; only harnesses the hosted runner skips run here"
+        grep -xF -f <(printf '%s\n' $CI_SKIP_TESTS) "$scratch/selected" > "$scratch/untested" || true
+        mv "$scratch/untested" "$scratch/selected"
+    fi
+    count=$(grep -c . "$scratch/selected") || return 0
+    # One runner call compiles and runs them side by side; test-harnesses.sh narrows its queue to the selection.
+    TMPDIR="$scratch/tmp" NOTCHCAST_ONLY_TESTS=$(tr '\n' ' ' < "$scratch/selected") ./Scripts/run-tests.sh 2>&1 \
+        | tee "$scratch/harnesses.log" \
+        || refuse "$(sed -n 's/.*harness(es) failed in [0-9]*s: //p' "$scratch/harnesses.log" | grep . || echo 'merged-tree harnesses') failed"
+    grep -q "All $count harness(es) passed" "$scratch/harnesses.log" || refuse "the runner did not run all $count selected harnesses"
 }
 merge_onto "$base"
 harnesses "$base"
