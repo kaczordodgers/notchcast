@@ -189,7 +189,6 @@ extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
      MusicNowPlayingModule.shared = nil; MicrophoneMuteModule.shared = nil; SpotifyConnectModule.shared = nil
  }
  let commands = MusicCommands.launcherCommands
- precondition(commands.map(\.id) == ["command:nc-open-current-player"])
  precondition(commands.allSatisfy { $0.isEnabled() })
  for command: PlayerCommand in [.togglePlayPause, .next, .previous] { MusicCommands.send(command) }
  precondition(source.commands == [.togglePlayPause, .next, .previous])

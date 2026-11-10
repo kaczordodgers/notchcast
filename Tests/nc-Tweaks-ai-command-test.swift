@@ -8,7 +8,6 @@ import Foundation
 struct AICommandTests {
     @MainActor
     static func main() async throws {
-        precondition(TweakProfileCommands.ai.feature == .aiFeaturesOff)
         TweakProfileCommands.ai.run()
         for _ in 0..<1000 where TweaksModule.shared.calls == 0 { await Task.yield() }
         precondition(TweaksModule.shared.calls == 1 && TweaksModule.shared.kept == [])

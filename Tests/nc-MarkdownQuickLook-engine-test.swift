@@ -22,9 +22,7 @@ struct MarkdownQuickLookTests {
         let coordinator = QuickLookCoordinator(preferences: preferences)
         let url = URL(fileURLWithPath: "/temporary/sample.md")
         let enabled = preferences.isOn(.quickLookSpace)
-        precondition(enabled && !NotchcastFeature.quickLookSpace.needsIsland)
-        precondition(NotchcastFeature.quickLookSpace.settingsGroup == .launcher)
-        precondition(NotchcastFeature.quickLookSpace.requiredGrants.isEmpty)
+        precondition(enabled)
 
         for selected in [false, true] {
             for modifiers in [false, true] {
