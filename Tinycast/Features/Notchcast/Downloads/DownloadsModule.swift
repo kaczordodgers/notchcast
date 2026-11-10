@@ -15,20 +15,21 @@ final class DownloadsModule: NotchcastModule {
         self.preferences = preferences
         self.services = services
         self.readInterfaces = readInterfaces ?? NetMergeInterfaceMonitor().readInterfaces
-        state = DownloadsQueueController(file: file, destination: destination, tools: services.tools,
-                                         releaseSpeech: services.releaseSpeech, report: report)
+        state = DownloadsQueueController(
+            file: file, destination: destination, speechKinds: [TranscriptDownloadRunner.kind],
+            tools: services.tools, releaseSpeech: services.releaseSpeech, report: report)
         DownloadsIslandBridge.track(state)
     }
 
     func start() {
         state.start { [services, preferences, readInterfaces] queue in
             for format in [MediaArguments.Format.video, .audio] {
-                queue.register(NotchcastDownloadRunner(MediaDownloadRunner(format: format, networkInterfaces: {
+                queue.register(MediaDownloadRunner(format: format, aria2Enabled: {
+                    preferences.isOn(.downloadsAria2)
+                }, networkInterfaces: {
                     guard preferences.isOn(.torrentsUseIPhone) else { return [] }
                     return (try? readInterfaces()) ?? []
-                })) {
-                    ["aria2Enabled": preferences.isOn(.downloadsAria2) ? "true" : "false"]
-                })
+                }))
             }
             queue.register(services.transcriptRunner)
             queue.register(WebpageRunner())
