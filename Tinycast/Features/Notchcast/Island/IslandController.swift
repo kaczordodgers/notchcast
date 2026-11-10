@@ -154,7 +154,7 @@ final class IslandController: NotchcastModule {
         panels = NSScreen.screens.map(IslandPanel.init(screen:))
         for panel in panels {
             panel.onOpen = { [weak self, weak panel] in
-                guard let self, let panel else { return }
+                guard let self, let panel, !launcherIsUp else { return }
                 open(page: page, on: panel.screen)
             }
             panel.onKey = { [weak self] in self?.handleKey($0) ?? false }
@@ -268,7 +268,7 @@ final class IslandController: NotchcastModule {
         let preferences = NotchcastPreferences.shared
         let previousHover = input.pendingHover
         input.pointer(inside: inside, now: ProcessInfo.processInfo.systemUptime,
-                      hoverEnabled: preferences.isOn(.islandHoverOpen),
+                      hoverEnabled: preferences.isOn(.islandHoverOpen) && !launcherIsUp,
                       delay: preferences.islandHoverDelay.rawValue)
         if [.leftMouseDown, .rightMouseDown, .otherMouseDown].contains(event.type), !inside {
             dismiss(.outsideClick)
