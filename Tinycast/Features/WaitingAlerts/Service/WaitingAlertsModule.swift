@@ -22,7 +22,7 @@ final class WaitingAlertsModule: NotchcastModule {
     init(watcher: any WaitingAlertsWatching = WaitingAlertsWatcher(),
          path: String = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".t3/userdata").path,
          reader: any WaitingAlertsReading = WaitingAlertsReader(),
-         post: @escaping @MainActor (String) -> Void = { AppCore.shared.showMessage($0, tone: .neutral) },
+         post: @escaping @MainActor (String) -> Void = { NotchcastHost.current.showMessage($0, .neutral) },
          availabilityChanged: @escaping @MainActor () -> Void = {}) {
         self.watcher = watcher
         self.path = path

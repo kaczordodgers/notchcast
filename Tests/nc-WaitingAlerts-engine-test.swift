@@ -4,12 +4,13 @@
 // notchcast-sources: Tinycast/Features/WaitingAlerts/WaitingAlertsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 import SQLite3
 
 typealias NotchcastFeature = TestFeature
 enum TestFeature { case waitingAlerts, agentThreads }
-enum TestTone { case neutral }
+enum DialogTone { case neutral }
 struct NotchcastCommand {
     let slug: String
     let name: String
@@ -23,12 +24,7 @@ struct NotchcastCommand {
     var enabled = false
     func isOn(_ feature: TestFeature) -> Bool { enabled }
 }
-@MainActor final class TestIndex { func refreshNotchcastCommands() {} }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = TestIndex()
-    func showMessage(_ message: String, tone: TestTone) {}
-}
+@MainActor final class AppCore {}
 @MainActor final class FakeWatcher: WaitingAlertsWatching {
     var changed: (@MainActor () -> Void)?
     var exists = true
@@ -139,7 +135,7 @@ struct NotchcastCommand {
         precondition(!WaitingAlertsModule.command.isEnabled())
         NotchcastPreferences.shared.enabled = true
         precondition(WaitingAlertsModule.command.isEnabled())
-        let entries = WaitingAlertsModule.register(AppCore.shared)
+        let entries = WaitingAlertsModule.register(AppCore())
         precondition(entries.count == 1 && entries[0].requires == [.waitingAlerts] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === WaitingAlertsModule.shared)
         print("PASS: transitions, first-read suppression, coalescing, approval/question/count text")
