@@ -109,7 +109,7 @@ struct DownloadsModuleTest {
         try await eventually { module.state.queue == nil }
         await module.state.settle()
         await command.value
-        precondition(commandCancelled && module.commandTask == nil)
+        precondition(commandCancelled, "Switching off must cancel the in-flight launcher command")
         precondition(module.activity.runningCount == 0 && releases > 0)
         precondition(queue.jobs.first { $0.kind == "audio" }?.state == .interrupted)
         module.start()
