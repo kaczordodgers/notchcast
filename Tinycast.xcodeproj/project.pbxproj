@@ -1867,6 +1867,7 @@
 		E29CF7293742DDCAE030682C /* SupportReminderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9DE1ED405A53ECA5DED66AA1 /* SupportReminderStore.swift */; };
 		E2AF601BD4C24721B2D61B69 /* DictationAudioDucker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24386713685FB65FB46A5516 /* DictationAudioDucker.swift */; };
 		E306C330D6757ABFB1BBB462 /* BuildStatsSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF3ED7E96DDB2C9289339F5E /* BuildStatsSnapshot.swift */; };
+		E38D8CA636FC02AF6D156AD6 /* XPost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0733352AEDF3B99FF6641926 /* XPost.swift */; };
 		E3A7247E54426EC78FDEED4B /* GallerySettingsTiming.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4E99D84CC90C0C20BB6A7B /* GallerySettingsTiming.swift */; };
 		E448C90CF3076440A4FA2CE4 /* RaycastQuicklinkImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25EA21DCF61666DB736D5B82 /* RaycastQuicklinkImport.swift */; };
 		E457BC709D195B8F5D0C2A79 /* UninstallSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36B6DAC3B9FF387367C3FAB4 /* UninstallSession.swift */; };
@@ -2011,6 +2012,7 @@
 		F6313B98504B7F3ABCA7013A /* MonitorProcessService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFDA9EAE033414CA6D1F8EE3 /* MonitorProcessService.swift */; };
 		F64F95A47AC29B1965D74A34 /* MediaToolsRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2DF47E205D3F365573545D2 /* MediaToolsRunner.swift */; };
 		F653392C8C11E64C47DF0BD4 /* RoomsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = D68722D56122F3EFDA707782 /* RoomsScreen.swift */; };
+		F668040DE37A4CADE65877EE /* DownloadsIslandBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DACF29D4B7EE47C3632A5B0 /* DownloadsIslandBridge.swift */; };
 		F672987078C668796E770880 /* Room.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83B8A0E68E42CACCB1F38094 /* Room.swift */; };
 		F68DD45D983DA0AB21056910 /* MonitorStore+Processes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A87596284139FA4C7167E099 /* MonitorStore+Processes.swift */; };
 		F6B41493575FC705D5AA1136 /* AgentPricingDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D30D26F732AAA247577AD5C /* AgentPricingDescriptor.swift */; };
@@ -2244,6 +2246,7 @@
 		06B5C0B83C3645AC90639B85 /* AppleIntelligenceProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceProvider.swift; sourceTree = "<group>"; };
 		06E93A3DFA63298C530C990B /* AccessoryNoticesModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessoryNoticesModule.swift; sourceTree = "<group>"; };
 		072DA32B7365FAAB7C38F25C /* AppleShortcutsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleShortcutsSettingsView.swift; sourceTree = "<group>"; };
+		0733352AEDF3B99FF6641926 /* XPost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XPost.swift; sourceTree = "<group>"; };
 		0782CF20B0FCF0ADE27CB9CD /* IslandPieces.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IslandPieces.swift; sourceTree = "<group>"; };
 		078BDA7463B363EF73787A00 /* TorrentRPCClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TorrentRPCClient.swift; sourceTree = "<group>"; };
 		078C72572AD9A3AC261CD01B /* AgentIslandDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentIslandDescriptor.swift; sourceTree = "<group>"; };
@@ -2571,6 +2574,7 @@
 		2D70641CACF5FE83A09F2275 /* BackupClipboardItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupClipboardItem.swift; sourceTree = "<group>"; };
 		2D76186A7F36C4EEDCCC8A54 /* ExtensionCaret.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionCaret.swift; sourceTree = "<group>"; };
 		2D7C799874F169D1B1BAF865 /* NotchcastServicesModules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastServicesModules.swift; sourceTree = "<group>"; };
+		2DACF29D4B7EE47C3632A5B0 /* DownloadsIslandBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DownloadsIslandBridge.swift; sourceTree = "<group>"; };
 		2DDDFDBB580C45A386B5E33A /* LauncherFromIslandDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherFromIslandDescriptor.swift; sourceTree = "<group>"; };
 		2DE04489BE352F6AC8263491 /* WindowsAndDisplaySettingRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowsAndDisplaySettingRows.swift; sourceTree = "<group>"; };
 		2DEAEF20B56271B11E95A779 /* KatanaTone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KatanaTone.swift; sourceTree = "<group>"; };
@@ -8245,6 +8249,7 @@
 				94FB6D869346FD135F2C4D8C /* DistillModule.swift */,
 				EE2395EBECAB5F9AE034BD1F /* DistillModule+Core.swift */,
 				B7ADB9A6A3843B5F591B1D9B /* DownloadsActivity.swift */,
+				2DACF29D4B7EE47C3632A5B0 /* DownloadsIslandBridge.swift */,
 				F7ECEC7DD182087370720F08 /* DownloadsModule.swift */,
 				DC6638280A95F914EC4D654B /* DownloadsModule+Core.swift */,
 				7F06CE7A5783EE193606EB47 /* DownloadsQueueController.swift */,
@@ -8401,6 +8406,7 @@
 				B024651EBB611FFD5F0139AE /* WebpageRunner.swift */,
 				1D4D07F9ADE3446422E776B4 /* WebpageSaver.swift */,
 				14C1D4CAB174A22EDEBD0189 /* WebpageWebViewConfiguration.swift */,
+				0733352AEDF3B99FF6641926 /* XPost.swift */,
 			);
 			path = Webpage;
 			sourceTree = "<group>";
@@ -11166,6 +11172,7 @@
 				3895873694746870EA9159EE /* DownloadsActivity.swift in Sources */,
 				1985702ED36F5CD78BD1089A /* DownloadsAria2Descriptor.swift in Sources */,
 				FC9652028B786187BF9B77CB /* DownloadsDescriptor.swift in Sources */,
+				F668040DE37A4CADE65877EE /* DownloadsIslandBridge.swift in Sources */,
 				B276D8A7AE8523006598ACFF /* DownloadsModule+Core.swift in Sources */,
 				1F8D051C6FC8CA886CBC15C4 /* DownloadsModule.swift in Sources */,
 				703747F2BA1AC9BD6C2F4ABA /* DownloadsQueueController.swift in Sources */,
@@ -12506,6 +12513,7 @@
 				EBEE0D4CF84E9A9676002070 /* WindowTarget.swift in Sources */,
 				902E16DA6E408318597CD000 /* WindowZOrder.swift in Sources */,
 				79B29EFD633FC126D64F8FDB /* WindowsAndDisplaySettingRows.swift in Sources */,
+				E38D8CA636FC02AF6D156AD6 /* XPost.swift in Sources */,
 				EAD96DF6DC3689F095D36345 /* YtDlpAudio.swift in Sources */,
 				6CDA82FD63F87D07E30E3F82 /* Zlib.swift in Sources */,
 			);
