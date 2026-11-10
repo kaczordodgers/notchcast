@@ -14,7 +14,8 @@ ALL_ONLY = {
     Path("notchcast/gallery/keychain-test.py"),
 }
 LAND_TEST = Path("notchcast/land-test.sh")
-LAND_INPUTS = ["notchcast/land.sh", "notchcast/merge.sh", "notchcast/drift-gates.sh", str(LAND_TEST)]
+LAND_INPUTS = ["notchcast/land.sh", "notchcast/merge.sh", "notchcast/drift-gates.sh", "notchcast/fork-point.sh",
+               str(LAND_TEST)]
 
 
 def land_inputs_changed():
@@ -25,7 +26,6 @@ def land_inputs_changed():
                                             text=True, stderr=subprocess.DEVNULL).strip())
     except (OSError, subprocess.CalledProcessError):
         return True
-
 
 
 parser = argparse.ArgumentParser(description=__doc__)
