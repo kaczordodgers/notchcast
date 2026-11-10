@@ -48,21 +48,20 @@ struct CleanHistoryRestore: Sendable {
               !path.split(separator: "/").contains(where: { $0 == "." || $0 == ".." }) else {
             throw CleanHistoryError.invalidPath
         }
-        let normalized = "/" + path.split(separator: "/").joined(separator: "/")
-        guard roots.contains(where: {
-            let root = "/" + $0.path.split(separator: "/").joined(separator: "/")
-            return normalized.hasPrefix(root + "/")
-        }) else {
+        let url = URL(fileURLWithPath: path)
+        let parent = CleanService.physicalComponents(url).dropLast()
+        guard roots.contains(where: { parent.starts(with: CleanService.physicalComponents($0)) }) else {
             throw CleanHistoryError.invalidPath
         }
-        return URL(fileURLWithPath: path)
+        return url
     }
 
+    /// `CleanService.physical`'s rule, walked by descriptor so no link can be swapped in before the move.
     private func directory(_ url: URL, missing: CleanHistoryError) throws -> Int32 {
         var descriptor = open("/", O_RDONLY | O_DIRECTORY | O_CLOEXEC)
         guard descriptor >= 0 else { throw CleanHistoryError.system(errno) }
-        for component in url.path.split(separator: "/") {
-            let next = openat(descriptor, String(component), O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
+        for component in CleanService.physicalComponents(url) {
+            let next = openat(descriptor, component, O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW)
             close(descriptor)
             guard next >= 0 else { throw missing }
             descriptor = next

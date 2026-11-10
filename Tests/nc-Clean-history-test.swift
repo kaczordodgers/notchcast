@@ -76,13 +76,14 @@ struct CleanHistoryTests {
             try Data("malformed\n".utf8).write(to: log.logPath)
             try log.append(record(target.path, source.path))
             try check(log.read().count == 1)
+            try check(Data(contentsOf: log.logPath).starts(with: Data("malformed\n".utf8)))
             let bounded = CleanHistoryStore(logPath: log.logPath, maximumBytes: 600)
             for index in 0..<20 {
                 try bounded.append(record(target.path + String(index), source.path))
             }
             try check(Data(contentsOf: log.logPath).count <= 600)
             try check(bounded.read().first?.originalPath == target.path + "19")
-            print("PASS missing paths, malformed line, bounded log and newest first")
+            print("PASS missing paths, malformed line kept on disk, bounded log and newest first")
         }
     }
 

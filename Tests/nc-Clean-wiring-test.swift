@@ -132,16 +132,17 @@ struct CleanWiringTest {
         continuation?.resume()
         await coordinator.waitUntilIdle()
         precondition(coordinator.reviews[.cleanJunk] == nil && !coordinator.busy.contains(.cleanJunk))
+        fake.state.withLock { $0.suspended = false }
         let scans = fake.state.withLock { $0.scans }
         preferences.set(.cleanSystem, true)
         coordinator.setEnabled(.cleanSystem, true)
         coordinator.helperCurrent = false
         coordinator.scan(.cleanSystem)
+        await coordinator.waitUntilIdle()
+        precondition(fake.state.withLock { $0.scans == scans + 1 } && coordinator.helperCurrent)
         coordinator.apply(.cleanSystem)
         await coordinator.waitUntilIdle()
-        precondition(fake.state.withLock { $0.scans == scans })
         precondition(questions.count == 2)
-        fake.state.withLock { $0.suspended = false }
         preferences.set(.cleanJunk, true)
         coordinator.setEnabled(.cleanJunk, true)
         coordinator.scan(.cleanJunk)
@@ -174,8 +175,25 @@ struct CleanWiringTest {
         precondition(fake.state.withLock { $0.trashed == [fake.reviewed] })
         coordinator.stop()
         precondition(listeners == 0)
+        let folder = root.appendingPathComponent("folder")
+        var diskQuestions: [(Int, Int64?)] = []
+        let disk = CleanCoordinator(transport: .init(scan: { _, _ in
+            .init(items: [.init(id: folder, size: 8), .init(id: folder.appendingPathComponent("child"), size: 4)]) {
+                paths in fake.state.withLock { $0.trashed += paths }
+            }
+        }), isOn: { _ in true }, question: { _, count, bytes in diskQuestions.append((count, bytes)); return true },
+            optimizeQuestion: { _ in false }, report: { preconditionFailure("Unexpected failure: \($0)") })
+        disk.setEnabled(.cleanDisk, true)
+        disk.scan(.cleanDisk, roots: [root])
+        await disk.waitUntilIdle()
+        disk.selection[.cleanDisk] = [folder, folder.appendingPathComponent("child")]
+        disk.apply(.cleanDisk)
+        await disk.waitUntilIdle()
+        precondition(diskQuestions.count == 1 && diskQuestions[0].0 == 1 && diskQuestions[0].1 == 8)
+        precondition(fake.state.withLock { $0.trashed == [fake.reviewed, folder] })
         print("PASS: default off; no work on enable; listeners removed; decline preserves sentinels")
-        print("PASS: accept trashes reviewed only; stale scan dropped; missing helper verb does nothing")
+        print("PASS: accept trashes reviewed only; stale scan dropped; a helper-update notice clears on rescan")
+        print("PASS: Disk counts and trashes only the outermost selected folder")
         print("PASS: stale confirmation dropped; Optimize asks its action question without an item count")
     }
 }

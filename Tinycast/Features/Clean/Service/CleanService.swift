@@ -10,7 +10,7 @@ struct CleanService: Sendable {
         for category in CleanCategory.allCases {
             try Task.checkCancellation()
             let root = policy.home.appendingPathComponent(category.relativeRoot)
-            guard safeAncestors(root, manager: manager) else { continue }
+            guard Self.physical(root, inside: policy.home) else { continue }
             if category == .trash {
                 if let measured = try? measure(root, manager: manager) {
                     items.append(CleanItem(category: category, path: root, size: measured.size,
@@ -23,7 +23,7 @@ struct CleanService: Sendable {
             for child in children.sorted(by: { $0.path < $1.path }) {
                 try Task.checkCancellation()
                 guard policy.permits(child.path, category: category),
-                      safeAncestors(child, manager: manager),
+                      Self.physical(child, inside: policy.home),
                       let measured = try? measure(child, manager: manager, category: category),
                       policy.eligible(child, category: category, newest: measured.newest) else { continue }
                 items.append(CleanItem(category: category, path: child.standardizedFileURL, size: measured.size,
@@ -42,7 +42,7 @@ struct CleanService: Sendable {
             let status: CleanOutcome.Status
             if item.reportOnly || !policy.permits(item.path.path, category: item.category) {
                 status = .refused
-            } else if !safeAncestors(item.path, manager: manager) {
+            } else if !Self.physical(item.path, inside: policy.home) {
                 status = .changedOrMissing
             } else {
                 do {
@@ -70,18 +70,25 @@ struct CleanService: Sendable {
         return outcomes
     }
 
-    private func safeAncestors(_ url: URL, manager: FileManager) -> Bool {
-        let home = policy.home.standardizedFileURL
-        guard home == home.resolvingSymlinksInPath(),
-              url.standardizedFileURL.path.hasPrefix(home.path + "/") else { return false }
-        var current = url.standardizedFileURL
-        while current.path.hasPrefix(home.path) {
-            guard let attributes = try? manager.attributesOfItem(atPath: current.path),
-                  attributes[.type] as? FileAttributeType != .typeSymbolicLink else { return false }
-            if current == home { return true }
-            current.deleteLastPathComponent()
+    /// The one trash-safety check: `url` is `root` or inside it, and every component from `/` exists
+    /// and is not a symbolic link.
+    static func physical(_ url: URL, inside root: URL = URL(fileURLWithPath: "/")) -> Bool {
+        let components = physicalComponents(url)
+        guard components.starts(with: physicalComponents(root)),
+              !components.contains(where: { $0 == "." || $0 == ".." }) else { return false }
+        var path = ""
+        return components.allSatisfy { component in
+            path += "/" + component
+            var info = stat()
+            return lstat(path, &info) == 0 && info.st_mode & S_IFMT != S_IFLNK
         }
-        return false
+    }
+
+    /// Standardizing a URL strips `/private` from `/var` and `/tmp`, the system's own links; this restores it.
+    static func physicalComponents(_ url: URL) -> [String] {
+        var components = Array(url.pathComponents.dropFirst())
+        if components.first == "var" || components.first == "tmp" { components.insert("private", at: 0) }
+        return components
     }
 
     private func measure(_ url: URL, manager: FileManager, category: CleanCategory? = nil) throws

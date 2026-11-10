@@ -50,6 +50,7 @@ final class CleanCoordinator {
         self.report = report
     }
 
+    /// Learned from System scans, never a gate: only a scan can see that the helper was updated.
     var helperCurrent = true
 
     func setEnabled(_ feature: NotchcastFeature, _ value: Bool) {
@@ -83,6 +84,7 @@ final class CleanCoordinator {
                 let review = try await scan(feature, roots)
                 guard let self, current(feature, identity) else { return }
                 reviews[feature] = review
+                if feature == .cleanSystem { helperCurrent = true }
                 finish(feature, identity)
             } catch {
                 self?.failed(error, feature, identity)
@@ -153,7 +155,7 @@ final class CleanCoordinator {
     }
 
     private func available(_ feature: NotchcastFeature) -> Bool {
-        enabled.contains(feature) && isOn(feature) && (feature != .cleanSystem || helperCurrent)
+        enabled.contains(feature) && isOn(feature)
     }
 
     private func begin(_ feature: NotchcastFeature) -> UUID {

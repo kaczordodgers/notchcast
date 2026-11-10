@@ -3,9 +3,6 @@ import Observation
 import SQLite3
 import Synchronization
 
-extension NotchcastCore {
-}
-
 @MainActor
 final class CleanModule: NotchcastModule {
     nonisolated private static let history = CleanHistoryStore(
@@ -13,7 +10,7 @@ final class CleanModule: NotchcastModule {
     private var running = false
     private weak var core: AppCore?
     private let preferences = NotchcastPreferences.shared
-    lazy var coordinator = CleanCoordinator(
+    lazy var coordinator: CleanCoordinator = CleanCoordinator(
         transport: .init(scan: Self.scan),
         isOn: { [preferences] in preferences.isOn($0) },
         question: { [weak self] feature, count, bytes in
@@ -25,6 +22,7 @@ final class CleanModule: NotchcastModule {
         }, optimizeQuestion: { [weak self] task in
             await self?.ask(title: task.title, message: task.question) ?? false
         }, report: { [weak self] error in
+            if case .helperUpdate? = error as? Failure { self?.coordinator.helperCurrent = false }
             self?.core?.showMessage(error.localizedDescription, tone: .danger)
         })
 
@@ -75,13 +73,12 @@ final class CleanModule: NotchcastModule {
         switch feature {
         case .cleanJunk:
             let clock = Date.now
-            let scanner = CleanService(policy: .init(home: home, now: clock, logAge: 30 * 86_400,
-                installerAge: 30 * 86_400, installedBundleIDs: [], protectedNames: []), transport: trash)
-            let scanned = try await scanner.scan()
+            let policy = { CleanPolicy(home: home, now: clock, logAge: 30 * 86_400, installerAge: 30 * 86_400,
+                installedBundleIDs: $0, protectedNames: []) }
+            let scanned = try await CleanService(policy: policy([]), transport: trash).scan()
             let installed = await installedBundleIDs(scanned)
             try Task.checkCancellation()
-            let service = CleanService(policy: .init(home: home, now: clock, logAge: 30 * 86_400,
-                installerAge: 30 * 86_400, installedBundleIDs: installed, protectedNames: []), transport: trash)
+            let service = CleanService(policy: policy(installed), transport: trash)
             let items = scanned.filter { $0.category != .leftovers || !installed.contains($0.path.lastPathComponent) }
             trash.recordSizes(Dictionary(uniqueKeysWithValues: items.map { ($0.path, $0.size) }))
             return .init(items: items.map { .init(id: $0.path, size: $0.size, reportOnly: $0.reportOnly) }) { paths in
@@ -115,8 +112,6 @@ final class CleanModule: NotchcastModule {
             }) { paths in
                 let selected = Set(paths)
                 for index in scan.nodes.indices where selected.contains(scan.nodes[index].path) {
-                    let node = scan.nodes[index]
-                    guard !paths.contains(where: { node.path.path.hasPrefix($0.path + "/") }) else { continue }
                     try await scanner.trash(index, from: scan, currentID: scan.id)
                 }
             }
@@ -181,18 +176,24 @@ final class CleanModule: NotchcastModule {
             }
         case .cleanSystem:
             let client = CleanSystemRootClient(run: { try await RootHelperClient().clean($0, input: $1) },
-                policy: .init(roots: CleanSystemPolicy.allowedRoots, now: .now,
-                              cacheAge: 30 * 86_400, logAge: 30 * 86_400))
-            let entries = try await client.list()
+                policy: .standard(now: .now))
+            let entries = try await helper { try await client.list() }
             return .init(items: entries.map {
                 .init(id: URL(fileURLWithPath: $0.path), size: $0.size)
             }) { paths in
                 let selected = entries.filter { entry in paths.contains { $0.path == entry.path } }
                 guard selected.count == paths.count else { throw Failure.itemsChanged }
-                let skipped = try await client.trash(selected)
+                let skipped = try await helper { try await client.trash(selected) }
                 if skipped > 0 { throw Failure.skipped(skipped) }
             }
         default: throw Failure.itemsChanged
+        }
+    }
+
+    nonisolated private static func helper<T>(_ body: () async throws -> T) async throws -> T {
+        do { return try await body() } catch CleanSystemRootClient.Failure.helperUpdate,
+            RootHelperClient.Failure.reinstallRequired, RootHelperClient.Failure.unsafePath(.missing) {
+            throw Failure.helperUpdate
         }
     }
 
@@ -223,8 +224,7 @@ final class CleanModule: NotchcastModule {
     }
 
     private enum Failure: LocalizedError {
-        case itemsChanged, helperUpdate, toolFailed
-        case skipped(Int)
+        case itemsChanged, helperUpdate, toolFailed, skipped(Int)
         var errorDescription: String? {
             switch self {
             case .skipped(let count): String(localized: "\(count) entries skipped")
