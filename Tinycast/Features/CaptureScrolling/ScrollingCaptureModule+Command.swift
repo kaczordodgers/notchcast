@@ -5,7 +5,7 @@ extension ScrollingCaptureModule {
         slug: "scrolling-capture", name: String(localized: "Scrolling Capture", table: "Notchcast"),
         sfSymbol: "rectangle.expand.vertical", feature: .scrollingCapture,
         isEnabled: { NotchcastPreferences.shared.isOn(.scrollingCapture) },
-        run: { NotchcastCore.scrollingCapture.capture {
-            AppCore.shared.showMessage($0, tone: $1 == .danger ? .danger : .neutral)
+        run: { ScrollingCaptureModule.shared.capture {
+            NotchcastHost.current.showMessage($0, $1 == .danger ? .danger : .neutral)
         } })
 }
