@@ -41,11 +41,16 @@ def pool(count, idle, busy, **env):
 
 assert pool(2, fresh, 0) == ["notchcast-mac"] * 2
 assert pool(4, fresh, 0) == ["notchcast-mac"] * 3 + ["xcode-27"]
-assert pool(3, [], 0) == ["xcode-27"] * 3
-assert pool(3, [], 2) == ["xcode-27"] * 3
-assert pool(4, [], 3) == ["xcode-27"] * 2 + ["notchcast-mac"] * 2
-assert pool(2, [], 5) == ["notchcast-mac"] * 2
-assert pool(2, [], 9) == ["notchcast-mac"] * 2
+busy_mac = [f"0 {NOW}"]
+assert pool(3, busy_mac, 0) == ["xcode-27"] * 3
+assert pool(3, busy_mac, 2) == ["xcode-27"] * 3
+assert pool(4, busy_mac, 3) == ["xcode-27"] * 2 + ["notchcast-mac"] * 2
+assert pool(2, busy_mac, 5) == ["notchcast-mac"] * 2
+assert pool(2, busy_mac, 9) == ["notchcast-mac"] * 2
+asleep = [f"1 {NOW - 1000}", f"0 {NOW - 1000}"]
+assert pool(9, asleep, 0) == ["xcode-27"] * 9
+assert pool(4, asleep, 5) == ["xcode-27"] * 4
+assert pool(2, [], 9) == ["xcode-27"] * 2
 assert pool(3, [f"1 {NOW}"], 4) == ["notchcast-mac", "xcode-27", "notchcast-mac"]
 assert pool(3, [f"1 {NOW}"], 0) == ["notchcast-mac", "xcode-27", "xcode-27"]
 assert pool(2, [], None) == ["xcode-27"] * 2
