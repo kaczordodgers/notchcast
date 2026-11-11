@@ -44,7 +44,6 @@ enum DialogTone { case neutral, success, danger }
     let settingsCoordinator = SettingsStub()
     static let shared = AppCore()
     func showNotice(title: String, message: String, symbol: String, tone: DialogTone) async { }
-    func confirm(title: String, message: String?, symbol: String?, confirmTitle: String) async -> Bool { false }
 }
 @MainActor final class SettingsStub {
     enum Tab { case notchcast }
@@ -490,6 +489,13 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         await coordinator.settled()
         precondition(script.calls == 3 && reports == [true, false])
         precondition(preferences.monitorCPU == 90)
+        var asked = 0
+        NotchcastHost.current.confirm = { _, _, _, _ in asked += 1; return false }
+        let hosted = ForkSettingsBackupCoordinator(folder: folder, state: state, report: { reports.append($0) })
+        hosted.restore(name: "settings-v2-3.plist")
+        await hosted.settled()
+        precondition(asked == 1 && reports == [true, false] && preferences.monitorCPU == 90)
+        print("PASS: a coordinator given no dialog asks through the host seam, and a declined restore changes nothing")
         print("PASS: copies sorted newest first; chosen older copy restored; invalid copy leaves settings unchanged")
         print("PASS: effective defaults restored (90 after 50), default switch and real store reach memory/defaults")
         print("PASS: root/consent keys unchanged; absent keys untouched; invalid values rejected before writes")
