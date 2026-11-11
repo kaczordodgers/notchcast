@@ -11,8 +11,8 @@ final class SpotifyConnectModule: NotchcastModule {
     @ObservationIgnored private let source: SoloistSource
     @ObservationIgnored private let defaults: UserDefaults
 
-    init(source: SoloistSource, defaults: UserDefaults) {
-        key = SoloistKey()
+    init(source: SoloistSource, defaults: UserDefaults, key: SoloistKey = SoloistKey()) {
+        self.key = key
         self.source = source
         self.defaults = defaults
         let name = defaults.string(forKey: "spotify.deviceName") ?? "Notchcast"

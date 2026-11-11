@@ -1,6 +1,9 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/Service/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
+// notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
 // notchcast-kit: input platform
@@ -128,6 +131,18 @@ struct SystemLevelRoutingTests {
     }
 
     static func main() async {
+        let registered = SystemLevelsModule.register(AppCore())
+        check(registered.count == 1 && registered[0].module === SystemLevelsModule.shared,
+              "Registration returns the shared levels module")
+        check(registered[0].requires == [.island, .volumeLevels] && registered[0].requiresAny.isEmpty,
+              "The levels module runs behind the island and volume switches")
+        var refreshes = 0
+        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
+        let seam = SystemLevelsModule(service: .init(hardware: RoutingAudioHardware(), observeHardware: false))
+        seam.start()
+        seam.stop()
+        check(refreshes == 2, "Starting and stopping refresh the commands through the host seam")
+        NotchcastHost.current = NotchcastHost()
         let suite = "nc-keys-test-\(UUID())"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
@@ -234,11 +249,5 @@ struct SystemLevelRoutingTests {
     }
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = CommandIndexFixture()
-}
-@MainActor final class CommandIndexFixture {
-    private(set) var refreshes = 0
-    func refreshNotchcastCommands() { refreshes += 1 }
-}
+@MainActor final class AppCore {}
+enum DialogTone {}
