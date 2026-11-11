@@ -1,13 +1,33 @@
 import Foundation
 
+/// Each alert threshold's bounds and default, typed once: the backup and the settings rows read them here.
+nonisolated enum MonitorAlertThreshold {
+    case cpu, temperature, memory, disk, battery, batteryTemperature
+
+    var range: ClosedRange<Int> { limits.range }
+    var defaultValue: Int { limits.defaultValue }
+    var backupValue: NotchcastFeature.BackupValue { .integer(Double(range.lowerBound)...Double(range.upperBound)) }
+
+    private var limits: (range: ClosedRange<Int>, defaultValue: Int) {
+        switch self {
+        case .cpu: (10...100, 90)
+        case .temperature: (40...110, 90)
+        case .memory: (0...1, 1)
+        case .disk: (1...50, 10)
+        case .battery: (1...50, 15)
+        case .batteryTemperature: (30...60, 40)
+        }
+    }
+}
+
 extension NotchcastFeature.BackupKeys {
     static let monitorAlerts = Self(allowed: [
-        NotchcastPreferences.monitorCPUKey: .integer(10...100),
-        NotchcastPreferences.monitorTemperatureKey: .integer(40...110),
-        NotchcastPreferences.monitorMemoryKey: .integer(0...1),
-        NotchcastPreferences.monitorDiskKey: .integer(1...50),
-        NotchcastPreferences.monitorBatteryKey: .integer(1...50),
-        NotchcastPreferences.monitorBatteryTemperatureKey: .integer(30...60),
+        NotchcastPreferences.monitorCPUKey: MonitorAlertThreshold.cpu.backupValue,
+        NotchcastPreferences.monitorTemperatureKey: MonitorAlertThreshold.temperature.backupValue,
+        NotchcastPreferences.monitorMemoryKey: MonitorAlertThreshold.memory.backupValue,
+        NotchcastPreferences.monitorDiskKey: MonitorAlertThreshold.disk.backupValue,
+        NotchcastPreferences.monitorBatteryKey: MonitorAlertThreshold.battery.backupValue,
+        NotchcastPreferences.monitorBatteryTemperatureKey: MonitorAlertThreshold.batteryTemperature.backupValue,
     ], excluded: [], snapshot: { NotchcastPreferences.shared.monitorAlertsBackupValues },
        apply: { NotchcastPreferences.shared.applyMonitorAlertsBackup($0) })
 }

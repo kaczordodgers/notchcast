@@ -175,6 +175,28 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         precondition(alertRows.firstMatch(of: /in: \d/) == nil, "a settings row types an alert threshold's bounds itself")
         precondition(alertKeys.firstMatch(of: /\.integer\(\d/) == nil, "the backup types an alert threshold's bounds itself")
         print("PASS: the alert rows and the backup type no threshold bounds of their own")
+        let thresholds: [(String, MonitorAlertThreshold, KeyPath<NotchcastPreferences, Int>)] = [
+            (NotchcastPreferences.monitorCPUKey, .cpu, \.monitorCPU),
+            (NotchcastPreferences.monitorTemperatureKey, .temperature, \.monitorTemperature),
+            (NotchcastPreferences.monitorMemoryKey, .memory, \.monitorMemory),
+            (NotchcastPreferences.monitorDiskKey, .disk, \.monitorDisk),
+            (NotchcastPreferences.monitorBatteryKey, .battery, \.monitorBattery),
+            (NotchcastPreferences.monitorBatteryTemperatureKey, .batteryTemperature, \.monitorBatteryTemperature),
+        ]
+        for (key, threshold, stored) in thresholds {
+            let (low, high) = (threshold.range.lowerBound, threshold.range.upperBound)
+            let shape = ForkSettingsBackupSchema.allowed[key]!
+            precondition(shape.accepts(low) && shape.accepts(high) && !shape.accepts(low - 1) && !shape.accepts(high + 1), key)
+            let suite = "test.alert-thresholds.\(UUID().uuidString)"
+            let stray = UserDefaults(suiteName: suite)!
+            defer { stray.removePersistentDomain(forName: suite) }
+            precondition(NotchcastPreferences(suiteName: suite)[keyPath: stored] == threshold.defaultValue, key)
+            stray.set(high + 1, forKey: key)
+            precondition(NotchcastPreferences(suiteName: suite)[keyPath: stored] == high, key)
+            stray.set(low - 1, forKey: key)
+            precondition(NotchcastPreferences(suiteName: suite)[keyPath: stored] == low, key)
+        }
+        print("PASS: the threshold table gives the bounds a backup accepts and the bounds and defaults the preferences keep")
         let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
         precondition(complete.keys.allSatisfy { $0.firstMatch(of: secretName) == nil })
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
