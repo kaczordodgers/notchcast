@@ -51,7 +51,8 @@ for i in $(seq 1 "$COUNT"); do
     mkdir -p "$dir/tmp"
     # Outside home: debug builds bake the work path in, and check-identity refuses account names.
     work="/Users/Shared/notchcast-runner/$name"
-    mkdir -p "$work" && chmod 700 "$work"
+    mkdir -p "$work"
+    chmod 700 "$work"
     if [ ! -f "$dir/.runner" ]; then
         if [ ! -f "$ARCHIVE" ]; then
             curl -sSfLo "$ARCHIVE" "https://github.com/actions/runner/releases/download/v$VERSION/$(basename "$ARCHIVE")"
@@ -63,7 +64,7 @@ for i in $(seq 1 "$COUNT"); do
             --labels notchcast-mac --work "$work" --replace \
             --token "$(gh api -X POST "repos/$FORK_REPO/actions/runners/registration-token" --jq .token)")
     fi
-    # A runner registered before this kept _work; point it at the new folder (read at job start).
+    # Older registrations still name _work; the runner reads workFolder at job start.
     python3 - "$dir/.runner" "$work" <<'PY'
 import codecs, json, sys
 path, work = sys.argv[1:]
