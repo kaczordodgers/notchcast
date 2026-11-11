@@ -61,7 +61,7 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 
 ### Music and sound
 
-- Now playing in the island, controls that go to the last active player, and media keys that no longer launch Apple Music.
+- Now playing in the island, controls that go to the last active player, optional sharp covers for Firefox and Zen, and media keys that no longer launch Apple Music.
 - This Mac as a Spotify Connect speaker.
 - Volume overlay in the island, automatic audio device priority and F5 to mute every microphone.
 - Channel switching for a Boss Katana amp over MIDI.
@@ -81,7 +81,7 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 
 ### Downloads
 
-- Download video, audio, transcripts and webpages from a copied link, optionally with aria2c.
+- Download video, audio, transcripts, webpages and X posts from a copied link, optionally with aria2c, with progress in the island.
 - Distill: save links and transcribe media into a Markdown folder.
 - Torrents from magnet links and torrent files, optionally over Wi-Fi and a plugged-in iPhone together.
 
