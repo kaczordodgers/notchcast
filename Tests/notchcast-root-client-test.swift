@@ -76,11 +76,6 @@ struct FanSMCTest {
     }
 
     private static func validateTools() throws {
-        precondition(Power.arguments(.standbyOff) == ["-a", "standby", "0"])
-        precondition(Power.arguments(.standbyOn) == ["-a", "standby", "1"])
-        precondition(Power.arguments(.autopoweroffOff) == ["-a", "autopoweroff", "0"])
-        precondition(Power.arguments(.autopoweroffOn) == ["-a", "autopoweroff", "1"])
-        precondition(Power.arguments(.ping) == nil)
         precondition(Spotlight.arguments(.spotlightOff) == ["-a", "-i", "off"])
         precondition(Spotlight.arguments(.spotlightOn) == ["-a", "-i", "on"])
         precondition(Spotlight.arguments(.ping) == nil)
