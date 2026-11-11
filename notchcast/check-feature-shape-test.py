@@ -18,7 +18,7 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS = SHAPE.LISTS
+SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS, BACKUP_KEYS = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
@@ -176,6 +176,12 @@ class FeatureShapeTests(unittest.TestCase):
         line = "        LowDiskModule.self,\n"
         self.assertEqual(source.count(line), 1)
         self.rejected(REGISTRANTS, source.replace(line, line + line), "repeated entry LowDiskModule")
+
+    def test_repeated_backup_feature(self):
+        source = (self.root / BACKUP_KEYS).read_text()
+        line = "        .lowDiskWarning,\n"
+        self.assertEqual(source.count(line), 1)
+        self.rejected(BACKUP_KEYS, source.replace(line, line + line), "repeated entry lowDiskWarning")
 
     def test_two_registrants_on_one_line(self):
         source = (self.root / REGISTRANTS).read_text()

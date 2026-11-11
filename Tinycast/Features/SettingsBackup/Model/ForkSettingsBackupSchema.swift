@@ -1,39 +1,10 @@
 import Foundation
 
 enum ForkSettingsBackupSchema {
-    static let allowed = featureKeys.reduce(into: listedAllowed) {
+    static let allowed = NotchcastFeature.BackupKeys.all.reduce(into: listedAllowed) {
         $0.merge($1.allowed) { _, _ in preconditionFailure("A backup key is declared twice") }
     }
-    static let excluded = featureKeys.reduce(into: listedExcluded) { $0.formUnion($1.excluded) }
-
-    /// One line per feature with keys of its own; the lists below hold feature switches.
-    private static let featureKeys: [NotchcastFeature.BackupKeys] = [
-        .appearance,
-        .backupStatus,
-        .buildStats,
-        .greenMaximize,
-        .monitorAlerts,
-        .fanControl,
-        .liveTimers,
-        .quitProtection,
-        .dayCalendar,
-        .dayWeather,
-        .dayMarkets,
-        .screenText,
-        .dictationCleanup,
-        .machRemote,
-        .aiUsage,
-        .musicLastPlayer,
-        .spotifyConnect,
-        .microphoneMute,
-        .archives,
-        .keepAwake,
-        .batteryChargeLimit,
-        .agentActions,
-        .lowDiskWarning,
-        .spacesOrder,
-        .island,
-    ]
+    static let excluded = NotchcastFeature.BackupKeys.all.reduce(into: listedExcluded) { $0.formUnion($1.excluded) }
 
     private static let listedAllowed: [String: NotchcastFeature.BackupValue] = [
         "appearance": .bool,

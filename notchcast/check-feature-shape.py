@@ -19,6 +19,7 @@ LISTS = {
     Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift"): r"^(.*?)(?:, keywords: .*)?\),$",
     DESCRIPTORS: r"^\.(\w+):",
     REGISTRANTS: r"^(\w+)\.self,$",
+    FEATURE.with_name("NotchcastBackupKeys.swift"): r"^\.(\w+),$",
 }
 # The feature's code folder at any depth, beside its layers: harnesses glob Model/ and Service/.
 FEATURE_FOLDER = r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))(?:(?!(?:Model|Service|UI|Settings)/)\w+/)+"
@@ -289,8 +290,6 @@ def check(root):
         except OSError as error:
             errors.append(f"{path}:1: {error}")
             continue
-        if path.name == "ForkSettingsBackupSchema.swift":
-            source = re.sub(r"(?s)^.*?(?=    private static let featureKeys:)", lambda m: "\n" * m[0].count("\n"), source)
         errors.extend(f"{path}:{line}: {message}" for line, message in list_errors(source, identity))
     try:
         source = (root / PREFERENCES).read_text()

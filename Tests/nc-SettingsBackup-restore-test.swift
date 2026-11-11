@@ -29,11 +29,11 @@
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastBackupState.swift
-// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextBackupState.swift
-// notchcast-sources: Tinycast/Features/LiveTimer/LiveTimersBackupState.swift
-// notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionBackupState.swift
-// notchcast-sources: Tinycast/Features/EventReminder/DayCalendarBackupState.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastBackupKeys.swift
+// notchcast-sources: Tinycast/Features/LowDisk/Model/*.swift
+// notchcast-sources: Tinycast/Features/LowDisk/Service/*.swift
+// notchcast-sources: Tinycast/Features/SpacesOrder/Model/*.swift
+// notchcast-sources: Tinycast/Features/SpacesOrder/Service/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/Model/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/Service/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
@@ -155,6 +155,8 @@ struct NotchcastCommand: Sendable {
         precondition(!NotchcastPreferences.shared.isEnabled(.captureTrimmer))
         print("PASS: restored captureTrimmer true stays off and disabled")
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
+        let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
+        precondition(complete.keys.allSatisfy { $0.firstMatch(of: secretName) == nil })
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
             bundleIdentifier: Bundle.main.bundleIdentifier!)
         var cleanup = DictationCleanupSettings()
@@ -365,7 +367,10 @@ struct NotchcastCommand: Sendable {
             precondition(after == current)
         }
         for values: [String: Any] in [["monitorCPU": "bad"], ["monitorCPU": 101],
-                                     ["keepAwakeMinutes": 45], ["islandHoverDelay": 0.4]] {
+                                     ["keepAwakeMinutes": 45], ["islandHoverDelay": 0.4],
+                                     ["notchcast.quitProtection.mode": "future"],
+                                     ["notchcast.day.marketSymbols": [String(repeating: "x", count: 65)]],
+                                     ["notchcast.dictationCleanup.settings": "{\"apiKey\":\"secret\"}"]] {
             do { try state.apply(values); preconditionFailure("Accepted invalid value") } catch { }
             precondition(defaults.persistentDomain(forName: suite)! as NSDictionary == before)
         }

@@ -5,13 +5,15 @@ extension ForkSettingsBackupState {
     static var live: Self {
         Self(snapshot: {
             var values = ForkSettingsBackupRestore.snapshot(.shared)
-            for feature in NotchcastBackupState.all { values.merge(feature.snapshot()) { _, value in value } }
+            for feature in NotchcastFeature.BackupKeys.all {
+                do { values.merge(try feature.snapshot()) { _, value in value } } catch {
+                    feature.allowed.keys.forEach(logSkipped)
+                }
+            }
             let editor = EditorCoordinator.shared.editorPreferences
             values["notchcast.editor.font"] = editor.font.rawValue
             values["notchcast.editor.theme"] = editor.theme.rawValue
             values["notchcast.editor.pairsAutomatically"] = editor.pairsAutomatically
-            values["notchcast.day.marketSymbols"] = DayMarketsModule.shared.store.symbols
-            capture("notchcast.day.weatherPlace", into: &values) { try json(DayWeatherModule.shared.store.place) }
             let defaults = AppearanceStore.preferences
             values["notchcast.colorPicker.format"] = defaults.string(forKey: "notchcast.colorPicker.format") ?? "hex"
             values["notchcast.appearance.surface"] = defaults.string(forKey: AppearanceSurfaceStyle.defaultsKey) ?? "glass"
@@ -39,17 +41,13 @@ extension ForkSettingsBackupState {
             return values
         }, validate: validateLive, apply: { values in
             try validateLive(values)
-            for feature in NotchcastBackupState.all { feature.apply(values) }
+            for feature in NotchcastFeature.BackupKeys.all { try feature.apply(values) }
             let editor = EditorCoordinator.shared.editorPreferences
             if let value = values["notchcast.editor.font"] as? String,
                let font = EditorPreferences.FontPreset(rawValue: value) { editor.font = font }
             if let value = values["notchcast.editor.theme"] as? String,
                let theme = EditorPreferences.ThemePreset(rawValue: value) { editor.theme = theme }
             if let value = values["notchcast.editor.pairsAutomatically"] as? Bool { editor.pairsAutomatically = value }
-            if let value = values["notchcast.day.marketSymbols"] as? [String] { DayMarketsModule.shared.store.setSymbols(value) }
-            if let value = values["notchcast.day.weatherPlace"] as? String {
-                DayWeatherModule.shared.store.select(try decode(DayWeatherPlace?.self, value))
-            }
             if let value = values["notchcast.colorPicker.format"] as? String {
                 AppearanceStore.preferences.set(value, forKey: "notchcast.colorPicker.format")
                 if let format = ColorPickerFormat(rawValue: value) { ColorPickerModule.shared.format = format }
@@ -118,13 +116,13 @@ extension ForkSettingsBackupState {
 
     private static func validateLive(_ values: [String: Any]) throws {
         try ForkSettingsBackupEngine.validate(values)
+        for feature in NotchcastFeature.BackupKeys.all { try feature.validate(values) }
         for (key, appearance) in [("notchcast.appearance.theme.light", RaycastTheme.Appearance.light),
                                   ("notchcast.appearance.theme.dark", .dark)] {
             if let value = values[key] as? String, let theme = try decode(RaycastTheme?.self, value),
                theme.appearance != appearance { throw ForkSettingsBackupEngine.Failure.invalidArchive }
         }
         if let value = values["notchcast.appearance.themes.imported"] as? String { _ = try decode([RaycastTheme].self, value) }
-        if let value = values["notchcast.day.weatherPlace"] as? String { _ = try decode(DayWeatherPlace?.self, value) }
         if let value = values["notchcast.dictationCleanup.settings"] as? String { _ = try decode(Cleanup.self, value) }
     }
 }

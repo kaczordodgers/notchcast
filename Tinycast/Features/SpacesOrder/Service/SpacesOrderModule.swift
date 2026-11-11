@@ -3,7 +3,7 @@ import AppKit
 @MainActor
 final class SpacesOrderModule: NotchcastModule {
     private let defaults = NotchcastIdentity.current.defaults
-    private let backupKey = "spacesOrderOriginal"
+    nonisolated static let backupKey = "spacesOrderOriginal"
     private let domain = "com.apple.dock" as CFString
     private let key = "mru-spaces" as CFString
     private var task: Task<Void, Never>?
@@ -38,10 +38,10 @@ final class SpacesOrderModule: NotchcastModule {
         let value = CFPreferencesCopyValue(key, domain, kCFPreferencesCurrentUser, kCFPreferencesAnyHost)
         let current: SpacesOrderEngine.Value = value == nil ? .absent
             : ((value as? Bool) == false ? .disabled : .enabled)
-        if enabled && defaults.string(forKey: backupKey) == nil {
-            defaults.set(current.rawValue, forKey: backupKey)
+        if enabled && defaults.string(forKey: Self.backupKey) == nil {
+            defaults.set(current.rawValue, forKey: Self.backupKey)
         }
-        let original = defaults.string(forKey: backupKey).flatMap(SpacesOrderEngine.Value.init(rawValue:))
+        let original = defaults.string(forKey: Self.backupKey).flatMap(SpacesOrderEngine.Value.init(rawValue:))
         let target = SpacesOrderEngine.target(enabled: enabled, original: original)
         if SpacesOrderEngine.needsWrite(current: current, target: target), let target {
             let replacement: CFPropertyList? = target == .absent ? nil : NSNumber(value: target == .enabled)
@@ -60,6 +60,6 @@ final class SpacesOrderModule: NotchcastModule {
             }
             restartPending = false
         }
-        if !enabled { defaults.removeObject(forKey: backupKey) }
+        if !enabled { defaults.removeObject(forKey: Self.backupKey) }
     }
 }

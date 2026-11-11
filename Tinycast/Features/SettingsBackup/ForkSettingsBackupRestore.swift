@@ -44,20 +44,11 @@ enum ForkSettingsBackupRestore {
                   let delay = NotchcastPreferences.HoverDelay(rawValue: number.doubleValue) else { return }
             preferences.islandHoverDelay = delay
         }),
-        text("greenMaximizeExcludedApps", \.greenMaximizeExcludedApps),
-        text("buildStatsPath", \.buildStatsPath),
-        text("backupStatusPath", \.backupStatusPath),
     ]
 
     private static func number(_ key: String, _ path: ReferenceWritableKeyPath<NotchcastPreferences, Int>) -> Field {
         Field(key: key, read: { $0[keyPath: path] }, write: { preferences, value in
             if let number = value as? NSNumber { preferences[keyPath: path] = number.intValue }
-        })
-    }
-
-    private static func text(_ key: String, _ path: ReferenceWritableKeyPath<NotchcastPreferences, String>) -> Field {
-        Field(key: key, read: { $0[keyPath: path] }, write: { preferences, value in
-            if let text = value as? String { preferences[keyPath: path] = text }
         })
     }
 }

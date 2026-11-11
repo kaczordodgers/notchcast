@@ -88,7 +88,7 @@ Dropping a feature deletes its case, descriptor, hub line, every list and settin
 
 `Descriptor` is plain data that harnesses compile with the hub alone, so anything that needs a view, a module or another feature's types lives beside it in the same folder instead:
 
-- backup keys: `<Name>BackupKeys.swift` beside `<Name>Descriptor.swift`, one `NotchcastFeature.BackupKeys` per described feature, collected by `featureKeys` in the schema ([settings-backup.md](settings-backup.md));
+- backup keys: `<Name>BackupKeys.swift` beside `<Name>Descriptor.swift`, one `NotchcastFeature.BackupKeys` per described feature holding its keys and their snapshot/apply, listed in `NotchcastBackupKeys.swift` ([settings-backup.md](settings-backup.md));
 - settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order).
 
 Three things stay in the hub on purpose:

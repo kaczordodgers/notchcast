@@ -9,7 +9,7 @@ final class DayMarketsStore {
     private(set) var failedSymbols: [String] = []
     private(set) var symbols: [String]
     private let defaults: UserDefaults
-    private let key = "notchcast.day.marketSymbols"
+    nonisolated static let symbolsKey = "notchcast.day.marketSymbols"
     private var visible = false
     private var lastAttempt: Date?
     private var fetchingGeneration: UUID?
@@ -22,12 +22,12 @@ final class DayMarketsStore {
 
     init(defaults: UserDefaults) {
         self.defaults = defaults
-        symbols = defaults.stringArray(forKey: key) ?? ["USDPLN=X", "^GSPC", "BTC-USD"]
+        symbols = defaults.stringArray(forKey: Self.symbolsKey) ?? ["USDPLN=X", "^GSPC", "BTC-USD"]
     }
 
     func setSymbols(_ symbols: [String]) {
         self.symbols = symbols.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        defaults.set(self.symbols, forKey: key)
+        defaults.set(self.symbols, forKey: Self.symbolsKey)
         quotes = []
         failedSymbols = []
         lastError = nil

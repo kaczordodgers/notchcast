@@ -17,6 +17,9 @@ private func check(_ condition: Bool, _ message: String = "check failed", line: 
     precondition(condition, "\(message), line \(line)")
 }
 
+/// The app's list reads every feature's live values; the restore harness checks its key names.
+extension NotchcastFeature.BackupKeys { static let all: [Self] = [] }
+
 @main
 struct SoloistRuntimeTest {
     @MainActor
