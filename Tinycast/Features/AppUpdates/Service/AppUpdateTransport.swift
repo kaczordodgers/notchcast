@@ -1,17 +1,17 @@
 import Foundation
 
-final class AppUpdateTransport: NSObject, URLSessionTaskDelegate, Sendable {
+final class AppUpdateTransport: Sendable {
     private let session: URLSession = {
         let config = NotchcastIdentity.sessionConfiguration()
         config.httpCookieStorage = nil
         config.timeoutIntervalForRequest = 20
         config.timeoutIntervalForResource = 30
-        return URLSession(configuration: config)
+        return URLSession(configuration: config, delegate: RedirectRefusal(), delegateQueue: nil)
     }()
 
     func fetch(_ url: URL) async throws -> Data {
         guard url.scheme?.lowercased() == "https" else { throw URLError(.unsupportedURL) }
-        let (bytes, response) = try await session.bytes(for: URLRequest(url: url), delegate: self)
+        let (bytes, response) = try await session.bytes(for: URLRequest(url: url))
         guard let http = response as? HTTPURLResponse, http.statusCode == 200,
               response.expectedContentLength <= AppUpdateFeed.limit else { throw URLError(.badServerResponse) }
         var data = Data()
@@ -21,11 +21,5 @@ final class AppUpdateTransport: NSObject, URLSessionTaskDelegate, Sendable {
             data.append(byte)
         }
         return data
-    }
-
-    func urlSession(_ session: URLSession, task: URLSessionTask,
-                    willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
-                    completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
-        completionHandler(nil)
     }
 }

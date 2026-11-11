@@ -7,7 +7,7 @@ extension DictationFamily {
     })
 
     nonisolated private static let logger = Logger(
-        subsystem: NotchcastIdentity.releaseBundleIdentifier, category: "DictationFamily")
+        subsystem: NotchcastIdentity.current.bundleID, category: "DictationFamily")
 
     @concurrent
     private static func live(

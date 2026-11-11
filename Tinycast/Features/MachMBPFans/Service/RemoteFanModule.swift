@@ -4,7 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class RemoteFanModule: NotchcastModule {
-    static let method = "mbp-fans"
+    static let method = MachLinkMethod.mbpFans.rawValue
     private(set) var report: RemoteFanReport?
     private(set) var isRunning = false
     private var operation: UUID?

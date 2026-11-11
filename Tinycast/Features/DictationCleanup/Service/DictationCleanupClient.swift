@@ -8,16 +8,6 @@ protocol DictationCleanupClient: Sendable {
 struct DictationCleanupHTTPClient: DictationCleanupClient {
     enum Failure: Error { case invalidEndpoint, invalidResponse }
 
-    private final class RedirectBlocker: NSObject, URLSessionTaskDelegate, Sendable {
-        func urlSession(
-            _ session: URLSession, task: URLSessionTask,
-            willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
-            completionHandler: @escaping @Sendable (URLRequest?) -> Void
-        ) {
-            completionHandler(nil)
-        }
-    }
-
     private struct Reply: Decodable {
         struct Block: Decodable {
             let type: String
@@ -32,7 +22,7 @@ struct DictationCleanupHTTPClient: DictationCleanupClient {
         configuration.httpCookieStorage = nil
         configuration.urlCredentialStorage = nil
         configuration.timeoutIntervalForResource = request.timeoutInterval
-        let session = URLSession(configuration: configuration, delegate: RedirectBlocker(), delegateQueue: nil)
+        let session = URLSession(configuration: configuration, delegate: RedirectRefusal(), delegateQueue: nil)
         defer { session.invalidateAndCancel() }
         let (data, response) = try await session.data(for: request)
         try Task.checkCancellation()

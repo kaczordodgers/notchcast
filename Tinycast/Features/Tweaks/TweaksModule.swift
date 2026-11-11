@@ -16,8 +16,7 @@ final class TweaksModule: NotchcastModule {
          profileRunner: @escaping (Data, String) async throws -> Void = TweaksModule.openProfile) {
         self.setupProfileRunner = setupProfileRunner
         self.profileRunner = profileRunner
-        let defaults = UserDefaults(suiteName:
-            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!
+        let defaults = NotchcastIdentity.current.defaults
         let data = defaults.data(forKey: key)
         var plans: [String: TypingPreferencePlan] = [:]
         var decodedJournal = data == nil
@@ -116,7 +115,7 @@ final class TweaksModule: NotchcastModule {
                   symbol: "gearshape", confirmTitle: String(localized: "Open…")),
               store.enabled else { return }
         do {
-            let identifier = (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + "." + restriction.rawValue
+            let identifier = NotchcastIdentity.current.suiteName(suffix: "." + restriction.rawValue)
             let data = try AppleAppsPolicy.profile([restriction], identifier: identifier,
                 profileUUID: UUID(), payloadUUID: UUID())
             try await profileRunner(data, identifier)
