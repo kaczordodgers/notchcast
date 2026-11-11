@@ -9,7 +9,7 @@ extension ForkSettingsBackupState {
                 let saved: [String: Any]
                 do { saved = try feature.snapshot() } catch {
                     logger.error("Backup snapshot failed: \(error.localizedDescription, privacy: .public)")
-                    throw error
+                    continue
                 }
                 for key in feature.allowed.keys {
                     do {
