@@ -1,4 +1,5 @@
 Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift merge=union
+notchcast/command-slugs.txt merge=union
 # Feature union merges require notchcast/check-feature-shape.py to reject retained old cases.
 Tinycast/Features/Notchcast/Core/NotchcastFeature.swift merge=union
 Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift merge=union

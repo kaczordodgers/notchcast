@@ -25,6 +25,6 @@ extension NotchcastFeature.BackupKeys {
         .agentActions,
         .lowDiskWarning,
         .spacesOrder,
-        .island,
+        .islandHoverOpen,
     ]
 }

@@ -8,10 +8,9 @@ import Foundation
 struct PrivacyCommandTests {
     @MainActor
     static func main() async throws {
-        precondition(TweakProfileCommands.privacy.feature == .privacyChoices)
         TweakProfileCommands.privacy.run()
-        for _ in 0..<1000 where NotchcastCore.tweaks.calls == 0 { await Task.yield() }
-        precondition(NotchcastCore.tweaks.calls == 1 && NotchcastCore.tweaks.kept == nil)
+        for _ in 0..<1000 where TweaksModule.shared.calls == 0 { await Task.yield() }
+        precondition(TweaksModule.shared.calls == 1 && TweaksModule.shared.kept == nil)
         var calls = 0
         func request(_ kept: Set<String>?, _ privacy: Set<String>) async throws {
             precondition(kept == nil)

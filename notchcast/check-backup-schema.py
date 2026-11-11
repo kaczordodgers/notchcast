@@ -26,6 +26,8 @@ KEYS_FILE = re.compile(shape.DESCRIPTOR_FILE.pattern.replace("Descriptor", "Back
 KEYS_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.BackupKeys\b|\bBackupKeys\s*(?:\.init\s*)?\("
                               r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?BackupKeys\b"
                               r"|->\s*(?:NotchcastFeature\.)?BackupKeys\b")
+CONFIDENTIAL_LOOKING = re.compile(r"(?i)soloist|spotify|api.?key|secret|token|password")
+NOT_FOR_BACKUP = "this allowed key is named like a secret; a backup never carries one, so list it as excluded"
 
 
 def span(source, pattern, opening, closing):
@@ -150,6 +152,8 @@ def check(root):
         for key, line in entries(source, offset, keyed):
             key = value(key, (root / SCHEMA).parent)
             declared.setdefault(key, []).append(f"{SCHEMA}:{line}")
+            if keyed and CONFIDENTIAL_LOOKING.search(key):
+                errors.append(f"{SCHEMA}:{line}: {NOT_FOR_BACKUP}")
             if key not in raw_values and key not in SCHEMA_KEYS:
                 errors.append(f"{SCHEMA}:{line}: {key} is a feature's own key; "
                               "declare it in <Name>BackupKeys.swift in that feature's folder")
@@ -200,6 +204,8 @@ def check(root):
                 declared.setdefault(key, []).append(f"{relative}:{line}")
                 if keyed:
                     allowed[key] = line
+                if keyed and CONFIDENTIAL_LOOKING.search(key):
+                    errors.append(f"{relative}:{line}: {NOT_FOR_BACKUP}")
         written, read = ({value(key, path.parent): line for key, line in keys.items()}
                          for keys in live_keys(source, spans))
         # A file without the closure is still saved by hand in SettingsBackup.

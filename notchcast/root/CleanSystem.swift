@@ -4,10 +4,7 @@ import Foundation
 enum CleanSystem {
     enum Failure: Error { case refused }
 
-    static var policy: CleanSystemPolicy {
-        .init(roots: CleanSystemPolicy.allowedRoots, now: .now,
-              cacheAge: 30 * 86_400, logAge: 30 * 86_400)
-    }
+    static var policy: CleanSystemPolicy { .standard(now: .now) }
 
     static func inspect(_ path: String, owner: uid_t? = nil) throws -> CleanSystemEntry {
         guard !path.utf8.contains(0), path.hasPrefix("/"), "/" + path.split(separator: "/").joined(separator: "/") == path,

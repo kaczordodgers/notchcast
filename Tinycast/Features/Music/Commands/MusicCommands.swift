@@ -10,7 +10,7 @@ enum MusicCommands {
     static var enabled: Bool { NotchcastPreferences.shared.isEnabled(.musicNowPlaying) }
 
     static func send(_ command: PlayerCommand) {
-        guard enabled, let music = NotchcastCore.services?.music else { return }
+        guard enabled, let music = MusicNowPlayingModule.shared else { return }
         let canStart = command == .togglePlayPause
             && (music.model.canResume || (music.soloist.isConnected && music.soloist.authState?.loggedIn == true))
         guard music.model.nowPlaying != nil || canStart else { report(); return }
@@ -18,7 +18,7 @@ enum MusicCommands {
     }
 
     static func openCurrentPlayer() {
-        guard enabled, let music = NotchcastCore.services?.music else { return }
+        guard enabled, let music = MusicNowPlayingModule.shared else { return }
         guard let id = music.model.nowPlaying?.bundleID,
               let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) else { report(); return }
         NSWorkspace.shared.openApplication(at: url, configuration: .init()) { _, error in
@@ -27,6 +27,6 @@ enum MusicCommands {
     }
 
     static func report() {
-        AppCore.shared.showMessage(String(localized: "The current player is unavailable.", table: "Notchcast"), tone: .danger)
+        NotchcastHost.current.showMessage(String(localized: "The current player is unavailable.", table: "Notchcast"), .danger)
     }
 }

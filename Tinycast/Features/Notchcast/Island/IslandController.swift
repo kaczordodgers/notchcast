@@ -154,7 +154,7 @@ final class IslandController: NotchcastModule {
         panels = NSScreen.screens.map(IslandPanel.init(screen:))
         for panel in panels {
             panel.onOpen = { [weak self, weak panel] in
-                guard let self, let panel else { return }
+                guard let self, let panel, !launcherIsUp else { return }
                 open(page: page, on: panel.screen)
             }
             panel.onKey = { [weak self] in self?.handleKey($0) ?? false }
@@ -208,7 +208,7 @@ final class IslandController: NotchcastModule {
             message: preferences.isOn(.islandStatusMessages) ? center.message : nil,
             activities: preferences.isOn(.islandLiveActivities) ? center.ranked : [],
             track: demoTrack
-                ?? (preferences.isEnabled(.musicNowPlaying) ? Self.track(NotchcastCore.services?.music.model.nowPlaying) : nil))
+                ?? (preferences.isEnabled(.musicNowPlaying) ? Self.track(MusicNowPlayingModule.shared?.model.nowPlaying) : nil))
         updatePresenter()
     }
 
@@ -232,7 +232,7 @@ final class IslandController: NotchcastModule {
             _ = IslandActivityCenter.shared.activities
             _ = IslandActivityCenter.shared.message
             _ = preferences.isEnabled(.musicNowPlaying)
-            _ = NotchcastCore.services?.music.model.nowPlaying
+            _ = MusicNowPlayingModule.shared?.model.nowPlaying
             _ = demoTrack
             _ = NotchcastTheme.Launcher.size
         } onChange: { [weak self] in
@@ -268,7 +268,7 @@ final class IslandController: NotchcastModule {
         let preferences = NotchcastPreferences.shared
         let previousHover = input.pendingHover
         input.pointer(inside: inside, now: ProcessInfo.processInfo.systemUptime,
-                      hoverEnabled: preferences.isOn(.islandHoverOpen),
+                      hoverEnabled: preferences.isOn(.islandHoverOpen) && !launcherIsUp,
                       delay: preferences.islandHoverDelay.rawValue)
         if [.leftMouseDown, .rightMouseDown, .otherMouseDown].contains(event.type), !inside {
             dismiss(.outsideClick)

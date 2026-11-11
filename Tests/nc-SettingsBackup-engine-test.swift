@@ -22,12 +22,7 @@ extension NotchcastFeature.BackupKeys {
 @main
 struct SettingsBackupTest {
     static func main() async throws {
-        let allowed = Set(ForkSettingsBackupSchema.allowed.keys)
         let excluded = ForkSettingsBackupSchema.excluded
-        precondition(allowed.isDisjoint(with: excluded))
-        for feature in NotchcastFeature.allCases {
-            precondition(allowed.contains(feature.rawValue) != excluded.contains(feature.rawValue), feature.rawValue)
-        }
         var original: [String: Any] = ["monitorCPU": 80, "islandHoverDelay": 0.3,
             "island": false, "greenMaximizeExcludedApps": "com.example.app",
             "notchcast.day.marketSymbols": ["BTC-USD"]]

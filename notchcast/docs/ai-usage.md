@@ -2,7 +2,7 @@
 
 The `aiUsage`, `aiUsageOtherMac` and `machLink` switches default off. They do not depend on Island.
 Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands.
-The other-Mac switch is effective only while AI usage and Mac link are enabled.
+The other-Mac switch is effective only while AI usage and Mac link are enabled: its descriptor lists both as dependencies, and the requester and the `ai-usage` route both ask `isEnabled(.aiUsageOtherMac)`.
 
 `AIUsageModule.refresh()` reads the local cache on demand. Starting a module does not read it, and
 there is no refresh timer. The provider accepts an injected directory and clock for fixture tests.
@@ -12,7 +12,7 @@ Local snapshots retain optional reset credits (`availableCount`); malformed cred
 the wire representation intentionally carries no provider-specific display or reset metadata.
 
 `MachLink/AIUsageLinkModule` owns the listener and browser. Switching Mac link off stops both and cancels
-incoming work. `MachLinkChannel+OtherMacUsage.swift` registers the `ai-usage` route; incoming requests require both AI usage switches to remain enabled before returning a local
+incoming work. `MachLinkChannel+OtherMacUsage.swift` registers the `ai-usage` route; incoming requests require that rule to hold before and after reading a local
 snapshot. Outbound peer requests retain the engine's one-minute minimum interval.
 
 Enable Mac link on both Macs. Pair with an empty code on one Mac, then enter that code and Pair on

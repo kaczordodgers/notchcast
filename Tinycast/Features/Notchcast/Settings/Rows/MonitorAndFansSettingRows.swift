@@ -9,7 +9,7 @@ struct NotchcastFanModeSettingRow: View {
             selection: Binding(
                 get: { preferences.fanMode },
                 set: {
-                    NotchcastCore.setFanMode(FanControl.Mode(rawValue: $0) ?? .auto)
+                    MonitorModule.shared.fans.set(FanControl.Mode(rawValue: $0) ?? .auto)
                 })
         ) {
             Text("Auto").tag("auto")

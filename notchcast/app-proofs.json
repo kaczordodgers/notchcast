@@ -7,14 +7,13 @@
     "Tinycast/App/TinycastApp.swift"
   ],
   "archive-compress": [
-    "Tinycast/Features/Archives/Model/ArchiveCompression.swift",
-    "Tinycast/Features/Archives/Service/ArchiveCompressor.swift",
+    "Tinycast/Features/Archives/Model/*.swift",
+    "Tinycast/Features/Archives/Service/*.swift",
     "Tinycast/Features/AppProof/**"
   ],
   "archive-fallback": [
-    "Tinycast/Features/Archives/Model/ArchiveEngineRoute.swift",
-    "Tinycast/Features/Archives/Model/ArchiveZIPEncoding.swift",
-    "Tinycast/Features/Archives/Model/ArchiveFallbackListing.swift",
+    "Tinycast/Features/Archives/Model/*.swift",
+    "Tinycast/Features/Archives/Service/*.swift",
     "Tinycast/Features/AppProof/**"
   ]
 }

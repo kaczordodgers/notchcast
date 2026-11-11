@@ -74,6 +74,12 @@ CASES = (
      {KEYS: LIVE, STORE: OWNER.replace("sizeKey", "widthKey")}, 1, "FirstStore.sizeKey: no string constant sizeKey under First/"),
     ("constant on another type", '"first": .bool,', '"stored",', '.first,',
      {KEYS: LIVE, STORE: OWNER.replace("class FirstStore", "class OtherStore")}, 1, "no string constant sizeKey under First/"),
+    ("secret-shaped key allowed in a key file", '"first": .bool,', '"stored",', '.first,',
+     {KEYS: OWN_KEY.replace("first.size", "first.apiKey")}, 1, "this allowed key is named like a secret"),
+    ("secret-shaped key allowed in the schema", '"first": .bool,\n"notchcast.editor.token": .bool,', '"stored",', '', {}, 1,
+     "this allowed key is named like a secret"),
+    ("secret-shaped key excluded", '"first": .bool,', '"stored",', '.first,',
+     {KEYS: OWN_KEY.replace("first.cache", "first.token")}, 0, "PASS"),
 )
 
 with tempfile.TemporaryDirectory() as directory:

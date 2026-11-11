@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift Tinycast/Features/NetMerge/Model/*.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/Distill/Model/*.swift Tinycast/Features/Distill/Service/DistillRunner.swift
@@ -35,12 +35,12 @@ struct MediaNetworkTest {
             assert(MediaNetwork.expectedSize(output) == nil)
         }
         for format in [MediaArguments.Format.video, .audio] {
-            let probe = MediaArguments.probe(source: "file:///tmp/media.mp4", cookies: "firefox", format: format)
+            let probe = MediaArguments.probe(source: "file:///tmp/media.mp4", format: format)
             let printIndex = probe.firstIndex(of: "--print")!
             assert(probe[printIndex + 1] == "%(filesize,filesize_approx)s")
             assert(!probe.contains("--dump-single-json") && !probe.contains("--simulate"))
             assert(!probe.contains("--no-quiet") && !probe.contains("--progress"))
-            assert(probe.contains("firefox") && probe.suffix(2) == ["--", "file:///tmp/media.mp4"])
+            assert(probe.suffix(2) == ["--", "file:///tmp/media.mp4"])
         }
         for (enabled, interfaces, size, probes, merged) in [
             (false, [wifi, phone], 300000000, 0, false),
@@ -81,8 +81,8 @@ struct MediaNetworkTest {
                 for _ in 0..<12 {
                     group.addTask {
                         let job = DownloadJob(id: UUID().uuidString, kind: "transcript", source: "fixture",
-                            title: "Same", state: .waiting, created: Date(), options: [:])
-                        return try await TranscriptDownloadRunner().run(job, context: context)!
+                            title: "Same", state: .waiting, created: Date())
+                        return try await TranscriptDownloadRunner(transcribe: { _, _ in nil }).run(job, context: context)!
                     }
                 }
                 var urls = [URL]()
@@ -130,9 +130,10 @@ struct MediaNetworkTest {
             try FileManager.default.createSymbolicLink(at: root.appending(path: name), withDestinationURL: tool)
         }
         let lookup = DownloadToolLookup(directories: [root, URL(filePath: "/usr/bin"), URL(filePath: "/bin")])
-        let runner = MediaDownloadRunner(format: .video, networkInterfaces: { enabled ? interfaces : [] })
+        let runner = MediaDownloadRunner(format: .video, aria2Enabled: { true },
+                                         networkInterfaces: { enabled ? interfaces : [] })
         let job = DownloadJob(id: UUID().uuidString, kind: "video", source: "https://example.com/video",
-                              title: "Video", state: .waiting, created: Date(), options: [:])
+                              title: "Video", state: .waiting, created: Date())
         _ = try await runner.run(job, context: DownloadRunContext(destination: root, tools: lookup))
         let log = (try? String(contentsOf: root.appending(path: "probes"), encoding: .utf8)) ?? ""
         precondition(log.split(separator: "\n").count == probes)

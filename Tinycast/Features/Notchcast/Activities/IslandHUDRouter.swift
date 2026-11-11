@@ -43,8 +43,6 @@ enum IslandHUDRouter {
         return shouldRoute ? notice : nil
     }
 
-    private static var shouldRoute: Bool {
-        IslandActivityCenter.shared.hasPresenter
-            && NotchcastPreferences.shared.isOn(.islandStatusMessages)
-    }
+    /// `hasPresenter` already requires the Status Messages switch, so it is the one gate.
+    private static var shouldRoute: Bool { IslandActivityCenter.shared.hasPresenter }
 }

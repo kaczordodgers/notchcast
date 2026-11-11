@@ -28,6 +28,25 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 - a `register(_: AppCore)` implementation anywhere but a `<Type>+Registration.swift` in an allowed folder (the descriptor's rules), or under a folder upstream ships;
 - a registrant listed twice, or listed while `NotchcastCore+Modules.swift` still holds a `static` of its type or an entry `module: <Type>...`.
 
+It also holds the facts a harness could only restate, each as a rule over every feature (`fact_errors`):
+
+- feature-pins: a spec value of one feature (`PINS`: group, settings module, `defaultEnabled`, dependencies, grants, `needsIsland`, `isWired`, its settings rows) or of a class of features (`CLASS_PINS`) differs from the source. A descriptor value written over several lines is read whole; a switch-arm value that does not close its brackets on its line is refused. A spec value worth keeping goes there, not into a harness;
+- feature-text: a title or subtitle that is not a non-empty `String(localized:)`;
+- settings-item-once: a feature placed twice or not at all in `NotchcastSettingsModule+Groups.swift`;
+- command-owner, command-slugs, command-listed: see [command-hook.md](command-hook.md);
+- module-entry-requires: an entry, in any file that states module entries, that runs a module named after a feature without requiring that feature;
+- module-entry-once: a hub `static let` holding a `NotchcastModule` (a `*Module` type, or one declared `: NotchcastModule`) that exactly one hub entry does not run, or a module that two entries of one file run;
+- module-built-once: an optional hub module built twice, or not run by exactly one entry;
+- setting-one-case: two settings on one `case` line of `NotchcastSetting.swift`;
+- setting-row-arm: a `NotchcastSetting` without exactly one non-empty row arm in `NotchcastSettingRows+*.swift`;
+- backup-anchor-header: a `notchcastBackup…` search anchor without its `SettingsSectionHeader`;
+- source-hooks: a one-line hook (`HOOKS`, needles in order) missing or reordered, or a forbidden text (`ABSENT`) present. `HOOKS` also pins `NotchcastArchiveModules.swift` to its one entry, requiring `.archives`;
+- plist: `Info.plist` archive document types, imported type identifiers, the Bonjour service and the local network text.
+
+A rule that finds nothing to check fails instead of passing: a descriptor it cannot open, no `unwired` list, a class pin no feature belongs to, an `ABSENT` path with no file, no module static, no setting, no backup anchor.
+
+`check-backup-schema.py` refuses a backup key named like a secret (backup-no-secret-names). Each rule has a failing and a passing case in `check-feature-shape-test.py` (`BREAKS`, `UNREAD`) or `check-backup-schema-test.py`.
+
 It cannot tell whether the folder is the feature's own; review that. Harnesses that compile `NotchcastFeature.swift` receive the hub file and every descriptor from `notchcast/command-harness-sources.sh`, so adding a descriptor edits no harness header; `land.sh` typechecks the same set:
 
 ```sh
@@ -60,9 +79,11 @@ A feature owns its module instance and hands the controller its entries; the hub
 5. Lower `core-lookups` in `notchcast/drift-baseline.json` for every file you cleaned; drop a key that reaches 0.
 6. A harness that stubbed `NotchcastCore.<module>` compiles the real `+Registration.swift`, `Core/NotchcastModule.swift` and `Core/NotchcastRegistrant.swift` through `// notchcast-sources:` instead, and checks the entries `register` returns (`Tests/nc-WaitingAlerts-engine-test.swift`). A harness compiling code that uses the seam adds `Core/NotchcastHost.swift` (plus `enum DialogTone {}`, with the cases the code names, when it lacks the real one) and drops its `AppCore` stub once no other file it compiles calls `AppCore`; a harness that calls `register` keeps at least an empty `final class AppCore {}`. It can set `NotchcastHost.current`'s closures to count messages and refreshes (`Tests/notchcast-system-notice-hookups-test.swift`).
 
-A registration names only its own folder, `Notchcast/Core` kernel types and upstream. Wiring between two fork features (feature A reading feature B's module, such as Shelf's link status reading Mac Link and Link Health) stays in `NotchcastCore.start` as hub glue, so drift gate 1 `boundaries` never rises; such a module moves only when that glue can read both sides' `shared`.
+A registration names only its own folder, `Notchcast/Core` kernel types and upstream. Wiring between two fork features (feature A reading feature B's module, such as Shelf's link status reading Mac Link and Link Health) stays in `NotchcastCore.start` as hub glue, so drift gate 1 `boundaries` never rises; such a module moves only when that glue can read both sides' `shared`. A module built from a hub module's object (Remote Fans, Remote Screen and Blocked Dialog from `macLink.channel`) takes it through a `static var` input in a file of its own folder that already names that type; the hub sets it in `start` before `registrants` register, and `register` returns `[]` while it is nil.
 
-Registrant entries start after every hub entry and before the services' entries, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one.
+Registrant entries start after every hub entry, in list order, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one. `NotchcastServices` is built after every `register` call; the kernel then builds the key monitor and Spotify settings on the Music, Microphone and Tasks `shared` modules, and it is `nil` until `NotchcastCore.start` has run.
+
+A module whose launch repair must not run from a harness (`BatteryModule.shared.repairAtLaunch()`, the fan restore on `MonitorModule.shared`) keeps that line in `NotchcastCore.start`; `register` only builds and returns. Wiring left in `NotchcastCore.start` for a registered module gets a `HOOKS` line in `check-feature-shape.py`, since no harness compiles the hub, and a planted break in `check-feature-shape-test.py` that quoted a moved hub line is retargeted to a hub module no group is moving.
 
 ## Moving a feature
 

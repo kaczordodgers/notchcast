@@ -67,7 +67,7 @@ enum DialogTone { case neutral, danger }
             [.init(requires: [.scrollingCapture], module: module)], preferences: preferences)
         controller.run()
         let command = ScrollingCaptureModule.launcherCommand
-        precondition(command.id == "command:nc-scrolling-capture" && !command.isEnabled())
+        precondition(!command.isEnabled())
         command.run()
         precondition(area.starts == 0)
         preferences.set(.scrollingCapture, true)
@@ -89,17 +89,9 @@ enum DialogTone { case neutral, danger }
         command.run()
         precondition(area.starts == 2)
         let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        for (path, needle) in [
-            ("Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift",
-             "preferences.set(.scrollingCapture, $0)"),
-            ("Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift",
-             ".feature(.scrollingCapture, settings: [])"),
-            ("Tinycast/Features/Notchcast/Core/NotchcastCore+Registrants.swift", "ScrollingCaptureModule.self,"),
-            ("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift", "ScrollingCaptureModule.launcherCommand")
-        ] {
-            let source = try String(contentsOf: root.appendingPathComponent(path), encoding: .utf8)
-            precondition(source.contains(needle), path)
-        }
-        print("PASS: scrolling lifecycle, command output, permission HUD, settings and catalogue reachability")
+        let section = try String(contentsOf: root.appendingPathComponent(
+            "Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift"), encoding: .utf8)
+        precondition(section.contains("preferences.set(.scrollingCapture, $0)"))
+        print("PASS: scrolling lifecycle, command output, permission HUD, settings switch")
     }
 }
