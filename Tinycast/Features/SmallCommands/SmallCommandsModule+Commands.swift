@@ -69,7 +69,11 @@ extension SmallCommandsModule {
             guard let shortener = service ?? shortener else { throw SmallCommandsFailure.disabled }
             guard let address = ShortenLinkService.pick(argument: argument, frontAddress: front,
                 clipboard: clipboard()) else { throw SmallCommandsFailure.noLink }
-            return try await shortener.shorten(address)
+            do {
+                return try await shortener.shorten(address)
+            } catch ShortenLinkService.Failure.noLink {
+                throw SmallCommandsFailure.noLink
+            }
         case .noise:
             guard let controlCenter = NSRunningApplication.runningApplications(
                 withBundleIdentifier: "com.apple.controlcenter").first else {

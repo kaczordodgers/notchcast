@@ -51,8 +51,17 @@ struct NotchcastCommand: Sendable {
         typealias Failure = SmallCommandsFailure
         precondition(SmallCommandsModule.failure(NoiseControlService.Outcome.switched(.off)) == nil)
         precondition(SmallCommandsModule.failure(AirDropService.Outcome.sent(1)) == nil)
+        var privateLink: any Error = Failure.disabled
+        do {
+            let unreached = ShortenLinkService { _ in preconditionFailure("a private link must not be fetched") }
+            _ = try await module.perform(.shorten, argument: "http://192.168.1.1/admin", frontAddress: { nil },
+                                         clipboard: { nil }, service: unreached)
+        } catch {
+            privateLink = error
+        }
         let causes: [(any Error, String)] = [
             (Failure.noLink, "No link to shorten."),
+            (privateLink, "No link to shorten."),
             (Failure.controlCenterNotRunning, "Control Center is not running."),
             (SmallCommandsModule.failure(NoiseControlService.Outcome.noAirPods)!, "No AirPods with noise control found."),
             (SmallCommandsModule.failure(NoiseControlService.Outcome.unchanged)!, "Noise control did not change."),
