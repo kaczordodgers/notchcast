@@ -6,9 +6,18 @@ enum RecordingTarget: Sendable, Equatable {
     case window(UInt32)
     case display(UInt32)
 
-    enum Failure: Error, Equatable {
+    enum Failure: CaptureFailureConvertible, Equatable {
         case disabled, busy, invalidTarget, permissionDenied, targetUnavailable
         case writerFailed, noFrames, notRecording, invalidFolder
+
+        var captureFailure: CaptureFailure? {
+            switch self {
+            case .permissionDenied: .permissionDenied
+            case .disabled: .disabled
+            case .invalidTarget, .targetUnavailable: .areaUnavailable
+            case .busy, .writerFailed, .noFrames, .notRecording, .invalidFolder: nil
+            }
+        }
     }
 
     static func isValid(_ rect: CGRect) -> Bool {

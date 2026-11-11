@@ -250,16 +250,13 @@ final class RecordingModule: NotchcastModule {
     }
 
     static func failureMessage(_ error: any Error) -> String {
-        if let shared = error as? CaptureFailure { return shared.message }
+        if let shared = CaptureFailure(error) { return shared.message }
         return switch error as? RecordingTarget.Failure {
-        case .permissionDenied: CaptureFailure.permissionDenied.message
-        case .disabled: CaptureFailure.disabled.message
-        case .invalidTarget, .targetUnavailable: CaptureFailure.areaUnavailable.message
         case .busy: String(localized: "A recording is already in progress.", table: "Notchcast")
         case .notRecording: String(localized: "No recording is in progress.", table: "Notchcast")
         case .noFrames: String(localized: "The recording contains no frames.", table: "Notchcast")
         case .invalidFolder, .writerFailed: String(localized: "Could not save the recording.", table: "Notchcast")
-        case nil: String(localized: "Recording failed.", table: "Notchcast")
+        default: String(localized: "Recording failed.", table: "Notchcast")
         }
     }
 

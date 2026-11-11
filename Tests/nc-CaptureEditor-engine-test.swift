@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 // notchcast-kit: core
 
 import AppKit
@@ -259,6 +260,9 @@ struct CaptureEditorEngineTest {
             preconditionFailure("empty sources")
         } catch CaptureEditorCoordinator.Failure.noImage {
             precondition(CaptureEditorCoordinator.Failure.noImage.errorDescription == "No Image to Edit")
+            precondition(CaptureEditorCoordinator.Failure.disabled.errorDescription == CaptureFailure.disabled.message)
+            precondition(CaptureEditorCoordinator.Failure.clipboard.errorDescription == CaptureFailure.clipboardFailed.message)
+            precondition(CaptureFailure(CaptureEditorCoordinator.Failure.noImage) == nil)
         }
         let source = image()
         let last = NSImage(cgImage: source.pixels, size: source.points)

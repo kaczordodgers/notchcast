@@ -81,12 +81,6 @@ final class ScrollingCaptureModule: NotchcastModule {
     isolated deinit { task?.cancel() }
 
     static func failureMessage(_ error: any Error) -> String {
-        let failure: CaptureFailure = switch error {
-        case let shared as CaptureFailure: shared
-        case ScrollingCaptureSession.Failure.permissionDenied: .permissionDenied
-        case ScrollingCaptureSession.Failure.invalidRect, ScrollingCaptureSession.Failure.displayUnavailable: .areaUnavailable
-        default: .captureFailed
-        }
-        return failure.message
+        (CaptureFailure(error) ?? .captureFailed).message
     }
 }
