@@ -20,7 +20,7 @@ enum DialogTone {}
 }
 
 extension BlockedDialogModule {
-    static let shared: BlockedDialogModule? = BlockedDialogModule(transport: { request in
+    static var shared: BlockedDialogModule? = BlockedDialogModule(transport: { request in
         Probe.requests += 1
         if Probe.fail { throw MachLinkMessage.Failure.disconnected }
         return try MachLinkMessage(id: request.id, method: request.method,
@@ -53,6 +53,10 @@ extension BlockedDialogModule {
         while Probe.messages.count < 3 { await Task.yield() }
         precondition(Probe.messages.last == "Other Mac: SecurityAgent is waiting.")
         BlockedDialogModule.shared?.stop()
-        print("blocked dialog command: fake transport reached; success, failure and gate passed")
+        BlockedDialogModule.shared = nil
+        command.run()
+        precondition(Probe.messages.count == 4 && Probe.messages.last == "Could Not Check Other Mac Dialogs")
+        precondition(Probe.requests == 3)
+        print("blocked dialog command: fake transport reached; success, failure, gate and unregistered module passed")
     }
 }

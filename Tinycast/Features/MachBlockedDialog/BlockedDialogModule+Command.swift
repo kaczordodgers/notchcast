@@ -8,7 +8,11 @@ extension BlockedDialogModule {
             [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert]
                 .allSatisfy { NotchcastPreferences.shared.isOn($0) }
         }, run: {
-            BlockedDialogModule.shared?.checkAndReport()
+            guard let module = BlockedDialogModule.shared else {
+                NotchcastHost.current.remoteResult(String(localized: "Could Not Check Other Mac Dialogs", table: "Notchcast"))
+                return
+            }
+            module.checkAndReport()
         })
 
     func checkAndReport() {
