@@ -16,7 +16,7 @@ final class MachRemoteModule: NotchcastModule {
         let ssh = MachSSH(address: NotchcastPreferences.shared.remoteMacAddress, runner: MachSSHProcessRunner.run)
         let script: String
         do { script = try ssh.terminalScript(directory: NotchcastPreferences.shared.remoteTerminalDirectory) } catch {
-            NotchcastCore.remoteResult(error.localizedDescription)
+            NotchcastHost.current.remoteResult(error.localizedDescription)
             return
         }
         let escaped = script.replacingOccurrences(of: "\\", with: "\\\\")

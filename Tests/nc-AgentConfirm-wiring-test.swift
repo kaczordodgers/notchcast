@@ -173,7 +173,7 @@ struct ConfirmationWiringTests {
         let allowed = await fresh.value
         precondition(allowed != nil, "The presenter's Allow once was not honoured")
         expiring.stop()
-        print("PASS: 20 expired requests leave the engine's per-request dictionaries empty:\(tables.joined(separator: ", "))")
+        print("PASS: 20 expired requests leave the authorization's own dictionaries empty: \(tables.joined(separator: ", "))")
         print("PASS: after 20 expired requests a fresh one reaches the presenter and its answer is honoured")
         print("PASS: queue held through upstream confirm; parameterized stored grants prompt; parameterless Always allow")
     }

@@ -105,6 +105,8 @@ BREAKS = (
      SHAPE.BACKUPS, "SettingsSectionHeader(.notchcastBackupExport)", "SettingsSectionHeader(.notchcastBackupImport)"),
     ("source-hooks", "hook missing or out of order: await NotchcastCore.archives.prepareForTermination()",
      "Tinycast/App/AppCore.swift", "await NotchcastCore.archives.prepareForTermination()", ""),
+    ("source-hooks", "hook missing or out of order: BlockedDialogModule.linkChannel = macLink.channel",
+     "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "        BlockedDialogModule.linkChannel = macLink.channel\n", ""),
     ("source-hooks", "hook missing or out of order: if deepLinkCoordinator.handles(url)",
      "Tinycast/App/AppCore.swift", ARCHIVES_HOOK, "", DEEP_LINK_HOOK, ARCHIVES_HOOK + "        do {"),
     ("source-hooks", "hook missing or out of order: var extensionsEnabled: Bool { get { false } set { } }",
