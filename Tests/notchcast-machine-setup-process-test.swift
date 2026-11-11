@@ -2,6 +2,7 @@
 // notchcast-sources: Tinycast/Features/MachineSetupProfile/MachineSetupProfileCoordinator+Command.swift
 // notchcast-kit: command
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
+// notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
 import Foundation
 
 @main

@@ -30,6 +30,10 @@ import Foundation
         do { _ = try await task.value; preconditionFailure("Cancellation expected") } catch is CancellationError {}
         for _ in 0..<100 where kill(pid, 0) == 0 { try await Task.sleep(for: .milliseconds(10)) }
         precondition(kill(pid, 0) != 0)
-        print("Process group cancellation passed")
+        let path = try await CommandProcessRunner.run(.init(
+            executable: "/usr/bin/env", arguments: ["sh", "-c", "echo $PATH"], workingDirectory: nil))
+        precondition(String(bytes: path.standardOutput, encoding: .utf8)?
+            .hasPrefix("/opt/homebrew/bin:/usr/local/bin:") == true, "env finds Homebrew tools before /usr/bin")
+        print("Process group cancellation and Homebrew-first PATH passed")
     }
 }
