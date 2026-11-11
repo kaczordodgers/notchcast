@@ -6,10 +6,8 @@ enum NotchcastCore {
     static let grantStatuses = NotchcastGrantState()
     private static var controller: NotchcastModuleController?
     static private(set) var services: NotchcastServices?
-    private static var monitor: MonitorModule?
     private static let archiveServices = ArchiveServices()
 
-    static func setFanMode(_ mode: FanControl.Mode) { monitor?.fans.set(mode) }
     static var confirmMacUpdate: () async -> Bool = { false }
     /// Hub glue: the settings backup reads Screen Text's option without naming its folder.
     static var screenTextRemovesLineBreaks: Bool {
@@ -33,11 +31,11 @@ enum NotchcastCore {
         await editor.flushForTermination()
         machineBackup.stop()
         await machineBackup.waitUntilIdle()
-        battery.stop()
-        monitor?.stop()
+        BatteryModule.shared.stop()
+        MonitorModule.shared.stop()
         await RootWait.drainForTermination {
-            await battery.waitUntilIdle()
-            await monitor?.fans.waitUntilIdle()
+            await BatteryModule.shared.waitUntilIdle()
+            await MonitorModule.shared.fans.waitUntilIdle()
         }
     }
 
@@ -52,7 +50,7 @@ enum NotchcastCore {
         NSApp.servicesProvider = archiveServices
         ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
-        battery.repairAtLaunch()
+        BatteryModule.shared.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
             core?.hotKeys.syncNotchcastCommands()
@@ -90,28 +88,18 @@ enum NotchcastCore {
         ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
-        for module in [tweaks, typingTweaks, finderTweaks, dockTweaks, appleAppsTweaks, iPhoneBackupTweaks] {
-            module.configure(core)
-        }
+        let modules = entries(core: core) + registrants.flatMap { $0.register(core) }
         let services = NotchcastServices(core: core, preferences: preferences)
         self.services = services
-        tasksSync.connect(to: services.tasks)
-        let monitor = MonitorModule(preferences: .shared, alertSink: { [weak core] in
-            core?.showMessage($0, tone: .danger)
-        }, fanFailure: { [weak core] in
-            core?.showMessage(String(localized: "Could not change fan mode.", table: "Notchcast"), tone: .danger)
-        })
-        self.monitor = monitor
-        monitor.registerRemoteFanRoute(on: macLink.channel)
-        if !NotchcastPreferences.shared.isOn(.systemMonitor)
-            || !NotchcastPreferences.shared.isOn(.fanControl) {
-            monitor.fans.restore(preservingPreference: true, silently: true)
+        if let tasks = TodoModule.shared { tasksSync.connect(to: tasks) }
+        MonitorModule.shared.registerRemoteFanRoute(on: macLink.channel)
+        if !NotchcastPreferences.shared.isOn(.systemMonitor) || !NotchcastPreferences.shared.isOn(.fanControl) {
+            MonitorModule.shared.fans.restore(preservingPreference: true, silently: true)
         }
-        let modules = entries(core: core, monitor: monitor) + registrants.flatMap { $0.register(core) }
-        let controller = NotchcastModuleController(modules + services.moduleEntries, preferences: preferences)
+        let controller = NotchcastModuleController(modules, preferences: preferences)
         self.controller = controller
         controller.run()
-        services.keys.run()
+        services?.keys.run()
         #if DEBUG
         NotchcastLiveDemo.runIfRequested(core)
         #endif

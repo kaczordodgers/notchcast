@@ -1,7 +1,8 @@
 import Foundation
 
 struct WebpageRunner: DownloadRunner {
-    let kind = "webpage"
+    static let kind = "webpage"
+    var kind: String { Self.kind }
     let tools: [DownloadTool] = []
 
     func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? {

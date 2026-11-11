@@ -1,60 +1,47 @@
 import Foundation
 
 extension NotchcastAppProof {
-    static func archiveFallback() throws {
+    /// Routes by name, then unpacks real `tar.bz2` files through the shipped runner: one good, one escaping.
+    static func archiveFallback() async throws {
         let routes: [String: ArchiveEngineRoute?] = [
             "a.zip": .hatchzip, "a.tar.gz": .hatchzip, "a.7z": .hatchzip, "a.tar.xz": .bsdtar, "a.tar.bz2": .bsdtar,
             "a.gz": .bsdtar, "a.iso": .bsdtar, "a.tar.zst": .zstd, "a.zst": .zstd, "a.sit": .xad, "a.docx": nil,
         ]
         for (name, engine) in routes where ArchiveEngineRoute.route(URL(filePath: "/tmp/\(name)")) != engine {
-            throw ArchiveFallbackProofFailure("\(name) routed wrongly")
+            throw Failure("\(name) routed wrongly")
         }
         guard ArchiveEngineRoute.route(URL(filePath: "/tmp/a.zip"), windowsZIP: true) == .xad,
               !ArchiveZIPEncoding.inspect(Data(repeating: 0x50, count: 4096)).requiresUnar else {
-            throw ArchiveFallbackProofFailure("ZIP name encoding detection")
+            throw Failure("ZIP name encoding detection")
         }
         let files = FileManager.default
         let root = files.temporaryDirectory.appending(path: "notchcast-proof-\(UUID().uuidString)")
         defer { try? files.removeItem(at: root) }
         let source = root.appending(path: "Łódź")
-        try files.createDirectory(at: source, withIntermediateDirectories: true)
+        let inbox = root.appending(path: "in")
+        let refused = root.appending(path: "refused")
+        for folder in [source, inbox, refused] { try files.createDirectory(at: folder, withIntermediateDirectories: true) }
         let data = Data("zażółć gęślą jaźń".utf8)
         try data.write(to: source.appending(path: "gęś.txt"))
+        try data.write(to: root.appending(path: "x.txt"))
         let zip = root.appending(path: "mac.zip")
-        try shell("/usr/bin/ditto", ["-c", "-k", "--keepParent", source.path, zip.path])
+        try await run("/usr/bin/ditto", ["-c", "-k", "--keepParent", source.path, zip.path])
         guard !ArchiveZIPEncoding.inspect(try Data(contentsOf: zip)).requiresUnar else {
-            throw ArchiveFallbackProofFailure("a Mac-made Polish zip left hatchzip")
+            throw Failure("a Mac-made Polish zip left hatchzip")
         }
-        let tarball = root.appending(path: "a.tar.bz2")
-        try shell("/usr/bin/tar", ["-cjf", tarball.path, "-C", root.path, "Łódź"])
-        let listing = try ArchiveFallbackListing.bsdtar(shell("/usr/bin/bsdtar", ["-tvf", tarball.path]))
-        try ArchiveRules.validate(listing, archiveBytes: Int64(Data(contentsOf: tarball).count))
-        let unsafe = Data("-rw-r--r--  0 user group 1 Jan 1 2026 ../x\n".utf8)
-        do {
-            try ArchiveRules.validate(ArchiveFallbackListing.bsdtar(unsafe), archiveBytes: 1)
-            throw ArchiveFallbackProofFailure("a traversal member passed validation")
-        } catch ArchiveFailure.unsafePath("../x") {
+        let tarball = inbox.appending(path: "a.tar.bz2")
+        try await run("/usr/bin/tar", ["-cjf", tarball.path, "-C", root.path, "Łódź"])
+        let output = try await ArchiveExtractionRunner().extract(tarball)
+        guard output.lastPathComponent == "Łódź", try Data(contentsOf: output.appending(path: "gęś.txt")) == data else {
+            throw Failure("tar.bz2 round trip differs at \(output.path)")
         }
-        let out = root.appending(path: "out")
-        try files.createDirectory(at: out, withIntermediateDirectories: true)
-        try shell("/usr/bin/bsdtar", ["-xf", tarball.path, "-C", out.path])
-        guard (try? Data(contentsOf: out.appending(path: "Łódź/gęś.txt"))) == data else {
-            throw ArchiveFallbackProofFailure("tar.bz2 round trip differs")
+        let escaping = refused.appending(path: "escaping.tar.bz2")
+        try await run("/usr/bin/tar", ["-cjf", escaping.path, "-C", source.path, "../x.txt"])
+        try await expect(ArchiveFailure.unsafePath("../x.txt"), "a traversal member") {
+            _ = try await ArchiveExtractionRunner().extract(escaping)
+        }
+        guard try files.contentsOfDirectory(atPath: refused.path) == ["escaping.tar.bz2"] else {
+            throw Failure("a refused archive left files beside it")
         }
     }
-
-    @discardableResult
-    private static func shell(_ tool: String, _ arguments: [String]) throws -> Data {
-        var environment = ProcessInfo.processInfo.environment
-        environment["LC_ALL"] = "en_US.UTF-8"
-        let output = try ProcessRunner.runBlocking(.init(executable: URL(filePath: tool), arguments: arguments,
-                                                         environment: environment))
-        guard output.status == 0 else { throw ArchiveFallbackProofFailure("\(tool) exited \(output.status)") }
-        return output.stdout
-    }
-}
-
-private struct ArchiveFallbackProofFailure: Error, CustomStringConvertible {
-    let description: String
-    init(_ description: String) { self.description = description }
 }

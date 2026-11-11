@@ -19,5 +19,13 @@ extension NotchcastCore {
         TorrentModule.self,
         ArchiveModule.self,
         QuickLookCoordinator.self,
+        TweaksModule.self,
+        MonitorModule.self,
+        BatteryModule.self,
+        SystemNoticesModule.self,
+        SystemLevelsModule.self,
+        MusicNowPlayingModule.self,
+        MicrophoneMuteModule.self,
+        TodoModule.self,
     ]
 }

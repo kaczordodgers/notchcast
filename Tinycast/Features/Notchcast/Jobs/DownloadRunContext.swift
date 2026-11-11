@@ -5,19 +5,16 @@ struct DownloadRunContext: Sendable {
     let tools: DownloadToolLookup
     private let progress: @MainActor @Sendable (DownloadProgress) -> Void
     private let detail: @MainActor @Sendable (String) -> Void
-    let reportNetwork: @MainActor @Sendable (Bool) -> Void
 
     init(
         destination: URL, tools: DownloadToolLookup = DownloadToolLookup(),
         report: @escaping @MainActor @Sendable (DownloadProgress) -> Void = { _ in },
-        detail: @escaping @MainActor @Sendable (String) -> Void = { _ in },
-        reportNetwork: @escaping @MainActor @Sendable (Bool) -> Void = { _ in }
+        detail: @escaping @MainActor @Sendable (String) -> Void = { _ in }
     ) {
         self.destination = destination
         self.tools = tools
         progress = report
         self.detail = detail
-        self.reportNetwork = reportNetwork
     }
 
     @MainActor

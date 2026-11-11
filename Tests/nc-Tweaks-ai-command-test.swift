@@ -9,8 +9,8 @@ struct AICommandTests {
     @MainActor
     static func main() async throws {
         TweakProfileCommands.ai.run()
-        for _ in 0..<1000 where NotchcastCore.tweaks.calls == 0 { await Task.yield() }
-        precondition(NotchcastCore.tweaks.calls == 1 && NotchcastCore.tweaks.kept == [])
+        for _ in 0..<1000 where TweaksModule.shared.calls == 0 { await Task.yield() }
+        precondition(TweaksModule.shared.calls == 1 && TweaksModule.shared.kept == [])
         var calls = 0
         func request(_ kept: Set<String>?, _ privacy: Set<String>) async throws {
             precondition(kept == [] && privacy.isEmpty)

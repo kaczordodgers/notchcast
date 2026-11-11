@@ -9,7 +9,7 @@ final class ConvertFilesModule: NotchcastModule {
     func stop() {
         enabled = false
         guard let queue else { return }
-        for job in queue.jobs where job.kind == "convert-files" && !job.state.isFinished {
+        for job in queue.jobs where job.kind == ConvertFilesRunner.kind && !job.state.isFinished {
             queue.cancel(job.id)
         }
     }
@@ -24,10 +24,7 @@ final class ConvertFilesModule: NotchcastModule {
         guard enabled, let queue, let first = sources.first else {
             throw ConvertFilesPlan.Failure(message: String(localized: "Convert Files is unavailable.", table: "Notchcast"))
         }
-        guard let encoded = String(bytes: try JSONEncoder().encode(sources.map(\.path)), encoding: .utf8) else {
-            throw ConvertFilesPlan.Failure(message: String(localized: "Invalid file paths.", table: "Notchcast"))
-        }
-        return queue.enqueue(kind: "convert-files", sources: [first.path],
-                             options: ["sources": encoded, "target": target, "pages": pages])
+        let options = ConvertFilesRunner.Options(sources: sources.map(\.path), target: target, pages: pages)
+        return queue.enqueue(kind: ConvertFilesRunner.kind, sources: [first.path], options: try DownloadJob.encode(options))
     }
 }
