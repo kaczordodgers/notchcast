@@ -10,12 +10,11 @@ enum SystemLevelsCommands {
     private static func command(_ percent: Int, _ name: String.LocalizationValue) -> NotchcastCommand {
         NotchcastCommand(
             slug: "volume-\(percent)", name: String(localized: name), sfSymbol: "speaker.wave.2", feature: .volumeLevels,
-            isEnabled: { NotchcastPreferences.shared.isOn(.island) && NotchcastPreferences.shared.isOn(.volumeLevels) },
+            isEnabled: { NotchcastPreferences.shared.showsVolumeInIsland },
             run: {
                 let service = SystemLevelsModule.shared.service
                 Task { @MainActor in
-                    guard service.isRunning, NotchcastPreferences.shared.isOn(.island),
-                          NotchcastPreferences.shared.isOn(.volumeLevels) else { return }
+                    guard service.isRunning, NotchcastPreferences.shared.showsVolumeInIsland else { return }
                     let result = await service.apply(.setVolume(Double(percent) / 100))
                     guard !Task.isCancelled, service.isRunning else { return }
                     if case .fallbackToNativeKeys = result {
