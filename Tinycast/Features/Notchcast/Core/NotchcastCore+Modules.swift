@@ -50,16 +50,11 @@ extension NotchcastCore {
     static let accessoryNotices = AccessoryNoticesModule()
     static let brightness = DisplayBrightnessModule()
     static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)
-    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: systemLevels, brightness: brightness, present: { levelNoticePresenter.present($0) })
+    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNoticePresenter.present($0) })
     static let timers = LiveTimerModule.shared
     static let weather = DayWeatherModule.shared
     static let markets = DayMarketsModule.shared
     static let quitProtection = QuitProtectionStore.shared
-    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNoticePresenter.present($0) })
-    static let timers = LiveTimerModule()
-    static let weather = DayWeatherModule()
-    static let markets = DayMarketsModule()
-    static let quitProtection = QuitProtectionStore()
     static let eventTapHub = EventTapHub()
     static let showDesktop = ShowDesktopModule(hub: eventTapHub)
     static let hideCommandM = HideCommandMModule(hub: eventTapHub)
@@ -67,12 +62,8 @@ extension NotchcastCore {
     static let greenMaximize = GreenMaximizeModule(hub: eventTapHub)
     static let spacesOrder = SpacesOrderModule()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
-    static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let settingsBackupRestore = ForkSettingsBackupCoordinator.shared
     static let eventReminder = EventReminderModule.shared
-    static let settingsBackup = ForkSettingsBackupModule()
-    static let settingsBackupRestore = ForkSettingsBackupCoordinator()
-    static let eventReminder = EventReminderModule(store: AppCore.shared.calendarStore)
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
