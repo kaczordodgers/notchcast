@@ -13,7 +13,7 @@ enum FinderImageService { static func save(_ png: Data) -> Bool { false } }
 
 @main @MainActor
 struct PasteImageModuleTests {
-    static func main() {
+    static func main() async {
         let board = NSPasteboard(name: .init("nc-paste-image-\(UUID())"))
         defer { board.releaseGlobally() }
         board.clearContents()
@@ -38,13 +38,37 @@ struct PasteImageModuleTests {
         precondition(send(false) == .pass, "A second release passes")
         board.clearContents()
         board.setString("text", forType: .string)
-        precondition(send() == .pass, "Command-V over text passes")
+        module.clipboardTick()
+        precondition(send() == .pass, "Command-V over text in Finder passes through untouched")
         precondition(send(repeatKey: true) == .pass, "Its repeats pass")
         precondition(send(false) == .pass, "Its release passes")
+        board.clearContents()
+        board.setData(Data([0x89]), forType: .png)
+        precondition(send() == .pass, "The tap never reads the pasteboard: an image the main actor has not seen passes")
+        precondition(send(false) == .pass, "Its release passes")
+        module.clipboardTick()
+        precondition(send() == .swallow, "The next main-actor tick takes the image")
+        precondition(send(false) == .swallow, "Its release stays taken")
         precondition(send(flags: [.maskCommand, .maskShift]) == .pass, "Other chords pass")
         module.stop()
         module.stop()
         precondition(hub.consumerCount == 0 && hub.handler == nil)
+        // The stopped module ignores its queued pastes, so only now may the harness suspend.
+        board.clearContents()
+        var frontmostChecks = 0
+        let looping = PasteImageModule(hub: hub, pasteboard: board.name,
+                                       finderIsFrontmost: { frontmostChecks += 1; return true })
+        looping.start()
+        board.clearContents()
+        board.setData(Data([0x89]), forType: .png)
+        try? await Task.sleep(for: .seconds(1))
+        precondition(send() == .swallow, "The module's own half-second loop takes an image with no manual tick")
+        let workspace = NSWorkspace.shared.notificationCenter
+        workspace.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
+        looping.stop()
+        let checksAtStop = frontmostChecks
+        try? await Task.sleep(for: .milliseconds(200))
+        precondition(frontmostChecks == checksAtStop, "An activation queued before stop starts no ticker after it")
         print("✓ PasteImage module: start once, take, repeat, release, text and chord pass-through checks passed")
     }
 }

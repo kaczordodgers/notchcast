@@ -21,22 +21,6 @@ final class DayCalendarService {
         excludedIDs = Set(defaults.stringArray(forKey: excludedKey) ?? [])
     }
 
-    func start() {
-        store.span = .nextSevenDays
-        store.start()
-    }
-
-    func requestAccessFromButton() async -> Bool {
-        let granted = await store.requestAccess()
-        observer = nil
-        rangeStore = nil
-        return granted
-    }
-
-    func events(in interval: DateInterval) -> [DayEvent] {
-        records(in: interval).map(\.event).sorted { $0.start < $1.start }
-    }
-
     /// Each visible event with its EventKit record, for a caller that needs alarms, colour or links.
     func records(in interval: DateInterval) -> [(event: DayEvent, record: EKEvent)] {
         _ = revision
@@ -81,15 +65,4 @@ final class DayCalendarService {
         revision += 1
     }
 
-    func refresh() {
-        store.reload()
-        revision += 1
-    }
-
-    var events: [DayEvent] {
-        store.events.filter { !excludedIDs.contains($0.calendarID) && !$0.isDeclined }.map {
-            DayEvent(id: $0.id, title: $0.title, start: $0.start, end: $0.end,
-                     isAllDay: $0.isAllDay, calendarID: $0.calendarID)
-        }
-    }
 }
