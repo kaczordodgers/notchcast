@@ -2,7 +2,6 @@
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift
 // notchcast-sources: Tinycast/Platform/AccessibilityText.swift
 // notchcast-kit: host
-// notchcast-sources: Tinycast/Features/Notchcast/Model/WebRules.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}
