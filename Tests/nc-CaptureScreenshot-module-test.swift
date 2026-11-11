@@ -1,6 +1,8 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-kit: core host command
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
 import AppKit

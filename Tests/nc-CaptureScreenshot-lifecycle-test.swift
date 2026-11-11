@@ -2,6 +2,8 @@
 // notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Registration.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift

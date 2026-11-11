@@ -19,7 +19,7 @@ extension TreadmillCoordinator {
         let support = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Library/Application Support")
         let repository = TreadmillRepository(
             directory: support.appending(path: bundleID).appending(path: "notchcast/treadmill"))
-        let defaults = UserDefaults(suiteName: bundleID + ".notchcast")!
+        let defaults = NotchcastIdentity(bundleIdentifier: bundleID).defaults
         return TreadmillCoordinator(transport: BluetoothTreadmillTransport(),
                                     history: TreadmillHistoryStore(repository: repository),
                                     preferences: TreadmillPreferences(defaults: defaults),

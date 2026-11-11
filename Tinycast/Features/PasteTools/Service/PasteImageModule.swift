@@ -8,16 +8,10 @@ import Observation
 final class PasteImageModule: NotchcastModule {
     private(set) var saveFailed = false
     private let tap: EventTapSubscription
-    private let state = OSAllocatedUnfairLock(initialState: State())
+    private let eligible = OSAllocatedUnfairLock(initialState: false)
     private var activation: NotificationToken?
     var onFailure: (() -> Void)?
     private var work: Task<Void, Never>?
-
-    private struct State: Sendable {
-        var eligible = false
-        var changeCount: Int?
-        var acceptsImage = false
-    }
 
     private let pasteboard: NSPasteboard.Name
     private let finderIsFrontmost: @MainActor () -> Bool
@@ -33,21 +27,13 @@ final class PasteImageModule: NotchcastModule {
 
     func start() {
         guard !tap.isActive else { return }
-        let state = state
-        let pasteboard = pasteboard
+        let eligible = eligible
+        // The tap thread reads only eligibility; paste() reads the pasteboard on the main actor.
         tap.startKeyPress(Int64(kVK_ANSI_V), skipsSynthetic: true) { [weak self] event in
             let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskControl, .maskAlternate]
-            guard event.flags.intersection(modifiers) == .maskCommand else { return false }
-            let take = state.withLock { state in
-                let board = NSPasteboard(name: pasteboard)
-                if state.changeCount != board.changeCount {
-                    state.changeCount = board.changeCount
-                    state.acceptsImage = PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
-                }
-                return state.eligible && state.acceptsImage
-            }
-            if take { Task { @MainActor [weak self] in self?.paste() } }
-            return take
+            guard event.flags.intersection(modifiers) == .maskCommand, eligible.withLock({ $0 }) else { return false }
+            Task { @MainActor [weak self] in self?.paste() }
+            return true
         }
         updateEligibility()
         let center = NSWorkspace.shared.notificationCenter
@@ -63,21 +49,22 @@ final class PasteImageModule: NotchcastModule {
         work?.cancel()
         work = nil
         tap.stop()
-        state.withLock { $0 = State() }
+        eligible.withLock { $0 = false }
     }
 
     private func updateEligibility() {
-        let eligible = finderIsFrontmost()
-        state.withLock { $0.eligible = eligible }
+        let frontmost = finderIsFrontmost()
+        eligible.withLock { $0 = frontmost }
     }
 
     func paste() {
         guard tap.isActive else { return }
         guard work == nil else { Paster.postCommandV(); return }
         saveFailed = false
+        let board = NSPasteboard(name: pasteboard)
         guard let app = NSWorkspace.shared.frontmostApplication,
             app.bundleIdentifier == "com.apple.finder",
-            PasteImagePolicy.accepts(types: NSPasteboard.general.types?.map(\.rawValue) ?? [])
+            PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
         else { Paster.postCommandV(); return }
         let finder = AXUIElementCreateApplication(app.processIdentifier)
         var focused: CFTypeRef?
@@ -91,7 +78,6 @@ final class PasteImageModule: NotchcastModule {
                 return
             }
         }
-        let board = NSPasteboard.general
         guard let type = board.availableType(from: [.png, .tiff, .init("public.jpeg"), .init("public.heic")]),
             let data = board.data(forType: type)
         else { Paster.postCommandV(); return }

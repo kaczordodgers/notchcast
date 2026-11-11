@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillModule.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillCoordinator+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift

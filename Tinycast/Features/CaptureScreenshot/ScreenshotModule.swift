@@ -36,8 +36,7 @@ final class ScreenshotModule: NotchcastModule {
     private static let folderKey = "notchcast.screenshot.folder"
 
     init(
-        defaults: UserDefaults = UserDefaults(suiteName:
-            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+        defaults: UserDefaults = NotchcastIdentity.current.defaults,
         area: CaptureAreaService = CaptureAreaService(),
         capture: @escaping Capture = { request, destination, isEnabled in
             try await ScreenshotService.capture(request, destination: destination, isEnabled: isEnabled)
