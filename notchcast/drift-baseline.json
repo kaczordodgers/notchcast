@@ -109,7 +109,6 @@
     "Tinycast/Features/AgentThreads/AgentThreadsModule.swift": 2,
     "Tinycast/Features/Archives/Commands/ArchiveCommands.swift": 3,
     "Tinycast/Features/Archives/Commands/ArchiveCompressionCommands.swift": 3,
-    "Tinycast/Features/Battery/Commands/BatteryModule+Command.swift": 1,
     "Tinycast/Features/ClearNotifications/ClearNotificationsModule+Command.swift": 1,
     "Tinycast/Features/CopyPath/CopyPathModule+Command.swift": 1,
     "Tinycast/Features/DictationHistory/UI/DictationHistorySettingsSection.swift": 2,
@@ -129,9 +128,6 @@
     "Tinycast/Features/MachRemote/MachRemoteModule+Command.swift": 3,
     "Tinycast/Features/MachRemote/MachRemoteModule.swift": 1,
     "Tinycast/Features/MarkdownQuickLook/QuickLookSpace+Palette.swift": 1,
-    "Tinycast/Features/Microphone/Commands/MicrophoneMuteCommands.swift": 1,
-    "Tinycast/Features/Music/Commands/MusicCommands+Playback.swift": 2,
-    "Tinycast/Features/Music/Commands/MusicCommands.swift": 2,
     "Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Command.swift": 1,
     "Tinycast/Features/PasteTools/Service/PlainPasteModule+Command.swift": 1,
     "Tinycast/Features/RemoteScreen/RemoteScreenModule+Command.swift": 2,
@@ -142,14 +138,9 @@
     "Tinycast/Features/Shelf/ShelfReceivedSection.swift": 2,
     "Tinycast/Features/SmallCommands/ShortenLinkArgumentsAccessory.swift": 1,
     "Tinycast/Features/SmallCommands/SmallCommandsModule+Commands.swift": 4,
-    "Tinycast/Features/SystemLevels/SystemLevelsCommands.swift": 1,
-    "Tinycast/Features/SystemMonitor/Commands/FanControl+Command.swift": 2,
-    "Tinycast/Features/SystemNotices/SystemNoticesCommands.swift": 1,
-    "Tinycast/Features/Todo/Commands/TodoCommands.swift": 1,
     "Tinycast/Features/Torrents/Commands/TorrentCommands.swift": 4,
     "Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift": 2,
-    "Tinycast/Features/Treadmill/TreadmillCommands.swift": 1,
-    "Tinycast/Features/Tweaks/TweakProfileCommands.swift": 1
+    "Tinycast/Features/Treadmill/TreadmillCommands.swift": 1
   },
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,

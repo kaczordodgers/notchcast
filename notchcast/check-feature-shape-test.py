@@ -87,8 +87,8 @@ BREAKS = (
      "            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),\n", ""),
     ("module-entry-once", "run module in one entry", ARCHIVE_ENTRIES, "module: module)]",
      "module: module), .init(requires: [.archivesInPlace], module: module)]"),
-    ("module-entry-requires", "the entry that runs tasks requires .tasks", SHAPE.MODULES.with_name("NotchcastServicesModules.swift"),
-     ".init(requires: [.tasks], module: tasks)", ".init(requires: [.island], module: tasks)"),
+    ("module-entry-requires", "the entry that runs showDesktop requires .showDesktop", MODULES,
+     ".init(requires: [.showDesktop], module: showDesktop)", ".init(requires: [.island], module: showDesktop)"),
     ("source-hooks", "hook missing or out of order: [.init(requires: [.archives], module: module)]",
      ARCHIVE_ENTRIES, "requires: [.archives]", "requires: []"),
     ("feature-pins", ".globeDictation needsIsland is true; the spec pins false",
@@ -268,15 +268,15 @@ class FeatureShapeTests(unittest.TestCase):
     def test_list_entry_split_over_lines(self):
         source = (self.root / MODULES).read_text()
         self.rejected(MODULES, source.replace(
-            "[.island, .systemNotices], module: systemNotices),", "[.island, .systemNotices],\n                module: systemNotices),"),
+            "[.island, .accessoryNotices], module: accessoryNotices),", "[.island, .accessoryNotices],\n                module: accessoryNotices),"),
             "keep each list entry on one line")
 
     def test_repeated_module_entry(self):
         source = (self.root / MODULES).read_text()
         self.rejected(MODULES, source.replace(
-            ".init(requires: [.island, .systemNotices], module: systemNotices),",
-            ".init(requires: [.island, .systemNotices], module: systemNotices),\n            .init(requires: [.systemNotices], module: systemNotices),"),
-            "repeated entry systemNotices")
+            ".init(requires: [.island, .accessoryNotices], module: accessoryNotices),",
+            ".init(requires: [.island, .accessoryNotices], module: accessoryNotices),\n            .init(requires: [.accessoryNotices], module: accessoryNotices),"),
+            "repeated entry accessoryNotices")
 
     def test_repeated_registrant(self):
         source = (self.root / REGISTRANTS).read_text()
@@ -304,8 +304,8 @@ class FeatureShapeTests(unittest.TestCase):
     def test_registrant_still_in_the_hub(self):
         source = (self.root / MODULES).read_text()
         anchor = "            .init(requires: [.island, .dayMarkets], module: markets),\n"
-        for case, edited in enumerate((source.replace("    static let battery", "    static let lowDisk = LowDiskModule()\n    static let battery"),
-                       source.replace("    static let battery", "    static private(set) var lowDisk: LowDiskModule?\n    static let battery"),
+        for case, edited in enumerate((source.replace("    static let github", "    static let lowDisk = LowDiskModule()\n    static let github"),
+                       source.replace("    static let github", "    static private(set) var lowDisk: LowDiskModule?\n    static let github"),
                        source.replace(anchor, anchor + "            .init(requires: [.lowDiskWarning], module: LowDiskModule.shared),\n"))):
             with self.subTest(case=case):
                 self.rejected(MODULES, edited, "LowDiskModule registers itself")
@@ -593,7 +593,7 @@ class FeatureShapeTests(unittest.TestCase):
         for name in ("alpha", "beta"):
             run(self.root, "git", "switch", "-qc", name, "base")
             modules.write_text(base[0].replace(
-                "    static let battery", f"    static let {name} = LiveTimerModule()\n    static let battery").replace(
+                "    static let github", f"    static let {name} = LiveTimerModule()\n    static let github").replace(
                 anchor, anchor + f"            .init(requires: [.island], module: {name}),\n"))
             search.write_text(base[1].replace(row, row + f'        .init(group: .notchcast(feature: .dayCalendar), "{name}"),\n'))
             self.assertEqual(SHAPE.check(self.root), [])
