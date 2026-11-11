@@ -41001,6 +41001,58 @@
         }
       }
     },
+    "Some entries in the tweaks journal could not be read and were removed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einige Einträge im Anpassungsjournal konnten nicht gelesen werden und wurden entfernt."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algunas entradas del registro de ajustes no se pudieron leer y se eliminaron."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Certaines entrées du journal des réglages n’ont pas pu être lues et ont été supprimées."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調整ジャーナルの一部の項目を読み取れなかったため、削除しました。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "조정 저널의 일부 항목을 읽을 수 없어 제거했습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algumas entradas do registro de ajustes não puderam ser lidas e foram removidas."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Некоторые записи журнала настроек не удалось прочитать, и они были удалены."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整日志中的部分条目无法读取，已被移除。"
+          }
+        }
+      }
+    },
     "Some items changed or could not be processed. Scan again to review them." : {
       "localizations" : {
         "de" : {
@@ -46334,6 +46386,58 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "调音器和录音器需要通过 USB 连接 Katana。"
+          }
+        }
+      }
+    },
+    "The tweaks journal could not be read, so tweaks cannot be changed." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Anpassungsjournal konnte nicht gelesen werden, daher lassen sich Anpassungen nicht ändern."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo leer el registro de ajustes, por lo que los ajustes no se pueden cambiar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le journal des réglages n’a pas pu être lu, les réglages ne peuvent donc pas être modifiés."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "調整ジャーナルを読み取れなかったため、調整を変更できません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "조정 저널을 읽을 수 없어 조정을 변경할 수 없습니다."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não foi possível ler o registro de ajustes, portanto os ajustes não podem ser alterados."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удалось прочитать журнал настроек, поэтому настройки нельзя изменить."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法读取调整日志，因此无法更改调整。"
           }
         }
       }
