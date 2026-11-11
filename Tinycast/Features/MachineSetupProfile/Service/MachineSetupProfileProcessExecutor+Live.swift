@@ -10,9 +10,10 @@ extension MachineSetupProfileProcessExecutor {
                         || arguments == ["write", "com.apple.dock", "autohide", "-bool", "true"]))
                     || (executable == "/usr/bin/killall" && arguments == ["Dock"])
             else { throw Failure.unsupportedPayload }
+            let url = URL(fileURLWithPath: executable)
             let request = ProcessRunner.Request(
-                executable: URL(fileURLWithPath: executable), arguments: arguments,
-                environment: ["PATH": "/usr/bin:/bin"], timeout: .seconds(5))
+                executable: url, arguments: arguments,
+                environment: ExecutableLocator.environment(running: url, inherited: [:]), timeout: .seconds(5))
             do {
                 let output = try ProcessRunner.runBlocking(request)
                 return Result(status: output.status, output: String(bytes: output.stdout, encoding: .utf8) ?? "")

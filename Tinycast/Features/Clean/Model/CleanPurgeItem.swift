@@ -9,7 +9,6 @@ struct CleanPurgeItem: Sendable {
     let allocatedSize: Int64
     let activity: Activity
     let recentlyActive: Bool
-    var selectedByDefault: Bool { activity == .idle && !recentlyActive }
     internal let authority: UUID
     internal let snapshot: [String: String]
 }
