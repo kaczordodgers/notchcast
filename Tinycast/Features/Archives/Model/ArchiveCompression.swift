@@ -20,17 +20,11 @@ nonisolated enum ArchiveCompression: String, Equatable, Sendable, CaseIterable {
         }
     }
 
-    func output(sources: [URL], exists: (URL) -> Bool) -> URL {
+    /// The name before the suffix; `JobOutput.publish` numbers it when taken.
+    func stem(sources: [URL]) -> String {
         let parent = sources[0].deletingLastPathComponent()
         let common = sources.allSatisfy { $0.deletingLastPathComponent() == parent }
-        let name = sources.count == 1 ? sources[0].lastPathComponent
+        return sources.count == 1 ? sources[0].lastPathComponent
             : common && !parent.lastPathComponent.isEmpty ? parent.lastPathComponent : "Archive"
-        var number = 1
-        var candidate = parent.appending(path: "\(name).\(suffix)")
-        while exists(candidate) {
-            number += 1
-            candidate = parent.appending(path: "\(name) \(number).\(suffix)")
-        }
-        return candidate
     }
 }
