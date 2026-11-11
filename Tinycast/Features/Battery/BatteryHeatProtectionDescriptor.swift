@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Pause charging when the battery is hot.", table: "Notchcast"),
         group: .systemTools,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: true,

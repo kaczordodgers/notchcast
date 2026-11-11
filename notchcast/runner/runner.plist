@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>Label</key><string>notchcast.runner.@NAME@</string>
-<key>ProgramArguments</key><array><string>@DIR@/run.sh</string></array>
+<key>ProgramArguments</key><array><string>@EXEC@</string></array>
 <key>WorkingDirectory</key><string>@DIR@</string>
 <key>RunAtLoad</key><true/>
 <key>KeepAlive</key><true/>

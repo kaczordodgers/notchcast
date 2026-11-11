@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Press Space after an exact alias to open its command.", table: "Notchcast"),
         group: .launcher,
         defaultEnabled: false,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

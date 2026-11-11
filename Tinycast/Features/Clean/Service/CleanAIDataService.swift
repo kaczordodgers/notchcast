@@ -25,7 +25,7 @@ struct CleanAIDataService: Sendable {
                    let snapshot = try? measure(path), old(snapshot.newest, kind: kind) {
                     let refusal = try await refusal(path, kind: kind)
                     result.append(CleanAIDataItem(path: path, kind: kind,
-                        selectable: refusal == nil, refusal: refusal, snapshot: snapshot.values))
+                        selectable: refusal == nil, refusal: refusal, size: snapshot.size, snapshot: snapshot.values))
                 } else if attributes[.type] as? FileAttributeType == .typeDirectory,
                           kind != .worktree || path.lastPathComponent == URL(fileURLWithPath: root).lastPathComponent {
                     pending += (try? FileManager().contentsOfDirectory(at: path,
@@ -130,10 +130,11 @@ struct CleanAIDataService: Sendable {
         now().timeIntervalSince(date) > max(kind == .worktree ? 86_400 : 0, policy.age)
     }
 
-    private func measure(_ path: URL) throws -> (values: [String: String], newest: Date) {
+    private func measure(_ path: URL) throws -> (values: [String: String], newest: Date, size: Int64) {
         var pending = [path]
         var values: [String: String] = [:]
         var newest = Date.distantPast
+        var size: Int64 = 0
         while let entry = pending.popLast() {
             try Task.checkCancellation()
             guard CleanService.physical(entry, inside: policy.home) else { throw CocoaError(.fileReadNoPermission) }
@@ -146,8 +147,10 @@ struct CleanAIDataService: Sendable {
             values[entry.path] = CleanService.fingerprint(attributes)
             if type == .typeDirectory {
                 pending += try FileManager().contentsOfDirectory(at: entry, includingPropertiesForKeys: nil)
+            } else {
+                size += (attributes[.size] as? NSNumber)?.int64Value ?? 0
             }
         }
-        return (values, newest)
+        return (values, newest, size)
     }
 }

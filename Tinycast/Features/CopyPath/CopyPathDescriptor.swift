@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Copy the frontmost document path or browser link.", table: "Notchcast"),
         group: .launcher,
         defaultEnabled: false,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

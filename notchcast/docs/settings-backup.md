@@ -34,8 +34,10 @@ without credentials. Automatic retention is not applied.
 
 ## Explicit allowlist
 
-`Model/ForkSettingsBackupSchema.swift` is the key/type policy, one key per line. Its own lists hold feature switches; a described feature's other keys live in `<Name>BackupKeys.swift` in that feature's folder (one `NotchcastFeature.BackupKeys`, listed once in `featureKeys`), and `allowed`/`excluded` collect them. `BackupKeys` and its `BackupValue` shapes live in `Notchcast/Core/NotchcastFeature+BackupKeys.swift`, so a feature's key file depends on the hub, never on SettingsBackup. Island's hover delay lives in `Notchcast/Island/IslandHoverOpenBackupKeys.swift`. The capture module's keys stay in the schema until that folder can hold a key file, and the editor keys stay because `ForkSettingsBackupState+Live` restores them. `python3 notchcast/check-backup-schema.py` refuses a feature's own key typed in the schema, a key declared twice, a key file the schema does not list or that sits in a layer folder, and a switch classified zero or two times.
-Live values reach the backup the same way: a feature's `<Name>BackupState.swift` in its own folder supplies snapshot and apply for its keys as one `NotchcastBackupState`, listed one per line in `NotchcastBackupState.all` (`Notchcast/Core/NotchcastBackupState.swift`). `ForkSettingsBackupState+Live` iterates that list and names no feature type for them; validation stays in `validateLive` and the schema. Screen text, live timers, quit protection and calendar exclusions (owned by `EventReminder`) register this way; the editor, markets, weather, colour picker, appearance and cleanup values are still read in `ForkSettingsBackupState+Live`.
+`Model/ForkSettingsBackupSchema.swift` types no key: `allowed` and `excluded` are computed. A feature's switch is a key under its raw value, carried when the feature says `backedUp: true` and excluded when it says `false` ([feature-descriptors.md](feature-descriptors.md)); every other key lives in a `<Name>BackupKeys.swift` in the folder that owns it (one `NotchcastFeature.BackupKeys`, listed once in `NotchcastFeature.BackupKeys.all` in `Notchcast/Core/NotchcastBackupKeys.swift`). `BackupKeys` and its `BackupValue` shapes live in `Notchcast/Core/NotchcastFeature+BackupKeys.swift`, so a key file depends on the hub, never on SettingsBackup. `python3 notchcast/check-backup-schema.py` refuses a key declared twice, a key file the list does not name or that sits in a layer folder, and a switch classified zero or two times.
+Live values travel in the same file: a feature's `BackupKeys` also carries `snapshot`, `apply` and, where the value shape is not enough, `validate`, and names each key through its owner's constant (in the feature's folder, or `NotchcastPreferences` for a hub-owned preference), so a renamed key cannot drop out of backups. `ForkSettingsBackupState+Live` folds the list and names no feature type; `ForkSettingsBackupRestore` reads and sets only the switches. The same checker refuses a key file whose snapshot writes, or whose apply reads, a different set of keys than it allows, and an owner constant it cannot find. A key only the backup writes (`notchcast.editor.*`, the cleanup settings blob) is a private constant of its key file.
+A harness that compiles the schema without the app supplies its own `all`; the restore harness compiles the real list and checks the saved key set against the schema.
+The six monitor alert thresholds take their bounds and defaults from `MonitorAlertThreshold` in `SystemMonitor/MonitorAlertsBackupKeys.swift`: the backup keys and the settings steppers read it, and the restore harness checks that `NotchcastPreferences`, which still types them, keeps the same bounds and defaults.
 JSON-backed preferences travel as bounded strings with explicit nested field validation, not Data.
 Optional weather and theme selections use JSON null. Theme colors and slot appearance are validated.
 The low-level encoder silently drops unknown and invalid entries; the app writer supplies effective
@@ -126,6 +128,7 @@ The API key lives in a Keychain item Notchcast creates itself when the key is pa
 | torrentsKeepSharing | Enables continued uploads |
 | music.lastPlayer | Runtime remembered player, not configuration |
 | spotify.deviceName | Configuration of a credential-backed network speaker; retained locally |
+| remoteMacAddress | Device-specific address of another Mac, like fanMode; stays on this Mac |
 | microphone.muted / microphone.muted.restore | OS mute intent and device restoration state |
 | archiveHandlersClaimed | OS association ownership state |
 | archiveRecoveryParents | Runtime archive recovery journal locations |
@@ -177,10 +180,8 @@ Restore updates `EditorCoordinator.shared.editorPreferences`; its setters retain
 
 ## Adding switches
 
-Other leads must classify every new `NotchcastFeature` explicitly in `listedAllowed` or `listedExcluded`,
-one entry per line, and add snapshot/apply wiring for any new plain store preference: a `<Name>BackupState.swift` beside the feature's key file, listed once in `NotchcastBackupState.all`. Never infer
-inclusion from `allCases`. The engine harness fails for unclassified or doubly classified switches.
-The schema has a `merge=union` entry in `.gitattributes`; rerun the guard after merging.
+Every new `NotchcastFeature` states `backedUp: true` or `false` in its descriptor, and adds snapshot/apply wiring for any new plain store preference in the feature's `<Name>BackupKeys.swift`, listed once in `NotchcastFeature.BackupKeys.all`. `check-feature-shape.py` and `check-backup-schema.py` fail for a feature without the flag; the restore harness fails when a feature's snapshot and its allowed keys disagree.
+The list (`Notchcast/Core/NotchcastBackupKeys.swift`) has a `merge=union` entry in `.gitattributes`; rerun the guard after merging.
 Read `NotchcastFeature.swift` after every main merge for duplicate var headers or stray bodies,
 and treat every typecheck warning as a failure, even when the shape checker passes.
 

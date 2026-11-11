@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Show status messages in the island.", table: "Notchcast"),
         group: .islandOptions,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [],
         isSystemFeature: false,

@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Extract opened archives beside the original file.", table: "Notchcast"),
         group: .archives,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

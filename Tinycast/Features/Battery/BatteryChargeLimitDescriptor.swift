@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Stop charging at the selected limit.", table: "Notchcast"),
         group: .systemTools,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: true,

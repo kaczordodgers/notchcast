@@ -1,0 +1,33 @@
+extension NotchcastFeature.BackupKeys {
+    /// One feature per line, so branches that add features merge by union.
+    static let all: [Self] = [
+        .appearance,
+        .backupStatus,
+        .buildStats,
+        .greenMaximize,
+        .monitorAlerts,
+        .fanControl,
+        .liveTimers,
+        .quitProtection,
+        .eventReminder,
+        .dayWeather,
+        .dayMarkets,
+        .screenText,
+        .dictationCleanup,
+        .machRemote,
+        .aiUsage,
+        .musicLastPlayer,
+        .spotifyConnect,
+        .microphoneMute,
+        .archives,
+        .keepAwake,
+        .batteryChargeLimit,
+        .agentActions,
+        .lowDiskWarning,
+        .spacesOrder,
+        .islandHoverOpen,
+        .colorPicker,
+        .screenshot,
+        .editor,
+    ]
+}

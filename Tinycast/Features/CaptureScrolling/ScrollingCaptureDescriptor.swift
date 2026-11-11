@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Copy a scrolling area as one image.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.screenRecording],
         isSystemFeature: false,

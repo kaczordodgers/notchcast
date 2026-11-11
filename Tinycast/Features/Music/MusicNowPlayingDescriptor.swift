@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Show track information in the island.", table: "Notchcast"),
         group: .music,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [],
         isSystemFeature: false,

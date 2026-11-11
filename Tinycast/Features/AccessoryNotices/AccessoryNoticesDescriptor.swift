@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Show accessory connections and low battery notices.", table: "Notchcast"),
         group: .system,
         defaultEnabled: false,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [.bluetooth],
         isSystemFeature: false,

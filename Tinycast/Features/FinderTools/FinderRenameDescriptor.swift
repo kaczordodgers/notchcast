@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Use Hyper+R to rename the selection in Finder.", table: "Notchcast"),
         group: .finder,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

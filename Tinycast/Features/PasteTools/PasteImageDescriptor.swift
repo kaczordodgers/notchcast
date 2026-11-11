@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Command+V saves clipboard images as PNG files in Finder.", table: "Notchcast"),
         group: .clipboard,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

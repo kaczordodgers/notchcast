@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Themes and surface styles for the launcher, dialogs and HUDs.", table: "Notchcast"),
         group: .appearance,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

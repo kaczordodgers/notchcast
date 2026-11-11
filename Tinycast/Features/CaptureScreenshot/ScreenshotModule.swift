@@ -32,8 +32,8 @@ final class ScreenshotModule: NotchcastModule {
     private var captureTask: Task<URL?, Error>?
     var commandTask: Task<Void, Never>?
     @ObservationIgnored var openInEditor: (URL?, Bool) throws -> Void = { _, _ in }
-    private static let destinationKey = "notchcast.screenshot.destination"
-    private static let folderKey = "notchcast.screenshot.folder"
+    nonisolated static let destinationKey = "notchcast.screenshot.destination"
+    nonisolated static let folderKey = "notchcast.screenshot.folder"
 
     init(
         defaults: UserDefaults = NotchcastIdentity.current.defaults,

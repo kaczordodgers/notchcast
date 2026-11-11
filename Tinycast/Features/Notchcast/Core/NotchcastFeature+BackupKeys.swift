@@ -2,10 +2,13 @@ import Foundation
 import CoreFoundation
 
 extension NotchcastFeature {
-    /// A feature's own settings-backup keys, declared in `<Name>BackupKeys.swift` in its folder.
+    /// A feature's settings-backup keys and their live values, in `<Name>BackupKeys.swift`.
     struct BackupKeys: Sendable {
         let allowed: [String: BackupValue]
         let excluded: Set<String>
+        var snapshot: @MainActor () throws -> [String: Any] = { [:] }
+        var validate: @MainActor ([String: Any]) throws -> Void = { _ in }
+        var apply: @MainActor ([String: Any]) throws -> Void = { _ in }
     }
 
     indirect enum BackupValue: Sendable {
