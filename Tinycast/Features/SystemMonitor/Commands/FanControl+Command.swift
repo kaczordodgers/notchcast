@@ -5,11 +5,11 @@ extension FanControl {
         slug: "fans-max", name: String(localized: "Set Fans to Max", table: "Notchcast"), sfSymbol: "fan", feature: .fanControl,
         isEnabled: { NotchcastPreferences.shared.isOn(.systemMonitor)
             && NotchcastPreferences.shared.isOn(.fanControl) },
-        run: { NotchcastCore.setFanMode(.max) })
+        run: { MonitorModule.shared.fans.set(.max) })
 
     nonisolated static let autoCommand = NotchcastCommand(
         slug: "fans-auto", name: String(localized: "Set Fans to Auto", table: "Notchcast"), sfSymbol: "fan", feature: .fanControl,
         isEnabled: { NotchcastPreferences.shared.isOn(.systemMonitor)
             && NotchcastPreferences.shared.isOn(.fanControl) },
-        run: { NotchcastCore.setFanMode(.auto) })
+        run: { MonitorModule.shared.fans.set(.auto) })
 }

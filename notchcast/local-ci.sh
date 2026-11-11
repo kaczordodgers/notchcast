@@ -16,8 +16,10 @@ if [ -f "$HOME/.config/notchcast/private.env" ]; then
 fi
 lane=
 if hold_turn "$PR"; then lane=--landing; fi
-metadata=$(gh pr view "$1" -R "$FORK_REPO" --json headRefOid,baseRefOid)
+metadata=$(gh pr view "$1" -R "$FORK_REPO" --json headRefOid,baseRefOid,title,body)
 head=$(jq -r .headRefOid <<< "$metadata")
+pr_title=$(jq -r '.title // ""' <<< "$metadata")
+pr_body=$(jq -r '.body // ""' <<< "$metadata")
 export HEAD_SHA=$head BASE_SHA=$(jq -r .baseRefOid <<< "$metadata")
 root="${NOTCHCAST_LOCAL_CI_DIR:-$HOME/Library/Caches/notchcast/local-ci}"
 mkdir -p "$root/logs"
@@ -71,28 +73,17 @@ exec > "$log" 2>&1
 git clone --quiet --shared --no-checkout --no-tags "$(git rev-parse --path-format=absolute --git-common-dir)" "$tree"
 owned=1
 git -C "$tree" remote set-url origin "https://github.com/$FORK_REPO.git"
-git -C "$tree" fetch --quiet --tags origin "refs/pull/$1/head" "$BASE_SHA" "+refs/heads/main:refs/remotes/origin/main"
+git -C "$tree" fetch --quiet --tags origin "refs/pull/$1/head" "$BASE_SHA" "+refs/heads/main:refs/remotes/origin/main" \
+    '+refs/notchcast/synced/*:refs/notchcast/synced/*'
 main=$(git -C "$tree" rev-parse origin/main)
-git -C "$tree" checkout --quiet --detach "$main"
-# Build the PR merged onto current main the way land.sh merges it (union drivers, main's generated files,
-# xcstrings-union.py for the catalog); any other conflict fails. The status stays on the head.
+# Build the PR merged onto current main by land.sh's own merge and checks (merge.sh). The status stays on the head.
 echo merge > "$scratch/step"
-cd "$tree"
-git -c core.hooksPath=/dev/null merge --no-commit --no-ff "$head" || true
-generated=($(python3 -c 'from notchcast.ci import GENERATED; print(" ".join(GENERATED))'))
-generated=($(git ls-tree -r --name-only "$main" -- "${generated[@]}"))
-[ ${#generated[@]} -eq 0 ] || git checkout "$main" -- "${generated[@]}"
-if git diff --name-only --diff-filter=U | grep -qxF Tinycast/Resources/Localizable.xcstrings; then
-    python3 notchcast/xcstrings-union.py --git --main-ref "$main"
-fi
-unmerged=$(git diff --name-only --diff-filter=U)
-[ -z "$unmerged" ] || { echo "merge conflict: $unmerged"; exit 1; }
-git -c core.hooksPath=/dev/null -c user.name="$MAINTAINER_NAME" -c user.email="$MAINTAINER_EMAIL" \
-    commit --quiet --allow-empty --no-edit -m "Merge $head"
-echo drift > "$scratch/step"
 top="$tree"
-source "$tools/notchcast/drift-gates.sh"
-run_drift_gates "$main"
+tree_at() { cd "$tree" && git checkout --quiet --detach "$1"; }
+source "$tools/notchcast/merge.sh"
+# The refusal is the step the status reports.
+refuse() { echo "REFUSED: $*" >&2; echo "refused: $*" > "$scratch/step"; exit 1; }
+merge_onto "$main"
 export RUNNER_TEMP="$scratch" TMPDIR="$scratch/tmp"
 mkdir "$TMPDIR"
 if [ -n "${NOTCHCAST_BUILD_QUEUE:-}" ]; then

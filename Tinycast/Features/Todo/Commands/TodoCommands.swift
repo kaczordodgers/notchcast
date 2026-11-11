@@ -23,8 +23,8 @@ enum TodoCommands {
     }
 
     static var context: TodoCommandContext {
-        TodoCommandContext(isEnabled: { enabled }, store: { NotchcastCore.services?.tasks.store },
+        TodoCommandContext(isEnabled: { enabled }, store: { TodoModule.shared?.store },
                            clipboardText: { NSPasteboard.general.string(forType: .string) },
-                           report: { AppCore.shared.showMessage($0) })
+                           report: { NotchcastHost.current.showMessage($0, .success) })
     }
 }

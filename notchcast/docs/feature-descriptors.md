@@ -81,7 +81,9 @@ A feature owns its module instance and hands the controller its entries; the hub
 
 A registration names only its own folder, `Notchcast/Core` kernel types and upstream. Wiring between two fork features (feature A reading feature B's module, such as Shelf's link status reading Mac Link and Link Health) stays in `NotchcastCore.start` as hub glue, so drift gate 1 `boundaries` never rises; such a module moves only when that glue can read both sides' `shared`. A module built from a hub module's object (Remote Fans, Remote Screen and Blocked Dialog from `macLink.channel`) takes it through a `static var` input in a file of its own folder that already names that type; the hub sets it in `start` before `registrants` register, and `register` returns `[]` while it is nil.
 
-Registrant entries start after every hub entry and before the services' entries, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one.
+Registrant entries start after every hub entry, in list order, so a module that must start before a hub module stays in the hub until that one moves too. Confirm the order before moving one. `NotchcastServices` is built after every `register` call; the kernel then builds the key monitor and Spotify settings on the Music, Microphone and Tasks `shared` modules, and it is `nil` until `NotchcastCore.start` has run.
+
+A module whose launch repair must not run from a harness (`BatteryModule.shared.repairAtLaunch()`, the fan restore on `MonitorModule.shared`) keeps that line in `NotchcastCore.start`; `register` only builds and returns. Wiring left in `NotchcastCore.start` for a registered module gets a `HOOKS` line in `check-feature-shape.py`, since no harness compiles the hub, and a planted break in `check-feature-shape-test.py` that quoted a moved hub line is retargeted to a hub module no group is moving.
 
 ## Moving a feature
 

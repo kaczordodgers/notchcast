@@ -22,13 +22,6 @@ enum EditorTextPolicy {
         return padding + max(0, (width - 2 * padding - Double(columnCharacters) * glyphWidth) / 2).rounded()
     }
 
-    static func relativeMarkdownLink(_ value: String, from document: URL) -> URL? {
-        guard let url = URL(string: value, relativeTo: document), url.isFileURL,
-            url.pathExtension.lowercased() == "md"
-        else { return nil }
-        return url.absoluteURL.standardizedFileURL
-    }
-
     private static func trimmingTrailingWhitespace(_ source: String) -> Substring {
         source.dropLast(source.reversed().prefix(while: \.isWhitespace).count)
     }

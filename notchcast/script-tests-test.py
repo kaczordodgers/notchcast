@@ -11,9 +11,9 @@ from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).with_name("script-tests.py").resolve()
-DEFAULT = ["notchcast/nested/plain-test.py", "notchcast/plain-test.sh",
+DEFAULT = ["notchcast/nested/plain-test.py", "notchcast/plain-test.sh", "notchcast/land-test.sh",
            "notchcast/generated-retry-test.mjs", "notchcast/gallery/check-pixels-test.swift"]
-OPT_IN = ["notchcast/land-test.sh", "notchcast/install-app-test.sh", "notchcast/gallery/keychain-test.py"]
+OPT_IN = ["notchcast/install-app-test.sh", "notchcast/gallery/keychain-test.py"]
 
 
 class ScriptTestsTest(unittest.TestCase):
@@ -26,10 +26,12 @@ class ScriptTestsTest(unittest.TestCase):
             path.parent.mkdir(parents=True, exist_ok=True)
             path.touch()
 
-    def invoke(self, arguments, returncode=0):
+    def invoke(self, arguments, returncode=0, changed="notchcast/land.sh\n"):
         output = io.StringIO()
+        self.stderr = io.StringIO()
         with chdir(self.root), patch.object(sys, "argv", [str(SCRIPT), *arguments]), \
-                redirect_stdout(output), redirect_stderr(io.StringIO()), patch("subprocess.run") as run:
+                redirect_stdout(output), redirect_stderr(self.stderr), patch("subprocess.run") as run, \
+                patch("subprocess.check_output", return_value=changed):
             run.return_value.returncode = returncode
             try:
                 runpy.run_path(str(SCRIPT), run_name="__main__")
@@ -53,12 +55,20 @@ class ScriptTestsTest(unittest.TestCase):
     def test_execution_uses_each_interpreter(self):
         status, output, commands = self.invoke([])
         self.assertEqual(0, status)
-        self.assertIn("4 passed, 0 failed", output)
-        self.assertIn("3 opt-in tests excluded", output)
+        self.assertIn("5 passed, 0 failed", output)
+        self.assertIn("2 opt-in tests excluded", output)
         self.assertEqual(sorted([
-            ["python3", DEFAULT[0]], ["bash", DEFAULT[1]], ["node", DEFAULT[2]],
-            ["swift", "-swift-version", "6", DEFAULT[3]],
+            ["python3", DEFAULT[0]], ["bash", DEFAULT[1]], ["bash", DEFAULT[2]], ["node", DEFAULT[3]],
+            ["swift", "-swift-version", "6", DEFAULT[4]],
         ]), sorted(commands))
+
+    def test_land_test_runs_only_when_its_inputs_change(self):
+        status, output, _ = self.invoke(["--list"], changed="")
+        self.assertEqual(0, status)
+        self.assertEqual(sorted(set(DEFAULT) - {"notchcast/land-test.sh"}), output.splitlines())
+        self.assertIn("Skipping notchcast/land-test.sh", self.stderr.getvalue())
+        status, output, _ = self.invoke(["--all", "--list"], changed="")
+        self.assertIn("notchcast/land-test.sh", output.splitlines())
 
     def test_test_failure_fails_the_lane(self):
         status, output, commands = self.invoke(["--all"], returncode=1)
