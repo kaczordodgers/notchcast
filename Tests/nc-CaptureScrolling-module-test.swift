@@ -6,6 +6,7 @@
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
+// notchcast-reads: Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift
 import AppKit
 import Observation
 
