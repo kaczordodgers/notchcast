@@ -1,7 +1,8 @@
-/// One switch for every feature, for harnesses that declare their own NotchcastFeature instead of the core kit.
+/// One switch for every feature, or `only` the listed ones, for harnesses that declare their own NotchcastFeature.
 @MainActor
 final class NotchcastPreferences {
     static let shared = NotchcastPreferences()
     var enabled = true
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
+    var only: Set<NotchcastFeature>?
+    func isOn(_ feature: NotchcastFeature) -> Bool { only?.contains(feature) ?? enabled }
 }
