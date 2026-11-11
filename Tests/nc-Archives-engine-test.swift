@@ -62,7 +62,7 @@ struct ArchivesEngineTest {
             try await realTool(root, tool: tool)
             print("PASS: installed hatchzip, ZIP/7z/tar/tgz/split ZIP, quarantine, readonly cleanup, exclusive publish")
         } else {
-            print("NOT VERIFIED: hatchzip not installed; engine tested against a fake tool script")
+            print("SKIP: installed hatchzip run: hatchzip not installed")
         }
         print("PASS: listing limits, paths, collisions, symlink ancestors, FIFO, cancellation, retry, typed failures")
     }
