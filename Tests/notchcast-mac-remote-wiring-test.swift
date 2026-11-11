@@ -4,18 +4,12 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/MachRemoteShell.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/SendFilesModule.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/UpdateRemoteModule.swift
-<<<<<<< HEAD
 // notchcast-kit: core
-=======
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule.swift
 // notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule+Registration.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Service/MachSSHProcessRunner.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
->>>>>>> origin/main
 import Foundation
 
 enum DialogTone { case danger }

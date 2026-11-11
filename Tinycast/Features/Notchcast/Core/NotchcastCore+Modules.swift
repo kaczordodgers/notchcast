@@ -28,8 +28,6 @@ extension NotchcastCore {
     static let convertFiles = ConvertFilesModule()
     static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
-    static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { NotchcastHost.current.refreshNotchcastCommands() })
-    static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { NotchcastHost.current.refreshNotchcastCommands() })
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let agentSessions = AgentSessionsModule(availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
     static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
