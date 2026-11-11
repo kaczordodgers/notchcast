@@ -12,12 +12,12 @@ enum NotchcastCore {
 
     static func stopForTermination() async {
         tasksSync.stop()
-        katana.stop()
+        KatanaModule.shared.stop()
         cleaning.stop()
         appUpdates.stop()
         await macUpdate.stopForTermination()
         dictationTrigger?.stop()
-        await treadmill.stopForTermination()
+        await TreadmillCoordinator.shared.stopForTermination()
         ForkSettingsBackupModule.shared.stop()
         CaptureTrimmerModule.shared.stop()
         voiceAsk?.stop()
@@ -87,6 +87,8 @@ enum NotchcastCore {
             return (macLink.isRunning && macLink.isPaired, reachability)
         }
         ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }
+        agents.devicesReady = { KatanaModule.shared.configure(index: $0); TreadmillCoordinator.shared.configure(index: $0) }
+        FleetPanelModule.shared.transport = FleetMachLinkTransport(channel: macLink.channel)
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
         let modules = entries(core: core) + registrants.flatMap { $0.register(core) }

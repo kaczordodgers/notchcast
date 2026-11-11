@@ -2,7 +2,10 @@
 // notchcast-sources: Tinycast/Features/AgentSessions/Pricing/*.swift
 // notchcast-sources: Tinycast/Features/AgentSessions/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentSessions/AgentSessionsModule.swift
+// notchcast-sources: Tinycast/Features/AgentSessions/AgentSessionsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
@@ -10,6 +13,10 @@
 import Foundation
 import SQLite3
 import Synchronization
+
+enum DialogTone {}
+
+@MainActor final class AppCore {}
 
 @main
 struct AgentSessionTests {
@@ -38,6 +45,10 @@ struct AgentSessionTests {
         try streamed(temporary.appendingPathComponent("streamed"))
         try exclusion(temporary.appendingPathComponent("exclusion"))
         try await lifecycle(temporary.appendingPathComponent("lifecycle"))
+        let entries = AgentSessionsModule.register(AppCore())
+        expect(entries.count == 1 && entries[0].requires == [.agentSessions] && entries[0].requiresAny.isEmpty,
+               "Agent Sessions registers one entry behind its switch")
+        expect(entries[0].module === AgentSessionsModule.shared, "The registered entry is the shared module")
         print("PASS: four formats, malformed input, bounded streaming, exclusion, incremental refresh and lifecycle")
     }
 
