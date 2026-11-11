@@ -89,6 +89,23 @@ struct ProcessRunnerTest {
         interrupted.timeout = .milliseconds(300)
         check(await failure { try await ProcessRunner.run(interrupted) } as? ProcessRunner.Failure == .timedOut)
 
+        // The leader dies on the stop signal; its child ignores it and must go with the group.
+        let pidFile = FileManager.default.temporaryDirectory.appending(path: "process-runner-test-\(UUID())")
+        defer { try? FileManager.default.removeItem(at: pidFile) }
+        let orphaning = #"trap "" TERM; sleep 30 & echo $! > "$0"; trap - TERM; wait"#
+        var group = request("/bin/sh", ["-c", orphaning, pidFile.path])
+        group.stopsGroup = true
+        group.timeout = .milliseconds(300)
+        check(await failure { try await ProcessRunner.run(group) } as? ProcessRunner.Failure == .timedOut)
+        let written = try String(contentsOf: pidFile, encoding: .utf8)
+        let orphan = pid_t(written.trimmingCharacters(in: .whitespacesAndNewlines))!
+        var gone = false
+        for _ in 0..<200 where !gone {
+            gone = kill(orphan, 0) == -1 && errno == ESRCH
+            if !gone { try await Task.sleep(for: .milliseconds(10)) }
+        }
+        check(gone)
+
         let running = Task { try await ProcessRunner.run(request("/bin/sleep", ["30"])) }
         try await Task.sleep(for: .milliseconds(200))
         check(leftovers() == 1)
@@ -126,6 +143,7 @@ struct ProcessRunnerTest {
         check(leftovers() == 0)
         print("PASS: success, non-zero exit, stderr modes, stdin, environment, directory, output limit, launch failure")
         print("PASS: timeout, grace kill of a child that ignores TERM, custom stop signal, cancel, pre-cancel")
+        print("PASS: a group stop kills a child that outlives its leader")
         print("PASS: blocking entry point success, failure, timeout, cancel; temporary files removed")
     }
 }
