@@ -25,8 +25,6 @@ extension NotchcastCore {
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static let accessoryNotices = AccessoryNoticesModule()
     static let brightness = DisplayBrightnessModule()
-    static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)
-    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNoticePresenter.present($0) })
     static let timers = LiveTimerModule.shared
     static let weather = DayWeatherModule.shared
     static let markets = DayMarketsModule.shared
@@ -37,7 +35,6 @@ extension NotchcastCore {
     static let middleClick = MiddleClickModule(hub: eventTapHub)
     static let greenMaximize = GreenMaximizeModule(hub: eventTapHub)
     static let spacesOrder = SpacesOrderModule()
-    static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
     static let eventReminder = EventReminderModule.shared
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
@@ -63,6 +60,7 @@ extension NotchcastCore {
         voiceAskModule.configure(transport: VoiceAskCLITransport.production())
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)
         let downloadServices = NotchcastDownloadServices(core: core)
+        let levelNotices = SystemLevelIslandPresenter(center: .shared)
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
@@ -97,8 +95,8 @@ extension NotchcastCore {
             .init(requires: [.spacesOrder], module: spacesOrder),
             .init(requires: [.island, .accessoryNotices], module: accessoryNotices),
             .init(requires: [.displayBrightness], module: brightness),
-            .init(requires: [], module: levelKeys),
-            .init(requires: [.quitProtection], module: quitProtectionModule),
+            .init(requires: [], module: SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNotices.present($0) })),
+            .init(requires: [.quitProtection], module: QuitProtectionModule(store: quitProtection, hub: eventTapHub)),
             .init(requires: [.island, .liveTimers], module: timers),
             .init(requires: [.island, .dayWeather], module: weather),
             .init(requires: [.island, .dayMarkets], module: markets),
