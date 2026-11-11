@@ -261,9 +261,6 @@ struct ArchivesEngineTest {
         with log.open('a') as file: file.write(args[0] + ' ' + archive.name + '\n')
         if args[0] == 'list':
             if archive.name == 'unsafe-list.zip': sys.exit(1)
-            for _ in range(1500 if archive.name == 'twin.zip' else 0):
-                if (archive.parent / 'twin-release').exists(): break
-                time.sleep(0.02)
             print('       4 B  result/file.txt')
             print('1 entry, 4 B uncompressed, 100 B zip archive')
         elif args[0] == 'check':
@@ -275,6 +272,9 @@ struct ArchivesEngineTest {
             output = pathlib.Path(args[args.index('-o') + 1])
             (output / 'result').mkdir(exist_ok=True)
             (output / 'result/file.txt').write_text('test')
+            for _ in range(1500 if archive.name == 'twin.zip' else 0):
+                if (archive.parent / 'twin-release').exists(): break
+                time.sleep(0.02)
             if archive.name == 'slow.zip':
                 signal.signal(signal.SIGINT, signal.SIG_IGN)
                 pathlib.Path(str(archive) + '.hatchzip').write_text(json.dumps({'keep': True, 'output': str(output)}))
@@ -381,15 +381,15 @@ struct ArchivesEngineTest {
         let twinRunner = ArchiveExtractionRunner(locator: Locator(tool: tool))
         async let one = twinRunner.extract(twin)
         async let two = twinRunner.extract(twin)
-        func twinListings() -> Int {
+        func twinCalls(_ step: String) -> Int {
             let calls = (try? String(contentsOf: root.appending(path: "calls"), encoding: .utf8)) ?? ""
-            return calls.components(separatedBy: "list twin.zip\n").count - 1
+            return calls.components(separatedBy: step + " twin.zip\n").count - 1
         }
-        while ArchiveExtractionGate.waiting == 0 || twinListings() == 0 {
-            expect(twinListings() < 2, "two extractions ran the tool at once")
+        while ArchiveExtractionGate.waiting == 0 || twinCalls("extract") == 0 {
+            expect(twinCalls("list") < 2, "two extractions ran the tool at once")
             try await Task.sleep(for: .milliseconds(20))
         }
-        expect(twinListings() == 1, "the second extraction waits while the first holds the tool")
+        expect(twinCalls("list") == 1, "the second extraction waits while the first holds the tool")
         try Data().write(to: root.appending(path: "twin-release"))
         expect(Set(try await [one, two]).count == 2, "the same archive extracted twice publishes twice")
         let twinCalls = try String(contentsOf: root.appending(path: "calls"), encoding: .utf8)
