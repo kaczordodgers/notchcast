@@ -10,9 +10,7 @@ import AppKit
 
 @MainActor final class AppCore {
     static let shared = AppCore()
-    enum Tone { case danger }
     let appIndex = AppIndex()
-    func showMessage(_ message: String, tone: Tone) {}
 }
 @MainActor final class AppIndex {
     var refreshes = 0
