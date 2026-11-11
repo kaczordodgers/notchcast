@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup+Host.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift

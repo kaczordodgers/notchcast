@@ -4,6 +4,7 @@
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup+Host.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/DownloadTool.swift
 // notchcast-kit: platform
 import Darwin
