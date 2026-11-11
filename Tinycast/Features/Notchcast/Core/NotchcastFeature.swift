@@ -245,8 +245,11 @@ extension NotchcastFeature {
     ]
 
     static var systemToolsSettingsFeatures: [Self] {
-        [.startupItems, .notificationCleanup, .sudoTouchID,
-         .aiFeaturesOff, .spotlightOff, .privacyChoices].filter(\.isWired)
+        allCases.filter { $0.usesSystemToolsHelper && $0.isWired }
+    }
+
+    var usesSystemToolsHelper: Bool {
+        descriptor?.usesSystemToolsHelper ?? false
     }
 
     /// Shows only in the island, so its switch follows the island switch in Settings.
