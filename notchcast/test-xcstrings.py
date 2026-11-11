@@ -28,6 +28,7 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(rewrite(result, {'Fork'}), (result, 0))
         source = ('Logger(subsystem: "app", category: "Recording")\n'
                   'NSError(domain: "Distill")\nDownloadTool(name: "aria2c")\n'
+                  'ExecutableLocator.find("aria2c")\n'
                   'url.appending(path: "Downloads")\n'
                   'url.appendingPathComponent("Downloads")\n'
                   '"com.apple.Battery-Settings.extension": "Battery"\n'

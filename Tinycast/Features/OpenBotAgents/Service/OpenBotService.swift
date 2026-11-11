@@ -31,26 +31,19 @@ protocol OpenBotTransport: Sendable {
     func send(_ request: URLRequest) async throws -> (Data, Int)
 }
 
-final class OpenBotURLTransport: NSObject, OpenBotTransport, URLSessionTaskDelegate {
+final class OpenBotURLTransport: OpenBotTransport {
     private let session: URLSession
 
-    override init() {
+    init() {
         let configuration = NotchcastIdentity.sessionConfiguration()
         configuration.httpCookieStorage = nil
         configuration.timeoutIntervalForRequest = 15
-        session = URLSession(configuration: configuration)
-        super.init()
+        session = URLSession(configuration: configuration, delegate: RedirectRefusal(), delegateQueue: nil)
     }
 
     func send(_ request: URLRequest) async throws -> (Data, Int) {
-        let (data, response) = try await session.data(for: request, delegate: self)
+        let (data, response) = try await session.data(for: request)
         return (data, (response as? HTTPURLResponse)?.statusCode ?? 0)
-    }
-
-    func urlSession(_ session: URLSession, task: URLSessionTask,
-                    willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
-                    completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
-        completionHandler(nil)
     }
 }
 

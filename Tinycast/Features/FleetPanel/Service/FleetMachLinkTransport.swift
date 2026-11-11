@@ -6,12 +6,12 @@ struct FleetMachLinkTransport: FleetTransport {
 
     init(channel: MachLinkChannel) {
         self.channel = channel
-        channel.manager.register("agent-threads") { try await Self.response(to: $0) }
+        channel.manager.register(MachLinkMethod.agentThreads.rawValue) { try await Self.response(to: $0) }
     }
 
     func read() async throws -> FleetSnapshot {
         guard NotchcastPreferences.shared.isOn(.machLink) else { throw MachLinkMessage.Failure.disconnected }
-        return try await channel.request(true, method: "agent-threads", as: FleetSnapshot.self)
+        return try await channel.request(true, method: MachLinkMethod.agentThreads.rawValue, as: FleetSnapshot.self)
     }
 
     static func response(to request: MachLinkMessage) async throws -> MachLinkMessage {
