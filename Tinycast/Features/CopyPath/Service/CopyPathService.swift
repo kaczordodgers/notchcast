@@ -1,11 +1,20 @@
 import Foundation
 
 struct CopyPathService: Sendable {
-    enum Failure: Error, Equatable {
+    enum Failure: LocalizedError, Equatable {
         case needsAutomation
         case needsAccessibility
         case timedOut
         case unreadable
+
+        var errorDescription: String? {
+            switch self {
+            case .needsAutomation: String(localized: "Allow Automation access to copy the path.", table: "Notchcast")
+            case .needsAccessibility: String(localized: "Allow Accessibility access to copy the path.", table: "Notchcast")
+            case .timedOut: String(localized: "The app did not respond in time.", table: "Notchcast")
+            case .unreadable: String(localized: "Could not read the path.", table: "Notchcast")
+            }
+        }
 
         static func appleEvent(_ code: Int) -> Self {
             switch code {

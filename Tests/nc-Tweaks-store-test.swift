@@ -75,6 +75,21 @@ struct TweaksStoreTests {
             preconditionFailure("Expected timeout")
         } catch SystemToolsProcessRunner.Failure.timedOut {}
         precondition(!timeout.busy)
-        print("8 passed, 0 failed")
+        let kept = TypingPreferencePlan(entries: writes.map { .init(write: $0, previous: nil) })
+        let keptJSON = String(decoding: try JSONEncoder().encode(kept), as: UTF8.self)
+        func load(_ text: String?) -> (plans: [String: TypingPreferencePlan], failure: TweaksJournalFailure?) {
+            TweaksJournal.load(text.map { Data($0.utf8) }, home: "/fixture")
+        }
+        precondition(load(nil).failure == nil && load("{}").failure == nil)
+        precondition(load("{\"a\":\(keptJSON)}").plans.count == 1 && load("{\"a\":\(keptJSON)}").failure == nil)
+        precondition(load("not json").failure == .unreadable && load("[1]").failure == .unreadable)
+        precondition(load("{\"a\":1}").failure == .unreadable && load("{\"a\":1}").plans.isEmpty)
+        let partial = load("{\"a\":\(keptJSON),\"b\":1}")
+        precondition(partial.plans.count == 1 && partial.failure == .entriesDropped)
+        precondition(TweaksJournalFailure.unreadable.localizedDescription
+            == "The tweaks journal could not be read, so tweaks cannot be changed.")
+        precondition(TweaksJournalFailure.entriesDropped.localizedDescription
+            == "Some entries in the tweaks journal could not be read and were removed.")
+        print("9 passed, 0 failed")
     }
 }

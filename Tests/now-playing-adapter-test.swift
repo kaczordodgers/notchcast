@@ -1,5 +1,6 @@
 // notchcast-sources: -parse-as-library Tinycast/Features/Music/Model/NowPlaying.swift
 // notchcast-sources: Tinycast/Features/Music/Model/NowPlayingAdapterReply.swift
+// notchcast-sources: Tinycast/Features/Music/Model/NowPlayingAdapterWire.swift
 // notchcast-sources: Tinycast/Features/Music/Service/SystemNowPlayingSource.swift
 // notchcast-kit: platform
 import Foundation
@@ -83,18 +84,18 @@ struct NowPlayingAdapterTests {
         expect(try playback(cover)?.artwork == nil, "Empty artwork")
         cover["artworkBase64"] = "not base64"
         expect(try playback(cover)?.artwork == nil, "Invalid artwork")
-        cover["artworkBase64"] = Data(repeating: 0, count: NowPlayingAdapterReply.maximumArtworkBytes + 1).base64EncodedString()
+        cover["artworkBase64"] = Data(repeating: 0, count: NowPlayingAdapterWire.maximumArtworkBytes + 1).base64EncodedString()
         expect(try playback(cover)?.artwork == nil, "Oversized decoded artwork")
-        cover["artworkBase64"] = String(repeating: "A", count: 4 * (NowPlayingAdapterReply.maximumArtworkBytes / 3) + 4)
+        cover["artworkBase64"] = String(repeating: "A", count: 4 * (NowPlayingAdapterWire.maximumArtworkBytes / 3) + 4)
         expect(try playback(cover)?.artwork == nil, "Oversized encoded artwork")
-        cover["artworkBase64"] = Data(repeating: 1, count: NowPlayingAdapterReply.maximumArtworkBytes).base64EncodedString()
-        expect(try playback(cover)?.artwork?.count == NowPlayingAdapterReply.maximumArtworkBytes, "Artwork cap boundary")
-        cover["artworkBase64"] = Data(repeating: 255, count: NowPlayingAdapterReply.maximumArtworkBytes).base64EncodedString()
+        cover["artworkBase64"] = Data(repeating: 1, count: NowPlayingAdapterWire.maximumArtworkBytes).base64EncodedString()
+        expect(try playback(cover)?.artwork?.count == NowPlayingAdapterWire.maximumArtworkBytes, "Artwork cap boundary")
+        cover["artworkBase64"] = Data(repeating: 255, count: NowPlayingAdapterWire.maximumArtworkBytes).base64EncodedString()
         let nearCap = try data(cover)
         expect(nearCap.count <= NowPlayingAdapterReply.maximumLineBytes, "Slash-heavy artwork fits line cap")
         var artworkLines = NowPlayingAdapterReply.Lines()
         expect(try artworkLines.append(nearCap + Data([10])) == [nearCap], "Near-cap artwork is framed")
-        expect(try playback(cover)?.artwork?.count == NowPlayingAdapterReply.maximumArtworkBytes,
+        expect(try playback(cover)?.artwork?.count == NowPlayingAdapterWire.maximumArtworkBytes,
                "Slash-heavy artwork survives parsing")
 
         expect(try NowPlayingAdapterReply.parse(data(["sent": true]), previous: song, now: .distantPast) == .command(true),
