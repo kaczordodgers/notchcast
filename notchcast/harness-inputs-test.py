@@ -182,6 +182,9 @@ class HarnessInputsTest(unittest.TestCase):
         self.assertEqual([1, 0], [stubbed.count(identity), stubbed.count(paths)])
         nested = self.compiled_as_the_runner_does("nc-Example-nested-test", EXAMPLE)
         self.assertEqual([1, 1], [nested.count(identity), nested.count(paths)])
+        (self.root / "Tests/nc-Example-attributed-test.swift").write_text("@MainActor enum AppPaths {}\n")
+        attributed = self.compiled_as_the_runner_does("nc-Example-attributed-test", EXAMPLE)
+        self.assertEqual([1, 0], [attributed.count(identity), attributed.count(paths)])
 
     def test_runner_batches_conditional_inputs_in_one_bash_invocation(self):
         calls = self.root / "bash-calls"

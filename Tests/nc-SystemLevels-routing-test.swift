@@ -3,7 +3,7 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/VolumeLevelsGate.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
