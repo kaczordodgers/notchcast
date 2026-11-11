@@ -5,7 +5,7 @@
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift

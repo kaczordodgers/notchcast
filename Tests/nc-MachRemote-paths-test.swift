@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/MachRemoteModule+Actions.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 import AppKit
 
 enum DialogTone {}

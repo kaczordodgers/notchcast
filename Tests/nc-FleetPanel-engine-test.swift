@@ -8,7 +8,7 @@
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 import Foundation
 
 enum TestFeature: Hashable { case fleetPanel, agentThreads, machLink }

@@ -5,7 +5,7 @@
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Microphone/Settings/MicrophoneFailure+Settings.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift

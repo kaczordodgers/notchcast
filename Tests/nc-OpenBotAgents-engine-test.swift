@@ -6,9 +6,8 @@
 // notchcast-sources: Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: -strict-concurrency=complete -warnings-as-errors
-// notchcast-kit: command
+// notchcast-kit: host command
 import Foundation
 import Synchronization
 

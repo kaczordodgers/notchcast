@@ -1,7 +1,6 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/Service/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
 // notchcast-kit: input platform core host

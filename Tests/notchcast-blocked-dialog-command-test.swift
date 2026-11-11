@@ -3,8 +3,7 @@
 // notchcast-sources: Tinycast/Features/MachBlockedDialog/BlockedDialogModule+Command.swift
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
-// notchcast-kit: command
+// notchcast-kit: host command
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
