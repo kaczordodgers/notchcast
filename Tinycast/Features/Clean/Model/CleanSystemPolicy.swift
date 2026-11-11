@@ -21,6 +21,11 @@ struct CleanSystemPolicy: Sendable {
     let cacheAge: TimeInterval
     let logAge: TimeInterval
 
+    /// What both the app and the root helper apply, so the helper never trashes what the app did not list.
+    static func standard(now: Date) -> CleanSystemPolicy {
+        .init(roots: allowedRoots, now: now, cacheAge: 30 * 86_400, logAge: 30 * 86_400)
+    }
+
     func reason(for entry: CleanSystemEntry) -> CleanSystemPlan.Reason? {
         let path = entry.path
         guard !path.utf8.contains(0), path.hasPrefix("/"), !path.split(separator: "/").contains(".."),
