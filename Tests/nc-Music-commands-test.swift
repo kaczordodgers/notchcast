@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Music/Model/*.swift
-// notchcast-sources: Tinycast/Features/Music/Service/*.swift
+// notchcast-sources: Tinycast/Features/Music/Service/*.swift Tinycast/Features/Notchcast/Process/ProcessRunner.swift
 // notchcast-sources: Tinycast/Features/Music/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift

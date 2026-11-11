@@ -78,12 +78,10 @@ final class LiveSoloistLauncher: SoloistLauncher {
             guard !stopping else { return }
             stopping = true
             guard process.isRunning else { return }
-            process.terminate()
             let process = process
-            Task {
-                try? await Task.sleep(for: .milliseconds(800))
-                if process.isRunning { kill(process.processIdentifier, SIGKILL) }
-            }
+            let ladder = ProcessRunner.StopLadder.terminating(grace: .milliseconds(800))
+            kill(process.processIdentifier, ladder.first)
+            ladder.escalate { signal in if process.isRunning { kill(process.processIdentifier, signal) } }
         }
 
         isolated deinit {

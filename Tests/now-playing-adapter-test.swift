@@ -2,6 +2,7 @@
 // notchcast-sources: Tinycast/Features/Music/Model/NowPlayingAdapterReply.swift
 // notchcast-sources: Tinycast/Features/Music/Model/NowPlayingAdapterWire.swift
 // notchcast-sources: Tinycast/Features/Music/Service/SystemNowPlayingSource.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
 // notchcast-kit: platform
 import Foundation
 
