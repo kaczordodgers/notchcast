@@ -12,7 +12,6 @@ enum RecordingTarget: Sendable, Equatable {
     }
 
     static func isValid(_ rect: CGRect) -> Bool {
-        [rect.origin.x, rect.origin.y, rect.size.width, rect.size.height].allSatisfy(\.isFinite)
-            && rect.size.width >= 1 && rect.size.height >= 1
+        CaptureAreaSelection.isValid(rect)
     }
 }

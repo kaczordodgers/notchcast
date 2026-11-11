@@ -9,6 +9,11 @@ struct CaptureAreaSelection: Sendable, Equatable {
         rect.offsetBy(dx: -displayFrame.minX, dy: -displayFrame.minY)
     }
 
+    static func isValid(_ rect: CGRect) -> Bool {
+        [rect.origin.x, rect.origin.y, rect.size.width, rect.size.height].allSatisfy(\.isFinite)
+            && rect.size.width >= 1 && rect.size.height >= 1
+    }
+
     static func make(
         from start: CGPoint, to end: CGPoint, displayID: UInt32, displayFrame: CGRect,
         mainDisplayHeight: CGFloat
@@ -31,7 +36,7 @@ struct CaptureAreaSelection: Sendable, Equatable {
             x: min(start.x, end.x), y: min(start.y, end.y),
             width: abs(end.x - start.x), height: abs(end.y - start.y)
         ).intersection(displayFrame)
-        guard !rect.isNull, rect.width >= 1, rect.height >= 1 else { return nil }
+        guard isValid(rect) else { return nil }
         return rect
     }
 
