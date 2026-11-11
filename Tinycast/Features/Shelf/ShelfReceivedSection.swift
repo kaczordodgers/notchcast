@@ -5,11 +5,11 @@ struct ShelfReceivedSection: View {
     @Environment(AppCore.self) private var core
     @State private var entries: [ShelfReceivedEntry] = []
     @State private var busy = false
-    private var store: ShelfReceivedStore { NotchcastCore.shelf.store }
+    private var store: ShelfReceivedStore { ShelfModule.shared.store }
 
     var body: some View {
         Group {
-            if let status = NotchcastCore.shelf.linkStatus {
+            if let status = ShelfModule.shared.linkStatus {
                 LabeledContent("Status", value: status.shelfPeerAvailable
                     ? String(localized: "Connected", table: "Notchcast") : String(localized: "Not connected", table: "Notchcast"))
             }

@@ -2,7 +2,7 @@
 
 The plain Notchcast switch enables the `dialogs` Mac Link method. Both Macs must
 enable Mac Link and dialog alerts. The receiving Mac also needs the island and
-status messages enabled. `NotchcastCore.blockedDialogs.check()` performs one
+status messages enabled. `BlockedDialogModule.shared?.check()` performs one
 on-demand request; there is no timer or automatic retry.
 
 The detector reads visible window metadata and recognizes four system owners:

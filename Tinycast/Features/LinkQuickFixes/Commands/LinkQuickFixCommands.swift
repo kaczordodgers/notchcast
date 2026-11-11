@@ -5,25 +5,16 @@ extension LinkQuickFixModule {
         slug: "fix-mac-link", name: String(localized: "Fix Mac Link", table: "Notchcast"),
         sfSymbol: "link", feature: .linkQuickFixes,
         isEnabled: { NotchcastPreferences.shared.isOn(.linkQuickFixes) },
-        run: { Task { await NotchcastCore.linkQuickFixes.run() } })
+        run: { Task { await LinkQuickFixModule.shared.run() } })
 
     func configure() -> LinkQuickFixModule {
-        state = {
-            let reachability: Reachability
-            switch NotchcastCore.linkHealth.health.reachability {
-            case .up: reachability = .up
-            case .down: reachability = .down
-            case .unknown: reachability = .unknown
-            }
-            return (NotchcastCore.macLink.isRunning && NotchcastCore.macLink.isPaired, reachability)
-        }
-        message = { AppCore.shared.showMessage($0) }
+        message = { NotchcastHost.current.showMessage($0, .success) }
         let executor = LinkQuickFixExecutor(copy: {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString($0, forType: .string)
         }, open: { NSWorkspace.shared.open($0) }, settings: {
             AppCore.shared.settingsCoordinator.showSettings(tab: .notchcast, revealing: .section(.notchcastAIUsage))
-        }, message: { AppCore.shared.showMessage($0) })
+        }, message: { NotchcastHost.current.showMessage($0, .success) })
         execute = executor.run
         choose = { actions, note in
             let options = actions.map { action in
