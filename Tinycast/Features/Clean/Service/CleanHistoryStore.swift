@@ -12,13 +12,15 @@ final class CleanHistoryStore: Sendable {
     }
 
     func read() throws -> [CleanHistoryEntry] {
-        try Self.lock.withLock { try load().reversed() }
+        try Self.lock.withLock {
+            try storedLines().compactMap { try? JSONDecoder().decode(CleanHistoryEntry.self, from: $0) }.reversed()
+        }
     }
 
+    /// Rewrites lines as read, so one it cannot decode stays on disk instead of vanishing.
     func append(_ entry: CleanHistoryEntry) throws {
         try Self.lock.withLock {
-            let encoder = JSONEncoder()
-            var lines = try (load() + [entry]).map { try encoder.encode($0) + Data([10]) }
+            var lines = try (storedLines() + [JSONEncoder().encode(entry)]).map { $0 + Data([10]) }
             guard let last = lines.last, last.count <= maximumBytes else {
                 throw CleanHistoryError.recordTooLarge
             }
@@ -36,10 +38,8 @@ final class CleanHistoryStore: Sendable {
         }
     }
 
-    private func load() throws -> [CleanHistoryEntry] {
+    private func storedLines() throws -> [Data] {
         guard FileManager().fileExists(atPath: logPath.path) else { return [] }
-        return try Data(contentsOf: logPath).split(separator: 10).compactMap {
-            try? JSONDecoder().decode(CleanHistoryEntry.self, from: Data($0))
-        }
+        return try Data(contentsOf: logPath).split(separator: 10).map { Data($0) }
     }
 }
