@@ -1,8 +1,8 @@
-// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Features/CopyPath/CopyPathModule*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Model/WebRules.swift
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Features/CopyPath/CopyPathModule*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Model/WebRules.swift
 import Foundation
 
 enum DialogTone { case neutral }

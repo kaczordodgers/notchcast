@@ -1,7 +1,7 @@
-// notchcast-sources: Tinycast/Features/PasteTools/Service/PlainPasteModule+Command.swift
 // notchcast-sources: Tinycast/Features/PasteTools/PlainPasteModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/PasteTools/Service/PlainPasteModule+Command.swift
 import Foundation
 
 struct NotchcastCommand: Sendable {
@@ -13,18 +13,23 @@ struct NotchcastCommand: Sendable {
     let run: @MainActor @Sendable () -> Void
 }
 
+@MainActor final class PlainPasteModule {
+    var pastes = 0
+    func paste() { pastes += 1 }
+    var clipboard: ClipboardManager?
+}
+
 @MainActor final class ClipboardManager {}
 @MainActor final class AppCore {
     let clipboardManager = ClipboardManager()
 }
-
-@MainActor final class PlainPasteModule: NotchcastModule {
-    let clipboard: ClipboardManager
-    var pastes = 0
-    init(clipboard: ClipboardManager) { self.clipboard = clipboard }
+extension PlainPasteModule: NotchcastModule {
+    convenience init(clipboard: ClipboardManager) {
+        self.init()
+        self.clipboard = clipboard
+    }
     func start() {}
     func stop() {}
-    func paste() { pastes += 1 }
 }
 
 enum NotchcastFeature { case pastePlain }

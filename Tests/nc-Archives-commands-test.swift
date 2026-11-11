@@ -1,11 +1,7 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift Tinycast/Features/Archives/Commands/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
-// notchcast-kit: platform
+// notchcast-kit: core platform
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
 
@@ -19,6 +15,17 @@ struct AppEntry: Sendable {
     let kind: Kind
     let settingsOwner: SettingsTab?
     let symbolName: String?
+}
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    enum Tone { case danger }
+    let appIndex = AppIndex()
+    var messages: [String] = []
+    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
+}
+@MainActor final class AppIndex {
+    var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
 }
 enum DialogTone { case danger }
 extension ArchiveModule {
@@ -41,19 +48,17 @@ struct MissingTool: ArchiveToolLocating {
         let local = NotchcastPreferences(suiteName: suite)
         let module = ArchiveModule(preferences: local, locator: MissingTool(), defaultApplications: FakeDefaults())
         let commands = [ArchiveCommands.extractCommand, ArchiveCommands.cancelCommand]
-        var messages: [String] = []
-        var refreshes = 0
-        NotchcastHost.current.showMessage = { text, _ in messages.append(text) }
-        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
+        NotchcastHost.current.showMessage = { text, _ in AppCore.shared.messages.append(text) }
+        NotchcastHost.current.refreshNotchcastCommands = { AppCore.shared.appIndex.refreshNotchcastCommands() }
         preferences.set(.archives, true)
         ArchiveCompressionCommands.submit([], format: .zip)
-        precondition(messages.last == "The archive engine is not running.")
+        precondition(AppCore.shared.messages.last == "The archive engine is not running.")
         ArchiveModule.shared.start()
         ArchiveCompressionCommands.submit([], format: .small)
-        precondition(messages.last == "No files selected in Finder.")
+        precondition(AppCore.shared.messages.last == "No files selected in Finder.")
         preferences.set(.archives, false)
         ArchiveCompressionCommands.run(.fast)
-        precondition(messages.last == "The archive engine is not running.")
+        precondition(AppCore.shared.messages.last == "The archive engine is not running.")
         ArchiveModule.shared.stop()
         preferences.set(.archives, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
@@ -75,17 +80,17 @@ struct MissingTool: ArchiveToolLocating {
         await module.queue.waitUntilIdle()
         precondition(module.isRunning && module.queue.jobs.last?.state == .cancelled)
         precondition(module.queue.jobs.first?.state == .cancelled || module.queue.jobs.first?.state == .failed)
-        let refreshesBefore = refreshes
+        let refreshes = AppCore.shared.appIndex.refreshes
         preferences.set(.archives, false)
         for _ in 0..<100 { await Task.yield() }
         precondition(commands.allSatisfy { !$0.isEnabled() })
-        precondition(refreshes > refreshesBefore)
+        precondition(AppCore.shared.appIndex.refreshes > refreshes)
         precondition(ArchiveCommands.submit([archive], to: module) == nil)
         precondition(module.queue.jobs.count == 2)
         module.stop()
         preferences.set(.archives, true)
         ArchiveCommands.cancelAll(in: module)
-        precondition(messages.last == "The archive engine is not running.")
+        precondition(AppCore.shared.messages.last == "The archive engine is not running.")
         print("PASS: switch gating, index refresh, module routing, unsupported/empty input and cancellation")
     }
 }

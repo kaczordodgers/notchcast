@@ -1,13 +1,8 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
-// notchcast-kit: platform
+// notchcast-kit: core host platform
 import Foundation
 
 @MainActor final class AppCore {}

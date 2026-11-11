@@ -1,16 +1,12 @@
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
-// notchcast-kit: platform
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: platform core
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift
 // notchcast-sources: Tinycast/Features/Torrents/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import AppKit
 
 enum SettingsTab: Sendable { case notchcast }
@@ -23,6 +19,16 @@ struct AppEntry: Sendable {
     let kind: Kind
     let settingsOwner: SettingsTab?
     let symbolName: String?
+}
+@MainActor final class AppCore {
+    static let shared = AppCore()
+    enum Tone { case danger }
+    let appIndex = AppIndex()
+    func showMessage(_ message: String, tone: Tone) {}
+}
+@MainActor final class AppIndex {
+    var refreshes = 0
+    func refreshNotchcastCommands() { refreshes += 1 }
 }
 enum DialogTone { case danger }
 extension TorrentModule {
@@ -49,12 +55,12 @@ extension TorrentModule {
         let commands = TorrentCommands.launcherCommands
         preferences.set(.torrents, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
-        var refreshes = 0
-        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
+        NotchcastHost.current.refreshNotchcastCommands = { AppCore.shared.appIndex.refreshNotchcastCommands() }
+        let before = AppCore.shared.appIndex.refreshes
         preferences.set(.torrents, false)
         for _ in 0..<100 { await Task.yield() }
         precondition(commands.allSatisfy { !$0.isEnabled() })
-        precondition(refreshes > 0)
+        precondition(AppCore.shared.appIndex.refreshes > before)
         let board = NSPasteboard.withUniqueName()
         defer { board.releaseGlobally() }
         let magnet = "magnet:?xt=urn:btih:0123456789012345678901234567890123456789"
