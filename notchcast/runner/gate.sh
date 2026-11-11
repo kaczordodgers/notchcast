@@ -1,7 +1,7 @@
 #!/bin/bash
 # Every minute on a runner Mac, and at each job start. Usage: gate.sh <host> <owner/repo>
 #   Publishes how many of this Mac's runners are idle as the repository variable NOTCHCAST_IDLE_<HOST>, which
-#   notchcast/runner/route.py reads. While the admit command (install.sh --gate) refuses, it publishes 0 and,
+#   notchcast/runner/route.py reads. While the admit command (install.sh --gate) refuses, it publishes -1 and,
 #   from the second refusal on, stops the runners that have no job; it starts those again once admitted.
 set -uo pipefail
 HOST=$1 REPO=$2
@@ -32,7 +32,7 @@ done
 if [ "$admitted" = 0 ]; then
     [ -e "$ROOT/refused" ] || say "refused: taking no new job"
     touch "$ROOT/refused"
-    idle=0
+    idle=-1
 else
     rm -f "$ROOT/refused"
 fi
