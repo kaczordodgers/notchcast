@@ -5,14 +5,15 @@ and stops them. `DayWeatherModule` and `DayMarketsModule` gate their stores behi
 feature switches; `setVisible(_:)` starts polling only while the Day page is shown. Their settings
 share the Day section under Notchcast. Activity slots and island views are wired separately.
 
-- `DayCalendarService(store:)`: inject an AppCore-owned `CalendarStore`. `start()` requests its
-  seven-day snapshot; observe `store.events` for EventKit changes and `store.access` for permission
-  state. `events` exposes that snapshot; observe `revision` to invalidate arbitrary day queries.
-  `events(in:)` queries an arbitrary date interval directly
-  through EventKit, including recurrence. Use `refresh()` on activation. Only a consent button calls
-  `requestAccessFromButton()`, after presenting the app's own consent dialog. `setExcludedCalendars`
-  persists fork-only exclusions. `stop()` releases the range reader; the owner controls the injected
-  store's lifecycle. Use a dedicated store if changing its span would affect another surface.
+- `DayCalendarService(store:excludedKey:)`: inject a `CalendarStore` and the defaults key the owner
+  backs up for exclusions; the service only reads the store's access and never requests permission
+  itself. `records(in:)` queries an arbitrary date interval directly
+  through EventKit, including recurrence, and returns each visible event with its `EKEvent`. It is
+  empty without granted access and skips cancelled, declined and excluded-calendar events. Observe
+  `revision` to invalidate queries: it advances on EventKit changes once a query has run, and on
+  every exclusion edit. Observe `store.access` for permission state. `setExcludedCalendars`
+  persists fork-only exclusions; `excludedCalendarIDs` reads them. `stop()` releases the range
+  reader and its change observer; the owner controls the injected store's lifecycle.
 - `DayEvent.current(in:now:)` and `next(in:now:)` exclude all-day events; current ends are exclusive.
 - `DayWeatherStore`: `cities(matching:)`, `select(_:)`, `start()`, `stop()`, `refresh()`;
   observe `place`, `forecast`, `fetchedAt`, `lastError`. `isStale(now:)` uses a 30-minute threshold.

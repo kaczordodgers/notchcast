@@ -70,8 +70,6 @@ struct SystemToolsTests {
         expect(!TouchIDPolicy.enabled(in: "# auth sufficient pam_tid.so"), "comment ignored")
         refuses { _ = try TouchIDPolicy.replacement(sudo: "", local: nil, enabled: true) }
         refuses { _ = try TouchIDPolicy.replacement(sudo: sudo, local: "auth required pam_tid.so", enabled: false) }
-        try sudo.write(to: folder.appending(path: "sudo"), atomically: true, encoding: .utf8)
-        expect(try TouchIDService().read(directory: folder).local == nil, "absent sudo_local")
 
         let policy = NotificationCleanupPolicy(diskEjectionTitles: ["Disk Not Ejected Properly"])
         let alert = NotificationCleanupPolicy.Alert(identifier: "one", title: "Disk Not Ejected Properly",

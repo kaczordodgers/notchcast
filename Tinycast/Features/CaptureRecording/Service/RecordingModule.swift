@@ -61,8 +61,7 @@ final class RecordingModule: NotchcastModule {
     private static let folderKey = "notchcast.recording.folder"
 
     init(
-        defaults: UserDefaults = UserDefaults(suiteName:
-            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+        defaults: UserDefaults = NotchcastIdentity.current.defaults,
         defaultFolder: URL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask)[0],
         commandArea: CaptureAreaService = CaptureAreaService(),
         refreshCommands: @escaping () -> Void = { NotchcastHost.current.refreshNotchcastCommands() },
