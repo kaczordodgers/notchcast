@@ -50,27 +50,21 @@ if [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastFeature"* ]]; then
     done
 fi
 
-# Fork code that runs a program goes through ProcessRunner, which needs ProcessExit; no harness header lists either.
-runner_callers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done | tr '\n' ' '; true)
-if [[ " $runner_callers " != *" Tinycast/Features/Notchcast/Process/ProcessRunner.swift "* ]] &&
-    grep -lqsE '(^|[^A-Za-z0-9_])ProcessRunner\.' $runner_callers /dev/null; then
-    set -- "$@" Tinycast/Features/Notchcast/Process/ProcessRunner.swift
-    [[ " $runner_callers " == *" Tinycast/Platform/ProcessExit.swift "* ]] || set -- "$@" Tinycast/Platform/ProcessExit.swift
-fi
-
-# The shared web rules have no dependencies; any compiled source that calls them brings them in.
-web_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done; true)
-if [[ " $* " != *" Tinycast/Features/Notchcast/Model/WebRules.swift "* &&
-    " $* " != *" Tinycast/Features/Notchcast/Model/*.swift "* ]] && grep -lqs 'WebRules\.' $web_readers /dev/null; then
-    set -- "$@" Tinycast/Features/Notchcast/Model/WebRules.swift
-fi
-
+# Shared fork helpers no header lists: a compiled Tinycast source naming `<symbol>` brings its files in.
+symbol_sources=(
+    'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Platform/ProcessExit.swift'
+    'WebRules Tinycast/Features/Notchcast/Model/WebRules.swift'
+    'NotchcastIdentity Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift'
+)
 # Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
-identity_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done; true)
-if [[ " $* " != *" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift "* ]] &&
-    grep -lqs NotchcastIdentity $identity_readers /dev/null; then
-    set -- "$@" Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
-    # A harness that stubs AppPaths keeps its stub.
-    [[ " $* " == *" Tinycast/Platform/AppPaths.swift "* ]] || grep -q '^enum AppPaths' "Tests/$name.swift" ||
-        set -- "$@" Tinycast/Platform/AppPaths.swift
-fi
+symbol_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done | tr '\n' ' '; true)
+for symbol_row in "${symbol_sources[@]}"; do
+    grep -lqsw "${symbol_row%% *}" $symbol_readers /dev/null || continue
+    for source in ${symbol_row#* }; do
+        declared=${source##*/}
+        # A harness that declares the file's type itself keeps its stub.
+        [[ " $symbol_readers " == *" $source "* ]] ||
+            grep -qswE "^([a-z]+ )*(enum|struct|class|actor) ${declared%.swift}" "Tests/$name.swift" ||
+            { set -- "$@" "$source"; symbol_readers+=" $source"; }
+    done
+done

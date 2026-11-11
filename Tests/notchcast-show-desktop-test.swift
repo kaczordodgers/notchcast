@@ -1,25 +1,9 @@
 // notchcast-sources: Tinycast/Features/ShowDesktop/Service/*.swift
 // notchcast-kit: input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
-enum Paster { static let tinycastEventTag: Int64 = 1 }
-
-@MainActor final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
-    var count = 0
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
-        precondition(mask != 0)
-        self.handler = handler
-        count += 1
-        return UUID()
-    }
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { count -= 1; handler = nil }
-}
 
 @main @MainActor
 struct ShowDesktopTests {
@@ -35,7 +19,7 @@ struct ShowDesktopTests {
         }
         module.start()
         module.start()
-        precondition(hub.count == 1, "Start twice registers once")
+        precondition(hub.consumerCount == 1, "Start twice registers once")
         precondition(send(false) == .pass)
         precondition(send(true, 42) == .pass)
         precondition(send(true, modifiers: .maskCommand) == .pass)
@@ -50,9 +34,9 @@ struct ShowDesktopTests {
         }
         module.stop()
         module.stop()
-        precondition(hub.count == 0 && hub.handler == nil)
+        precondition(hub.consumerCount == 0 && hub.handler == nil)
         module.start()
-        precondition(hub.count == 1)
+        precondition(hub.consumerCount == 1)
         module.stop()
         print("Show desktop: all checks passed")
     }

@@ -4,27 +4,14 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/MachLinkMessage.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum NotchcastFeature: Sendable {
     case machLink, island, islandStatusMessages, machBlockedDialogAlert
 }
 enum DialogTone {}
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
-
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = true
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
-}
 
 @MainActor enum Probe {
     static var requests = 0

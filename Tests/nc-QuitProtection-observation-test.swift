@@ -1,21 +1,13 @@
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionModule.swift
 // notchcast-kit: platform input host
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 import Observation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
-enum Paster { static let tinycastEventTag: Int64 = 12345 }
 enum ASCIIKeyboardLayout {
     @MainActor static func character(for code: Int, modifiers: UInt32) -> String? { nil }
-}
-@MainActor final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID { UUID() }
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) {}
 }
 @MainActor @Observable final class QuitProtectionStore {
     @ObservationIgnored var reads = 0

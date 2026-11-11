@@ -3,6 +3,8 @@
 // notchcast-sources: Tinycast/Features/Tweaks/Model/TweakPreference.swift Tinycast/Features/Tweaks/Model/TweakValue.swift
 import Foundation
 // notchcast-sources: Tinycast/Features/Tweaks/TweakProfileCommands.swift Tests/Support/TweakProfileCommandFakes.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
+// notchcast-kit: command
 
 @main
 struct PrivacyCommandTests {

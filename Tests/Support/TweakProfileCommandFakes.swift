@@ -7,21 +7,6 @@ enum NotchcastFeature: Sendable {
 }
 
 @MainActor
-final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: NotchcastFeature) -> Bool { true }
-}
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    var feature: NotchcastFeature?
-    var isEnabled: @MainActor @Sendable () -> Bool = { true }
-    let run: @MainActor @Sendable () -> Void
-}
-
-@MainActor
 final class AppCore {
     static let shared = AppCore()
     func confirm(title: String, message: String, symbol: String, confirmTitle: String) async -> Bool { true }

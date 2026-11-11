@@ -1,20 +1,9 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift Tinycast/Features/Archives/Commands/*.swift
-// notchcast-kit: core platform
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-kit: core platform command
 import AppKit
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry: Sendable {
-    let id: String
-    let name: String
-    let url: URL
-    let bundleID: String?
-    enum Kind: Sendable { case command }
-    let kind: Kind
-    let settingsOwner: SettingsTab?
-    let symbolName: String?
-}
 @MainActor final class AppCore {
     static let shared = AppCore()
     enum Tone { case danger }
@@ -26,8 +15,9 @@ struct AppEntry: Sendable {
     var refreshes = 0
     func refreshNotchcastCommands() { refreshes += 1 }
 }
-@MainActor enum NotchcastCore {
-    static let archives = ArchiveModule(preferences: .shared)
+enum DialogTone { case danger }
+extension ArchiveModule {
+    static let shared = ArchiveModule(preferences: .shared)
 }
 @MainActor final class FakeDefaults: ArchiveDefaultApplicationSetting {
     func setEnabled(_ enabled: Bool, application: URL) async throws {}
@@ -46,16 +36,18 @@ struct MissingTool: ArchiveToolLocating {
         let local = NotchcastPreferences(suiteName: suite)
         let module = ArchiveModule(preferences: local, locator: MissingTool(), defaultApplications: FakeDefaults())
         let commands = [ArchiveCommands.extractCommand, ArchiveCommands.cancelCommand]
+        NotchcastHost.current.showMessage = { text, _ in AppCore.shared.messages.append(text) }
+        NotchcastHost.current.refreshNotchcastCommands = { AppCore.shared.appIndex.refreshNotchcastCommands() }
         preferences.set(.archives, true)
         ArchiveCompressionCommands.submit([], format: .zip)
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
-        NotchcastCore.archives.start()
+        ArchiveModule.shared.start()
         ArchiveCompressionCommands.submit([], format: .small)
         precondition(AppCore.shared.messages.last == "No files selected in Finder.")
         preferences.set(.archives, false)
         ArchiveCompressionCommands.run(.fast)
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
-        NotchcastCore.archives.stop()
+        ArchiveModule.shared.stop()
         preferences.set(.archives, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
         precondition(ArchiveCommands.submit([], to: module) == "The archive engine is not running.")

@@ -2,27 +2,11 @@
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift Tinycast/Features/Katana/KatanaModule+Commands.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift Tinycast/Features/AgentBridge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-kit: host command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum NotchcastFeature: Sendable { case katana }
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry {
-    enum Kind { case command }
-    let id: String
-    let name: String
-    let url: URL
-    let bundleID: String?
-    let kind: Kind
-    let settingsOwner: SettingsTab?
-    let symbolName: String
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = true
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
-}
 extension KatanaModule {
     static let midi = CommandMIDI()
     static let shared = KatanaModule(midi: midi)

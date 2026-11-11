@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/MachMBPFans/RemoteFanPeer.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/FanControl.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Model/FanOwnershipJournal.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 import Synchronization
 
@@ -22,11 +23,6 @@ struct RootHelperClient {
     static func apply() { onApply?() }
 }
 enum NotchcastFeature { case machLink, systemMonitor, fanControl }
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = true
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
-}
 struct SMCClient {
     static let target = Mutex(6000.0)
     static let gate = Mutex<(DispatchSemaphore, DispatchSemaphore)?>(nil)

@@ -6,7 +6,7 @@
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupState.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupCoordinator.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupModule.swift
-// notchcast-kit: core host
+// notchcast-kit: core host command
 // notchcast-sources: Tinycast/Features/DocumentEditor/Service/EditorPreferences.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Service/QuitProtectionStore.swift
@@ -100,13 +100,6 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
 @MainActor final class AppearanceThemeColors {
     static let shared = AppearanceThemeColors()
     func update(light: RaycastTheme?, dark: RaycastTheme?, preview: RaycastThemeLink.Target?, opacity: Double) { }
-}
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let run: @MainActor @Sendable () -> Void
 }
 
 @MainActor final class DialogScript {
