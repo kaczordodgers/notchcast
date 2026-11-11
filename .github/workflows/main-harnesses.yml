@@ -21,8 +21,9 @@ jobs:
     outputs:
       tests: ${{ steps.shards.outputs.tests }}
       shards: ${{ steps.shards.outputs.shards }}
+      runners: ${{ steps.route.outputs.runners }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -41,23 +42,31 @@ jobs:
           [ "$shards" -le 3 ] || shards=3
           echo "tests=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")" >> "$GITHUB_OUTPUT"
           echo "shards=[$(seq -s, 0 $((shards - 1)))]" >> "$GITHUB_OUTPUT"
+          echo "count=$shards" >> "$GITHUB_OUTPUT"
           echo "$count harnesses in $shards shard(s)"
+      - id: route
+        uses: ./notchcast/actions/route
+        with:
+          count: ${{ steps.shards.outputs.count }}
+          idle: |
+            ${{ vars.NOTCHCAST_IDLE_MBA }}
+            ${{ vars.NOTCHCAST_IDLE_MBP }}
   harnesses:
     needs: plan
     # An empty selection skips this job and the run still concludes success; an empty matrix would fail it.
     if: ${{ needs.plan.outputs.shards != '[]' }}
-    runs-on: xcode-27
+    runs-on: ${{ fromJSON(needs.plan.outputs.runners)[matrix.shard] }}
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         shard: ${{ fromJSON(needs.plan.outputs.shards) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: tools
           persist-credentials: false
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: src
           fetch-depth: 0

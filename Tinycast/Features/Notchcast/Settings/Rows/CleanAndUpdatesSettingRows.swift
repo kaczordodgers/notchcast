@@ -16,7 +16,7 @@ struct NotchcastCleanActionsSettingRow: View {
         }
         if feature == .cleanSystem {
             Button(String(localized: "Scan…", table: "Notchcast")) { CleanSettingsActions.scan(feature, coordinator: coordinator) }
-                .settingsEnabled(!coordinator.busy.contains(feature) && coordinator.helperCurrent)
+                .settingsEnabled(!coordinator.busy.contains(feature))
         }
         if coordinator.busy.contains(feature) { ProgressView() }
         if let review = coordinator.reviews[feature] {

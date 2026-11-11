@@ -5,7 +5,6 @@ struct CleanAIDataItem: Sendable {
     let path: URL
     let kind: Kind
     let selectable: Bool
-    let selected = false
     var refusal: Refusal?
     internal let snapshot: [String: String]
 

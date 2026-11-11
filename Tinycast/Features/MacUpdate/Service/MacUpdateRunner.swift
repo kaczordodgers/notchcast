@@ -19,9 +19,7 @@ struct MacUpdateRunner: MacUpdateProcessRunning {
         try Task.checkCancellation()
         let pipe = Pipe()
         var bytes = Data()
-        var environment = ProcessInfo.processInfo.environment
-        environment["HOMEBREW_NO_AUTO_UPDATE"] = "1"
-        environment["PATH"] = command.searchPath
+        let environment = ExecutableLocator.environment(running: URL(filePath: command.path))
         let descriptor = pipe.fileHandleForReading.fileDescriptor
         guard fcntl(descriptor, F_SETFL, O_NONBLOCK) == 0 else {
             throw POSIXError(.EIO)
