@@ -54,6 +54,10 @@ BREAKS = (
      SHAPE.TREE, SCREEN_TEXT, ".feature(.screenText, settings: [])"),
     ("feature-pins", ".sudoTouchID needsIsland is true; a feature whose isSystemTweak is true keeps false",
      "Tinycast/Features/SystemTools/SudoTouchIDDescriptor.swift", "dependencies: []", "dependencies: [.island]"),
+    ("backup-flag", ".hideCommandM needs backedUp: true or false", HIDE, "        backedUp: true,\n", ""),
+    ("backup-flag", ".colorPicker needs backedUp: true or false", SHAPE.FEATURE, "        case .colorPicker: true\n", ""),
+    ("backup-flag", ".copyPath states backedUp; delete its line in", "Tinycast/Features/CopyPath/CopyPathDescriptor.swift",
+     "defaultEnabled: false,", "defaultEnabled: false,\n        backedUp: true,"),
     ("feature-text", ".screenshot needs a localized, non-empty title",
      SHAPE.FEATURE, 'case .screenshot: String(localized: "Screenshots", table: "Notchcast")', 'case .screenshot: ""'),
     ("settings-item-once", ".scrollingCapture is already in the settings tree",
@@ -157,8 +161,8 @@ def append_feature(source, name):
 class FeatureShapeTests(unittest.TestCase):
     def test_repeated_backup_key(self):
         source = (ROOT / SCHEMA).read_text()
-        self.rejected(SCHEMA, source.replace('"island": .bool,',
-            '"island": .bool,\n        "island": .string(10),'), "repeated entry island")
+        self.rejected(SCHEMA, source.replace(".copyPath: true,",
+            ".copyPath: true,\n        .copyPath: false,"), "repeated entry copyPath")
 
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
@@ -369,24 +373,25 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_setting_split_over_lines(self):
         source = (self.root / PREFS).read_text()
-        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }'
+        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: Self.fanModeKey) } }'
         self.rejected(PREFS, source.replace(line, line.replace("{ didSet", "{\n        didSet")),
                       "keep each setting on one line")
 
     def test_repeated_setting(self):
         source = (self.root / PREFS).read_text()
-        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }\n'
+        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: Self.fanModeKey) } }\n'
         self.rejected(PREFS, source.replace(line, line + line.replace("String", "String?")), "repeated setting fanMode")
 
     def test_repeated_assignment(self):
         source = (self.root / PREFS).read_text()
-        line = '        fanMode = defaults.string(forKey: "fanMode") ?? "auto"\n'
+        line = '        fanMode = defaults.string(forKey: Self.fanModeKey) ?? "auto"\n'
         self.rejected(PREFS, source.replace(line, line + line.replace('"auto"', '"quiet"')), "repeated assignment fanMode")
 
     def test_init_statement_split_over_lines(self):
         source = (self.root / PREFS).read_text()
         self.rejected(PREFS, source.replace(
-            'Self.threshold(defaults, "monitorCPU", 90, 10...100)', 'Self.threshold(defaults, "monitorCPU",\n            90, 10...100)'),
+            "Self.threshold(defaults, Self.monitorCPUKey, 90, 10...100)",
+            "Self.threshold(defaults, Self.monitorCPUKey,\n            90, 10...100)"),
             "keep each init statement on one line")
 
     def test_union_duplicated_preferences_class(self):
@@ -616,8 +621,8 @@ class FeatureShapeTests(unittest.TestCase):
         self.init_repository()
         prefs = self.root / PREFS
         base = prefs.read_text()
-        setting = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }\n'
-        assignment = '        fanMode = defaults.string(forKey: "fanMode") ?? "auto"\n'
+        setting = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: Self.fanModeKey) } }\n'
+        assignment = '        fanMode = defaults.string(forKey: Self.fanModeKey) ?? "auto"\n'
         for name in ("alpha", "beta"):
             run(self.root, "git", "switch", "-qc", name, "base")
             prefs.write_text(base.replace(setting, setting + f'    var {name}: Bool {{ didSet {{ defaults.set({name}, forKey: "{name}") }} }}\n').replace(

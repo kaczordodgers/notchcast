@@ -37,6 +37,8 @@
 // notchcast-sources: Tinycast/Features/BackupStatus/Model/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/Service/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
+// notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
+// notchcast-sources: Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/NowPlaying.swift
 import Foundation
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
@@ -68,6 +70,13 @@ enum SettingsActionCommands {
     func setExcludedCalendars(_ ids: Set<String>) { excludedCalendarIDs = ids }
 }
 enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
+enum ColorPickerService { static let formatKey = "notchcast.colorPicker.format" }
+enum ScreenshotModule {
+    static let destinationKey = "notchcast.screenshot.destination"
+    static let folderKey = "notchcast.screenshot.folder"
+}
+enum SpotifyConnectModule { static let deviceNameKey = "spotify.deviceName" }
+enum AgentBridgeModule { static let grantsKey = "agentActionGrants" }
 @MainActor final class ColorPickerModule {
     static let shared = ColorPickerModule()
     var format = ColorPickerFormat.hex
@@ -167,6 +176,12 @@ struct NotchcastCommand: Sendable {
             precondition(Set(own.keys) == Set(feature.allowed.keys), "\(feature.allowed.keys.sorted())")
         }
         print("PASS: every feature's own snapshot returns exactly the keys it allows")
+        for feature in NotchcastFeature.allCases {
+            guard let carried = feature.backedUp else { continue }
+            precondition((ForkSettingsBackupSchema.allowed[feature.rawValue] != nil) == carried, feature.rawValue)
+            precondition(ForkSettingsBackupSchema.excluded.contains(feature.rawValue) != carried, feature.rawValue)
+        }
+        print("PASS: a switch is carried or left out as its feature's backedUp flag says")
         let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
         precondition(complete.keys.allSatisfy { $0.firstMatch(of: secretName) == nil })
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
@@ -333,10 +348,12 @@ struct NotchcastCommand: Sendable {
         let store = QuitProtectionStore(defaults: defaults)
         let state = ForkSettingsBackupState(snapshot: {
             ForkSettingsBackupRestore.snapshot(preferences).merging(store.backupValues) { _, new in new }
+                .merging(preferences.monitorAlertsBackupValues) { _, new in new }
         }, validate: ForkSettingsBackupEngine.validate, apply: {
             try ForkSettingsBackupEngine.validate($0)
             try ForkSettingsBackupRestore.apply($0, to: preferences)
             store.applyBackup($0)
+            preferences.applyMonitorAlertsBackup($0)
         })
         let saved = try state.snapshot()
         for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks,

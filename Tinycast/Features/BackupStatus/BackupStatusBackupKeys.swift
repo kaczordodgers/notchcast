@@ -2,10 +2,11 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let backupStatus = Self(allowed: [
-        "backupStatusPath": .string(4096),
+        NotchcastPreferences.backupStatusPathKey: .string(4096),
     ], excluded: [], snapshot: {
-        ["backupStatusPath": NotchcastPreferences.shared.backupStatusPath]
+        [NotchcastPreferences.backupStatusPathKey: NotchcastPreferences.shared.backupStatusPath]
     }, apply: { values in
-        if let value = values["backupStatusPath"] as? String { NotchcastPreferences.shared.backupStatusPath = value }
+        guard let value = values[NotchcastPreferences.backupStatusPathKey] as? String else { return }
+        NotchcastPreferences.shared.backupStatusPath = value
     })
 }

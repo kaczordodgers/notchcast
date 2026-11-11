@@ -2,11 +2,11 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let greenMaximize = Self(allowed: [
-        "greenMaximizeExcludedApps": .string(16_384),
+        NotchcastPreferences.greenMaximizeExcludedAppsKey: .string(16_384),
     ], excluded: [], snapshot: {
-        ["greenMaximizeExcludedApps": NotchcastPreferences.shared.greenMaximizeExcludedApps]
+        [NotchcastPreferences.greenMaximizeExcludedAppsKey: NotchcastPreferences.shared.greenMaximizeExcludedApps]
     }, apply: { values in
-        if let value = values["greenMaximizeExcludedApps"] as? String {
+        if let value = values[NotchcastPreferences.greenMaximizeExcludedAppsKey] as? String {
             NotchcastPreferences.shared.greenMaximizeExcludedApps = value
         }
     })

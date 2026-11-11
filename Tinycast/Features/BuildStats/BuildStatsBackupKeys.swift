@@ -2,10 +2,11 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let buildStats = Self(allowed: [
-        "buildStatsPath": .string(4096),
+        NotchcastPreferences.buildStatsPathKey: .string(4096),
     ], excluded: [], snapshot: {
-        ["buildStatsPath": NotchcastPreferences.shared.buildStatsPath]
+        [NotchcastPreferences.buildStatsPathKey: NotchcastPreferences.shared.buildStatsPath]
     }, apply: { values in
-        if let value = values["buildStatsPath"] as? String { NotchcastPreferences.shared.buildStatsPath = value }
+        guard let value = values[NotchcastPreferences.buildStatsPathKey] as? String else { return }
+        NotchcastPreferences.shared.buildStatsPath = value
     })
 }

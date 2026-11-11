@@ -175,7 +175,7 @@ p = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift')
 s = p.read_text().replace('    case island\n', '    case landingFixture\n    case island\n', 1)
 values = {'settingsGroup': '.activities', 'title': 'String(localized: "Fixture", table: "Notchcast")',
           'subtitle': 'String(localized: "Fixture.", table: "Notchcast")',
-          'requiredGrants': '[]', 'defaultEnabled': 'false'}
+          'requiredGrants': '[]', 'defaultEnabled': 'false', 'backedUp': 'false'}
 for name, value in values.items():
     s, count = re.subn(rf'(var {name}: [^\n]+ {{\n(?:        if let descriptor [^\n]+\n)?        (?:return )?switch self {{\n)',
                        rf'\g<1>        case .landingFixture: {value}\n', s)
@@ -195,15 +195,8 @@ p = Path('notchcast/switch-path-allowlist-2026-11-04.json')
 paths = json.loads(p.read_text())
 paths['landingFixture'] = 'Synthetic feature used only by the merged-tree landing test.'
 p.write_text(json.dumps(paths, indent=2) + '\n')
-# nc-SettingsBackup-engine-test requires every feature to be classified for backups.
-p = Path('Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift')
-s = p.read_text().replace('    private static let listedExcluded: Set<String> = [\n',
-                          '    private static let listedExcluded: Set<String> = [\n        "landingFixture",\n', 1)
-assert '"landingFixture"' in s
-p.write_text(s)
 PY
 git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift notchcast/switch-path-allowlist-2026-11-04.json \
-    Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift \
     Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift
 git commit --quiet -m 'Fixture: add enum case'
 a=$(git rev-parse HEAD)

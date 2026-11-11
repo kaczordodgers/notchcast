@@ -23,7 +23,7 @@ struct AgentConfirmationTests {
     static func main() throws {
         let now = Date(timeIntervalSince1970: 100)
         let suite = "test.agent-confirm." + UUID().uuidString
-        let grants = try AgentGrantStore(bundleIdentifier: suite)
+        let grants = try AgentGrantStore(bundleIdentifier: suite, key: "agentActionGrants")
         defer {
             UserDefaults(suiteName: suite + ".notchcast.agent-consent")?
                 .removePersistentDomain(forName: suite + ".notchcast.agent-consent")

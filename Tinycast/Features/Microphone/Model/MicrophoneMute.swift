@@ -8,6 +8,9 @@ final class MicrophoneMute {
         case volume([MicrophoneInput.Level])
     }
 
+    nonisolated static let mutedKey = "microphone.muted"
+    nonisolated static let restoreKey = "microphone.muted.restore"
+
     var hotKeyStatus: Int32?
     private(set) var isMuted = false
     private(set) var failures: [MicrophoneInput.Failure] = []
@@ -20,7 +23,7 @@ final class MicrophoneMute {
     @ObservationIgnored private var running = false
     @ObservationIgnored private var validPersistence = true
 
-    init(audio: any MicrophoneAudioAccess, defaults: UserDefaults, key: String = "microphone.muted") {
+    init(audio: any MicrophoneAudioAccess, defaults: UserDefaults, key: String = MicrophoneMute.mutedKey) {
         self.audio = audio
         self.defaults = defaults
         self.key = key

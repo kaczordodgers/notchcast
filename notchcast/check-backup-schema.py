@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check every backup key is declared once: feature switches in the schema, a feature's own keys in its folder.
+"""Check every backup key is declared once: a switch by its feature's backedUp flag, other keys in a feature's folder.
 
 A key file with a snapshot writes exactly the keys it allows, and one with an apply reads exactly those."""
 
@@ -18,10 +18,6 @@ ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
 SCHEMA = Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift")
 LIST = FEATURE.with_name("NotchcastBackupKeys.swift")
-# The capture module cannot hold a key file yet; SettingsBackup's own restore writes the editor keys.
-SCHEMA_KEYS = {"notchcast.colorPicker.format",
-               "notchcast.screenshot.destination", "notchcast.screenshot.folder",
-               "notchcast.editor.font", "notchcast.editor.theme", "notchcast.editor.pairsAutomatically"}
 KEYS_FILE = re.compile(shape.DESCRIPTOR_FILE.pattern.replace("Descriptor", "BackupKeys"))
 KEYS_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.BackupKeys\b|\bBackupKeys\s*(?:\.init\s*)?\("
                               r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?BackupKeys\b"
@@ -83,18 +79,39 @@ def entries(source, offset, keyed):
     return found
 
 
-def value(key, folder):
-    """The string a key stands for: itself, or the owner's constant read from the feature's folder."""
+def value(key, *folders):
+    """The string a key stands for: itself, or the owner's constant read from the feature's folder, then the hub's."""
     if key.startswith('"'):
         return json.loads(key)
     *owner, name = key.split(".")
-    for path in sorted(folder.rglob("*.swift")):
+    for folder in folders:
+        for path in sorted(folder.rglob("*.swift")):
+            source = path.read_text()
+            code = shape.mask_literals(source)
+            match = re.search(rf"\blet\s+{name}\s*=\s*0", code)
+            if match and (not owner or re.search(rf"\b(?:class|struct|enum|actor|extension)\s+{owner[-1]}\b", code)):
+                return json.JSONDecoder().raw_decode(source[match.end() - 1:])[0]
+    raise ValueError(f"{key}: no string constant {name} under {folders[0].name}/")
+
+
+def switch_flags(root):
+    """Each place a feature says whether a backup carries its switch: descriptor, hub arm or the schema's waiting list."""
+    stated = []
+    for path in sorted((root / "Tinycast/Features").rglob("*Descriptor.swift")):
+        relative = path.relative_to(root)
         source = path.read_text()
-        code = shape.mask_literals(source)
-        match = re.search(rf"\blet\s+{name}\s*=\s*0", code)
-        if match and (not owner or re.search(rf"\b(?:class|struct|enum|actor|extension)\s+{owner[-1]}\b", code)):
-            return json.JSONDecoder().raw_decode(source[match.end() - 1:])[0]
-    raise ValueError(f"{key}: no string constant {name} under {folder.name}/")
+        name = re.search(r"^\s*static let (\w+) = Self\($", source, re.M)
+        if name and shape.DESCRIPTOR_FILE.fullmatch(relative.as_posix()):
+            stated.extend((name[1], flag[1], f"{relative}:{source.count(chr(10), 0, flag.start(1)) + 1}")
+                          for flag in re.finditer(r"^\s*backedUp: (true|false),?$", source, re.M))
+    source = (root / FEATURE).read_text()
+    member = re.search(r"^    var backedUp\b.*?(?=^    var |\Z)", source, re.M | re.S)
+    for arm in re.finditer(r"^\s*case \.(\w+): (true|false)$", member[0] if member else "", re.M):
+        stated.append((arm[1], arm[2], f"{FEATURE}:{source.count(chr(10), 0, member.start() + arm.start()) + 1}"))
+    source = (root / SCHEMA).read_text()
+    stated.extend((line[1], line[2], f"{SCHEMA}:{source.count(chr(10), 0, line.start(1)) + 1}")
+                  for line in re.finditer(r"^\s*\.(\w+): (true|false),$", source, re.M))
+    return stated
 
 
 def live_keys(source, spans):
@@ -144,19 +161,16 @@ def described(root):
 
 def check(root):
     errors = []
-    raw_values = {raw for _, raw in features(root)}
-    schema = (root / SCHEMA).read_text()
+    raw_values = dict(features(root))
+    hub = root / FEATURE.parent
     declared = {}
-    for name, keyed in (("listedAllowed", True), ("listedExcluded", False)):
-        source, offset = body(schema, rf"\bstatic\s+let\s+{name}\b[^=]*=", "[", "]")
-        for key, line in entries(source, offset, keyed):
-            key = value(key, (root / SCHEMA).parent)
-            declared.setdefault(key, []).append(f"{SCHEMA}:{line}")
-            if keyed and CONFIDENTIAL_LOOKING.search(key):
-                errors.append(f"{SCHEMA}:{line}: {NOT_FOR_BACKUP}")
-            if key not in raw_values and key not in SCHEMA_KEYS:
-                errors.append(f"{SCHEMA}:{line}: {key} is a feature's own key; "
-                              "declare it in <Name>BackupKeys.swift in that feature's folder")
+    for name, flag, place in switch_flags(root):
+        if name not in raw_values:
+            errors.append(f"{place}: .{name} is no feature")
+            continue
+        declared.setdefault(raw_values[name], []).append(place)
+        if flag == "true" and CONFIDENTIAL_LOOKING.search(raw_values[name]):
+            errors.append(f"{place}: {NOT_FOR_BACKUP}")
     listing, offset = body((root / LIST).read_text(), r"\bstatic\s+let\s+all\b[^=]*=", "[", "]")
     listed = {}
     for number, text in enumerate(shape.mask_literals(listing).split("\n"), offset + 1):
@@ -190,9 +204,7 @@ def check(root):
         if not declaration or names != [feature]:
             errors.append(f"{relative}:1: declare exactly one .{feature} of NotchcastFeature.BackupKeys")
             continue
-        if feature not in features_described:
-            errors.append(f"{relative}:1: .{feature} has no descriptor; a key file belongs to a described feature")
-        elif not path.with_name(f"{place[1]}Descriptor.swift").exists():
+        if feature in features_described and not path.with_name(f"{place[1]}Descriptor.swift").exists():
             errors.append(f"{relative}:1: put it beside {place[1]}Descriptor.swift")
         if feature not in listed:
             errors.append(f"{relative}:1: list .{feature}, in {LIST}")
@@ -200,15 +212,15 @@ def check(root):
         allowed = {}
         for (start, end), keyed in zip(spans, (True, False)):
             for key, line in entries(source[start:end], source.count("\n", 0, start), keyed):
-                key = value(key, path.parent)
+                key = value(key, path.parent, hub)
                 declared.setdefault(key, []).append(f"{relative}:{line}")
                 if keyed:
                     allowed[key] = line
                 if keyed and CONFIDENTIAL_LOOKING.search(key):
                     errors.append(f"{relative}:{line}: {NOT_FOR_BACKUP}")
-        written, read = ({value(key, path.parent): line for key, line in keys.items()}
+        written, read = ({value(key, path.parent, hub): line for key, line in keys.items()}
                          for keys in live_keys(source, spans))
-        # A file without the closure is still saved by hand in SettingsBackup.
+        # A file that only excludes keys carries no closure.
         for label, live, verb in (("snapshot", written, "writes"), ("apply", read, "reads")):
             if re.search(rf"\b{label}\s*:", code):
                 errors.extend(f"{relative}:{line}: {key} is allowed, but {label} never {verb} it"
@@ -220,9 +232,9 @@ def check(root):
     for key, places in declared.items():
         if len(places) > 1:
             errors.append(f"{places[-1]}: {key} declared twice (first at {places[0]})")
-    for name, raw in features(root):
+    for name, raw in raw_values.items():
         if raw not in declared:
-            errors.append(f"{name} ({raw}): unclassified; edit {SCHEMA}")
+            errors.append(f"{name} ({raw}): unclassified; state backedUp in its descriptor, or its arm in {FEATURE}")
     return errors
 
 

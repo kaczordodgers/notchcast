@@ -26,5 +26,8 @@ extension NotchcastFeature.BackupKeys {
         .lowDiskWarning,
         .spacesOrder,
         .islandHoverOpen,
+        .colorPicker,
+        .screenshot,
+        .editor,
     ]
 }
