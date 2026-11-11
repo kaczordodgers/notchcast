@@ -48,14 +48,12 @@ final class LiveSoloistProcessList: SoloistProcessList {
     }
 
     func stop(_ peer: SoloistPeer) {
-        guard Self.path(of: peer.pid) == peer.path, kill(peer.pid, SIGTERM) == 0 else { return }
-        Task {
-            try? await Task.sleep(for: .milliseconds(800))
-            if Self.path(of: peer.pid) == peer.path { kill(peer.pid, SIGKILL) }
-        }
+        let ladder = ProcessRunner.StopLadder.terminating(grace: .milliseconds(800))
+        guard Self.path(of: peer.pid) == peer.path, kill(peer.pid, ladder.first) == 0 else { return }
+        ladder.escalate { signal in if Self.path(of: peer.pid) == peer.path { kill(peer.pid, signal) } }
     }
 
-    private static func path(of pid: Int32) -> String? {
+    nonisolated private static func path(of pid: Int32) -> String? {
         var buffer = [CChar](repeating: 0, count: 4 * Int(MAXPATHLEN))
         guard proc_pidpath(pid, &buffer, UInt32(buffer.count)) > 0 else { return nil }
         return String(bytes: buffer.prefix(while: { $0 != 0 }).map { UInt8(bitPattern: $0) }, encoding: .utf8)

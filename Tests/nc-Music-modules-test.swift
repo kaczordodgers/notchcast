@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Music/Model/*.swift
-// notchcast-sources: Tinycast/Features/Music/Service/*.swift
+// notchcast-sources: Tinycast/Features/Music/Service/*.swift Tinycast/Features/Notchcast/Process/ProcessRunner.swift
 // notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Music/MusicNowPlayingModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule+Registration.swift
