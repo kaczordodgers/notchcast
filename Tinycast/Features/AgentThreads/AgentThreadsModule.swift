@@ -18,14 +18,14 @@ final class AgentThreadsModule: NotchcastModule {
         slug: "refresh-agent-threads", name: String(localized: "Refresh Agent Threads", table: "Notchcast"),
         sfSymbol: "arrow.clockwise", feature: .agentThreads,
         isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) },
-        run: { NotchcastCore.agentThreads.state.refresh { state in
+        run: { AgentThreadsModule.shared.state.refresh { state in
             NotchcastHost.current.showMessage(state.refreshMessage, .neutral)
         } })
     nonisolated static let waitingCommand = NotchcastCommand(
         slug: "open-waiting-agent-thread", name: String(localized: "Open Waiting Agent Thread", table: "Notchcast"),
         sfSymbol: "bubble.left", feature: .agentThreads,
         isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) },
-        run: { NotchcastCore.agentThreads.openWaiting() })
+        run: { AgentThreadsModule.shared.openWaiting() })
 
     private func openWaiting() {
         state.refresh { state in
