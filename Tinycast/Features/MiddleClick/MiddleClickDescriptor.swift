@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Three-finger taps and presses middle-click; paused during Three Finger Drag.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

@@ -3,15 +3,16 @@ import Foundation
 @MainActor
 final class AgentGrantStore {
     private let defaults: UserDefaults
-    private let key = "agentActionGrants"
+    private let key: String
     private(set) var grants: [AgentConsentPolicy.Grant]
 
-    init(bundleIdentifier: String) throws {
+    init(bundleIdentifier: String, key: String) throws {
         let suite = NotchcastIdentity(bundleIdentifier: bundleIdentifier).suiteName(suffix: ".notchcast.agent-consent")
         guard let defaults = UserDefaults(suiteName: suite) else {
             throw CocoaError(.fileReadUnknown)
         }
         self.defaults = defaults
+        self.key = key
         if let data = defaults.data(forKey: key) {
             grants = try JSONDecoder().decode([AgentConsentPolicy.Grant].self, from: data)
         } else {

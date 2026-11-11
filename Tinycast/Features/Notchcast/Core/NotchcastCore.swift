@@ -41,7 +41,8 @@ enum NotchcastCore {
             remoteResult: { remoteResult($0) },
             refreshNotchcastCommands: { [weak core] in core?.appIndex.refreshNotchcastCommands() },
             finderSelection: { try await CopyPathSystemReader.read(.finderSelection) },
-            browserAddresses: { try await CopyPathSystemReader.read(.browser(CopyPathTarget(processID: $0, bundleID: $1))) }
+            browserAddresses: { try await CopyPathSystemReader.read(.browser(CopyPathTarget(processID: $0, bundleID: $1))) },
+            confirm: { [weak core] in await core?.confirm(title: $0, message: $1, symbol: $2, confirmTitle: $3) ?? false }
         )
         NSApp.servicesProvider = archiveServices
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }

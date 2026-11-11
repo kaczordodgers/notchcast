@@ -1,6 +1,8 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/JobOutput.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Archives/ArchivesBackupKeys.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: core host platform
 import Foundation
@@ -58,6 +60,7 @@ struct ArchiveModuleLifecycleTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         precondition(preferences.isOn(.archives))
         precondition(!preferences.isOn(.archivesInPlace) && !preferences.isOn(.archivesDefaultApp))
+        precondition(NotchcastFeature.BackupKeys.archives.excluded == ["archiveHandlersClaimed", ArchiveRecovery.key])
         let service = FakeArchiveDefaults()
         let application = URL(fileURLWithPath: "/fixture/Notchcast.app")
         let module = ArchiveModule(preferences: preferences, locator: Locator(tool: nil),

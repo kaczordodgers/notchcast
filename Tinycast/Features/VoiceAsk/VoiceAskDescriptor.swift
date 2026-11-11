@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Voice Ask destination", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.accessibility, .microphone],
         isSystemFeature: false,

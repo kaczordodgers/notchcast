@@ -1,6 +1,6 @@
 # Feature descriptors
 
-A feature describes itself once, in the folder that holds its code: `<Name>Descriptor.swift` there holds one `static let <name>` of `NotchcastFeature.Descriptor` with title, subtitle, group, `defaultEnabled`, dependencies, required grants, `isSystemFeature` and `isSystemTweak`. Every field is stated; none has a default. The hub adds one line, `.<name>: .<name>,`, to `descriptors` in `Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift` (`merge=union`), and the feature keeps only its enum case in `NotchcastFeature.swift`, with no switch arm.
+A feature describes itself once, in the folder that holds its code: `<Name>Descriptor.swift` there holds one `static let <name>` of `NotchcastFeature.Descriptor` with title, subtitle, group, `defaultEnabled`, `backedUp`, dependencies, required grants, `isSystemFeature` and `isSystemTweak`. Every field is stated; none has a default. `backedUp` says whether a settings backup carries the feature's switch: `false` for a switch that grants a capability (a root helper, a network service, a consent gate, a system-wide change), `true` for a plain preference ([settings-backup.md](settings-backup.md)). The hub adds one line, `.<name>: .<name>,`, to `descriptors` in `Tinycast/Features/Notchcast/Core/NotchcastFeature+Descriptor.swift` (`merge=union`), and the feature keeps only its enum case in `NotchcastFeature.swift`, with no switch arm.
 
 The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`, `MachRemote/Integration/`), beside the feature's `Model/`, `Service/`, `UI/` and `Settings/` folders, never inside them: harnesses compile `Model/` and `Service/` without the hub. The same holds for a flat code folder a harness globs whole: `distillConvert`, `sendFiles` and `updateRemote` are described from `Distill/` and `MachRemote/`, one level above `Distill/Convert/`, `MachRemote/SendFiles/` and `MachRemote/UpdateRemote/`, because five harnesses compile `*.swift` there without the hub. Never in `Notchcast/Core/` or the `Notchcast/` root, and never anywhere under a folder upstream ships (`Launcher/`, `Notes/`, ...): a fork file there fails drift gate 1 (`upstream-folders`), so such a feature moves to a fork folder of its own first.
 
@@ -8,12 +8,12 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 
 ## Features still on the switches
 
-`dependencies`, `requiredGrants`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle` and `defaultEnabled` start with the fallback line `if let descriptor { return descriptor.<field> }` and keep arms only for:
+`dependencies`, `requiredGrants`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `defaultEnabled` and `backedUp` start with the fallback line `if let descriptor { return descriptor.<field> }`; `defaultEnabled` keeps one arm, `treadmillWalk: false`, under `default: true`, and the other four keep arms only for:
 
 - Treadmill (`treadmillWalk`, `treadmillHistory`): kept out of this batch;
 - `editorSpellChecking`: its only code is a patched line in upstream `Notes/`; it moves when it has a fork folder.
 
-`settingsGroup`, `title` and `subtitle` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these three move. The capture features (`colorPicker`, `screenshot`, `scrollingCapture`, `recording`, `captureTrimmer`, `captureEditor`) are described, and `PINS` holds their group, default and grants. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
+`settingsGroup`, `title`, `subtitle` and `backedUp` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these three move. The capture features (`colorPicker`, `screenshot`, `scrollingCapture`, `recording`, `captureTrimmer`, `captureEditor`) are described, and `PINS` holds their group, default and grants. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
 
 ## Checks
 
@@ -25,6 +25,7 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 - a `*Descriptor.swift` under a folder upstream ships at `merge-base HEAD upstream/main` (skipped when there is no `upstream/main` ref; drift gate 1 still refuses it at landing);
 - a hub line that maps a feature to another feature's descriptor;
 - a feature with neither a descriptor nor an arm in `settingsGroup`, `title` and `subtitle`;
+- a feature that does not say `backedUp: true` or `false`, in its descriptor or, without one, in its `backedUp` arm;
 - a `register(_: AppCore)` implementation anywhere but a `<Type>+Registration.swift` in an allowed folder (the descriptor's rules), or under a folder upstream ships;
 - a registrant listed twice, or listed while `NotchcastCore+Modules.swift` still holds a `static` of its type or an entry `module: <Type>...`.
 
@@ -87,15 +88,15 @@ A module whose launch repair must not run from a harness (`BatteryModule.shared.
 
 ## Moving a feature
 
-Record every feature's values on the base (`title`, `subtitle`, `settingsGroup`, `needsIsland`, `defaultEnabled`, `dependencies`, `requiredGrants`, `isSystemFeature`, `isSystemTweak`, `isWired`), write each descriptor with the value that applied (its arm, or the default and the system-feature guards), delete every arm of the moved features, add the hub lines, and diff the same values after. Strings keep their localization keys and tables, so the catalog does not change.
+Record every feature's values on the base (`title`, `subtitle`, `settingsGroup`, `needsIsland`, `defaultEnabled`, `backedUp`, `dependencies`, `requiredGrants`, `isSystemFeature`, `isSystemTweak`, `isWired`), write each descriptor with the value that applied (its arm, or the default and the system-feature guards), delete every arm of the moved features, add the hub lines, and diff the same values after. Strings keep their localization keys and tables, so the catalog does not change.
 
 ## Retiring a feature
 
-Dropping a feature deletes its case, descriptor, hub line, every list and settings-tree entry naming it, its module registration, its line in `ForkSettingsBackupSchema`, its line in `switch-path-allowlist-*.json`, its `Notchcast.xcstrings` keys, and every type and harness check only it used. Seams it shares with a kept feature stay. Record and diff the values as in "Moving a feature"; only the retired rows may change. What it left on disk is handled by these rules, not by a `Tinycast/Migrations/` file, which would add upstream footprint ([docs/migrations.md](../../docs/migrations.md): a migration only tidies, and skipping it must be harmless):
+Dropping a feature deletes its case, descriptor, hub line, every list and settings-tree entry naming it, its module registration, its `<Name>BackupKeys.swift` and line in `NotchcastBackupKeys.swift`, its line in `switch-path-allowlist-*.json`, its `Notchcast.xcstrings` keys, and every type and harness check only it used. Seams it shares with a kept feature stay. Record and diff the values as in "Moving a feature"; only the retired rows may change. What it left on disk is handled by these rules, not by a `Tinycast/Migrations/` file, which would add upstream footprint ([docs/migrations.md](../../docs/migrations.md): a migration only tidies, and skipping it must be harmless):
 
 - **Switch default.** The `<rawValue>` Bool in the fork suite stays where it is. `NotchcastPreferences` reads only `allCases`, so nothing reads it again.
 - **Never reuse a retired raw value** for a new case: a stored `true` would switch the new feature on. The table below lists them.
-- **Backups.** A switch in `listedExcluded` was never written to a backup, and restore refuses any key outside `allowed`, so deleting its line changes nothing. A switch in `listedAllowed` is in existing backups, and restore refuses an unknown key, so it cannot be retired until restore tolerates it; that needs its own change first.
+- **Backups.** A switch with `backedUp: false` was never written to a backup, and restore refuses any key outside `allowed`, so deleting the feature changes nothing. A switch with `backedUp: true` is in existing backups, and restore refuses an unknown key, so it cannot be retired until restore tolerates it; that needs its own change first.
 - **`settings.json` and launcher visibility.** Fork switches have no `SettingsFileKey`. A feature with commands also deletes its catalog lines; its stored visibility and hotkey entries then name a command that no longer exists and are ignored, as for any removed command.
 - **Files and other keys.** A feature that wrote files or other keys names them in the table. One a user could not reach left none.
 
@@ -109,7 +110,7 @@ Dropping a feature deletes its case, descriptor, hub line, every list and settin
 
 `Descriptor` is plain data that harnesses compile with the hub alone, so anything that needs a view, a module or another feature's types lives beside it in the same folder instead:
 
-- backup keys: `<Name>BackupKeys.swift` beside `<Name>Descriptor.swift`, one `NotchcastFeature.BackupKeys` per described feature, collected by `featureKeys` in the schema ([settings-backup.md](settings-backup.md));
+- backup keys: `<Name>BackupKeys.swift` beside `<Name>Descriptor.swift`, one `NotchcastFeature.BackupKeys` holding the feature's keys other than its switch and their snapshot/validate/apply, listed in `NotchcastBackupKeys.swift` ([settings-backup.md](settings-backup.md));
 - settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order).
 
 Three things stay in the hub on purpose:

@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Copy text from a selected screen area.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.screenRecording],
         isSystemFeature: false,

@@ -42,6 +42,7 @@ struct MicrophoneMuteTests {
         precondition(audio.input.mute.map(\.value) == [0, 0])
         precondition(legacy.failures.isEmpty)
         legacy.stop()
+        precondition(MicrophoneMute.restoreKey == MicrophoneMute.mutedKey + ".restore", "a backup would exclude the wrong key")
         print("PASS: mixed channel mute restored across restart; legacy record restored")
     }
 }

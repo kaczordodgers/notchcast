@@ -9,7 +9,7 @@ final class ColorPickerService {
     private let copy: (String) -> Bool
     private var operation: UUID?
     private var completion: ((Outcome) -> Void)?
-    private static let formatKey = "notchcast.colorPicker.format"
+    nonisolated static let formatKey = "notchcast.colorPicker.format"
 
     var format: ColorPickerFormat {
         get {

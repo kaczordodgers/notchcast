@@ -4,7 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class LastPlayer {
-    static let key = "music.lastPlayer"
+    nonisolated static let key = "music.lastPlayer"
     static let appleMusic = "com.apple.Music"
     static let spotify = "com.spotify.client"
 

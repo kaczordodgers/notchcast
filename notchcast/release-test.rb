@@ -37,7 +37,9 @@ Dir.mktmpdir('release-launch-') do |directory|
   File.write(File.join(directory, 'tools/notchcast/config.env'), "APP_NAME=Fixture\n")
   FileUtils.mkdir_p(File.join(directory, 'bin'))
   File.write(File.join(directory, 'bin/ditto'), "#!/bin/bash\ncp -R \"$1\" \"$2\"\n")
-  File.write(File.join(directory, 'bin/sleep'), "#!/bin/bash\n[ \"$1\" = 30 ] || exit 9\n/bin/sleep 0.2\n")
+  # Waits for the fixture to run, so a slow start can't pass as alive.
+  File.write(File.join(directory, 'bin/sleep'), "#!/bin/bash\n[ \"$1\" = 30 ] || exit 9\n" \
+    "for _ in $(seq 300); do [ -e \"$RUNNER_TEMP/ran\" ] && break; /bin/sleep 0.1; done\n/bin/sleep 0.5\n")
   FileUtils.chmod(0755, Dir.glob(File.join(directory, 'bin/*')))
   app = File.join(directory, 'DerivedData/Build/Products/Release/Fixture.app/Contents/MacOS')
   FileUtils.mkdir_p(app)
@@ -46,9 +48,10 @@ Dir.mktmpdir('release-launch-') do |directory|
   File.write(script, launch.fetch('run'))
   env = {'RUNNER_TEMP' => directory, 'PATH' => "#{directory}/bin:#{ENV.fetch('PATH')}"}
   [['exec /bin/sleep 120', true], ['exit 1', false]].each do |body, expected|
-    File.write(executable, "#!/bin/bash\n#{body}\n")
+    File.write(executable, "#!/bin/bash\ntouch \"$RUNNER_TEMP/ran\"\n#{body}\n")
     FileUtils.chmod(0755, executable)
     FileUtils.rm_rf(File.join(directory, 'launch'))
+    FileUtils.rm_f(File.join(directory, 'ran'))
     output, status = Open3.capture2e(env, 'bash', '-e', script, chdir: directory)
     assert(status.success? == expected, "launch result does not match process liveness: #{output}")
     puts "PASS launch check #{expected ? 'accepts a live process' : 'rejects a crashed process'}"

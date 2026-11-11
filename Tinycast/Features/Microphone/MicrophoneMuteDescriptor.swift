@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Press F5 to mute or unmute microphones.", table: "Notchcast"),
         group: .music,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [.island],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

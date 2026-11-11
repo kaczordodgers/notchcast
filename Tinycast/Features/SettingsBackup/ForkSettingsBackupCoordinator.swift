@@ -15,9 +15,10 @@ import Observation
     init(folder: URL = NotchcastIdentity.supportRoot.appendingPathComponent("fork-settings-backups"),
          state: ForkSettingsBackupState = .live,
          confirm: @escaping () async -> Bool = {
-             await AppCore.shared.confirm(title: String(localized: "Restore Settings Backup", table: "Notchcast"),
-                 message: String(localized: "Replace saved settings with the selected backup?", table: "Notchcast"),
-                 symbol: "clock.arrow.circlepath", confirmTitle: String(localized: "Restore", table: "Notchcast"))
+             await NotchcastHost.current.confirm(
+                 String(localized: "Restore Settings Backup", table: "Notchcast"),
+                 String(localized: "Replace saved settings with the selected backup?", table: "Notchcast"),
+                 "clock.arrow.circlepath", String(localized: "Restore", table: "Notchcast"))
          },
          report: @escaping (Bool) -> Void = { success in
              if success {

@@ -4,6 +4,7 @@ import Observation
 @MainActor
 @Observable
 final class SpotifyConnectModule: NotchcastModule {
+    nonisolated static let deviceNameKey = "spotify.deviceName"
     let key: SoloistKey
     private(set) var speaker: SoloistSpeaker
     private(set) var deviceName: String
@@ -15,7 +16,7 @@ final class SpotifyConnectModule: NotchcastModule {
         self.key = key
         self.source = source
         self.defaults = defaults
-        let name = defaults.string(forKey: "spotify.deviceName") ?? "Notchcast"
+        let name = defaults.string(forKey: Self.deviceNameKey) ?? "Notchcast"
         deviceName = name
         speaker = Self.makeSpeaker(key: key, source: source, name: name)
     }
@@ -39,7 +40,7 @@ final class SpotifyConnectModule: NotchcastModule {
         speaker.setEnabled(false)
         source.connect(port: nil)
         deviceName = name
-        defaults.set(name, forKey: "spotify.deviceName")
+        defaults.set(name, forKey: Self.deviceNameKey)
         speaker = Self.makeSpeaker(key: key, source: source, name: name)
         speaker.setEnabled(isEnabled)
     }

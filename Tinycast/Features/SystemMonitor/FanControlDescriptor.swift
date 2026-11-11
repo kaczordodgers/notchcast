@@ -6,7 +6,8 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Control fans with the privileged helper.", table: "Notchcast"),
         group: .systemTools,
         defaultEnabled: false,
-        dependencies: [],
+        backedUp: false,
+        dependencies: [.systemMonitor],
         requiredGrants: [],
         isSystemFeature: true,
         isSystemTweak: false
