@@ -10,9 +10,7 @@ nonisolated struct ArchiveToolLocator: ArchiveToolLocating {
     var name = "hatchzip"
 
     func locate() -> URL? {
-        let paths = (environment["PATH"] ?? "").split(separator: ":").map(String.init)
-            + [home.appending(path: ".local/bin").path, "/opt/homebrew/bin", "/usr/local/bin"]
-        return paths.filter { $0.hasPrefix("/") }.map { URL(fileURLWithPath: $0).appending(path: name) }
-            .first { FileManager.default.isExecutableFile(atPath: $0.path) }
+        ExecutableLocator.find(
+            name, in: ExecutableLocator.searchDirectories(home: home, path: environment["PATH"] ?? ""))
     }
 }

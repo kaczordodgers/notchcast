@@ -15,7 +15,7 @@ struct MachineBackupRunner: MachineBackupTooling {
             executable: request.executable, arguments: request.arguments,
             environment: ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", "LANG": "en_US.UTF-8"]
                 .merging(request.environment) { _, value in value },
-            timeout: .seconds(300), outputLimit: Self.outputLimit, stopSignal: SIGINT)
+            timeout: .seconds(300), outputLimit: Self.outputLimit, stopLadder: .terminating(SIGINT))
         let output: ProcessRunner.Output
         do { output = try await ProcessRunner.run(run) } catch ProcessRunner.Failure.timedOut {
             throw CancellationError()

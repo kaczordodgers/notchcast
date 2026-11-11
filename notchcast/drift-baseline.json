@@ -88,8 +88,8 @@
     "Tinycast/Features/Tweaks/Service/MacSetupService.swift | Tinycast/Features/Tweaks/Service/TypingPreferenceService.swift": 0
   },
   "constants": {
-    "app.notchcast": 3,
-    "app.notchcast.dev": 6,
+    "app.notchcast": 2,
+    "app.notchcast.dev": 4,
     "com.apple.": 2,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
