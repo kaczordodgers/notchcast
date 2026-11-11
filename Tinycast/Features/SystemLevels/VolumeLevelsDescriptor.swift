@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Replaces the macOS volume overlay.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [.accessibility],
         isSystemFeature: false,
