@@ -88,12 +88,12 @@ final class CleanModule: NotchcastModule {
             let service = CleanAIDataService(policy: .init(home: home, age: CleanAIDataPolicy.defaultAge),
                 transport: trash, git: GitReader(), now: { .now },
                 chatIdle: {
-                    do { return try await Tools.idle($0) } catch { return nil }
+                    do { return try await CleanTool.idle($0) } catch { return nil }
                 }, copy: { try FileManager().copyItem(at: $0, to: $1) })
             let items = try await service.scan()
-            trash.recordSizes(Dictionary(uniqueKeysWithValues: items.map { ($0.path, snapshotSize($0.snapshot)) }))
+            trash.recordSizes(Dictionary(uniqueKeysWithValues: items.map { ($0.path, $0.size) }))
             return .init(items: items.map {
-                .init(id: $0.path, size: snapshotSize($0.snapshot), reportOnly: !$0.selectable)
+                .init(id: $0.path, size: $0.size, reportOnly: !$0.selectable)
             }) { paths in
                 let outcomes = try await service.clean(items.filter { paths.contains($0.path) })
                 guard outcomes.allSatisfy({ $0.status == .trashed }) else { throw Failure.itemsChanged }
@@ -119,7 +119,7 @@ final class CleanModule: NotchcastModule {
                 recentActivityThreshold: 7 * 86_400, maximumDepth: 32, maximumEntries: 100_000,
                 protectedNames: []), transport: trash,
                 activity: { project, _ in
-                    switch try await Tools.idle(project, recursive: true) {
+                    switch try await CleanTool.idle(project, recursive: true) {
                     case true: .idle
                     case false: .active
                     case nil: .unknown
@@ -185,7 +185,7 @@ final class CleanModule: NotchcastModule {
                 let skipped = try await helper { try await client.trash(selected) }
                 if skipped > 0 { throw Failure.skipped(skipped) }
             }
-        default: throw Failure.itemsChanged
+        default: preconditionFailure("\(feature) is not a Clean feature")
         }
     }
 
@@ -193,13 +193,6 @@ final class CleanModule: NotchcastModule {
         do { return try await body() } catch CleanSystemRootClient.Failure.helperUpdate,
             RootHelperClient.Failure.reinstallRequired, RootHelperClient.Failure.unsafePath(.missing) {
             throw CleanCoordinator.HelperUpdate()
-        }
-    }
-
-    nonisolated private static func snapshotSize(_ snapshot: [String: String]) -> Int64 {
-        snapshot.values.filter { !$0.contains("NSFileType=NSFileTypeDirectory") }.reduce(0) { sum, value in
-            sum + (value.split(separator: "|").first { $0.hasPrefix("NSFileSize=") }
-                .flatMap { Int64($0.dropFirst("NSFileSize=".count)) } ?? 0)
         }
     }
 
@@ -303,13 +296,13 @@ final class CleanModule: NotchcastModule {
                 mergedIntoMain: unmerged == "0", hiddenIndexFlags: flags.split(separator: "\n").contains {
                     $0.first.map { $0 == "S" || $0.isLowercase } ?? true
                 }, submodules: !submodules.isEmpty, operationInProgress: operation,
-                idle: try await Tools.idle(path, recursive: true) == true)
+                idle: try await CleanTool.idle(path, recursive: true) == true)
         }
     }
 
     private struct Tools: CleanOptimizeProcessTransport, CleanOptimizeDatabaseTransport {
         @concurrent func run(_ request: CleanOptimizeRequest) async throws -> CleanOptimizeRequest.Result {
-            .exited(try await CleanTool.run(request.executable, request.arguments, timeout: request.timeout).code)
+            try await CleanTool.optimize(request)
         }
 
         @concurrent func count(at database: URL, timeout: TimeInterval) async throws -> Int {
@@ -318,14 +311,6 @@ final class CleanModule: NotchcastModule {
 
         @concurrent func clear(at database: URL, timeout: TimeInterval) async throws -> Int {
             try Self.database(database, timeout: timeout, clear: true)
-        }
-
-        static func idle(_ path: URL, recursive: Bool = false) async throws -> Bool? {
-            let result = try await CleanTool.run(URL(fileURLWithPath: "/usr/sbin/lsof"),
-                ["-nP", "-t"] + (recursive ? ["+D", path.path] : ["--", path.path]), timeout: 5)
-            guard result.error.isEmpty else { return nil }
-            if result.code == 0 { return false }
-            return result.code == 1 && result.output.isEmpty ? true : nil
         }
 
         static func database(_ url: URL, timeout: TimeInterval, clear: Bool) throws -> Int {
