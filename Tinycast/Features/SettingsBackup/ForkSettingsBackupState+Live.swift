@@ -8,7 +8,7 @@ extension ForkSettingsBackupState {
             for feature in NotchcastFeature.BackupKeys.all {
                 let saved: [String: Any]
                 do { saved = try feature.snapshot() } catch {
-                    logger.error("Backup snapshot failed: \(error.localizedDescription, privacy: .public)")
+                    logger.error("Backup snapshot of \(feature.allowed.keys.sorted(), privacy: .public) failed: \(String(describing: error), privacy: .public)")
                     continue
                 }
                 for key in feature.allowed.keys {
@@ -16,7 +16,7 @@ extension ForkSettingsBackupState {
                         guard let value = saved[key] else { throw ForkSettingsBackupEngine.Failure.invalidArchive }
                         try validateLive([key: value])
                         values[key] = value
-                    } catch { logSkipped(key) }
+                    } catch { logger.error("Skipping invalid backup key: \(key, privacy: .public)") }
                 }
             }
             return values
@@ -29,10 +29,6 @@ extension ForkSettingsBackupState {
 
     private static var logger: Logger {
         Logger(subsystem: NotchcastIdentity.current.bundleID, category: "SettingsBackup")
-    }
-
-    private static func logSkipped(_ key: String) {
-        logger.error("Skipping invalid backup key: \(key, privacy: .public)")
     }
 
     private static func validateLive(_ values: [String: Any]) throws {
