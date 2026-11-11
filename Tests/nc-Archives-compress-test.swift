@@ -1,4 +1,7 @@
+// notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/JobOutput.swift
 import Foundation
+import os
 
 @main struct ArchiveCompressionTests {
     static func main() async throws {
@@ -19,12 +22,9 @@ import Foundation
         let zstd = URL(filePath: "/a tool folder/zstd")
         precondition(ArchiveCompression.fast.arguments(sources: [source], output: output, zstd: zstd)
             == ["--use-compress-program", "\"" + zstd.path + "\" -T0", "-cf", output.path, "-C", root.path, "./fixture"])
-        precondition(ArchiveCompression.zip.output(sources: [source], exists: { $0 == output })
-            .lastPathComponent == "fixture 2.zip")
-        precondition(ArchiveCompression.zip.output(sources: [source, root.appending(path: "other")], exists: { _ in false })
-            .lastPathComponent == root.lastPathComponent + ".zip")
-        precondition(ArchiveCompression.zip.output(sources: [source, URL(filePath: "/elsewhere/other")], exists: { _ in false })
-            .lastPathComponent == "Archive.zip")
+        precondition(ArchiveCompression.zip.stem(sources: [source]) == "fixture")
+        precondition(ArchiveCompression.zip.stem(sources: [source, root.appending(path: "other")]) == root.lastPathComponent)
+        precondition(ArchiveCompression.zip.stem(sources: [source, URL(filePath: "/elsewhere/other")]) == "Archive")
         let failing = ArchiveCompressor(run: { _, arguments in
             try Data().write(to: URL(filePath: arguments.last!))
             return 1
@@ -52,7 +52,7 @@ import Foundation
             return 0
         })
         let published = try await racing.compress([source], format: .zip)
-        precondition(published.lastPathComponent == "fixture 2.zip")
+        precondition(published.lastPathComponent == "fixture (2).zip")
         let original = try Data(contentsOf: output)
         let finished = try Data(contentsOf: published)
         precondition(original == Data("other writer".utf8) && finished == Data("finished".utf8))
@@ -65,16 +65,32 @@ import Foundation
             return 0
         })
         let besideLink = try await writing.compress([source], format: .zip)
-        precondition(besideLink.lastPathComponent == "fixture 2.zip")
+        precondition(besideLink.lastPathComponent == "fixture (2).zip")
         try files.removeItem(at: output)
         try files.removeItem(at: besideLink)
+        let refusals = OSAllocatedUnfairLock(initialState: 0)
+        var portable = writing
+        portable.exclusiveRename = { _, _ in
+            refusals.withLock { $0 += 1 }
+            errno = ENOTSUP
+            return -1
+        }
+        try Data("taken".utf8).write(to: output)
+        let moved = try await portable.compress([source], format: .zip)
+        let kept = try Data(contentsOf: output)
+        let landed = try Data(contentsOf: moved)
+        precondition(moved.lastPathComponent == "fixture (2).zip" && refusals.withLock { $0 } == 2)
+        precondition(kept == Data("taken".utf8) && landed == Data("finished".utf8))
+        try files.removeItem(at: output)
+        try files.removeItem(at: moved)
+        print("PASS: a volume without exclusive rename (ENOTSUP) still publishes, beside the taken name")
         let dotted = root.appending(path: "v1.2")
         try files.createDirectory(at: dotted, withIntermediateDirectories: false)
         defer { try? files.removeItem(at: dotted) }
-        precondition(ArchiveCompressor.numbered(root.appending(path: "x.tar.gz"), 2) == "x 2.tar.gz")
-        precondition(ArchiveCompressor.numbered(root.appending(path: "README"), 2) == "README 2")
-        precondition(ArchiveCompressor.numbered(root.appending(path: ".hidden"), 2) == ".hidden 2")
-        precondition(ArchiveCompressor.numbered(dotted, 2) == "v1.2 2")
+        precondition(ArchiveCompressor.numbered(root.appending(path: "x.tar.gz"), 2) == "x (2).tar.gz")
+        precondition(ArchiveCompressor.numbered(root.appending(path: "README"), 2) == "README (2)")
+        precondition(ArchiveCompressor.numbered(root.appending(path: ".hidden"), 2) == ".hidden (2)")
+        precondition(ArchiveCompressor.numbered(dotted, 2) == "v1.2 (2)")
         print("PASS: dangling symlink is a taken name; duplicate names keep multi-part suffixes and folder names")
         let first = root.appending(path: "a/README.md")
         let second = root.appending(path: "b/README.md")
@@ -126,9 +142,9 @@ import Foundation
             let unpacked = try await ArchiveProcess.run(tool: tool, arguments: duplicateArguments)
             precondition(unpacked.status == 0)
             let firstData = try Data(contentsOf: duplicateOut.appending(path: "README.md"))
-            let secondData = try Data(contentsOf: duplicateOut.appending(path: "README 2.md"))
+            let secondData = try Data(contentsOf: duplicateOut.appending(path: "README (2).md"))
             precondition(firstData == Data(first.path.utf8) && secondData == Data(second.path.utf8))
-            print("PASS: \(format.suffix) real duplicate-leaf round trip: README.md and README 2.md both preserved")
+            print("PASS: \(format.suffix) real duplicate-leaf round trip: README.md and README (2).md both preserved")
         }
     }
 }

@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/JobOutput.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
