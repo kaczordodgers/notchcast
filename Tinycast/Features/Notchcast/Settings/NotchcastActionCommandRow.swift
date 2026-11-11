@@ -48,8 +48,8 @@ struct NotchcastActionCommandRow: View {
         return switch feature {
         case .cleanJunk, .cleanHistory, .cleanAIData, .cleanDisk, .cleanPurge, .cleanOptimize:
             !NotchcastCore.clean.coordinator.busy.contains(feature)
-        case .finderTweaks: !NotchcastCore.finderTweaks.store.busy
-        case .appleAppsTweaks: !NotchcastCore.appleAppsTweaks.store.busy
+        case .finderTweaks: !TweaksModule.finder.store.busy
+        case .appleAppsTweaks: !TweaksModule.appleApps.store.busy
         case .appUpdates: !NotchcastCore.appUpdates.checking
         case .macUpdate:
             command.slug == "settings-cancelUpdate" ? NotchcastCore.macUpdate.running : !NotchcastCore.macUpdate.running

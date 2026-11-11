@@ -46,15 +46,20 @@ check_hold() {
     [ "$owner" = "$1" ] || [ "$owner" = "${NOTCHCAST_LAND_AS:-}" ] || hold_refuse_foreign
 }
 
-# land.sh, at its start: refuses under a foreign live hold; under its own, takes nothing; otherwise takes an auto hold
-# for PR $1, so a hold set during its harnesses cannot refuse it at the end. hold_release_claimed gives it back.
+# land.sh, at its start, for the PRs "$@": refuses under a foreign live hold; under its own, takes nothing (hold_pr is
+# the one PR a hold names, empty under NOTCHCAST_LAND_AS); otherwise takes an auto hold for PR $1, so a hold set during
+# its harnesses cannot refuse it at the end. hold_release_claimed gives it back.
 hold_claimed=
+hold_pr=
 hold_claim() {
-    local owner until auto value minutes=${NOTCHCAST_LAND_HOLD_MINUTES:-150} current
+    local owner until auto value minutes=${NOTCHCAST_LAND_HOLD_MINUTES:-150} current pr
     [[ "$minutes" =~ ^[0-9]+$ ]] || refuse "NOTCHCAST_LAND_HOLD_MINUTES must be a number, not '$minutes'"
     if hold_live; then
-        [ "$owner" = "$1" ] || [ "$owner" = "${NOTCHCAST_LAND_AS:-}" ] || hold_refuse_foreign
-        return 0
+        [ "$owner" != "${NOTCHCAST_LAND_AS:-}" ] || return 0
+        for pr in "$@"; do
+            [ "$owner" != "$pr" ] || { hold_pr=$pr; return 0; }
+        done
+        hold_refuse_foreign
     fi
     value="$1 $(($(date +%s) + 10#$minutes * 60)) auto"
     hold_claimed=$value  # before the set: a failed set may still have saved it, and exit must release it

@@ -6,7 +6,7 @@ struct NotchcastAutomaticBackupsSettingRow: View {
     var body: some View {
         NotchcastTweaksPreferenceSettingRow(
             identifier: "automatic-backups", title: LocalizedStringResource("Turn off iPhone auto backups", table: "Notchcast"),
-            module: NotchcastCore.iPhoneBackupTweaks,
+            module: TweaksModule.iPhoneBackup,
             writes: IPhoneBackupPolicy.writes(automaticBackups: false), restart: nil)
     }
 }
