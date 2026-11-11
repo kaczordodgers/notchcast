@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise harness selection and compiler inputs through the shipped scripts."""
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -10,11 +11,8 @@ import unittest
 ROOT = Path(__file__).resolve().parent.parent
 HIDDEN = "Tinycast/Features/Notchcast/Hidden/NotchcastHidden.swift"
 EXAMPLE = "Tinycast/Features/Example/Model/Example.swift"
-SYMBOL_SOURCES = {
-    "ProcessRunner": ["Tinycast/Features/Notchcast/Process/ProcessRunner.swift", "Tinycast/Platform/ProcessExit.swift"],
-    "WebRules": ["Tinycast/Features/Notchcast/Model/WebRules.swift"],
-    "NotchcastIdentity": ["Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift", "Tinycast/Platform/AppPaths.swift"],
-}
+SYMBOL_TABLE = (ROOT / "notchcast/command-harness-sources.sh").read_text().split("symbol_sources=(")[1].split(")")[0]
+SYMBOL_SOURCES = {row.split()[0]: row.split()[1:] for row in re.findall(r"'([^']+)'", SYMBOL_TABLE)}
 
 
 class HarnessInputsTest(unittest.TestCase):
@@ -157,7 +155,8 @@ class HarnessInputsTest(unittest.TestCase):
     def test_source_calling_a_shared_symbol_selects_on_each_of_its_files(self):
         for symbol, files in SYMBOL_SOURCES.items():
             for text, brings in ((f"{symbol}.shared", True), (f"{symbol}(1)", True),
-                                 (f"typealias {symbol} = Int\nHost{symbol}.shared", False)):
+                                 (f"func f(_ value: {symbol}) {{}}", True),
+                                 (f"Host{symbol}.shared\n{symbol}s.shared", False)):
                 (self.root / EXAMPLE).write_text(text)
                 for changed in files:
                     with self.subTest(text=text, changed=changed):

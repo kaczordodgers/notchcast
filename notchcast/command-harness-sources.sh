@@ -44,7 +44,7 @@ if [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastFeature"* ]]; then
     done
 fi
 
-# Shared fork helpers no header lists: a compiled Tinycast source calling `<symbol>.` or `<symbol>(` brings its files in.
+# Shared fork helpers no header lists: a compiled Tinycast source naming `<symbol>` brings its files in.
 symbol_sources=(
     'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Platform/ProcessExit.swift'
     'WebRules Tinycast/Features/Notchcast/Model/WebRules.swift'
@@ -53,7 +53,7 @@ symbol_sources=(
 # Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
 symbol_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done | tr '\n' ' '; true)
 for symbol_row in "${symbol_sources[@]}"; do
-    grep -lqsE "(^|[^A-Za-z0-9_])${symbol_row%% *}[.(]" $symbol_readers /dev/null || continue
+    grep -lqsw "${symbol_row%% *}" $symbol_readers /dev/null || continue
     for source in ${symbol_row#* }; do
         declared=${source##*/}
         # A harness that declares the file's type itself keeps its stub.
