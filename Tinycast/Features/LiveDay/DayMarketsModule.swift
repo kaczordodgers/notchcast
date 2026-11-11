@@ -4,8 +4,8 @@ final class DayMarketsModule: NotchcastModule {
     private var enabled = false
     private var visible = false
 
-    func start() { NotchcastHost.current.refreshNotchcastCommands(); enabled = true; updateVisibility() }
-    func stop() { NotchcastHost.current.refreshNotchcastCommands(); enabled = false; store.setVisible(false) }
+    func start() { enabled = true; updateVisibility() }
+    func stop() { enabled = false; store.setVisible(false) }
 
     func setVisible(_ visible: Bool) {
         self.visible = visible

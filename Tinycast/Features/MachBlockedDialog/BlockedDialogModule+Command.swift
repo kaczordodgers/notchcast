@@ -4,10 +4,7 @@ extension BlockedDialogModule {
     nonisolated static let checkCommand = NotchcastCommand(
         slug: "check-other-mac-dialogs", name: String(localized: "Check Other Mac Dialogs", table: "Notchcast"),
         sfSymbol: "rectangle.on.rectangle", feature: .machBlockedDialogAlert,
-        isEnabled: {
-            [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert]
-                .allSatisfy { NotchcastPreferences.shared.isOn($0) }
-        }, run: {
+        run: {
             guard let module = BlockedDialogModule.shared else {
                 NotchcastHost.current.remoteResult(String(localized: "Could Not Check Other Mac Dialogs", table: "Notchcast"))
                 return

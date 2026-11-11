@@ -12,10 +12,7 @@ extension ShelfModule {
         NotchcastCommand(
         slug: "send-shelf-to-other-mac", name: String(localized: "Send Clipboard to Other Mac", table: "Notchcast"),
         sfSymbol: "paperplane", feature: .shelfBetweenMacs,
-        isEnabled: {
-            NotchcastPreferences.shared.isOn(.shelfBetweenMacs)
-                && NotchcastPreferences.shared.isOn(.machLink)
-        }, run: {
+        run: {
             ShelfModule.shared.sendClipboard(readText())
         })
     }

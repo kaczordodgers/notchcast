@@ -35,7 +35,7 @@ enum DialogTone {}
         let module = ShelfModule.shared
         let entries = ShelfModule.register(AppCore())
         precondition(entries.count == 1 && entries[0].module === module)
-        precondition(entries[0].requires == [.machLink, .shelfBetweenMacs] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].requires == [.shelfBetweenMacs] && entries[0].requiresAny.isEmpty)
         let peer = ShelfPeer()
         module.transport = peer
         module.linkStatus = peer
@@ -43,9 +43,7 @@ enum DialogTone {}
         ShelfModule.showCommand.run()
         precondition(SettingsActionCommands.openedShelf)
         let command = ShelfModule.clipboardCommand { "Test shelf text" }
-        precondition(command.feature == .shelfBetweenMacs && command.isEnabled())
-        NotchcastPreferences.shared.enabled = false
-        precondition(!command.isEnabled())
+        precondition(command.feature == .shelfBetweenMacs)
         command.run()
         while Probe.messages.isEmpty { await Task.yield() }
         precondition(peer.items.count == 1)

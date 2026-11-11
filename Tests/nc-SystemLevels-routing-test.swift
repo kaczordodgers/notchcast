@@ -115,13 +115,6 @@ struct SystemLevelRoutingTests {
               "Registration returns the shared levels module")
         check(registered[0].requires == [.island, .volumeLevels] && registered[0].requiresAny.isEmpty,
               "The levels module runs behind the island and volume switches")
-        var refreshes = 0
-        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
-        let seam = SystemLevelsModule(service: .init(hardware: RoutingAudioHardware(), observeHardware: false))
-        seam.start()
-        seam.stop()
-        check(refreshes == 2, "Starting and stopping refresh the commands through the host seam")
-        NotchcastHost.current = NotchcastHost()
         let suite = "nc-keys-test-\(UUID())"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)

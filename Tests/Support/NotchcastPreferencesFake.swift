@@ -5,4 +5,5 @@ final class NotchcastPreferences {
     var enabled = true
     var only: Set<NotchcastFeature>?
     func isOn(_ feature: NotchcastFeature) -> Bool { only?.contains(feature) ?? enabled }
+    func isEnabled(_ feature: NotchcastFeature) -> Bool { isOn(feature) }
 }

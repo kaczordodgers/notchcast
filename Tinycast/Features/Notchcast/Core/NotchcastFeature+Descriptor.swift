@@ -13,6 +13,8 @@ extension NotchcastFeature {
         let requiredGrants: [NotchcastGrant]
         let isSystemFeature: Bool
         let isSystemTweak: Bool
+        /// Its switch is applied by the root helper through `SystemToolsStore`, never written directly.
+        var usesSystemToolsHelper = false
     }
 
     /// One line per described feature; the others still answer from NotchcastFeature's switches.

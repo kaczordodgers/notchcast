@@ -7,7 +7,7 @@
 import Foundation
 
 enum NotchcastFeature {
-    case machLink, machMBPFans, remoteScreen, island, islandStatusMessages, machBlockedDialogAlert
+    case machMBPFans, remoteScreen, machBlockedDialogAlert
 }
 @MainActor final class AppCore {}
 @MainActor final class MachLinkChannel {}
@@ -50,17 +50,17 @@ enum NotchcastFeature {
 
         let fans = RemoteFanModule.register(core)
         precondition(fans.count == 1 && fans[0].module === RemoteFanModule.shared)
-        precondition(fans[0].requires == [.machLink, .machMBPFans] && fans[0].requiresAny.isEmpty)
+        precondition(fans[0].requires == [.machMBPFans] && fans[0].requiresAny.isEmpty)
         precondition(RemoteFanModule.shared?.transport.channel === channel)
 
         let screen = RemoteScreenModule.register(core)
         precondition(screen.count == 1 && screen[0].module === RemoteScreenModule.shared)
-        precondition(screen[0].requires == [.machLink, .remoteScreen] && screen[0].requiresAny.isEmpty)
+        precondition(screen[0].requires == [.remoteScreen] && screen[0].requiresAny.isEmpty)
         precondition(RemoteScreenModule.shared?.channel === channel)
 
         let dialogs = BlockedDialogModule.register(core)
         precondition(dialogs.count == 1 && dialogs[0].module === BlockedDialogModule.shared)
-        precondition(dialogs[0].requires == [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert])
+        precondition(dialogs[0].requires == [.machBlockedDialogAlert])
         precondition(dialogs[0].requiresAny.isEmpty && BlockedDialogModule.shared?.channel === channel)
         print("link registrations: no entry before the hub hands the channel; then one entry each on that channel")
     }

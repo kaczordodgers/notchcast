@@ -17,7 +17,7 @@ final class RemoteScreenModule: NotchcastModule {
         })
         channel.manager.register(MachLinkMethod.remoteScreenAvailability.rawValue) { request in
             try await RemoteScreenCoordinator.peerResponse(to: request, enabled: {
-                [.machLink, .remoteScreen].allSatisfy { NotchcastPreferences.shared.isOn($0) }
+                NotchcastPreferences.shared.isEnabled(.remoteScreen)
             }, address: { try await RemoteScreenAddress.current() })
         }
     }
