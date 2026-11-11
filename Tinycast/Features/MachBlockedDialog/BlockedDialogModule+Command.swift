@@ -8,7 +8,7 @@ extension BlockedDialogModule {
             [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert]
                 .allSatisfy { NotchcastPreferences.shared.isOn($0) }
         }, run: {
-            NotchcastCore.blockedDialogs.checkAndReport()
+            BlockedDialogModule.shared?.checkAndReport()
         })
 
     func checkAndReport() {
@@ -20,10 +20,10 @@ extension BlockedDialogModule {
             await waitUntilIdle()
             guard !Task.isCancelled, isRunning, generation == token else { return }
             if !failed, let owner = detectedOwner {
-                NotchcastCore.remoteResult(String(localized: "Other Mac: \(owner) is waiting.", table: "Notchcast"))
+                NotchcastHost.current.remoteResult(String(localized: "Other Mac: \(owner) is waiting.", table: "Notchcast"))
                 return
             }
-            NotchcastCore.remoteResult(failed
+            NotchcastHost.current.remoteResult(failed
                 ? String(localized: "Could Not Check Other Mac Dialogs", table: "Notchcast")
                 : String(localized: "Other Mac Dialog Check Complete", table: "Notchcast"))
         }
