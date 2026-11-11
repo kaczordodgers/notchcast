@@ -139,41 +139,75 @@ struct OwnershipTests {
 
     static func journalTable() throws {
         let now = Date(timeIntervalSince1970: 1000)
-        let table = [("battery-charging", "battery-charging-off", "battery-charging-on"),
-                     ("battery-sleep", "battery-sleep-off", "battery-sleep-on"),
-                     ("charge-limit", "charge-limit-80", "charge-limit-70")]
-        for (key, verb, undo) in table {
+        typealias Key = BatteryOwnershipJournal.Key
+        precondition(Key.allCases.map(\.rawValue) == ["charge-limit", "battery-charging", "battery-adapter", "battery-sleep"],
+                     "Journal keys are persisted; a renamed raw value orphans a saved effect")
+        precondition(Key.released.map(\.rawValue) == ["battery-adapter", "battery-charging", "battery-sleep"])
+        let keyed: [(RootContract.Command, Key, Bool)] = [
+            (.chargeLimit60, .chargeLimit, false),
+            (.chargeLimit70, .chargeLimit, false),
+            (.chargeLimit80, .chargeLimit, false),
+            (.chargeLimit90, .chargeLimit, false),
+            (.chargeLimitOff, .chargeLimit, false),
+            (.batteryChargingOn, .charging, true),
+            (.batteryChargingOff, .charging, false),
+            (.batteryAdapterOn, .adapter, true),
+            (.batteryAdapterOff, .adapter, false),
+            (.batterySleepOn, .sleep, true),
+            (.batterySleepOff, .sleep, false),
+        ]
+        for (verb, key, releases) in keyed {
+            precondition(verb.batteryJournalKey == key, "\(verb) journals under \(key)")
+            precondition(verb.rawValue.hasPrefix(key.rawValue + "-"), "\(key) is the stem of \(verb)")
+            precondition((key.release == verb) == releases, "\(verb) release")
+        }
+        let unkeyed = RootContract.Command.allCases.filter { verb in !keyed.contains { $0.0 == verb } }
+        precondition(unkeyed.allSatisfy { $0.batteryJournalKey == nil }, "Only battery effects are journaled")
+        precondition(Key.chargeLimit.release == nil)
+        precondition(Key.released.allSatisfy { $0.release?.rawValue == $0.rawValue + "-on" })
+        for percent in [60, 70, 80, 90] {
+            precondition(RootContract.Command(chargeLimit: percent)?.chargeLimitPercent == percent)
+        }
+        precondition(RootContract.Command.chargeLimitOff.chargeLimitPercent == nil)
+        precondition(RootContract.Command.chargeLimitRead.chargeLimitPercent == nil)
+        let table: [(Key, String, String)] = [
+            (.charging, "battery-charging-off", "battery-charging-on"),
+            (.sleep, "battery-sleep-off", "battery-sleep-on"),
+            (.chargeLimit, "charge-limit-80", "charge-limit-70"),
+        ]
+        for (typed, verb, undo) in table {
+            let key = typed.rawValue
             var journal = BatteryOwnershipJournal()
             journal.captureLimit(70)
-            journal.begin(key, verb: verb, undo: undo)
-            journal.fail(key, now: now)
+            journal.begin(typed, verb: verb, undo: undo)
+            journal.fail(typed, now: now)
             journal = try JSONDecoder().decode(BatteryOwnershipJournal.self,
                 from: JSONEncoder().encode(journal))
             precondition(journal.effects[key]?.applied == nil && journal.effects[key]?.intent == verb)
-            journal.begin(key, verb: undo, undo: undo)
+            journal.begin(typed, verb: undo, undo: undo)
             for attempt in 0..<6 {
-                journal.fail(key, now: now.addingTimeInterval(Double(attempt * 3600)))
+                journal.fail(typed, now: now.addingTimeInterval(Double(attempt * 3600)))
             }
             journal = try JSONDecoder().decode(BatteryOwnershipJournal.self,
                 from: JSONEncoder().encode(journal))
-            precondition(!journal.canRun(key, verb: undo, now: .distantFuture, releasing: true))
+            precondition(!journal.canRun(typed, verb: undo, now: .distantFuture, releasing: true))
             precondition(journal.effects[key]?.undo == undo)
-            journal.succeed(key, verb: undo, releasing: true)
+            journal.succeed(typed, verb: undo, releasing: true)
             precondition(journal.effects[key] == nil)
         }
         var journal = BatteryOwnershipJournal()
         journal.captureLimit(70)
-        journal.begin("charge-limit", verb: "charge-limit-80", undo: "charge-limit-70")
-        journal.succeed("charge-limit", verb: "charge-limit-80", releasing: false)
-        journal.begin("charge-limit", verb: "charge-limit-70", undo: "charge-limit-70")
-        journal.fail("charge-limit", now: now)
+        journal.begin(.chargeLimit, verb: "charge-limit-80", undo: "charge-limit-70")
+        journal.succeed(.chargeLimit, verb: "charge-limit-80", releasing: false)
+        journal.begin(.chargeLimit, verb: "charge-limit-70", undo: "charge-limit-70")
+        journal.fail(.chargeLimit, now: now)
         precondition(journal.effects["charge-limit"]?.applied == "charge-limit-80")
         precondition(journal.userChangedLimit(nil), "External charge-limit off must release ownership")
         precondition(!journal.userChangedLimit(80))
         precondition(journal.userChangedLimit(90))
-        journal.begin("charge-limit", verb: "charge-limit-off", undo: "charge-limit-70")
+        journal.begin(.chargeLimit, verb: "charge-limit-off", undo: "charge-limit-70")
         precondition(!journal.userChangedLimit(nil), "Pending off is owned intent")
-        journal.succeed("charge-limit", verb: "charge-limit-off", releasing: false)
+        journal.succeed(.chargeLimit, verb: "charge-limit-off", releasing: false)
         precondition(!journal.userChangedLimit(nil), "Applied off is owned state")
         var fans = FanOwnershipJournal()
         fans.begin("max")
@@ -188,11 +222,11 @@ struct OwnershipTests {
         precondition(!fans.mayRetry(now: .distantFuture) && fans.needsUndo)
         fans.succeed("auto")
         precondition(!fans.needsUndo)
-        journal.begin("battery-sleep", verb: "battery-sleep-off", undo: "battery-sleep-on")
-        journal.begin("battery-charging", verb: "battery-charging-off", undo: "battery-charging-on")
-        journal.release("battery-sleep")
-        precondition(journal.effects["battery-charging"] != nil)
-        journal.release("charge-limit")
+        journal.begin(.sleep, verb: "battery-sleep-off", undo: "battery-sleep-on")
+        journal.begin(.charging, verb: "battery-charging-off", undo: "battery-charging-on")
+        journal.release(.sleep)
+        precondition(journal.effect(.charging) != nil && journal.effect(.sleep) == nil)
+        journal.release(.chargeLimit)
         journal.captureLimit(85)
         precondition(journal.limitUndo == nil)
         print("PASS: journal-crash-relaunch-failure-table")

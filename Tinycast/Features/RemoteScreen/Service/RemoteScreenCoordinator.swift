@@ -26,7 +26,7 @@ final class RemoteScreenCoordinator {
     func show(_ request: RemoteScreenRequest, preferredClientInstalled: Bool) async throws {
         guard state != .disabled else { throw RemoteScreenRequest.Failure.unavailable }
         _ = try request.validatedURL()
-        let message = try MachLinkMessage(method: "remote-screen-availability", value: true)
+        let message = try MachLinkMessage(method: MachLinkMethod.remoteScreenAvailability.rawValue, value: true)
         let operation = RemoteScreenState.checking(message.id)
         operationID = message.id
         state = operation

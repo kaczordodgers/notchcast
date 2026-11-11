@@ -11,8 +11,8 @@ final class ScreenRecordingSource: RecordingSource {
     private let requestAccess: () -> Bool
 
     init(
-        hasAccess: @escaping () -> Bool = { CGPreflightScreenCaptureAccess() },
-        requestAccess: @escaping () -> Bool = { CGRequestScreenCaptureAccess() }
+        hasAccess: @escaping () -> Bool = ScreenRecordingAccess.isGranted,
+        requestAccess: @escaping () -> Bool = ScreenRecordingAccess.request
     ) {
         self.hasAccess = hasAccess
         self.requestAccess = requestAccess

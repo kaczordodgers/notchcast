@@ -18,7 +18,7 @@ extension RemoteFanModule {
 
 extension MonitorModule {
     func registerRemoteFanRoute(on channel: MachLinkChannel, preferences: NotchcastPreferences = .shared) {
-        channel.manager.register("mbp-fans") { [weak self] request in
+        channel.manager.register(MachLinkMethod.mbpFans.rawValue) { [weak self] request in
             guard let self else { throw RemoteFanReport.Failure.unavailable }
             let verb = try request.value(as: RemoteFanRequest.self)
             let report = try await remoteFanReport(verb, preferences: preferences)

@@ -17,8 +17,7 @@ final class CoreBluetoothTreadmillCentral: NSObject, TreadmillBluetoothCentral,
     private let defaults: UserDefaults
     private static let padIDKey = "treadmill.padID"
 
-    init(defaults: UserDefaults = UserDefaults(suiteName:
-         (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!) {
+    init(defaults: UserDefaults = NotchcastIdentity.current.defaults) {
         self.defaults = defaults
     }
 

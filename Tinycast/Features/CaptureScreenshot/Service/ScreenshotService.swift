@@ -5,15 +5,6 @@ import ScreenCaptureKit
 import UniformTypeIdentifiers
 
 enum ScreenshotService {
-    static func hasScreenRecordingAccess() -> Bool {
-        CGPreflightScreenCaptureAccess()
-    }
-
-    @discardableResult
-    static func requestScreenRecordingAccess() -> Bool {
-        CGRequestScreenCaptureAccess()
-    }
-
     @MainActor
     @discardableResult
     static func capture(
@@ -21,13 +12,13 @@ enum ScreenshotService {
         destination: ScreenshotRequest.Destination,
         pasteboard: NSPasteboard = .general,
         clipboardFailure: (URL) -> Void = { url in
-            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Screenshot")
+            Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Screenshot")
                 .error("Clipboard write failed; screenshot saved at \(url.path, privacy: .private)")
         },
         isEnabled: @MainActor () -> Bool
     ) async throws -> URL? {
         guard isEnabled() else { throw ScreenshotRequest.Failure.disabled }
-        guard hasScreenRecordingAccess() || requestScreenRecordingAccess() else {
+        guard ScreenRecordingAccess.isGrantedOrRequest() else {
             throw ScreenshotRequest.Failure.permissionDenied
         }
         let data = try await png(request)

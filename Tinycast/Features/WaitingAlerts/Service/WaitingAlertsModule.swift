@@ -20,7 +20,7 @@ final class WaitingAlertsModule: NotchcastModule {
     @ObservationIgnored private var task: Task<Void, Never>?
 
     init(watcher: any WaitingAlertsWatching = WaitingAlertsWatcher(),
-         path: String = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".t3/userdata").path,
+         path: String = AgentPaths(home: FileManager.default.homeDirectoryForCurrentUser).t3UserData.path,
          reader: any WaitingAlertsReading = WaitingAlertsReader(),
          post: @escaping @MainActor (String) -> Void = { NotchcastHost.current.showMessage($0, .neutral) },
          availabilityChanged: @escaping @MainActor () -> Void = { NotchcastHost.current.refreshNotchcastCommands() }) {

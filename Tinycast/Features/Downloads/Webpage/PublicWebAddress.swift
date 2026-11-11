@@ -2,6 +2,10 @@ import Darwin
 import Foundation
 
 enum PublicWebAddress {
+    static let localNames = ["localhost"]
+    /// Also the source of WebKit's local-name content rules, so the two lists cannot drift.
+    static let localSuffixes = [".localhost", ".local"]
+
     enum Refusal: LocalizedError {
         case invalidURL, privateAddress, resolutionFailed
 
@@ -23,7 +27,7 @@ enum PublicWebAddress {
               url.port == nil || url.port == 80 || url.port == 443 else { throw Refusal.invalidURL }
         let name = host.trimmingCharacters(in: CharacterSet(charactersIn: "[]")).lowercased()
             .trimmingCharacters(in: CharacterSet(charactersIn: "."))
-        guard !name.isEmpty, name != "localhost", !name.hasSuffix(".localhost"), !name.hasSuffix(".local"),
+        guard !name.isEmpty, !localNames.contains(name), !localSuffixes.contains(where: name.hasSuffix),
               name.contains(".") || name.contains(":"), !name.contains("%") else { throw Refusal.privateAddress }
         if isNumeric(name) {
             guard isPublicIP(name), !name.split(separator: ".").contains(where: {

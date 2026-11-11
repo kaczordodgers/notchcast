@@ -67,12 +67,6 @@ final class ScreenTextModule: NotchcastModule {
         if case ScreenTextService.Failure.noContent = error {
             return String(localized: "No text found in the selected area.", table: "Notchcast")
         }
-        let failure: CaptureFailure = switch error {
-        case let shared as CaptureFailure: shared
-        case ScreenTextService.Failure.clipboardWriteFailed: .clipboardFailed
-        case ScreenTextService.Failure.displayUnavailable: .areaUnavailable
-        default: .captureFailed
-        }
-        return failure.message
+        return (CaptureFailure(error) ?? .captureFailed).message
     }
 }
