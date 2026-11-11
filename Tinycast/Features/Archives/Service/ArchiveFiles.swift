@@ -130,7 +130,7 @@ nonisolated enum ArchiveFiles {
         let stem = suffix.isEmpty ? base : String(base.dropLast(suffix.count + 1))
         for number in 1..<10_000 {
             try Task.checkCancellation()
-            let duplicate = recovered ? "\(stem) (recovered)" + (number == 2 ? "" : " \(number - 1)") : "\(stem) \(number)"
+            let duplicate = recovered ? "\(stem) (recovered)" + (number == 2 ? "" : " \(number - 1)") : "\(stem) (\(number))"
             let name = number == 1 ? base : duplicate + (suffix.isEmpty ? "" : ".\(suffix)")
             let target = archive.deletingLastPathComponent().appending(path: name)
             if root == staging, chmod(root.path, 0o755) != 0 {
