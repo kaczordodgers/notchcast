@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/DictationHistory/Model/*.swift
 // notchcast-sources: Tinycast/Features/DictationHistory/Service/*.swift
+// notchcast-reads: Tinycast/Features/Notchcast/Core/NotchcastCore.swift
 
 import Foundation
 
@@ -26,6 +27,11 @@ import Foundation
         let entries = try await module.recent()
         precondition(Set(entries.map(\.raw)) == ["first", "second"])
         precondition(entries.contains { $0.raw == "first" && $0.cleaned == "clean first" })
+        let hub = try String(contentsOfFile: "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", encoding: .utf8)
+        let termination = hub.components(separatedBy: "func stopForTermination() async {")[1]
+            .components(separatedBy: "\n    }")[0]
+        precondition(termination.contains("await DictationHistoryModule.shared.waitUntilIdle()"),
+                     "quit must wait for queued history writes")
         module.stop()
         module.enqueue(raw: "disabled", cleaned: "disabled")
         await module.record(raw: "disabled", cleaned: "disabled")

@@ -38,7 +38,6 @@ extension NotchcastCore {
     static let greenMaximize = GreenMaximizeModule(hub: eventTapHub)
     static let spacesOrder = SpacesOrderModule()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
-    static let settingsBackupRestore = ForkSettingsBackupCoordinator.shared
     static let eventReminder = EventReminderModule.shared
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
