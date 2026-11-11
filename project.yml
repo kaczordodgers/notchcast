@@ -233,6 +233,7 @@ targets:
     sources:
       - path: Tinycast/Features/Music/NowPlayingAdapter
         excludes: [now-playing.pl]
+      - Tinycast/Features/Music/Model/NowPlayingAdapterWire.swift
       - Tinycast/Platform/NotificationToken.swift
     settings:
       base:

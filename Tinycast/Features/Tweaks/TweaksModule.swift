@@ -17,35 +17,13 @@ final class TweaksModule: NotchcastModule {
         self.setupProfileRunner = setupProfileRunner
         self.profileRunner = profileRunner
         let defaults = NotchcastIdentity.current.defaults
-        let data = defaults.data(forKey: key)
-        var plans: [String: TypingPreferencePlan] = [:]
-        var decodedJournal = data == nil
-        do {
-            if let data {
-                guard let entries = try JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-                    throw SystemToolsProcessRunner.Failure.invalidExecutable
-                }
-                for (identifier, entry) in entries {
-                    guard let encoded = try? JSONSerialization.data(withJSONObject: entry, options: .fragmentsAllowed),
-                          let plan = try? JSONDecoder().decode(TypingPreferencePlan.self, from: encoded),
-                          plan.permitsJournal(home: NSHomeDirectory()) else { continue }
-                    plans[identifier] = plan
-                }
-                decodedJournal = entries.isEmpty || !plans.isEmpty
-                guard decodedJournal else { throw SystemToolsProcessRunner.Failure.invalidExecutable }
-                if plans.count != entries.count {
-                    defaults.set(try JSONEncoder().encode(plans), forKey: key)
-                    throw SystemToolsProcessRunner.Failure.invalidExecutable
-                }
-            }
-            journalFailure = nil
-        } catch {
-            journalFailure = error.localizedDescription
-        }
-        let canSave = decodedJournal
+        let (plans, failure) = TweaksJournal.load(defaults.data(forKey: key), home: NSHomeDirectory())
+        if failure == .entriesDropped, let kept = try? JSONEncoder().encode(plans) { defaults.set(kept, forKey: key) }
+        journalFailure = failure?.localizedDescription
+        let canSave = failure != .unreadable
         store = TweaksStore(plans: plans, read: TypingPreferenceService().readPreference,
                             run: Self.run, save: { plans in
-            guard canSave else { throw SystemToolsProcessRunner.Failure.invalidExecutable }
+            guard canSave else { throw TweaksJournalFailure.unreadable }
             defaults.set(try JSONEncoder().encode(plans), forKey: key)
         })
     }
@@ -115,7 +93,7 @@ final class TweaksModule: NotchcastModule {
                   symbol: "gearshape", confirmTitle: String(localized: "Open…")),
               store.enabled else { return }
         do {
-            let identifier = NotchcastIdentity.current.suiteName(suffix: "." + restriction.rawValue)
+            let identifier = NotchcastIdentity.current.bundleID + "." + restriction.rawValue
             let data = try AppleAppsPolicy.profile([restriction], identifier: identifier,
                 profileUUID: UUID(), payloadUUID: UUID())
             try await profileRunner(data, identifier)

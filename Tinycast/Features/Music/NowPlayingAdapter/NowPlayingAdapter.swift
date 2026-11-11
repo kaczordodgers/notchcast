@@ -44,20 +44,21 @@ private enum MediaRemote {
         var repeatMode: Double?
 
         func reply(at now: Date) -> [String: Any] {
-            var result: [String: Any] = ["pid": pid, "isPlaying": playing ?? ((rate ?? 0) > 0)]
-            result["displayID"] = bundleID
-            result["kMRMediaRemoteNowPlayingInfoShuffleMode"] = shuffleMode
-            result["kMRMediaRemoteNowPlayingInfoRepeatMode"] = repeatMode
-            result["kMRMediaRemoteNowPlayingInfoTitle"] = title
-            result["kMRMediaRemoteNowPlayingInfoArtist"] = artist
-            result["kMRMediaRemoteNowPlayingInfoAlbum"] = album
-            result["kMRMediaRemoteNowPlayingInfoDuration"] = duration
+            typealias Wire = NowPlayingAdapterWire
+            var result: [String: Any] = [Wire.pid: pid, Wire.isPlaying: playing ?? ((rate ?? 0) > 0)]
+            result[Wire.displayID] = bundleID
+            result[Wire.Info.shuffleMode.key] = shuffleMode
+            result[Wire.Info.repeatMode.key] = repeatMode
+            result[Wire.Info.title.key] = title
+            result[Wire.Info.artist.key] = artist
+            result[Wire.Info.album.key] = album
+            result[Wire.Info.duration.key] = duration
             let speed = playing == false ? 0 : max(0, rate ?? 0)
             if let elapsed {
                 let age = timestamp.map { max(0, now.timeIntervalSince($0)) } ?? 0
-                result["kMRMediaRemoteNowPlayingInfoElapsedTime"] = elapsed + age * speed
+                result[Wire.Info.elapsedTime.key] = elapsed + age * speed
             }
-            result["kMRMediaRemoteNowPlayingInfoPlaybackRate"] = speed
+            result[Wire.Info.playbackRate.key] = speed
             return result.filter { ($0.value as? Double)?.isFinite != false }
         }
     }
@@ -111,7 +112,7 @@ private enum MediaRemote {
                 snapshot.rate = finite("PlaybackRate")
                 snapshot.shuffleMode = finite("ShuffleMode")
                 snapshot.repeatMode = finite("RepeatMode")
-                if let data = value("ArtworkData") as? Data, data.count <= 12 * 1_024 * 1_024 {
+                if let data = value("ArtworkData") as? Data, data.count <= NowPlayingAdapterWire.maximumArtworkBytes {
                     snapshot.artwork = data
                 }
             }
@@ -156,7 +157,7 @@ private final class NowPlayingAdapter {
     func watch() {
         typealias Register = @convention(c) (DispatchQueue) -> Void
         guard let register = MediaRemote.function("MRMediaRemoteRegisterForNowPlayingNotifications", as: Register.self) else {
-            emit(["error": "unavailable"])
+            emit([NowPlayingAdapterWire.error: "unavailable"])
             exit(1)
         }
         register(.main)
@@ -194,7 +195,7 @@ private final class NowPlayingAdapter {
             } catch is CancellationError {
                 return
             } catch {
-                self?.emit(["error": "metadata timeout"])
+                self?.emit([NowPlayingAdapterWire.error: "metadata timeout"])
                 exit(1)
             }
         }
@@ -206,19 +207,19 @@ private final class NowPlayingAdapter {
            previousSnapshot.pid == snapshot.pid, previousSnapshot.bundleID == snapshot.bundleID,
            previousSnapshot.title == snapshot.title, previousSnapshot.artist == snapshot.artist,
            previousSnapshot.album == snapshot.album, previousSnapshot.artwork == snapshot.artwork {
-            reply["artworkUnchanged"] = true
+            reply[NowPlayingAdapterWire.artworkUnchanged] = true
         } else {
-            reply["artworkBase64"] = snapshot.artwork?.base64EncodedString()
+            reply[NowPlayingAdapterWire.artworkBase64] = snapshot.artwork?.base64EncodedString()
         }
         previousSnapshot = snapshot
-        reply["displayName"] = NSRunningApplication(processIdentifier: snapshot.pid)?.localizedName
+        reply[NowPlayingAdapterWire.displayName] = NSRunningApplication(processIdentifier: snapshot.pid)?.localizedName
         emit(reply)
     }
 
     private func receive(_ data: Data) {
         for byte in data {
             if byte == 10 {
-                if !discardingInput { command(input) } else { emit(["sent": false]) }
+                if !discardingInput { command(input) } else { emit([NowPlayingAdapterWire.sent: false]) }
                 input = Data()
                 discardingInput = false
             } else if !discardingInput {
@@ -231,7 +232,7 @@ private final class NowPlayingAdapter {
         guard let reply = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
               let name = reply["command"] as? String,
               let rawPID = reply["pid"] as? NSNumber,
-              let pid = Int32(exactly: rawPID.doubleValue), pid > 0 else { emit(["sent": false]); return }
+              let pid = Int32(exactly: rawPID.doubleValue), pid > 0 else { emit([NowPlayingAdapterWire.sent: false]); return }
         let identifier: Int32
         var position: Double?
         switch name {
@@ -242,21 +243,21 @@ private final class NowPlayingAdapter {
         case "previous": identifier = 5
         case "seek":
             guard let value = reply["position"] as? Double, value.isFinite, value >= 0 else {
-                emit(["sent": false]); return
+                emit([NowPlayingAdapterWire.sent: false]); return
             }
             identifier = 24
             position = value
-        default: emit(["sent": false]); return
+        default: emit([NowPlayingAdapterWire.sent: false]); return
         }
         let previous = commandTask
         commandTask = Task { [weak self, position] in
             await previous?.value
             do {
                 let current = try await MediaRemote.read()
-                guard current.pid == pid else { self?.emit(["sent": false]); return }
-                self?.emit(["sent": MediaRemote.send(identifier, position: position)])
+                guard current.pid == pid else { self?.emit([NowPlayingAdapterWire.sent: false]); return }
+                self?.emit([NowPlayingAdapterWire.sent: MediaRemote.send(identifier, position: position)])
                 self?.refresh()
-            } catch { self?.emit(["sent": false]) }
+            } catch { self?.emit([NowPlayingAdapterWire.sent: false]) }
         }
     }
 
