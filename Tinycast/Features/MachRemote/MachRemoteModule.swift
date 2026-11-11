@@ -4,11 +4,10 @@ import AppKit
 final class MachRemoteModule: NotchcastModule {
     var automation: Task<Void, Never>?
 
-    func start() { NotchcastHost.current.refreshNotchcastCommands() }
+    func start() {}
     func stop() {
         automation?.cancel()
         automation = nil
-        NotchcastHost.current.refreshNotchcastCommands()
     }
 
     func openTerminal() {

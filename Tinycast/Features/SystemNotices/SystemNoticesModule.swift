@@ -8,7 +8,6 @@ final class SystemNoticesModule: NotchcastModule {
     init(manager: SystemNoticesManager = SystemNoticesManager()) { self.manager = manager }
 
     func start() {
-        NotchcastHost.current.refreshNotchcastCommands()
         manager.onNotice = { [weak self] notice in
             self?.latest = notice
             Self.postNotice(notice)
@@ -17,7 +16,6 @@ final class SystemNoticesModule: NotchcastModule {
     }
 
     func stop() {
-        NotchcastHost.current.refreshNotchcastCommands()
         manager.stop()
         manager.onNotice = nil
         latest = nil

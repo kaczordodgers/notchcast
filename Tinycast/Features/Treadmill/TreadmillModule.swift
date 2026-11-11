@@ -24,8 +24,8 @@ extension TreadmillCoordinator {
                                     history: TreadmillHistoryStore(repository: repository),
                                     preferences: TreadmillPreferences(defaults: defaults),
                                     reminders: TreadmillReminders(enabled: {
-                                        [.treadmillHistory, .island, .islandStatusMessages]
-                                            .allSatisfy { NotchcastPreferences.shared.isOn($0) }
+                                        NotchcastPreferences.shared.isOn(.treadmillHistory)
+                                            && NotchcastPreferences.shared.isEnabled(.islandStatusMessages)
                                     }, present: {
                                         IslandActivityCenter.shared.showMessage($0, tone: .neutral, dwell: 8,
                                                                                 id: $1, symbol: "figure.walk")

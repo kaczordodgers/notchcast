@@ -310,10 +310,11 @@ struct TodoLinkTests {
         defer { MachLinkManager.fakeRequest = nil }
         let sync = TodoLinkCoordinator.live(channel: channel, preferences: preferences)
         sync.connect(to: module)
-        let controller = NotchcastModuleController([
-            .init(requires: [.tasksSync, .tasks, .machLink], module: sync),
+        let leaves: [NotchcastModuleController.Entry] = [
+            .init(requires: [.tasksSync], module: sync),
             .init(requires: [.tasks], module: module)
-        ], preferences: preferences)
+        ]
+        let controller = NotchcastModuleController(leaves.map(\.gatedOnDependencies), preferences: preferences)
         controller.run()
         precondition(!sync.isRunning && calls == 0)
         preferences.set(.tasksSync, true)

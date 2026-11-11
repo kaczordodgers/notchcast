@@ -48,7 +48,6 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     func start() {
-        NotchcastHost.current.refreshNotchcastCommands()
         guard !tap.isActive else { return }
         refreshLayout()
         refresh()
@@ -93,7 +92,6 @@ final class QuitProtectionModule: NotchcastModule {
     }
 
     func stop() {
-        NotchcastHost.current.refreshNotchcastCommands()
         tap.stop()
         timer?.invalidate()
         timer = nil
