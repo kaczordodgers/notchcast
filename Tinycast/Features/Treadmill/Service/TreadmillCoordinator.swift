@@ -28,8 +28,7 @@ final class TreadmillCoordinator {
     @ObservationIgnored private var persistence: Task<Void, Never>?
     @ObservationIgnored private var timeout: Task<Void, Never>?
     @ObservationIgnored private var lastCheckpoint = Date.distantPast
-    private static let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast.dev",
-                                       category: "Treadmill")
+    private static let logger = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Treadmill")
 
     init(transport: any TreadmillTransport, history: TreadmillHistoryStore, preferences: TreadmillPreferences,
          clock: @escaping () -> Date = Date.init, calendar: @escaping () -> Calendar = { .autoupdatingCurrent },
