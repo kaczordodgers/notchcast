@@ -2,8 +2,6 @@ import Foundation
 
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
-import Foundation
-
 extension NotchcastCore {
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
