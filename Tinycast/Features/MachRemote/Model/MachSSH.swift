@@ -26,9 +26,10 @@ struct MachSSH: Sendable {
             address.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || "._-@:".contains($0)) }
     }
 
-    func run(_ command: String) async throws -> Result {
+    // ssh keeps the first value it is given for an option, so a caller's options go first.
+    func run(_ command: String, options: [String] = []) async throws -> Result {
         guard Self.isValid(address) else { throw ConfigurationError.address }
-        return try await runner("/usr/bin/ssh", Self.options + [address, command])
+        return try await runner("/usr/bin/ssh", options + Self.options + [address, command])
     }
 
     func route(thunderboltAddress: String) async throws -> Route {

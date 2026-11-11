@@ -9,10 +9,7 @@ The host, terminal directory, update script, backup status file and AI usage cac
 are plain Settings fields, empty by default. Missing configuration reports a notice without
 starting the operation. SSH callers share one address validator, including colon support.
 
-`MachRemoteShell` adapts both worker protocols to `MachSSH`. SSH commands use its common
-options and configured address; rsync uses those same options for its remote shell.
-The current process adapter delivers output after process completion, so intermediate progress
-does not stream to the island. No real update or transfer was performed during integration.
+`MachRemoteShell` adapts both worker protocols to `MachSSH`. An SSH command keeps the options its caller passed, followed by the common options and the configured address; rsync's remote shell keeps the caller's options the same way. ssh uses the first value it is given for an option, so a caller's `ConnectTimeout` wins over the common one. The current process adapter delivers output after process completion, so intermediate progress does not stream to the island. No real update or transfer was performed during integration.
 
 TLS MachLink remains independent of SSH. Shelf transfers resolve the paired endpoint per send;
 the listener routes shelf requests before AI usage and acknowledges after persistence.
