@@ -52,9 +52,9 @@ enum NotchcastAppProof {
 
     @discardableResult
     static func run(_ tool: String, _ arguments: [String]) async throws -> Data {
-        var environment = ProcessInfo.processInfo.environment
-        environment["LC_ALL"] = "en_US.UTF-8"
-        let output = try await ProcessRunner.run(.init(executable: URL(filePath: tool), arguments: arguments,
+        let executable = URL(filePath: tool)
+        let environment = ExecutableLocator.environment(running: executable, adding: ["LC_ALL": "en_US.UTF-8"])
+        let output = try await ProcessRunner.run(.init(executable: executable, arguments: arguments,
                                                        environment: environment))
         guard output.status == 0 else { throw Failure("\(tool) exited \(output.status)") }
         return output.stdout

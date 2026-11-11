@@ -106,11 +106,14 @@ import Foundation
         client?.invalidate()
         client = nil
         guard let child = process else { return }
-        if child.isRunning { child.interrupt() }
-        await Self.waitBriefly(child)
-        if child.isRunning { child.terminate() }
-        await Self.waitBriefly(child)
-        if child.isRunning { kill(child.processIdentifier, SIGKILL) }
+        let ladder = ProcessRunner.StopLadder.interrupting(kill: .seconds(2))
+        if child.isRunning { kill(child.processIdentifier, ladder.first) }
+        var waited = Duration.zero
+        for rung in ladder.later {
+            await Self.waitBriefly(child, for: rung.after - waited)
+            waited = rung.after
+            if child.isRunning { kill(child.processIdentifier, rung.signal) }
+        }
         if let exit { await Self.reap(exit) }
         process = nil
         exit = nil
@@ -172,8 +175,9 @@ import Foundation
         return output.status == 0 && lines.contains("p\(pid)") && listeners == ["n127.0.0.1:\(port)"]
     }
 
-    private static func waitBriefly(_ process: Process) async {
-        for _ in 0..<10 where process.isRunning {
+    private static func waitBriefly(_ process: Process, for duration: Duration) async {
+        let deadline = ContinuousClock.now + duration
+        while process.isRunning, ContinuousClock.now < deadline {
             do { try await Task.sleep(for: .milliseconds(100)) } catch { break }
         }
     }
