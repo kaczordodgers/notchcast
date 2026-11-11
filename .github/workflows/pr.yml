@@ -15,11 +15,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # On Linux: a runner for checks (slot 0) and for each shard, an idle maintainer Mac first (notchcast/runner/route.py).
+  # On Linux: a runner for checks (slot 0) and for each shard, from the maintainer Mac pool or hosted (notchcast/runner/route.py).
   route:
     if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
     outputs:
       runners: ${{ steps.route.outputs.runners }}
     steps:
