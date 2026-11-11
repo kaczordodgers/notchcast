@@ -18,7 +18,7 @@ OpenCode uses a read-only SQLite connection with `query_only` and a read transac
 
 ## Consumer API
 
-`NotchcastCore.agentSessions` exposes the module and its observable `pricingReport`. The gated Refresh Agent Session Logs command calls `refresh()`, which runs one scan; nothing polls. `stop()` cancels work and releases the index, snapshot and priced totals. No island page or FSEvents watcher is installed.
+`AgentSessionsModule.shared` is the registered module and exposes its observable `pricingReport`. The gated Refresh Agent Session Logs command calls `refresh()`, which runs one scan; nothing polls. `stop()` cancels work and releases the index, snapshot and priced totals. No island page or FSEvents watcher is installed.
 
 `AgentSessionIndex.refresh(roots:)` is the synchronous service boundary for callers already off the main actor. It returns sessions, source issues and read statistics. JSONL checkpoints use inode, size, modification time and byte offset; replacement or truncation resets a file. Database checkpoints use session creation/update times, message update times and row counts; changed sessions are rebuilt so in-place updates replace prior totals. Deleted sources and sessions are evicted.
 
