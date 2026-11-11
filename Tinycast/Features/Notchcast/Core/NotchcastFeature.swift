@@ -202,7 +202,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     }
 
     /// Whether a settings backup carries the switch; a switch that grants a capability stays out.
-    var backedUp: Bool? {
+    var backedUp: Bool {
         if let descriptor { return descriptor.backedUp }
         return switch self {
         case .treadmillWalk: false

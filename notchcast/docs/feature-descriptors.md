@@ -13,9 +13,7 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 - the capture module (`colorPicker`, `screenshot`, `scrollingCapture`, `recording`, `captureTrimmer`, `captureEditor`) and Treadmill (`treadmillWalk`, `treadmillHistory`): kept out of this batch;
 - `editorSpellChecking`: its only code is a patched line in upstream `Notes/`; it moves when it has a fork folder.
 
-`settingsGroup`, `title`, `subtitle` and `backedUp` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these nine move.
-
-`Descriptor.backedUp` is an optional `var` only while `switchesAwaitingFlag` in `SettingsBackup/Model/ForkSettingsBackupSchema.swift` answers for descriptors that do not state it yet (the Files group: `archives`, `archivesDefaultApp`, `archivesInPlace`, `clearNotifications`, `copyPath`, `finderCutPaste`, `finderRename`, `quickLookSpace`, `pasteImage`, `pastePlain`, `smallCommands`, `torrents`, `torrentsKeepSharing`, `torrentsUseIPhone`). Stating the flag in one of them means deleting its line there; when the list is empty, delete it and make the field a `let Bool`. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
+`settingsGroup`, `title`, `subtitle` and `backedUp` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these nine move. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
 
 ## Checks
 
@@ -27,7 +25,7 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 - a `*Descriptor.swift` under a folder upstream ships at `merge-base HEAD upstream/main` (skipped when there is no `upstream/main` ref; drift gate 1 still refuses it at landing);
 - a hub line that maps a feature to another feature's descriptor;
 - a feature with neither a descriptor nor an arm in `settingsGroup`, `title` and `subtitle`;
-- a feature that does not say `backedUp: true` or `false` (in its descriptor, or its `backedUp` arm without one), unless `switchesAwaitingFlag` still lists it, and a feature that says it while still listed there;
+- a feature that does not say `backedUp: true` or `false`, in its descriptor or, without one, in its `backedUp` arm;
 - a `register(_: AppCore)` implementation anywhere but a `<Type>+Registration.swift` in an allowed folder (the descriptor's rules), or under a folder upstream ships;
 - a registrant listed twice, or listed while `NotchcastCore+Modules.swift` still holds a `static` of its type or an entry `module: <Type>...`.
 

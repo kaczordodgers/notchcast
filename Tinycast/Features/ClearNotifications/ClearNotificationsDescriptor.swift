@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Clear notifications from Notification Center. Requires English system language.", table: "Notchcast"),
         group: .launcher,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

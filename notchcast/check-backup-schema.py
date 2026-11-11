@@ -16,7 +16,6 @@ shape = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(shape)
 ROOT = Path(__file__).resolve().parents[1]
 FEATURE = Path("Tinycast/Features/Notchcast/Core/NotchcastFeature.swift")
-SCHEMA = Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift")
 LIST = FEATURE.with_name("NotchcastBackupKeys.swift")
 KEYS_FILE = re.compile(shape.DESCRIPTOR_FILE.pattern.replace("Descriptor", "BackupKeys"))
 KEYS_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.BackupKeys\b|\bBackupKeys\s*(?:\.init\s*)?\("
@@ -95,7 +94,7 @@ def value(key, *folders):
 
 
 def switch_flags(root):
-    """Each place a feature says whether a backup carries its switch: descriptor, hub arm or the schema's waiting list."""
+    """Each place a feature says whether a backup carries its switch: its descriptor, or its hub arm without one."""
     stated = []
     for path in sorted((root / "Tinycast/Features").rglob("*Descriptor.swift")):
         relative = path.relative_to(root)
@@ -108,9 +107,6 @@ def switch_flags(root):
     member = re.search(r"^    var backedUp\b.*?(?=^    var |\Z)", source, re.M | re.S)
     for arm in re.finditer(r"^\s*case \.(\w+): (true|false)$", member[0] if member else "", re.M):
         stated.append((arm[1], arm[2], f"{FEATURE}:{source.count(chr(10), 0, member.start() + arm.start()) + 1}"))
-    source = (root / SCHEMA).read_text()
-    stated.extend((line[1], line[2], f"{SCHEMA}:{source.count(chr(10), 0, line.start(1)) + 1}")
-                  for line in re.finditer(r"^\s*\.(\w+): (true|false),$", source, re.M))
     return stated
 
 

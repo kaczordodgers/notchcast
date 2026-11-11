@@ -17,9 +17,7 @@ CATALOG = Path("Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All
 TREE = Path("Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+Groups.swift")
 SEARCH = Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift")
 # Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
-BACKUP_SCHEMA = Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift")
 LISTS = {
-    BACKUP_SCHEMA: r"^\.(\w+):",
     MODULES: r"module: ([\w.]+)",
     SEARCH: r"^(.*?)(?:, keywords: .*)?\),$",
     DESCRIPTORS: r"^\.(\w+):",
@@ -498,12 +496,8 @@ def feature_errors(root):
             errors.append((FEATURE, 1, f"no feature's {when} is {equals}; the class pin on {fact} holds nothing (CLASS_PINS)"))
         errors.extend((*known["at"], f".{name} {fact} is {known.get(fact)}; a feature whose {when} is {equals} keeps {value}")
                       for name, known in members if known.get(fact) != value)
-    awaiting = set(re.findall(r"^\s*\.(\w+): (?:true|false),$", (root / BACKUP_SCHEMA).read_text(), re.M))
-    for name, known in facts.items():
-        if name in awaiting and "backedUp" in known:
-            errors.append((*known["at"], f".{name} states backedUp; delete its line in {BACKUP_SCHEMA}"))
-        elif name not in awaiting and known.get("backedUp") not in ("true", "false"):
-            errors.append((*known["at"], f".{name} needs backedUp: true or false, whether a settings backup carries its switch"))
+    errors.extend((*known["at"], f".{name} needs backedUp: true or false, whether a settings backup carries its switch")
+                  for name, known in facts.items() if known.get("backedUp") not in ("true", "false"))
     errors.extend((*known["at"], f".{name} needs a localized, non-empty {text}")
                   for name, known in facts.items() for text in ("title", "subtitle")
                   if not re.match(r'String\(localized: "[^"]', known.get(text, "")))

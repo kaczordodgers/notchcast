@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "The archive shrinks while extracting.", table: "Notchcast"),
         group: .archives,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [.archives],
         requiredGrants: [],
         isSystemFeature: false,

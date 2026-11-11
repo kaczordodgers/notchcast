@@ -20,7 +20,7 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS, BACKUP_KEYS, CATALOG = SHAPE.LISTS
+MODULES, SEARCH, DESCRIPTORS, REGISTRANTS, BACKUP_KEYS, CATALOG = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
@@ -56,8 +56,8 @@ BREAKS = (
      "Tinycast/Features/SystemTools/SudoTouchIDDescriptor.swift", "dependencies: []", "dependencies: [.island]"),
     ("backup-flag", ".hideCommandM needs backedUp: true or false", HIDE, "        backedUp: true,\n", ""),
     ("backup-flag", ".colorPicker needs backedUp: true or false", SHAPE.FEATURE, "        case .colorPicker: true\n", ""),
-    ("backup-flag", ".copyPath states backedUp; delete its line in", "Tinycast/Features/CopyPath/CopyPathDescriptor.swift",
-     "defaultEnabled: false,", "defaultEnabled: false,\n        backedUp: true,"),
+    ("backup-flag", ".copyPath needs backedUp: true or false", "Tinycast/Features/CopyPath/CopyPathDescriptor.swift",
+     "        backedUp: true,\n", ""),
     ("feature-text", ".screenshot needs a localized, non-empty title",
      SHAPE.FEATURE, 'case .screenshot: String(localized: "Screenshots", table: "Notchcast")', 'case .screenshot: ""'),
     ("settings-item-once", ".scrollingCapture is already in the settings tree",
@@ -167,11 +167,6 @@ def append_feature(source, name):
 
 
 class FeatureShapeTests(unittest.TestCase):
-    def test_repeated_backup_key(self):
-        source = (ROOT / SCHEMA).read_text()
-        self.rejected(SCHEMA, source.replace(".copyPath: true,",
-            ".copyPath: true,\n        .copyPath: false,"), "repeated entry copyPath")
-
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
         self.addCleanup(self.temporary.cleanup)

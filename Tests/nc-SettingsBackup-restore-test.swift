@@ -163,9 +163,8 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         }
         print("PASS: every feature's own snapshot returns exactly the keys it allows")
         for feature in NotchcastFeature.allCases {
-            guard let carried = feature.backedUp else { continue }
-            precondition((ForkSettingsBackupSchema.allowed[feature.rawValue] != nil) == carried, feature.rawValue)
-            precondition(ForkSettingsBackupSchema.excluded.contains(feature.rawValue) != carried, feature.rawValue)
+            precondition((ForkSettingsBackupSchema.allowed[feature.rawValue] != nil) == feature.backedUp, feature.rawValue)
+            precondition(ForkSettingsBackupSchema.excluded.contains(feature.rawValue) != feature.backedUp, feature.rawValue)
         }
         print("PASS: a switch is carried or left out as its feature's backedUp flag says")
         let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/

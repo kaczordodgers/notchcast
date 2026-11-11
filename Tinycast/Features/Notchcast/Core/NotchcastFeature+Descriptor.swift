@@ -7,8 +7,7 @@ extension NotchcastFeature {
         let subtitle: String
         let group: SettingsGroup
         let defaultEnabled: Bool
-        /// Optional only while ForkSettingsBackupSchema.switchesAwaitingFlag still answers for some.
-        var backedUp: Bool?
+        let backedUp: Bool
         /// Listing `.island` is what makes a feature island-only; `needsIsland` reads it from here.
         let dependencies: [NotchcastFeature]
         let requiredGrants: [NotchcastGrant]
