@@ -25,7 +25,7 @@ runs:
         dir="$RUNNER_TEMP/swiftc-cache"
         if [ "$RUNNER_ENVIRONMENT" = self-hosted ]; then dir="$RUNNER_TOOL_CACHE/swiftc-cache/$NAME"; fi
         echo "dir=$dir" >> "$GITHUB_OUTPUT"
-    - uses: actions/cache/restore@v6
+    - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       if: runner.environment == 'github-hosted'
       with:
         path: ${{ runner.temp }}/swiftc-cache
@@ -59,7 +59,7 @@ runs:
         NOTCHCAST_SWIFTC_CACHE: ${{ steps.cache.outputs.dir }}
       run: python3 "$GITHUB_ACTION_PATH/../../swiftc-cache.py" finish
     # A failed harness still compiled, so its binary is saved too; a job that compiled nothing saves nothing.
-    - uses: actions/cache/save@v6
+    - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
       if: ${{ !cancelled() && runner.environment == 'github-hosted' && steps.compiled.outputs.stored != '0' && steps.compiled.outputs.stored != '' }}
       with:
         path: ${{ runner.temp }}/swiftc-cache

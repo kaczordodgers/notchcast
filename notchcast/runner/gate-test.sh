@@ -47,7 +47,9 @@ gate
 calls 'NOTCHCAST_IDLE_MBA 1' 'booted out by hand'
 echo 'PASS: an admitted Mac starts again the runner the gate stopped, and no other'
 
-# The hook beside a stand-in gate.sh, which records that the hook reached it.
+# The hook beside a stand-in gate.sh, which records that the hook reached it, and a kill that records its target.
+kill() { echo "kill $*" >> "$WORK/calls"; }
+export -f kill
 mkdir -p "$WORK/hook" "$HOME/Library/Logs/notchcast"
 cp "$HERE/job-started.sh" "$WORK/hook/"
 printf '#!/bin/bash\necho "gate $*" >> "$WORK/calls"\n' > "$WORK/hook/gate.sh"
@@ -67,7 +69,7 @@ admitted() {
 refused() {
     if hook "$@"; then echo "FAIL: admitted $*"; exit 1; fi
     grep -q 'refused' "$WORK/log"
-    calls '' "refused $*"
+    calls "kill -9 $$" "refused $*"
 }
 admitted push push.json
 admitted workflow_dispatch push.json
@@ -81,4 +83,4 @@ refused push missing.json
 refused pull_request_target own.json
 refused push push.json owner other/repo
 if NOTCHCAST_RUNNER_GATE='mba owner/repo' bash -e "$WORK/hook/job-started.sh" 2> "$WORK/log"; then echo 'FAIL: admitted no data'; exit 1; fi
-echo 'PASS: the hook refuses another actor, a fork head, a missing event file and any other event'
+echo 'PASS: the hook refuses another actor, a fork head, a missing event file and any other event, and kills its parent'
