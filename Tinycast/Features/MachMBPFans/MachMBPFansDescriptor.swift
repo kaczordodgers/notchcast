@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Control fans on the paired Mac.", table: "Notchcast"),
         group: .system,
         defaultEnabled: false,
-        dependencies: [],
+        dependencies: [.machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Accept local commands over a private Unix socket.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
-        dependencies: [],
+        dependencies: [.agentActions],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

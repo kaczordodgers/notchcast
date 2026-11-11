@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Notify when the paired Mac disconnects or reconnects.", table: "Notchcast"),
         group: .system,
         defaultEnabled: false,
-        dependencies: [],
+        dependencies: [.machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

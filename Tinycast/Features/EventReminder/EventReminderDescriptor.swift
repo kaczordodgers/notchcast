@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Show calendar alerts in the island.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: true,
-        dependencies: [.island],
+        dependencies: [.island, .islandLiveActivities],
         requiredGrants: [.calendars],
         isSystemFeature: false,
         isSystemTweak: false

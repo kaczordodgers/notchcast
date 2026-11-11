@@ -98,7 +98,7 @@ enum NotchcastCore {
         if !NotchcastPreferences.shared.isOn(.systemMonitor) || !NotchcastPreferences.shared.isOn(.fanControl) {
             MonitorModule.shared.fans.restore(preservingPreference: true, silently: true)
         }
-        let controller = NotchcastModuleController(modules, preferences: preferences)
+        let controller = NotchcastModuleController(modules.map(\.gatedOnDependencies), preferences: preferences)
         self.controller = controller
         controller.run()
         services?.keys.run()

@@ -3,7 +3,6 @@ import Foundation
 extension RemoteFanModule {
     nonisolated static let launcherCommand = NotchcastCommand(
         slug: "remote-fans", name: String(localized: "Other Mac Fans", table: "Notchcast"), sfSymbol: "fan", feature: .machMBPFans,
-        isEnabled: { [.machLink, .machMBPFans].allSatisfy { NotchcastPreferences.shared.isOn($0) } },
         run: { Task { do {
             guard let module = RemoteFanModule.shared else { throw RemoteFanReport.Failure.unavailable }
             let report = try await module.run(.cycle)

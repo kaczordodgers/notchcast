@@ -53,10 +53,11 @@ struct MacRemoteWiringTest {
         }
         let send = SendFilesModule(preferences: preferences, runner: runner, post: { _ in })
         let update = UpdateRemoteModule(preferences: preferences, runner: runner, post: { _ in })
-        let controller = NotchcastModuleController([
-            .init(requires: [.machRemote, .sendFiles], module: send),
-            .init(requires: [.machRemote, .updateRemote], module: update)
-        ], preferences: preferences)
+        let leaves: [NotchcastModuleController.Entry] = [
+            .init(requires: [.sendFiles], module: send),
+            .init(requires: [.updateRemote], module: update)
+        ]
+        let controller = NotchcastModuleController(leaves.map(\.gatedOnDependencies), preferences: preferences)
         controller.run()
         preferences.set(.sendFiles, true)
         preferences.set(.updateRemote, true)
@@ -83,7 +84,7 @@ struct MacRemoteWiringTest {
         update.update()
         precondition(calls.calls.count == count)
         let entries = MachRemoteModule.register(AppCore())
-        precondition(entries.map(\.requires) == [[.machRemote], [.machRemote, .sendFiles], [.machRemote, .updateRemote]])
+        precondition(entries.map(\.requires) == [[.machRemote], [.sendFiles], [.updateRemote]])
         precondition(entries.allSatisfy(\.requiresAny.isEmpty) && entries[0].module === MachRemoteModule.shared)
         precondition(entries[1].module === SendFilesModule.shared && entries[2].module === UpdateRemoteModule.shared)
         var results: [String] = []

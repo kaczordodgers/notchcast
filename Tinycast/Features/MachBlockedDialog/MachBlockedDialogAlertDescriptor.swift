@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Check for system dialogs on the paired Mac on demand.", table: "Notchcast"),
         group: .system,
         defaultEnabled: false,
-        dependencies: [.island],
+        dependencies: [.island, .islandStatusMessages, .machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

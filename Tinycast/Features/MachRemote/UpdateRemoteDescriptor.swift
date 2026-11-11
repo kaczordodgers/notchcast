@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Run the update on the remote Mac.", table: "Notchcast"),
         group: .system,
         defaultEnabled: false,
-        dependencies: [],
+        dependencies: [.machRemote],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

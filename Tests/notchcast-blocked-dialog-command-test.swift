@@ -33,9 +33,6 @@ extension BlockedDialogModule {
     @MainActor static func main() async {
         let command = BlockedDialogModule.checkCommand
         precondition(command.feature == .machBlockedDialogAlert)
-        precondition(command.isEnabled())
-        NotchcastPreferences.shared.enabled = false
-        precondition(!command.isEnabled())
         NotchcastHost.current.remoteResult = { Probe.messages.append($0) }
         BlockedDialogModule.shared?.start()
         command.run()

@@ -6,6 +6,8 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 
 `needsIsland` is not a field: it is `dependencies.contains(.island)`, so the two cannot disagree. A feature that shows only in the island lists `.island` first in `dependencies`.
 
+`dependencies` is the only place that says what else has to be on. A module entry, a command and a settings row name only their own feature: `NotchcastCore.start` passes every entry through `gatedOnDependencies` (`Notchcast/Core/NotchcastModuleController+Dependencies.swift`), which adds the feature's whole dependency chain to `requires`, and `NotchcastCommandCatalog` and `NotchcastModuleSettingsView` read `NotchcastPreferences.isEnabled`, the switch plus the same chain. So `requires: [.linkHealth]` is enough for Link Health to stop, lose its commands and grey its settings with Machine Link. A feature that needs another one adds it to its descriptor, never to a `requires` list or a hand-written `isOn` check. `requiresAny` is not derived: it lists the switches any one of which keeps a shared module running.
+
 ## Features still on the switches
 
 `dependencies`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `requiredGrants` and `defaultEnabled` start with the fallback line `if let descriptor { return descriptor.<field> }` and keep arms only for:
@@ -67,7 +69,7 @@ A feature owns its module instance and hands the controller its entries; the hub
        static let shared = LowDiskModule()
 
        static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
-           [.init(requires: [.island, .lowDiskWarning], module: shared)]
+           [.init(requires: [.lowDiskWarning], module: shared)]
        }
    }
    ```

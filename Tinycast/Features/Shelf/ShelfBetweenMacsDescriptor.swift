@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Send small items to the paired Mac.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: false,
-        dependencies: [],
+        dependencies: [.machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

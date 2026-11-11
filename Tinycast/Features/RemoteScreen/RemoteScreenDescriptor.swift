@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Request screen sharing with the paired Mac.", table: "Notchcast"),
         group: .system,
         defaultEnabled: false,
-        dependencies: [],
+        dependencies: [.machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

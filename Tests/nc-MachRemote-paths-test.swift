@@ -10,8 +10,8 @@ enum DialogTone {}
 
 @MainActor struct NotchcastPreferences {
     static let shared = Self()
-    func isOn(_ feature: Feature) -> Bool { true }
-    enum Feature { case machRemote, sendFiles }
+    func isEnabled(_ feature: Feature) -> Bool { true }
+    enum Feature { case sendFiles }
 }
 
 @MainActor struct UpdateRemoteModule {
