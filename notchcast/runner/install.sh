@@ -27,7 +27,7 @@ ARCHIVE="$ROOT/actions-runner-osx-arm64-$VERSION.tar.gz"
 mkdir -p "$ROOT" "$LOGS" "$AGENTS"
 
 agent() { # template label name dir title command...
-    # launchd runs a wrapper named <title>, since Login Items shows the executable's name (not bash or run.sh).
+    # Login Items shows the executable's name, so launchd runs a wrapper named <title>.
     local plist="$AGENTS/$2.plist" exe="$ROOT/bin/$5"
     mkdir -p "$ROOT/bin"
     printf '#!/bin/bash\nexec%s\n' "$(printf ' %q' "${@:6}")" > "$exe"
