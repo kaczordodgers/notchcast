@@ -276,10 +276,12 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
             let original = preferences.isOn(feature)
             preferences.set(feature, !original)
             let captured = try state.snapshot()
-            precondition(captured[feature.rawValue] as? Bool == !original)
+            let restored = feature.isWired && !original
+            precondition(captured[feature.rawValue] as? Bool == restored, "saved a value restore never sets")
             preferences.set(feature, original)
             try state.apply(captured)
-            let restored = feature.isWired && !original
+            let roundTrip = try state.snapshot()
+            precondition(roundTrip as NSDictionary == captured as NSDictionary, "a saved key was not restored")
             precondition(preferences.isOn(feature) == restored)
             precondition(defaults.bool(forKey: feature.rawValue) == restored)
             preferences.set(feature, original)
