@@ -44,7 +44,7 @@ final class BlockedDialogModule: NotchcastModule {
             guard let self else { return }
             defer { if generation == token { operation = nil } }
             do {
-                let request = try MachLinkMessage(method: "dialogs", value: true)
+                let request = try MachLinkMessage(method: MachLinkMethod.dialogs.rawValue, value: true)
                 let response = try await transport(request)
                 try Task.checkCancellation()
                 guard generation == token, isRunning, enabled() else { return }

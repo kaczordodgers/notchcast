@@ -15,7 +15,7 @@ final class RemoteScreenModule: NotchcastModule {
         }, open: { url, _ in
             guard NSWorkspace.shared.open(url) else { throw RemoteScreenRequest.Failure.unavailable }
         })
-        channel.manager.register("remote-screen-availability") { request in
+        channel.manager.register(MachLinkMethod.remoteScreenAvailability.rawValue) { request in
             try await RemoteScreenCoordinator.peerResponse(to: request, enabled: {
                 [.machLink, .remoteScreen].allSatisfy { NotchcastPreferences.shared.isOn($0) }
             }, address: { try await RemoteScreenAddress.current() })
