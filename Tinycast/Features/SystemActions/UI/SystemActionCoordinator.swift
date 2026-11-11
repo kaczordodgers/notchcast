@@ -34,7 +34,7 @@ final class SystemActionCoordinator {
         _ action: SystemAction, previousApp: NSRunningApplication?, volume: Float32?
     ) async {
         if action.id == .toggleMicrophoneMute, NotchcastPreferences.shared.isEnabled(.microphoneMute),
-           let microphone = NotchcastCore.services?.microphone {
+           let microphone = MicrophoneMuteModule.shared {
             microphone.toggle()
             return
         }
