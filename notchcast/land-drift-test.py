@@ -169,10 +169,10 @@ class Landing(unittest.TestCase):
 
     def test_sourced_helper_change_needs_signoff(self):
         self.commit('Base')
-        for helper in ('hold.sh', 'drift-gates.sh', 'merge.sh', 'sync-wait.sh', 'local-build-status.sh', 'fork-point.sh'):
+        for helper in (ROOT / 'notchcast/land-tooling.txt').read_text().split():
             with self.subTest(helper=helper):
                 base = fixtures.git(self.root, 'rev-parse', 'HEAD')
-                fixtures.write(self.root, f'notchcast/{helper}', 'refuse() { echo "WARN: $*"; }\n')
+                fixtures.write(self.root, helper, 'refuse() { echo "WARN: $*"; }\n')
                 self.commit(f'Candidate {helper}')
                 refused = self.tooling(base, 'Summary only')
                 self.assertEqual(refused.returncode, 1, refused.stdout + refused.stderr)

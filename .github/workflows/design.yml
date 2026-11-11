@@ -4,10 +4,10 @@ name: Design
 on:
   push:
     branches: [main]
-    paths: ["**/*.swift", "notchcast/design-check.sh", "notchcast/config.env", ".github/workflows/design.yml"]
+    paths: ["**/*.swift", "notchcast/design-check.sh", "notchcast/config.env", "notchcast/fetch-upstream.sh", ".github/workflows/design.yml"]
   pull_request:
     branches: [main]
-    paths: ["**/*.swift", "notchcast/design-check.sh", "notchcast/config.env", ".github/workflows/design.yml"]
+    paths: ["**/*.swift", "notchcast/design-check.sh", "notchcast/config.env", "notchcast/fetch-upstream.sh", ".github/workflows/design.yml"]
 
 permissions:
   contents: read
