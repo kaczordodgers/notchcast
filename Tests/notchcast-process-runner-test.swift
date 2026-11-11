@@ -3,6 +3,7 @@
 
 import Darwin
 import Foundation
+import Synchronization
 
 @main
 struct ProcessRunnerTest {
@@ -85,9 +86,22 @@ struct ProcessRunnerTest {
         check(stubbornTook > .seconds(2) && stubbornTook < .seconds(8))
 
         var interrupted = request("/bin/sh", ["-c", "trap 'exit 7' INT; sleep 30 & wait"])
-        interrupted.stopSignal = SIGINT
+        interrupted.stopLadder = .terminating(SIGINT)
         interrupted.timeout = .milliseconds(300)
         check(await failure { try await ProcessRunner.run(interrupted) } as? ProcessRunner.Failure == .timedOut)
+
+        let ladder = ProcessRunner.StopLadder.interrupting(kill: .seconds(3))
+        check(ladder.first == SIGINT && ladder.later.map(\.signal) == [SIGTERM, SIGKILL])
+        check(ladder.signal(after: .milliseconds(500)) == SIGINT && ladder.signal(after: .seconds(2)) == SIGTERM)
+        check(ladder.signal(after: .seconds(4)) == SIGKILL)
+        let quick = ProcessRunner.StopLadder.terminating(grace: .milliseconds(250))
+        check(quick.first == SIGTERM && quick.later.map(\.after) == [.milliseconds(250)])
+        let climbed = Mutex<[Int32]>([])
+        ProcessRunner.StopLadder(first: SIGINT, later: [
+            .init(signal: SIGTERM, after: .milliseconds(20)), .init(signal: SIGKILL, after: .milliseconds(60)),
+        ]).escalate { signal in climbed.withLock { $0.append(signal) } }
+        try await Task.sleep(for: .milliseconds(300))
+        check(climbed.withLock { $0 } == [SIGTERM, SIGKILL])
 
         // The leader dies on the stop signal; its child ignores it and must go with the group.
         let pidFile = FileManager.default.temporaryDirectory.appending(path: "process-runner-test-\(UUID())")
@@ -144,6 +158,7 @@ struct ProcessRunnerTest {
         print("PASS: success, non-zero exit, stderr modes, stdin, environment, directory, output limit, launch failure")
         print("PASS: timeout, grace kill of a child that ignores TERM, custom stop signal, cancel, pre-cancel")
         print("PASS: a group stop kills a child that outlives its leader")
+        print("PASS: one stop ladder names every supervisor's signals and delays, and escalates in order")
         print("PASS: blocking entry point success, failure, timeout, cancel; temporary files removed")
     }
 }
