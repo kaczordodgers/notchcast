@@ -1,6 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Command.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Model/*.swift

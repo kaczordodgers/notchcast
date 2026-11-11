@@ -2,10 +2,7 @@
 // notchcast-sources: Tinycast/Features/Answers/Service/*.swift
 // notchcast-sources: Tinycast/Features/Answers/LauncherAnswersModule.swift
 // notchcast-sources: Tinycast/Features/Calculator/Model/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-kit: core
 import Foundation
 import Synchronization
 

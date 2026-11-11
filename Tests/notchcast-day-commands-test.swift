@@ -17,11 +17,6 @@ enum IslandPage { case home, day
     func open(page: IslandPage, takeKey: Bool = false) {}
     func selectPage(_ page: IslandPage) {}
 }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    struct Settings { var calendarEnabled = false }
-    var settings = Settings()
-}
 @MainActor struct NotchcastCommand {
     let slug: String
     let name: String

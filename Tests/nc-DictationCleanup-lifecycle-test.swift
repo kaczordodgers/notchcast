@@ -1,5 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift

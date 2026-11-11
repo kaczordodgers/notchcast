@@ -1,9 +1,6 @@
 // notchcast-sources: Tinycast/Features/AgentMCPServer/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentMCPServer/Service/AgentMCPModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 import Foundation
 
 @MainActor

@@ -1,10 +1,10 @@
+// notchcast-kit: host
 // notchcast-sources: -strict-concurrency=complete -lsqlite3
 // notchcast-sources: Tinycast/Features/WaitingAlerts/Model/*.swift Tinycast/Features/WaitingAlerts/Service/*.swift
 // notchcast-sources: Tinycast/Features/FileSearch/Service/FileSystemWatcher.swift
 // notchcast-sources: Tinycast/Features/WaitingAlerts/WaitingAlertsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 import SQLite3
 
