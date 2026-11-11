@@ -233,9 +233,9 @@ struct BatteryStoreTests {
         }
         prefs.set(.batteryChargeLimit, false)
         var journal = BatteryOwnershipJournal()
-        journal.adopt("battery-sleep", applied: "battery-sleep-off", undo: "battery-sleep-on")
-        journal.begin("battery-sleep", verb: "battery-sleep-on", undo: "battery-sleep-on")
-        for _ in 0..<6 { journal.fail("battery-sleep", now: .distantPast) }
+        journal.adopt(.sleep, applied: "battery-sleep-off", undo: "battery-sleep-on")
+        journal.begin(.sleep, verb: "battery-sleep-on", undo: "battery-sleep-on")
+        for _ in 0..<6 { journal.fail(.sleep, now: .distantPast) }
         prefs.batteryJournalData = try? JSONEncoder().encode(journal)
         var versions = 0
         let exhausted = BatteryModule(preferences: prefs, runner: .init(read: { nil }, root: { _ in
