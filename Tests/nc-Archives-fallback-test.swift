@@ -1,4 +1,6 @@
 // notchcast-reads: notchcast/test-archives-fallback.py
+// notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/JobOutput.swift
 import Foundation
 
 @main

@@ -24,19 +24,15 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
                 localized: "This conversion was queued by an older version. Add the files again.", table: "Notchcast"))
         }
         let sources = options.sources.map { URL(fileURLWithPath: $0) }
-        var occupied = Set<URL>()
-        for parent in Set(sources.map { $0.deletingLastPathComponent() }) {
-            occupied.formUnion(try FileManager.default.contentsOfDirectory(at: parent, includingPropertiesForKeys: nil))
-        }
-        let plan = try ConvertFilesPlan.make(sources: sources, target: options.target,
-                                             pages: options.pages, occupied: occupied)
+        let plan = try ConvertFilesPlan.make(sources: sources, target: options.target, pages: options.pages)
         var outputs: [URL] = []
         var failures: [String] = []
         for item in plan.items {
             try Task.checkCancellation()
             do {
-                outputs.append(try await execute(item, context: context))
-                await post(item.output.lastPathComponent)
+                let published = try await execute(item, context: context)
+                outputs.append(published)
+                await post(published.lastPathComponent)
             } catch is CancellationError {
                 throw CancellationError()
             } catch {
@@ -52,11 +48,12 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
 
     private func execute(_ item: ConvertFilesPlan.Item, context: DownloadRunContext) async throws -> URL {
         let manager = FileManager.default
-        let scratch = item.output.deletingLastPathComponent().appending(path: ".convert-" + UUID().uuidString)
+        let folder = item.sources[0].deletingLastPathComponent()
+        let scratch = folder.appending(path: ".convert-" + UUID().uuidString)
         try manager.createDirectory(at: scratch, withIntermediateDirectories: false)
         defer { try? manager.removeItem(at: scratch) }
-        let staged = scratch.appending(path: item.output.lastPathComponent)
-        let arguments = item.arguments.map { $0 == item.output.path ? staged.path : $0 }
+        let staged = scratch.appending(path: item.stem + item.suffix)
+        let arguments = item.arguments.map { $0 == ConvertFilesPlan.outputPlaceholder ? staged.path : $0 }
         if item.tool == "tar", arguments.first == "-x" {
             try manager.createDirectory(at: staged, withIntermediateDirectories: false)
         }
@@ -82,8 +79,6 @@ nonisolated struct ConvertFilesRunner: DownloadRunner {
         guard manager.fileExists(atPath: staged.path) else {
             throw ConvertFilesPlan.Failure(message: String(localized: "The conversion produced no output.", table: "Notchcast"))
         }
-        let suffix = item.output.pathExtension.isEmpty ? "" : "." + item.output.pathExtension
-        return try JobOutput.publish(staged, in: item.output.deletingLastPathComponent(),
-                                     stem: String(item.output.lastPathComponent.dropLast(suffix.count)), suffix: suffix)
+        return try JobOutput.publish(staged, in: folder, stem: item.stem, suffix: item.suffix)
     }
 }
