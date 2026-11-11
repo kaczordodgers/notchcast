@@ -32,6 +32,7 @@ enum NotchcastCore {
             await BatteryModule.shared.waitUntilIdle()
             await MonitorModule.shared.fans.waitUntilIdle()
         }
+        await DictationHistoryModule.shared.waitUntilIdle()
     }
 
     static func start(_ core: AppCore, preferences: NotchcastPreferences = .shared) {
@@ -64,14 +65,6 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Could not update Spaces ordering.", table: "Notchcast"), tone: .danger)
         }
         spacesOrder.restoreIfDisabled()
-        DictationHistoryModule.shared.onFailure = { [weak core] in
-            core?.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
-        }
-        DictationFamily.shared.historySink = { raw, cleaned in
-            DictationHistoryModule.shared.enqueue(raw: raw, cleaned: cleaned)
-        }
-        DictationHistoryModule.shared.setStageEnabled = { DictationFamily.shared.setHistory($0) }
-        Task { await DictationHistoryModule.shared.maintain() }
         dictationCleanup.reportFailure = { [weak core] in
             core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)
         }
