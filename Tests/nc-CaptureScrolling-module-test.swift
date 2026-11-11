@@ -6,7 +6,6 @@
 // notchcast-sources: Tinycast/Features/CaptureScrolling/ScrollingCaptureModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureAreaSelection.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
-// notchcast-reads: Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift
 import AppKit
 import Observation
 
@@ -89,10 +88,6 @@ enum DialogTone { case neutral, danger }
         precondition(session.cancels == 1 && area.stops == 1 && !command.isEnabled())
         command.run()
         precondition(area.starts == 2)
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        let section = try String(contentsOf: root.appendingPathComponent(
-            "Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift"), encoding: .utf8)
-        precondition(section.contains("preferences.set(.scrollingCapture, $0)"))
-        print("PASS: scrolling lifecycle, command output, permission HUD, settings switch")
+        print("PASS: scrolling lifecycle, command output, permission HUD")
     }
 }

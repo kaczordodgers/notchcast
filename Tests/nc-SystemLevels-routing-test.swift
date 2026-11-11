@@ -3,8 +3,9 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
+// notchcast-sources: Tinycast/Features/SystemLevels/VolumeLevelsGate.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
 // notchcast-kit: core input platform
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelIslandPresenter.swift
@@ -223,6 +224,13 @@ struct SystemLevelRoutingTests {
         for _ in 0..<20 { await Task.yield() }
         check(hub.synchronousHandlers.count == 1, "Removing the presenter keeps brightness registered")
         check(center.activities.isEmpty, "Removing the presenter clears its activity")
+        for (island, volume) in [(true, true), (true, false), (false, true), (false, false)] {
+            preferences.set(.island, island)
+            preferences.set(.volumeLevels, volume)
+            check(preferences.showsVolumeInIsland == (island && volume), "Volume needs island \(island) and volume \(volume)")
+        }
+        check(registered[0].requires.allSatisfy { preferences.set($0, false); return !preferences.showsVolumeInIsland },
+              "Each switch the levels module requires closes the volume gate")
         print("PASS: \(checks) routing checks; fake audio and displays, no real hardware writes")
     }
 }

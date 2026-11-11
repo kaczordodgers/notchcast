@@ -6,8 +6,8 @@ final class MachLinkManager {
     static let serviceType = "_notchcast-link._tcp"
     typealias Route = @MainActor (MachLinkMessage) async throws -> MachLinkMessage
 
-    private var listener: NWListener?
-    private var browser: NWBrowser?
+    private(set) var listener: NWListener?
+    private(set) var browser: NWBrowser?
     private var requests: [UUID: Task<Void, Never>] = [:]
     private var routes: [String: Route] = [:]
     private(set) var peers: Set<NWBrowser.Result> = []
