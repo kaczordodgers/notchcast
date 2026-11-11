@@ -102,7 +102,7 @@ private struct TreadmillTests {
     private static func registration() {
         let entries = TreadmillCoordinator.register(AppCore())
         expect(entries.map(\.requires) == [[.treadmillWalk], [.treadmillHistory]], "Walk and history each register an entry")
-        expect(entries.allSatisfy { $0.requiresAny.isEmpty && $0.module is TreadmillModule }, "Both entries are switch modules")
+        expect(entries.allSatisfy { $0.requiresAny.isEmpty }, "Both entries are switch modules")
         expect(entries.map { ($0.module as? TreadmillModule)?.capability } == [.walk, .history],
                "The walk switch runs the walk capability and the history switch runs history")
     }
