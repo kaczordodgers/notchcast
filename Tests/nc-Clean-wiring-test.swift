@@ -44,12 +44,12 @@ final class WiringFake: Sendable {
                     }
                 }
             }
-            if state.withLock({ $0.helperOutdated }) { throw CleanCoordinator.HelperUpdate() }
             if suspend {
                 await withCheckedContinuation { continuation in
                     state.withLock { $0.continuation = continuation }
                 }
             }
+            if state.withLock({ $0.helperOutdated }) { throw CleanCoordinator.HelperUpdate() }
             return .init(items: [.init(id: reviewed, size: 8), .init(id: unreviewed, size: 8)]) { paths in
                 for path in paths {
                     precondition(path == self.reviewed || path == self.unreviewed)
@@ -147,6 +147,21 @@ struct CleanWiringTest {
         coordinator.apply(.cleanSystem)
         await coordinator.waitUntilIdle()
         precondition(questions.count == 2)
+        fake.state.withLock { $0.continuation = nil; $0.suspended = true }
+        coordinator.scan(.cleanSystem)
+        for _ in 0..<10_000 {
+            if fake.state.withLock({ $0.continuation != nil }) { break }
+            await Task.yield()
+        }
+        let staleScan = fake.state.withLock { $0.continuation }
+        precondition(staleScan != nil, "Fake System scan did not start")
+        fake.state.withLock { $0.suspended = false; $0.helperOutdated = true }
+        preferences.set(.cleanSystem, false)
+        coordinator.setEnabled(.cleanSystem, false)
+        staleScan?.resume()
+        await coordinator.waitUntilIdle()
+        precondition(coordinator.helperCurrent && reports == 1, "A stale failure changed the helper notice")
+        fake.state.withLock { $0.helperOutdated = false }
         preferences.set(.cleanJunk, true)
         coordinator.setEnabled(.cleanJunk, true)
         coordinator.scan(.cleanJunk)
@@ -200,5 +215,6 @@ struct CleanWiringTest {
         print("PASS: accept trashes reviewed only; stale scan dropped; a stale helper sets the notice, a later scan clears it")
         print("PASS: Disk counts and trashes only the outermost selected folder")
         print("PASS: stale confirmation dropped; Optimize asks its action question without an item count")
+        print("PASS: a failure from a scan that was switched off leaves the helper notice alone")
     }
 }
