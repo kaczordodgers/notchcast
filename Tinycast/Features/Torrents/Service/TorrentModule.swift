@@ -92,9 +92,8 @@ final class TorrentModule: NotchcastModule {
     }
 
     private func interfacesPresent(_ arguments: [String]) -> Bool {
-        guard let argument = arguments.first(where: { $0.hasPrefix("--multiple-interface=") }),
-              let interfaces = try? readInterfaces() else { return false }
-        let names = argument.dropFirst("--multiple-interface=".count).split(separator: ",").map(String.init)
+        let names = NetMergePolicy.interfaceNames(in: arguments)
+        guard !names.isEmpty, let interfaces = try? readInterfaces() else { return false }
         return names.allSatisfy { name in interfaces.contains { $0.bsdName == name && $0.hasIPv4 } }
     }
 

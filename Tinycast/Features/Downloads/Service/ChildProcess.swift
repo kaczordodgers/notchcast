@@ -10,16 +10,6 @@ final class ChildProcess: Sendable {
         let errors: String
     }
 
-    struct Failure: LocalizedError {
-        let result: Result
-
-        var errorDescription: String? {
-            result.errors.split(whereSeparator: \.isNewline)
-                .map { $0.trimmingCharacters(in: .whitespaces) }.last { !$0.isEmpty }
-                ?? String(localized: "Tool exited with status \(result.status).", table: "Notchcast")
-        }
-    }
-
     private struct State {
         var started = false
         var processID: pid_t?

@@ -1,3 +1,4 @@
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/DownloadTool.swift Tinycast/Features/Notchcast/Jobs/DownloadRunContext.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/CommandProcessRunner.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/CatalogShellCommandRunner.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift

@@ -4,15 +4,16 @@ import WebKit
 
 @MainActor
 enum WebpageWebViewConfiguration {
+    private static let scheme = #"^https?://([^/@]+@)?"#
+    /// A host WebKit must not load: an IP literal, a single-label name, or a local name.
     static let blockedURLPatterns = [
-            #"^https?://([^/@]+@)?\["#,
-            #"^https?://([^/@]+@)?[0-9]+(\.[0-9]+)*\.?[:/]"#,
-            #"^https?://([^/@]+@)?0x[0-9a-f]+\.?[:/]"#,
-            #"^https?://([^/@]+@)?[^/:.]+\.?[:/]"#,
-            #"^https?://([^/@]+@)?[^/:]+\.localhost\.?[:/]"#,
-            #"^https?://([^/@]+@)?[^/:]+\.local\.?[:/]"#,
-            "^wss?://"
-        ]
+        scheme + #"\["#,
+        scheme + #"[0-9]+(\.[0-9]+)*\.?[:/]"#,
+        scheme + #"0x[0-9a-f]+\.?[:/]"#,
+        scheme + #"[^/:.]+\.?[:/]"#,
+    ] + PublicWebAddress.localSuffixes.map {
+        scheme + #"[^/:]+"# + NSRegularExpression.escapedPattern(for: $0) + #"\.?[:/]"#
+    } + ["^wss?://"]
 
     static func make(proxy: ProxyConfiguration) async throws -> WKWebViewConfiguration {
         let rules: [[String: Any]] = blockedURLPatterns.map {
