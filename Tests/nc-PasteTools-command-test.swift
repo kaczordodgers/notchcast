@@ -1,14 +1,7 @@
 // notchcast-sources: Tinycast/Features/PasteTools/Service/PlainPasteModule+Command.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
 
 @MainActor final class PlainPasteModule {
     var pastes = 0
@@ -21,14 +14,9 @@ struct NotchcastCommand: Sendable {
 
 enum NotchcastFeature { case pastePlain }
 
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = false
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
-}
-
 @main @MainActor struct PlainPasteCommandTest {
     static func main() {
+        NotchcastPreferences.shared.enabled = false
         let command = PlainPasteModule.launcherCommand
         precondition(!command.isEnabled())
         NotchcastPreferences.shared.enabled = true

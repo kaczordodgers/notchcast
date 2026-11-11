@@ -4,29 +4,18 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum NotchcastFeature { case linkQuickFixes }
 enum DialogTone { case success }
-enum SettingsTab { case notchcast }
 enum SettingsAnchor { case notchcastAIUsage }
 enum SettingsTarget: Equatable { case section(SettingsAnchor) }
-struct NotchcastCommand: Sendable {
-    var slug: String
-    var name: String
-    var sfSymbol: String
-    var feature: NotchcastFeature
-    var isEnabled: @MainActor @Sendable () -> Bool
-    var run: @MainActor @Sendable () -> Void
-}
 struct DialogAction {
     enum Role { case standard, cancel }
     var title: String
     var role: Role = .standard
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
 @MainActor final class AppCore {
     static let shared = AppCore()

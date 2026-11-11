@@ -1,23 +1,13 @@
 // notchcast-sources: Tinycast/Features/ClearNotifications/Model/*.swift Tinycast/Features/ClearNotifications/Service/*.swift Tinycast/Features/ClearNotifications/ClearNotificationsModule*.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 import Synchronization
 
 @MainActor protocol NotchcastModule {}
 enum NotchcastFeature { case clearNotifications }
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
 @MainActor enum Permissions {
     static func isAccessibilityTrusted() -> Bool { true }
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
 @MainActor enum NotchcastCore {
     static var clearNotifications = ClearNotificationsModule()
