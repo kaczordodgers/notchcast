@@ -113,6 +113,7 @@ Dropping a feature deletes its case, descriptor, hub line, every list and settin
 
 - backup keys: `<Name>BackupKeys.swift` beside `<Name>Descriptor.swift`, one `NotchcastFeature.BackupKeys` per described feature, collected by `featureKeys` in the schema ([settings-backup.md](settings-backup.md));
 - settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order);
+- private state: a value only one feature reads and that needs no observation is a computed property in a `NotchcastPreferences` extension in the feature's folder, over `engineDefaults` (Battery: `Battery/Store/BatteryOwnershipPreferences.swift`). Observed settings are stored properties and stay in `Core/NotchcastPreferences.swift`;
 - settings extras: what a feature adds to its generic rows (a second caption line, a label, rows under the switch, rows shown only while it is enabled) is a `NotchcastFeatureSettingsExtras` value stated in `<Name>+SettingsExtras.swift` in the feature's folder and named by one arm in `settingsExtras` (`Notchcast/Settings/Rows/NotchcastFeatureSettingsExtras.swift`). `NotchcastModuleSettingsView` renders the value and names no feature. Cleaning Mode's value stays in `Notchcast/Settings/Rows/CleaningModeSettingsExtras.swift` because it reads `NotchcastCore`, and Clean AI Data's and Settings Backup's sit in the extras file itself.
 
 Three things stay in the hub on purpose:
