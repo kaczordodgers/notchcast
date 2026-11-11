@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/Katana/Model/*.swift Tinycast/Features/Katana/Service/*.swift
 
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift
+// notchcast-sources: Tinycast/Features/Katana/KatanaModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 
 // notchcast-kit: core
 
@@ -367,6 +369,10 @@ struct KatanaTests {
         expect(!module.client.isConnected && module.audio.isEnabled, "Module starts without opening hardware")
         module.stop()
         expect(!module.client.isEnabled && !module.audio.isEnabled, "Module stops both engines")
+        let entries = KatanaModule.register(AppCore())
+        expect(entries.count == 1 && entries[0].requires == [.katana] && entries[0].requiresAny.isEmpty,
+               "Katana registers one entry behind its switch")
+        expect(entries[0].module === KatanaModule.shared, "The registered entry is the shared module")
     }
 
     @MainActor
@@ -416,6 +422,8 @@ struct KatanaTests {
         expect(try Data(contentsOf: library) == data, "Failed import preserves library")
     }
 }
+
+@MainActor final class AppCore {}
 
 @MainActor
 final class SilentKatanaMIDI: KatanaMIDILayer {

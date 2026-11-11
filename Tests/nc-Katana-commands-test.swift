@@ -1,7 +1,8 @@
 // notchcast-sources: Tinycast/Features/Katana/Model/*.swift Tinycast/Features/Katana/Service/*.swift
-// notchcast-sources: Tinycast/Features/Katana/KatanaModule*.swift
+// notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift Tinycast/Features/Katana/KatanaModule+Commands.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift Tinycast/Features/AgentBridge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import Foundation
 
@@ -22,19 +23,14 @@ struct AppEntry {
     var enabled = true
     func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
 }
-@MainActor enum NotchcastCore {
+extension KatanaModule {
     static let midi = CommandMIDI()
-    static let katana = KatanaModule(midi: midi)
+    static let shared = KatanaModule(midi: midi)
 }
 enum DialogTone: Sendable {
     case neutral
     case success
     case danger
-}
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    var messages: [(String, DialogTone)] = []
-    func showMessage(_ message: String, tone: DialogTone = .success) { messages.append((message, tone)) }
 }
 @MainActor final class CommandMIDI: KatanaMIDILayer {
     var endpoints = ["KATANA Test"]
@@ -65,42 +61,44 @@ enum DialogTone: Sendable {
     static func main() async throws {
         let commands = [KatanaModule.panelCommand, KatanaModule.a1Command, KatanaModule.a2Command,
                         KatanaModule.b1Command, KatanaModule.b2Command]
-        let midi = NotchcastCore.midi
-        let module = NotchcastCore.katana
+        var messages: [(String, DialogTone)] = []
+        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
+        let midi = KatanaModule.midi
+        let module = KatanaModule.shared
         module.start()
         defer { module.stop() }
         for (command, channel) in zip(commands, KatanaChannel.allCases) {
-            AppCore.shared.messages = []
+            messages = []
             midi.packets = []
             command.run()
-            while AppCore.shared.messages.isEmpty { await Task.yield() }
+            while messages.isEmpty { await Task.yield() }
             precondition(midi.packets.contains { $0.address == KatanaSysEx.selectChannel && $0.data == [0, channel.rawValue] })
             precondition(module.client.channel == channel)
-            precondition(AppCore.shared.messages[0].1 == .success)
+            precondition(messages[0].1 == .success)
             precondition(command.name == "Select Katana \(channel.title)")
-            precondition(AppCore.shared.messages[0].0 == "Katana \(channel.title) Selected")
+            precondition(messages[0].0 == "Katana \(channel.title) Selected")
             print("PASS: \(command.name) selects \(channel.rawValue) and reports success")
         }
         midi.endpoints = []
         midi.changed?()
         for command in commands {
             midi.packets = []
-            AppCore.shared.messages = []
+            messages = []
             command.run()
-            while AppCore.shared.messages.isEmpty { await Task.yield() }
+            while messages.isEmpty { await Task.yield() }
             precondition(midi.packets.isEmpty)
-            precondition(AppCore.shared.messages[0].0 == KatanaError.unavailable.localizedDescription)
-            precondition(AppCore.shared.messages[0].1 == .danger)
+            precondition(messages[0].0 == KatanaError.unavailable.localizedDescription)
+            precondition(messages[0].1 == .danger)
         }
         print("PASS: all disconnected commands report danger and send nothing")
         midi.endpoints = ["KATANA Test"]
         midi.changed?()
         midi.fail = true
-        AppCore.shared.messages = []
+        messages = []
         commands[0].run()
-        while AppCore.shared.messages.isEmpty { await Task.yield() }
-        precondition(AppCore.shared.messages[0].1 == .danger)
-        precondition(AppCore.shared.messages[0].0 == KatanaError.verificationFailed.localizedDescription)
+        while messages.isEmpty { await Task.yield() }
+        precondition(messages[0].1 == .danger)
+        precondition(messages[0].0 == KatanaError.verificationFailed.localizedDescription)
         print("PASS: transport failure reports existing KatanaError with danger")
         midi.fail = false
         midi.cancel = true
