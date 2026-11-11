@@ -31,6 +31,7 @@ enum NotchcastFeature { case pastePlain }
 @main @MainActor struct PlainPasteCommandTest {
     static func main() {
         let command = PlainPasteModule.launcherCommand
+        precondition(command.feature == .pastePlain, "The catalog switches the command off with this feature")
         command.run()
         precondition(PlainPasteModule.shared.pastes == 1, "The command reaches the module before registration")
         let entries = PlainPasteModule.register(AppCore.shared)

@@ -8,8 +8,10 @@ import Observation
 final class PasteImageModule: NotchcastModule {
     private(set) var saveFailed = false
     private let tap: EventTapSubscription
-    private let eligible = OSAllocatedUnfairLock(initialState: false)
+    private let takes = OSAllocatedUnfairLock(initialState: false)
     private var activation: NotificationToken?
+    private var ticker: Timer?
+    private var changeCount: Int?
     var onFailure: (() -> Void)?
     private var work: Task<Void, Never>?
 
@@ -27,20 +29,20 @@ final class PasteImageModule: NotchcastModule {
 
     func start() {
         guard !tap.isActive else { return }
-        let eligible = eligible
-        // The tap thread reads only eligibility; paste() reads the pasteboard on the main actor.
+        let takes = takes
+        // The tap thread reads only this flag; the main actor keeps it current from the pasteboard.
         tap.startKeyPress(Int64(kVK_ANSI_V), skipsSynthetic: true) { [weak self] event in
             let modifiers: CGEventFlags = [.maskCommand, .maskShift, .maskControl, .maskAlternate]
-            guard event.flags.intersection(modifiers) == .maskCommand, eligible.withLock({ $0 }) else { return false }
+            guard event.flags.intersection(modifiers) == .maskCommand, takes.withLock({ $0 }) else { return false }
             Task { @MainActor [weak self] in self?.paste() }
             return true
         }
-        updateEligibility()
+        frontmostChanged()
         let center = NSWorkspace.shared.notificationCenter
         activation = NotificationToken(center.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in self?.updateEligibility() }
+            Task { @MainActor in self?.frontmostChanged() }
         }, center: center)
     }
 
@@ -49,12 +51,34 @@ final class PasteImageModule: NotchcastModule {
         work?.cancel()
         work = nil
         tap.stop()
-        eligible.withLock { $0 = false }
+        stopTicking()
     }
 
-    private func updateEligibility() {
-        let frontmost = finderIsFrontmost()
-        eligible.withLock { $0 = frontmost }
+    private func stopTicking() {
+        ticker?.invalidate()
+        ticker = nil
+        changeCount = nil
+        takes.withLock { $0 = false }
+    }
+
+    private func frontmostChanged() {
+        stopTicking()
+        guard finderIsFrontmost() else { return }
+        let ticker = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.clipboardTick() }
+        }
+        ticker.tolerance = 0.05
+        RunLoop.main.add(ticker, forMode: .common)
+        self.ticker = ticker
+        clipboardTick()
+    }
+
+    func clipboardTick() {
+        let board = NSPasteboard(name: pasteboard)
+        guard ticker != nil, board.changeCount != changeCount else { return }
+        changeCount = board.changeCount
+        let accepts = PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
+        takes.withLock { $0 = accepts }
     }
 
     func paste() {
