@@ -488,11 +488,37 @@ def command_slugs(expression, source):
     return re.findall(rf'\b{factory[1]}\(\s*"([^"]+)"' if factory else rf'\b{name} = "([^"]+)"', source) or [expression]
 
 
+def array_elements(code, opening):
+    """The top-level elements of the array literal whose `[` is at code[opening]."""
+    elements, item, depth = [], "", 0
+    for character in code[opening + 1:]:
+        if character in "([{":
+            depth += 1
+        elif character in ")]}":
+            if depth == 0:
+                break
+            depth -= 1
+        if character == "," and depth == 0:
+            elements.append(item.strip())
+            item = ""
+        else:
+            item += character
+    elements.append(item.strip())
+    return [element for element in elements if element]
+
+
 def command_errors(root):
     """A command names its owner and keeps its slug; a command a type holds as a static is listed in the catalog."""
     errors = []
     declared = {}
-    catalog = set(re.findall(r"^\s+([\w.]+)(?:\[\d+\])?,$", (root / CATALOG).read_text(), re.M))
+    text = (root / CATALOG).read_text()
+    catalog = set(re.findall(r"^\s+([\w.]+)(?:\[\d+\])?,$", text, re.M))
+    indexed = {}
+    for number, line in enumerate(text.split("\n"), 1):
+        match = re.fullmatch(r"\s+([\w.]+)\[(\d+)\],", line)
+        if match:
+            indexed.setdefault((match[1], int(match[2])), number)
+    arrays = {}
     for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
         source = path.read_text()
         if "NotchcastCommand" not in source:
@@ -514,13 +540,26 @@ def command_errors(root):
                 if name in declared:
                     errors.append((relative, number, f"repeated command slug {name} (first at {declared[name][0]}:{declared[name][1]})"))
                 declared.setdefault(name, (relative, number, owner[1]))
-        factories = set(re.findall(r"\bfunc (\w+)\([^{]*?\)\s*->\s*NotchcastCommand\b", code)) | {"NotchcastCommand"}
+        factories = set(re.findall(r"\bfunc (\w+)\([^{]*?\)\s*->\s*\[?NotchcastCommand\b", code)) | {"NotchcastCommand"}
         types = [(match.start(), match[1]) for match in re.finditer(
             r"^(?:@\w+\s+)*(?:final\s+)?(?:enum|extension|struct|class)\s+([\w.]+)", code, re.M)]
         for static in re.finditer(r"^(?![^\n=]*\bprivate\s)[^\n=]*\bstatic\s+(?:let|var)\s+(\w+)\s*(?::\s*NotchcastCommand\s*)?=\s*(\w+)\b", code, re.M):
             holders = [name for start, name in types if start < static.start()]
             if holders and static[2] in factories and f"{holders[-1]}.{static[1]}" not in catalog:
                 errors.append((relative, code.count("\n", 0, static.start()) + 1, f"list {holders[-1]}.{static[1]}, in {CATALOG}"))
+        for array in re.finditer(r"^(?![^\n=]*\bprivate\s)[^\n=]*\bstatic\s+(?:let|var)\s+(\w+)\s*:\s*\[NotchcastCommand\]\s*=\s*\[", code, re.M):
+            holders = [name for start, name in types if start < array.start()]
+            elements = array_elements(code, array.end() - 1)
+            # Bare references add no command; each named static is checked where it is declared.
+            if not holders or all(re.fullmatch(r"[\w.]+(?:\[\d+\])?", element) for element in elements):
+                continue
+            name = f"{holders[-1]}.{array[1]}"
+            arrays[name] = len(elements)
+            number = code.count("\n", 0, array.start()) + 1
+            errors.extend((relative, number, f"list {name}[{index}], in {CATALOG}")
+                          for index in range(len(elements)) if (name, index) not in indexed)
+    errors.extend((CATALOG, number, f"{name}[{index}] is past the end of its {arrays[name]} elements")
+                  for (name, index), number in indexed.items() if name in arrays and index >= arrays[name])
     listed = {entry: number for number, entry in enumerate((root / SLUGS).read_text().split("\n"), 1) if entry}
     lines = {f"{name} {owner}": (path, number) for name, (path, number, owner) in declared.items()}
     errors.extend((path, number, f"add the line `{entry}` to {SLUGS}")

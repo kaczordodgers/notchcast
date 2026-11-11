@@ -69,6 +69,11 @@ BREAKS = (
     ("command-slugs", "repeated command slug privacy-choices", AI_COMMAND, 'slug: "ai-features-off"', 'slug: "privacy-choices"'),
     ("command-slugs", 'hook missing or out of order: "command:nc-" + slug', SHAPE.COMMAND, '"command:nc-" + slug', '"command:" + slug'),
     ("command-listed", "list SmallCommandsModule.airDropCommand, in", CATALOG, "        SmallCommandsModule.airDropCommand,\n", ""),
+    ("command-listed", "list KatanaModule.b2Command, in", CATALOG, "        KatanaModule.b2Command,\n", ""),
+    ("command-listed", "list TodoCommands.completeNext, in", CATALOG, "        TodoCommands.completeNext,\n", ""),
+    ("command-listed", "list SystemLevelsCommands.presets[4], in", CATALOG, "        SystemLevelsCommands.presets[4],\n", ""),
+    ("command-listed", "SystemLevelsCommands.presets[5] is past the end of its 5 elements", CATALOG,
+     "        SystemLevelsCommands.presets[4],\n", "        SystemLevelsCommands.presets[4],\n        SystemLevelsCommands.presets[5],\n"),
     ("module-entry-requires", "the entry that runs plainPasteModule requires .pastePlain",
      MODULES, PASTE_ENTRY, ".init(requires: [], module: plainPasteModule)"),
     ("module-built-once", "build PlainPasteModule once", MODULES, "        self.pastePlain = plainPasteModule\n", ""),
@@ -278,6 +283,18 @@ class FeatureShapeTests(unittest.TestCase):
         line = "        LowDiskModule.self,\n"
         self.assertEqual(source.count(line), 1)
         self.rejected(REGISTRANTS, source.replace(line, line + line), "repeated entry LowDiskModule")
+
+    def test_catalog_entry_listed_twice(self):
+        source = (self.root / CATALOG).read_text()
+        line = "        KatanaModule.a2Command,\n"
+        self.assertEqual(source.count(line), 1)
+        self.rejected(CATALOG, source.replace(line, line + line), "repeated entry KatanaModule.a2Command")
+
+    def test_indexed_catalog_entry_listed_twice(self):
+        source = (self.root / CATALOG).read_text()
+        line = "        SystemLevelsCommands.presets[0],\n"
+        self.assertEqual(source.count(line), 1)
+        self.rejected(CATALOG, source.replace(line, line + line), "repeated entry SystemLevelsCommands.presets[0]")
 
     def test_two_registrants_on_one_line(self):
         source = (self.root / REGISTRANTS).read_text()
@@ -679,6 +696,17 @@ class FeatureFactTests(unittest.TestCase):
                 self.assertIn(message, "\n".join(errors))
                 for error in errors:
                     self.assertRegex(error, r"^[\w/+.-]+:\d+: ")
+
+    def test_reordered_indexed_entries_pass(self):
+        path = self.root / CATALOG
+        shipped = path.read_text()
+        first, second = "        SystemLevelsCommands.presets[0],\n", "        SystemLevelsCommands.presets[1],\n"
+        self.assertIn(first + second, shipped)
+        path.write_text(shipped.replace(first + second, second + first, 1))
+        try:
+            self.assertEqual(SHAPE.fact_errors(self.root), [])
+        finally:
+            path.write_text(shipped)
 
     def test_a_fact_found_nowhere_fails(self):
         for message, path, old, new in UNREAD:

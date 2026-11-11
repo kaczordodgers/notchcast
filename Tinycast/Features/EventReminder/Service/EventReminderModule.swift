@@ -2,7 +2,19 @@ import AppKit
 import EventKit
 import Observation
 
-extension DayCalendarService: EventReminderSource {}
+extension DayCalendarService: EventReminderSource {
+    func reminderEvents(in interval: DateInterval) -> [EventReminderEngine.Event] {
+        records(in: interval).map { event, record in
+            EventReminderEngine.Event(
+                id: event.id, title: event.title, start: event.start, isAllDay: event.isAllDay, isDeclined: false,
+                offsets: (record.alarms ?? []).filter { $0.absoluteDate == nil }.map(\.relativeOffset),
+                tint: CGColorSpace(name: CGColorSpace.sRGB).flatMap {
+                    record.calendar?.cgColor?.converted(to: $0, intent: .defaultIntent, options: nil)?.components
+                }.map { $0.prefix(3).map(Double.init) },
+                link: MeetingLink.detect(fields: [record.url?.absoluteString, record.location, record.notes])?.webURL)
+        }
+    }
+}
 
 @MainActor
 final class EventReminderModule: NotchcastModule {

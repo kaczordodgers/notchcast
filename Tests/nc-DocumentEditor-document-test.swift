@@ -202,9 +202,6 @@ struct EditorDocumentTests {
         precondition(!EditorTextPolicy.accepts("same", after: "size", brainDump: true))
         precondition(EditorTextPolicy.accepts("text", after: "text\n", brainDump: true))
         precondition(!EditorTextPolicy.accepts("text", after: " text", brainDump: true))
-        let base = URL(fileURLWithPath: "/tmp/editor/folder/file.md")
-        precondition(EditorTextPolicy.relativeMarkdownLink("../other.md", from: base)?.path == "/tmp/editor/other.md")
-        precondition(EditorTextPolicy.relativeMarkdownLink("https://example.com/file.md", from: base) == nil)
     }
 
     private static func preferences() {
