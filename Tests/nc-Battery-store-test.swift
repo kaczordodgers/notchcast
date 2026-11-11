@@ -7,12 +7,21 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Model/BatteryReading.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/BatteryService.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/PowerRegistryAccess.swift
+// notchcast-sources: Tinycast/Features/Battery/BatteryModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
+
+@MainActor final class AppCore {}
 
 @main
 @MainActor
 struct BatteryStoreTests {
     static func main() async {
+        let entries = BatteryModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires.isEmpty && entries[0].module === BatteryModule.shared)
+        precondition(entries[0].requiresAny == [.batteryChargeLimit, .batterySailing, .batteryHeatProtection,
+                                                .batteryCalibration, .keepAwake, .lidClosedAwake])
+        print("PASS: registration returns the shared module under any battery switch")
         await followupCases()
         await roundThreeCases()
         await safetyCases()

@@ -4,7 +4,7 @@ root=$(git rev-parse --show-toplevel)
 scratch=$(mktemp -d)
 trap 'rm -rf "$scratch"' EXIT
 mkdir "$scratch/bin"
-sed -n '/^    for attempt in /,/^    done/p' "$root/notchcast/land.sh" > "$scratch/retry"
+sed -n '/^while :; do$/,/^done$/p' "$root/notchcast/land.sh" > "$scratch/retry"
 cat > "$scratch/bin/git" <<'STUB'
 #!/bin/bash
 if [ "$1" = push ]; then
@@ -42,17 +42,19 @@ git commit -qm 'Fixture consumer'
 head=$(git rev-parse HEAD)
 git update-ref refs/remotes/origin/main "$base"
 export PATH="$scratch/bin:$PATH"
-commit=$head
-pr=1
-pr_files=consumer.txt
-generated=(generated.txt)
-printf 'Fixture squash\n' > "$scratch/message"
-MAINTAINER_NAME=$(git config user.name) MAINTAINER_EMAIL=$(git config user.email)
+# The loop starts after a green first pass: the train is one PR whose chain build and harnesses are stubbed.
+train=(1) check=0 rerun=0 pushes=0 hold_owner=1
 refuse() { echo "REFUSED: $*"; exit 1; }
-merge_onto() { echo rebuilt >> "$scratch/rebuilt"; }
+build_chain() { echo rebuilt >> "$scratch/rebuilt"; tip=$head; }
 harnesses() { refuse 'selected harness detects removed API in disjoint file'; }
+load() { :; }
+drop() { refuse "$2"; }
+wait_for_sync() { :; }
 source "$root/notchcast/hold.sh"
-gh() { [ -n "${HOLD:-}" ] && echo "$HOLD" || { echo 'variable LANDING_HOLD was not found' >&2; return 1; }; }
+gh() {
+    case "$*" in *headRefOid*) echo "$head"; return ;; esac
+    [ -n "${HOLD:-}" ] && echo "$HOLD" || { echo 'variable LANDING_HOLD was not found' >&2; return 1; }
+}
 status=0
 (source "$scratch/retry") > "$scratch/output" 2>&1 || status=$?
 if [ "$status" -ne 1 ] || ! grep -q 'selected harness detects removed API' "$scratch/output"; then
@@ -60,7 +62,7 @@ if [ "$status" -ne 1 ] || ! grep -q 'selected harness detects removed API' "$scr
     exit 1
 fi
 [ "$(wc -l < "$PUSHES")" -eq 1 ]
-[ "$(wc -l < "$scratch/rebuilt")" -eq 1 ]
+[ "$(wc -l < "$scratch/rebuilt")" -eq 2 ]
 echo 'PASS: disjoint retry reruns harnesses and refuses before second push'
 # A hold set for another PR while this one ran its harnesses stops it before the push.
 : > "$PUSHES"
@@ -86,7 +88,7 @@ git switch -q --detach "$head"
 : > "$PUSHES"
 rm -f "$scratch/rebuilt"
 git update-ref refs/remotes/origin/main "$base"
-harnesses() { echo harnesses >> "$scratch/harnessed"; }
+harnesses() { echo harnesses >> "$scratch/harnessed"; failed=; }
 status=0
 (source "$scratch/retry") > "$scratch/output" 2>&1 || status=$?
 if [ "$status" -ne 0 ] || [ -e "$scratch/harnessed" ] || ! grep -q 'only in generated files' "$scratch/output"; then
@@ -95,7 +97,7 @@ if [ "$status" -ne 0 ] || [ -e "$scratch/harnessed" ] || ! grep -q 'only in gene
     exit 1
 fi
 [ "$(wc -l < "$PUSHES")" -eq 2 ]
-[ "$(wc -l < "$scratch/rebuilt")" -eq 1 ]
+[ "$(wc -l < "$scratch/rebuilt")" -eq 2 ]
 echo 'PASS: a generated-only move merges again, skips the harnesses and pushes'
 # An unreadable move must not pass as generated-only.
 : > "$PUSHES"
