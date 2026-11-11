@@ -123,7 +123,6 @@
   },
   "test-only": {
     "Tinycast/Features/AgentSessions/Pricing/AgentPricingEngine.swift:roundedUSD": 1,
-    "Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift:ScrollingCaptureSettingsSection": 1,
     "Tinycast/Features/CommandRunner/Model/CommandListItem.swift:CommandListItem": 1,
     "Tinycast/Features/CommandRunner/Service/CommandQuickAdd.swift:CommandQuickAdd": 1,
     "Tinycast/Features/DocumentEditor/Service/EditorStatistics.swift:EditorStatistics": 1,

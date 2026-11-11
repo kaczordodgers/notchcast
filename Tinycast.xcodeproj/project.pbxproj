@@ -1550,7 +1550,6 @@
 		B961F0F958AA1A187EBB2185 /* CleanAIDataGitReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A817832394AD89E207F8C89 /* CleanAIDataGitReader.swift */; };
 		BA1D69A1EC7EF1E8D44CA571 /* SendFiles.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 51B7C385465042A5D5A889FC /* SendFiles.xcstrings */; };
 		BA505B8CB8C8E66CCAA105A6 /* AgentCLIDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CECB2D09651D8688531ADF9 /* AgentCLIDescriptor.swift */; };
-		BA53F4A30AE62480953E8FF1 /* ScrollingCaptureSettingsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E1E57ED9D7C92C4E8E1B8D2 /* ScrollingCaptureSettingsSection.swift */; };
 		BA81211D8B660F2DD03A20EA /* GlassEffectView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E6EA47F0085375A3A621F5E /* GlassEffectView.swift */; };
 		BA81E5DE22F944417665D90D /* FeatureCommandsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F082FD6A3AC234F43735715D /* FeatureCommandsSection.swift */; };
 		BA835EDCB6D17DE6BFE2D39E /* DialogTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97F7A18CE243DB037673EB63 /* DialogTextField.swift */; };
@@ -3531,7 +3530,6 @@
 		9DE5F7CBAA5D18713A203BAD /* AIChatSidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIChatSidebarView.swift; sourceTree = "<group>"; };
 		9DF4E7CBBBA998121F5CC1C3 /* SettingsActionCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsActionCommands.swift; sourceTree = "<group>"; };
 		9E17BD2D80FA5F3C3216F863 /* FrontmostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontmostApp.swift; sourceTree = "<group>"; };
-		9E1E57ED9D7C92C4E8E1B8D2 /* ScrollingCaptureSettingsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingCaptureSettingsSection.swift; sourceTree = "<group>"; };
 		9E22CF261C5FBBF3014BED3E /* BatteryHeatProtectionDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BatteryHeatProtectionDescriptor.swift; sourceTree = "<group>"; };
 		9E253B1A4EB5064B4754A2F4 /* SudoTouchIDDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SudoTouchIDDescriptor.swift; sourceTree = "<group>"; };
 		9E69EBD29D5CA60373471C8F /* ClearNotificationsRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClearNotificationsRunner.swift; sourceTree = "<group>"; };
@@ -5704,7 +5702,6 @@
 				7DE0ACE41132181DB88BDDF0 /* ScrollingCaptureModule.swift */,
 				8A08E81CC60F1F916521CFC4 /* ScrollingCaptureModule+Command.swift */,
 				CC53817ECA4AB93BDF64E04C /* ScrollingCaptureModule+Registration.swift */,
-				9E1E57ED9D7C92C4E8E1B8D2 /* ScrollingCaptureSettingsSection.swift */,
 			);
 			path = CaptureScrolling;
 			sourceTree = "<group>";
@@ -12186,7 +12183,6 @@
 				70B036CA7830E829FA90F7A1 /* ScrollingCaptureModule+Registration.swift in Sources */,
 				744862EF20BA468C07E21CCE /* ScrollingCaptureModule.swift in Sources */,
 				D866A2833D3D78DB3FF8F25E /* ScrollingCaptureSession.swift in Sources */,
-				BA53F4A30AE62480953E8FF1 /* ScrollingCaptureSettingsSection.swift in Sources */,
 				75339972AC7C2CA259172E7E /* ScrollingRowHashes.swift in Sources */,
 				DE7333A4347021915DBBE8E7 /* ScrollingRowLog.swift in Sources */,
 				D2A36C775F0C93296EE657C2 /* ScrollingScreenSource.swift in Sources */,
