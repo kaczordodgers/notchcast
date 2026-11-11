@@ -80,6 +80,23 @@ enum NotchcastTheme {
         static let dot = Theme.Size.colorDot
     }
 
+    /// The AI usage page: a row per account, its windows in fixed columns so the bars line up down the page.
+    /// Name, gap and three windows (150 + 12 + 3 × 190 + 2 × 12 = 756) fit the open island's 800 with its insets.
+    enum Usage {
+        static let nameColumn: CGFloat = 150
+        static let windowColumn: CGFloat = 190
+        static let columnGap = Theme.Spacing.xl
+        static let lineGap = Theme.Spacing.xxs
+        static let bar = Theme.Spacing.xs
+        /// "100% left" at the value size, so the bars keep one length whatever the number.
+        static let percentColumn: CGFloat = 58
+        /// Under this share left a window takes the warning hue and a mark; at none, the error hue.
+        static let lowLeft = 20
+        /// A reading older than this, or one Magpie answered from cache, is dimmed and says when it was read.
+        static let staleAfter: TimeInterval = 15 * 60
+        static let staleOpacity = 0.5
+    }
+
     /// The two visualizers Damian chooses between: Orion's and Damian Tools'.
     enum Visualizer {
         static let height: CGFloat = 14
