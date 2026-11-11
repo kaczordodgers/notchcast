@@ -8,17 +8,13 @@
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum TestFeature: Hashable { case fleetPanel, agentThreads, machLink }
 typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled: Set<NotchcastFeature> = []
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled.contains(feature) }
-}
 @MainActor final class AppCore {}
 @MainActor final class MachLinkManager {
     var routes: [String: @MainActor (MachLinkMessage) async throws -> MachLinkMessage] = [:]
@@ -79,6 +75,7 @@ private struct SlowRunner: AgentThreadRunning {
 
 @main struct FleetPanelTest {
     @MainActor static func main() async throws {
+        NotchcastPreferences.shared.only = []
         let now = Date(timeIntervalSince1970: 10_000)
         func row(_ id: String, _ phase: FleetSnapshot.Phase, age: Double = 0) -> FleetSnapshot.Row {
             .init(id: id, title: "Example", project: "Demo", model: "Example model", phase: phase,
@@ -157,11 +154,11 @@ private struct SlowRunner: AgentThreadRunning {
             _ = try await route(request)
             preconditionFailure("Production route accepted a disabled link")
         } catch MachLinkMessage.Failure.disconnected {}
-        NotchcastPreferences.shared.enabled = [.machLink]
+        NotchcastPreferences.shared.only = [.machLink]
         let routedOff = try await route(request)
         let routedSnapshot = try routedOff.value(as: FleetSnapshot.self)
         precondition(routedSnapshot.failure == .off)
-        NotchcastPreferences.shared.enabled = []
+        NotchcastPreferences.shared.only = []
         var reads = 0
         let off = try await FleetMachLinkTransport.response(to: request, linkEnabled: true,
             featureEnabled: false, read: { reads += 1; return snapshot })
@@ -203,9 +200,9 @@ private struct SlowRunner: AgentThreadRunning {
         await FleetPanelModule.shared.waitUntilIdle()
         FleetPanelModule.shared.stop()
         precondition(refreshes == 2)
-        NotchcastPreferences.shared.enabled = [.fleetPanel]
+        NotchcastPreferences.shared.only = [.fleetPanel]
         precondition(FleetPanelModule.command.isEnabled())
-        NotchcastPreferences.shared.enabled = []
+        NotchcastPreferences.shared.only = []
         precondition(!FleetPanelModule.command.isEnabled())
         for state: FleetSnapshot.Column in [.sourceOff, .linkDown, .remoteOff, .failed] {
             precondition(!FleetPanelModule.localMessage(state).isEmpty)

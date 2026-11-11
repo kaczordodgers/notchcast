@@ -62,7 +62,7 @@ for symbol_row in "${symbol_sources[@]}"; do
         declared=${source##*/}
         # A harness that declares the file's type itself keeps its stub.
         [[ " $symbol_readers " == *" $source "* ]] ||
-            grep -qswE "^([a-z]+ )*(enum|struct|class|actor) ${declared%.swift}" "Tests/$name.swift" ||
+            grep -qswE "^(@?[A-Za-z]+ )*(enum|struct|class|actor) ${declared%.swift}" "Tests/$name.swift" ||
             { set -- "$@" "$source"; symbol_readers+=" $source"; }
     done
 done
