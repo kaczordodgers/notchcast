@@ -20,8 +20,10 @@ struct ArchiveRoutingTests {
               let imports = plist["UTImportedTypeDeclarations"] as? [[String: Any]] else {
             fatalError("Missing archive declarations")
         }
-        let archiveTypes = documents.filter { $0["CFBundleTypeName"] as? String == "Archives" }
-        let identifiers = archiveTypes[0]["LSItemContentTypes"] as? [String] ?? []
+        guard let archives = documents.first(where: { $0["CFBundleTypeName"] as? String == "Archives" }) else {
+            fatalError("Info.plist declares no Archives document type")
+        }
+        let identifiers = archives["LSItemContentTypes"] as? [String] ?? []
         var extensions: [String] = []
         for imported in imports {
             let tags = imported["UTTypeTagSpecification"] as? [String: Any]
@@ -62,7 +64,7 @@ struct ArchiveRoutingTests {
         precondition(!ArchiveFormat.defaultTypeIdentifiers.contains("com.apple.installer-package-archive"))
         print("PASS: archive types declared by system plists or app imports; default claims preserve rar and 001")
         precondition(!extensions.contains("tar.gz"))
-        let gzip = UTType(filenameExtension: "gz")!
+        guard let gzip = UTType(filenameExtension: "gz") else { fatalError("macOS names no type for .gz") }
         precondition(gzip.identifier == "org.gnu.gnu-zip-archive")
         precondition(identifiers.contains(gzip.identifier))
         precondition(!extensions.contains("gz"))
@@ -74,7 +76,9 @@ struct ArchiveRoutingTests {
             precondition(entries.count == 1 && entries[0].anchor == .notchcastArchives)
             precondition(entries[0].target == .row(.notchcastArchives, feature.title))
         }
-        let result = SettingsSearchCatalog.results(for: "extract in place").first!
+        guard let result = SettingsSearchCatalog.results(for: "extract in place").first else {
+            fatalError("Settings search finds nothing for \"extract in place\"")
+        }
         precondition(result.title == NotchcastFeature.archivesInPlace.title && result.anchor == .notchcastArchives)
         precondition(SettingsSearchCatalog.results(for: "hatchzip").contains { $0.anchor == .notchcastArchives })
         let job = ArchiveJob(id: UUID(), archive: URL(fileURLWithPath: "/fixture/example.zip"))
