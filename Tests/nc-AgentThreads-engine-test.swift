@@ -68,6 +68,13 @@ struct AgentThreadsTest {
         let path = try await AgentThreadRunner(locate: { URL(filePath: "/bin/sh") }).run(arguments: ["-c", "echo $PATH"])
         precondition(String(decoding: path, as: UTF8.self).hasPrefix("/bin:/opt/homebrew/bin:/usr/local/bin:"),
                      "Child PATH comes from ExecutableLocator")
+        let agents = AgentPaths(home: URL(filePath: "/Users/fixture"))
+        precondition(agents.t3State.path == "/Users/fixture/.t3/userdata/statev2.sqlite")
+        precondition(agents.t3UserData.path == "/Users/fixture/.t3/userdata" && agents.t3Caches.path == "/Users/fixture/.t3/caches")
+        precondition(agents.claudeProjects.map(\.path) == ["/Users/fixture/.claude/projects", "/Users/fixture/.config/claude/projects"])
+        precondition(agents.codexSessions.map(\.path) == ["/Users/fixture/.codex/sessions", "/Users/fixture/.codex/archived_sessions"])
+        precondition(AgentThreadProjects().url == AgentPaths(home: FileManager.default.homeDirectoryForCurrentUser).t3State)
+        print("PASS agent paths come from one owner under the injected home")
         let data = try await runner.run(arguments: [])
         let rows = try AgentThreadParser.list(data, project: "Demo")
         precondition(rows.count == 1 && rows[0].title == "Example" && rows[0].project == "Demo")
