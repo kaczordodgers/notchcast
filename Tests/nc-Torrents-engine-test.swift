@@ -346,7 +346,7 @@ import Foundation
 
     @MainActor static func smoke(file: URL, root: URL) async throws {
         guard TorrentToolLocator().aria2c() != nil else {
-            print("SKIP: aria2c not installed; fake loopback RPC server checks passed")
+            print("SKIP: real aria2c smoke: aria2c not installed")
             return
         }
         let destination = root.appendingPathComponent("download")

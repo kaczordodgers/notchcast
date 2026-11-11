@@ -57,11 +57,42 @@ final class SampleProbe {
     }
 }
 
+/// The store's nap, owned by the harness: it ends on `end()` or when the store cancels it.
+@MainActor
+final class Naps {
+    private var parked = 0
+    private var ended = 0
+    var isParked: Bool { parked > ended }
+
+    func nap() async throws {
+        parked += 1
+        let ticket = parked
+        defer { ended = max(ended, ticket) }
+        while ended < ticket {
+            try Task.checkCancellation()
+            await Task.yield()
+        }
+    }
+
+    func end() async {
+        await MonitorStoreTests.until("store naps after its sample") { isParked }
+        ended = parked
+    }
+}
+
 @main
 @MainActor
 struct MonitorStoreTests {
     static func settle() async {
         for _ in 0..<200 { await Task.yield() }
+    }
+
+    static func until(_ message: String, _ done: () -> Bool) async {
+        let deadline = ContinuousClock.now + .seconds(30)
+        while !done() {
+            guard ContinuousClock.now < deadline else { fatalError("Timed out: \(message)") }
+            await Task.yield()
+        }
     }
 
     static func main() async {
@@ -108,10 +139,12 @@ struct MonitorStoreTests {
         racing.stop()
         print("PASS: page wakes within 300 ms and rejects in-flight alerts-only readings")
 
+        let naps = Naps()
         let probe = SampleProbe()
         let alertProbe = SampleProbe(percent: 95)
         let store = MonitorStore(sample: { await probe.sample() },
-                                 alertSample: { await alertProbe.sample() })
+                                 alertSample: { await alertProbe.sample() },
+                                 sleep: { _ in try await naps.nap() })
         store.start()
         await settle()
         precondition(probe.count == 0 && store.demand == 0)
@@ -159,10 +192,13 @@ struct MonitorStoreTests {
         await settle()
         precondition(store.histories["cpu"]?.values == history, "alerts leave histories untouched")
         let visible = store.beginDemand()
-        try? await Task.sleep(for: .seconds(3))
-        precondition(probe.count > initialCount, "visible demand switches to full sampler")
+        await until("visible demand switches to full sampler") { probe.count > initialCount }
         let alertCount = alertProbe.count
-        try? await Task.sleep(for: .seconds(3))
+        for _ in 0..<3 {
+            let fullCount = probe.count
+            await naps.end()
+            await until("full sampler runs after each nap") { probe.count > fullCount }
+        }
         precondition(alertProbe.count == alertCount, "page demand stops alert sampler")
         visible.cancel()
         print("PASS: alerts-only demand skips full sampler; visible demand resumes it")
@@ -180,11 +216,16 @@ struct MonitorStoreTests {
         await settle()
         precondition(store.demand == 0)
 
-        let continuity = MonitorStore()
+        let pace = Naps()
+        let continuity = MonitorStore(sleep: { _ in
+            // Kernel counters tick every 10 ms, so a rate needs real time between two samples.
+            try await Task.sleep(for: .milliseconds(100))
+            try await pace.nap()
+        })
         continuity.start()
         let background = continuity.beginDemand(alertsOnly: true)
-        try? await Task.sleep(for: .seconds(3))
-        precondition(continuity.latest.cpu?.usage != nil)
+        await pace.end()
+        await until("second alerts-only sample has a CPU rate") { continuity.latest.cpu?.usage != nil }
         var continuityCalls = 0
         let continuityAlerts = MonitorAlerts { _ in continuityCalls += 1 }
         let continuityRules: [MonitorAlertRule.Metric: MonitorAlertRule] = [
@@ -192,8 +233,9 @@ struct MonitorStoreTests {
         ]
         continuityAlerts.evaluate(continuity.latest, rules: continuityRules, enabled: true,
                                   demand: 1, at: Date())
+        await until("store naps before the page opens") { pace.isParked }
         let page = continuity.beginDemand()
-        try? await Task.sleep(for: .seconds(2.2))
+        await until("first page sample") { !continuity.histories.isEmpty }
         precondition(continuity.latest.cpu?.usage != nil, "first page sample retains CPU baseline")
         precondition(continuity.latest.network.map { $0.downBytesPerSecond != nil } ?? true,
                      "first page sample retains network baseline")
