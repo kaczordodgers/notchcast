@@ -86,7 +86,7 @@ import Foundation
             let sevenzip = ArchiveToolLocator(name: "7zz").locate()
             let compressor = ArchiveToolLocator(name: "zstd").locate()
             if format == .small && sevenzip == nil || format == .fast && compressor == nil {
-                print("NOT VERIFIED: \(format.suffix) tool missing; real round trips skipped")
+                print("SKIP: \(format.suffix) real round trips: \(format == .small ? "7zz" : "zstd") not installed")
                 continue
             }
             let archive = try await ArchiveCompressor().compress([source], format: format)

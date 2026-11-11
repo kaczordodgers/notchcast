@@ -294,7 +294,7 @@ struct InUseMarksTests {
             if marks.microphone && !marks.micApps.isEmpty {
                 expect(source.monitoringFailure == nil, "native marks listeners installed")
                 if failures > 0 { throw MicrophoneInput.Failure.read(-1) }
-                print("LIVE camera capture skipped: no camera opened or permission requested")
+                print("SKIP: live camera capture: no camera opened or permission requested")
                 return
             }
         }
