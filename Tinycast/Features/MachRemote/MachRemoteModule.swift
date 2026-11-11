@@ -4,11 +4,11 @@ import AppKit
 final class MachRemoteModule: NotchcastModule {
     var automation: Task<Void, Never>?
 
-    func start() { AppCore.shared.appIndex.refreshNotchcastCommands() }
+    func start() { NotchcastHost.current.refreshNotchcastCommands() }
     func stop() {
         automation?.cancel()
         automation = nil
-        AppCore.shared.appIndex.refreshNotchcastCommands()
+        NotchcastHost.current.refreshNotchcastCommands()
     }
 
     func openTerminal() {
@@ -16,7 +16,7 @@ final class MachRemoteModule: NotchcastModule {
         let ssh = MachSSH(address: NotchcastPreferences.shared.remoteMacAddress, runner: MachSSHProcessRunner.run)
         let script: String
         do { script = try ssh.terminalScript(directory: NotchcastPreferences.shared.remoteTerminalDirectory) } catch {
-            NotchcastCore.remoteResult(error.localizedDescription)
+            NotchcastHost.current.remoteResult(error.localizedDescription)
             return
         }
         let escaped = script.replacingOccurrences(of: "\\", with: "\\\\")
@@ -26,7 +26,7 @@ final class MachRemoteModule: NotchcastModule {
         automation = Task {
             let result = try? await MachSSHProcessRunner.run("/usr/bin/osascript", ["-e", source])
             guard !Task.isCancelled, result?.status != 0 else { return }
-            AppCore.shared.showMessage(String(localized: "Unable to open Terminal", table: "Notchcast"), tone: .danger)
+            NotchcastHost.current.showMessage(String(localized: "Unable to open Terminal", table: "Notchcast"), .danger)
         }
     }
 }

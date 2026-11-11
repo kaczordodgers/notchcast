@@ -38,6 +38,7 @@ enum NotchcastCore {
         guard controller == nil else { return }
         NotchcastHost.current = NotchcastHost(
             showMessage: { [weak core] in core?.showMessage($0, tone: $1) },
+            remoteResult: { remoteResult($0) },
             refreshNotchcastCommands: { [weak core] in core?.appIndex.refreshNotchcastCommands() },
             finderSelection: { try await CopyPathSystemReader.read(.finderSelection) },
             browserAddresses: { try await CopyPathSystemReader.read(.browser(CopyPathTarget(processID: $0, bundleID: $1))) }
@@ -76,11 +77,22 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)
         }
         dictationCleanup.load()
-        let shelfChannel = MachLinkShelfChannel(channel: macLink.channel, module: shelf) {
+        let shelfChannel = MachLinkShelfChannel(channel: macLink.channel, module: ShelfModule.shared) {
             macLink.isRunning && macLink.isPaired && (!linkHealth.isRunning || linkHealth.health.reachability != .down)
         }
-        shelf.linkStatus = shelfChannel
-        shelf.transport = shelfChannel
+        ShelfModule.shared.linkStatus = shelfChannel
+        ShelfModule.shared.transport = shelfChannel
+        RemoteFanModule.linkChannel = macLink.channel
+        RemoteScreenModule.linkChannel = macLink.channel
+        BlockedDialogModule.linkChannel = macLink.channel
+        LinkQuickFixModule.shared.state = {
+            let reachability: LinkQuickFixModule.Reachability = switch linkHealth.health.reachability {
+            case .up: .up
+            case .down: .down
+            case .unknown: .unknown
+            }
+            return (macLink.isRunning && macLink.isPaired, reachability)
+        }
         ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }
         IslandController.shared.configurePages(core)
         systemTools.configure(core)

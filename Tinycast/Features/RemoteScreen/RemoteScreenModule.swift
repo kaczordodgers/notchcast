@@ -2,6 +2,8 @@ import AppKit
 
 @MainActor
 final class RemoteScreenModule: NotchcastModule {
+    /// Set by hub glue in `start` before registrants register; `register` returns [] while nil.
+    static var linkChannel: MachLinkChannel?
     let coordinator: RemoteScreenCoordinator
 
     init(channel: MachLinkChannel) {
