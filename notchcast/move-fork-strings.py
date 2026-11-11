@@ -116,6 +116,8 @@ def rewrite(source, keys):
             continue
         if re.search(r'arguments:\s*\[[^\n\]]*$', before):
             continue
+        if re.search(r'ExecutableLocator\.find\(\s*$', before):
+            continue
         if re.search(r'\bproperties\[\s*$', before):
             continue
         if re.match(r'\s*,\s*table(?:Name)?:\s*"Notchcast"', after):
