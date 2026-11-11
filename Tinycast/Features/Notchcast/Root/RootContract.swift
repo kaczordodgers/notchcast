@@ -45,10 +45,6 @@ enum RootContract {
         case batteryAdapterOff = "battery-adapter-off"
         case batterySleepOn = "battery-sleep-on"
         case batterySleepOff = "battery-sleep-off"
-        case standbyOff = "standby-off"
-        case standbyOn = "standby-on"
-        case autopoweroffOff = "autopoweroff-off"
-        case autopoweroffOn = "autopoweroff-on"
 
         init?(arguments: [String]) {
             guard arguments.count == 1, let command = Self(rawValue: arguments[0]) else {
@@ -73,7 +69,6 @@ enum RootContract {
             case .chargeLimit60, .chargeLimit70, .chargeLimit80, .chargeLimit90, .chargeLimitOff: "ok\n"
             case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: "ok\n"
             case .fansAuto, .fansMedium, .fansMax: "ok\n"
-            case .standbyOff, .standbyOn, .autopoweroffOff, .autopoweroffOn: "ok\n"
             case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
                  .batterySleepOn, .batterySleepOff: "ok\n"
             }
@@ -87,7 +82,6 @@ enum RootContract {
             case .spotlightOff, .spotlightOn: .spotlight
             case .sudoTouchIDOn, .sudoTouchIDOff: .change
             case .fansAuto, .fansMedium, .fansMax: .change
-            case .standbyOff, .standbyOn, .autopoweroffOff, .autopoweroffOn: .change
             case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
                  .batterySleepOn, .batterySleepOff: .change
             }
@@ -122,7 +116,6 @@ enum RootContract {
             case .chargeLimit60, .chargeLimit70, .chargeLimit80, .chargeLimit90, .chargeLimitOff: self = .ok
             case .spotlightOff, .spotlightOn, .sudoTouchIDOn, .sudoTouchIDOff: self = .ok
             case .fansAuto, .fansMedium, .fansMax: self = .ok
-            case .standbyOff, .standbyOn, .autopoweroffOff, .autopoweroffOn: self = .ok
             case .batteryChargingOn, .batteryChargingOff, .batteryAdapterOn, .batteryAdapterOff,
                  .batterySleepOn, .batterySleepOff: self = .ok
             }
