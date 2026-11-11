@@ -68,7 +68,7 @@ extension NotchcastToolsCommands {
     }
 
     private static func post(_ text: String) {
-        AppCore.shared.showMessage(text, tone: .neutral)
+        NotchcastHost.current.showMessage(text, .neutral)
     }
 
     private static func finderSelection() async throws -> [URL] {
