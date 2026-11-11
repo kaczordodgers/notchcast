@@ -20,9 +20,8 @@ struct ConvertFilesTests {
         let source = url("a 'quoted' file.txt")
         let plan = try ConvertFilesPlan.make(sources: [source], target: "rtf")
         precondition(plan.items[0].arguments == ["-convert", "rtf", "-encoding", "UTF-8", "-noload",
-            "-nostore", "-strip", "-output", url("a 'quoted' file.rtf").path, source.path])
-        let collision = try ConvertFilesPlan.make(sources: [source], target: "rtf", occupied: [plan.items[0].output])
-        precondition(collision.items[0].output.lastPathComponent == "a 'quoted' file (2).rtf")
+            "-nostore", "-strip", "-output", ConvertFilesPlan.outputPlaceholder, source.path])
+        precondition(plan.items[0].stem == "a 'quoted' file" && plan.items[0].suffix == ".rtf")
         for (input, target, tool) in [("png", "jpg", "native"), ("png", "webp", "cwebp"),
             ("png", "heic", "sips"), ("md", "html", "pandoc"), ("wav", "mp3", "ffmpeg"),
             ("mov", "mp4", "ffmpeg"), ("srt", "vtt", "ffmpeg"), ("json", "yaml", "native"),
@@ -79,6 +78,19 @@ struct ConvertFilesTests {
             preconditionFailure("Partial failure hidden")
         } catch { precondition(error.localizedDescription.contains("Synthetic failure")) }
         precondition(manager.fileExists(atPath: url("a 'quoted' file (2).rtf").path))
+        let raced = url("race.txt")
+        try "race".write(to: raced, atomically: true, encoding: .utf8)
+        try "taken".write(to: url("race.rtf"), atomically: true, encoding: .utf8)
+        let racing = ConvertFilesRunner(process: { _, arguments, _ in
+            // Taken after planning, before publish: the name is chosen once, at publish.
+            try Data("late".utf8).write(to: temporary.appending(path: "race (2).rtf"))
+            let output = arguments[arguments.firstIndex(of: "-output")! + 1]
+            try Data("converted".utf8).write(to: URL(fileURLWithPath: output))
+        })
+        var raceJob = job
+        raceJob.encodedOptions = try options([raced.path], "rtf")
+        let racedOutput = try await racing.run(raceJob, context: context)
+        precondition(racedOutput?.lastPathComponent == "race (3).rtf", "publish numbers once, not twice")
         let document = PDFDocument()
         document.insert(PDFPage(), at: 0)
         document.insert(PDFPage(), at: 1)
