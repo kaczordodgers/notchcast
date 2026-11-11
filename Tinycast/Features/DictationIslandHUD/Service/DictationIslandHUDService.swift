@@ -38,8 +38,7 @@ final class DictationIslandHUDService {
             return DictationIslandHUDPolicy.presentation(
                 phase: state.phase == .listening ? .listening : .transcribing,
                 enabled: NotchcastPreferences.shared.isOn(.dictationIslandHUD),
-                islandAvailable: NotchcastPreferences.shared.isOn(.island)
-                    && NotchcastPreferences.shared.isOn(.islandStatusMessages)
+                islandAvailable: NotchcastPreferences.shared.showsStatusMessages
                     && IslandActivityCenter.shared.hasPresenter)
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in

@@ -205,7 +205,7 @@ final class IslandController: NotchcastModule {
         let center = IslandActivityCenter.shared
         hasLiveActivities = !center.activities.isEmpty
         closedState = Self.closedState(
-            message: preferences.isOn(.islandStatusMessages) ? center.message : nil,
+            message: preferences.showsStatusMessages ? center.message : nil,
             activities: preferences.isOn(.islandLiveActivities) ? center.ranked : [],
             track: demoTrack
                 ?? (preferences.isEnabled(.musicNowPlaying) ? Self.track(MusicNowPlayingModule.shared?.model.nowPlaying) : nil))
@@ -216,7 +216,7 @@ final class IslandController: NotchcastModule {
         let active = panels.first { $0.displayFrame.contains(NSEvent.mouseLocation) }
         let eligible = IslandPresenterPolicy.shouldRegister(
             running: observationID != nil,
-            enabled: NotchcastPreferences.shared.isOn(.islandStatusMessages),
+            enabled: NotchcastPreferences.shared.showsStatusMessages,
             visibleOnActiveScreen: active?.isVisible == true && active?.isOnActiveSpace == true)
         IslandActivityCenter.shared.hasPresenter = eligible
     }
@@ -228,7 +228,7 @@ final class IslandController: NotchcastModule {
             _ = preferences.isOn(.islandFullScreen)
             _ = preferences.isOn(.islandHoverOpen)
             _ = preferences.isOn(.islandLiveActivities)
-            _ = preferences.isOn(.islandStatusMessages)
+            _ = preferences.showsStatusMessages
             _ = IslandActivityCenter.shared.activities
             _ = IslandActivityCenter.shared.message
             _ = preferences.isEnabled(.musicNowPlaying)

@@ -27,6 +27,11 @@ enum BackupStatusTest {
         noticePreferences.set(.islandStatusMessages, true)
         unconfigured.start()
         check(configurationNotices == [String(localized: "Backup status path is not configured.")])
+        noticePreferences.set(.island, false)
+        unconfigured.start()
+        check(configurationNotices.count == 1 && !noticePreferences.showsStatusMessages)
+        noticePreferences.set(.island, true)
+        check(noticePreferences.showsStatusMessages)
         var typedPath = ""
         var watchedCount = 0
         var restarts: [@MainActor () -> Void] = []

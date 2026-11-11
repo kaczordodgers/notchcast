@@ -4,7 +4,7 @@ extension NotchcastCore {
     }
 
     static func deliverRemoteNotice(_ text: String, preferences: NotchcastPreferences, post: (String) -> Void) {
-        guard preferences.isOn(.islandStatusMessages) else { return }
+        guard preferences.showsStatusMessages else { return }
         post(text)
     }
 }

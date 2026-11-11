@@ -32,7 +32,7 @@ struct IslandHeaderView: View {
             Color.clear.frame(width: cameraWidth).accessibilityHidden(true)
             HStack(spacing: Theme.Spacing.xxs) {
                 Spacer(minLength: 0)
-                if NotchcastPreferences.shared.isOn(.islandStatusMessages),
+                if NotchcastPreferences.shared.showsStatusMessages,
                    let message = IslandActivityCenter.shared.message {
                     IslandStatusView(message: message)
                 }
