@@ -1,5 +1,17 @@
 import Foundation
 
+/// Raw values are the wire names; a Mac on an older build still sends them.
+enum MachLinkMethod: String, CaseIterable, Sendable {
+    case aiUsage = "ai-usage"
+    case agentThreads = "agent-threads"
+    case dialogs
+    case mbpFans = "mbp-fans"
+    case remoteScreenAvailability = "remote-screen-availability"
+    case linkHealth = "link-health"
+    case shelfItem = "shelf-item"
+    case todoSync = "todo-sync"
+}
+
 struct MachLinkMessage: Codable, Sendable, Equatable {
     static let maximumBytes = 65_536
 
