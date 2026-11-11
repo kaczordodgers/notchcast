@@ -1,9 +1,7 @@
 // notchcast-sources: Tinycast/Features/MachLink/Model/*.swift
-// notchcast-kit: root
+// notchcast-kit: root core
 // notchcast-sources: Tinycast/Features/MachLink/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachMBPFans/Model/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 import Foundation
 import Network

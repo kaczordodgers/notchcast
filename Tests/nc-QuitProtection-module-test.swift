@@ -1,7 +1,6 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift Tinycast/Features/QuitProtection/Service/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionModule.swift
-// notchcast-kit: platform input
+// notchcast-kit: platform input host
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
