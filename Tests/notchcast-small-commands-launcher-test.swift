@@ -4,6 +4,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: host
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum DialogTone { case neutral }
@@ -17,10 +18,6 @@ struct NotchcastCommand: Sendable {
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
 @MainActor final class AppCore {}
 @main struct SmallTests {

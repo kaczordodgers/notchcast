@@ -8,18 +8,10 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: -strict-concurrency=complete -warnings-as-errors
 // notchcast-kit: host command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 import Synchronization
 
-@MainActor
-final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = false
-    func isOn(_ feature: NotchcastFeature) -> Bool {
-        precondition(feature == .openBotAgents)
-        return enabled
-    }
-}
 
 enum DialogTone { case neutral }
 
@@ -246,10 +238,11 @@ struct OpenBotTests {
         gated.stop()
         precondition(availability == 2)
         let commands = [OpenBotAgentsModule.refreshCommand]
+        NotchcastPreferences.shared.only = []
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
-        NotchcastPreferences.shared.enabled = true
+        NotchcastPreferences.shared.only = [.openBotAgents]
         precondition(commands.filter { $0.isEnabled() }.count == 1)
-        NotchcastPreferences.shared.enabled = false
+        NotchcastPreferences.shared.only = []
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
         let entries = OpenBotAgentsModule.register(AppCore())
         precondition(entries.count == 1 && entries[0].requires == [.openBotAgents] && entries[0].requiresAny.isEmpty)

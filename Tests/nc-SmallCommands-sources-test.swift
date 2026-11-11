@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/SmallCommands/SmallCommandsModule+Commands.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Platform/AccessibilityText.swift
 // notchcast-kit: host
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 @MainActor protocol NotchcastModule {}
@@ -17,10 +18,6 @@ struct NotchcastCommand: Sendable {
     let isEnabled: @MainActor @Sendable () -> Bool
     let run: @MainActor @Sendable () -> Void
     var id: String { "command:nc-" + slug }
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
 extension SmallCommandsModule { static let shared = SmallCommandsModule() }
 @main struct SourceTests {
