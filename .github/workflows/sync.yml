@@ -93,7 +93,7 @@ jobs:
         working-directory: src
         run: |
           source ../tools/notchcast/config.env
-          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+          bash ../tools/notchcast/fetch-upstream.sh
           test "$(git rev-parse refs/remotes/upstream/main)" = "${{ needs.plan.outputs.upstream_main }}" || git fetch -q "https://github.com/$UPSTREAM_REPO.git" "${{ needs.plan.outputs.upstream_main }}"
           python3 ../tools/notchcast/ci.py replay . "${{ needs.plan.outputs.upstream_main }}"
       - name: Regenerate project before building main
