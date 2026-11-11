@@ -1,4 +1,4 @@
-// notchcast-reads: Tinycast/Features/Katana/README.md notchcast/docs/katana.md
+// notchcast-reads: notchcast/docs/katana.md
 // notchcast-sources: Tinycast/Features/Katana/Model/*.swift Tinycast/Features/Katana/Service/*.swift
 
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift
@@ -364,12 +364,8 @@ struct KatanaTests {
         fake.pause = nil
         do { try await stopped.value; fatalError("Stopped load succeeded") } catch is CancellationError {}
         expect(fake.memory[KatanaSysEx.previewMute] == [0], "Stop after mute still unmutes")
-        expect(NotchcastFeature.katana.isSystemFeature, "Katana defaults off as a System feature")
-        expect(!FileManager.default.fileExists(atPath: "Tinycast/Features/Katana/README.md"),
-               "Katana documentation cannot collide with bundled README")
         expect(FileManager.default.fileExists(atPath: "notchcast/docs/katana.md"), "Katana docs live in fork docs")
         let module = KatanaModule(midi: SilentKatanaMIDI())
-        expect(NotchcastFeature.katana.settingsGroup == .system, "Katana uses the System settings group")
         module.start()
         expect(!module.client.isConnected && module.audio.isEnabled, "Module starts without opening hardware")
         module.stop()

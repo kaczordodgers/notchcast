@@ -139,13 +139,7 @@ struct CleanPurgeService: Sendable {
             guard type == .typeDirectory || type == .typeRegular,
                   attributes[.immutable] as? Bool != true,
                   attributes[.appendOnly] as? Bool != true else { return nil }
-            snapshot[url.standardizedFileURL.path] = attributes.sorted { $0.key.rawValue < $1.key.rawValue }
-                .map { attribute in
-                    let value = (attribute.value as? Date).map {
-                        String($0.timeIntervalSinceReferenceDate.bitPattern)
-                    } ?? String(describing: attribute.value)
-                    return "\(attribute.key.rawValue)=\(value)"
-                }.joined(separator: "|")
+            snapshot[url.standardizedFileURL.path] = CleanService.fingerprint(attributes)
             if type == .typeDirectory {
                 let children = try manager.contentsOfDirectory(at: url, includingPropertiesForKeys: nil)
                 guard !children.contains(where: { $0.lastPathComponent == ".git" }) else { return nil }

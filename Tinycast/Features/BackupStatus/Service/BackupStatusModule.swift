@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 @MainActor
 final class BackupStatusModule: NotchcastModule {
@@ -34,6 +35,17 @@ final class BackupStatusModule: NotchcastModule {
         self.staleAfter = staleAfter
         self.configurationNotice = configurationNotice
         self.post = post
+        trackPath()
+    }
+
+    /// A settings restore writes the path without the settings row, so the module watches it itself.
+    private func trackPath() {
+        withObservationTracking { _ = configurationNotice() } onChange: { [weak self] in
+            Task { @MainActor in
+                self?.trackPath()
+                self?.pathChanged()
+            }
+        }
     }
 
     func start() {

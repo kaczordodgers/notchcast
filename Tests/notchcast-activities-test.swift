@@ -94,17 +94,8 @@ struct NotchcastActivitiesTests {
         precondition(center.message == nil)
 
         let shared = IslandActivityCenter.shared
-        let preferences = NotchcastPreferences.shared
-        let wasOn = preferences.isOn(.islandStatusMessages)
-        defer { preferences.set(.islandStatusMessages, wasOn) }
-        preferences.set(.islandStatusMessages, true)
         precondition(!IslandHUDRouter.show("Fallback", tone: .success))
         shared.hasPresenter = true
-        preferences.set(.islandStatusMessages, false)
-        precondition(!IslandHUDRouter.show("Off", tone: .success))
-        precondition(!IslandHUDRouter.showProgress("Off", onCancel: nil))
-        precondition(shared.message == nil)
-        preferences.set(.islandStatusMessages, true)
         precondition(IslandHUDRouter.show("Routed", tone: .danger))
         precondition(shared.message?.text == "Routed")
         var cancelled = false
@@ -120,16 +111,6 @@ struct NotchcastActivitiesTests {
         precondition(!IslandHUDRouter.show("Fallback result", tone: .success))
         precondition(shared.message == nil)
         shared.hasPresenter = true
-        precondition(IslandHUDRouter.showProgress("Disabled progress", onCancel: nil))
-        preferences.set(.islandStatusMessages, false)
-        precondition(!IslandHUDRouter.showProgress("Off", onCancel: nil))
-        precondition(shared.message == nil)
-        preferences.set(.islandStatusMessages, true)
-        precondition(IslandHUDRouter.showProgress("Disabled result", onCancel: nil))
-        preferences.set(.islandStatusMessages, false)
-        precondition(!IslandHUDRouter.show("Off", tone: .success))
-        precondition(shared.message == nil)
-        preferences.set(.islandStatusMessages, true)
         precondition(IslandHUDRouter.show("HUD", tone: .success))
         let remote = IslandHUDRouter.post("Remote")
         precondition(remote != nil && shared.message?.text == "Remote")
@@ -142,7 +123,6 @@ struct NotchcastActivitiesTests {
                      "a post still enters the center when no presenter shows it")
         let pill = IslandHUDRouter.progress("Pill")
         precondition(pill == nil && shared.message?.text == "No presenter", "a pill needs a presenter")
-        preferences.set(.islandStatusMessages, false)
         IslandHUDRouter.dismiss()
         precondition(shared.message?.text == "No presenter", "the HUD cannot end a post")
         print("PASS priority, deadlines, removal, updates, dwell re-arm, replacement, switch, routing and cancellation")

@@ -7,9 +7,7 @@ extension MachLinkChannel: OtherMacUsagePeerChannel {
 
     func registerUsageRoute(provider: AIUsageProvider?, preferences: NotchcastPreferences) {
         manager.register("ai-usage") { request in
-            guard preferences.isOn(.aiUsage), preferences.isOn(.aiUsageOtherMac) else {
-                throw MachLinkMessage.Failure.disconnected
-            }
+            guard preferences.isEnabled(.aiUsageOtherMac) else { throw MachLinkMessage.Failure.disconnected }
             let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
                 path: preferences.aiUsageCachePath, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
             let providers = try request.value(as: Set<String>.self)
@@ -17,9 +15,7 @@ extension MachLinkChannel: OtherMacUsagePeerChannel {
             source.snapshots = await provider.refresh().filter { providers.contains($0.providerID) }
             let response = try MachLinkMessage(id: request.id, method: request.method, value: await source.localSnapshot())
             try Task.checkCancellation()
-            guard preferences.isOn(.aiUsage), preferences.isOn(.aiUsageOtherMac) else {
-                throw MachLinkMessage.Failure.disconnected
-            }
+            guard preferences.isEnabled(.aiUsageOtherMac) else { throw MachLinkMessage.Failure.disconnected }
             return response
         }
     }

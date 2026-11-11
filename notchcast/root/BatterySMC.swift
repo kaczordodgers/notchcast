@@ -12,21 +12,7 @@ enum BatterySMC {
 
     static func run(_ command: RootContract.Command) throws {
         if let arguments = sleepArguments(command) {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/pmset")
-            process.arguments = arguments
-            process.environment = [:]
-            process.currentDirectoryURL = URL(fileURLWithPath: "/")
-            process.standardInput = FileHandle.nullDevice
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            let finished = DispatchSemaphore(value: 0)
-            process.terminationHandler = { _ in finished.signal() }
-            try process.run()
-            finished.wait()
-            guard process.terminationReason == .exit, process.terminationStatus == 0 else {
-                throw FanSMC.Failure.refused
-            }
+            try Power.runTool("/usr/bin/pmset", arguments)
             return
         }
         try apply(command, smc: FanSMC.Connection())

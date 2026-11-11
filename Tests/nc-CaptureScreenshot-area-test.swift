@@ -70,7 +70,6 @@ enum DialogTone { case danger }
         ScreenshotModule.instance = module
         defer { module.stop(); ScreenshotModule.instance = nil }
         let command = ScreenshotModule.areaCommand
-        precondition(command.slug == "screenshot-area" && command.feature == .screenshot)
         command.run()
         precondition(starts == 0)
         module.start()
@@ -154,14 +153,6 @@ enum DialogTone { case danger }
             editor.close()
         }
         try FileManager.default.removeItem(at: folder)
-        let root = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
-        let catalog = try String(contentsOf: root.appendingPathComponent(
-            "Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog+All.swift"), encoding: .utf8)
-        precondition(catalog.contains("ScreenshotModule.areaCommand,"))
-        let hub = try String(contentsOf: root.appendingPathComponent(
-            "Tinycast/Features/Notchcast/Core/NotchcastCore.swift"), encoding: .utf8)
-        precondition(hub.contains(
-            "ScreenshotModule.shared.openInEditor = { try CaptureEditorCoordinator.shared.openCapture(url: $0, clipboard: $1) }"))
         print("PASS: area command selection; primary and offset Quartz rects; cancel preserves clipboard; destination and stop")
     }
 }

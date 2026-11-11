@@ -20,7 +20,7 @@ struct DownloadsIslandPolicy: Equatable, Sendable {
     mutating func update(_ jobs: [DownloadJob]) -> (shown: Shown?, failures: [DownloadJob]) {
         let failures = jobs.filter { $0.state == .failed && !failed.contains($0.id) }
         failed = Set(jobs.filter { $0.state == .failed }.map(\.id))
-        let pending = jobs.filter { !$0.state.isFinished }.map(\.id)
+        let pending = jobs.filter(\.state.isDue).map(\.id)
         guard !pending.isEmpty else {
             batch = []
             return (nil, failures)

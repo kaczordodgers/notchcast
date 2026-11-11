@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 import AppKit
@@ -69,14 +69,15 @@ struct DownloadsQueueTest {
         let queue = try await DownloadQueue(file: nil, destination: root, maxConcurrent: 1)
         queue.register(GateRunner(probe: probe))
         let added = queue.enqueue(kind: "fake", sources: ["first", "second", "third"],
-                                  options: ["format": "mp3"], group: "batch")
+                                  options: Data(#"{"format":"mp3"}"#.utf8), group: "batch")
         try await eventually { probe.started.count == 1 }
         queue.cancel(added[1].id)
         expect(queue.jobs[1].state == .cancelled, "cancel waiting job")
         queue.cancel(added[0].id)
         queue.retry(added[0].id)
         expect(queue.jobs.last?.id == added[0].id, "retry moves same id to FIFO tail")
-        expect(queue.jobs.last?.options == added[0].options && queue.jobs.last?.group == "batch", "retry retains input")
+        expect(queue.jobs.last?.encodedOptions == added[0].encodedOptions && added[0].encodedOptions != nil
+            && queue.jobs.last?.group == "batch", "retry retains input")
         try await eventually { probe.started.contains("third") }
         expect(!probe.started.contains("second"), "cancelled waiting runner never starts")
         probe.released.formUnion(["first", "third"])
@@ -105,7 +106,7 @@ struct DownloadsQueueTest {
                         group: "batch", state: state, progress: DownloadProgress(fraction: 0.2),
                         detail: "status", created: now.addingTimeInterval(-9 * 86400),
                         finished: state.isFinished ? now.addingTimeInterval(-86400) : nil,
-                        options: ["format": "test"])
+                        encodedOptions: Data(#"{"format":"test"}"#.utf8))
         }
         for state in [DownloadState.done, .failed, .cancelled, .interrupted] {
             var row = rows[2]
@@ -125,7 +126,7 @@ struct DownloadsQueueTest {
         expect(queue.jobs[2].created == rows[2].created, "expiry uses finish date")
         let stored = try JSONDecoder().decode([DownloadJob].self, from: Data(contentsOf: file))
         expect(stored == queue.jobs, "recovery persisted atomically")
-        queue.enqueue(kind: "later", sources: ["one", "two"], options: ["setting": "value"], group: "new")
+        queue.enqueue(kind: "later", sources: ["one", "two"], options: Data(#"{"setting":"value"}"#.utf8), group: "new")
         queue.cancel(queue.jobs.last?.id ?? "")
         try await queue.flush()
         let reloaded = try await DownloadQueue(file: file, destination: root, clock: { now })
