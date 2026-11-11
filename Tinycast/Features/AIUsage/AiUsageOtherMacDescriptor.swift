@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Include usage from the other Mac.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: false,
-        dependencies: [],
+        dependencies: [.aiUsage, .machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

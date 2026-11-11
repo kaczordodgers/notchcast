@@ -13,6 +13,9 @@ kind from `AppEntry.Kind`, never from its ID. An optional-only view opens its se
 other entries with arguments focus the first field, including optional fields.
 Duplicate aliases and aliases that prefix a longer space-separated alias leave Space as text.
 
+`LauncherAliasSpaceTrace` records each Space gate and decision at debug level, so nothing is built or
+logged until a reader asks: `log stream --level debug --predicate 'category == "AliasSpace"'`.
+
 Both feature switches default off and require no island. No commands are registered.
 The previous-screen launcher hotkey toggle is outside this engine pack.
 

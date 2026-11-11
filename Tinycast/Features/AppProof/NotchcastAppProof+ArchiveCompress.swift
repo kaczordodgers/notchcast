@@ -1,8 +1,8 @@
 import Foundation
 
 extension NotchcastAppProof {
-    /// Packs a folder with Polish names through the shipped command builder and `ditto`, unpacks it, compares bytes.
-    static func archiveCompress() throws {
+    /// Packs Polish names through the shipped compress flow; `ditto` only unpacks, as the independent reader.
+    static func archiveCompress() async throws {
         let files = FileManager.default
         let root = files.temporaryDirectory.appending(path: "notchcast-proof-\(UUID().uuidString)")
         defer { try? files.removeItem(at: root) }
@@ -12,36 +12,34 @@ extension NotchcastAppProof {
             "zażółć gęślą jaźń.txt": Data("Polish".utf8), "Łódź/ŚĆIEŻKA.md": Data("nested".utf8), "Łódź/empty": Data(),
         ]
         for (path, data) in contents { try data.write(to: source.appending(path: path)) }
-        let output = ArchiveCompression.zip.output(sources: [source]) { files.fileExists(atPath: $0.path) }
-        guard output.lastPathComponent == "Zdjęcia.zip" else {
-            throw ArchiveProofFailure("first name was \(output.lastPathComponent)")
-        }
-        try run("/usr/bin/ditto", ArchiveCompression.zip.arguments(sources: [source], output: output))
-        let second = ArchiveCompression.zip.output(sources: [source]) { files.fileExists(atPath: $0.path) }
-        guard second.lastPathComponent == "Zdjęcia 2.zip" else {
-            throw ArchiveProofFailure("taken name gave \(second.lastPathComponent)")
-        }
-        guard ArchiveCompressor.numbered(root.appending(path: "x.tar.gz"), 2) == "x 2.tar.gz" else {
-            throw ArchiveProofFailure("duplicate name lost its multi-part suffix")
+        let compressor = ArchiveCompressor()
+        let first = try await compressor.compress([source], format: .zip)
+        let second = try await compressor.compress([source], format: .zip)
+        guard first.lastPathComponent == "Zdjęcia.zip", second.lastPathComponent == "Zdjęcia 2.zip" else {
+            throw Failure("archives were named \(first.lastPathComponent) and \(second.lastPathComponent)")
         }
         let unpacked = root.appending(path: "out")
-        try run("/usr/bin/ditto", ["-x", "-k", output.path, unpacked.path])
+        try await run("/usr/bin/ditto", ["-x", "-k", first.path, unpacked.path])
         for (path, data) in contents {
-            let copy = unpacked.appending(path: "Zdjęcia").appending(path: path)
-            guard (try? Data(contentsOf: copy)) == data else { throw ArchiveProofFailure("\(path) differs after round trip") }
+            guard try Data(contentsOf: unpacked.appending(path: "Zdjęcia").appending(path: path)) == data else {
+                throw Failure("\(path) differs after round trip")
+            }
         }
-        guard (try? run("/usr/bin/ditto", ["-x", "-k", root.appending(path: "missing.zip").path, unpacked.path])) == nil else {
-            throw ArchiveProofFailure("a missing archive unpacked")
+        var twins: [URL] = []
+        for folder in ["a", "b"] {
+            let twin = root.appending(path: folder).appending(path: "x.tar.gz")
+            try files.createDirectory(at: twin.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data(folder.utf8).write(to: twin)
+            twins.append(twin)
+        }
+        let pair = root.appending(path: "pair")
+        try await run("/usr/bin/ditto", ["-x", "-k", compressor.compress(twins, format: .zip).path, pair.path])
+        guard try Data(contentsOf: pair.appending(path: "x.tar.gz")) == Data("a".utf8),
+              try Data(contentsOf: pair.appending(path: "x 2.tar.gz")) == Data("b".utf8) else {
+            throw Failure("same-named sources lost a copy or its multi-part suffix")
+        }
+        try await expect(ArchiveFailure.filesystem("selection"), "a missing source") {
+            _ = try await compressor.compress([root.appending(path: "missing")], format: .zip)
         }
     }
-
-    private static func run(_ tool: String, _ arguments: [String]) throws {
-        let output = try ProcessRunner.runBlocking(.init(executable: URL(filePath: tool), arguments: arguments))
-        guard output.status == 0 else { throw ArchiveProofFailure("\(tool) exited \(output.status)") }
-    }
-}
-
-private struct ArchiveProofFailure: Error, CustomStringConvertible {
-    let description: String
-    init(_ description: String) { self.description = description }
 }
