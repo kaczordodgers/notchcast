@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/DictationTrigger/DictationTriggerModule*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 
 import Observation
 
@@ -13,11 +14,7 @@ import Observation
     let dictationCoordinator = DictationCoordinator()
     let hotKeys = HotKeys()
 }
-@MainActor final class NotchcastPreferences {
-    enum Feature { case dictationEnglish }
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: Feature) -> Bool { true }
-}
+enum NotchcastFeature { case dictationEnglish }
 @MainActor final class DictationTriggerManager {
     enum Action { case start, finish, cancel }
     static var latest: DictationTriggerManager?
