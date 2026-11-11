@@ -175,7 +175,7 @@ p = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift')
 s = p.read_text().replace('    case island\n', '    case landingFixture\n    case island\n', 1)
 values = {'settingsGroup': '.activities', 'title': 'String(localized: "Fixture", table: "Notchcast")',
           'subtitle': 'String(localized: "Fixture.", table: "Notchcast")',
-          'requiredGrants': '[]', 'defaultEnabled': 'false', 'backedUp': 'false'}
+          'defaultEnabled': 'false', 'backedUp': 'false'}
 for name, value in values.items():
     s, count = re.subn(rf'(var {name}: [^\n]+ {{\n(?:        if let descriptor [^\n]+\n)?        (?:return )?switch self {{\n)',
                        rf'\g<1>        case .landingFixture: {value}\n', s)
