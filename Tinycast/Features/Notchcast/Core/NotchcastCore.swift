@@ -27,10 +27,8 @@ enum NotchcastCore {
         machineBackup.stop()
         await machineBackup.waitUntilIdle()
         BatteryModule.shared.stop()
-        MonitorModule.shared.stop()
         await RootWait.drainForTermination {
             await BatteryModule.shared.waitUntilIdle()
-            await MonitorModule.shared.fans.waitUntilIdle()
         }
     }
 
@@ -101,10 +99,6 @@ enum NotchcastCore {
         let services = NotchcastServices(core: core, preferences: preferences)
         self.services = services
         if let tasks = TodoModule.shared { tasksSync.connect(to: tasks) }
-        MonitorModule.shared.registerRemoteFanRoute(on: macLink.channel)
-        if !NotchcastPreferences.shared.isOn(.systemMonitor) || !NotchcastPreferences.shared.isOn(.fanControl) {
-            MonitorModule.shared.fans.restore(preservingPreference: true, silently: true)
-        }
         let controller = NotchcastModuleController(modules, preferences: preferences)
         self.controller = controller
         controller.run()
