@@ -8,7 +8,13 @@ struct BatteryOwnershipJournal: Codable, Sendable, Equatable {
         var attempts = 0
         var retryAt: Date?
         var failed = false
+
+        func isDue(now: Date) -> Bool {
+            attempts < BatteryOwnershipJournal.maxAttempts && (retryAt.map { now >= $0 } ?? true)
+        }
     }
+
+    static let maxAttempts = 6
 
     private(set) var effects: [String: Effect] = [:]
     private(set) var priorLimit: Int?
@@ -38,7 +44,7 @@ struct BatteryOwnershipJournal: Codable, Sendable, Equatable {
         guard let effect = effects[key.rawValue] else { return !releasing }
         if !releasing && effect.applied == verb && effect.intent == nil { return false }
         if effect.intent != verb { return true }
-        return effect.attempts < 6 && (effect.retryAt.map { now >= $0 } ?? true)
+        return effect.isDue(now: now)
     }
 
     mutating func begin(_ key: Key, verb: String, undo: String) {
