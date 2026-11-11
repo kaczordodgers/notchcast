@@ -36,6 +36,7 @@ Everything Notchcast adds is in **Settings → Notchcast**, one tab per area. Ea
 
 - Everything from Tinycast's launcher (see [From Tinycast](#from-tinycast)).
 - ⌘1–⌘9 opens the first nine results; Space after an exact alias opens its command; Space on a file result opens Quick Look.
+- Q in an empty window search quits the selected app.
 - Clear Notifications, Copy Path, Generate Password, Shorten Link, Switch Noise Control and AirDrop Selected Files.
 - Themes and surface styles for the launcher, dialogs and HUDs.
 
