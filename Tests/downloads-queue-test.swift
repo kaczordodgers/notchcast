@@ -195,7 +195,7 @@ struct DownloadsQueueTest {
         expect(reading.path == first.appending(path: tool.name) && reading.version == "fixture 1.2", "lookup path and version")
         expect(lookup.environment["SECRET"] == nil, "unrelated environment is excluded")
         expect(lookup.environment["PATH"] == [first.path, second.path].joined(separator: ":"), "child PATH uses search folders")
-        let directories = DownloadToolLookup.searchDirectories(home: root, path: "/custom/bin:/usr/local/bin:/bin:.")
+        let directories = ExecutableLocator.searchDirectories(home: root, path: "/custom/bin:/usr/local/bin:/bin:.")
         expect(directories.map(\.path) == ["/opt/homebrew/bin", "/usr/local/bin",
                                           root.appending(path: ".local/bin").path, "/custom/bin", "/bin"], "lookup order")
         let missing = DownloadTool(name: "absent", installCommand: "brew install absent")
@@ -223,7 +223,7 @@ struct DownloadsQueueTest {
 
     @MainActor
     private static func processes(_ root: URL) async throws {
-        let context = DownloadRunContext(destination: root)
+        let context = DownloadRunContext(destination: root, tools: DownloadToolLookup())
         let lines = Lines()
         let result = try await context.spawn(executable: URL(filePath: "/bin/sh"), arguments: [
             "-c", "printf 'one\\rtwo\\nlast'; printf 'error one\\nlast error\\n  \\n' >&2"

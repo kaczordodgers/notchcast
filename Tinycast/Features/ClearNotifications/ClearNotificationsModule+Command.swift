@@ -18,8 +18,8 @@ extension ClearNotificationsModule {
             } catch is CancellationError {
             } catch {
                 guard isRunning, !Task.isCancelled else { return }
-                let message = String(localized: "Could not clear notifications. Check Accessibility and Automation access.", table: "Notchcast")
-                NotchcastHost.current.showMessage(message, .danger)
+                let failure = error as? ClearNotificationsFailure ?? .invalidResult
+                NotchcastHost.current.showMessage(failure.localizedDescription, .danger)
             }
         }
     }

@@ -1,7 +1,5 @@
 // notchcast-sources: Tinycast/Features/Treadmill/Model/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
-// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 import Foundation

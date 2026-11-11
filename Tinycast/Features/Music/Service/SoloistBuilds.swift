@@ -156,8 +156,7 @@ final class SoloistInstaller: SoloistBuildSource {
     @concurrent
     private static func download(_ url: URL) async throws -> Data {
         let config = NotchcastIdentity.sessionConfiguration()
-        let delegate = DownloadDelegate()
-        let session = URLSession(configuration: config, delegate: delegate, delegateQueue: nil)
+        let session = URLSession(configuration: config, delegate: RedirectRefusal(), delegateQueue: nil)
         defer { session.invalidateAndCancel() }
         do {
             let (bytes, response) = try await session.bytes(for: URLRequest(url: url, timeoutInterval: 60))
@@ -180,13 +179,6 @@ final class SoloistInstaller: SoloistBuildSource {
             return data
         } catch let error where !(error is SoloistFailure || error is CancellationError) {
             throw SoloistFailure.download.detail(SoloistFailure.describe(error))
-        }
-    }
-
-    private final class DownloadDelegate: NSObject, URLSessionTaskDelegate {
-        func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-                        newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
-            completionHandler(nil)
         }
     }
 }

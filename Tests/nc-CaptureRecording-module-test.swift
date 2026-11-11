@@ -1,7 +1,5 @@
 // notchcast-sources: -target arm64-apple-macos26.0 Tinycast/Features/CaptureRecording/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
-// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift Tinycast/Features/CaptureArea/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingFiles.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingWriting.swift

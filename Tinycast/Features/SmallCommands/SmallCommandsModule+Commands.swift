@@ -51,7 +51,7 @@ extension SmallCommandsModule {
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled, isRunning else { return }
-                report(String(localized: "Unavailable"))
+                report((error as? any LocalizedError)?.errorDescription ?? String(localized: "Unavailable"))
             }
         }
     }
@@ -66,21 +66,44 @@ extension SmallCommandsModule {
         case .shorten:
             let front = await frontAddress()
             try Task.checkCancellation()
-            guard let shortener = service ?? shortener,
-                  let address = ShortenLinkService.pick(argument: argument, frontAddress: front,
-                    clipboard: clipboard()) else { throw Failure.disabled }
-            return try await shortener.shorten(address)
+            guard let shortener = service ?? shortener else { throw SmallCommandsFailure.disabled }
+            guard let address = ShortenLinkService.pick(argument: argument, frontAddress: front,
+                clipboard: clipboard()) else { throw SmallCommandsFailure.noLink }
+            do {
+                return try await shortener.shorten(address)
+            } catch ShortenLinkService.Failure.noLink {
+                throw SmallCommandsFailure.noLink
+            }
         case .noise:
             guard let controlCenter = NSRunningApplication.runningApplications(
-                withBundleIdentifier: "com.apple.controlcenter").first else { throw Failure.disabled }
-            let outcome = try await noiseControl(processID: controlCenter.processIdentifier).switchMode()
-            guard case .switched = outcome else { throw Failure.disabled }
+                withBundleIdentifier: "com.apple.controlcenter").first else {
+                throw SmallCommandsFailure.controlCenterNotRunning
+            }
+            if let failure = Self.failure(try await noiseControl(processID: controlCenter.processIdentifier).switchMode()) {
+                throw failure
+            }
             return nil
         case .airDrop:
-            guard let airDrop else { throw Failure.disabled }
-            let outcome = try await airDrop.shareSelection()
-            guard case .sent = outcome else { throw Failure.disabled }
+            guard let airDrop else { throw SmallCommandsFailure.disabled }
+            if let failure = Self.failure(try await airDrop.shareSelection()) { throw failure }
             return nil
+        }
+    }
+
+    static func failure(_ outcome: NoiseControlService.Outcome) -> SmallCommandsFailure? {
+        switch outcome {
+        case .switched: nil
+        case .noAirPods: .noAirPods
+        case .unchanged: .noiseControlUnchanged
+        }
+    }
+
+    static func failure(_ outcome: AirDropService.Outcome) -> SmallCommandsFailure? {
+        switch outcome {
+        case .sent: nil
+        case .cancelled: .airDropCancelled
+        case .noSelection: .nothingSelected
+        case .unavailable: .airDropUnavailable
         }
     }
 

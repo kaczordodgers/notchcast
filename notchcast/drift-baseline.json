@@ -88,8 +88,8 @@
     "Tinycast/Features/Tweaks/Service/MacSetupService.swift | Tinycast/Features/Tweaks/Service/TypingPreferenceService.swift": 0
   },
   "constants": {
-    "app.notchcast": 3,
-    "app.notchcast.dev": 4,
+    "app.notchcast": 2,
+    "app.notchcast.dev": 2,
     "com.apple.": 2,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
@@ -103,7 +103,6 @@
   },
   "core-lookups": {},
   "dead": {
-    "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,
     "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
     "Tinycast/Features/DictationEnglish/Service/DictationEnglishSettingsSection.swift:DictationEnglishSettingsSection": 1,
     "Tinycast/Features/DictationTrigger/UI/DictationTriggerSettingsSection.swift:DictationTriggerSettingsSection": 1,
@@ -116,14 +115,13 @@
   },
   "file-size": {
     "Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift": 666,
-    "Tinycast/Features/Battery/Store/BatteryModule.swift": 444,
+    "Tinycast/Features/Battery/Store/BatteryModule.swift": 440,
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift": 2275,
     "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413,
     "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0
   },
   "test-only": {
     "Tinycast/Features/AgentSessions/Pricing/AgentPricingEngine.swift:roundedUSD": 1,
-    "Tinycast/Features/CaptureScrolling/ScrollingCaptureSettingsSection.swift:ScrollingCaptureSettingsSection": 1,
     "Tinycast/Features/CommandRunner/Model/CommandListItem.swift:CommandListItem": 1,
     "Tinycast/Features/CommandRunner/Service/CommandQuickAdd.swift:CommandQuickAdd": 1,
     "Tinycast/Features/DocumentEditor/Service/EditorStatistics.swift:EditorStatistics": 1,

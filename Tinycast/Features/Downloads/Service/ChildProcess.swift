@@ -56,14 +56,16 @@ final class ChildProcess: Sendable {
         }
     }
 
+    private static let stopLadder = ProcessRunner.StopLadder.terminating(grace: .milliseconds(250))
+
     func cancel() {
         state.withLock { state in
             if state.cancelledAt == nil { state.cancelledAt = DispatchTime.now().uptimeNanoseconds }
             if let processID = state.processID {
-                kill(-processID, SIGTERM)
-                DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + .milliseconds(250)) { [self] in
+                kill(-processID, Self.stopLadder.first)
+                Self.stopLadder.escalate { [self] signal in
                     self.state.withLock { current in
-                        if current.processID == processID { kill(-processID, SIGKILL) }
+                        if current.processID == processID { kill(-processID, signal) }
                     }
                 }
             }

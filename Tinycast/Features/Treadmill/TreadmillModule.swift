@@ -15,11 +15,11 @@ final class TreadmillModule: NotchcastModule {
 }
 
 extension TreadmillCoordinator {
-    static func live(bundleID: String = Bundle.main.bundleIdentifier ?? "app.notchcast.dev") -> TreadmillCoordinator {
+    static func live(identity: NotchcastIdentity = .current) -> TreadmillCoordinator {
         let support = FileManager.default.homeDirectoryForCurrentUser.appending(path: "Library/Application Support")
         let repository = TreadmillRepository(
-            directory: support.appending(path: bundleID).appending(path: "notchcast/treadmill"))
-        let defaults = NotchcastIdentity(bundleIdentifier: bundleID).defaults
+            directory: support.appending(path: identity.bundleID).appending(path: "notchcast/treadmill"))
+        let defaults = identity.defaults
         return TreadmillCoordinator(transport: BluetoothTreadmillTransport(),
                                     history: TreadmillHistoryStore(repository: repository),
                                     preferences: TreadmillPreferences(defaults: defaults),

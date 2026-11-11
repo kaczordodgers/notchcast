@@ -7,12 +7,11 @@ struct AgentSessionIndex: Sendable {
         let url: URL
 
         static func defaults(home: URL) -> [Self] {
-            [Self(provider: .claude, url: home.appendingPathComponent(".claude/projects")),
-             Self(provider: .claude, url: home.appendingPathComponent(".config/claude/projects")),
-             Self(provider: .codex, url: home.appendingPathComponent(".codex/sessions")),
-             Self(provider: .codex, url: home.appendingPathComponent(".codex/archived_sessions")),
-             Self(provider: .copilot, url: home.appendingPathComponent(".copilot/session-state")),
-             Self(provider: .opencode, url: home.appendingPathComponent(".local/share/opencode/opencode.db"))]
+            let paths = AgentPaths(home: home)
+            return paths.claudeProjects.map { Self(provider: .claude, url: $0) }
+                + paths.codexSessions.map { Self(provider: .codex, url: $0) }
+                + [Self(provider: .copilot, url: home.appendingPathComponent(".copilot/session-state")),
+                   Self(provider: .opencode, url: home.appendingPathComponent(".local/share/opencode/opencode.db"))]
         }
     }
 

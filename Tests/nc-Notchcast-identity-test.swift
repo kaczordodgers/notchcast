@@ -1,5 +1,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/RedirectRefusal.swift
 import Foundation
+import Network
+import Synchronization
 
 enum AppPaths {
     static func applicationSupport() -> URL { URL.applicationSupportDirectory.appending(path: "unused") }
@@ -7,7 +10,9 @@ enum AppPaths {
 
 @main
 struct NotchcastIdentityTest {
-    static func main() {
+    nonisolated static let requests = Mutex<[String]>([])
+
+    static func main() async throws {
         let debug = NotchcastIdentity(bundleIdentifier: "app.notchcast.dev")
         let release = NotchcastIdentity(bundleIdentifier: "app.notchcast")
         assert(debug.suiteName() == "app.notchcast.dev.notchcast")
@@ -32,5 +37,30 @@ struct NotchcastIdentityTest {
         assert(configuration.urlCredentialStorage !== URLCredentialStorage.shared)
         assert(configuration.httpCookieStorage !== HTTPCookieStorage.shared)
         print("PASS identity preserves Debug/Release suites, bundle fallback and private sessions")
+
+        let parameters = NWParameters.tcp
+        parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
+        let listener = try NWListener(using: parameters)
+        listener.newConnectionHandler = { connection in
+            connection.start(queue: .global())
+            connection.receive(minimumIncompleteLength: 1, maximumLength: 4096) { data, _, _, _ in
+                let line = String(String(decoding: data ?? Data(), as: UTF8.self).prefix { !$0.isNewline })
+                requests.withLock { $0.append(line) }
+                let head = line.contains("/next") ? "200 OK" : "302 Found\r\nLocation: /next"
+                let reply = "HTTP/1.1 \(head)\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+                connection.send(content: Data(reply.utf8), completion: .contentProcessed { _ in connection.cancel() })
+            }
+        }
+        listener.start(queue: .global())
+        for _ in 0..<100 where (listener.port?.rawValue ?? 0) == 0 { try await Task.sleep(for: .milliseconds(20)) }
+        guard let port = listener.port?.rawValue, port != 0 else { fatalError("Listener did not start") }
+        defer { listener.cancel() }
+        let session = URLSession(configuration: configuration, delegate: RedirectRefusal(), delegateQueue: nil)
+        defer { session.invalidateAndCancel() }
+        let (_, response) = try await session.data(from: URL(string: "http://127.0.0.1:\(port)/start")!)
+        precondition((response as? HTTPURLResponse)?.statusCode == 302, "The redirect answer is returned, not followed")
+        let seen = requests.withLock { $0 }
+        precondition(seen == ["GET /start HTTP/1.1"], "The redirect target is never requested: \(seen)")
+        print("PASS a redirect is refused and its target is never requested")
     }
 }

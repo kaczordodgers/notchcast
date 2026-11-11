@@ -50,7 +50,7 @@ struct DistillConvertTests {
         try write("QUEUE SOURCE", "single.txt", in: folder)
         try write("KEEP SIBLING", "sibling.txt", in: folder)
         var progress: [DownloadProgress] = []
-        let context = DownloadRunContext(destination: root, report: { progress.append($0) })
+        let context = DownloadRunContext(destination: root, tools: DownloadToolLookup(), report: { progress.append($0) })
         let runner = DistillConvertRunner(trash: moveTo(trash))
         let job = DownloadJob(id: UUID().uuidString, kind: "convert", source: source.path,
                               title: "Fixture", created: Date())

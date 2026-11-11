@@ -1,8 +1,6 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-kit: core host command
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift
-// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
 import AppKit
@@ -93,6 +91,10 @@ struct ScreenshotModuleTest {
                      == String(localized: "Capture is disabled."))
         precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.invalidRect)
                      == String(localized: "Capture area is unavailable."))
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.targetUnavailable)
+                     == String(localized: "Capture area is unavailable."))
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.encodingFailed)
+                     == String(localized: "Could not capture the screen."))
         print("PASS: screenshot module command, display selection, switch lifecycle and failure HUD")
     }
 
