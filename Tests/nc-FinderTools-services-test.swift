@@ -3,22 +3,13 @@
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator.swift
 // notchcast-sources: Tinycast/Features/FinderTools/FinderToolsModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Input/*.swift
-// notchcast-kit: core platform
+// notchcast-kit: core platform command
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
 import Foundation
 import CoreGraphics
 
 enum Paster {
     static let tinycastEventTag: Int64 = 0x54494E59
-}
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
 }
 
 @MainActor enum NotchcastCore {

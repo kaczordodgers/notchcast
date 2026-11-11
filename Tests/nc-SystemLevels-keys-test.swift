@@ -1,35 +1,13 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
 // notchcast-kit: input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
-
-enum Paster {
-    static let tinycastEventTag: Int64 = 0x54494E59
-}
 
 enum SystemLevelsService {
     enum Result {
         case applied(LevelNotice), fallbackToNativeKeys, cancelled
     }
-}
-
-@MainActor
-final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
-    var handlers: [UUID: SynchronousHandler] = [:]
-    var masks: [CGEventMask] = []
-
-    func registerSynchronous(mask: CGEventMask, handler: @escaping SynchronousHandler) -> UUID {
-        let id = UUID()
-        handlers[id] = handler
-        masks.append(mask)
-        return id
-    }
-
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { handlers[id] = nil }
 }
 
 @main @MainActor
@@ -113,9 +91,9 @@ struct MediaLevelKeysTests {
             }
         }, applied: { notices.append($0) }, replay: { replays.append($0) })
         monitor.setEnabled([.volumeUp, .volumeDown, .mute])
-        check(hub.handlers.count == 1 && hub.masks == [1 << 14],
+        check(hub.synchronousHandlers.count == 1 && hub.masks == [1 << 14],
               "Volume registers only system-defined events")
-        let handler = hub.handlers.values.first!
+        let handler = hub.synchronousHandlers.values.first!
         let system = CGEventType(rawValue: 14)!
         check(handler(system, event(.brightnessUp)) == .pass, "Other feature passes")
         check(handler(system, event(.volumeUp, tagged: true)) == .pass, "Native replays cannot loop")
@@ -163,9 +141,10 @@ struct MediaLevelKeysTests {
         monitor.stop()
         suspended?.resume()
         await drain()
-        check(hub.handlers.isEmpty && replays.count == 1, "Stop removes the consumer and cancels late fallback")
+        check(hub.synchronousHandlers.isEmpty && replays.count == 1,
+              "Stop removes the consumer and cancels late fallback")
         monitor.setEnabled([.brightnessUp])
-        let brightness = hub.handlers.values.first!
+        let brightness = hub.synchronousHandlers.values.first!
         _ = brightness(system, event(.brightnessUp))
         monitor.stop()
         await drain()
@@ -181,7 +160,7 @@ struct MediaLevelKeysTests {
         }, applied: { _ in }, replay: { _ in })
         monitor.setEnabled([.brightnessUp, .brightnessDown])
         check(hub.masks == [(1 << 14) | (1 << 10) | (1 << 11)], "Brightness registers down and up")
-        let handler = hub.handlers.values.first!
+        let handler = hub.synchronousHandlers.values.first!
         let system = CGEventType(rawValue: 14)!
         func keyboard(_ code: CGKeyCode, down: Bool, flags: CGEventFlags = []) -> CGEvent {
             let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down)!

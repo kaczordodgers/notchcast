@@ -1,30 +1,15 @@
 // notchcast-sources: Tinycast/Features/PasteTools/Model/*.swift
 // notchcast-sources: Tinycast/Features/PasteTools/Service/PasteImageModule.swift
 // notchcast-kit: platform input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 import Carbon.HIToolbox
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
-@MainActor enum Paster {
-    nonisolated static let tinycastEventTag: Int64 = 12345
+@MainActor extension Paster {
     static func postCommandV() { preconditionFailure("The harness never pastes") }
 }
 enum FinderImageService { static func save(_ png: Data) -> Bool { false } }
-
-@MainActor final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
-    var count = 0
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
-        self.handler = handler
-        count += 1
-        return UUID()
-    }
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { count -= 1; handler = nil }
-}
 
 @main @MainActor
 struct PasteImageModuleTests {
@@ -45,7 +30,7 @@ struct PasteImageModuleTests {
         }
         module.start()
         module.start()
-        precondition(hub.count == 1, "Start twice registers once")
+        precondition(hub.consumerCount == 1, "Start twice registers once")
         precondition(send(synthetic: true) == .pass, "Its own replayed Command-V passes")
         precondition(send() == .swallow, "Command-V over an image in Finder is taken")
         precondition(send(flags: [], repeatKey: true) == .swallow, "Its repeats stay taken")
@@ -59,7 +44,7 @@ struct PasteImageModuleTests {
         precondition(send(flags: [.maskCommand, .maskShift]) == .pass, "Other chords pass")
         module.stop()
         module.stop()
-        precondition(hub.count == 0 && hub.handler == nil)
+        precondition(hub.consumerCount == 0 && hub.handler == nil)
         print("✓ PasteImage module: start once, take, repeat, release, text and chord pass-through checks passed")
     }
 }

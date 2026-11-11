@@ -1,20 +1,8 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift Tinycast/Features/Archives/Commands/*.swift
-// notchcast-kit: core platform
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-kit: core platform command
 import AppKit
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry: Sendable {
-    let id: String
-    let name: String
-    let url: URL
-    let bundleID: String?
-    enum Kind: Sendable { case command }
-    let kind: Kind
-    let settingsOwner: SettingsTab?
-    let symbolName: String?
-}
 @MainActor final class AppCore {
     static let shared = AppCore()
     enum Tone { case danger }

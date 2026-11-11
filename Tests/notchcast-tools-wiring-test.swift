@@ -1,18 +1,9 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Tools/NotchcastToolsCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Tools/NotchcastToolsLauncherCommands.swift
-// notchcast-kit: core
+// notchcast-kit: core command
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/HostCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/HostCommandProfile.swift
 import Foundation
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
 
 @main @MainActor struct ToolsWiringTest {
     static func main() async throws {

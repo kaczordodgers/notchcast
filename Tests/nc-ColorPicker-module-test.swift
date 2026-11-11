@@ -1,5 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-kit: core host
+// notchcast-kit: core host command
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/ColorPickerModule+Command.swift
 // notchcast-sources: Tinycast/Features/ColorPicker/Model/*.swift
@@ -8,15 +8,6 @@
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorFormat.swift
 // notchcast-sources: Tinycast/Features/Clipboard/Model/ColorSpaces.swift
 import AppKit
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
 
 extension ColorPickerModule {
     static var instance: ColorPickerModule?
