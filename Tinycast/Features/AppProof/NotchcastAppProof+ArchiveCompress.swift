@@ -15,7 +15,7 @@ extension NotchcastAppProof {
         let compressor = ArchiveCompressor()
         let first = try await compressor.compress([source], format: .zip)
         let second = try await compressor.compress([source], format: .zip)
-        guard first.lastPathComponent == "Zdjęcia.zip", second.lastPathComponent == "Zdjęcia 2.zip" else {
+        guard first.lastPathComponent == "Zdjęcia.zip", second.lastPathComponent == "Zdjęcia (2).zip" else {
             throw Failure("archives were named \(first.lastPathComponent) and \(second.lastPathComponent)")
         }
         let unpacked = root.appending(path: "out")
@@ -35,7 +35,7 @@ extension NotchcastAppProof {
         let pair = root.appending(path: "pair")
         try await run("/usr/bin/ditto", ["-x", "-k", compressor.compress(twins, format: .zip).path, pair.path])
         guard try Data(contentsOf: pair.appending(path: "x.tar.gz")) == Data("a".utf8),
-              try Data(contentsOf: pair.appending(path: "x 2.tar.gz")) == Data("b".utf8) else {
+              try Data(contentsOf: pair.appending(path: "x (2).tar.gz")) == Data("b".utf8) else {
             throw Failure("same-named sources lost a copy or its multi-part suffix")
         }
         try await expect(ArchiveFailure.filesystem("selection"), "a missing source") {
