@@ -9,9 +9,7 @@ struct TranscriptDownloadRunner: DownloadRunner {
 
     @concurrent
     func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? {
-        guard let executable = context.tools.find(.ytDlp) else {
-            throw MediaFailure(detail: DownloadTool.ytDlp.missingDetail)
-        }
+        guard let executable = context.tools.find(.ytDlp) else { throw DownloadToolMissing(tool: .ytDlp) }
         let staging = FileManager.default.temporaryDirectory.appending(path: ".captions-" + UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: staging) }
         let metadata = try await context.spawn(
@@ -43,10 +41,10 @@ struct TranscriptDownloadRunner: DownloadRunner {
 
     // yt-dlp exits 1 when one track fails, even after it wrote another; that run still counts.
     private func fetch(_ arguments: [String], _ executable: URL, _ context: DownloadRunContext,
-                       _ folder: URL) async throws -> ChildProcess.Result {
+                       _ folder: URL) async throws -> DownloadProcessResult {
         do {
             return try await context.spawn(executable: executable, arguments: arguments)
-        } catch let failure as ChildProcess.Failure
+        } catch let failure as DownloadProcessFailure
                     where MediaArguments.isRateLimited(failure.result.errors) || (try? captions(in: folder).isEmpty) == false {
             return failure.result
         }

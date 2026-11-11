@@ -123,10 +123,7 @@ final class DownloadQueue {
         stopped = true
         let running = Array(tasks.values)
         for task in running { task.cancel() }
-        for index in jobs.indices where jobs[index].state == .running {
-            jobs[index].state = .interrupted
-            jobs[index].finished = clock()
-        }
+        Self.interruptRunning(&jobs, at: clock())
         save()
         for task in running { await task.value }
         do {
@@ -210,13 +207,8 @@ final class DownloadQueue {
     private static func checkTools(_ required: [DownloadTool], lookup: DownloadToolLookup) async throws {
         for tool in required {
             try Task.checkCancellation()
-            if lookup.find(tool) == nil { throw MissingTool(tool: tool) }
+            if lookup.find(tool) == nil { throw DownloadToolMissing(tool: tool) }
         }
-    }
-
-    private struct MissingTool: LocalizedError {
-        let tool: DownloadTool
-        var errorDescription: String? { tool.missingDetail }
     }
 
     /// Drops finished rows older than 7 days; the app calls it when the list is shown or refreshed.
@@ -226,10 +218,23 @@ final class DownloadQueue {
         if jobs.count != count { save() }
     }
 
-    private func expire(now: Date) {
-        let cutoff = now.addingTimeInterval(-7 * 24 * 60 * 60)
+    private func expire(now: Date) { Self.expire(&jobs, now: now) }
+
+    /// Shared with `load`, so a row expires the same way whether the app just ran or was relaunched.
+    nonisolated private static func expire(_ jobs: inout [DownloadJob], now: Date) {
+        let cutoff = now.addingTimeInterval(-retention)
         jobs.removeAll { $0.state.isFinished && ($0.finished ?? $0.created) <= cutoff }
     }
+
+    /// A run still going when the app quit cannot resume, so it is recorded as interrupted.
+    nonisolated private static func interruptRunning(_ jobs: inout [DownloadJob], at now: Date) {
+        for index in jobs.indices where jobs[index].state == .running {
+            jobs[index].state = .interrupted
+            jobs[index].finished = now
+        }
+    }
+
+    nonisolated private static let retention: TimeInterval = 7 * 24 * 60 * 60
 
     private func save() {
         guard let file else { return }
@@ -267,12 +272,8 @@ final class DownloadQueue {
             }
             return ([], error.localizedDescription)
         }
-        let cutoff = now.addingTimeInterval(-7 * 24 * 60 * 60)
-        jobs.removeAll { $0.state.isFinished && ($0.finished ?? $0.created) <= cutoff }
-        for index in jobs.indices where jobs[index].state == .running {
-            jobs[index].state = .interrupted
-            jobs[index].finished = now
-        }
+        Self.expire(&jobs, now: now)
+        Self.interruptRunning(&jobs, at: now)
         return (jobs, nil)
     }
 
