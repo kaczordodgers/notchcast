@@ -44,7 +44,6 @@ enum NotchcastCore {
             browserAddresses: { try await CopyPathSystemReader.read(.browser(CopyPathTarget(processID: $0, bundleID: $1))) }
         )
         NSApp.servicesProvider = archiveServices
-        ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         BatteryModule.shared.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
