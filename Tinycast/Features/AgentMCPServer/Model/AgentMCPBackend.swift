@@ -5,6 +5,7 @@ struct AgentMCPAction: Sendable {
     let title: String
     let inputSchema: Data
     let danger: String
+    let isDestructive: Bool
 }
 
 struct AgentMCPState: Sendable {

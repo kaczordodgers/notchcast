@@ -2,8 +2,6 @@ import Foundation
 
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
-import Foundation
-
 extension NotchcastCore {
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
@@ -19,7 +17,7 @@ extension NotchcastCore {
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".urlCleaner")))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
-    static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
+    static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
@@ -46,7 +44,6 @@ extension NotchcastCore {
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let editor = EditorCoordinator.shared
-    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore) -> [NotchcastModuleController.Entry] {
         agents.configure(core)
@@ -110,7 +107,6 @@ extension NotchcastCore {
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
-            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
         ]
     }
 }

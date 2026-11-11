@@ -98,7 +98,7 @@ Convert Files, Media Tools or Command Runner switch. Convert Files additionally 
 Downloads to be on; it reports that requirement and attaches to the Downloads queue owner.
 Conversion targets and resize dimensions use the existing choice dialog. File input is
 Finder's selection, never clipboard file URLs. Completion and input errors use island status
-messages. Quick Add Task retains its engine but has no launcher registration or live client.
+messages.
 
 Host commands are read at use from `Notchcast/host-commands.json` under Application Support.
 The JSON is an array of entries with `id`, `title`, absolute `executable`, `arguments` (array),
