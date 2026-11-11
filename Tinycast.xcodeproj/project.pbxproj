@@ -1632,6 +1632,7 @@
 		C4B9E4112CF0FD5CED4BED03 /* CopyPathService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B260701C91565EF47D8FC397 /* CopyPathService.swift */; };
 		C4B9E9B3E965BFDFD31EDC3D /* LauncherCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858E08BB313EC330C2D5E50C /* LauncherCoordinator.swift */; };
 		C5246D93BBA447893D58BD91 /* FallbackStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75614189EED9B440D911B412 /* FallbackStore.swift */; };
+		C5271CFA1753165ECCE2FFF2 /* DownloadToolLookup+Host.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4B87E38C2932F55CDEEC3F /* DownloadToolLookup+Host.swift */; };
 		C5362E24767E311CEC231547 /* ProcessReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FF0D4300894C3C835A43510 /* ProcessReading.swift */; };
 		C567D5C8F8873CA595B1536A /* TextInjector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74904E7C8CE9B121B32594B9 /* TextInjector.swift */; };
 		C57A5391F89418F79280E6F1 /* TreadmillSummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47B3D971B597CCABE68DAA0D /* TreadmillSummary.swift */; };
@@ -2888,6 +2889,7 @@
 		4DED1964CA1F02325C693F73 /* UpdateRemoteProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateRemoteProgress.swift; sourceTree = "<group>"; };
 		4E153308EF724D552155C4D2 /* UnitDef.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitDef.swift; sourceTree = "<group>"; };
 		4E2AAA81889CD6A6912A9793 /* OpenBotAgentsModule+Registration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OpenBotAgentsModule+Registration.swift"; sourceTree = "<group>"; };
+		4E4B87E38C2932F55CDEEC3F /* DownloadToolLookup+Host.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DownloadToolLookup+Host.swift"; sourceTree = "<group>"; };
 		4EF9F16C3F5567240FF03122 /* CalcQuantity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcQuantity.swift; sourceTree = "<group>"; };
 		4F11288E491662948CB33FEC /* ProcessExit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessExit.swift; sourceTree = "<group>"; };
 		4F20B7BDED6FBF1331C50090 /* DictationHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationHelper.swift; sourceTree = "<group>"; };
@@ -5993,6 +5995,7 @@
 				CAB0501C6B4BF049630C4CB0 /* ChildProcess.swift */,
 				82E0B04AC2FE49B055BD4427 /* DownloadQueue.swift */,
 				72108A1F51E7A8253D22875B /* DownloadToolLookup.swift */,
+				4E4B87E38C2932F55CDEEC3F /* DownloadToolLookup+Host.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -11246,6 +11249,7 @@
 				7BFEBE7A13FCA63E6256B59B /* DownloadRunner.swift in Sources */,
 				1A780D7B3AA8C27A01A24538 /* DownloadState.swift in Sources */,
 				35F358613D39B15B5CE9E17B /* DownloadTool.swift in Sources */,
+				C5271CFA1753165ECCE2FFF2 /* DownloadToolLookup+Host.swift in Sources */,
 				D607BFDCA4A4526568287377 /* DownloadToolLookup.swift in Sources */,
 				3895873694746870EA9159EE /* DownloadsActivity.swift in Sources */,
 				1985702ED36F5CD78BD1089A /* DownloadsAria2Descriptor.swift in Sources */,
