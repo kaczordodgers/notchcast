@@ -14,8 +14,7 @@ ALL_ONLY = {
     Path("notchcast/gallery/keychain-test.py"),
 }
 LAND_TEST = Path("notchcast/land-test.sh")
-LAND_INPUTS = ["notchcast/land.sh", "notchcast/merge.sh", "notchcast/drift-gates.sh", "notchcast/fork-point.sh",
-               str(LAND_TEST)]
+LAND_INPUTS = [*Path(__file__).with_name("land-tooling.txt").read_text().split(), str(LAND_TEST)]
 
 
 def land_inputs_changed():
