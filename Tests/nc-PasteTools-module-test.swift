@@ -55,13 +55,20 @@ struct PasteImageModuleTests {
         precondition(hub.consumerCount == 0 && hub.handler == nil)
         // The stopped module ignores its queued pastes, so only now may the harness suspend.
         board.clearContents()
-        let looping = PasteImageModule(hub: hub, pasteboard: board.name, finderIsFrontmost: { true })
+        var frontmostChecks = 0
+        let looping = PasteImageModule(hub: hub, pasteboard: board.name,
+                                       finderIsFrontmost: { frontmostChecks += 1; return true })
         looping.start()
         board.clearContents()
         board.setData(Data([0x89]), forType: .png)
         try? await Task.sleep(for: .seconds(1))
         precondition(send() == .swallow, "The module's own half-second loop takes an image with no manual tick")
+        let workspace = NSWorkspace.shared.notificationCenter
+        workspace.post(name: NSWorkspace.didActivateApplicationNotification, object: nil)
         looping.stop()
+        let checksAtStop = frontmostChecks
+        try? await Task.sleep(for: .milliseconds(200))
+        precondition(frontmostChecks == checksAtStop, "An activation queued before stop starts no ticker after it")
         print("✓ PasteImage module: start once, take, repeat, release, text and chord pass-through checks passed")
     }
 }

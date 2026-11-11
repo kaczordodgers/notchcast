@@ -62,6 +62,7 @@ final class PasteImageModule: NotchcastModule {
     }
 
     private func frontmostChanged() {
+        guard tap.isActive else { return }
         stopTicking()
         guard finderIsFrontmost() else { return }
         ticker = Task { [weak self] in
