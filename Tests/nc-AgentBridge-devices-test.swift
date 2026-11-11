@@ -7,7 +7,14 @@ import Foundation
 @MainActor
 struct AgentDeviceTests {
     final class FakeBackend: AgentDeviceBackend {
+        let deviceName: String
+        let operations: [(name: String, parameters: AgentParameterSchema)]
         var isAvailable = true
+
+        init(_ deviceName: String, _ operations: [(name: String, parameters: AgentParameterSchema)]) {
+            self.deviceName = deviceName
+            self.operations = operations
+        }
         var calls: [String] = []
         var fail = false
 
@@ -22,10 +29,21 @@ struct AgentDeviceTests {
 
     static func main() async throws {
         let index = AgentActionIndex()
-        let treadmill = FakeBackend()
-        let katana = FakeBackend()
-        try AgentDeviceActions.register(.treadmill, backend: treadmill, in: index)
-        try AgentDeviceActions.register(.katana, backend: katana, in: index)
+        let speed = AgentParameterSchema.Property(kind: .number, minimum: 1, maximum: 6)
+        let channel = AgentParameterSchema.Property(kind: .integer, allowedValues: [0, 1, 2, 5, 6].map { .number($0) })
+        let treadmill = FakeBackend("treadmill", [
+            ("start", .init(properties: ["speed": speed, "minutes": .init(kind: .integer, minimum: 0, maximum: 1092)],
+                            required: ["speed", "minutes"])),
+            ("stop", .init()), ("pause", .init()), ("resume", .init()),
+            ("speed", .init(properties: ["speed": speed], required: ["speed"])),
+        ])
+        let katana = FakeBackend("katana", [
+            ("channel", .init(properties: ["channel": channel], required: ["channel"])),
+            ("tone", .init(properties: ["toneID": .init(kind: .string, minimumLength: 1), "channel": channel],
+                           required: ["toneID", "channel"])),
+        ])
+        try AgentDeviceActions.register(treadmill, in: index)
+        try AgentDeviceActions.register(katana, in: index)
         index.start()
         var audited: [AgentReply.Code] = []
         index.didComplete = { request, reply in
@@ -100,6 +118,8 @@ struct AgentDeviceTests {
         index.stop()
         let stopped = await index.handle(tone)
         precondition(stopped.code == .notRunning)
+        AgentDeviceActions.unregister(katana, from: index)
+        precondition(index.actionIDs.count == 5 && index.stateIDs == ["device.treadmill"])
         print("Agent device tests passed (fake backends only)")
     }
 }

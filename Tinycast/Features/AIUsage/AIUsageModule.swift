@@ -7,7 +7,6 @@ final class AIUsageModule: NotchcastModule {
     private(set) var snapshots: [AIUsageSnapshot] = []
     let otherMac: OtherMacUsageService
     private let provider: AIUsageProvider?
-    private let post: @MainActor (String) -> Void
     private let source: AIUsageSnapshotAdapter
     private let preferences: NotchcastPreferences
     private var generation = 0
@@ -20,11 +19,9 @@ final class AIUsageModule: NotchcastModule {
     init(
         provider: AIUsageProvider? = nil,
         preferences: NotchcastPreferences = .shared,
-        channel: MachLinkChannel = MachLinkChannel(),
-        post: @escaping @MainActor (String) -> Void = { _ in }
+        channel: MachLinkChannel = MachLinkChannel()
     ) {
         self.provider = provider
-        self.post = post
         self.preferences = preferences
         let source = AIUsageSnapshotAdapter()
         self.source = source

@@ -43,7 +43,7 @@ final class AgentConfirmationAuthorization {
 
     func authorize(_ action: AgentAction, parameters: AgentJSON) async -> (@MainActor () -> Void)? {
         let danger: AgentConsentPolicy.Danger = switch action.danger {
-        case .harmless: .safe
+        case .harmless: .harmless
         case .consent: .consent
         case .dangerous: .dangerous
         }

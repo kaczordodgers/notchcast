@@ -45,7 +45,6 @@ struct PricingTests {
         usage.modelID = "gpt-4.1"
         usage.inputTokens = -1
         precondition(engine.cost(usage) == nil)
-        precondition(AgentPricingEngine.roundedUSD(Decimal(string: "1.005")!) == Decimal(string: "1.01"))
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = .gmt
         let first = Usage(inputTokens: 1_000)
@@ -58,7 +57,6 @@ struct PricingTests {
         precondition(report.sessions["session"]?.costUSD == Decimal(string: "0.002"))
         precondition(report.projects["other"]?.costUSD == Decimal(string: "0.004"))
         precondition(report.days.count == 2)
-        precondition(AgentPricingEngine.roundedUSD(report.total.costUSD) == Decimal(string: "0.01"))
         print("Agent pricing checks passed")
     }
 }

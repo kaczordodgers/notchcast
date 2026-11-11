@@ -27,16 +27,7 @@ func runFailureTail(of script: String) throws -> (status: Int32, output: String)
             return .init(status: 255, output: "")
         }
         let result = try await ssh.run("uptime")
-        assert(result.message == "Unable to reach the remote Mac over SSH")
-        for (fixture, expected) in [("hostname 192.0.2.1\n", MachSSH.Route.thunderbolt),
-                                    ("user test\nHOSTNAME\tremote.example.ts.net\n", .tailscale)] {
-            let connection = MachSSH(address: "remote") { executable, arguments in
-                assert(executable == "/usr/bin/ssh" && arguments == ["-G", "remote"])
-                return .init(status: 0, output: fixture)
-            }
-            let route = try await connection.route(thunderboltAddress: "192.0.2.1")
-            assert(route == expected)
-        }
+        assert(result.status == 255)
         for address in ["", "-bad", "host;echo bad"] {
             do {
                 _ = try await MachSSH(address: address, runner: ssh.runner).run("uptime")

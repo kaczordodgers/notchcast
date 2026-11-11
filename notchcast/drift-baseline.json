@@ -121,9 +121,6 @@
     "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0
   },
   "test-only": {
-    "Tinycast/Features/AgentSessions/Pricing/AgentPricingEngine.swift:roundedUSD": 1,
-    "Tinycast/Features/CommandRunner/Model/CommandListItem.swift:CommandListItem": 1,
-    "Tinycast/Features/CommandRunner/Service/CommandQuickAdd.swift:CommandQuickAdd": 1,
     "Tinycast/Features/DocumentEditor/Service/EditorStatistics.swift:EditorStatistics": 1,
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift:GitHubHTMLEntities": 1,
     "Tinycast/Features/IslandHome/Model/IslandHomeModel.swift:IslandHomeModel": 1,

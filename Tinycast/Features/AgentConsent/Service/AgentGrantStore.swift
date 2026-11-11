@@ -20,19 +20,11 @@ final class AgentGrantStore {
         }
     }
 
-    func allow(
-        agentID: String, actionID: String, danger: AgentConsentPolicy.Danger,
-        expiresAt: Date? = nil, now: Date
-    ) throws {
-        guard danger == .consent, !agentID.isEmpty, !actionID.isEmpty,
-              expiresAt.map({ now < $0 }) ?? true else { return }
+    func allow(agentID: String, actionID: String, danger: AgentConsentPolicy.Danger) throws {
+        guard danger == .consent, !agentID.isEmpty, !actionID.isEmpty else { return }
         var updated = grants.filter { !($0.agentID == agentID && $0.actionID == actionID) }
-        updated.append(.init(agentID: agentID, actionID: actionID, expiresAt: expiresAt))
+        updated.append(.init(agentID: agentID, actionID: actionID, expiresAt: nil))
         try save(updated)
-    }
-
-    func revoke(agentID: String, actionID: String? = nil) throws {
-        try save(grants.filter { $0.agentID != agentID || (actionID != nil && $0.actionID != actionID) })
     }
 
     private func save(_ updated: [AgentConsentPolicy.Grant]) throws {

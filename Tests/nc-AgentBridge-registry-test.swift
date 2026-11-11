@@ -58,6 +58,11 @@ struct AgentRegistryTests {
             preconditionFailure("missing discovery data")
         }
         check(actions == [action.json(available: false)])
+        let catalog = AgentCatalog(listed.result)
+        check(catalog?.actions == [action.catalogEntry(available: false)] && catalog?.json == listed.result)
+        check(catalog?.states.map(\.id) == [provider.id])
+        check(AgentCatalog(.object(["actions": .array([])])) == nil)
+        check(AgentCatalog(.object(["actions": .array([.object(["id": .string("x")])]), "states": .array([])]))?.actions == [])
         available = true
         check(await index.handle(.init(verb: .get, id: provider.id)) == .init(code: .ok, result: .bool(true)))
         check(await index.handle(.init(verb: .get, id: "missing")) == .init(code: .badRequest))

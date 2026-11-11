@@ -43,6 +43,13 @@ struct MissingTool: ArchiveToolLocating {
         ArchiveModule.shared.start()
         ArchiveCompressionCommands.submit([], format: .small)
         precondition(AppCore.shared.messages.last == "No files selected in Finder.")
+        struct NoFinder: Error {}
+        NotchcastHost.current.finderSelection = { throw NoFinder() }
+        let reported = AppCore.shared.messages.count
+        ArchiveCompressionCommands.run(.zip)
+        for _ in 0..<1000 where AppCore.shared.messages.count == reported { await Task.yield() }
+        precondition(AppCore.shared.messages.last == "Couldn’t read the Finder selection.", "run reads the host's Finder selection")
+        NotchcastHost.current.finderSelection = { [] }
         preferences.set(.archives, false)
         ArchiveCompressionCommands.run(.fast)
         precondition(AppCore.shared.messages.last == "The archive engine is not running.")
