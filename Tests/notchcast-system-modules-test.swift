@@ -64,7 +64,7 @@ struct SystemModuleTests {
         do {
             try await unreadable.store.set("new", writes: [], on: true)
             preconditionFailure("An unreadable journal must block replacement")
-        } catch SystemToolsProcessRunner.Failure.invalidExecutable {}
+        } catch TweaksJournalFailure.unreadable {}
         precondition(journalDefaults.data(forKey: journalKey) == corrupt)
         var effects: [Bool] = []
         let store = SystemToolsStore(preferences: preferences, available: { _ in true }, apply: { _, value in

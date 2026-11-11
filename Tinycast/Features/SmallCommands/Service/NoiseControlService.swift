@@ -6,7 +6,13 @@ struct NoiseControlService: Sendable {
         case noAirPods
         case unchanged
     }
-    enum Failure: Error { case needsAccessibility }
+    enum Failure: LocalizedError {
+        case needsAccessibility
+
+        var errorDescription: String? {
+            String(localized: "Allow Accessibility access to switch noise control.", table: "Notchcast")
+        }
+    }
 
     enum Action: Equatable, Sendable {
         case open
