@@ -89,7 +89,7 @@
   },
   "constants": {
     "app.notchcast": 2,
-    "app.notchcast.dev": 4,
+    "app.notchcast.dev": 0,
     "com.apple.": 2,
     "com.apple.dock": 3,
     "com.apple.finder": 5,
@@ -151,7 +151,6 @@
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastPaste": 1,
     "Tinycast/Features/SystemMonitor/Model/MonitorFormat.swift:MonitorFormat": 1,
     "Tinycast/Features/SystemTools/Service/NotificationCleanupService.swift:NotificationCleanupService": 1,
-    "Tinycast/Features/SystemTools/Service/TouchIDService.swift:TouchIDService": 1,
     "Tinycast/Features/Todo/Model/TodoReminder.swift:Snooze": 0,
     "Tinycast/Features/Todo/Model/TodoTaskDetail.swift:TodoTaskDetail": 0,
     "Tinycast/Features/Todo/Service/TodoAgentGateway.swift:TodoAgentGateway": 0,
