@@ -128,6 +128,7 @@ The API key lives in a Keychain item Notchcast creates itself when the key is pa
 | torrentsKeepSharing | Enables continued uploads |
 | music.lastPlayer | Runtime remembered player, not configuration |
 | spotify.deviceName | Configuration of a credential-backed network speaker; retained locally |
+| remoteMacAddress | Device-specific address of another Mac, like fanMode; stays on this Mac |
 | microphone.muted / microphone.muted.restore | OS mute intent and device restoration state |
 | archiveHandlersClaimed | OS association ownership state |
 | archiveRecoveryParents | Runtime archive recovery journal locations |
@@ -180,7 +181,7 @@ Restore updates `EditorCoordinator.shared.editorPreferences`; its setters retain
 ## Adding switches
 
 Every new `NotchcastFeature` states `backedUp: true` or `false` in its descriptor, and adds snapshot/apply wiring for any new plain store preference in the feature's `<Name>BackupKeys.swift`, listed once in `NotchcastFeature.BackupKeys.all`. `check-feature-shape.py` and `check-backup-schema.py` fail for a feature without the flag; the restore harness fails when a feature's snapshot and its allowed keys disagree.
-The schema and the list each have a `merge=union` entry in `.gitattributes`; rerun the guard after merging.
+The list (`Notchcast/Core/NotchcastBackupKeys.swift`) has a `merge=union` entry in `.gitattributes`; rerun the guard after merging.
 Read `NotchcastFeature.swift` after every main merge for duplicate var headers or stray bodies,
 and treat every typecheck warning as a failure, even when the shape checker passes.
 

@@ -10,4 +10,3 @@ Tinycast/Features/Notchcast/Core/NotchcastCore+Registrants.swift merge=union
 Tinycast/Features/Notchcast/Core/NotchcastBackupKeys.swift merge=union
 Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift merge=union
 Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift merge=union
-Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift merge=union
