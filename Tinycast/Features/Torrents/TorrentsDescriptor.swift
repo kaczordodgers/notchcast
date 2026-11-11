@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Download magnet links and torrent files to Downloads.", table: "Notchcast"),
         group: .torrents,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Browse snapshots and restore into a new Downloads folder.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

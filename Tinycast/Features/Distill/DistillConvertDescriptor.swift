@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Convert files in your Distill folder to Markdown or text.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: false,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Prevent media keys from launching Apple Music.", table: "Notchcast"),
         group: .music,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [.island],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

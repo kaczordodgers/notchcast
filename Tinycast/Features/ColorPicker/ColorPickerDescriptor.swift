@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Copy a color from anywhere on the screen.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

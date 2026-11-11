@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Press F3 to show the desktop; press again to restore windows.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

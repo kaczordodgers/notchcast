@@ -20,7 +20,7 @@ final class Screen {
 struct ConfirmationExpiryTests {
     static func main() async throws {
         let suite = "test.confirmation.expiry." + UUID().uuidString
-        let grants = try AgentGrantStore(bundleIdentifier: suite)
+        let grants = try AgentGrantStore(bundleIdentifier: suite, key: "agentActionGrants")
         defer {
             UserDefaults(suiteName: suite + ".notchcast.agent-consent")?
                 .removePersistentDomain(forName: suite + ".notchcast.agent-consent")

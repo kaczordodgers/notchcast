@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Prepare task snapshots for the island.", table: "Notchcast"),
         group: .tasks,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [.tasks],
         requiredGrants: [],
         isSystemFeature: false,

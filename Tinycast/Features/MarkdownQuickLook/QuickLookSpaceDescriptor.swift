@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Preview an arrow-selected file with Space.", table: "Notchcast"),
         group: .launcher,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

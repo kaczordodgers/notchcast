@@ -18,11 +18,11 @@ TREE = Path("Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettingsModule+G
 SEARCH = Path("Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift")
 # Union-merged lists: each entry's identity, so an edited line a union kept twice is caught.
 LISTS = {
-    Path("Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift"): r'^"([^"]+)"',
     MODULES: r"module: ([\w.]+)",
     SEARCH: r"^(.*?)(?:, keywords: .*)?\),$",
     DESCRIPTORS: r"^\.(\w+):",
     REGISTRANTS: r"^(\w+)\.self,$",
+    FEATURE.with_name("NotchcastBackupKeys.swift"): r"^\.(\w+),$",
     CATALOG: r"^([\w.\[\]]+),$",
 }
 # The feature's code folder at any depth, beside its layers: harnesses glob Model/ and Service/.
@@ -501,6 +501,8 @@ def feature_errors(root):
             errors.append((FEATURE, 1, f"no feature's {when} is {equals}; the class pin on {fact} holds nothing (CLASS_PINS)"))
         errors.extend((*known["at"], f".{name} {fact} is {known.get(fact)}; a feature whose {when} is {equals} keeps {value}")
                       for name, known in members if known.get(fact) != value)
+    errors.extend((*known["at"], f".{name} needs backedUp: true or false, whether a settings backup carries its switch")
+                  for name, known in facts.items() if known.get("backedUp") not in ("true", "false"))
     errors.extend((*known["at"], f".{name} needs a localized, non-empty {text}")
                   for name, known in facts.items() for text in ("title", "subtitle")
                   if not re.match(r'String\(localized: "[^"]', known.get(text, "")))
@@ -733,8 +735,6 @@ def check(root):
         except OSError as error:
             errors.append(f"{path}:1: {error}")
             continue
-        if path.name == "ForkSettingsBackupSchema.swift":
-            source = re.sub(r"(?s)^.*?(?=    private static let featureKeys:)", lambda m: "\n" * m[0].count("\n"), source)
         errors.extend(f"{path}:{line}: {message}" for line, message in list_errors(source, identity))
     try:
         source = (root / PREFERENCES).read_text()

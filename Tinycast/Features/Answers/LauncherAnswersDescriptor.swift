@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Currency answers using rates from NBP.", table: "Notchcast"),
         group: .launcher,
         defaultEnabled: false,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,
