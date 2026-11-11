@@ -115,7 +115,7 @@
   },
   "file-size": {
     "Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift": 666,
-    "Tinycast/Features/Battery/Store/BatteryModule.swift": 440,
+    "Tinycast/Features/Battery/Store/BatteryModule.swift": 438,
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift": 2275,
     "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413,
     "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0
