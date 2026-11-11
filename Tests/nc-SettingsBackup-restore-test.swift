@@ -277,32 +277,40 @@ struct NotchcastCommand: Sendable {
         let statusFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: statusFolder, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: statusFolder) }
-        let stamp = ISO8601DateFormatter().string(from: .now)
-        let healthy = statusFolder.appendingPathComponent("healthy.json")
-        try JSONSerialization.data(withJSONObject: [
-            "version": 1, "result": "ok", "message": NSNull(), "lastSuccess": stamp, "lastAttempt": stamp,
-            "snapshotCount": 8, "oldestSnapshot": stamp, "newestSnapshot": stamp, "sourceBytes": 1000,
-            "addedBytes": 100, "repoBytes": 2000, "targetFreeBytes": 3000, "lowSpace": false,
-            "retention": "Last 2", "restoreTest": ["at": stamp, "result": "ok"],
-            "mbpTimeMachine": ["latest": stamp, "checkedAt": stamp, "error": NSNull()],
-        ] as [String: Any]).write(to: healthy)
+        let statusFiles = try ["first", "restored", "typed"].map { name in
+            let folder = statusFolder.appendingPathComponent(name)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            return folder.appendingPathComponent("status.json")
+        }
         var statusNotices = 0
         func statusNoticed(_ count: Int) async -> Bool {
             for _ in 0..<200 where statusNotices < count { try? await Task.sleep(for: .milliseconds(50)) }
             return statusNotices == count
         }
-        NotchcastPreferences.shared.backupStatusPath = healthy.path
+        NotchcastPreferences.shared.backupStatusPath = statusFiles[0].path
         let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath },
                                               post: { _ in statusNotices += 1 })
         backupStatus.start()
-        try ForkSettingsBackupState.live.apply(["backupStatusPath": statusFolder.appendingPathComponent("restored.json").path])
-        let restoredPathRead = await statusNoticed(1)
-        precondition(restoredPathRead, "Backup Status kept watching the file from before the restore")
-        NotchcastPreferences.shared.backupStatusPath = statusFolder.appendingPathComponent("typed.json").path
-        let writtenPathRead = await statusNoticed(2)
+        let missingFileNoticed = await statusNoticed(1)
+        precondition(missingFileNoticed)
+        try ForkSettingsBackupState.live.apply(["backupStatusPath": statusFiles[1].path])
+        let restoredPathRead = await statusNoticed(2)
+        precondition(restoredPathRead, "Backup Status did not restart on a restored path")
+        let stamp = ISO8601DateFormatter().string(from: .now)
+        try JSONSerialization.data(withJSONObject: [
+            "version": 1, "result": "failed", "message": NSNull(), "lastSuccess": stamp, "lastAttempt": stamp,
+            "snapshotCount": 8, "oldestSnapshot": stamp, "newestSnapshot": stamp, "sourceBytes": 1000,
+            "addedBytes": 100, "repoBytes": 2000, "targetFreeBytes": 3000, "lowSpace": false,
+            "retention": "Last 2", "restoreTest": ["at": stamp, "result": "ok"],
+            "mbpTimeMachine": ["latest": stamp, "checkedAt": stamp, "error": NSNull()],
+        ] as [String: Any]).write(to: statusFiles[1])
+        let restoredFileWatched = await statusNoticed(3)
+        precondition(restoredFileWatched, "Backup Status kept watching the folder from before the restore")
+        NotchcastPreferences.shared.backupStatusPath = statusFiles[2].path
+        let writtenPathRead = await statusNoticed(4)
         precondition(writtenPathRead, "Backup Status missed a write to its path")
         backupStatus.stop()
-        print("PASS: Backup Status reads a restored path and restarts on every later write to it")
+        print("PASS: Backup Status watches a restored path and restarts on every later write to it")
         let suite = "test.settings-restore"
         let defaults = UserDefaults(suiteName: suite)!
         defaults.removePersistentDomain(forName: suite)
