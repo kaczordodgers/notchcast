@@ -10,17 +10,9 @@ final class ScrollingCaptureSession {
         case idle, capturing, stopping, stopped, limitReached, failed
     }
 
-    enum Failure: CaptureFailureConvertible {
+    enum Failure: Error {
         case alreadyRunning, permissionDenied, invalidRect, displayUnavailable, invalidFrame
         case imageCreationFailed, pngEncodingFailed
-
-        var captureFailure: CaptureFailure? {
-            switch self {
-            case .permissionDenied: .permissionDenied
-            case .invalidRect, .displayUnavailable: .areaUnavailable
-            case .alreadyRunning, .invalidFrame, .imageCreationFailed, .pngEncodingFailed: .captureFailed
-            }
-        }
     }
 
     typealias CaptureFrame = @MainActor @Sendable () async throws -> CGImage

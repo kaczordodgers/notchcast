@@ -12,18 +12,8 @@ enum ScreenshotRequest: Sendable {
         case both(folder: URL? = nil)
     }
 
-    enum Failure: CaptureFailureConvertible {
+    enum Failure: Error {
         case disabled, permissionDenied, invalidRect, targetUnavailable, encodingFailed, clipboardFailed
-
-        var captureFailure: CaptureFailure? {
-            switch self {
-            case .permissionDenied: .permissionDenied
-            case .clipboardFailed: .clipboardFailed
-            case .disabled: .disabled
-            case .invalidRect, .targetUnavailable: .areaUnavailable
-            case .encodingFailed: .captureFailed
-            }
-        }
     }
 
     static func isValid(rect: CGRect) -> Bool {

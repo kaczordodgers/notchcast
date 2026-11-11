@@ -110,3 +110,15 @@ final class ScreenshotModule: NotchcastModule {
 
     isolated deinit { captureTask?.cancel(); commandTask?.cancel() }
 }
+
+extension ScreenshotRequest.Failure: CaptureFailureConvertible {
+    var captureFailure: CaptureFailure? {
+        switch self {
+        case .permissionDenied: .permissionDenied
+        case .clipboardFailed: .clipboardFailed
+        case .disabled: .disabled
+        case .invalidRect, .targetUnavailable: .areaUnavailable
+        case .encodingFailed: .captureFailed
+        }
+    }
+}

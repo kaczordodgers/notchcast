@@ -8,21 +8,17 @@ final class CaptureEditorCoordinator: NotchcastModule {
         func closeEditor()
     }
 
-    enum Failure: LocalizedError, CaptureFailureConvertible {
+    enum Failure: LocalizedError {
         case disabled
         case noImage
         case clipboard
 
-        var captureFailure: CaptureFailure? {
-            switch self {
-            case .disabled: .disabled
-            case .noImage: nil
-            case .clipboard: .clipboardFailed
-            }
-        }
-
         var errorDescription: String? {
-            captureFailure?.message ?? String(localized: "No Image to Edit", table: "Notchcast")
+            switch self {
+            case .disabled: String(localized: "Capture is disabled.", table: "Notchcast")
+            case .noImage: String(localized: "No Image to Edit", table: "Notchcast")
+            case .clipboard: String(localized: "Could not copy to clipboard.", table: "Notchcast")
+            }
         }
     }
 

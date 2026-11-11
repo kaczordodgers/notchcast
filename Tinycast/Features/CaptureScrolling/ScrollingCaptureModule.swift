@@ -84,3 +84,13 @@ final class ScrollingCaptureModule: NotchcastModule {
         (CaptureFailure(error) ?? .captureFailed).message
     }
 }
+
+extension ScrollingCaptureSession.Failure: CaptureFailureConvertible {
+    var captureFailure: CaptureFailure? {
+        switch self {
+        case .permissionDenied: .permissionDenied
+        case .invalidRect, .displayUnavailable: .areaUnavailable
+        default: .captureFailed
+        }
+    }
+}

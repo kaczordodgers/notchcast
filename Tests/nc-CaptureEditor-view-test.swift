@@ -1,7 +1,6 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
 // notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
-// notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/View/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/CaptureEditorCoordinator+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift

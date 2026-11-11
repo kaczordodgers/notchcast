@@ -298,3 +298,14 @@ final class RecordingModule: NotchcastModule {
         }
     }
 }
+
+extension RecordingTarget.Failure: CaptureFailureConvertible {
+    var captureFailure: CaptureFailure? {
+        switch self {
+        case .permissionDenied: .permissionDenied
+        case .disabled: .disabled
+        case .invalidTarget, .targetUnavailable: .areaUnavailable
+        case .busy, .writerFailed, .noFrames, .notRecording, .invalidFolder: nil
+        }
+    }
+}
