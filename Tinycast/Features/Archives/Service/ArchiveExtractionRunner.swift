@@ -17,6 +17,8 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         progress: @escaping @MainActor @Sendable (Progress) -> Void = { _ in }
     ) async throws -> URL {
         guard ArchiveFormat.accepts(archive), archive.isFileURL else { throw ArchiveFailure.unsupportedFormat }
+        try await ArchiveExtractionGate.enter()
+        defer { ArchiveExtractionGate.leave() }
         let archive = ArchiveFiles.resolvedParent(archive)
         if let output = try await extractFallback(archive, mode: mode, recovery: recovery, progress: progress) { return output }
         var recovery = recovery
@@ -87,7 +89,6 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
     private func plan(
         _ archive: URL, tool: URL, requested: ArchiveJob.Mode, previous: ArchiveJob.Recovery?
     ) async throws -> Plan {
-        let manager = FileManager.default
         let parent = archive.deletingLastPathComponent()
         if let journal = try ArchiveJournal.read(archive) {
             if journal.mode == .keepArchive, ArchiveFiles.exists(archive) {
@@ -102,18 +103,12 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
                         fallback: journal.mode == .keepArchive ? .resumingKeepArchive : nil,
                         outputPath: journal.outputPath)
         }
-        for suffix in [".hatchzip-tail", ".tmp"]
-        where ArchiveFiles.exists(URL(fileURLWithPath: archive.path + suffix)) {
-            throw ArchiveFailure.existingProgress
-        }
-        guard try ArchiveFiles.attributes(archive).st_mode & S_IFMT == S_IFREG else {
-            throw ArchiveFailure.unsafePath(archive.lastPathComponent)
-        }
+        let attributes = try ArchiveFiles.fresh(archive)
         let listingResult = try await ArchiveProcess.run(tool: tool, arguments: ["list", archive.path], captureListing: true)
         if listingResult.status == 1 { throw ArchiveFailure.unsafePath(archive.lastPathComponent) }
         try ArchiveProcess.validate(listingResult.status)
         guard let listing = listingResult.listing, let total = listing.totalBytes else { throw ArchiveFailure.invalidListing }
-        try ArchiveRules.validate(listing, archiveBytes: ArchiveFiles.attributes(archive).st_size)
+        try ArchiveRules.validate(listing, archiveBytes: attributes.st_size)
         var effective = requested
         var fallback: ArchiveJob.Fallback?
         if requested == .inPlace,
@@ -136,13 +131,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
             try ArchiveProcess.validate(check.status)
         }
         try Task.checkCancellation()
-        let warning = try ArchiveFiles.quarantine(archive)
-        let staging = parent.appending(path: ".notchcast-extract-\(UUID().uuidString)")
-        try manager.createDirectory(at: staging, withIntermediateDirectories: false, attributes: [.posixPermissions: 0o700])
-        do { try ArchiveFiles.applyQuarantine(warning, to: staging) } catch {
-            try ArchiveFiles.removeStaging(staging)
-            throw error
-        }
+        let (staging, warning) = try ArchiveFiles.stage(beside: archive)
         return Plan(recovery: ArchiveJob.Recovery(staging: staging, totalBytes: total, quarantine: warning),
                     mode: effective, fallback: fallback, outputPath: staging.path)
     }
@@ -184,7 +173,7 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
               ArchiveFiles.samePath(URL(fileURLWithPath: output), staging) else {
             throw ArchiveFailure.existingProgress
         }
-        for suffix in [".hatchzip", ".hatchzip-tail", ".tmp"] {
+        for suffix in ArchiveFiles.progressSuffixes {
             let sidecar = URL(fileURLWithPath: archive.path + suffix)
             if ArchiveFiles.exists(sidecar) { try FileManager.default.removeItem(at: sidecar) }
         }

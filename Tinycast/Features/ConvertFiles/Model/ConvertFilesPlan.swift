@@ -6,7 +6,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
 
     struct Item: Sendable, Equatable {
         let sources: [URL]
-        /// Published through `JobOutput`, which numbers the name only then, so it is chosen once.
+        /// `JobOutput` numbers the name at publish; empty when `archives` names the output.
         let stem: String
         let suffix: String
         let tool: String
@@ -34,15 +34,16 @@ struct ConvertFilesPlan: Sendable, Equatable {
             return Self(items: [Item(sources: sources, stem: base + " merged", suffix: ".pdf", tool: "native",
                                      arguments: [format, pages] + sources.map(\.path))])
         }
-        if ["zip", "7z", "tar.gz"].contains(format) {
-            var arguments = ["-c", "-f", out]
-            arguments += format == "tar.gz" ? ["-z", "--format=pax"]
-                : ["--format=" + (format == "7z" ? "7zip" : "zip")]
+        if ["zip", "7z"].contains(format) {
+            return Self(items: [Item(sources: sources, stem: "", suffix: "", tool: "archives", arguments: [format])])
+        }
+        if format == "tar.gz" {
+            var arguments = ["-c", "-f", out, "-z", "--format=pax"]
             for source in sources {
                 arguments += ["-C", source.deletingLastPathComponent().path, "./" + source.lastPathComponent]
             }
             let base = sources[0].deletingPathExtension().lastPathComponent
-            return Self(items: [Item(sources: sources, stem: base, suffix: "." + format, tool: "tar", arguments: arguments)])
+            return Self(items: [Item(sources: sources, stem: base, suffix: ".tar.gz", tool: "tar", arguments: arguments)])
         }
         let images = Set(("jpg jpeg png webp heic heif tiff tif avif bmp ico icns cr2 cr3 nef arw dng raf orf "
             + "psd exr hdr jp2 tga ppm").split(separator: " ").map(String.init))
@@ -61,10 +62,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
             let ext = source.pathExtension.lowercased()
             var stem = source.deletingPathExtension().lastPathComponent
             var suffix = "." + format
-            if format == "extract" {
-                stem += " extracted"
-                suffix = ""
-            } else if format == "pdf-split" {
+            if format == "pdf-split" {
                 stem += " pages"
                 suffix = ""
             } else if format == "pdf-range" {
@@ -73,10 +71,10 @@ struct ConvertFilesPlan: Sendable, Equatable {
             }
             var tool: String
             var arguments: [String]
-            if format == "extract", ["zip", "7z", "rar", "tar", "gz", "bz2", "xz", "tgz", "iso", "cab"].contains(ext) {
-                tool = "tar"
-                arguments = ["-x", "--keep-old-files", "--no-same-owner", "--no-same-permissions",
-                             "-f", source.path, "-C", out]
+            if format == "extract" {
+                (stem, suffix) = ("", "")
+                tool = "archives"
+                arguments = [format]
             } else if ext == "pdf", ["pdf-split", "pdf-range", "txt"].contains(format) {
                 tool = "native"
                 arguments = [format == "txt" ? "pdf-text" : format, pages, source.path]

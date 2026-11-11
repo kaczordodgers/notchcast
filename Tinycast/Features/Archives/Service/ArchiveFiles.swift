@@ -37,6 +37,31 @@ nonisolated enum ArchiveFiles {
         return data
     }
 
+    /// Hidden owner-only staging beside the archive, carrying its quarantine.
+    static func stage(beside archive: URL) throws -> (staging: URL, quarantine: Data?) {
+        let warning = try quarantine(archive)
+        let staging = archive.deletingLastPathComponent().appending(path: ".notchcast-extract-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false,
+                                                attributes: [.posixPermissions: 0o700])
+        do { try applyQuarantine(warning, to: staging) } catch {
+            try removeStaging(staging)
+            throw error
+        }
+        return (staging, warning)
+    }
+
+    /// A regular file with no unfinished extraction beside it; returns its attributes.
+    static func fresh(_ archive: URL) throws -> stat {
+        for suffix in progressSuffixes where exists(URL(fileURLWithPath: archive.path + suffix)) {
+            throw ArchiveFailure.existingProgress
+        }
+        let info = try attributes(archive)
+        guard info.st_mode & S_IFMT == S_IFREG else { throw ArchiveFailure.unsafePath(archive.lastPathComponent) }
+        return info
+    }
+
+    static let progressSuffixes = [".hatchzip", ".hatchzip-tail", ".tmp"]
+
     static func items(_ root: URL) throws -> [URL] {
         var result: [URL] = []
         var folders = [root]
