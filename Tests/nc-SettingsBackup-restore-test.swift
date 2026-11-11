@@ -70,6 +70,7 @@ enum ScreenshotModule {
 }
 enum SpotifyConnectModule { static let deviceNameKey = "spotify.deviceName" }
 enum AgentBridgeModule { static let grantsKey = "agentActionGrants" }
+enum ArchiveRecovery { static let key = "archiveRecoveryParents" }
 @MainActor final class ColorPickerModule {
     static let shared = ColorPickerModule()
     var format = ColorPickerFormat.hex
