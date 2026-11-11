@@ -1,21 +1,6 @@
 import Foundation
 import Observation
 
-/// The one owner of each alert threshold's settings key, allowed range and default.
-nonisolated struct MonitorThreshold: Sendable {
-    let key: String
-    let range: ClosedRange<Int>
-    let fallback: Int
-
-    static let cpu = Self(key: "monitorCPU", range: 10...100, fallback: 90)
-    static let temperature = Self(key: "monitorTemperature", range: 40...110, fallback: 90)
-    static let memory = Self(key: "monitorMemory", range: 0...1, fallback: 1)
-    static let disk = Self(key: "monitorDisk", range: 1...50, fallback: 10)
-    static let battery = Self(key: "monitorBattery", range: 1...50, fallback: 15)
-    static let batteryTemperature = Self(key: "monitorBatteryTemperature", range: 30...60, fallback: 40)
-    static let all = [cpu, temperature, memory, disk, battery, batteryTemperature]
-}
-
 @MainActor
 @Observable
 final class NotchcastPreferences {
@@ -33,12 +18,12 @@ final class NotchcastPreferences {
     var islandHoverDelay: HoverDelay { didSet { defaults.set(islandHoverDelay.rawValue, forKey: "islandHoverDelay") } }
     var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }
     var buildStatsPath: String { didSet { defaults.set(buildStatsPath, forKey: "buildStatsPath") } }
-    var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: MonitorThreshold.cpu.key) } }
-    var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: MonitorThreshold.temperature.key) } }
-    var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: MonitorThreshold.memory.key) } }
-    var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: MonitorThreshold.disk.key) } }
-    var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: MonitorThreshold.battery.key) } }
-    var monitorBatteryTemperature: Int { didSet { defaults.set(monitorBatteryTemperature, forKey: MonitorThreshold.batteryTemperature.key) } }
+    var monitorCPU: Int { didSet { defaults.set(monitorCPU, forKey: "monitorCPU") } }
+    var monitorTemperature: Int { didSet { defaults.set(monitorTemperature, forKey: "monitorTemperature") } }
+    var monitorMemory: Int { didSet { defaults.set(monitorMemory, forKey: "monitorMemory") } }
+    var monitorDisk: Int { didSet { defaults.set(monitorDisk, forKey: "monitorDisk") } }
+    var monitorBattery: Int { didSet { defaults.set(monitorBattery, forKey: "monitorBattery") } }
+    var monitorBatteryTemperature: Int { didSet { defaults.set(monitorBatteryTemperature, forKey: "monitorBatteryTemperature") } }
     var batteryChargePercent: Int { get { chargePercent } set { chargePercent = Self.chargeLimits.last(where: { $0 <= newValue }) ?? 60; defaults.set(chargePercent, forKey: "batteryChargePercent") } }
     var keepAwakeMinutes: Int { get { awakeDuration } set { awakeDuration = Self.allowed(newValue, Self.awakeDurations, 60); defaults.set(awakeDuration, forKey: "keepAwakeMinutes") } }
     @ObservationIgnored private var versions: [NotchcastFeature: Int] = [:]
@@ -64,12 +49,12 @@ final class NotchcastPreferences {
         aiUsageCachePath = defaults.string(forKey: "aiUsageCachePath") ?? ""
         buildStatsPath = defaults.string(forKey: "buildStatsPath") ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: "greenMaximizeExcludedApps") ?? ""
-        monitorCPU = Self.threshold(defaults, .cpu)
-        monitorTemperature = Self.threshold(defaults, .temperature)
-        monitorMemory = Self.threshold(defaults, .memory)
-        monitorDisk = Self.threshold(defaults, .disk)
-        monitorBattery = Self.threshold(defaults, .battery)
-        monitorBatteryTemperature = Self.threshold(defaults, .batteryTemperature)
+        monitorCPU = Self.threshold(defaults, "monitorCPU", 90, 10...100)
+        monitorTemperature = Self.threshold(defaults, "monitorTemperature", 90, 40...110)
+        monitorMemory = Self.threshold(defaults, "monitorMemory", 1, 0...1)
+        monitorDisk = Self.threshold(defaults, "monitorDisk", 10, 1...50)
+        monitorBattery = Self.threshold(defaults, "monitorBattery", 15, 1...50)
+        monitorBatteryTemperature = Self.threshold(defaults, "monitorBatteryTemperature", 40, 30...60)
         fanMode = defaults.string(forKey: "fanMode") ?? "auto"
         chargePercent = Self.chargeLimits.last(where: { $0 <= (defaults.object(forKey: "batteryChargePercent") as? Int ?? 80) }) ?? 60
         awakeDuration = Self.allowed(defaults.integer(forKey: "keepAwakeMinutes"), Self.awakeDurations, 60)
@@ -113,9 +98,9 @@ extension NotchcastPreferences {
         }
     }
 
-    private static func threshold(_ defaults: UserDefaults, _ limit: MonitorThreshold) -> Int {
-        let value = defaults.object(forKey: limit.key) as? Int ?? limit.fallback
-        return min(limit.range.upperBound, max(limit.range.lowerBound, value))
+    private static func threshold(_ defaults: UserDefaults, _ key: String, _ fallback: Int, _ range: ClosedRange<Int>) -> Int {
+        let value = defaults.object(forKey: key) as? Int ?? fallback
+        return min(range.upperBound, max(range.lowerBound, value))
     }
 
     private static func allowed(_ value: Int, _ choices: [Int], _ fallback: Int) -> Int {

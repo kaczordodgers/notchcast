@@ -19,10 +19,6 @@ import Foundation
 
 enum DialogTone { case danger }
 @MainActor final class AppCore {}
-// Stubs for the hub's MachLink channel: register reads it, and the harness never sets it.
-final class MachLinkChannel {}
-@MainActor enum RemoteFanModule { static var linkChannel: MachLinkChannel? }
-extension MonitorModule { func registerRemoteFanRoute(on channel: MachLinkChannel) {} }
 
 @MainActor
 final class FakeFans {
@@ -325,19 +321,6 @@ struct MonitorStoreTests {
         missing.restore(silently: true)
         await missing.waitUntilIdle()
         precondition(saved == .max && recoveryFailures == 0 && missing.failure != nil)
-        let quitSuite = "monitor-quit-test.\(UUID().uuidString)"
-        defer { UserDefaults(suiteName: quitSuite)?.removePersistentDomain(forName: quitSuite) }
-        let quitFans = FakeFans()
-        let quitModule = MonitorModule(preferences: NotchcastPreferences(suiteName: quitSuite),
-                                       store: MonitorStore(), alertSink: { _ in },
-                                       fans: FanControl(runner: { try await quitFans.run($0) }))
-        quitModule.fans.set(.max)
-        await quitModule.fans.waitUntilIdle()
-        precondition(quitModule.fans.mode == .max)
-        await quitModule.stopForTermination()
-        precondition(quitFans.calls == [.fansMax, .fansAuto] && quitModule.fans.mode == .auto,
-                     "quit must restore automatic fan control")
-        print("PASS: quitting restores automatic fan control before the app exits")
         print("PASS: demand counts, serialized latest request, restore after timeout/failure/cancellation and shutdown")
     }
 }

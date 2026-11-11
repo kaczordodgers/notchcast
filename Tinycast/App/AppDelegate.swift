@@ -37,7 +37,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // A 300 ms-debounced draft still has to reach disk, but it can no longer veto the quit.
             await AppCore.shared.flushNotesForTermination()
             await NotchcastCore.stopForTermination()
-            await MonitorModule.shared.stopForTermination()
             self?.terminationRequestInFlight = false
             sender.reply(toApplicationShouldTerminate: true)
         }

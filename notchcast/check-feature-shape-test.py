@@ -388,7 +388,7 @@ class FeatureShapeTests(unittest.TestCase):
     def test_init_statement_split_over_lines(self):
         source = (self.root / PREFS).read_text()
         self.rejected(PREFS, source.replace(
-            'Self.threshold(defaults, .cpu)', 'Self.threshold(defaults,\n            .cpu)'),
+            'Self.threshold(defaults, "monitorCPU", 90, 10...100)', 'Self.threshold(defaults, "monitorCPU",\n            90, 10...100)'),
             "keep each init statement on one line")
 
     def test_union_duplicated_preferences_class(self):

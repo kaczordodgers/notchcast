@@ -12,9 +12,9 @@ final class MonitorModule: NotchcastModule {
     private var alertDemand: MonitorStore.DemandToken?
 
     init(preferences: NotchcastPreferences, store: MonitorStore = MonitorStore(), alertSink: @escaping (String) -> Void = { _ in },
-         fanFailure: @escaping () -> Void = {}, fans: FanControl? = nil) {
+         fanFailure: @escaping () -> Void = {}) {
         self.store = store
-        self.fans = fans ?? FanControl(confirmed: { preferences.fanMode = $0.rawValue }, failed: fanFailure,
+        fans = FanControl(confirmed: { preferences.fanMode = $0.rawValue }, failed: fanFailure,
                           journalData: preferences.fanJournalData,
                           persist: { preferences.fanJournalData = $0 })
         alerts = MonitorAlerts(sink: alertSink)
@@ -39,13 +39,6 @@ final class MonitorModule: NotchcastModule {
         alertDemand = nil
         store.stop()
         fans.restore(preservingPreference: true)
-    }
-
-    /// Quit must not leave the fans manual: the restore finishes before the app exits.
-    func stopForTermination() async {
-        stop()
-        let fans = self.fans
-        await RootWait.drainForTermination { await fans.waitUntilIdle() }
     }
 
     private func observe(_ identity: UUID) {
