@@ -143,7 +143,7 @@ final class MiddleClickModule: NotchcastModule {
                                       mouseType: type,
                                       mouseCursorPosition: CGEvent(source: nil)?.location ?? .zero,
                                       mouseButton: .center) else { return }
-            event.setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag)
+            event.markSynthetic()
             event.setIntegerValueField(.mouseEventClickState, value: 1)
             event.post(tap: .cghidEventTap)
         }

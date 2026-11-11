@@ -33,6 +33,11 @@ final class DayCalendarService {
     }
 
     func events(in interval: DateInterval) -> [DayEvent] {
+        records(in: interval).map(\.event).sorted { $0.start < $1.start }
+    }
+
+    /// Each visible event with its EventKit record, for a caller that needs alarms, colour or links.
+    func records(in interval: DateInterval) -> [(event: DayEvent, record: EKEvent)] {
         _ = revision
         store.refreshAccess()
         guard store.access == .granted, interval.duration > 0 else { return [] }
@@ -43,39 +48,19 @@ final class DayCalendarService {
         guard !calendars.isEmpty else { return [] }
         let predicate = eventStore.predicateForEvents(
             withStart: interval.start, end: interval.end, calendars: calendars)
-        return eventStore.events(matching: predicate).compactMap { event -> DayEvent? in
+        return eventStore.events(matching: predicate).compactMap { event in
             guard event.status != .canceled, let start = event.startDate, let end = event.endDate,
                 !((event.attendees ?? []).contains { $0.isCurrentUser && $0.participantStatus == .declined })
             else { return nil }
-            return DayEvent(id: event.calendarItemIdentifier + "|\(start.timeIntervalSinceReferenceDate)",
-                            title: event.title ?? String(localized: "(No Title)"), start: start, end: end,
-                            isAllDay: event.isAllDay, calendarID: event.calendar.calendarIdentifier)
-        }.sorted { $0.start < $1.start }
+            return (DayEvent(id: event.calendarItemIdentifier + "|\(start.timeIntervalSinceReferenceDate)",
+                             title: event.title ?? String(localized: "(No Title)"), start: start, end: end,
+                             isAllDay: event.isAllDay, calendarID: event.calendar.calendarIdentifier), event)
+        }
     }
 
     func stop() {
         observer = nil
         rangeStore = nil
-    }
-
-    func reminderEvents(in interval: DateInterval) -> [EventReminderEngine.Event] {
-        let visible = Set(events(in: interval).map(\.id))
-        guard let rangeStore, !visible.isEmpty else { return [] }
-        let predicate = rangeStore.predicateForEvents(
-            withStart: interval.start, end: interval.end, calendars: nil)
-        return rangeStore.events(matching: predicate).compactMap { event in
-            guard let start = event.startDate else { return nil }
-            let id = event.calendarItemIdentifier + "|\(start.timeIntervalSinceReferenceDate)"
-            guard visible.contains(id) else { return nil }
-            return EventReminderEngine.Event(
-                id: id, title: event.title ?? String(localized: "(No Title)"), start: start,
-                isAllDay: event.isAllDay, isDeclined: false,
-                offsets: (event.alarms ?? []).filter { $0.absoluteDate == nil }.map(\.relativeOffset),
-                tint: CGColorSpace(name: CGColorSpace.sRGB).flatMap {
-                    event.calendar?.cgColor?.converted(to: $0, intent: .defaultIntent, options: nil)?.components
-                }.map { $0.prefix(3).map(Double.init) },
-                link: MeetingLink.detect(fields: [event.url?.absoluteString, event.location, event.notes])?.webURL)
-        }
     }
 
     private func observeChanges(_ eventStore: EKEventStore) {
