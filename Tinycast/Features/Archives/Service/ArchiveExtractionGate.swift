@@ -10,6 +10,8 @@ nonisolated enum ArchiveExtractionGate {
 
     private static let state = Mutex(State())
 
+    static var waiting: Int { state.withLock { $0.waiters.count } }
+
     static func enter() async throws {
         let id = UUID()
         try await withTaskCancellationHandler {

@@ -261,6 +261,9 @@ struct ArchivesEngineTest {
         with log.open('a') as file: file.write(args[0] + ' ' + archive.name + '\n')
         if args[0] == 'list':
             if archive.name == 'unsafe-list.zip': sys.exit(1)
+            for _ in range(1500 if archive.name == 'twin.zip' else 0):
+                if (archive.parent / 'twin-release').exists(): break
+                time.sleep(0.02)
             print('       4 B  result/file.txt')
             print('1 entry, 4 B uncompressed, 100 B zip archive')
         elif args[0] == 'check':
@@ -378,13 +381,25 @@ struct ArchivesEngineTest {
         let twinRunner = ArchiveExtractionRunner(locator: Locator(tool: tool))
         async let one = twinRunner.extract(twin)
         async let two = twinRunner.extract(twin)
+        func twinListings() -> Int {
+            let calls = (try? String(contentsOf: root.appending(path: "calls"), encoding: .utf8)) ?? ""
+            return calls.components(separatedBy: "list twin.zip\n").count - 1
+        }
+        while ArchiveExtractionGate.waiting == 0 || twinListings() == 0 {
+            expect(twinListings() < 2, "two extractions ran the tool at once")
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        expect(twinListings() == 1, "the second extraction waits while the first holds the tool")
+        try Data().write(to: root.appending(path: "twin-release"))
         expect(Set(try await [one, two]).count == 2, "the same archive extracted twice publishes twice")
         let twinCalls = try String(contentsOf: root.appending(path: "calls"), encoding: .utf8)
         let turn = "list twin.zip\ncheck twin.zip\nextract twin.zip\n"
         expect(twinCalls.hasSuffix(turn + turn), "concurrent extractions take turns")
         try await ArchiveExtractionGate.enter()
         let waiter = Task { try await ArchiveExtractionGate.enter() }
+        while ArchiveExtractionGate.waiting == 0 { await Task.yield() }
         waiter.cancel()
+        expect(ArchiveExtractionGate.waiting == 0, "a cancelled waiter leaves the line")
         do { try await waiter.value; fatalError("cancelled waiter entered") } catch is CancellationError {}
         ArchiveExtractionGate.leave()
         try await ArchiveExtractionGate.enter()
