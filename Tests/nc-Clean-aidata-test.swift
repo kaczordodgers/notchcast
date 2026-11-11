@@ -88,6 +88,13 @@ struct CleanAIDataTest {
         let items = try await service.scan()
         let recorded = try manager.contentsOfDirectory(atPath: receipts.path)
         precondition(recorded.isEmpty)
+        let link = base.appendingPathComponent("link")
+        try manager.createSymbolicLink(at: link, withDestinationURL: home)
+        precondition(!CleanService.physical(home, inside: home) && CleanService.physical(chat, inside: home))
+        precondition(!CleanService.physical(link.appendingPathComponent(".claude"), inside: base))
+        precondition(!CleanService.physical(home.appendingPathComponent(".claude/.."), inside: home))
+        precondition(!CleanService.physical(sentinel, inside: home))
+        print("PASS: one trash-safety check refuses links, dot segments and paths outside the root")
         precondition(items.filter { $0.selectable }.count == 2)
         let indexed = items.filter { $0.kind == .codex || $0.kind == .openCode }
         precondition(indexed.count == 2 && indexed.allSatisfy { !$0.selectable && $0.refusal == .indexedStore })

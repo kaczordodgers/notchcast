@@ -37,6 +37,16 @@ struct CleanHistoryTests {
             print("PASS restore and audit")
         }
         try fixture { home, trash, _, restore in
+            guard home.path.hasPrefix("/private/var/") else { return }
+            let source = trash.appendingPathComponent("alias")
+            let target = home.appendingPathComponent("alias")
+            try Data("alias".utf8).write(to: source)
+            let spelled = { (url: URL) in String(url.path.dropFirst("/private".count)) }
+            try restore.restore(record(spelled(target), spelled(source)))
+            try check(Data(contentsOf: target) == Data("alias".utf8))
+            print("PASS restore takes the /var spelling a standardized URL gives through the shared safety rule")
+        }
+        try fixture { home, trash, _, restore in
             let source = trash.appendingPathComponent("item")
             let target = home.appendingPathComponent("item")
             try Data("trash".utf8).write(to: source)
@@ -76,13 +86,14 @@ struct CleanHistoryTests {
             try Data("malformed\n".utf8).write(to: log.logPath)
             try log.append(record(target.path, source.path))
             try check(log.read().count == 1)
+            try check(Data(contentsOf: log.logPath).starts(with: Data("malformed\n".utf8)))
             let bounded = CleanHistoryStore(logPath: log.logPath, maximumBytes: 600)
             for index in 0..<20 {
                 try bounded.append(record(target.path + String(index), source.path))
             }
             try check(Data(contentsOf: log.logPath).count <= 600)
             try check(bounded.read().first?.originalPath == target.path + "19")
-            print("PASS missing paths, malformed line, bounded log and newest first")
+            print("PASS missing paths, malformed line kept on disk, bounded log and newest first")
         }
     }
 
