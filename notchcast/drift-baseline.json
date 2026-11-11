@@ -90,12 +90,7 @@
     "com.apple.finder": 5,
     "com.apple.quarantine": 3
   },
-  "core-lookups": {
-    "Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule+Command.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/CopyPathModule+Command.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/ShortenLinkArgumentsAccessory.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule+Commands.swift": 0
-  },
+  "core-lookups": {},
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,
     "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
