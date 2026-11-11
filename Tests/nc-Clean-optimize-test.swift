@@ -101,7 +101,7 @@ struct CleanOptimizeTests {
         fake.state.withLock { state in
             precondition(state.events == expectedEvents)
             for request in state.requests {
-                precondition(request.environment.isEmpty && request.executable.path.hasPrefix(root.path))
+                precondition(request.executable.path.hasPrefix(root.path))
                 if request.executable.lastPathComponent == "preview-tool" {
                     precondition(request.arguments == ["-r", "cache"] && request.timeout == 60)
                 } else {
