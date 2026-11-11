@@ -7,10 +7,12 @@ struct AgentMCPIndexBackend: AgentMCPBackend {
     func actions() async throws -> [AgentMCPAction] {
         try await catalog("actions").compactMap { fields in
             guard case .string(let id) = fields["id"], case .string(let title) = fields["title"],
-                  case .string(let danger) = fields["danger"], let schema = fields["parameters"] else {
+                  case .string(let text) = fields["danger"], let danger = AgentAction.Danger(rawValue: text),
+                  let schema = fields["parameters"] else {
                 return nil
             }
-            return try AgentMCPAction(id: id, title: title, inputSchema: JSONEncoder().encode(schema), danger: danger)
+            return try AgentMCPAction(id: id, title: title, inputSchema: JSONEncoder().encode(schema),
+                                      danger: danger.rawValue, isDestructive: danger != .harmless)
         }
     }
 

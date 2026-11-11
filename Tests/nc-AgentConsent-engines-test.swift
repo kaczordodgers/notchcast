@@ -16,7 +16,7 @@ struct AgentConsentTests {
             AgentConsentPolicy.decide(agentID: agent, actionID: action, danger: danger,
                                       grants: store.grants, now: date)
         }
-        assert(decision("a", "read", .safe) == .allow)
+        assert(decision("a", "read", .harmless) == .allow)
         assert(decision("a", "write", .consent) == .ask)
         try store.allow(agentID: "a", actionID: "write", danger: .consent,
                         expiresAt: now.addingTimeInterval(10), now: now)

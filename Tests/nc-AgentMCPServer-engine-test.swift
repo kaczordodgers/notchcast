@@ -10,7 +10,7 @@ final class FakeBackend: AgentMCPBackend {
     func actions() async throws -> [AgentMCPAction] {
         ["agents.list", "agents.send", "agents.wait", "agents.interrupt", "agents.approve",
          "agents.remember", "data.delete", "credentials.change"].map {
-            .init(id: $0, title: $0, inputSchema: Data(#"{"type":"object"}"#.utf8), danger: "consent")
+            .init(id: $0, title: $0, inputSchema: Data(#"{"type":"object"}"#.utf8), danger: "consent", isDestructive: true)
         }
     }
     func call(_ id: String, arguments: Data) async throws -> Data {

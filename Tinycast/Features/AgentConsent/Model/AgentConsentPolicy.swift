@@ -2,7 +2,7 @@ import Foundation
 
 enum AgentConsentPolicy {
     enum Danger: String, Codable, Sendable {
-        case safe, consent, dangerous
+        case harmless, consent, dangerous
     }
 
     enum Decision: Equatable, Sendable {
@@ -26,7 +26,7 @@ enum AgentConsentPolicy {
     ) -> Decision {
         guard !agentID.isEmpty, !actionID.isEmpty else { return .refuse }
         switch danger {
-        case .safe: return .allow
+        case .harmless: return .allow
         case .dangerous: return islandConfirmationAvailable ? .ask : .refuse
         case .consent:
             return grants.contains { $0.covers(agentID: agentID, actionID: actionID, now: now) }

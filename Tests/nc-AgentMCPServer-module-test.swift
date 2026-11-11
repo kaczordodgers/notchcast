@@ -10,7 +10,7 @@ final class ModuleBackend: AgentMCPBackend {
     var calls = 0
     var fails = false
     func actions() async throws -> [AgentMCPAction] {
-        [.init(id: "agents.list", title: "Fixture", inputSchema: Data(#"{"type":"object"}"#.utf8), danger: "harmless")]
+        [.init(id: "agents.list", title: "Fixture", inputSchema: Data(#"{"type":"object"}"#.utf8), danger: "harmless", isDestructive: false)]
     }
     func states() async throws -> [AgentMCPState] { [] }
     func call(_ id: String, arguments: Data) async throws -> Data {

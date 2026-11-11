@@ -81,7 +81,7 @@ final class AgentMCPEngine {
                     result = ["tools": try await backend.actions().map { action in
                         ["name": action.id, "description": "\(action.title) (danger: \(action.danger))",
                          "inputSchema": try JSONSerialization.jsonObject(with: action.inputSchema),
-                         "annotations": ["destructiveHint": action.danger != "harmless",
+                         "annotations": ["destructiveHint": action.isDestructive,
                                          "openWorldHint": true]] as [String: Any]
                     }]
                 case "tools/call":
