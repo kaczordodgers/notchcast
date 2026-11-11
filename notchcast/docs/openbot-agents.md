@@ -15,7 +15,7 @@ The credential reader uses OPENBOT_AUTOMATION_DIR or the OpenBot automation fold
 
 ## Consumer API
 
-NotchcastCore.openBotAgents refreshes on module start and through its gated command, which reports the number of bots with waiting items through the neutral upstream message HUD. setActive(true) enables thirty-second polling for a future visible consumer; setActive(false) returns to one refresh without a timer.
+OpenBotAgentsModule.shared, the registered module, refreshes on module start and through its gated command, which reports the number of bots with waiting items through the neutral upstream message HUD. setActive(true) enables thirty-second polling for a future visible consumer; setActive(false) returns to one refresh without a timer.
 
 OpenBotService exposes agents(), pending(agent:), send(agent:text:) and delivery(agent:id:). Sending returns the 202 receipt; callers follow its delivery identifiers with delivery(agent:id:) until a terminal status. Each send creates a fresh clientMessageId UUID and refuses encoded JSON bodies over 32768 bytes before reading credentials or using transport. Transport errors and HTTP failures have distinct typed states. Message and delivery calls belong to their caller's structured task and cancellation; the module owns refresh work only.
 
