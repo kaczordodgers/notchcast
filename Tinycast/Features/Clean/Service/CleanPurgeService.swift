@@ -18,7 +18,7 @@ struct CleanPurgeService: Sendable {
         var visited = Set<URL>()
         var count = 0
         for root in policy.projectRoots {
-            guard safe(root, manager: manager) else { continue }
+            guard CleanService.physical(root) else { continue }
             var pending = [(root, 0)]
             while let (project, depth) = pending.popLast() {
                 try Task.checkCancellation()
@@ -28,7 +28,7 @@ struct CleanPurgeService: Sendable {
                 guard depth <= policy.maximumDepth else { throw CocoaError(.fileReadTooLarge) }
                 for child in try manager.contentsOfDirectory(at: project, includingPropertiesForKeys: nil) {
                     try Task.checkCancellation()
-                    guard policy.permits(child), safe(child, manager: manager),
+                    guard policy.permits(child), CleanService.physical(child),
                           isDirectory(child, manager: manager) else { continue }
                     if let rule = CleanPurgeRule.allCases.first(where: { $0.folder == child.lastPathComponent }) {
                         guard confirmed(rule, project: project, manager: manager),
@@ -67,7 +67,7 @@ struct CleanPurgeService: Sendable {
                 continue
             }
             do {
-                guard safe(item.path, manager: manager),
+                guard CleanService.physical(item.path),
                       repositoryBoundary(item.project, manager: manager),
                       confirmed(item.rule, project: item.project, manager: manager),
                       try await activity(item.project, item.path) == .idle,
@@ -91,7 +91,7 @@ struct CleanPurgeService: Sendable {
     private func confirmed(_ rule: CleanPurgeRule, project: URL, manager: FileManager) -> Bool {
         func regular(_ name: String) -> Bool {
             let url = project.appendingPathComponent(name)
-            return safe(url, manager: manager)
+            return CleanService.physical(url)
                 && (try? manager.attributesOfItem(atPath: url.path)[.type] as? FileAttributeType) == .typeRegular
         }
         return regular(rule.marker) && rule.lockfiles.contains(where: regular)
@@ -109,18 +109,6 @@ struct CleanPurgeService: Sendable {
         return true
     }
 
-    private func safe(_ url: URL, manager: FileManager) -> Bool {
-        var current = URL(fileURLWithPath: "/")
-        var components = Array(url.pathComponents.dropFirst())
-        if components.first == "var" || components.first == "tmp" { components.insert("private", at: 0) }
-        for component in components {
-            current.appendPathComponent(component)
-            guard let attributes = try? manager.attributesOfItem(atPath: current.path),
-                  attributes[.type] as? FileAttributeType != .typeSymbolicLink else { return false }
-        }
-        return true
-    }
-
     private func isDirectory(_ url: URL, manager: FileManager) -> Bool {
         (try? manager.attributesOfItem(atPath: url.path)[.type] as? FileAttributeType) == .typeDirectory
     }
@@ -133,7 +121,7 @@ struct CleanPurgeService: Sendable {
         while let url = pending.popLast() {
             try Task.checkCancellation()
             guard snapshot.count < policy.maximumEntries, policy.permits(url),
-                  safe(url, manager: manager) else { return nil }
+                  CleanService.physical(url) else { return nil }
             let attributes = try manager.attributesOfItem(atPath: url.path)
             let type = attributes[.type] as? FileAttributeType
             guard type == .typeDirectory || type == .typeRegular,

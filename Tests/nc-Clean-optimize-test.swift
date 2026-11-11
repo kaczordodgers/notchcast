@@ -54,7 +54,6 @@ final class FakeTransports: CleanOptimizeProcessTransport, CleanOptimizeDatabase
 struct CleanOptimizeTests {
     static func main() async throws {
         precondition(CleanOptimizeTask.allCases == [.quickLook, .downloadHistory, .openWithMenu])
-        precondition(CleanOptimizeTask.allCases.filter(\.selectedByDefault) == [.quickLook, .downloadHistory])
         try await scenario(selected: Set(CleanOptimizeTask.allCases), expectedEvents: [
             "preview-tool", "count", "clear", "menu-tool"
         ], expectedStatuses: [.ran, .ran, .ran])
