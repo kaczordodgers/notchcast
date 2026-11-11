@@ -7,7 +7,6 @@
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 
 enum DialogTone {}
@@ -36,23 +35,19 @@ enum DialogTone {}
 }
 @main struct NoticeTests {
     @MainActor static func main() {
-        var refreshes = 0
-        NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
         let disk = LowDiskModule()
         disk.start()
-        precondition(refreshes == 1)
         let space = LowDiskEngine.Space(free: 1_000_000, total: 100_000_000)
         disk.manager.onNotice?(space)
         precondition(disk.latest == space)
         precondition(IslandHUDRouter.messages.last?.hasPrefix("Low disk space:") == true)
         disk.stop()
-        precondition(disk.manager.onNotice == nil && refreshes == 2)
+        precondition(disk.manager.onNotice == nil)
         let registered = SystemNoticesModule.register(AppCore())
         precondition(registered.count == 1 && registered[0].module === SystemNoticesModule.shared)
         precondition(registered[0].requires == [.island, .systemNotices] && registered[0].requiresAny.isEmpty)
         let system = SystemNoticesModule()
         system.start()
-        precondition(refreshes == 3)
         for notice in [SystemNoticeEngine.Notice.wifi(available: false), .wifi(available: true),
                        .tailscale(.connected), .lowBattery(percent: 10, threshold: 10)] {
             system.manager.onNotice?(notice)
@@ -63,7 +58,7 @@ enum DialogTone {}
         precondition(IslandHUDRouter.ids == ["lowDisk", "system.wifi", "system.wifi",
                                                          "system.tailscale", "system.battery"])
         system.stop()
-        precondition(system.manager.onNotice == nil && refreshes == 4)
+        precondition(system.manager.onNotice == nil)
         print("Verified low disk and system notice callbacks reach the island router and detach on stop")
     }
 }

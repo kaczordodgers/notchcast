@@ -49,7 +49,7 @@ enum NotchcastCore {
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         BatteryModule.shared.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in
-            core?.appIndex.refreshNotchcastCommands()
+            NotchcastHost.current.refreshNotchcastCommands()
             core?.hotKeys.syncNotchcastCommands()
         }
         confirmMacUpdate = { [weak core] in
@@ -98,7 +98,8 @@ enum NotchcastCore {
         if !NotchcastPreferences.shared.isOn(.systemMonitor) || !NotchcastPreferences.shared.isOn(.fanControl) {
             MonitorModule.shared.fans.restore(preservingPreference: true, silently: true)
         }
-        let controller = NotchcastModuleController(modules.map(\.gatedOnDependencies), preferences: preferences)
+        let controller = NotchcastModuleController(modules.map(\.gatedOnDependencies), preferences: preferences,
+                                                   modulesChanged: { NotchcastHost.current.refreshNotchcastCommands() })
         self.controller = controller
         controller.run()
         services?.keys.run()

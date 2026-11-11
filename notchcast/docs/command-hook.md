@@ -50,7 +50,7 @@ Execution dismisses the palette, checks availability and runs synchronously.
 Each module page in Notchcast settings lists its feature's commands as `FeatureCommandRow`s,
 which render alias, shortcut and visibility controls.
 Shortcuts use a typed `HotKeyAction.notchcastCommand` and the ordinary binding store.
-Feature availability also gates hotkey execution. A combo registers with Carbon only while its feature switch and that switch's dependencies are on (`NotchcastCommandCatalog.registersHotKey`), so a switched-off feature gives its combos back to the system. The saved binding still reserves its combo and modifier in conflict detection while releasing its Carbon registration and modifier tap. On every availability change, `commandAvailabilityChanged` refreshes the index through `AppIndex.refreshNotchcastCommands()` and re-registers hotkeys through `HotKeyManager.syncNotchcastCommands()`.
+Feature availability also gates hotkey execution. A combo registers with Carbon only while its feature switch and that switch's dependencies are on (`NotchcastCommandCatalog.registersHotKey`), so a switched-off feature gives its combos back to the system. The saved binding still reserves its combo and modifier in conflict detection while releasing its Carbon registration and modifier tap. On every availability change, `commandAvailabilityChanged` refreshes the index through `NotchcastHost.current.refreshNotchcastCommands()` and re-registers hotkeys through `HotKeyManager.syncNotchcastCommands()`.
 
 BatteryModule owns `nc-keep-awake`, which pauses or resumes its assertion without changing
 the Keep Awake switch. FanControl owns `nc-fans-max` and `nc-fans-auto`; these update the

@@ -21,8 +21,8 @@ final class NotchcastServices {
         self.microphone = microphone
         self.marks = marks
         commandFeedback = MusicCommandFeedback(music: music, preferences: preferences)
-        taskCommandAvailability = TodoCommandAvailability(preferences: preferences) { [weak core] in
-            core?.appIndex.refreshNotchcastCommands()
+        taskCommandAvailability = TodoCommandAvailability(preferences: preferences) {
+            NotchcastHost.current.refreshNotchcastCommands()
         }
         settings = SpotifySettingsCoordinator(module: spotify, core: core)
         keys = NotchcastKeyMonitor(music: music, blocker: appleMusic.blocker, microphone: microphone,

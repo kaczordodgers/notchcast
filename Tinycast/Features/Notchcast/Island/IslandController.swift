@@ -44,9 +44,9 @@ final class IslandController: NotchcastModule {
         let pages = IslandPagesCoordinator(core: core, island: self)
         self.pages = pages
         openContent = AnyView(IslandPagesView().environment(self).environment(pages).environment(core.palette))
-        setCommandAvailable = { [weak self, weak core] available in
+        setCommandAvailable = { [weak self] available in
             self?.commandsAvailable = available
-            core?.appIndex.refreshNotchcastCommands()
+            NotchcastHost.current.refreshNotchcastCommands()
         }
         setCommandAvailable(false)
     }
