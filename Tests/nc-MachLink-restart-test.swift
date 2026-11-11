@@ -39,16 +39,7 @@ struct MachLinkRestartTest {
     typealias Objects = (listener: NWListener, browser: NWBrowser)
 
     static func objects(of manager: MachLinkManager) throws -> Objects {
-        var listener: NWListener?
-        var browser: NWBrowser?
-        for child in Mirror(reflecting: manager).children {
-            switch child.label {
-            case "listener": listener = Mirror(reflecting: child.value).children.first?.value as? NWListener
-            case "browser": browser = Mirror(reflecting: child.value).children.first?.value as? NWBrowser
-            default: break
-            }
-        }
-        guard let listener, let browser else { throw CocoaError(.fileNoSuchFile) }
+        guard let listener = manager.listener, let browser = manager.browser else { throw CocoaError(.fileNoSuchFile) }
         return (listener, browser)
     }
 

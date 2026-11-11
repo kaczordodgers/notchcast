@@ -4,13 +4,11 @@
 // notchcast-sources: Tinycast/Features/ClearNotifications/ClearNotificationsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import AppKit
 import Synchronization
 
 enum NotchcastFeature { case clearNotifications }
-@MainActor final class NotchcastPreferences {
-    func isOn(_ feature: NotchcastFeature) -> Bool { true }
-}
 @MainActor final class AppCore {}
 
 @main

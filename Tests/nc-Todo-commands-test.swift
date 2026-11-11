@@ -1,7 +1,6 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift Tinycast/Features/Todo/Service/TodoStore*.swift
 // notchcast-sources: Tinycast/Features/Todo/Commands/*.swift
-// notchcast-kit: core command
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: core host command
 import Foundation
 import Observation
 
