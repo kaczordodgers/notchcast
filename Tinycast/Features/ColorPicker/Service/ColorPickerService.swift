@@ -19,8 +19,7 @@ final class ColorPickerService {
     }
 
     init(
-        defaults: UserDefaults = UserDefaults(suiteName:
-            (Bundle.main.bundleIdentifier ?? "app.notchcast.dev") + ".notchcast")!,
+        defaults: UserDefaults = NotchcastIdentity.current.defaults,
         sample: @escaping (@escaping @MainActor (NSColor?) -> Void) -> Void = { completion in
             NSColorSampler().show { color in
                 Task { @MainActor in completion(color) }
