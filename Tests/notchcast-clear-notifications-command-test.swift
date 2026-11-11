@@ -12,14 +12,9 @@ enum NotchcastFeature { case clearNotifications }
 @MainActor enum Permissions {
     static func isAccessibilityTrusted() -> Bool { true }
 }
-@MainActor enum NotchcastCore {
-    static var clearNotifications = ClearNotificationsModule()
-}
 @MainActor final class AppCore {
-    enum Tone { case neutral, danger }
     static let shared = AppCore()
     var messages: [String] = []
-    func showMessage(_ text: String, tone: Tone) { messages.append(text) }
 }
 
 @main struct CommandTests {
