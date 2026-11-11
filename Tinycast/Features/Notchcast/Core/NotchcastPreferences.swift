@@ -71,7 +71,7 @@ final class NotchcastPreferences {
 
     var engineDefaults: UserDefaults { defaults }
 
-    var archiveHandlersClaimed: Bool { get { defaults.bool(forKey: Self.archiveHandlersClaimedKey) } set { defaults.set(newValue, forKey: Self.archiveHandlersClaimedKey) } }
+    var archiveHandlersClaimed: Bool { get { defaults.bool(forKey: "archiveHandlersClaimed") } set { defaults.set(newValue, forKey: "archiveHandlersClaimed") } }
 
     func set(_ feature: NotchcastFeature, _ enabled: Bool) {
         guard isOn(feature) != enabled else { return }
@@ -102,7 +102,6 @@ extension NotchcastPreferences {
     nonisolated static let monitorBatteryTemperatureKey = "monitorBatteryTemperature"
     nonisolated static let batteryChargePercentKey = "batteryChargePercent"
     nonisolated static let keepAwakeMinutesKey = "keepAwakeMinutes"
-    nonisolated static let archiveHandlersClaimedKey = "archiveHandlersClaimed"
     static let chargeLimits = [60, 70, 80, 90]
     static let awakeDurations = [15, 30, 60, 120, 240]
 
