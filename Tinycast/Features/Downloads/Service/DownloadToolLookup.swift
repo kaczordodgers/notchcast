@@ -21,7 +21,8 @@ struct DownloadToolLookup: Sendable {
         home: URL = FileManager.default.homeDirectoryForCurrentUser,
         environment parent: [String: String] = ProcessInfo.processInfo.environment
     ) {
-        let folders = directories ?? Self.searchDirectories(home: home, path: parent["PATH"] ?? "/usr/bin:/bin")
+        let folders = directories
+            ?? ExecutableLocator.searchDirectories(home: home, path: parent["PATH"] ?? "/usr/bin:/bin")
         self.directories = folders
         var environment = [
             "PATH": folders.map(\.path).joined(separator: ":"),
@@ -35,22 +36,7 @@ struct DownloadToolLookup: Sendable {
         self.environment = environment
     }
 
-    static func searchDirectories(home: URL, path: String) -> [URL] {
-        let paths = ["/opt/homebrew/bin", "/usr/local/bin", home.appending(path: ".local/bin").path]
-            + path.split(separator: ":").map(String.init).filter { $0.hasPrefix("/") }
-        var seen = Set<String>()
-        return paths.filter { seen.insert($0).inserted }.map { URL(filePath: $0, directoryHint: .isDirectory) }
-    }
-
-    func find(_ tool: DownloadTool) -> URL? {
-        guard !tool.name.isEmpty, !tool.name.contains("/"), tool.name != ".", tool.name != ".." else { return nil }
-        return directories.lazy.map { $0.appending(path: tool.name) }
-            .first {
-                var directory = ObjCBool(false)
-                return FileManager.default.fileExists(atPath: $0.path, isDirectory: &directory)
-                    && !directory.boolValue && FileManager.default.isExecutableFile(atPath: $0.path)
-            }
-    }
+    func find(_ tool: DownloadTool) -> URL? { ExecutableLocator.find(tool.name, in: directories) }
 
     @concurrent
     func lookup(_ tool: DownloadTool, timeout: Duration = .seconds(5)) async throws -> Reading {

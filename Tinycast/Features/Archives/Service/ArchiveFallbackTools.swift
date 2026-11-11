@@ -5,14 +5,12 @@ nonisolated struct ArchiveFallbackTools: Sendable {
 
     init(environment: [String: String] = ProcessInfo.processInfo.environment,
          home: URL = FileManager.default.homeDirectoryForCurrentUser) {
-        paths = (environment["PATH"] ?? "").split(separator: ":").map(String.init)
-            + [home.appending(path: ".local/bin").path, "/opt/homebrew/bin", "/usr/local/bin"]
+        paths = ExecutableLocator.searchDirectories(home: home, path: environment["PATH"] ?? "").map(\.path)
     }
 
     func require(_ name: String) throws -> URL {
-        guard let tool = paths.filter({ $0.hasPrefix("/") })
-            .map({ URL(fileURLWithPath: $0).appending(path: name) })
-            .first(where: { FileManager.default.isExecutableFile(atPath: $0.path) }) else {
+        let directories = paths.filter { $0.hasPrefix("/") }.map { URL(fileURLWithPath: $0) }
+        guard let tool = ExecutableLocator.find(name, in: directories) else {
             throw ArchiveFailure.fallbackToolMissing(name == "zstd" ? "brew install zstd" : "brew install unar")
         }
         return tool
