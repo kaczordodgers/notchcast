@@ -304,7 +304,7 @@ struct ArchivesEngineTest {
         try await wait(queue)
         expect(queue.jobs.map(\.state) == [.finished, .finished, .failed, .failed, .failed, .failed], "FIFO outcomes")
         expect(queue.jobs[0].output?.lastPathComponent == "result", "unwrap")
-        expect(queue.jobs[1].output?.lastPathComponent == "result 2", "exclusive numbering")
+        expect(queue.jobs[1].output?.lastPathComponent == "result (2)", "exclusive numbering")
         expect(queue.jobs[2].failure == .insufficientSpace, "space typed")
         expect(queue.jobs[3].failure == .passwordRequired, "password typed")
         expect(queue.jobs[4].failure == .damagedArchive, "damaged typed")
@@ -484,7 +484,7 @@ struct ArchivesEngineTest {
         expect(!ArchiveFiles.exists(output.appending(path: "._hello.txt")), "paired metadata removed")
         expect(ArchiveFiles.exists(archive), "archive kept")
         let again = try await runner.extract(archive)
-        expect(again.lastPathComponent == "Bundle 2", "real exclusive collision")
+        expect(again.lastPathComponent == "Bundle (2)", "real exclusive collision")
         for name in ["one.zip", "real.tar", "real.tgz", "real.7z", "split.zip.001", "readonly.tar"] {
             let result = try await runner.extract(root.appending(path: name))
             expect(ArchiveFiles.exists(result), "real \(name)")
