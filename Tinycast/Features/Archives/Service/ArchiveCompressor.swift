@@ -7,6 +7,7 @@ nonisolated struct ArchiveCompressor: Sendable {
     var run: @Sendable (URL, [String]) async throws -> Int32 = { tool, arguments in
         try await ArchiveProcess.run(tool: tool, arguments: arguments).status
     }
+    var exclusiveRename: @Sendable (String, String) -> Int32 = { renamex_np($0, $1, UInt32(RENAME_EXCL)) }
 
     @concurrent func compress(_ sources: [URL], format: ArchiveCompression) async throws -> URL {
         let files = FileManager.default
@@ -52,7 +53,8 @@ nonisolated struct ArchiveCompressor: Sendable {
         let status = try await run(tool, arguments)
         guard status == 0 else { throw ArchiveFailure.compressionFailed(status) }
         try Task.checkCancellation()
-        return try JobOutput.publish(temporary, in: folder, stem: format.stem(sources: sources), suffix: "." + format.suffix)
+        return try JobOutput.publish(temporary, in: folder, stem: format.stem(sources: sources),
+                                     suffix: "." + format.suffix, exclusiveRename: exclusiveRename)
     }
 
     /// `x.tar.gz` → `x (2).tar.gz`, `App.app` → `App (2).app`; a plain folder such as `v1.2` → `v1.2 (2)`.

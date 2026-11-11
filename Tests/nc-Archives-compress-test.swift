@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/JobOutput.swift
 import Foundation
+import os
 
 @main struct ArchiveCompressionTests {
     static func main() async throws {
@@ -67,6 +68,22 @@ import Foundation
         precondition(besideLink.lastPathComponent == "fixture (2).zip")
         try files.removeItem(at: output)
         try files.removeItem(at: besideLink)
+        let refusals = OSAllocatedUnfairLock(initialState: 0)
+        var portable = writing
+        portable.exclusiveRename = { _, _ in
+            refusals.withLock { $0 += 1 }
+            errno = ENOTSUP
+            return -1
+        }
+        try Data("taken".utf8).write(to: output)
+        let moved = try await portable.compress([source], format: .zip)
+        let kept = try Data(contentsOf: output)
+        let landed = try Data(contentsOf: moved)
+        precondition(moved.lastPathComponent == "fixture (2).zip" && refusals.withLock { $0 } == 2)
+        precondition(kept == Data("taken".utf8) && landed == Data("finished".utf8))
+        try files.removeItem(at: output)
+        try files.removeItem(at: moved)
+        print("PASS: a volume without exclusive rename (ENOTSUP) still publishes, beside the taken name")
         let dotted = root.appending(path: "v1.2")
         try files.createDirectory(at: dotted, withIntermediateDirectories: false)
         defer { try? files.removeItem(at: dotted) }
@@ -127,7 +144,7 @@ import Foundation
             let firstData = try Data(contentsOf: duplicateOut.appending(path: "README.md"))
             let secondData = try Data(contentsOf: duplicateOut.appending(path: "README (2).md"))
             precondition(firstData == Data(first.path.utf8) && secondData == Data(second.path.utf8))
-            print("PASS: \(format.suffix) real duplicate-leaf round trip: README.md and README 2.md both preserved")
+            print("PASS: \(format.suffix) real duplicate-leaf round trip: README.md and README (2).md both preserved")
         }
     }
 }
