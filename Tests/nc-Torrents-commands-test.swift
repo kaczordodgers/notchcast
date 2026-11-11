@@ -1,3 +1,4 @@
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
 // notchcast-kit: platform core command
@@ -17,8 +18,9 @@ import AppKit
     var refreshes = 0
     func refreshNotchcastCommands() { refreshes += 1 }
 }
-@MainActor enum NotchcastCore {
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: URL(filePath: "/unused")))
+enum DialogTone { case danger }
+extension TorrentModule {
+    static let shared = TorrentModule(session: TorrentAria2Session(stateDirectory: URL(filePath: "/unused")))
 }
 @MainActor final class FakeManager: TorrentQueueHost {
     var jobs: [TorrentJob] = []
@@ -41,6 +43,7 @@ import AppKit
         let commands = TorrentCommands.launcherCommands
         preferences.set(.torrents, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
+        NotchcastHost.current.refreshNotchcastCommands = { AppCore.shared.appIndex.refreshNotchcastCommands() }
         let before = AppCore.shared.appIndex.refreshes
         preferences.set(.torrents, false)
         for _ in 0..<100 { await Task.yield() }

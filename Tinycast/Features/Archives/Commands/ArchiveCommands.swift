@@ -26,10 +26,10 @@ enum ArchiveCommands {
         return rejected ? String(localized: "The selected file is not a supported archive.", table: "Notchcast") : nil
     }
 
-    static func cancelAll(in module: ArchiveModule = NotchcastCore.archives) {
+    static func cancelAll(in module: ArchiveModule = .shared) {
         guard enabled else { return }
         guard module.isRunning else {
-            AppCore.shared.showMessage(String(localized: "The archive engine is not running.", table: "Notchcast"), tone: .danger)
+            NotchcastHost.current.showMessage(String(localized: "The archive engine is not running.", table: "Notchcast"), .danger)
             return
         }
         module.queue.stop()
@@ -37,8 +37,8 @@ enum ArchiveCommands {
 
     private static func openPanel() {
         guard enabled else { return }
-        guard NotchcastCore.archives.isRunning else {
-            AppCore.shared.showMessage(String(localized: "The archive engine is not running.", table: "Notchcast"), tone: .danger)
+        guard ArchiveModule.shared.isRunning else {
+            NotchcastHost.current.showMessage(String(localized: "The archive engine is not running.", table: "Notchcast"), .danger)
             return
         }
         NSApp.activate(ignoringOtherApps: true)
@@ -48,8 +48,8 @@ enum ArchiveCommands {
         panel.allowsMultipleSelection = true
         panel.begin { response in
             guard response == .OK, enabled else { return }
-            if let message = submit(panel.urls, to: NotchcastCore.archives) {
-                AppCore.shared.showMessage(message, tone: .danger)
+            if let message = submit(panel.urls, to: .shared) {
+                NotchcastHost.current.showMessage(message, .danger)
             }
         }
     }
@@ -64,7 +64,7 @@ private final class ArchiveCommandAvailability {
     private func observe() {
         withObservationTracking {
             let current = NotchcastPreferences.shared.isEnabled(.archives)
-            if let previous, previous != current { AppCore.shared.appIndex.refreshNotchcastCommands() }
+            if let previous, previous != current { NotchcastHost.current.refreshNotchcastCommands() }
             previous = current
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in self?.observe() }

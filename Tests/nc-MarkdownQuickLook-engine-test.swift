@@ -1,10 +1,14 @@
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Model/*.swift
 // notchcast-sources: Tinycast/Features/MarkdownQuickLook/Service/*.swift
 // notchcast-kit: core
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/MarkdownQuickLook/QuickLookCoordinator+Registration.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdown.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteMarkdownParser.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteInlineScanner.swift
 import Foundation
+
+@MainActor final class AppCore {}
 
 @main
 struct MarkdownQuickLookTests {
@@ -71,6 +75,9 @@ struct MarkdownQuickLookTests {
             fileURL: url, selectedByArrowKeys: true,
             dismissLauncher: { preferences.set(.quickLookSpace, false) })
         precondition(coordinator.request == nil)
+        let entries = QuickLookCoordinator.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.quickLookSpace] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === QuickLookCoordinator.shared)
         print("Space: typed spaces, modifiers, repeats, composition, invalid items and disabled switch pass")
         print("Requests: dismissal ordering, teardown, persisted preference and stale dismissal pass")
 

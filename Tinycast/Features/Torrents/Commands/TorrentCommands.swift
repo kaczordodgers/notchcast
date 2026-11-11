@@ -70,18 +70,18 @@ enum TorrentCommands {
     private static func download(_ urls: [URL]) {
         Task {
             let accepted = await submit(urls,
-                                        isEnabled: { enabled && NotchcastCore.torrents.isRunning },
-                                        open: { NotchcastCore.torrents.open($0) })
+                                        isEnabled: { enabled && TorrentModule.shared.isRunning },
+                                        open: { TorrentModule.shared.open($0) })
             guard enabled, !Task.isCancelled, !accepted else { return }
-            let message = NotchcastCore.torrents.isRunning
+            let message = TorrentModule.shared.isRunning
                 ? String(localized: "No usable torrent link or file was found.", table: "Notchcast")
                 : String(localized: "The torrent engine is not running.", table: "Notchcast")
-            AppCore.shared.showMessage(message, tone: .danger)
+            NotchcastHost.current.showMessage(message, .danger)
         }
     }
 
     private static func cancelAll() {
         guard enabled else { return }
-        NotchcastCore.torrents.cancelAll()
+        TorrentModule.shared.cancelAll()
     }
 }
