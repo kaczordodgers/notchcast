@@ -96,13 +96,13 @@ CLASS_PINS = (
     ("isSystemTweak", "true", "needsIsland", "false"),
     ("group", ".torrents", "needsIsland", "false"),
 )
-# Lines a fork behaviour hangs on, in files no harness compiles: a path, then its needles in this order.
+# Lines a fork behaviour hangs on, in files no harness compiles: a path, then its needles in order.
 HOOKS = (
     ("Tinycast/App/AppCore.swift", "func handleOpenURL(_ url: URL)", "if pendingURLs != nil",
      "if NotchcastCore.archives.open(url) { return }", "if deepLinkCoordinator.handles(url)"),
     ("Tinycast/App/AppCore.swift", "await NotchcastCore.archives.prepareForTermination()"),
     ("Tinycast/App/AppCore.swift", "if settings.extensionsEnabled { extensions.start("),
-    ("Tinycast/App/AppDelegate.swift", "for url in urls", "AppCore.shared.handleOpenURL(url)"),
+    ("Tinycast/App/AppDelegate.swift", "AppCore.shared.handleOpenURL(url)"),
     ("Tinycast/App/MenuBarItem.swift",
      'Button("About \\(appName)") { AppCore.shared.settingsCoordinator.showAbout() }'),
     (COMMAND, '"command:nc-" + slug'),
@@ -142,9 +142,11 @@ HOOKS = (
     ("Tinycast/Features/Settings/SettingsSearchCatalog.swift", "filter { !NotchcastHidden.tabs.contains($0.tab) }"),
     ("Tinycast/Features/Settings/SettingsCoordinator.swift", "showSettings(tab: .about)"),
     ("Tinycast/Features/Settings/SettingsDetailView.swift", "case .about: AboutView()"),
-    ("Tinycast/Windows/About/AboutView.swift", "Released under AGPL-3.0"),
     ("Tinycast/Windows/About/AboutView.swift", "if NotchcastHidden.supportEnabled { support }"),
+    ("Tinycast/Windows/About/AboutView.swift", "Released under AGPL-3.0"),
+    ("Tinycast/App/AppDelegate.swift", "await NotchcastCore.stopForTermination()"),
     ("Tinycast/Features/AppleShortcuts/UI/AppleShortcutCoordinator.swift", "guard settings.appleShortcutsEnabled else"),
+    ("Tinycast/Features/Extensions/Service/ExtensionManager.swift", "guard isEnabled, showsInLauncher else"),
     ("Tinycast/Features/Launcher/Model/CommandCatalog.swift",
      "filter { !NotchcastHidden.commands.contains($0.rawValue) }"),
     ("Tinycast/Features/Launcher/UI/LauncherCoordinator.swift",
@@ -156,7 +158,6 @@ HOOKS = (
     ("Tinycast/Features/Support/UI/SupportCoordinator.swift", "guard NotchcastHidden.supportEnabled else { return }"),
     ("Tinycast/Features/Support/Service/SupportReminderStore.swift",
      "guard NotchcastHidden.supportEnabled else { return }"),
-    ("Tinycast/Features/Extensions/Service/ExtensionManager.swift", "guard isEnabled, showsInLauncher else"),
     ("Tinycast/Features/Extensions/UI/ExtensionCoordinator.swift",
      "func showStoreInstall(_ install: ExtensionDeepLink.StoreInstall) { guard settings.extensionsEnabled else { return }"),
     ("Tinycast/Features/HotKeys/Service/HotKeyManager.swift",

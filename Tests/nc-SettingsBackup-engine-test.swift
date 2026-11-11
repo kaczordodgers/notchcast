@@ -1,6 +1,5 @@
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift Tinycast/Features/SettingsBackup/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-kit: core
 import Foundation
 import Darwin
 

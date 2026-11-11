@@ -1,8 +1,7 @@
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/*.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/CatalogShellCommandRunner.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/CommandQuickAdd.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-kit: core
 import Foundation
 import Synchronization
 

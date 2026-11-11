@@ -1,4 +1,3 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
 // notchcast-sources: -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __info_plist
 // notchcast-sources: -Xlinker Tests/fixtures/settings-backup-info.plist
@@ -7,10 +6,8 @@
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupState.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupCoordinator.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/DocumentEditor/Service/EditorPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/Service/QuitProtectionStore.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupState+Live.swift
@@ -41,17 +38,13 @@
 // notchcast-sources: Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/NowPlaying.swift
 import Foundation
 
-@MainActor protocol NotchcastModule { func start(); func stop() }
 enum AppPaths { static func applicationSupport() -> URL { FileManager.default.temporaryDirectory } }
-enum DialogTone { case neutral, danger }
-@MainActor final class AppIndexStub { func refreshNotchcastCommands() { } }
+enum DialogTone { case neutral, success, danger }
 @MainActor final class AppCore {
     let settingsCoordinator = SettingsStub()
     static let shared = AppCore()
-    let appIndex = AppIndexStub()
     func showNotice(title: String, message: String, symbol: String, tone: DialogTone) async { }
     func confirm(title: String, message: String?, symbol: String?, confirmTitle: String) async -> Bool { false }
-    func showMessage(_ message: String, tone: DialogTone = .neutral) { }
 }
 @MainActor final class SettingsStub {
     enum Tab { case notchcast }
