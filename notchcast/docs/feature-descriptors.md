@@ -8,7 +8,7 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 
 ## Features still on the switches
 
-`dependencies`, `requiredGrants`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `defaultEnabled` and `backedUp` start with the fallback line `if let descriptor { return descriptor.<field> }` and keep arms only for:
+`dependencies`, `requiredGrants`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `defaultEnabled` and `backedUp` start with the fallback line `if let descriptor { return descriptor.<field> }`; `defaultEnabled` keeps one arm, `treadmillWalk: false`, under `default: true`, and the other four keep arms only for:
 
 - Treadmill (`treadmillWalk`, `treadmillHistory`): kept out of this batch;
 - `editorSpellChecking`: its only code is a patched line in upstream `Notes/`; it moves when it has a fork folder.
