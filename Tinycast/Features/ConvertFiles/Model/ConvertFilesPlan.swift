@@ -6,7 +6,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
 
     struct Item: Sendable, Equatable {
         let sources: [URL]
-        /// Published through `JobOutput`, which numbers the name only then; empty when `archives` names the output.
+        /// `JobOutput` numbers the name at publish; empty when `archives` names the output.
         let stem: String
         let suffix: String
         let tool: String

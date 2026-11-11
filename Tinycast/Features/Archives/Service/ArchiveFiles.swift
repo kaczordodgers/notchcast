@@ -37,7 +37,7 @@ nonisolated enum ArchiveFiles {
         return data
     }
 
-    /// Hidden owner-only staging beside the archive, carrying its quarantine; every engine extracts into one.
+    /// Hidden owner-only staging beside the archive, carrying its quarantine.
     static func stage(beside archive: URL) throws -> (staging: URL, quarantine: Data?) {
         let warning = try quarantine(archive)
         let staging = archive.deletingLastPathComponent().appending(path: ".notchcast-extract-\(UUID().uuidString)")

@@ -373,6 +373,23 @@ struct ArchivesEngineTest {
         let restarted = try await ArchiveExtractionRunner(locator: Locator(tool: tool)).extract(staleArchive)
         expect(ArchiveFiles.exists(restarted) && !ArchiveFiles.exists(staleStage), "stale keep job restarts")
         print("PASS: stale keep journal cleaned and archive reopened")
+        let twin = root.appending(path: "twin.zip")
+        try Data("archive".utf8).write(to: twin)
+        let twinRunner = ArchiveExtractionRunner(locator: Locator(tool: tool))
+        async let one = twinRunner.extract(twin)
+        async let two = twinRunner.extract(twin)
+        expect(Set(try await [one, two]).count == 2, "the same archive extracted twice publishes twice")
+        let twinCalls = try String(contentsOf: root.appending(path: "calls"), encoding: .utf8)
+        let turn = "list twin.zip\ncheck twin.zip\nextract twin.zip\n"
+        expect(twinCalls.hasSuffix(turn + turn), "concurrent extractions take turns")
+        try await ArchiveExtractionGate.enter()
+        let waiter = Task { try await ArchiveExtractionGate.enter() }
+        waiter.cancel()
+        do { try await waiter.value; fatalError("cancelled waiter entered") } catch is CancellationError {}
+        ArchiveExtractionGate.leave()
+        try await ArchiveExtractionGate.enter()
+        ArchiveExtractionGate.leave()
+        print("PASS: extractions take turns and a cancelled waiter gives up its place")
     }
 
     @MainActor static func inPlace(_ root: URL, tool: URL) async throws {

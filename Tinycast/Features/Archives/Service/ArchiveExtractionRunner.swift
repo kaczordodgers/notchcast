@@ -17,6 +17,8 @@ nonisolated struct ArchiveExtractionRunner: Sendable {
         progress: @escaping @MainActor @Sendable (Progress) -> Void = { _ in }
     ) async throws -> URL {
         guard ArchiveFormat.accepts(archive), archive.isFileURL else { throw ArchiveFailure.unsupportedFormat }
+        try await ArchiveExtractionGate.enter()
+        defer { ArchiveExtractionGate.leave() }
         let archive = ArchiveFiles.resolvedParent(archive)
         if let output = try await extractFallback(archive, mode: mode, recovery: recovery, progress: progress) { return output }
         var recovery = recovery
