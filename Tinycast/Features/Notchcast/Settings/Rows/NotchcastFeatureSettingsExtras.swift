@@ -17,8 +17,7 @@ extension NotchcastFeature {
         case .dockTweaks: .dockTweaks
         case .cleaningMode: .cleaningMode
         case .cleanAIData: .cleanAIData
-        case .batteryChargeLimit, .batterySailing, .batteryHeatProtection, .batteryCalibration: .battery(self)
-        case .keepAwake, .lidClosedAwake: .battery(self)
+        case _ where NotchcastFeature.batteryModule.contains(self): .battery(self)
         case .microphoneMute: .microphoneMute
         case .inUseMarks: .inUseMarks
         case .spotifyConnect: .spotifyConnect
