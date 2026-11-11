@@ -1,14 +1,5 @@
 import AppKit
 
-extension PaletteWindowController {
-    @objc func ncQuit(_ event: NSEvent) -> NSNumber {
-        guard let panel = event.window as? PalettePanel else { return false }
-        // The panel's one fork hook; Quick Look on Space runs before the quit key.
-        if panel.notchcastPreviewOnSpace(event) { return true }
-        return NSNumber(value: AppCore.shared.notchcastQuitSelectedWindow(event, in: panel))
-    }
-}
-
 extension AppCore {
     func notchcastQuitSelectedWindow(_ event: NSEvent, in panel: PalettePanel) -> Bool {
         guard event.type == .keyDown, panel.paletteState === palette,
