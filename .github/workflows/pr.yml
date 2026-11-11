@@ -23,7 +23,7 @@ jobs:
     outputs:
       runners: ${{ steps.route.outputs.runners }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           sparse-checkout: notchcast
           persist-credentials: false
@@ -31,18 +31,20 @@ jobs:
         uses: ./notchcast/actions/route
         with:
           count: 4
-          vars: ${{ toJSON(vars) }}
+          idle: |
+            ${{ vars.NOTCHCAST_IDLE_MBA }}
+            ${{ vars.NOTCHCAST_IDLE_MBP }}
   checks:
     needs: route
     if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
     runs-on: ${{ fromJSON(needs.route.outputs.runners)[0] }}
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: tools
           persist-credentials: false
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: src
           fetch-depth: 0
@@ -68,11 +70,11 @@ jobs:
           - {shard: 1, slot: 2}
           - {shard: 2, slot: 3}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: tools
           persist-credentials: false
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: src
           fetch-depth: 0
@@ -94,7 +96,7 @@ jobs:
         run: |
           echo "::error::checks: ${{ needs.checks.result }}, harnesses: ${{ needs.harnesses.result }}"
           exit 1
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
       # Only after a green build: Sync's plan skips testing a tree (GENERATED aside) a PR build already proved.

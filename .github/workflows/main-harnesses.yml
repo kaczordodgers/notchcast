@@ -23,7 +23,7 @@ jobs:
       shards: ${{ steps.shards.outputs.shards }}
       runners: ${{ steps.route.outputs.runners }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -48,7 +48,9 @@ jobs:
         uses: ./notchcast/actions/route
         with:
           count: ${{ steps.shards.outputs.count }}
-          vars: ${{ toJSON(vars) }}
+          idle: |
+            ${{ vars.NOTCHCAST_IDLE_MBA }}
+            ${{ vars.NOTCHCAST_IDLE_MBP }}
   harnesses:
     needs: plan
     # An empty selection skips this job and the run still concludes success; an empty matrix would fail it.
@@ -60,11 +62,11 @@ jobs:
       matrix:
         shard: ${{ fromJSON(needs.plan.outputs.shards) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: tools
           persist-credentials: false
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: src
           fetch-depth: 0

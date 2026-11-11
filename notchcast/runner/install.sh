@@ -53,7 +53,7 @@ for i in $(seq 1 "$COUNT"); do
         if [ ! -f "$ARCHIVE" ]; then
             curl -sSfLo "$ARCHIVE" "https://github.com/actions/runner/releases/download/v$VERSION/$(basename "$ARCHIVE")"
         fi
-        echo "$SHA256  $ARCHIVE" | shasum -a 256 -c -
+        echo "$SHA256  $ARCHIVE" | shasum -a 256 -c - || { rm -f "$ARCHIVE"; exit 1; }
         tar -xzf "$ARCHIVE" -C "$dir"
         # The registration token lasts an hour and goes straight to config.sh: never printed, never stored.
         (cd "$dir" && ./config.sh --unattended --url "https://github.com/$FORK_REPO" --name "$name" \

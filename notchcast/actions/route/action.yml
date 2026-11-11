@@ -4,8 +4,8 @@ inputs:
   count:
     description: How many macOS jobs the run starts.
     required: true
-  vars:
-    description: toJSON(vars) of the calling workflow, which holds each Mac's idle count.
+  idle:
+    description: The NOTCHCAST_IDLE_<HOST> variable of each maintainer Mac, one per line, and no other variable.
     required: true
   eligible:
     description: The string false keeps every job hosted.
@@ -21,7 +21,7 @@ runs:
       shell: bash
       env:
         COUNT: ${{ inputs.count }}
-        VARS: ${{ inputs.vars }}
+        IDLE: ${{ inputs.idle }}
         ELIGIBLE: ${{ inputs.eligible }}
         ACTOR: ${{ github.actor }}
         OWNER: ${{ github.repository_owner }}

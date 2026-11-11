@@ -6,9 +6,8 @@ import time
 
 HOSTED = "xcode-27"
 MAC = "notchcast-mac"
-PREFIX = "NOTCHCAST_IDLE_"
-# gate.sh rewrites its variable at least every 180 s, so an older one is a Mac that is asleep or offline.
-FRESH = 300
+# gate.sh rewrites its variable every 60 s, so one that missed two turns is a Mac that is asleep or offline.
+FRESH = 150
 
 
 def takes_macs(env):
@@ -24,13 +23,11 @@ def takes_macs(env):
     )
 
 
-def idle(variables, now):
+def idle(lines, now):
     total = 0
-    for name, value in variables.items():
-        if not name.startswith(PREFIX):
-            continue
+    for line in lines.splitlines():
         try:
-            count, stamp = (int(part) for part in str(value).split())
+            count, stamp = (int(part) for part in line.split())
         except ValueError:
             continue
         if -60 <= now - stamp <= FRESH:
@@ -39,15 +36,12 @@ def idle(variables, now):
 
 
 def route(env, now):
-    count = int(env.get("COUNT") or 0)
-    macs = 0
-    if takes_macs(env):
-        try:
-            variables = json.loads(env.get("VARS") or "{}")
-        except ValueError:
-            variables = {}
-        # shortcut: runs planned within seconds can pick the same Mac and queue behind it; claim a runner if that hurts.
-        macs = min(count, idle(variables, now))
+    try:
+        count = int(env.get("COUNT") or 0)
+    except ValueError:
+        count = 0
+    # shortcut: runs planned within seconds can pick the same Mac and queue behind it; claim a runner if that hurts.
+    macs = min(count, idle(env.get("IDLE") or "", now)) if takes_macs(env) else 0
     return [MAC] * macs + [HOSTED] * (count - macs)
 
 
