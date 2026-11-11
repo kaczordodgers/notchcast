@@ -169,7 +169,7 @@ final class QuitProtectionModule: NotchcastModule {
             for down in [true, false] {
                 guard let event = CGEvent(keyboardEventSource: nil, virtualKey: code, keyDown: down) else { continue }
                 event.flags = .maskCommand
-                event.setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag)
+                event.markSynthetic()
                 event.postToPid(destination.processIdentifier)
             }
         }

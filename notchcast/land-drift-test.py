@@ -13,7 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SPEC = importlib.util.spec_from_file_location('fixtures', ROOT / 'notchcast/check-drift-test.py')
 fixtures = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(fixtures)
-LAND = (ROOT / 'notchcast/land.sh').read_text()
+LAND = (ROOT / 'notchcast/land.sh').read_text() + (ROOT / 'notchcast/merge.sh').read_text()
 GATES = (ROOT / 'notchcast/drift-gates.sh').read_text()
 BASELINE = next(line.strip() for line in GATES.splitlines() if '--compare-base "$onto"' in line)
 
@@ -169,7 +169,7 @@ class Landing(unittest.TestCase):
 
     def test_sourced_helper_change_needs_signoff(self):
         self.commit('Base')
-        for helper in ('hold.sh', 'drift-gates.sh'):
+        for helper in ('hold.sh', 'drift-gates.sh', 'merge.sh'):
             with self.subTest(helper=helper):
                 base = fixtures.git(self.root, 'rev-parse', 'HEAD')
                 fixtures.write(self.root, f'notchcast/{helper}', 'refuse() { echo "WARN: $*"; }\n')

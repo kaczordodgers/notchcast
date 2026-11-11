@@ -56,3 +56,8 @@ final class EventTapSubscription {
         hub.remove(id)
     }
 }
+
+extension CGEvent {
+    /// Tags an event a feature posts, so a `skipsSynthetic` tap never catches the feature's own key.
+    func markSynthetic() { setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag) }
+}

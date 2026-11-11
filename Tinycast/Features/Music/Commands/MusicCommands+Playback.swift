@@ -16,26 +16,26 @@ extension MusicCommands {
         NotchcastCommand(slug: slug, name: name, sfSymbol: "hifispeaker", feature: .musicNowPlaying, isEnabled: { enabled }, run: {
             guard enabled else { return }
             let preferences = NotchcastPreferences.shared
-            if on, (try? NotchcastCore.services?.spotify.key.isSaved) != true {
+            if on, (try? SpotifyConnectModule.shared?.key.isSaved) != true {
                 preferences.set(.spotifyConnect, true)
                 AppCore.shared.settingsCoordinator.showSettings(
                     tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
             } else if preferences.isOn(.spotifyConnect) == on {
-                AppCore.shared.showMessage(on
+                NotchcastHost.current.showMessage(on
                     ? String(localized: "Spotify Connect Speaker is already on.", table: "Notchcast")
-                    : String(localized: "Spotify Connect Speaker is already off.", table: "Notchcast"))
+                    : String(localized: "Spotify Connect Speaker is already off.", table: "Notchcast"), .success)
             } else {
                 preferences.set(.spotifyConnect, on)
-                AppCore.shared.showMessage(on
+                NotchcastHost.current.showMessage(on
                     ? String(localized: "Starting…")
-                    : String(localized: "Spotify Connect Speaker is off.", table: "Notchcast"))
+                    : String(localized: "Spotify Connect Speaker is off.", table: "Notchcast"), .success)
             }
         })
     }
 
     static func resumeLastPlayer() {
         guard NotchcastPreferences.shared.isEnabled(.musicLastPlayer),
-              let model = NotchcastCore.services?.music.model else { return }
+              let model = MusicNowPlayingModule.shared?.model else { return }
         guard model.nowPlaying != nil || model.canResume else { report(); return }
         model.send(.play)
     }

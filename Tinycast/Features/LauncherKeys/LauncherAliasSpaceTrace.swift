@@ -1,10 +1,10 @@
 import OSLog
 
-/// Field evidence for a refused alias Space: gates and counts only, never the typed query.
+/// Evidence for a refused alias Space: gates and counts, never the query, built only for debug logs.
 enum LauncherAliasSpaceTrace {
     private static let log = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "AliasSpace")
 
-    static func note(_ message: String) { log.notice("\(message, privacy: .public)") }
+    static func note(_ message: @autoclosure @escaping () -> String) { log.debug("\(message(), privacy: .public)") }
 }
 
 extension LauncherAliasSpace.Decision {

@@ -67,27 +67,27 @@ enum SettingsActionCommands {
     static let showLibrary = NotchcastCommand(
         slug: "settings-showLibrary", name: String(localized: "Show Library", table: "Notchcast"),
         sfSymbol: "folder", feature: .finderTweaks,
-        run: { Task { await NotchcastCore.finderTweaks.showLibrary() } })
+        run: { Task { await TweaksModule.finder.showLibrary() } })
 
     static let restrictGaming = NotchcastCommand(
         slug: "settings-restrictGaming", name: String(localized: "Restrict Gaming", table: "Notchcast"),
         sfSymbol: "gamecontroller", feature: .appleAppsTweaks,
-        run: { Task { await NotchcastCore.appleAppsTweaks.handOffProfile(.gameCenter) } })
+        run: { Task { await TweaksModule.appleApps.handOffProfile(.gameCenter) } })
 
     static let restrictMirroring = NotchcastCommand(
         slug: "settings-restrictMirroring", name: String(localized: "Restrict iPhone Mirroring", table: "Notchcast"),
         sfSymbol: "iphone", feature: .appleAppsTweaks,
-        run: { Task { await NotchcastCore.appleAppsTweaks.handOffProfile(.iPhoneMirroring) } })
+        run: { Task { await TweaksModule.appleApps.handOffProfile(.iPhoneMirroring) } })
 
     static let restrictMusic = NotchcastCommand(
         slug: "settings-restrictMusic", name: String(localized: "Restrict Music Service", table: "Notchcast"),
         sfSymbol: "music.note", feature: .appleAppsTweaks,
-        run: { Task { await NotchcastCore.appleAppsTweaks.handOffProfile(.musicService) } })
+        run: { Task { await TweaksModule.appleApps.handOffProfile(.musicService) } })
 
     static let restrictBooks = NotchcastCommand(
         slug: "settings-restrictBooks", name: String(localized: "Restrict Book Store", table: "Notchcast"),
         sfSymbol: "book", feature: .appleAppsTweaks,
-        run: { Task { await NotchcastCore.appleAppsTweaks.handOffProfile(.bookstore) } })
+        run: { Task { await TweaksModule.appleApps.handOffProfile(.bookstore) } })
 
     static let installCLI = NotchcastCommand(
         slug: "settings-installCLI", name: String(localized: "Install Command Line Tool", table: "Notchcast"),
