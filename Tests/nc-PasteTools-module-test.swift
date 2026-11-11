@@ -13,7 +13,7 @@ enum FinderImageService { static func save(_ png: Data) -> Bool { false } }
 
 @main @MainActor
 struct PasteImageModuleTests {
-    static func main() {
+    static func main() async {
         let board = NSPasteboard(name: .init("nc-paste-image-\(UUID())"))
         defer { board.releaseGlobally() }
         board.clearContents()
@@ -46,8 +46,8 @@ struct PasteImageModuleTests {
         board.setData(Data([0x89]), forType: .png)
         precondition(send() == .pass, "The tap never reads the pasteboard: an image the main actor has not seen passes")
         precondition(send(false) == .pass, "Its release passes")
-        module.clipboardTick()
-        precondition(send() == .swallow, "The next main-actor tick takes the image")
+        try? await Task.sleep(for: .seconds(1))
+        precondition(send() == .swallow, "The module's own half-second tick takes the image")
         precondition(send(false) == .swallow, "Its release stays taken")
         precondition(send(flags: [.maskCommand, .maskShift]) == .pass, "Other chords pass")
         module.stop()

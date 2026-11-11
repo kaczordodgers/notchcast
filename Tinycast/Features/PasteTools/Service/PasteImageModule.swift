@@ -10,7 +10,7 @@ final class PasteImageModule: NotchcastModule {
     private let tap: EventTapSubscription
     private let takes = OSAllocatedUnfairLock(initialState: false)
     private var activation: NotificationToken?
-    private var ticker: Timer?
+    private var ticker: Task<Void, Never>?
     private var changeCount: Int?
     var onFailure: (() -> Void)?
     private var work: Task<Void, Never>?
@@ -55,7 +55,7 @@ final class PasteImageModule: NotchcastModule {
     }
 
     private func stopTicking() {
-        ticker?.invalidate()
+        ticker?.cancel()
         ticker = nil
         changeCount = nil
         takes.withLock { $0 = false }
@@ -64,12 +64,13 @@ final class PasteImageModule: NotchcastModule {
     private func frontmostChanged() {
         stopTicking()
         guard finderIsFrontmost() else { return }
-        let ticker = Timer(timeInterval: 0.25, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.clipboardTick() }
+        ticker = Task { [weak self] in
+            while true {
+                do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
+                guard !Task.isCancelled, let self else { return }
+                self.clipboardTick()
+            }
         }
-        ticker.tolerance = 0.05
-        RunLoop.main.add(ticker, forMode: .common)
-        self.ticker = ticker
         clipboardTick()
     }
 
