@@ -45,7 +45,6 @@ enum NotchcastCore {
         )
         NSApp.servicesProvider = archiveServices
         ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
-        archives.queue.compressionFinished = { [weak core] job in core?.showMessage(job.failure?.message ?? job.stateTitle, tone: job.failure == nil ? .neutral : .danger) }
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         BatteryModule.shared.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in

@@ -29,10 +29,10 @@ HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
 ARM = "case .colorPicker: .captureAndDictation"
 AI_COMMAND = "Tinycast/Features/Tweaks/TweakProfileCommands.swift"
 SCREEN_TEXT = ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"
-PASTE_ENTRY = ".init(requires: [.pastePlain], module: plainPasteModule)"
-ARCHIVES_HOOK = "        if NotchcastCore.archives.open(url) { return }\n"
+VOICE_ENTRY = ".init(requires: [.voiceAsk], module: voiceAskModule)"
+ARCHIVES_HOOK = "        if ArchiveModule.shared.open(url) { return }\n"
 DEEP_LINK_HOOK = "        if deepLinkCoordinator.handles(url) {"
-ARCHIVE_ENTRIES = "Tinycast/Features/Archives/NotchcastArchiveModules.swift"
+ARCHIVE_ENTRIES = "Tinycast/Features/Archives/ArchiveModule+Registration.swift"
 GLOBE = "Tinycast/Features/DictationTrigger/GlobeDictationDescriptor.swift"
 # A fact the checker finds nowhere must fail, not pass: the error, the file, then the text every copy of which is replaced.
 UNREAD = (
@@ -74,22 +74,22 @@ BREAKS = (
     ("command-listed", "list SystemLevelsCommands.presets[4], in", CATALOG, "        SystemLevelsCommands.presets[4],\n", ""),
     ("command-listed", "SystemLevelsCommands.presets[5] is past the end of its 5 elements", CATALOG,
      "        SystemLevelsCommands.presets[4],\n", "        SystemLevelsCommands.presets[4],\n        SystemLevelsCommands.presets[5],\n"),
-    ("module-entry-requires", "the entry that runs plainPasteModule requires .pastePlain",
-     MODULES, PASTE_ENTRY, ".init(requires: [], module: plainPasteModule)"),
-    ("module-built-once", "build PlainPasteModule once", MODULES, "        self.pastePlain = plainPasteModule\n", ""),
-    ("module-built-once", "build PlainPasteModule once",
-     MODULES, "self.pastePlain = plainPasteModule", "self.pastePlain = PlainPasteModule(clipboard: core.clipboardManager)"),
-    ("module-built-once", "build PlainPasteModule once", MODULES, PASTE_ENTRY, ".init(requires: [.pastePlain], module: chatTools)"),
+    ("module-entry-requires", "the entry that runs voiceAskModule requires .voiceAsk",
+     MODULES, VOICE_ENTRY, ".init(requires: [], module: voiceAskModule)"),
+    ("module-built-once", "build VoiceAskModule once", MODULES, "        self.voiceAsk = voiceAskModule\n", ""),
+    ("module-built-once", "build VoiceAskModule once",
+     MODULES, "self.voiceAsk = voiceAskModule", "self.voiceAsk = VoiceAskModule(defaults: NotchcastIdentity.current.defaults)"),
+    ("module-built-once", "build VoiceAskModule once", MODULES, VOICE_ENTRY, ".init(requires: [.voiceAsk], module: chatTools)"),
     ("module-entry-once", "run cleaning in exactly one entry", MODULES, "            .init(requires: [.cleaningMode], module: cleaning),\n", ""),
     ("module-entry-once", "run appUpdates in exactly one entry",
      MODULES, "            .init(requires: [.appUpdates], module: appUpdates),\n", ""),
     ("module-entry-once", "run machineBackup in exactly one entry", MODULES,
      "            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),\n", ""),
-    ("module-entry-once", "run module in one entry", ARCHIVE_ENTRIES, "module: module)]",
-     "module: module), .init(requires: [.archivesInPlace], module: module)]"),
+    ("module-entry-once", "run shared in one entry", ARCHIVE_ENTRIES, "module: shared)]",
+     "module: shared), .init(requires: [.archivesInPlace], module: shared)]"),
     ("module-entry-requires", "the entry that runs showDesktop requires .showDesktop", MODULES,
      ".init(requires: [.showDesktop], module: showDesktop)", ".init(requires: [.island], module: showDesktop)"),
-    ("source-hooks", "hook missing or out of order: [.init(requires: [.archives], module: module)]",
+    ("source-hooks", "hook missing or out of order: [.init(requires: [.archives], module: shared)]",
      ARCHIVE_ENTRIES, "requires: [.archives]", "requires: []"),
     ("feature-pins", ".globeDictation needsIsland is true; the spec pins false",
      GLOBE, "dependencies: [],", "dependencies: [\n            .island\n        ],"),
@@ -103,8 +103,8 @@ BREAKS = (
      "ScreenTextLineBreaksSettingRow(module: ScreenTextModule.shared)", "EmptyView()"),
     ("backup-anchor-header", "give .notchcastBackupExport a SettingsSectionHeader",
      SHAPE.BACKUPS, "SettingsSectionHeader(.notchcastBackupExport)", "SettingsSectionHeader(.notchcastBackupImport)"),
-    ("source-hooks", "hook missing or out of order: await NotchcastCore.archives.prepareForTermination()",
-     "Tinycast/App/AppCore.swift", "await NotchcastCore.archives.prepareForTermination()", ""),
+    ("source-hooks", "hook missing or out of order: await ArchiveModule.shared.prepareForTermination()",
+     "Tinycast/App/AppCore.swift", "await ArchiveModule.shared.prepareForTermination()", ""),
     ("source-hooks", "hook missing or out of order: BlockedDialogModule.linkChannel = macLink.channel",
      "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "        BlockedDialogModule.linkChannel = macLink.channel\n", ""),
     ("source-hooks", "hook missing or out of order: if deepLinkCoordinator.handles(url)",

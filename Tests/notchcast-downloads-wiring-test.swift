@@ -1,4 +1,4 @@
-// notchcast-kit: core
+// notchcast-kit: core command
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/*Module.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/*Module+Core.swift
@@ -450,18 +450,6 @@ struct NotchcastDownloadsWiringTest {
             try await Task.sleep(for: .milliseconds(10))
         }
     }
-}
-
-enum SettingsTab { case notchcast }
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    var feature: NotchcastFeature?
-    var owner: SettingsTab?
-    var isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
 }
 
 @MainActor

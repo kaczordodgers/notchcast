@@ -1,24 +1,13 @@
+// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
-// notchcast-kit: platform core
+// notchcast-kit: platform core command
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift
 // notchcast-sources: Tinycast/Features/Torrents/Commands/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry: Sendable {
-    let id: String
-    let name: String
-    let url: URL
-    let bundleID: String?
-    enum Kind: Sendable { case command }
-    let kind: Kind
-    let settingsOwner: SettingsTab?
-    let symbolName: String?
-}
 @MainActor final class AppCore {
     static let shared = AppCore()
     enum Tone { case danger }
@@ -29,8 +18,9 @@ struct AppEntry: Sendable {
     var refreshes = 0
     func refreshNotchcastCommands() { refreshes += 1 }
 }
-@MainActor enum NotchcastCore {
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: URL(filePath: "/unused")))
+enum DialogTone { case danger }
+extension TorrentModule {
+    static let shared = TorrentModule(session: TorrentAria2Session(stateDirectory: URL(filePath: "/unused")))
 }
 @MainActor final class FakeManager: TorrentQueueHost {
     var jobs: [TorrentJob] = []
@@ -53,6 +43,7 @@ struct AppEntry: Sendable {
         let commands = TorrentCommands.launcherCommands
         preferences.set(.torrents, true)
         precondition(commands.allSatisfy { $0.isEnabled() })
+        NotchcastHost.current.refreshNotchcastCommands = { AppCore.shared.appIndex.refreshNotchcastCommands() }
         let before = AppCore.shared.appIndex.refreshes
         preferences.set(.torrents, false)
         for _ in 0..<100 { await Task.yield() }

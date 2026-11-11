@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/MiddleClick/Model/*.swift
 // notchcast-sources: Tinycast/Features/MiddleClick/Service/MiddleClickModule.swift
 // notchcast-kit: platform input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 
 @main
@@ -10,17 +11,17 @@ struct MiddleClickWakeTest {
         let hub = EventTapHub()
         let module = MiddleClickModule(hub: hub)
         module.start()
-        expect(MiddleClickTouchSource.starts == 1 && hub.live == 1, "Enable registers the trackpads once")
+        expect(MiddleClickTouchSource.starts == 1 && hub.consumerCount == 1, "Enable registers the trackpads once")
 
         NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
         try await wait { MiddleClickTouchSource.starts == 2 }
         expect(MiddleClickTouchSource.stops >= 1, "Wake stops the input read before sleep")
-        expect(hub.registered == 2 && hub.live == 1, "Wake re-registers with one live hub handler")
+        expect(hub.registered == 2 && hub.consumerCount == 1, "Wake re-registers with one live hub handler")
 
         module.stop()
         NSWorkspace.shared.notificationCenter.post(name: NSWorkspace.didWakeNotification, object: nil)
         try await Task.sleep(for: .milliseconds(50))
-        expect(MiddleClickTouchSource.starts == 2 && hub.live == 0, "Wake after switch-off starts nothing")
+        expect(MiddleClickTouchSource.starts == 2 && hub.consumerCount == 0, "Wake after switch-off starts nothing")
         print("ALL PASSED: middle click re-registers its trackpads on wake")
     }
 
@@ -40,37 +41,10 @@ struct MiddleClickWakeTest {
 
 func AXIsProcessTrusted() -> Bool { true }
 
-enum Paster {
-    static let tinycastEventTag: Int64 = 0x54494E59
-}
-
 @MainActor
 protocol NotchcastModule: AnyObject {
     func start()
     func stop()
-}
-
-@MainActor
-final class EventTapHub {
-    enum Verdict: Sendable {
-        case pass
-        case swallow
-    }
-
-    typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
-
-    private(set) var registered = 0
-    private var handlers: Set<UUID> = []
-    var live: Int { handlers.count }
-
-    func registerSynchronous(mask: CGEventMask, handler: @escaping SynchronousHandler) -> UUID {
-        registered += 1
-        return handlers.insert(UUID()).memberAfterInsert
-    }
-
-    struct Event {}
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { handlers.remove(id) }
 }
 
 @MainActor
