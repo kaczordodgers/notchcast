@@ -5,15 +5,16 @@
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Commands/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule.swift
-// notchcast-kit: core platform command
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
+// notchcast-kit: core platform command
 import AppKit
 
+enum DialogTone { case danger, success }
 @MainActor final class AppCore {
  static let shared = AppCore()
- enum Tone { case danger, success }
  enum Target { case section(Anchor) }
  enum Anchor { case notchcastSpotify }
  let settingsCoordinator = Settings()
@@ -21,23 +22,10 @@ import AppKit
      var opens = 0
      func showSettings(tab: SettingsTab, revealing: Target) { opens += 1 }
  }
- let appIndex = AppIndex()
- var messages: [String] = []
- func showMessage(_ message: String, tone: Tone = .success) { messages.append(message) }
 }
-@MainActor final class AppIndex {
- var refreshes = 0
- func refreshNotchcastCommands() { refreshes += 1 }
-}
-@MainActor enum NotchcastCore {
- static var services: Services?
- struct Services {
- let music: MusicNowPlayingModule
- let microphone: MicrophoneMuteModule
- let spotify: Spotify
- }
- struct Spotify { let key: SoloistKey }
-}
+extension MusicNowPlayingModule { static var shared: MusicNowPlayingModule? }
+extension MicrophoneMuteModule { static var shared: MicrophoneMuteModule? }
+extension SpotifyConnectModule { static var shared: SpotifyConnectModule? }
 @MainActor final class CommandSource: NowPlayingSource {
     var commands: [PlayerCommand] = []
     func watch(_ onChange: @escaping @MainActor () -> Void) {}
@@ -60,7 +48,12 @@ import AppKit
 }
 
 @main @MainActor struct MusicCommandTests {
+ static var shown: [String] = []
+ static var refreshes = 0
+
  static func main() async {
+ NotchcastHost.current.showMessage = { message, _ in shown.append(message) }
+ NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
  do {
      for mode in [RepeatMode.off, .all, .one] {
          let encoded = try SoloistProtocol.encode(.repeat(mode), isPlaying: false)
@@ -154,7 +147,9 @@ import AppKit
  microphone.start()
  var hasKey = false
  let key = SoloistKey(read: { hasKey ? "fixture" : nil }, write: { _ in }, presence: { hasKey })
- NotchcastCore.services = .init(music: music, microphone: microphone, spotify: .init(key: key))
+ MusicNowPlayingModule.shared = music
+ MicrophoneMuteModule.shared = microphone
+ SpotifyConnectModule.shared = SpotifyConnectModule(source: music.soloist, defaults: defaults, key: key)
  let muteCommands = [MicrophoneMuteCommands.muteLauncherCommand, MicrophoneMuteCommands.unmuteLauncherCommand]
  precondition(muteCommands.allSatisfy { $0.isEnabled() })
  muteCommands[0].run()
@@ -172,7 +167,10 @@ import AppKit
      microphone.setMuted(false)
      preferences.set(feature, true)
  }
- defer { music.stop(); microphone.stop(); NotchcastCore.services = nil }
+ defer {
+     music.stop(); microphone.stop()
+     MusicNowPlayingModule.shared = nil; MicrophoneMuteModule.shared = nil; SpotifyConnectModule.shared = nil
+ }
  let commands = MusicCommands.launcherCommands
  precondition(commands.allSatisfy { $0.isEnabled() })
  for command: PlayerCommand in [.togglePlayPause, .next, .previous] { MusicCommands.send(command) }
@@ -195,17 +193,17 @@ import AppKit
  precondition(AppCore.shared.settingsCoordinator.opens == opens + 1, "On without a key opens Settings")
  hasKey = true
  MusicCommands.speakerOnCommand.run()
- precondition(AppCore.shared.messages.last == String(localized: "Spotify Connect Speaker is already on."))
+ precondition(shown.last == String(localized: "Spotify Connect Speaker is already on."))
  MusicCommands.speakerOffCommand.run()
  precondition(!preferences.isOn(.spotifyConnect))
- precondition(AppCore.shared.messages.last == String(localized: "Spotify Connect Speaker is off."))
+ precondition(shown.last == String(localized: "Spotify Connect Speaker is off."))
  precondition(speakerListed(), "Off keeps both speaker commands listed")
  MusicCommands.speakerOffCommand.run()
- precondition(AppCore.shared.messages.last == String(localized: "Spotify Connect Speaker is already off."))
+ precondition(shown.last == String(localized: "Spotify Connect Speaker is already off."))
  MusicCommands.speakerOnCommand.run()
  precondition(preferences.isOn(.spotifyConnect), "On with a key starts the speaker directly")
  precondition(AppCore.shared.settingsCoordinator.opens == opens + 1, "On with a key opens no Settings")
- precondition(AppCore.shared.messages.last == String(localized: "Starting…"))
+ precondition(shown.last == String(localized: "Starting…"))
  preferences.set(.musicLastPlayer, true)
  music.model.lastPlayer.setEnabled(false)
  precondition(!music.model.canResume)
@@ -214,35 +212,35 @@ import AppKit
  music.model.reportCommandFailure()
  precondition(music.model.failure == .playbackFailed("fixture"), "playing track retains command rejection")
  MusicCommands.send(.pause)
- let before = AppCore.shared.appIndex.refreshes
+ let before = refreshes
  preferences.set(.musicNowPlaying, false)
  for _ in 0..<100 { await Task.yield() }
- precondition(AppCore.shared.appIndex.refreshes > before)
+ precondition(refreshes > before)
  precondition(commands.prefix(4).allSatisfy { !$0.isEnabled() })
- let musicRefresh = AppCore.shared.appIndex.refreshes
+ let musicRefresh = refreshes
  preferences.set(.microphoneMute, false)
  for _ in 0..<100 { await Task.yield() }
- precondition(AppCore.shared.appIndex.refreshes > musicRefresh)
+ precondition(refreshes > musicRefresh)
  preferences.set(.musicNowPlaying, true)
  music.model.setSystemSource(nil)
  music.model.lastPlayer.setEnabled(false)
  precondition(!music.model.canResume)
- let messages = AppCore.shared.messages.count
+ let messages = shown.count
  MusicCommands.send(.togglePlayPause)
- precondition(AppCore.shared.messages.count == messages + 1)
+ precondition(shown.count == messages + 1)
  let adapter = SystemNowPlayingSource()
  music.model.setSystemSource(adapter)
  adapter.onCommandFailure = { [weak model = music.model] in model?.reportCommandFailure() }
  for _ in 0..<100 { await Task.yield() }
  precondition(music.model.failure == .unreadable(.system))
- precondition(AppCore.shared.messages.count == messages + 1, "background unreadable never shows a HUD")
+ precondition(shown.count == messages + 1, "background unreadable never shows a HUD")
  adapter.receiveCommand(sent: false)
  for _ in 0..<100 { await Task.yield() }
  precondition(music.model.failure == .playbackFailed(""))
- precondition(AppCore.shared.messages.count == messages + 2, "rejected command shows a HUD")
+ precondition(shown.count == messages + 2, "rejected command shows a HUD")
  MusicCommands.openCurrentPlayer()
- precondition(AppCore.shared.messages.count == messages + 3, "no player to open reports it")
- precondition(AppCore.shared.messages.last == String(localized: "The current player is unavailable.", table: "Notchcast"))
+ precondition(shown.count == messages + 3, "no player to open reports it")
+ precondition(shown.last == String(localized: "The current player is unavailable.", table: "Notchcast"))
  print("PASS: music and microphone commands, feature/island gating, speaker Settings consent, resume and failure HUDs")
  }
 }

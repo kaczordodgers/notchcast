@@ -8,6 +8,7 @@
     ci.py issue open <kind> <title> <cause> [<details.md>] | issue close <kind>
     ci.py design-notice <tree> <old upstream> <new upstream>
     ci.py tested-key [<commit>]             tree of the commit without project, scheme, README: pr.yml names its artifact by it, plan looks main's up
+    ci.py tested-run [<commit>]             URL of the green PR build of that tree, or nothing: land.sh skips its harness pass on it
 
 Our commits are merge-base(main, upstream main)..main. Replaying cherry-picks them in order without the GENERATED
 files, so those never conflict and never travel in our diffs. Two commits are made afresh instead of picked:
@@ -129,16 +130,32 @@ def tested_run(artifacts, fetch_run, fork_repo):
     return None
 
 
+def tested_build(commit, repo):
+    """The green PR run of our repo that built and tested commit's tree (tested_key), else None."""
+    key = tested_key(commit)
+    listing = json.loads(run("gh", "api", f"repos/{repo}/actions/artifacts?name=tested-tree-{key}&per_page=100"))
+    return tested_run(listing["artifacts"], lambda id: json.loads(run("gh", "api", f"repos/{repo}/actions/runs/{id}")), repo)
+
+
+def tested_build_url(commit="HEAD"):
+    """land.sh: print the URL of the green PR build of commit's tree, or nothing. Any error means no build."""
+    try:
+        found = tested_build(commit, config()["FORK_REPO"])
+    except (subprocess.CalledProcessError, ValueError, KeyError, TypeError, AttributeError) as error:
+        print(f"tested-run lookup skipped: {error}", file=sys.stderr)
+        return
+    if found:
+        print(found["html_url"])
+
+
 def reuse_pr_build(main, cfg):
     """A green PR build of main's tree already built and tested it: mark main tested and return that run, else None.
     Any error means no reuse, so main is tested as before."""
     repo = cfg["FORK_REPO"]
     try:
-        key = tested_key(main)
-        listing = json.loads(run("gh", "api", f"repos/{repo}/actions/artifacts?name=tested-tree-{key}&per_page=100"))
-        found = tested_run(listing["artifacts"], lambda id: json.loads(run("gh", "api", f"repos/{repo}/actions/runs/{id}")), repo)
+        found = tested_build(main, repo)
         if found is None:
-            print(f"main: no green PR build of tree {key[:10]}")
+            print(f"main: no green PR build of tree {tested_key(main)[:10]}")
             return None
         run("gh", "api", "-X", "POST", f"repos/{repo}/statuses/{main}", "-f", "state=success", "-f",
             f"context={cfg['TESTED_CONTEXT']}", "-f", "description=Tree built and tested green by a PR build",
@@ -454,4 +471,5 @@ def app_info(tag, out_dir):
 if __name__ == "__main__":
     command, args = sys.argv[1], sys.argv[2:]
     {"plan": plan, "replay": replay, "regenerate": regenerate, "app-info": app_info, "issue": issue,
-     "design-notice": design_notice, "tested-key": lambda *a: print(tested_key(*a))}[command](*args)
+     "design-notice": design_notice, "tested-key": lambda *a: print(tested_key(*a)),
+     "tested-run": tested_build_url}[command](*args)

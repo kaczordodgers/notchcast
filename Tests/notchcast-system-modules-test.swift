@@ -1,4 +1,3 @@
-// notchcast-kit: core root platform
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
@@ -6,6 +5,9 @@
 // notchcast-sources: Tinycast/Features/SystemTools/UI/*.swift
 // notchcast-sources: Tinycast/Features/Tweaks/Model/*.swift Tinycast/Features/Tweaks/Service/*.swift
 // notchcast-sources: Tinycast/Features/Tweaks/TweaksModule.swift
+// notchcast-sources: Tinycast/Features/Tweaks/TweaksModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-kit: core root platform
 import Foundation
 
 @MainActor
@@ -19,6 +21,16 @@ final class AppCore {
 struct SystemModuleTests {
     @MainActor
     static func main() async throws {
+        let registered = TweaksModule.register(AppCore())
+        let owned: [TweaksModule] = [.shared, .typing, .finder, .dock, .appleApps, .iPhoneBackup]
+        precondition(registered.count == 6 && zip(registered, owned).allSatisfy { $0.module === $1 })
+        precondition(registered[0].requires.isEmpty
+            && registered[0].requiresAny == [.aiFeaturesOff, .spotlightOff, .privacyChoices])
+        precondition(registered.dropFirst().map(\.requires)
+            == [[.typingTweaks], [.finderTweaks], [.dockTweaks], [.appleAppsTweaks], [.iPhoneBackupTweaks]])
+        precondition(registered.dropFirst().allSatisfy { $0.requiresAny.isEmpty })
+        print("Registration returns the six tweak modules, each behind its own switches")
+
         let suite = "app.notchcast.tests." + UUID().uuidString
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }

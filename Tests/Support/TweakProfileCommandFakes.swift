@@ -14,12 +14,8 @@ final class AppCore {
 }
 
 @MainActor
-enum NotchcastCore {
-    static let tweaks = FakeTweaks()
-}
-
-@MainActor
-final class FakeTweaks {
+final class TweaksModule {
+    static let shared = TweaksModule()
     var calls = 0
     var kept: Set<String>?
     var privacy: Set<String> = []

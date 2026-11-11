@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift Tinycast/Features/Todo/Service/TodoStore*.swift
 // notchcast-sources: Tinycast/Features/Todo/Commands/*.swift
 // notchcast-kit: core command
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 import Observation
 
@@ -13,14 +14,10 @@ final class RefreshState {
     var value = 0
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    func showMessage(_ message: String) { preconditionFailure("Production feedback used") }
-}
-@MainActor enum NotchcastCore {
-    struct Services { var tasks: Tasks }
-    struct Tasks { var store: TodoStore? }
-    static var services: Services?
+enum DialogTone { case success }
+@MainActor final class TodoModule {
+    static var shared: TodoModule?
+    var store: TodoStore?
 }
 
 @main @MainActor
@@ -32,6 +29,7 @@ struct TodoCommandTests {
     static var store: TodoStore?
 
     static func main() async throws {
+        NotchcastHost.current.showMessage = { _, _ in preconditionFailure("Production feedback used") }
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let opened = try await TodoStore.open(directory: directory)
