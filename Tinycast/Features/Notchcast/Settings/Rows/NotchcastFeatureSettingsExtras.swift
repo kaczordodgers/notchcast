@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// What one feature adds to its generic Settings rows; a feature states its value in its own folder.
+/// What one feature adds to its generic Settings rows.
 @MainActor
 struct NotchcastFeatureSettingsExtras {
     var detail: String?
