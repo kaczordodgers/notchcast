@@ -5,8 +5,9 @@ and stops them. `DayWeatherModule` and `DayMarketsModule` gate their stores behi
 feature switches; `setVisible(_:)` starts polling only while the Day page is shown. Their settings
 share the Day section under Notchcast. Activity slots and island views are wired separately.
 
-- `DayCalendarService(store:)`: inject a `CalendarStore`; the service only reads its access and
-  never requests permission itself. `records(in:)` queries an arbitrary date interval directly
+- `DayCalendarService(store:excludedKey:)`: inject a `CalendarStore` and the defaults key the owner
+  backs up for exclusions; the service only reads the store's access and never requests permission
+  itself. `records(in:)` queries an arbitrary date interval directly
   through EventKit, including recurrence, and returns each visible event with its `EKEvent`. It is
   empty without granted access and skips cancelled, declined and excluded-calendar events. Observe
   `revision` to invalidate queries: it advances on EventKit changes once a query has run, and on
