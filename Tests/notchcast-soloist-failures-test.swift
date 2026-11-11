@@ -91,6 +91,10 @@ struct NotchcastSoloistFailuresTest {
     }
 
     private static func processChecks() async throws {
+        let child = try await SoloistProcess.run(
+            URL(filePath: "/bin/sh"), arguments: ["-c", "printf '%s|%s|%s' \"$PATH\" \"$LC_ALL\" \"${HOME-unset}\""])
+        precondition(child.text == "/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin|C|unset",
+                     "Child environment comes from ExecutableLocator and inherits nothing: \(child.text)")
         let quiet = try await SoloistProcess.run(URL(filePath: "/bin/sh"), arguments: ["-c", "sleep 0.05; printf done"])
         check(quiet.text == "done", "a quiet process lost its output")
         do {

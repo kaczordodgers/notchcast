@@ -12,7 +12,7 @@ enum MusicCommands {
     static func send(_ command: PlayerCommand) {
         guard enabled, let music = MusicNowPlayingModule.shared else { return }
         let canStart = command == .togglePlayPause
-            && (music.model.canResume || (music.soloist.isConnected && music.soloist.authState?.loggedIn == true))
+            && (music.model.canResume || music.soloist.isReady)
         guard music.model.nowPlaying != nil || canStart else { report(); return }
         music.send(command)
     }

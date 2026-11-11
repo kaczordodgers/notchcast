@@ -33,7 +33,7 @@ extension CopyPathModule {
             } catch is CancellationError {
             } catch {
                 guard !Task.isCancelled, self?.isRunning == true else { return }
-                report(String(localized: "Could not copy to clipboard.", table: "Notchcast"))
+                report((error as? CopyPathService.Failure ?? .unreadable).localizedDescription)
             }
         }
     }

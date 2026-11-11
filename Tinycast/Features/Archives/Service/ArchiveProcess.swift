@@ -9,6 +9,8 @@ nonisolated enum ArchiveProcess {
         let outputBytes: Int64
     }
 
+    private static let stopLadder = ProcessRunner.StopLadder.interrupting(kill: .seconds(3))
+
     @concurrent static func run(
         tool: URL, arguments: [String], captureListing: Bool = false, captureOutput: Bool = false,
         outputFile: URL? = nil, maximumOutputBytes: Int64? = nil,
@@ -57,14 +59,13 @@ nonisolated enum ArchiveProcess {
             if Task.isCancelled || failure != nil {
                 if stopped == nil {
                     stopped = .now
-                    kill(-identifier, SIGINT)
+                    kill(-identifier, Self.stopLadder.first)
                 } else if let stopped {
-                    if stopped.duration(to: .now) > .seconds(3) {
-                        kill(-identifier, SIGKILL)
+                    let signal = Self.stopLadder.signal(after: stopped.duration(to: .now))
+                    if signal != Self.stopLadder.first { kill(-identifier, signal) }
+                    if signal == SIGKILL {
                         ended = true
                         if !running { break }
-                    } else if stopped.duration(to: .now) > .seconds(1) {
-                        kill(-identifier, SIGTERM)
                     }
                 }
             }

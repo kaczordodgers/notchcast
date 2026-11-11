@@ -11,7 +11,8 @@ enum SoloistProcess {
         let name = executable.lastPathComponent
         let request = ProcessRunner.Request(
             executable: executable, arguments: arguments,
-            environment: ["PATH": "/usr/bin:/bin", "LC_ALL": "C"], stderr: .merge,
+            environment: ExecutableLocator.environment(running: executable, adding: ["LC_ALL": "C"], inherited: [:]),
+            stderr: .merge,
             timeout: timeout, outputLimit: 1 << 20)
         let output: ProcessRunner.Output
         do { output = try await ProcessRunner.run(request) } catch let failure as ProcessRunner.Failure {

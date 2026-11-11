@@ -22,12 +22,12 @@ drift_fixtures_changed() {
 }
 # Tests cannot prove a gate change safe, so tooling and land.sh changes carry a sign-off into history.
 check_drift_tooling() {
-    local onto=$1 body=$2 tools=$3 fixtures=false
+    local onto=$1 body=$2 tools=$3 fixtures=false tooling
     drift_signoff=
+    tooling=$(cat "$merge_tools/land-tooling.txt") || refuse 'cannot read notchcast/land-tooling.txt'
     if drift_fixtures_changed "$onto"; then
         fixtures=true
-    elif git diff --quiet "$onto" HEAD -- notchcast/land.sh notchcast/merge.sh notchcast/hold.sh notchcast/sync-wait.sh \
-        notchcast/local-build-status.sh notchcast/drift-gates.sh; then
+    elif git diff --quiet "$onto" HEAD -- $tooling; then
         return 0
     fi
     drift_signoff=$(grep -m1 -E '^Drift tooling: [^[:space:]].*' <<< "$body") \

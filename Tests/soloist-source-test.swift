@@ -176,9 +176,11 @@ struct SoloistSourceTest {
         try await wait { source.authState?.loggedIn == false && server.commands.count == 3 && source.queue != nil }
         let loggedOut = try await source.read()
         precondition(loggedOut == nil)
+        precondition(source.isConnected && !source.isReady, "Connected without a login is not ready")
         server.loggedIn = true
         server.sendAuth(server.connections[0])
         try await wait { server.commands.count == 5 }
+        precondition(source.isReady, "Connected and logged in is ready")
         precondition(Array(server.commands.suffix(2)) == ["get_state", "get_queue"], "Pairing refreshes once")
         server.sendAuth(server.connections[0])
         try await Task.sleep(for: .milliseconds(100))
@@ -264,6 +266,7 @@ struct SoloistSourceTest {
         precondition(coverServer.requests.filter { $0 == "/failed" }.count == 1)
         server.connections[0].cancel()
         try await wait { !source.isConnected }
+        precondition(!source.isReady, "A lost connection is not ready")
         let lost = try await source.read()
         precondition(lost == nil && source.authState == nil)
         guard case .connection = source.failure else { preconditionFailure("Expected connection failure") }

@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Archives unpack more formats, such as xz, bz2, zstd and other formats that bsdtar or unar can read, and ZIP files with non-Unicode Polish file names keep their names. [#400](https://github.com/kaczordodgers/notchcast/pull/400)
 - Capture Area copies a selected area of the screen, on any display, to the screenshot destination. [#406](https://github.com/kaczordodgers/notchcast/pull/406)
 - Capture Editor marks up a capture with arrows, text, rectangles, ellipses and blur, with undo and Copy. It opens after Capture Area, or from Edit Capture for the clipboard image or the last capture, on the capture's display. Close keeps the marks for the next Edit Capture. [#408](https://github.com/kaczordodgers/notchcast/pull/408) [#411](https://github.com/kaczordodgers/notchcast/pull/411) [#414](https://github.com/kaczordodgers/notchcast/pull/414) [#418](https://github.com/kaczordodgers/notchcast/pull/418) [#432](https://github.com/kaczordodgers/notchcast/pull/432)
+- X post and article links download as Markdown files, and the island shows download progress and a message for each failed download with its reason. [#468](https://github.com/kaczordodgers/notchcast/pull/468)
+- Find sharp covers for Firefox and Zen: an opt-in Music switch that shows the YouTube thumbnail for a track playing in Firefox-family browsers, which publish no artwork or a tiny one. Off by default, and nothing is read or fetched while it is off. [#489](https://github.com/kaczordodgers/notchcast/pull/489)
 
 ### Changed
 
@@ -20,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Toggle Island opens the island pinned until Escape or the command again, and Hyper+S is its default shortcut when that chord is free. [#480](https://github.com/kaczordodgers/notchcast/pull/480)
 - The launcher stays open while a screenshot is taken and takes the keyboard back afterwards. [#481](https://github.com/kaczordodgers/notchcast/pull/481)
 - Spaces order is set only by the Spaces order switch; the matching Tweaks item is removed so the two no longer fight. [#429](https://github.com/kaczordodgers/notchcast/pull/429)
+- The launcher opened from the island is Tinycast's glass panel again: it follows Light and Dark, keeps its shadow and hangs just below the island instead of turning black and covering the menu bar. [#508](https://github.com/kaczordodgers/notchcast/pull/508)
 
 ### Fixed
 
@@ -31,11 +34,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Updates install the newest Notchcast snapshot instead of a mirrored upstream beta. [#427](https://github.com/kaczordodgers/notchcast/pull/427)
 - Mac Link recovers by itself after its listener or peer discovery fails, without toggling it or relaunching. [#485](https://github.com/kaczordodgers/notchcast/pull/485)
 - Voice Ask keeps working after a key release that Secure Input hid. [#486](https://github.com/kaczordodgers/notchcast/pull/486)
+- Transcript downloads work for real video links, and starting one download no longer cancels another. [#468](https://github.com/kaczordodgers/notchcast/pull/468)
 - Capture Text rejoins words split by a hyphen at a line break when punctuation or quotes, including German and French quotes, follow. [#439](https://github.com/kaczordodgers/notchcast/pull/439) [#445](https://github.com/kaczordodgers/notchcast/pull/445)
 - Scrolling Capture no longer crops or loses rows next to headers, footers and flat margins. [#442](https://github.com/kaczordodgers/notchcast/pull/442) [#447](https://github.com/kaczordodgers/notchcast/pull/447)
 - The system monitor keeps CPU and GPU temperature sensors after a failed lookup and ranks every process, not only the first ones it reaches. [#440](https://github.com/kaczordodgers/notchcast/pull/440) [#441](https://github.com/kaczordodgers/notchcast/pull/441) [#449](https://github.com/kaczordodgers/notchcast/pull/449) [#450](https://github.com/kaczordodgers/notchcast/pull/450)
 - Accessory connection notices no longer show a device as connected after a disconnect that was missed or happened at startup. [#438](https://github.com/kaczordodgers/notchcast/pull/438) [#446](https://github.com/kaczordodgers/notchcast/pull/446)
 - The walking pad starts a new walk and toggles correctly after it did not answer a Stop. [#443](https://github.com/kaczordodgers/notchcast/pull/443) [#448](https://github.com/kaczordodgers/notchcast/pull/448) [#451](https://github.com/kaczordodgers/notchcast/pull/451)
+- An agent confirmation nobody answers closes at its deadline, so later agent requests are shown again. [#475](https://github.com/kaczordodgers/notchcast/pull/475)
+- Clean shows "Needs the Notchcast helper update" when the helper is outdated, Disk counts nested selections once, and cut error output ends with [truncated]. [#524](https://github.com/kaczordodgers/notchcast/pull/524) [#530](https://github.com/kaczordodgers/notchcast/pull/530)
+- "Show library" is back in Settings search. [#512](https://github.com/kaczordodgers/notchcast/pull/512)
+- The task sync failure message no longer promises a retry that does not exist. [#488](https://github.com/kaczordodgers/notchcast/pull/488)
 
 ## [v0.12.8.snapshot.20261105211139] - 2026-11-05
 

@@ -75,9 +75,15 @@ struct MacUpdateRunner: MacUpdateProcessRunning {
         }
         let timedOut = ContinuousClock.now >= deadline
         if !reaped {
-            kill(-pid, SIGTERM)
-            await Task.detached { try? await Task.sleep(for: .milliseconds(250)) }.value
-            kill(-pid, SIGKILL)
+            let ladder = ProcessRunner.StopLadder.terminating(grace: .milliseconds(250))
+            kill(-pid, ladder.first)
+            var waited = Duration.zero
+            for rung in ladder.later {
+                let pause = rung.after - waited
+                await Task.detached { try? await Task.sleep(for: pause) }.value
+                waited = rung.after
+                kill(-pid, rung.signal)
+            }
             while waitpid(pid, &status, 0) == -1 && errno == EINTR {}
         }
         drain()

@@ -82,7 +82,7 @@ final class NotchcastKeyMonitor {
         let replacing = preferences.isEnabled(.musicLastPlayer) && music.model.nowPlaying == nil
             && music.model.canResume
         let soloist = preferences.isEnabled(.spotifyConnect)
-            && music.soloist.isConnected && music.soloist.authState?.loggedIn == true
+            && music.soloist.isReady
         routing.value.withLock { $0 = Routing(mute: mute, media: media, replace: replacing || soloist) }
         if mute || media {
             tap.start(mask: (1 << NSEvent.EventType.systemDefined.rawValue)

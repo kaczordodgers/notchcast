@@ -43,7 +43,7 @@ struct ConvertFilesTests {
             let output = arguments[arguments.firstIndex(of: "-output")! + 1]
             try Data("converted".utf8).write(to: URL(fileURLWithPath: output))
         })
-        let context = DownloadRunContext(destination: temporary)
+        let context = DownloadRunContext(destination: temporary, tools: DownloadToolLookup())
         let result = try await fake.run(job, context: context)
         precondition(result != nil)
         do {

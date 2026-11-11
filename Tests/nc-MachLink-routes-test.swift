@@ -78,13 +78,13 @@ struct MachLinkRoutesTest {
 
         let client = MachLinkChannel()
         do {
-            _ = try await client.request(true, method: "link-health", as: Bool.self)
+            _ = try await client.request(true, method: MachLinkMethod.linkHealth.rawValue, as: Bool.self)
             fatalError("Unpaired channel sent a request")
         } catch MachLinkMessage.Failure.disconnected { print("PASS no pairing, no peer") }
         client.pairing = pairing
         precondition(client.peer == nil)
         do {
-            _ = try await client.request(true, method: "link-health", as: Bool.self)
+            _ = try await client.request(true, method: MachLinkMethod.linkHealth.rawValue, as: Bool.self)
             fatalError("Request sent with no advertised peer")
         } catch MachLinkMessage.Failure.disconnected { print("PASS no advertised peer, no request") }
 
@@ -94,19 +94,25 @@ struct MachLinkRoutesTest {
         print("PASS route registered from the AI Usage folder is served")
 
         let packet = TodoLinkPacket(clock: TodoVectorClock(), envelopes: [], hasMore: false)
-        let synced = try await client.request(packet, method: "todo-sync", as: TodoLinkPacket.self)
+        let synced = try await client.request(packet, method: MachLinkMethod.todoSync.rawValue, as: TodoLinkPacket.self)
         precondition(!synced.envelopes.isEmpty)
         print("PASS todo-sync registered from the Todo folder is served")
 
-        let fans = try await client.request(RemoteFanRequest.max, method: "mbp-fans", as: RemoteFanReport.self)
+        let fans = try await client.request(RemoteFanRequest.max, method: MachLinkMethod.mbpFans.rawValue, as: RemoteFanReport.self)
         precondition(fans.mode == .max && fans.fans.count == 1)
         print("PASS mbp-fans registered from the MachMBPFans folder is served")
+
+        let wireNames = ["ai-usage", "agent-threads", "dialogs", "mbp-fans", "remote-screen-availability",
+                         "link-health", "shelf-item", "todo-sync"]
+        precondition(MachLinkMethod.allCases.map(\.rawValue) == wireNames)
+        precondition(RemoteFanModule.method == MachLinkMethod.mbpFans.rawValue)
+        print("PASS method-name table keeps every wire name")
 
         let stranger = MachLinkChannel()
         stranger.pairing = try .create()
         stranger.endpoint = client.endpoint
         do {
-            _ = try await stranger.request(Set(["fixture"]), method: "ai-usage", timeout: .seconds(1),
+            _ = try await stranger.request(Set(["fixture"]), method: MachLinkMethod.aiUsage.rawValue, timeout: .seconds(1),
                 as: OtherMacUsageSnapshot.self)
             fatalError("Peer from another pairing was served")
         } catch { print("PASS unpaired peer refused") }
@@ -118,12 +124,12 @@ struct MachLinkRoutesTest {
         } catch { print("PASS feature switch still gates its route") }
         tasks.stop()
         do {
-            _ = try await client.request(packet, method: "todo-sync", as: TodoLinkPacket.self)
+            _ = try await client.request(packet, method: MachLinkMethod.todoSync.rawValue, as: TodoLinkPacket.self)
             fatalError("todo-sync served by a stopped coordinator")
         } catch { print("PASS todo-sync refused once its coordinator stops") }
         preferences.set(.fanControl, false)
         do {
-            _ = try await client.request(RemoteFanRequest.max, method: "mbp-fans", as: RemoteFanReport.self)
+            _ = try await client.request(RemoteFanRequest.max, method: MachLinkMethod.mbpFans.rawValue, as: RemoteFanReport.self)
             fatalError("mbp-fans served with fan control off")
         } catch { print("PASS mbp-fans refused with fan control off") }
 

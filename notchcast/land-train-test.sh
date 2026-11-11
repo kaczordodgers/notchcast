@@ -29,7 +29,7 @@ esac
 STUB
 printf '#!/bin/sh\nexit 0\n' > "$scratch/bin/swiftc"
 chmod +x "$scratch/bin/gh" "$scratch/bin/swiftc"
-cp "$root"/notchcast/{land.sh,merge.sh,local-build-status.sh,drift-gates.sh,sync-wait.sh,hold.sh,config.env,fork-point.sh,ci.py,app-proof.py,app-proofs.json} "$seed/notchcast/"
+cp "$root"/notchcast/{land.sh,merge.sh,local-build-status.sh,drift-gates.sh,sync-wait.sh,hold.sh,config.env,fork-point.sh,land-tooling.txt,ci.py,app-proof.py,app-proofs.json} "$seed/notchcast/"
 for name in check-feature-shape.py check-drift.py check-drift-test.py; do
     printf '#!/usr/bin/env python3\n' > "$seed/notchcast/$name"
 done

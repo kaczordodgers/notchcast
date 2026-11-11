@@ -15,7 +15,7 @@ final class AIUsageLinkModule: NotchcastModule {
     init(defaults: UserDefaults = UserDefaults(suiteName:
         NotchcastIdentity.current.suiteName(suffix: ".mach-link"))!) {
         self.defaults = defaults
-        channel.manager.register("link-health") { request in
+        channel.manager.register(MachLinkMethod.linkHealth.rawValue) { request in
             _ = try request.value(as: Bool.self)
             return try MachLinkMessage(id: request.id, method: request.method, value: true)
         }

@@ -6,8 +6,7 @@ nonisolated struct AIUsageProvider: Sendable {
     var clock: @Sendable () -> Date = { Date() }
 
     static func cacheDirectory(path: String, homeDirectory: URL) -> URL {
-        path.isEmpty ? homeDirectory.appending(path: ".t3/caches", directoryHint: .isDirectory)
-            : URL(fileURLWithPath: path)
+        path.isEmpty ? AgentPaths(home: homeDirectory).t3Caches : URL(fileURLWithPath: path)
     }
 
     @concurrent

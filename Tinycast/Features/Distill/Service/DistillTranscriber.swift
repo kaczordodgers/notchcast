@@ -5,14 +5,17 @@ nonisolated struct DistillTranscriber: Sendable {
     typealias Progress = @Sendable (_ completed: Int, _ total: Int) async -> Void
 
     let recognize: Recognize
+    /// How long a chunk waits for the shared recognizer before the transcript fails as busy.
+    var busyLimit: Duration = .seconds(120)
 
     @MainActor
     func recognizeWhenAvailable(_ samples: [Float]) async throws -> String {
+        let deadline = ContinuousClock.now.advanced(by: busyLimit)
         while true {
             try Task.checkCancellation()
             do {
                 return try await recognize(samples)
-            } catch DictationWire.Failure.busy {
+            } catch DictationWire.Failure.busy where ContinuousClock.now < deadline {
                 try await Task.sleep(for: .milliseconds(100))
             }
         }
@@ -89,6 +92,6 @@ nonisolated struct DistillTranscriber: Sendable {
 
     static func arguments(input: URL, output: URL) -> [String] {
         ["-nostdin", "-hide_banner", "-loglevel", "error", "-i", input.path, "-map", "0:a:0", "-vn",
-         "-ac", "1", "-ar", "16000", "-c:a", "pcm_f32le", "-f", "f32le", "-n", output.path]
+         "-ac", "1", "-ar", String(DistillAudioChunks.sampleRate), "-c:a", "pcm_f32le", "-f", "f32le", "-n", output.path]
     }
 }
