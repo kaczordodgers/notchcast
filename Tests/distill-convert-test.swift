@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/Distill/Convert/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
-// notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/ExecutableLocator.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-kit: platform
 import AppKit
 import CoreText

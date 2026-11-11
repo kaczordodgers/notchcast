@@ -39,7 +39,7 @@ final class ChildProcess: Sendable {
     ) {
         self.executable = executable
         self.arguments = arguments
-        self.environment = ExecutableLocator.environment(running: executable, inherited: environment)
+        self.environment = environment
         self.workingDirectory = workingDirectory
     }
 

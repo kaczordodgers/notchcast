@@ -13,9 +13,8 @@ struct MachineBackupRunner: MachineBackupTooling {
         }
         let run = ProcessRunner.Request(
             executable: request.executable, arguments: request.arguments,
-            environment: ExecutableLocator.environment(
-                running: request.executable, adding: ["LANG": "en_US.UTF-8"].merging(request.environment) { $1 },
-                inherited: ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin"]),
+            environment: ["PATH": "/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin", "LANG": "en_US.UTF-8"]
+                .merging(request.environment) { _, value in value },
             timeout: .seconds(300), outputLimit: Self.outputLimit, stopSignal: SIGINT)
         let output: ProcessRunner.Output
         do { output = try await ProcessRunner.run(run) } catch ProcessRunner.Failure.timedOut {

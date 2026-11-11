@@ -87,7 +87,7 @@ struct AppUpdatesTest {
         defer { try? FileManager.default.removeItem(at: intelRoot) }
         try Data("#!/bin/sh\necho \"$0 $* $HOMEBREW_NO_AUTO_UPDATE ${PATH%%:*}\"\n".utf8).write(to: intelBrew)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: intelBrew.path)
-        let intel = try await AppUpdateBrewRunner(locate: { $0 == "brew" ? intelBrew : nil }).outdated()
+        let intel = try await AppUpdateBrewRunner(brew: intelBrew).outdated()
         precondition(String(bytes: intel, encoding: .utf8)
             == "\(intelBrew.path) outdated --cask --json=v2 1 \(intelFolder)\n", "Homebrew outside /opt/homebrew")
         print("PASS: version table; malformed/oversized unknown; failure isolated; HTTP refused; located brew")

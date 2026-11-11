@@ -1,11 +1,11 @@
 import Foundation
 
 struct AppUpdateBrewRunner: Sendable {
+    var brew: URL?
     var arguments = ["outdated", "--cask", "--json=v2"]
-    var locate: @Sendable (String) async -> URL? = { await ExecutableLocator.locate($0) }
 
     @concurrent func outdated() async throws -> Data {
-        guard let brew = await locate("brew") else { throw URLError(.resourceUnavailable) }
+        guard let brew else { throw URLError(.resourceUnavailable) }
         let request = ProcessRunner.Request(
             executable: brew, arguments: arguments,
             environment: ExecutableLocator.environment(

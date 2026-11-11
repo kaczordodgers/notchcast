@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/Downloads/Media/*.swift Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-kit: platform
-// notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/ExecutableLocator.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Features/Distill/Model/*.swift Tinycast/Features/Distill/Service/DistillRunner.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DistillTranscriber.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DownloadRunContext+Distill.swift

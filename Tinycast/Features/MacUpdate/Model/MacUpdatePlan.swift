@@ -17,7 +17,9 @@ nonisolated enum MacUpdatePlan: Sendable {
     static let tools = ["brew", "mas", "npm", "claude", "codex"]
 
     /// `tools` maps each of `Self.tools` the Mac has to its path.
-    static func make(_ step: MacUpdateStep, tools: [String: String], resolve: (String) -> String) -> Self {
+    static func make(
+        _ step: MacUpdateStep, tools: [String: String], exists: (String) -> Bool, resolve: (String) -> String
+    ) -> Self {
         let brew = tools["brew"]
         switch step {
         case .homebrewUpdate, .homebrewUpgrade:
@@ -40,7 +42,8 @@ nonisolated enum MacUpdatePlan: Sendable {
                         path: brew, arguments: ["upgrade", "--cask", "--greedy", String(parts[index + 1])],
                         timeout: .seconds(1800)))
                 } else if real.contains("/node_modules/") {
-                    guard let npm = tools["npm"] else { continue }
+                    let beside = URL(filePath: path).deletingLastPathComponent().appending(path: "npm").path
+                    guard let npm = exists(beside) ? beside : tools["npm"] else { continue }
                     commands.append(MacUpdateCommand(path: npm, arguments: ["install", "-g", package + "@latest"]))
                 } else if name == "claude" {
                     commands.append(MacUpdateCommand(path: path, arguments: ["update"]))

@@ -11,7 +11,7 @@
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadRunContext.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/ExecutableLocator.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
 import Foundation
 import Synchronization

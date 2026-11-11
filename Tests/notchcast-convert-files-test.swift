@@ -3,7 +3,7 @@
 // notchcast-sources: Tinycast/Features/ConvertFiles/Service/ConvertFilesNative.swift
 // notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-kit: platform
-// notchcast-sources: Tinycast/Platform/AppPaths.swift Tinycast/Platform/ExecutableLocator.swift
+// notchcast-sources: Tinycast/Platform/AppPaths.swift
 import Foundation
 import PDFKit
 import ImageIO

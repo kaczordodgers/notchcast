@@ -61,23 +61,26 @@ struct MacUpdateTests {
         let app = root.appendingPathComponent("Updated.app")
         let child = try await MacUpdateRunner().run(.init(path: "/bin/sh", arguments: ["-c", "echo $PATH"]))
         precondition(child.output.hasPrefix("/bin:/opt/homebrew/bin:/usr/local/bin:"), "Child PATH")
-        let npmPlan = MacUpdatePlan.make(.commandLineTools,
-            tools: ["codex": "/fixture/.volta/bin/codex", "npm": "/fixture/.volta/bin/npm"],
-            resolve: { _ in "/fixture/node_modules/codex" })
-        guard case .commands(let npmCommands) = npmPlan else { preconditionFailure("Missing npm plan") }
-        precondition(npmCommands.first?.path == "/fixture/.volta/bin/npm", "A shim runs at its own path")
-        let missingNpm = MacUpdatePlan.make(.commandLineTools,
-            tools: ["claude": "/opt/homebrew/bin/claude"], resolve: { _ in "/fixture/node_modules/claude" })
+        for (beside, expected) in [(false, "/opt/homebrew/bin/npm"), (true, "/fixture/.volta/bin/npm")] {
+            let npmPlan = MacUpdatePlan.make(.commandLineTools,
+                tools: ["codex": "/fixture/.volta/bin/codex", "npm": "/opt/homebrew/bin/npm"],
+                exists: { beside && $0 == "/fixture/.volta/bin/npm" }, resolve: { _ in "/fixture/node_modules/codex" })
+            guard case .commands(let npmCommands) = npmPlan else { preconditionFailure("Missing npm plan") }
+            precondition(npmCommands.map(\.path) == [expected], "npm beside the CLI wins over the located one")
+        }
+        let missingNpm = MacUpdatePlan.make(.commandLineTools, tools: ["claude": "/opt/homebrew/bin/claude"],
+            exists: { _ in false }, resolve: { _ in "/fixture/node_modules/claude" })
         guard case .skipped(let reason) = missingNpm else { preconditionFailure("Missing npm must skip") }
         precondition(!reason.isEmpty)
-        let intel = MacUpdatePlan.make(.homebrewUpgrade, tools: ["brew": "/usr/local/bin/brew"], resolve: { $0 })
+        let intel = MacUpdatePlan.make(.homebrewUpgrade, tools: ["brew": "/usr/local/bin/brew"],
+                                       exists: { _ in false }, resolve: { $0 })
         guard case .commands(let intelCommands) = intel else { preconditionFailure("Intel Homebrew must run") }
         precondition(intelCommands.map(\.path) == ["/usr/local/bin/brew"])
         try FileManager.default.createDirectory(at: app, withIntermediateDirectories: true)
         let lock = root.appendingPathComponent("maintenance.lock")
         func service(_ runner: FakeRunner, missing: Bool = false,
                      locked: @escaping () -> Bool = { false }) -> MacUpdateService {
-            MacUpdateService(runner: runner, home: root.path, appRoot: root.path,
+            MacUpdateService(runner: runner, appRoot: root.path,
                              exists: { _ in true }, resolve: { $0 }, locked: locked,
                              lockTimeout: .milliseconds(60), locate: { missing ? nil : "/fixture/bin/" + $0 })
         }

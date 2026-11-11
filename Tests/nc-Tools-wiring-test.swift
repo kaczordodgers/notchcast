@@ -90,7 +90,7 @@ struct ToolsWiringTests {
         precondition(checks == 2)
 
         let runner = ToolsFakeRunner()
-        let service = MacUpdateService(runner: runner, home: "/fixture", appRoot: "/fixture",
+        let service = MacUpdateService(runner: runner, appRoot: "/fixture",
                                       exists: { _ in true }, resolve: { $0 }, locked: { false },
                                       locate: { "/fixture/" + $0 })
         let mac = MacUpdateModule(service: service)
