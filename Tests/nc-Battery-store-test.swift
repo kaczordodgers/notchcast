@@ -22,6 +22,20 @@ struct BatteryStoreTests {
         precondition(entries[0].requiresAny == [.batteryChargeLimit, .batterySailing, .batteryHeatProtection,
                                                 .batteryCalibration, .keepAwake, .lidClosedAwake])
         print("PASS: registration returns the shared module under any battery switch")
+        let gateSuite = "battery-features-test.\(UUID().uuidString)"
+        let gate = NotchcastPreferences(suiteName: gateSuite)
+        precondition(!gate.holdsBatteryCharging)
+        for feature: NotchcastFeature in [.batterySailing, .batteryHeatProtection, .batteryCalibration] {
+            gate.set(feature, true)
+            precondition(gate.holdsBatteryCharging, "\(feature) holds charging")
+            gate.set(feature, false)
+        }
+        for feature: NotchcastFeature in [.batteryChargeLimit, .keepAwake, .lidClosedAwake] {
+            gate.set(feature, true)
+            precondition(!gate.holdsBatteryCharging, "\(feature) leaves charging alone")
+        }
+        UserDefaults(suiteName: gateSuite)?.removePersistentDomain(forName: gateSuite)
+        print("PASS: only sailing, heat protection and calibration hold charging")
         await followupCases()
         await roundThreeCases()
         await safetyCases()

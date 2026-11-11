@@ -273,8 +273,7 @@ final class BatteryModule: NotchcastModule {
             if on(.batteryCalibration) && !calibrationEnabled { engine.calibration.start() }
             if !on(.batteryCalibration) { engine.calibration.cancel() }
             calibrationEnabled = on(.batteryCalibration)
-            let enabled = !chargingUnsupported && (on(.batterySailing)
-                || on(.batteryHeatProtection) || on(.batteryCalibration))
+            let enabled = !chargingUnsupported && preferences.holdsBatteryCharging
             let policy = ChargePolicy(enabled: enabled,
                                       limit: on(.batterySailing)
                                         ? preferences.batteryChargePercent : 100,
@@ -402,9 +401,7 @@ final class BatteryModule: NotchcastModule {
             if !running { return true }
             switch key {
             case "charge-limit": return !preferences.isOn(.batteryChargeLimit)
-            case "battery-charging":
-                return ![NotchcastFeature.batterySailing, .batteryHeatProtection, .batteryCalibration]
-                    .contains(where: { preferences.isOn($0) })
+            case "battery-charging": return !preferences.holdsBatteryCharging
             case "battery-sleep": return !preferences.isOn(.lidClosedAwake)
             default: return true
             }
@@ -421,9 +418,7 @@ final class BatteryModule: NotchcastModule {
                 let key = verb.rawValue.components(separatedBy: "-").dropLast().joined(separator: "-")
                 guard journal.effects[key] != nil else { continue }
                 try Task.checkCancellation()
-                if running && ((key == "battery-charging" &&
-                    (preferences.isOn(.batterySailing) || preferences.isOn(.batteryHeatProtection)
-                     || preferences.isOn(.batteryCalibration))) ||
+                if running && ((key == "battery-charging" && preferences.holdsBatteryCharging) ||
                     (key == "battery-sleep" && preferences.isOn(.lidClosedAwake))) {
                     continue
                 }
