@@ -199,7 +199,7 @@ import Observation
             let arguments = extraArguments()
             try await session.start(extraArguments: arguments)
             try Task.checkCancellation()
-            sessionUsesIPhone = !NetMergePolicy.interfaceNames(in: arguments).isEmpty
+            sessionUsesIPhone = arguments.contains { $0.hasPrefix("--multiple-interface=") }
             sessionArguments = arguments
             sessionStarted = true
         }

@@ -17,13 +17,6 @@ enum NetMergePolicy {
     }
 
     static let bigDownloadBytes: Int64 = 200_000_000
-    /// The aria2 flag that names a Wi-Fi and iPhone pair; every reader goes through `interfaceNames`.
-    static let interfaceFlag = "--multiple-interface="
-
-    static func interfaceNames(in arguments: [String]) -> [String] {
-        guard let flag = arguments.first(where: { $0.hasPrefix(interfaceFlag) }) else { return [] }
-        return flag.dropFirst(interfaceFlag.count).split(separator: ",").map(String.init)
-    }
 
     static func evaluate(
         interfaces: [Interface], kind: JobKind, sizeBytes: Int64?, enabled: Bool
@@ -40,7 +33,7 @@ enum NetMergePolicy {
               let phone = usable.first(where: { $0.kind == .iPhoneUSB && $0.bsdName != wifi.bsdName })
         else { return unused }
         return Decision(
-            aria2Arguments: [interfaceFlag + "\(wifi.bsdName),\(phone.bsdName)"], usesIPhone: true
+            aria2Arguments: ["--multiple-interface=\(wifi.bsdName),\(phone.bsdName)"], usesIPhone: true
         )
     }
 }
