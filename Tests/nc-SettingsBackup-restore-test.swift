@@ -25,6 +25,12 @@
 // notchcast-sources: Tinycast/Features/Appearance/Model/AppearanceSurfaceStyle.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift
+// notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastBackupState.swift
+// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextBackupState.swift
+// notchcast-sources: Tinycast/Features/LiveTimer/LiveTimersBackupState.swift
+// notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionBackupState.swift
+// notchcast-sources: Tinycast/Features/EventReminder/DayCalendarBackupState.swift
 import Foundation
 
 enum AppPaths { static func applicationSupport() -> URL { FileManager.default.temporaryDirectory } }
@@ -51,23 +57,30 @@ enum SettingsActionCommands {
     var excludedCalendarIDs: Set<String> = []
     func setExcludedCalendars(_ ids: Set<String>) { excludedCalendarIDs = ids }
 }
-@MainActor struct ReminderStub { let calendar = CalendarStub() }
 enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
 @MainActor final class ColorPickerModule {
     static let shared = ColorPickerModule()
     var format = ColorPickerFormat.hex
 }
-@MainActor enum NotchcastCore {
-    static let editor = EditorStub()
-    static let settingsBackupRestore = ForkSettingsBackupCoordinator()
-    static var screenTextRemovesLineBreaks = false
-    static let timers = LiveTimerModule()
-    static let markets = DayMarketsModule()
-    static let weather = DayWeatherModule()
-    static let quitProtection = QuitProtectionStore()
-    static let eventReminder = ReminderStub()
+@MainActor final class ScreenTextModule {
+    static let shared = ScreenTextModule()
+    var removeLineBreaks = false
 }
-@MainActor final class EditorStub {
+extension LiveTimerModule { static let shared = LiveTimerModule() }
+extension DayMarketsModule { static let shared = DayMarketsModule() }
+extension DayWeatherModule { static let shared = DayWeatherModule() }
+extension QuitProtectionStore { static let shared = QuitProtectionStore() }
+extension DictationCleanupModule {
+    static let shared = DictationCleanupModule(
+        store: .live(bundleIdentifier: Bundle.main.bundleIdentifier!)!, install: { }, uninstall: { })
+}
+extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackupCoordinator() }
+@MainActor final class EventReminderModule {
+    static let shared = EventReminderModule()
+    let calendar = CalendarStub()
+}
+@MainActor final class EditorCoordinator {
+    static let shared = EditorCoordinator()
     let editorPreferences = EditorPreferences(defaults: UserDefaults(suiteName: Bundle.main.bundleIdentifier! + ".editor")!)
 }
 @MainActor final class AppearanceThemeColors {
@@ -147,6 +160,7 @@ enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor,
             precondition(restored.vocabulary.first?.misheardForms == ["tiny cast"])
             precondition(NotchcastPreferences.shared.isOn(.dictationCleanup) == enabled)
             precondition(restored.isEnabled && restored.baseURL == cleanup.baseURL)
+            precondition(DictationCleanupModule.shared.settings == restored, "live cleanup module kept a stale copy")
         }
         print("PASS: legacy cleanup archive restores settings and preserves both switch states")
         var changed = complete
@@ -185,7 +199,7 @@ enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor,
         _ = try ForkSettingsBackupState.live.snapshot()
         precondition(appearance.revision == revision)
         try ForkSettingsBackupState.live.apply(changed)
-        let editor = NotchcastCore.editor.editorPreferences
+        let editor = EditorCoordinator.shared.editorPreferences
         precondition(editor.font == .system && editor.theme == .system && !editor.pairsAutomatically)
         precondition(editorDefaults.string(forKey: "font") == "system")
         precondition(editorDefaults.string(forKey: "theme") == "system")
@@ -250,11 +264,11 @@ enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor,
         let preferences = NotchcastPreferences(suiteName: suite)
         let store = QuitProtectionStore(defaults: defaults)
         let state = ForkSettingsBackupState(snapshot: {
-            ForkSettingsBackupRestore.snapshot(preferences).merging(ForkSettingsBackupState.quitValues(store)) { _, new in new }
+            ForkSettingsBackupRestore.snapshot(preferences).merging(store.backupValues) { _, new in new }
         }, validate: ForkSettingsBackupEngine.validate, apply: {
             try ForkSettingsBackupEngine.validate($0)
             try ForkSettingsBackupRestore.apply($0, to: preferences)
-            ForkSettingsBackupState.applyQuit($0, to: store)
+            store.applyBackup($0)
         })
         let saved = try state.snapshot()
         for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks,

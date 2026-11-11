@@ -5,17 +5,13 @@ extension ForkSettingsBackupState {
     static var live: Self {
         Self(snapshot: {
             var values = ForkSettingsBackupRestore.snapshot(.shared)
-            values["screenText.removeLineBreaks"] = NotchcastCore.screenTextRemovesLineBreaks
-            let editor = NotchcastCore.editor.editorPreferences
+            for feature in NotchcastBackupState.all { values.merge(feature.snapshot()) { _, value in value } }
+            let editor = EditorCoordinator.shared.editorPreferences
             values["notchcast.editor.font"] = editor.font.rawValue
             values["notchcast.editor.theme"] = editor.theme.rawValue
             values["notchcast.editor.pairsAutomatically"] = editor.pairsAutomatically
-            values.merge(quitValues(NotchcastCore.quitProtection)) { _, value in value }
-            values["notchcast.liveTimer.defaultDuration"] = NotchcastCore.timers.store.defaultDuration
-            values["notchcast.liveTimer.playSound"] = NotchcastCore.timers.store.playSoundWhenTimeIsUp
-            values["notchcast.day.marketSymbols"] = NotchcastCore.markets.store.symbols
-            values["notchcast.day.excludedCalendars"] = NotchcastCore.eventReminder.calendar.excludedCalendarIDs.sorted()
-            capture("notchcast.day.weatherPlace", into: &values) { try json(NotchcastCore.weather.store.place) }
+            values["notchcast.day.marketSymbols"] = DayMarketsModule.shared.store.symbols
+            capture("notchcast.day.weatherPlace", into: &values) { try json(DayWeatherModule.shared.store.place) }
             let defaults = AppearanceStore.preferences
             values["notchcast.colorPicker.format"] = defaults.string(forKey: "notchcast.colorPicker.format") ?? "hex"
             values["notchcast.appearance.surface"] = defaults.string(forKey: AppearanceSurfaceStyle.defaultsKey) ?? "glass"
@@ -43,28 +39,16 @@ extension ForkSettingsBackupState {
             return values
         }, validate: validateLive, apply: { values in
             try validateLive(values)
-            if let value = values["screenText.removeLineBreaks"] as? Bool {
-                NotchcastCore.screenTextRemovesLineBreaks = value
-            }
-            let editor = NotchcastCore.editor.editorPreferences
+            for feature in NotchcastBackupState.all { feature.apply(values) }
+            let editor = EditorCoordinator.shared.editorPreferences
             if let value = values["notchcast.editor.font"] as? String,
                let font = EditorPreferences.FontPreset(rawValue: value) { editor.font = font }
             if let value = values["notchcast.editor.theme"] as? String,
                let theme = EditorPreferences.ThemePreset(rawValue: value) { editor.theme = theme }
             if let value = values["notchcast.editor.pairsAutomatically"] as? Bool { editor.pairsAutomatically = value }
-            if let value = values["notchcast.liveTimer.defaultDuration"] as? Double {
-                NotchcastCore.timers.store.defaultDuration = value
-            }
-            if let value = values["notchcast.liveTimer.playSound"] as? Bool {
-                NotchcastCore.timers.store.playSoundWhenTimeIsUp = value
-            }
-            applyQuit(values, to: NotchcastCore.quitProtection)
-            if let value = values["notchcast.day.marketSymbols"] as? [String] { NotchcastCore.markets.store.setSymbols(value) }
-            if let value = values["notchcast.day.excludedCalendars"] as? [String] {
-                NotchcastCore.eventReminder.calendar.setExcludedCalendars(Set(value))
-            }
+            if let value = values["notchcast.day.marketSymbols"] as? [String] { DayMarketsModule.shared.store.setSymbols(value) }
             if let value = values["notchcast.day.weatherPlace"] as? String {
-                NotchcastCore.weather.store.select(try decode(DayWeatherPlace?.self, value))
+                DayWeatherModule.shared.store.select(try decode(DayWeatherPlace?.self, value))
             }
             if let value = values["notchcast.colorPicker.format"] as? String {
                 AppearanceStore.preferences.set(value, forKey: "notchcast.colorPicker.format")
@@ -92,6 +76,7 @@ extension ForkSettingsBackupState {
                 current.promptAddition = restored.promptAddition
                 current.vocabulary = restored.vocabulary
                 try cleanupStore.save(current)
+                DictationCleanupModule.shared.load()
             }
             try ForkSettingsBackupRestore.apply(values, to: .shared)
         })
