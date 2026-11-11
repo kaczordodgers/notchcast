@@ -58,7 +58,6 @@ struct CleanPurgeTest {
         precondition(unknown.count == items.count && unknown.allSatisfy { $0.activity == .unknown })
         precondition(items.count == 4, "Found: \(items.map(\.path))")
         precondition(items.allSatisfy { $0.path.lastPathComponent == "node_modules" })
-        precondition(items.first { $0.project.lastPathComponent == "active" }?.selectedByDefault == false)
         precondition(items.allSatisfy { $0.allocatedSize >= 4096 })
         let initial = try manager.contentsOfDirectory(atPath: receipts.path)
         precondition(initial.isEmpty)

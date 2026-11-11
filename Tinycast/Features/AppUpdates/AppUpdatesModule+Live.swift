@@ -3,11 +3,12 @@ import Foundation
 extension AppUpdatesModule {
     static func live() -> AppUpdatesModule {
         let transport = AppUpdateTransport()
-        let checker = AppUpdatesChecker(fetch: { try await transport.fetch($0) },
-                                        outdated: { try await AppUpdateBrewRunner().outdated() })
         return AppUpdatesModule {
+            let brew = await ExecutableLocator.locate("brew")
+            let checker = AppUpdatesChecker(fetch: { try await transport.fetch($0) },
+                                            outdated: { try await AppUpdateBrewRunner(brew: brew).outdated() })
             let data = try? await AppUpdateBrewRunner(
-                arguments: ["info", "--cask", "--json=v2", "--installed"]).outdated()
+                brew: brew, arguments: ["info", "--cask", "--json=v2", "--installed"]).outdated()
             let apps = await installedApps(caskData: data)
             return try await checker.check(apps: apps, now: Date()).results
         }

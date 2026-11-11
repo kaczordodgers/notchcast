@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/MachineSetupProfile/Model/*.swift Tinycast/Features/MachineSetupProfile/Service/*.swift
+// notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
 import Foundation
 
 @main

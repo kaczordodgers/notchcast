@@ -1,9 +1,6 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift
 // notchcast-sources: Tinycast/Features/Todo/Service/*.swift Tinycast/Features/Todo/TodoModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-kit: platform
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core platform
 import Foundation
 
 @main @MainActor
