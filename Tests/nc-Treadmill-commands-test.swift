@@ -3,10 +3,7 @@
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillCommands.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: core host
 import Foundation
 
 enum SettingsTab: Sendable { case notchcast }

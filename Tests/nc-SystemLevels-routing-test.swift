@@ -6,7 +6,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
-// notchcast-kit: input platform
+// notchcast-kit: core input platform
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelIslandPresenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
@@ -14,13 +14,9 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityPresenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
 // notchcast-sources: Tinycast/Features/DisplayBrightness/Model/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 import AppKit
 import Synchronization
 

@@ -6,8 +6,8 @@ extension DictationEnglishModule {
         let family = DictationFamily.shared
         family.bind(coordinator)
         family.installEnglish {
-            AppCore.shared.showMessage(
-                String(localized: "English translation failed; using the original transcript", table: "Notchcast"), tone: .danger)
+            NotchcastHost.current.showMessage(
+                String(localized: "English translation failed; using the original transcript", table: "Notchcast"), .danger)
         }
         let swallowing = EventTapSubscription(hub: hub)
         self.init(register: { action in

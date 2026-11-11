@@ -2,11 +2,8 @@
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskModule.swift
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskCLI*.swift
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskProcessRunner.swift
-// notchcast-kit: platform
+// notchcast-kit: platform core
 // notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 
 import Foundation
 import Darwin

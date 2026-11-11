@@ -21,10 +21,10 @@ import Observation
          },
          report: @escaping (Bool) -> Void = { success in
              if success {
-                 AppCore.shared.showMessage(String(localized: "Settings restored.", table: "Notchcast"))
+                 NotchcastHost.current.showMessage(String(localized: "Settings restored.", table: "Notchcast"), .success)
              } else {
-                 AppCore.shared.showMessage(
-                     String(localized: "Settings backup could not be opened or restored.", table: "Notchcast"), tone: .danger)
+                 NotchcastHost.current.showMessage(
+                     String(localized: "Settings backup could not be opened or restored.", table: "Notchcast"), .danger)
              }
          }) {
         self.folder = folder

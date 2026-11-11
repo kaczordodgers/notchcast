@@ -8,9 +8,7 @@
 // notchcast-sources: Tinycast/Features/HotKeys/Service/HotKeyManager.swift
 // notchcast-sources: Tinycast/Platform/ASCIIKeyboardLayout.swift
 // notchcast-sources: Tests/hotkey-dispatch-fixtures.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandInputState.swift
