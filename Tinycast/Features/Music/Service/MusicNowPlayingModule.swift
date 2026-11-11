@@ -21,8 +21,8 @@ final class MusicNowPlayingModule: NotchcastModule {
     func stop() { model.setEnabled(false) }
 
     func send(_ command: PlayerCommand) {
-        if model.isEnabled, model.nowPlaying == nil, soloist.isConnected,
-            soloist.authState?.loggedIn == true, command == .play || command == .togglePlayPause {
+        if model.isEnabled, model.nowPlaying == nil, soloist.isReady,
+            command == .play || command == .togglePlayPause {
             soloist.send(.play)
         } else {
             model.send(command)

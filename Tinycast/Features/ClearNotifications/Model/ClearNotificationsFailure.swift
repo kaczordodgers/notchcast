@@ -1,6 +1,6 @@
 import Foundation
 
-enum ClearNotificationsFailure: Error, Equatable, Sendable {
+enum ClearNotificationsFailure: LocalizedError, Equatable, Sendable {
     case accessibilityRequired
     case automationRequired
     case notificationCenterUnavailable
@@ -9,6 +9,25 @@ enum ClearNotificationsFailure: Error, Equatable, Sendable {
     case invalidResult
     case preparationFailed
     case automationFailed(Int)
+
+    var errorDescription: String? {
+        switch self {
+        case .accessibilityRequired:
+            String(localized: "Allow Accessibility access to clear notifications.", table: "Notchcast")
+        case .automationRequired:
+            String(localized: "Allow Automation access to clear notifications.", table: "Notchcast")
+        case .notificationCenterUnavailable:
+            String(localized: "Notification Center could not be opened.", table: "Notchcast")
+        case .unreadable:
+            String(localized: "Notification Center could not be read.", table: "Notchcast")
+        case .notificationsRemain:
+            String(localized: "Some notifications could not be cleared.", table: "Notchcast")
+        case .invalidResult, .preparationFailed:
+            String(localized: "Could not clear notifications.", table: "Notchcast")
+        case .automationFailed(let code):
+            String(localized: "Could not clear notifications (error \(code)).", table: "Notchcast")
+        }
+    }
 
     static func appleScript(code: Int) -> Self {
         switch code {

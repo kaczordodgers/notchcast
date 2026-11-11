@@ -1,6 +1,5 @@
 @MainActor
 final class SmallCommandsModule: NotchcastModule {
-    enum Failure: Error { case disabled }
     private(set) var isRunning = false
     private(set) var shortener: ShortenLinkService?
     private(set) var airDrop: AirDropService?
@@ -22,12 +21,12 @@ final class SmallCommandsModule: NotchcastModule {
     }
 
     func randomPassword() throws -> String {
-        guard isRunning else { throw Failure.disabled }
+        guard isRunning else { throw SmallCommandsFailure.disabled }
         return try RandomPasswordService.make()
     }
 
     func noiseControl(processID: Int32) throws -> NoiseControlService {
-        guard isRunning else { throw Failure.disabled }
+        guard isRunning else { throw SmallCommandsFailure.disabled }
         return NoiseControlService(processID: processID)
     }
 }
