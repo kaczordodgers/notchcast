@@ -66,7 +66,7 @@ final class HideCommandMModule: NotchcastModule {
             for down in [true, false] {
                 guard let event = CGEvent(keyboardEventSource: nil, virtualKey: 46, keyDown: down) else { continue }
                 event.flags = .maskCommand
-                event.setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag)
+                event.markSynthetic()
                 event.postToPid(pid)
             }
         }
