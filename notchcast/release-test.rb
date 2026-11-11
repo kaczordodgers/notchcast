@@ -37,8 +37,7 @@ Dir.mktmpdir('release-launch-') do |directory|
   File.write(File.join(directory, 'tools/notchcast/config.env'), "APP_NAME=Fixture\n")
   FileUtils.mkdir_p(File.join(directory, 'bin'))
   File.write(File.join(directory, 'bin/ditto'), "#!/bin/bash\ncp -R \"$1\" \"$2\"\n")
-  # Wait until the fixture app has run, not a fixed 0.2 s: on a loaded runner a crashing
-  # fixture could still be starting when the liveness check ran.
+  # Waits for the fixture to run, so a slow start can't pass as alive.
   File.write(File.join(directory, 'bin/sleep'), "#!/bin/bash\n[ \"$1\" = 30 ] || exit 9\n" \
     "for _ in $(seq 300); do [ -e \"$RUNNER_TEMP/ran\" ] && break; /bin/sleep 0.1; done\n/bin/sleep 0.5\n")
   FileUtils.chmod(0755, Dir.glob(File.join(directory, 'bin/*')))
