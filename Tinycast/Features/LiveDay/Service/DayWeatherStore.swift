@@ -16,7 +16,7 @@ final class DayWeatherStore {
     private(set) var lastError: String?
     private let defaults: UserDefaults
     private let cacheURL: URL
-    private let key = "notchcast.day.weatherPlace"
+    nonisolated static let placeKey = "notchcast.day.weatherPlace"
     @ObservationIgnored private var task: Task<Void, Never>?
     private var generation = UUID()
     private var fetchingGeneration: UUID?
@@ -29,7 +29,7 @@ final class DayWeatherStore {
     init(defaults: UserDefaults, cacheURL: URL) {
         self.defaults = defaults
         self.cacheURL = cacheURL
-        place = defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(DayWeatherPlace.self, from: $0) }
+        place = defaults.data(forKey: Self.placeKey).flatMap { try? JSONDecoder().decode(DayWeatherPlace.self, from: $0) }
     }
 
     func isStale(now: Date) -> Bool {
@@ -42,7 +42,7 @@ final class DayWeatherStore {
         self.place = place
         forecast = nil
         fetchedAt = nil
-        defaults.set(place.flatMap { try? JSONEncoder().encode($0) }, forKey: key)
+        defaults.set(place.flatMap { try? JSONEncoder().encode($0) }, forKey: Self.placeKey)
         if restart { start() }
     }
 

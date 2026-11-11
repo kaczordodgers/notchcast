@@ -19,7 +19,7 @@ final class LiveTimerStore {
     var nextTimer: LiveTimerEntry? { timers.first { $0.status == .running } }
     static let defaultDurations: [TimeInterval] = [300, 600, 900, 1500, 1800, 3600]
     var defaultDuration: TimeInterval {
-        didSet { defaults.set(defaultDuration, forKey: "notchcast.liveTimer.defaultDuration") }
+        didSet { defaults.set(defaultDuration, forKey: Self.durationKey) }
     }
     var playSoundWhenTimeIsUp: Bool {
         didSet {
@@ -28,8 +28,9 @@ final class LiveTimerStore {
         }
     }
 
-    private static let soundKey = "notchcast.liveTimer.playSound"
-    private static let entriesKey = "notchcast.liveTimer.entries"
+    nonisolated static let durationKey = "notchcast.liveTimer.defaultDuration"
+    nonisolated static let soundKey = "notchcast.liveTimer.playSound"
+    nonisolated static let entriesKey = "notchcast.liveTimer.entries"
     private static let logger = Logger(subsystem: NotchcastIdentity.current.bundleID,
                                        category: "LiveTimerStore")
     @ObservationIgnored private let defaults: UserDefaults
@@ -48,7 +49,7 @@ final class LiveTimerStore {
          playSound: (() -> Void)? = nil, stopSound: (() -> Void)? = nil, active: Bool = true) {
         self.defaults = defaults
         self.active = active
-        let duration = defaults.double(forKey: "notchcast.liveTimer.defaultDuration")
+        let duration = defaults.double(forKey: Self.durationKey)
         defaultDuration = Self.defaultDurations.contains(duration) ? duration : LiveTimerInput.defaultDuration
         self.clock = clock
         self.calendar = calendar

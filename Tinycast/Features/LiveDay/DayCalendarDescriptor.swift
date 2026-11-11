@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Calendar events on the Day page.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [.calendars],
         isSystemFeature: false,

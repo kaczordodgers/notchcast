@@ -3,6 +3,21 @@
 import Foundation
 import Darwin
 
+/// The app's list reads every feature's live values, so this harness lists the keys it checks.
+extension NotchcastFeature.BackupKeys {
+    static let all = [Self(allowed: [
+        "monitorCPU": .integer(10...100),
+        "islandHoverDelay": .choices([0.1, 0.3, 0.5, 1]),
+        "greenMaximizeExcludedApps": .string(16_384),
+        "notchcast.day.marketSymbols": .strings(100, 64),
+        "notchcast.quitProtection.mode": .string(11, ["hold", "doublePress"]),
+        "notchcast.dictationCleanup.settings": .json(.object([
+            "effort": .string(6, ["low", "medium", "high"]), "promptAddition": .string(16_384),
+            "vocabulary": .array(500, .object([:])),
+        ])),
+    ], excluded: ["keepAwakeMinutes", "fanMode", "batteryChargePercent"])]
+}
+
 @main
 struct SettingsBackupTest {
     static func main() async throws {

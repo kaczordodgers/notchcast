@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Use Wi-Fi and iPhone USB Personal Hotspot together.", table: "Notchcast"),
         group: .torrents,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [.torrents],
         requiredGrants: [],
         isSystemFeature: false,

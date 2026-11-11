@@ -26,11 +26,16 @@
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Service/DictationCleanupSettingsStore.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastBackupState.swift
-// notchcast-sources: Tinycast/Features/ScreenText/ScreenTextBackupState.swift
-// notchcast-sources: Tinycast/Features/LiveTimer/LiveTimersBackupState.swift
-// notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionBackupState.swift
-// notchcast-sources: Tinycast/Features/EventReminder/DayCalendarBackupState.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastBackupKeys.swift
+// notchcast-sources: Tinycast/Features/LowDisk/Model/*.swift
+// notchcast-sources: Tinycast/Features/LowDisk/Service/*.swift
+// notchcast-sources: Tinycast/Features/SpacesOrder/Model/*.swift
+// notchcast-sources: Tinycast/Features/SpacesOrder/Service/*.swift
+// notchcast-sources: Tinycast/Features/BackupStatus/Model/*.swift
+// notchcast-sources: Tinycast/Features/BackupStatus/Service/*.swift
+// notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
+// notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
+// notchcast-sources: Tinycast/Features/Music/Model/LastPlayer.swift Tinycast/Features/Music/Model/NowPlaying.swift
 import Foundation
 
 enum AppPaths { static func applicationSupport() -> URL { FileManager.default.temporaryDirectory } }
@@ -39,7 +44,6 @@ enum DialogTone { case neutral, success, danger }
     let settingsCoordinator = SettingsStub()
     static let shared = AppCore()
     func showNotice(title: String, message: String, symbol: String, tone: DialogTone) async { }
-    func confirm(title: String, message: String?, symbol: String?, confirmTitle: String) async -> Bool { false }
 }
 @MainActor final class SettingsStub {
     enum Tab { case notchcast }
@@ -58,12 +62,21 @@ enum SettingsActionCommands {
     func setExcludedCalendars(_ ids: Set<String>) { excludedCalendarIDs = ids }
 }
 enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
+enum ColorPickerService { static let formatKey = "notchcast.colorPicker.format" }
+enum ScreenshotModule {
+    static let destinationKey = "notchcast.screenshot.destination"
+    static let folderKey = "notchcast.screenshot.folder"
+}
+enum SpotifyConnectModule { static let deviceNameKey = "spotify.deviceName" }
+enum AgentBridgeModule { static let grantsKey = "agentActionGrants" }
+enum ArchiveRecovery { static let key = "archiveRecoveryParents" }
 @MainActor final class ColorPickerModule {
     static let shared = ColorPickerModule()
     var format = ColorPickerFormat.hex
 }
 @MainActor final class ScreenTextModule {
     static let shared = ScreenTextModule()
+    nonisolated static let removeLineBreaksKey = "screenText.removeLineBreaks"
     var removeLineBreaks = false
 }
 extension LiveTimerModule { static let shared = LiveTimerModule() }
@@ -77,6 +90,7 @@ extension DictationCleanupModule {
 extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackupCoordinator() }
 @MainActor final class EventReminderModule {
     static let shared = EventReminderModule()
+    nonisolated static let excludedCalendarsKey = "notchcast.day.excludedCalendars"
     let calendar = CalendarStub()
 }
 @MainActor final class EditorCoordinator {
@@ -138,6 +152,52 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         precondition(!NotchcastPreferences.shared.isEnabled(.captureTrimmer))
         print("PASS: restored captureTrimmer true stays off and disabled")
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
+        liveDefaults.set("not theme data", forKey: "notchcast.appearance.theme.light")
+        let partial = try ForkSettingsBackupState.live.snapshot()
+        precondition(partial["notchcast.appearance.theme.light"] == nil && partial.count == complete.count - 1)
+        liveDefaults.removeObject(forKey: "notchcast.appearance.theme.light")
+        print("PASS: an unreadable theme drops only its own key from a snapshot")
+        for feature in NotchcastFeature.BackupKeys.all {
+            let own = try feature.snapshot()
+            precondition(Set(own.keys) == Set(feature.allowed.keys), "\(feature.allowed.keys.sorted())")
+        }
+        print("PASS: every feature's own snapshot returns exactly the keys it allows")
+        for feature in NotchcastFeature.allCases {
+            precondition((ForkSettingsBackupSchema.allowed[feature.rawValue] != nil) == feature.backedUp, feature.rawValue)
+            precondition(ForkSettingsBackupSchema.excluded.contains(feature.rawValue) != feature.backedUp, feature.rawValue)
+        }
+        print("PASS: a switch is carried or left out as its feature's backedUp flag says")
+        let alertRows = try String(
+            contentsOfFile: "Tinycast/Features/Notchcast/Settings/Rows/MonitorAndFansSettingRows.swift", encoding: .utf8)
+        let alertKeys = try String(
+            contentsOfFile: "Tinycast/Features/SystemMonitor/MonitorAlertsBackupKeys.swift", encoding: .utf8)
+        precondition(alertRows.firstMatch(of: /in: \d/) == nil, "a settings row types an alert threshold's bounds itself")
+        precondition(alertKeys.firstMatch(of: /\.integer\(\d/) == nil, "the backup types an alert threshold's bounds itself")
+        print("PASS: the alert rows and the backup type no threshold bounds of their own")
+        let thresholds: [(String, MonitorAlertThreshold, KeyPath<NotchcastPreferences, Int>)] = [
+            (NotchcastPreferences.monitorCPUKey, .cpu, \.monitorCPU),
+            (NotchcastPreferences.monitorTemperatureKey, .temperature, \.monitorTemperature),
+            (NotchcastPreferences.monitorMemoryKey, .memory, \.monitorMemory),
+            (NotchcastPreferences.monitorDiskKey, .disk, \.monitorDisk),
+            (NotchcastPreferences.monitorBatteryKey, .battery, \.monitorBattery),
+            (NotchcastPreferences.monitorBatteryTemperatureKey, .batteryTemperature, \.monitorBatteryTemperature),
+        ]
+        for (key, threshold, stored) in thresholds {
+            let (low, high) = (threshold.range.lowerBound, threshold.range.upperBound)
+            let shape = ForkSettingsBackupSchema.allowed[key]!
+            precondition(shape.accepts(low) && shape.accepts(high) && !shape.accepts(low - 1) && !shape.accepts(high + 1), key)
+            let suite = "test.alert-thresholds.\(UUID().uuidString)"
+            let stray = UserDefaults(suiteName: suite)!
+            defer { stray.removePersistentDomain(forName: suite) }
+            precondition(NotchcastPreferences(suiteName: suite)[keyPath: stored] == threshold.defaultValue, key)
+            stray.set(high + 1, forKey: key)
+            precondition(NotchcastPreferences(suiteName: suite)[keyPath: stored] == high, key)
+            stray.set(low - 1, forKey: key)
+            precondition(NotchcastPreferences(suiteName: suite)[keyPath: stored] == low, key)
+        }
+        print("PASS: the threshold table gives the bounds a backup accepts and the bounds and defaults the preferences keep")
+        let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
+        precondition(complete.keys.allSatisfy { $0.firstMatch(of: secretName) == nil })
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
             bundleIdentifier: Bundle.main.bundleIdentifier!)
         var cleanup = DictationCleanupSettings()
@@ -257,6 +317,43 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
             precondition(written == encoded)
         }
         print("PASS: isolated live round trip, cleanup destination preserved, invalid key skipped")
+        let statusFolder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: statusFolder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: statusFolder) }
+        let statusFiles = try ["first", "restored", "typed"].map { name in
+            let folder = statusFolder.appendingPathComponent(name)
+            try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            return folder.appendingPathComponent("status.json")
+        }
+        var statusNotices = 0
+        func statusNoticed(_ count: Int) async -> Bool {
+            for _ in 0..<200 where statusNotices < count { try? await Task.sleep(for: .milliseconds(50)) }
+            return statusNotices == count
+        }
+        NotchcastPreferences.shared.backupStatusPath = statusFiles[0].path
+        let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath },
+                                              post: { _ in statusNotices += 1 })
+        backupStatus.start()
+        let missingFileNoticed = await statusNoticed(1)
+        precondition(missingFileNoticed)
+        try ForkSettingsBackupState.live.apply(["backupStatusPath": statusFiles[1].path])
+        let restoredPathRead = await statusNoticed(2)
+        precondition(restoredPathRead, "Backup Status did not restart on a restored path")
+        let stamp = ISO8601DateFormatter().string(from: .now)
+        try JSONSerialization.data(withJSONObject: [
+            "version": 1, "result": "failed", "message": NSNull(), "lastSuccess": stamp, "lastAttempt": stamp,
+            "snapshotCount": 8, "oldestSnapshot": stamp, "newestSnapshot": stamp, "sourceBytes": 1000,
+            "addedBytes": 100, "repoBytes": 2000, "targetFreeBytes": 3000, "lowSpace": false,
+            "retention": "Last 2", "restoreTest": ["at": stamp, "result": "ok"],
+            "mbpTimeMachine": ["latest": stamp, "checkedAt": stamp, "error": NSNull()],
+        ] as [String: Any]).write(to: statusFiles[1])
+        let restoredFileWatched = await statusNoticed(3)
+        precondition(restoredFileWatched, "Backup Status kept watching the folder from before the restore")
+        NotchcastPreferences.shared.backupStatusPath = statusFiles[2].path
+        let writtenPathRead = await statusNoticed(4)
+        precondition(writtenPathRead, "Backup Status missed a write to its path")
+        backupStatus.stop()
+        print("PASS: Backup Status watches a restored path and restarts on every later write to it")
         let suite = "test.settings-restore"
         let defaults = UserDefaults(suiteName: suite)!
         defaults.removePersistentDomain(forName: suite)
@@ -265,10 +362,12 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         let store = QuitProtectionStore(defaults: defaults)
         let state = ForkSettingsBackupState(snapshot: {
             ForkSettingsBackupRestore.snapshot(preferences).merging(store.backupValues) { _, new in new }
+                .merging(preferences.monitorAlertsBackupValues) { _, new in new }
         }, validate: ForkSettingsBackupEngine.validate, apply: {
             try ForkSettingsBackupEngine.validate($0)
             try ForkSettingsBackupRestore.apply($0, to: preferences)
             store.applyBackup($0)
+            preferences.applyMonitorAlertsBackup($0)
         })
         let saved = try state.snapshot()
         for feature: NotchcastFeature in [.musicNowPlaying, .musicLastPlayer, .inUseMarks,
@@ -311,7 +410,10 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
             precondition(after == current)
         }
         for values: [String: Any] in [["monitorCPU": "bad"], ["monitorCPU": 101],
-                                     ["keepAwakeMinutes": 45], ["islandHoverDelay": 0.4]] {
+                                     ["keepAwakeMinutes": 45], ["islandHoverDelay": 0.4],
+                                     ["notchcast.quitProtection.mode": "future"],
+                                     ["notchcast.day.marketSymbols": [String(repeating: "x", count: 65)]],
+                                     ["notchcast.dictationCleanup.settings": "{\"apiKey\":\"secret\"}"]] {
             do { try state.apply(values); preconditionFailure("Accepted invalid value") } catch { }
             precondition(defaults.persistentDomain(forName: suite)! as NSDictionary == before)
         }
@@ -387,6 +489,13 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         await coordinator.settled()
         precondition(script.calls == 3 && reports == [true, false])
         precondition(preferences.monitorCPU == 90)
+        var asked = 0
+        NotchcastHost.current.confirm = { _, _, _, _ in asked += 1; return false }
+        let hosted = ForkSettingsBackupCoordinator(folder: folder, state: state, report: { reports.append($0) })
+        hosted.restore(name: "settings-v2-3.plist")
+        await hosted.settled()
+        precondition(asked == 1 && reports == [true, false] && preferences.monitorCPU == 90)
+        print("PASS: a coordinator given no dialog asks through the host seam, and a declined restore changes nothing")
         print("PASS: copies sorted newest first; chosen older copy restored; invalid copy leaves settings unchanged")
         print("PASS: effective defaults restored (90 after 50), default switch and real store reach memory/defaults")
         print("PASS: root/consent keys unchanged; absent keys untouched; invalid values rejected before writes")
