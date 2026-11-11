@@ -112,10 +112,11 @@ Dropping a feature deletes its case, descriptor, hub line, every list and settin
 `Descriptor` is plain data that harnesses compile with the hub alone, so anything that needs a view, a module or another feature's types lives beside it in the same folder instead:
 
 - backup keys: `<Name>BackupKeys.swift` beside `<Name>Descriptor.swift`, one `NotchcastFeature.BackupKeys` per described feature, collected by `featureKeys` in the schema ([settings-backup.md](settings-backup.md));
-- settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order).
+- settings data: the feature's own lists (Tweaks: `Tweaks/Settings/TweakToggle.swift` lists each section's catalog tweaks in order);
+- settings extras: what a feature adds to its generic rows (a second caption line, a label, rows under the switch, rows shown only while it is enabled) is a `NotchcastFeatureSettingsExtras` value stated in `<Name>+SettingsExtras.swift` in the feature's folder and named by one arm in `settingsExtras` (`Notchcast/Settings/Rows/NotchcastFeatureSettingsExtras.swift`). `NotchcastModuleSettingsView` renders the value and names no feature. Cleaning Mode's value stays in `Notchcast/Settings/Rows/CleaningModeSettingsExtras.swift` because it reads `NotchcastCore`, and Clean AI Data's and Settings Backup's sit in the extras file itself.
 
 Three things stay in the hub on purpose:
 
 - commands stay in `NotchcastCommandCatalog+All.swift`, one line each, each declared on the feature's own type; the catalog checkers and harnesses read that file line by line;
-- the per-feature `if`s in `NotchcastModuleSettingsView` and the row views and `NotchcastSettingRows+A`–`D` dispatch files in `Notchcast/Settings/` stay, because they read `NotchcastCore` and moving them into feature folders raises drift gate 1's core-lookups count;
+- the row views and `NotchcastSettingRows+A`–`D` dispatch files in `Notchcast/Settings/` stay, because they read `NotchcastCore` and moving them into feature folders raises drift gate 1's core-lookups count;
 - switch paths.
