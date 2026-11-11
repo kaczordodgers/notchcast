@@ -19,7 +19,6 @@ enum NotchcastCore {
         dictationTrigger?.stop()
         await TreadmillCoordinator.shared.stopForTermination()
         ForkSettingsBackupModule.shared.stop()
-        CaptureTrimmerModule.shared.stop()
         voiceAsk?.stop()
         RecordingModule.shared.stop()
         await RecordingModule.shared.waitUntilIdle()

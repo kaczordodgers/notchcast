@@ -120,6 +120,11 @@ extension RecordingModule {
         precondition(RecordingModule.failureMessage(RecordingTarget.Failure.noFrames) == "The recording contains no frames.")
         precondition(RecordingModule.failureMessage(RecordingTarget.Failure.writerFailed) == "Could not save the recording.")
         precondition(RecordingModule.failureMessage(RecordingTarget.Failure.invalidFolder) == "Could not save the recording.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.permissionDenied) == CaptureFailure.permissionDenied.message)
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.disabled) == "Capture is disabled.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.busy) == "A recording is already in progress.")
+        precondition(RecordingModule.failureMessage(RecordingTarget.Failure.notRecording) == "No recording is in progress.")
+        precondition(CaptureFailure(RecordingTarget.Failure.busy) == nil)
         let countdown = RecordingModule(defaults: defaults, defaultFolder: root,
             makeSource: { source }, sleep: { try await Task.sleep(for: .seconds(60)) })
         countdown.start()
