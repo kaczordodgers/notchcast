@@ -9,8 +9,8 @@ final class CaptureAreaService {
     private let select: (((CaptureAreaSelection?) -> Void) -> Void)?
 
     init(
-        hasScreenRecordingAccess: @escaping () -> Bool = { CGPreflightScreenCaptureAccess() },
-        requestScreenRecordingAccess: @escaping () -> Bool = { CGRequestScreenCaptureAccess() },
+        hasScreenRecordingAccess: @escaping () -> Bool = ScreenRecordingAccess.isGranted,
+        requestScreenRecordingAccess: @escaping () -> Bool = ScreenRecordingAccess.request,
         select: (((CaptureAreaSelection?) -> Void) -> Void)? = nil
     ) {
         self.hasScreenRecordingAccess = hasScreenRecordingAccess
