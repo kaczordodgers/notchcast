@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/PasteTools/Service/PlainPasteModule+Command.swift
 // notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 @MainActor final class PlainPasteModule {
