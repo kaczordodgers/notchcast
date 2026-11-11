@@ -55,7 +55,7 @@ struct RootVerbsTest {
         var unrestorable = BatteryOwnershipJournal()
         unrestorable.captureLimit(85)
         precondition(unrestorable.limitUndo == nil, "a limit with no verb cannot be restored")
-        journal.adopt("charge-limit", applied: "charge-limit-80", undo: "charge-limit-70")
+        journal.adopt(.chargeLimit, applied: "charge-limit-80", undo: "charge-limit-70")
         precondition(!journal.userChangedLimit(80), "own limit is not a user change")
         precondition(journal.userChangedLimit(nil) && journal.userChangedLimit(70), "other verbs are user changes")
         precondition(journal.userChangedLimit(85), "a limit with no verb is a user change")
