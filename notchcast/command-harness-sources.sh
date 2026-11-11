@@ -55,6 +55,7 @@ symbol_sources=(
     'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Platform/ProcessExit.swift'
     'WebRules Tinycast/Features/Notchcast/Model/WebRules.swift'
     'NotchcastIdentity Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift'
+    'ScreenRecordingAccess Tinycast/Features/Notchcast/Core/ScreenRecordingAccess.swift'
 )
 # Last, so it sees every source above; compgen expands globs even under the resolver's set -f.
 symbol_readers=$(for source in "$@"; do [[ $source == Tinycast/*.swift ]] && compgen -G "$source"; done | tr '\n' ' '; true)
@@ -64,7 +65,7 @@ for symbol_row in "${symbol_sources[@]}"; do
         declared=${source##*/}
         # A harness that declares the file's type itself keeps its stub.
         [[ " $symbol_readers " == *" $source "* ]] ||
-            grep -qswE "^([a-z]+ )*(enum|struct|class|actor) ${declared%.swift}" "Tests/$name.swift" ||
+            grep -qswE "^(@?[A-Za-z]+ )*(enum|struct|class|actor) ${declared%.swift}" "Tests/$name.swift" ||
             { set -- "$@" "$source"; symbol_readers+=" $source"; }
     done
 done

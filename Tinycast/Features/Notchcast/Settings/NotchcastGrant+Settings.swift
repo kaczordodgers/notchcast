@@ -18,7 +18,7 @@ extension NotchcastGrant {
     func readIsGranted() async -> Bool {
         switch self {
         case .accessibility: AXIsProcessTrusted()
-        case .screenRecording: CGPreflightScreenCaptureAccess()
+        case .screenRecording: ScreenRecordingAccess.isGranted()
         case .microphone: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
         case .calendars: EKEventStore.authorizationStatus(for: .event) == .fullAccess
         case .bluetooth: CBManager.authorization == .allowedAlways

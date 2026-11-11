@@ -56,12 +56,11 @@ final class SystemLevelKeysModule: NotchcastModule {
         generation += 1
         let current = generation
         withObservationTracking {
-            let island = preferences.isOn(.island)
-            let volume = preferences.isOn(.volumeLevels)
+            let volume = preferences.showsVolumeInIsland
             let display = preferences.isOn(.displayBrightness)
             let presenter = hudPresenterAvailable
             let keys = Set(MediaLevelKey.allCases.filter {
-                $0.isBrightness ? display : presenter && island && volume
+                $0.isBrightness ? display : presenter && volume
             })
             monitor.setEnabled(keys)
             latest = nil
@@ -79,8 +78,8 @@ final class SystemLevelKeysModule: NotchcastModule {
     }
 
     private func prepare(_ press: MediaLevelKeyMonitor.Press) -> MediaLevelKeyMonitor.Operation {
-        guard press.key.isBrightness || (hudPresenterAvailable && preferences.isOn(.island)),
-              preferences.isOn(press.key.isBrightness ? .displayBrightness : .volumeLevels)
+        guard press.key.isBrightness
+            ? preferences.isOn(.displayBrightness) : hudPresenterAvailable && preferences.showsVolumeInIsland
         else { return { .cancelled } }
         if press.key.isBrightness {
             let controller = brightness.controller
@@ -113,12 +112,10 @@ final class SystemLevelKeysModule: NotchcastModule {
         let service = levels.service
         let preferences = preferences
         return {
-            guard !Task.isCancelled, service.isRunning,
-                  preferences.isOn(.island), preferences.isOn(.volumeLevels) else { return .cancelled }
+            guard !Task.isCancelled, service.isRunning, preferences.showsVolumeInIsland else { return .cancelled }
             let result = await service.apply(press.key == .mute ? .toggleMute
                 : .step(increasing: press.key.isIncreasing, fine: press.fine))
-            guard !Task.isCancelled, preferences.isOn(.island), preferences.isOn(.volumeLevels)
-            else { return .cancelled }
+            guard !Task.isCancelled, preferences.showsVolumeInIsland else { return .cancelled }
             return result
         }
     }

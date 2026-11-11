@@ -91,6 +91,10 @@ struct ScreenshotModuleTest {
                      == String(localized: "Capture is disabled."))
         precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.invalidRect)
                      == String(localized: "Capture area is unavailable."))
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.targetUnavailable)
+                     == String(localized: "Capture area is unavailable."))
+        precondition(ScreenshotModule.failureMessage(ScreenshotRequest.Failure.encodingFailed)
+                     == String(localized: "Could not capture the screen."))
         print("PASS: screenshot module command, display selection, switch lifecycle and failure HUD")
     }
 

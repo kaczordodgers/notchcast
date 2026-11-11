@@ -12,4 +12,18 @@ enum CaptureFailure: Error {
         case .captureFailed: String(localized: "Could not capture the screen.", table: "Notchcast")
         }
     }
+
+    init?(_ error: any Error) {
+        guard let failure = (error as? any CaptureFailureConvertible)?.captureFailure else { return nil }
+        self = failure
+    }
+}
+
+protocol CaptureFailureConvertible: Error {
+    /// nil when the feature words this failure itself.
+    var captureFailure: CaptureFailure? { get }
+}
+
+extension CaptureFailure: CaptureFailureConvertible {
+    var captureFailure: CaptureFailure? { self }
 }

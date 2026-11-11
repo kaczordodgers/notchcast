@@ -4,7 +4,7 @@
 // notchcast-sources: Tinycast/Features/Todo/TodoModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 import Foundation
 
 enum DialogTone { case danger }

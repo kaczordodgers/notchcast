@@ -156,12 +156,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
     var settingsGroup: SettingsGroup {
         if let descriptor { return descriptor.group }
         return switch self {
-        case .colorPicker: .captureAndDictation
-        case .scrollingCapture: .captureAndDictation
-        case .screenshot: .captureAndDictation
-        case .captureTrimmer: .captureAndDictation
-        case .captureEditor: .captureAndDictation
-        case .recording: .captureAndDictation
         case .editorSpellChecking: .system
         case .treadmillWalk: .activities
         case .treadmillHistory: .activities
@@ -174,12 +168,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         return switch self {
         case .treadmillWalk: String(localized: "Walking Pad", table: "Notchcast")
         case .treadmillHistory: String(localized: "Walk History", table: "Notchcast")
-        case .colorPicker: String(localized: "Color Picker", table: "Notchcast")
-        case .screenshot: String(localized: "Screenshots", table: "Notchcast")
-        case .scrollingCapture: String(localized: "Scrolling Capture", table: "Notchcast")
-        case .captureTrimmer: String(localized: "Recording Trimmer", table: "Notchcast")
-        case .captureEditor: String(localized: "Capture Editor", table: "Notchcast")
-        case .recording: String(localized: "Screen Recording", table: "Notchcast")
         case .editorSpellChecking: String(localized: "Editor Spell Checking", table: "Notchcast")
         default: preconditionFailure("\(self) has neither a descriptor nor a title arm")
         }
@@ -190,12 +178,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         return switch self {
         case .treadmillWalk: String(localized: "Control a Bluetooth walking pad from the launcher.", table: "Notchcast")
         case .treadmillHistory: String(localized: "Keep walk totals, daily goals and lubrication reminders.", table: "Notchcast")
-        case .colorPicker: String(localized: "Copy a color from anywhere on the screen.", table: "Notchcast")
-        case .screenshot: String(localized: "Capture an area, window or display.", table: "Notchcast")
-        case .scrollingCapture: String(localized: "Copy a scrolling area as one image.", table: "Notchcast")
-        case .captureTrimmer: String(localized: "Trim recordings and export MP4 or GIF files.", table: "Notchcast")
-        case .captureEditor: String(localized: "Mark up a capture and copy it.", table: "Notchcast")
-        case .recording: String(localized: "Record an area, window or display with system audio.", table: "Notchcast")
         case .editorSpellChecking: String(localized: "Check spelling in the editor.", table: "Notchcast")
         default: preconditionFailure("\(self) has neither a descriptor nor a subtitle arm")
         }
@@ -207,12 +189,6 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         return switch self {
         case .treadmillWalk: false
         case .treadmillHistory: false
-        case .colorPicker: true
-        case .screenshot: false
-        case .scrollingCapture: false
-        case .captureTrimmer: true
-        case .captureEditor: true
-        case .recording: false
         case .editorSpellChecking: true
         default: preconditionFailure("\(self) has neither a descriptor nor a backedUp arm")
         }
@@ -220,13 +196,7 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
 
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
-        if let descriptor { return descriptor.requiredGrants }
-        return switch self {
-        case .scrollingCapture: [.screenRecording]
-        case .screenshot: [.screenRecording]
-        case .recording: [.screenRecording]
-        default: []
-        }
+        descriptor?.requiredGrants ?? []
     }
 }
 
@@ -278,7 +248,6 @@ extension NotchcastFeature {
     var defaultEnabled: Bool {
         if let descriptor { return descriptor.defaultEnabled }
         return switch self {
-        case .captureEditor: false
         case .treadmillWalk: false
         default: true
         }

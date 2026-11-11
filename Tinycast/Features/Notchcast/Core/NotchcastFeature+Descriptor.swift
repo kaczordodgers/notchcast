@@ -151,6 +151,12 @@ extension NotchcastFeature {
         .smallCommands: .smallCommands,
         .launcherNumberKeys: .launcherNumberKeys,
         .launcherAliasSpace: .launcherAliasSpace,
+        .colorPicker: .colorPicker,
+        .screenshot: .screenshot,
+        .scrollingCapture: .scrollingCapture,
+        .recording: .recording,
+        .captureEditor: .captureEditor,
+        .captureTrimmer: .captureTrimmer,
     ]
 
     var descriptor: Descriptor? { Self.descriptors[self] }

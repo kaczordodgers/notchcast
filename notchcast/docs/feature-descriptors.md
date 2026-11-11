@@ -8,12 +8,12 @@ The folder may sit at any depth under `Tinycast/Features/` (`Notchcast/Island/`,
 
 ## Features still on the switches
 
-`dependencies`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `requiredGrants`, `defaultEnabled` and `backedUp` start with the fallback line `if let descriptor { return descriptor.<field> }` and keep arms only for:
+`dependencies`, `requiredGrants`, `isSystemFeature` and `isSystemTweak` read only the descriptor (`[]` and `false` without one). `settingsGroup`, `title`, `subtitle`, `defaultEnabled` and `backedUp` start with the fallback line `if let descriptor { return descriptor.<field> }` and keep arms only for:
 
-- the capture module (`colorPicker`, `screenshot`, `scrollingCapture`, `recording`, `captureTrimmer`, `captureEditor`) and Treadmill (`treadmillWalk`, `treadmillHistory`): kept out of this batch;
+- Treadmill (`treadmillWalk`, `treadmillHistory`): kept out of this batch;
 - `editorSpellChecking`: its only code is a patched line in upstream `Notes/`; it moves when it has a fork folder.
 
-`settingsGroup`, `title`, `subtitle` and `backedUp` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these nine move. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
+`settingsGroup`, `title`, `subtitle` and `backedUp` therefore still end in a `default: preconditionFailure(...)` the checker keeps unreachable; the switches go when these three move. The capture features (`colorPicker`, `screenshot`, `scrollingCapture`, `recording`, `captureTrimmer`, `captureEditor`) are described, and `PINS` holds their group, default and grants. `NotchcastFeature.unwired` and `systemToolsSettingsFeatures` are lists, not switches: switch paths and settings rows move in a later batch.
 
 ## Checks
 
