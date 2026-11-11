@@ -6,10 +6,8 @@ import AppKit
 
 @MainActor final class AppCore {
     static let shared = AppCore()
-    enum Tone { case danger }
     let appIndex = AppIndex()
     var messages: [String] = []
-    func showMessage(_ message: String, tone: Tone) { messages.append(message) }
 }
 @MainActor final class AppIndex {
     var refreshes = 0

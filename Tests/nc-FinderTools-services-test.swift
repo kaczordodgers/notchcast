@@ -14,9 +14,6 @@ enum Paster {
     static let tinycastEventTag: Int64 = 0x54494E59
 }
 
-@MainActor enum NotchcastCore {
-    static let finderTools = FinderToolsCoordinator(hub: EventTapHub())
-}
 @MainActor final class AppCore {}
 
 @main @MainActor
