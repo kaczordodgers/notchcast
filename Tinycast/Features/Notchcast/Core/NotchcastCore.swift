@@ -61,14 +61,6 @@ enum NotchcastCore {
                     """, table: "Notchcast"),
                 symbol: "arrow.triangle.2.circlepath", confirmTitle: String(localized: "Run"))
         }
-        spacesOrder.onFailure = { [weak core] in
-            core?.showMessage(String(localized: "Could not update Spaces ordering.", table: "Notchcast"), tone: .danger)
-        }
-        spacesOrder.restoreIfDisabled()
-        dictationCleanup.reportFailure = { [weak core] in
-            core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)
-        }
-        dictationCleanup.load()
         let shelfChannel = MachLinkShelfChannel(channel: macLink.channel, module: ShelfModule.shared) {
             macLink.isRunning && macLink.isPaired && (!linkHealth.isRunning || linkHealth.health.reachability != .down)
         }

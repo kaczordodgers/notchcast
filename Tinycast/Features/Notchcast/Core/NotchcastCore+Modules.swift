@@ -34,12 +34,10 @@ extension NotchcastCore {
     static let hideCommandM = HideCommandMModule(hub: eventTapHub)
     static let middleClick = MiddleClickModule(hub: eventTapHub)
     static let greenMaximize = GreenMaximizeModule(hub: eventTapHub)
-    static let spacesOrder = SpacesOrderModule()
     static let eventReminder = EventReminderModule.shared
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
-    static let dictationCleanup = DictationCleanupModule.shared
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let editor = EditorCoordinator.shared
@@ -92,7 +90,6 @@ extension NotchcastCore {
             .init(requires: [.hideCommandM], module: hideCommandM),
             .init(requires: [.middleClick], module: middleClick),
             .init(requires: [.greenMaximize], module: greenMaximize),
-            .init(requires: [.spacesOrder], module: spacesOrder),
             .init(requires: [.island, .accessoryNotices], module: accessoryNotices),
             .init(requires: [.displayBrightness], module: brightness),
             .init(requires: [], module: SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNotices.present($0) })),
@@ -105,7 +102,6 @@ extension NotchcastCore {
             .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.dictationEnglish], module: DictationEnglishModule(hub: eventTapHub, coordinator: core.dictationCoordinator)),
-            .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
             .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
