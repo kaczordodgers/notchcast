@@ -1,6 +1,9 @@
 import Foundation
 
 extension BlockedDialogModule {
+    /// Set by hub glue in `start` before registrants register; `register` returns [] while nil.
+    static var linkChannel: MachLinkChannel?
+
     static func linked(to channel: MachLinkChannel) -> BlockedDialogModule {
         channel.manager.register("dialogs") { request in
             guard NotchcastPreferences.shared.isOn(.machBlockedDialogAlert) else {
