@@ -131,7 +131,7 @@ import Foundation
     }
 
     private static func live(_ directory: URL) async throws {
-        let context = DownloadRunContext(destination: directory, tools: DownloadToolLookup(directories: []))
+        let context = DownloadRunContext(destination: directory, tools: DownloadToolLookup())
         for id in ["znWSzW0Zh_Y", "DIcJX1AjKuk", "12M2AIlM_nA", "TFCDWrEBaFM", "zHZPb7wdQuk", "GtJKFhztgdM", "keRiRVDhvoA"] {
             let job = DownloadJob(id: id, kind: "transcript", source: "https://www.youtube.com/watch?v=\(id)", title: id, created: .now)
             let output = try await TranscriptDownloadRunner(transcribe: { _, _ in nil }).run(job, context: context)

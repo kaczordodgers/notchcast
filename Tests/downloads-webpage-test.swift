@@ -71,7 +71,7 @@ struct DownloadsWebpageTests {
         let runner: any DownloadRunner = WebpageRunner()
         expect(runner.kind == "webpage" && runner.tools.isEmpty, "webpage runner needs no outside tools")
         let context = DownloadRunContext(destination: URL(filePath: "/unused-webpage-test-destination"),
-                                          tools: DownloadToolLookup(directories: []))
+                                          tools: DownloadToolLookup())
         for source in ["file:///etc/passwd", "http://127.0.0.1/", "http://[::1]/"] {
             let job = DownloadJob(id: UUID().uuidString, kind: "webpage", source: source,
                                   title: "Refused", created: .now)
