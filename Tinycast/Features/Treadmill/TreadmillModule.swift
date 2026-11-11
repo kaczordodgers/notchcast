@@ -3,7 +3,7 @@ import Foundation
 @MainActor
 final class TreadmillModule: NotchcastModule {
     private let coordinator: TreadmillCoordinator
-    private let capability: TreadmillCoordinator.Capability
+    let capability: TreadmillCoordinator.Capability
 
     init(_ coordinator: TreadmillCoordinator, capability: TreadmillCoordinator.Capability) {
         self.coordinator = coordinator
