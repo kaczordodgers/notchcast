@@ -39,6 +39,7 @@ enum PlayerCommand: Equatable { case play, togglePlayPause }
     struct Auth { var loggedIn = false }
     var authState: Auth?
     var isConnected = false
+    var isReady: Bool { isConnected && authState?.loggedIn == true }
     func send(_ command: PlayerCommand) {}
     func connect(port: Int?) { isConnected = port != nil }
 }
