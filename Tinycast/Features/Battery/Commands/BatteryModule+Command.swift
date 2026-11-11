@@ -5,5 +5,5 @@ extension BatteryModule {
         slug: "keep-awake", name: String(localized: "Toggle Keep Awake", table: "Notchcast"),
         sfSymbol: "cup.and.saucer", feature: .keepAwake,
         isEnabled: { NotchcastPreferences.shared.isOn(.keepAwake) },
-        run: { NotchcastCore.battery.toggleKeepAwake() })
+        run: { BatteryModule.shared.toggleKeepAwake() })
 }
