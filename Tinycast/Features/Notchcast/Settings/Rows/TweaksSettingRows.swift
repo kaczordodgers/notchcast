@@ -54,7 +54,7 @@ struct NotchcastKeyRepeatPickerSettingRow: View {
         Picker(
             selection: Binding(
                 get: {
-                    if case .integer(let value) = NotchcastCore.typingTweaks.store.plans[identifier]?.entries
+                    if case .integer(let value) = TweaksModule.typing.store.plans[identifier]?.entries
                         .first?.write.value
                     {
                         return value
@@ -63,7 +63,7 @@ struct NotchcastKeyRepeatPickerSettingRow: View {
                 },
                 set: { value in
                     Task {
-                        await NotchcastCore.typingTweaks.set(
+                        await TweaksModule.typing.set(
                             identifier,
                             writes: [.init(key, .integer(value))], on: value != 0,
                             title: String(localized: title), subtitle: subtitle(nil), restart: nil)
@@ -75,7 +75,7 @@ struct NotchcastKeyRepeatPickerSettingRow: View {
         } label: {
             SettingsRowTitle(.notchcastTweaksApps, title)
         }
-        .settingsEnabled(!NotchcastCore.typingTweaks.store.busy)
+        .settingsEnabled(!TweaksModule.typing.store.busy)
     }
     private func subtitle(_ restart: String?) -> String {
         switch restart {
@@ -115,11 +115,11 @@ struct NotchcastNewFinderWindowsSettingRow: View {
         Picker(
             selection: Binding(
                 get: {
-                    NotchcastCore.finderTweaks.store.plans["new-window-downloads"] == nil ? false : true
+                    TweaksModule.finder.store.plans["new-window-downloads"] == nil ? false : true
                 },
                 set: { on in
                     Task {
-                        await NotchcastCore.finderTweaks.set(
+                        await TweaksModule.finder.set(
                             "new-window-downloads",
                             writes: FinderCatalog.downloads(
                                 home: FileManager.default.homeDirectoryForCurrentUser),
@@ -133,7 +133,7 @@ struct NotchcastNewFinderWindowsSettingRow: View {
         } label: {
             SettingsRowTitle(.notchcastTweaksApps, LocalizedStringResource("New Finder windows", table: "Notchcast"))
         }
-        .settingsEnabled(!NotchcastCore.finderTweaks.store.busy)
+        .settingsEnabled(!TweaksModule.finder.store.busy)
 
     }
     private func subtitle(_ restart: String?) -> String {

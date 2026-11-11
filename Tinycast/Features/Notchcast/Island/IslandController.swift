@@ -208,7 +208,7 @@ final class IslandController: NotchcastModule {
             message: preferences.isOn(.islandStatusMessages) ? center.message : nil,
             activities: preferences.isOn(.islandLiveActivities) ? center.ranked : [],
             track: demoTrack
-                ?? (preferences.isEnabled(.musicNowPlaying) ? Self.track(NotchcastCore.services?.music.model.nowPlaying) : nil))
+                ?? (preferences.isEnabled(.musicNowPlaying) ? Self.track(MusicNowPlayingModule.shared?.model.nowPlaying) : nil))
         updatePresenter()
     }
 
@@ -232,7 +232,7 @@ final class IslandController: NotchcastModule {
             _ = IslandActivityCenter.shared.activities
             _ = IslandActivityCenter.shared.message
             _ = preferences.isEnabled(.musicNowPlaying)
-            _ = NotchcastCore.services?.music.model.nowPlaying
+            _ = MusicNowPlayingModule.shared?.model.nowPlaying
             _ = demoTrack
             _ = NotchcastTheme.Launcher.size
         } onChange: { [weak self] in

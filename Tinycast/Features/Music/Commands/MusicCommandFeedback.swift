@@ -17,7 +17,7 @@ final class MusicCommandFeedback {
         withObservationTracking {
             let current = [preferences.isEnabled(.musicNowPlaying), preferences.isEnabled(.microphoneMute),
                            preferences.isEnabled(.musicLastPlayer), preferences.isEnabled(.spotifyConnect)]
-            if availability != current { AppCore.shared.appIndex.refreshNotchcastCommands() }
+            if availability != current { NotchcastHost.current.refreshNotchcastCommands() }
             availability = current
             let failure = music.model.failure
             if music.model.isEnabled, let failure, failure != lastFailure {
