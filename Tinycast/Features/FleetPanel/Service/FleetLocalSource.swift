@@ -3,7 +3,7 @@ import Foundation
 @MainActor
 enum FleetLocalSource {
     static func read() async -> FleetSnapshot {
-        await read(state: NotchcastCore.agentThreads.state,
+        await read(state: AgentThreadsModule.shared.state,
                    enabled: { NotchcastPreferences.shared.isOn(.agentThreads) })
     }
 
