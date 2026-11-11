@@ -1,5 +1,8 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/MachRemoteModule+Actions.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import AppKit
+
+enum DialogTone {}
 
 @MainActor final class MachRemoteModule {
     var automation: Task<Void, Never>?
@@ -11,15 +14,15 @@ import AppKit
     enum Feature { case machRemote, sendFiles }
 }
 
-@MainActor enum NotchcastCore {
-    static let updateRemote = Update()
-    static let sendFiles = Sender()
-    static func remoteResult(_ message: String) {}
-    struct Update { func update() {} }
-    final class Sender {
-        var sent: [URL] = []
-        func send(_ urls: [URL]) { sent = urls }
-    }
+@MainActor struct UpdateRemoteModule {
+    static let shared = Self()
+    func update() {}
+}
+
+@MainActor final class SendFilesModule {
+    static let shared = SendFilesModule()
+    var sent: [URL] = []
+    func send(_ urls: [URL]) { sent = urls }
 }
 
 @MainActor enum MachSSHProcessRunner {
@@ -38,14 +41,14 @@ import AppKit
         MachSSHProcessRunner.output = "/tmp/one\nname\0/tmp/second\0\n"
         module.sendFinderSelection()
         await module.automation?.value
-        precondition(NotchcastCore.sendFiles.sent.map(\.path) == ["/tmp/one\nname", "/tmp/second"],
+        precondition(SendFilesModule.shared.sent.map(\.path) == ["/tmp/one\nname", "/tmp/second"],
                      "Finder filenames must preserve newlines")
         precondition(MachSSHProcessRunner.script.contains("character id 0"))
-        NotchcastCore.sendFiles.sent = []
+        SendFilesModule.shared.sent = []
         MachSSHProcessRunner.output = "relative\0\n"
         module.sendFinderSelection()
         await module.automation?.value
-        precondition(NotchcastCore.sendFiles.sent.isEmpty, "Relative paths must be refused")
+        precondition(SendFilesModule.shared.sent.isEmpty, "Relative paths must be refused")
         print("PASS Finder newline filenames and relative-path refusal")
     }
 }
