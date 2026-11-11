@@ -73,7 +73,7 @@ struct NotchcastAccessoryReadingsSettingRow: View {
     @State private var readings: [BatteryPeripheralReading] = []
 
     private var enabled: Bool {
-        preferences.isOn(.systemMonitor) && preferences.isOn(.accessoryBatteries)
+        preferences.isEnabled(.accessoryBatteries)
     }
 
     var body: some View {
