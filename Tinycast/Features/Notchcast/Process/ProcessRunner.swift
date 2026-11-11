@@ -16,10 +16,14 @@ nonisolated enum ProcessRunner {
         var timeout: Duration?
         var outputLimit = Int.max
         var stopSignal = SIGTERM
+        /// Stops the children the program started too; `Process` makes every child its own group leader.
+        var stopsGroup = false
     }
 
     struct Output: Sendable {
         let status: Int32
+        /// `status` is then the signal's number, not an exit code.
+        let signaled: Bool
         let stdout: Data
         let stderr: Data
     }
@@ -148,10 +152,12 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard state.stop == nil, state.process.isRunning else { return }
                 state.stop = reason
-                kill(state.process.processIdentifier, request.stopSignal)
+                let pid = state.process.processIdentifier
+                let target = request.stopsGroup ? -pid : pid
+                kill(target, request.stopSignal)
                 let killer = DispatchWorkItem { @Sendable in
                     self.state.withLock { state in
-                        if state.process.isRunning { kill(state.process.processIdentifier, SIGKILL) }
+                        if state.process.isRunning { kill(target, SIGKILL) }
                     }
                 }
                 DispatchQueue.global().asyncAfter(deadline: .now() + Self.grace, execute: killer)
@@ -160,7 +166,9 @@ nonisolated enum ProcessRunner {
         }
 
         func finish() throws -> Output {
-            let (stop, status) = state.withLock { ($0.stop, $0.process.terminationStatus) }
+            let (stop, status, signaled) = state.withLock {
+                ($0.stop, $0.process.terminationStatus, $0.process.terminationReason == .uncaughtSignal)
+            }
             if stop == .timedOut { throw Failure.timedOut }
             try Task.checkCancellation()
             if stop == .cancelled { throw CancellationError() }
@@ -168,7 +176,7 @@ nonisolated enum ProcessRunner {
             let stderr = if case .capture(let limit) = request.stderr {
                 try Self.read(stderrFile, limit: limit, failing: false)
             } else { Data() }
-            return Output(status: status, stdout: stdout, stderr: stderr)
+            return Output(status: status, signaled: signaled, stdout: stdout, stderr: stderr)
         }
 
         func dispose() {
