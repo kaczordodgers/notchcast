@@ -118,7 +118,7 @@ struct ConfirmationWiringTests {
         }))
         let volume = AgentAction(id: "volume", title: "Set Volume", parameters: .init(
             properties: ["level": .init(kind: .number)], required: ["level"]))
-        try grants.allow(agentID: "local-cli", actionID: volume.id, danger: .consent, now: Date())
+        try grants.allow(agentID: "local-cli", actionID: volume.id, danger: .consent)
         try queueIndex.register(.init(action: volume, run: { _ in .null }))
         queueIndex.start()
         let restart = Task { await queueIndex.handle(.init(verb: .run, id: "restart")) }

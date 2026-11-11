@@ -1,7 +1,7 @@
 # Machine backups
 
 `MachineBackupCoordinator` exposes `runNow()`, `refreshSnapshots()`, `browse(snapshot:path:)`
-and `restore(snapshot:path:target:)`. It is owned by `NotchcastCore.machineBackup`.
+and `restore(snapshot:path:target:)`. It is owned by `MachineBackupCoordinator.shared`, which registers itself.
 Our features live in a Notchcast category in the Settings sidebar, one tab per module. Every switch has a working function, and its commands sit under it. Turning a switch off removes its commands. These are automatic settings rows;
 neither switch depends on the island.
 

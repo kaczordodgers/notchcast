@@ -6,12 +6,16 @@ struct MachRemoteShell {
 
     func run(_ executable: String, arguments: [String]) async throws -> MachSSH.Result {
         if executable == "/usr/bin/ssh", let command = arguments.last {
-            return try await ssh.run(command)
+            var options = Array(arguments.dropLast(2))
+            if options.last == "--" { options.removeLast() }
+            return try await ssh.run(command, options: options)
         }
         var arguments = arguments
         if executable == "/usr/bin/rsync", let index = arguments.firstIndex(of: "-e"),
            arguments.indices.contains(index + 1) {
-            arguments[index + 1] = (["/usr/bin/ssh"] + MachSSH.options).map(MachSSH.quote).joined(separator: " ")
+            let callerOptions = arguments[index + 1].drop { $0 != " " }
+            arguments[index + 1] = MachSSH.quote("/usr/bin/ssh") + callerOptions + " "
+                + MachSSH.options.map(MachSSH.quote).joined(separator: " ")
         }
         return try await ssh.runner(executable, arguments)
     }

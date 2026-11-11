@@ -23,8 +23,8 @@ enum NotchcastCore {
         RecordingModule.shared.stop()
         await RecordingModule.shared.waitUntilIdle()
         await editor.flushForTermination()
-        machineBackup.stop()
-        await machineBackup.waitUntilIdle()
+        MachineBackupCoordinator.shared.stop()
+        await MachineBackupCoordinator.shared.waitUntilIdle()
         BatteryModule.shared.stop()
         MonitorModule.shared.stop()
         await RootWait.drainForTermination {
@@ -45,7 +45,6 @@ enum NotchcastCore {
             confirm: { [weak core] in await core?.confirm(title: $0, message: $1, symbol: $2, confirmTitle: $3) ?? false }
         )
         NSApp.servicesProvider = archiveServices
-        ArchiveCompressionCommands.selection = { try await CopyPathSystemReader.read(.finderSelection).map { URL(filePath: $0) } }
         Task { await grantStatuses.refresh(NotchcastGrant.allCases) }
         BatteryModule.shared.repairAtLaunch()
         NotchcastPreferences.shared.commandAvailabilityChanged = { [weak core] in

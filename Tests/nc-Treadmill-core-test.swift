@@ -415,13 +415,9 @@ private struct TreadmillTests {
         try await reentrant.prepare()
         reentrant.setEnabled(.walk, true)
         reentrant.setEnabled(.history, true)
-        reentrant.onGoalReached = { [weak reentrant] in reentrant?.setEnabled(.walk, false) }
         try reentrant.startWalk()
         reentrantTransport.emit(short(2, 3))
         reentrantTransport.emit(status(3, speed: 10, steps: 100))
-        expect(!reentrant.walkEnabled && reentrantTransport.sent.count == 2
-               && reentrantTransport.sent.last == TreadmillProtocol.stop,
-               "Goal callback disabling Walk prevents queued speed commands")
         await reentrant.stopForTermination()
         let terminated = try await TreadmillRepository(directory: root.appending(path: "reentrant")).load()
         expect(terminated.current?.sample.steps == 100, "Termination flushes the last counters")

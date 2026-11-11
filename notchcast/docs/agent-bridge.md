@@ -55,7 +55,7 @@ action APIs are exposed without new island views. Command/hotkey registration wa
 
 ## Device actions
 
-`AgentDeviceActions.register(_:backend:in:)` adds device state and actions to an injected index.
+`AgentDeviceActions.register(_:in:)` adds a backend's state and actions to an injected index; the backend names itself (`deviceName`) and states its operations with their parameter schemas, so the framework lists no device and copies no limit. `unregister(_:from:)` removes the same IDs.
 The IDs double as machine-facing discovery titles. No launcher commands or views are registered.
 The existing CLI uses `get device.treadmill`, `get device.katana` and
 `run device.treadmill.start '{"speed":4,"minutes":30}'`. Dry runs validate without effects.

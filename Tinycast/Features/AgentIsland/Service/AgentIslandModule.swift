@@ -80,15 +80,6 @@ final class AgentIslandModule: NotchcastModule {
         if presentation != engine.presentation { presentation = engine.presentation }
     }
 
-    func dismissFailed(_ thread: AgentThread) {
-        engine.dismissFailed(thread)
-        update()
-    }
-
-    func openItem(source: AgentIslandEngine.Source, thread: AgentThread?) -> URL? {
-        source == .t3 ? thread?.link : nil
-    }
-
     func refresh(completion: @escaping @MainActor (AgentIslandEngine.Message) -> Void) {
         guard running else { return }
         refreshTask?.cancel()

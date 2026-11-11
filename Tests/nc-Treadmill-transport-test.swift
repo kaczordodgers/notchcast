@@ -107,6 +107,16 @@ struct TreadmillTransportTests {
         precondition(index.actionIDs.isEmpty)
         coordinator.setEnabled(.walk, true)
         precondition(index.actionIDs.count == 5 && index.stateIDs == ["device.treadmill"])
+        let overLimit = Double(TreadmillProtocol.maximumMinutes + 1)
+        for (operation, fields): (String, [String: AgentJSON]) in [
+            ("start", ["speed": .number(4), "minutes": .number(overLimit)]),
+            ("speed", ["speed": .number(TreadmillProtocol.speedRange.upperBound + 1)]), ("jump", [:]),
+        ] {
+            do {
+                _ = try await coordinator.perform(operation, parameters: .object(fields))
+                preconditionFailure("\(operation) accepted a value outside the pad's limits")
+            } catch let code as AgentReply.Code { precondition(code == .badRequest) }
+        }
         coordinator.setEnabled(.walk, false)
         precondition(index.actionIDs.isEmpty && index.stateIDs.isEmpty)
         print("Treadmill registration passed: on registers five actions; off removes actions and state")
