@@ -134,8 +134,8 @@ private struct AIUsageWindowCell: View {
                 Text(verbatim: window.label)
                     .foregroundStyle(NotchcastTheme.Colors.secondary)
                 Spacer(minLength: metrics.spacing.xs)
-                if let seconds = window.secondsUntilReset(at: now) {
-                    Text("resets in \(AIUsageCountdown.text(seconds))", tableName: "Notchcast")
+                if let countdown = window.secondsUntilReset(at: now).map(AIUsageCountdown.text) {
+                    Text("resets in \(countdown)", tableName: "Notchcast")
                         .monospacedDigit()
                         .foregroundStyle(NotchcastTheme.Colors.tertiary)
                 }
@@ -182,7 +182,7 @@ private struct AIUsageBar: View {
 }
 
 /// "2h 14m", "3d 4h", "41m": the two largest units, abbreviated in the user's language.
-enum AIUsageCountdown {
+private enum AIUsageCountdown {
     static func text(_ seconds: TimeInterval) -> String {
         let formatter = DateComponentsFormatter()
         formatter.unitsStyle = .abbreviated
