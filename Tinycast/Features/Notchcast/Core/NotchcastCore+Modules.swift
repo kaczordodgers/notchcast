@@ -5,10 +5,6 @@ import Foundation
 import Foundation
 
 extension NotchcastCore {
-    static let katana = KatanaModule()
-    static let treadmillWalk = TreadmillModule(treadmill, capability: .walk)
-    static let treadmillHistory = TreadmillModule(treadmill, capability: .history)
-    static let treadmill = TreadmillCoordinator.live()
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
     static let systemTools = SystemToolsModule()
@@ -26,11 +22,6 @@ extension NotchcastCore {
     static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
-    static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
-    static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents, enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) }, availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static let accessoryNotices = AccessoryNoticesModule()
     static let brightness = DisplayBrightnessModule()
@@ -63,6 +54,7 @@ extension NotchcastCore {
     static func entries(core: AppCore) -> [NotchcastModuleController.Entry] {
         agents.configure(core)
         agentCLI.configure(index: agents.index)
+        if agents.configured { agentMCPServer.configure(index: agents.index) }
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
         let chatTools = AgentChatToolsModule(store: core.mcpSettings, binaryPath: binaryPath, isBinaryInstalled: { FileManager.default.isExecutableFile(atPath: binaryPath) }, onChange: { [weak core] in core?.mcpCoordinator.applyEnabled() })
         agentChatTools = chatTools
@@ -77,9 +69,6 @@ extension NotchcastCore {
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
-            .init(requires: [.katana], module: katana),
-            .init(requires: [.treadmillWalk], module: treadmillWalk),
-            .init(requires: [.treadmillHistory], module: treadmillHistory),
             .init(requires: [.agentActions], module: agents),
             .init(requires: [.agentActions, .agentCLI], module: agentCLI),
             .init(requires: [.appearance], module: core.appearanceCoordinator),
@@ -102,11 +91,6 @@ extension NotchcastCore {
             .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
             .init(requires: [.backupStatus], module: backupStatus),
             .init(requires: [.machLink, .linkHealth], module: linkHealth),
-            .init(requires: [.agentSessions], module: agentSessions),
-            .init(requires: [.openBotAgents], module: openBotAgents),
-            .init(requires: [.agentThreads], module: agentThreads),
-            .init(requires: [.agentIsland], module: agentIsland),
-            .init(requires: [.fleetPanel], module: fleetPanel),
             .init(requires: [.pasteImage], module: pasteImage),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),

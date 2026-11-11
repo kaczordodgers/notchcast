@@ -103,24 +103,15 @@
     "notchcast.screenshot.folder": 2
   },
   "core-lookups": {
-    "Tinycast/Features/AgentBridge/UI/AgentBridgeModule.swift": 3,
-    "Tinycast/Features/AgentIsland/Service/AgentIslandModule.swift": 1,
-    "Tinycast/Features/AgentSessions/AgentSessionsModule+Command.swift": 1,
-    "Tinycast/Features/AgentThreads/AgentThreadsModule.swift": 2,
     "Tinycast/Features/DictationHistory/UI/DictationHistorySettingsSection.swift": 2,
-    "Tinycast/Features/FleetPanel/Service/FleetLocalSource.swift": 1,
-    "Tinycast/Features/FleetPanel/Service/FleetPanelModule.swift": 2,
-    "Tinycast/Features/Katana/KatanaModule+Commands.swift": 1,
     "Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule+Command.swift": 0,
     "Tinycast/Features/Launcher/CopyPath/CopyPathModule+Command.swift": 0,
     "Tinycast/Features/Launcher/SmallCommands/ShortenLinkArgumentsAccessory.swift": 0,
     "Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule+Commands.swift": 0,
     "Tinycast/Features/LiveTimer/LiveTimerCommands.swift": 2,
-    "Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Command.swift": 1,
     "Tinycast/Features/SettingsBackup/ForkSettingsBackupCoordinator.swift": 2,
     "Tinycast/Features/SettingsBackup/ForkSettingsBackupModule.swift": 1,
-    "Tinycast/Features/SettingsBackup/ForkSettingsBackupState+Live.swift": 16,
-    "Tinycast/Features/Treadmill/TreadmillCommands.swift": 1
+    "Tinycast/Features/SettingsBackup/ForkSettingsBackupState+Live.swift": 16
   },
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,
