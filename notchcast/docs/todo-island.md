@@ -3,7 +3,7 @@
 Engine hook only: no island registration or visual surface exists yet. The default-off
 `todoIsland` switch requires `.tasks` and belongs to the Tasks settings group. It stays in
 `NotchcastFeature.unwired` (hidden, forced off) until the island page lands; unhiding is one line.
-`NotchcastServices` injects its preference into `TodoModule`.
+`TodoModule+Registration.swift` injects its preference into `TodoModule`.
 The module owns the feed while its store is open and the switch is enabled, exposes
 `islandSnapshot` through Observation, and stops and releases the feed on switch-off,
 store close or module stop. Its snapshot file is `Todo/island.json`; switching off deletes it.

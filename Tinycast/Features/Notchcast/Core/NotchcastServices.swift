@@ -1,38 +1,29 @@
 import SwiftUI
 
+/// What the kernel builds on the music, microphone and task modules once they have registered.
 @MainActor
 final class NotchcastServices {
     let music: MusicNowPlayingModule
-    let lastPlayer: MusicLastPlayerModule
-    let appleMusic: MusicBlockAppleMusicModule
-    let sharpCovers: MusicSharpCoversModule
     let spotify: SpotifyConnectModule
     let microphone: MicrophoneMuteModule
     let marks: InUseMarksModule
-    let tasks: TodoModule
     let settings: SpotifySettingsCoordinator
     let keys: NotchcastKeyMonitor
     private let commandFeedback: MusicCommandFeedback
     private let taskCommandAvailability: TodoCommandAvailability
 
-    init(core: AppCore, preferences: NotchcastPreferences) {
-        let music = MusicNowPlayingModule(defaults: preferences.engineDefaults)
+    init?(core: AppCore, preferences: NotchcastPreferences) {
+        guard let music = MusicNowPlayingModule.shared, let appleMusic = MusicBlockAppleMusicModule.shared,
+              let spotify = SpotifyConnectModule.shared, let microphone = MicrophoneMuteModule.shared,
+              let marks = InUseMarksModule.shared else { return nil }
         self.music = music
-        tasks = TodoModule(directory: NotchcastIdentity.supportRoot.appending(path: "Todo"),
-                           islandEnabled: { preferences.isOn(.todoIsland) },
-                           showFailure: { [weak core] in core?.showMessage($0, tone: .danger) })
+        self.spotify = spotify
+        self.microphone = microphone
+        self.marks = marks
         commandFeedback = MusicCommandFeedback(music: music, preferences: preferences)
         taskCommandAvailability = TodoCommandAvailability(preferences: preferences) { [weak core] in
             core?.appIndex.refreshNotchcastCommands()
         }
-        lastPlayer = MusicLastPlayerModule(model: music.model)
-        appleMusic = MusicBlockAppleMusicModule(music: music)
-        sharpCovers = MusicSharpCoversModule(model: music.model)
-        spotify = SpotifyConnectModule(source: music.soloist, defaults: preferences.engineDefaults)
-        let mute = MicrophoneMute(audio: CoreMicrophoneAudio(), defaults: preferences.engineDefaults)
-        microphone = MicrophoneMuteModule(model: mute, showMessage: { [weak core] in core?.showMessage($0) },
-                                          showFailure: { [weak core] in core?.showMessage($0.message, tone: .danger) })
-        marks = InUseMarksModule(model: InUseMarks(isMuted: { [weak mute] in mute?.isMuted == true }))
         settings = SpotifySettingsCoordinator(module: spotify, core: core)
         keys = NotchcastKeyMonitor(music: music, blocker: appleMusic.blocker, microphone: microphone,
                                     preferences: preferences, hub: NotchcastCore.eventTapHub)

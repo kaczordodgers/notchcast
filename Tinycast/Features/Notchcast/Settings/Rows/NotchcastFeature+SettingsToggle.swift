@@ -15,15 +15,15 @@ extension NotchcastFeature {
             NotchcastPreferences.shared.set(self, on)
             if !on { NotchcastCore.macUpdate.stop() }
         case .typingTweaks:
-            Task { await NotchcastCore.typingTweaks.setFeature(self, enabled: on) }
+            Task { await TweaksModule.typing.setFeature(self, enabled: on) }
         case .finderTweaks:
-            Task { await NotchcastCore.finderTweaks.setFeature(self, enabled: on) }
+            Task { await TweaksModule.finder.setFeature(self, enabled: on) }
         case .dockTweaks:
-            Task { await NotchcastCore.dockTweaks.setFeature(self, enabled: on) }
+            Task { await TweaksModule.dock.setFeature(self, enabled: on) }
         case .appleAppsTweaks:
-            Task { await NotchcastCore.appleAppsTweaks.setFeature(self, enabled: on) }
+            Task { await TweaksModule.appleApps.setFeature(self, enabled: on) }
         case .iPhoneBackupTweaks:
-            Task { await NotchcastCore.iPhoneBackupTweaks.setFeature(self, enabled: on) }
+            Task { await TweaksModule.iPhoneBackup.setFeature(self, enabled: on) }
         case .startupItems, .notificationCleanup, .sudoTouchID,
              .aiFeaturesOff, .spotlightOff, .privacyChoices:
             guard SystemToolsHelperPolicy.available(self) else { return }
@@ -36,7 +36,7 @@ extension NotchcastFeature {
     @MainActor var settingsAvailable: Bool {
         switch self {
         case .batterySailing, .batteryHeatProtection, .batteryCalibration:
-            NotchcastPreferences.shared.isOn(self) || !NotchcastCore.battery.chargingUnsupported
+            NotchcastPreferences.shared.isOn(self) || !BatteryModule.shared.chargingUnsupported
         case .fanControl, .monitorAlerts, .accessoryBatteries:
             NotchcastPreferences.shared.isOn(.systemMonitor)
         default:
