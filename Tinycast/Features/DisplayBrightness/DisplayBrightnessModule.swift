@@ -3,8 +3,8 @@ final class DisplayBrightnessModule: NotchcastModule {
     let controller = BrightnessController()
     private var transition: Task<Void, Never>?
 
-    func start() { NotchcastHost.current.refreshNotchcastCommands(); setRunning(true) }
-    func stop() { NotchcastHost.current.refreshNotchcastCommands(); setRunning(false) }
+    func start() { setRunning(true) }
+    func stop() { setRunning(false) }
 
     private func setRunning(_ running: Bool) {
         let previous = transition

@@ -5,6 +5,6 @@ extension BlockedDialogModule: NotchcastRegistrant {
         guard let linkChannel else { return [] }
         let module = linked(to: linkChannel)
         shared = module
-        return [.init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: module)]
+        return [.init(requires: [.machBlockedDialogAlert], module: module)]
     }
 }

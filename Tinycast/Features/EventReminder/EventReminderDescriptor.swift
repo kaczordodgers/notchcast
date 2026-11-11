@@ -7,7 +7,7 @@ extension NotchcastFeature.Descriptor {
         group: .activities,
         defaultEnabled: true,
         backedUp: true,
-        dependencies: [.island],
+        dependencies: [.island, .islandLiveActivities],
         requiredGrants: [.calendars],
         isSystemFeature: false,
         isSystemTweak: false

@@ -42,5 +42,7 @@ extension NotchcastCore {
         MicrophoneMuteModule.self,
         TodoModule.self,
         MachineBackupCoordinator.self,
+        SpacesOrderModule.self,
+        DictationCleanupModule.self,
     ]
 }

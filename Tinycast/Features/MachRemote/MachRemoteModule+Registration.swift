@@ -4,8 +4,8 @@ extension MachRemoteModule: NotchcastRegistrant {
     static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
         [
             .init(requires: [.machRemote], module: shared),
-            .init(requires: [.machRemote, .sendFiles], module: SendFilesModule.shared),
-            .init(requires: [.machRemote, .updateRemote], module: UpdateRemoteModule.shared),
+            .init(requires: [.sendFiles], module: SendFilesModule.shared),
+            .init(requires: [.updateRemote], module: UpdateRemoteModule.shared),
         ]
     }
 }

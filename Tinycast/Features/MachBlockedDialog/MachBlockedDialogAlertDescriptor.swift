@@ -7,7 +7,7 @@ extension NotchcastFeature.Descriptor {
         group: .system,
         defaultEnabled: false,
         backedUp: false,
-        dependencies: [.island],
+        dependencies: [.island, .islandStatusMessages, .machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false
