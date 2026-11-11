@@ -9,6 +9,7 @@ final class SoloistSource: NowPlayingSource {
     private(set) var authState: SoloistProtocol.AuthState?
     private(set) var failure: Failure?
     private(set) var isConnected = false
+    var isReady: Bool { isConnected && authState?.loggedIn == true }
     private(set) var queue: [MusicQueueItem]?
     private var state: NowPlaying?
     private var onChange: (@MainActor () -> Void)?
