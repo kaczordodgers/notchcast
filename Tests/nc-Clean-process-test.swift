@@ -1,5 +1,5 @@
 // notchcast-sources: Tinycast/Features/Clean/CleanTool.swift Tinycast/Features/Notchcast/Process/ProcessRunner.swift
-// notchcast-sources: Tinycast/Platform/ProcessExit.swift
+// notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Features/Clean/Model/CleanOptimizeRequest.swift
 import Darwin
 import Foundation
 
@@ -35,7 +35,18 @@ struct CleanProcessTest {
         precondition(cut.error.utf8.count == 1_048_576 + 12 && cut.error.hasSuffix("x\n[truncated]"))
         let whole = try await CleanTool.run(shell, ["-c", noise, "test", "1048576"], timeout: 10)
         precondition(whole.error.utf8.count == 1_048_576 && whole.error.hasSuffix("x"))
+        let binary = try await CleanTool.run(shell, ["-c", "printf '\\377' >&2"], timeout: 2)
+        precondition(binary.code == 0 && binary.error == "\u{FFFD}", "Invalid UTF-8 error output must not fail the run")
+        let slow = root.appendingPathComponent("slow-tool")
+        try "#!/bin/sh\nsleep 5\n".write(to: slow, atomically: true, encoding: .utf8)
+        try FileManager().setAttributes([.posixPermissions: 0o755], ofItemAtPath: slow.path)
+        let unknown = try await CleanTool.idle(root, recursive: true, tool: slow, timeout: 0.2)
+        precondition(unknown == nil, "A timed-out lsof must read as an unknown state")
+        let budget = try await CleanTool.optimize(CleanOptimizeRequest(executable: shell,
+            arguments: ["-c", "sleep 5"], timeout: 0.2))
+        precondition(budget == .timedOut, "A tool past its budget must report .timedOut, not throw")
         print("PASS process-group timeout/prompt cancellation; a killed tool never reads as exit code 1")
         print("PASS error output past 1 MiB is cut and marked; exactly 1 MiB is returned whole")
+        print("PASS invalid UTF-8 error output decodes lossily; a timed-out tool is unknown or .timedOut")
     }
 }

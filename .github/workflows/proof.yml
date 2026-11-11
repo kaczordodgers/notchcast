@@ -15,6 +15,9 @@ concurrency:
 jobs:
   plan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
     outputs:
       checks: ${{ steps.plan.outputs.checks }}
       runners: ${{ steps.route.outputs.runners }}
