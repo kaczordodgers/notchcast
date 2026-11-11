@@ -6,7 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Sample your Mac in the background while alerts are on.", table: "Notchcast"),
         group: .systemTools,
         defaultEnabled: false,
-        dependencies: [],
+        dependencies: [.systemMonitor],
         requiredGrants: [],
         isSystemFeature: true,
         isSystemTweak: false

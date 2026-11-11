@@ -198,7 +198,7 @@ nonisolated enum ProcessRunner {
                 ($0.stop, $0.process.processIdentifier, $0.process.terminationStatus,
                  $0.process.terminationReason == .uncaughtSignal)
             }
-            // The leader can exit on the stop signal while a child that ignored it lives on.
+            // Leader exited: a child that ignored the stop signal gets SIGKILL now, no grace.
             if stop != nil, request.stopsGroup { kill(-pid, SIGKILL) }
             if stop == .timedOut { throw Failure.timedOut }
             try Task.checkCancellation()
