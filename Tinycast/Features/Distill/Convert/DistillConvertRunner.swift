@@ -4,7 +4,8 @@ nonisolated struct DistillConvertRunner: DownloadRunner {
     typealias HTML = @Sendable (String, URL?, DownloadRunContext) async throws -> DistillConversion
     typealias Media = @Sendable (URL, DownloadRunContext) async throws -> DistillConversion
 
-    let kind = "convert"
+    static let kind = "convert"
+    var kind: String { Self.kind }
     let tools: [DownloadTool] = []
     var html: HTML?
     var media: Media?

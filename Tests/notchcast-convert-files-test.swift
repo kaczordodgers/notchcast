@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/ConvertFiles/Model/*.swift
 // notchcast-sources: Tinycast/Features/ConvertFiles/Service/ConvertFilesRunner.swift
 // notchcast-sources: Tinycast/Features/ConvertFiles/Service/ConvertFilesNative.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 import Foundation
@@ -35,8 +35,11 @@ struct ConvertFilesTests {
             preconditionFailure("Unsupported pair accepted")
         } catch is ConvertFilesPlan.Failure {}
         try "hello".write(to: source, atomically: true, encoding: .utf8)
+        func options(_ sources: [String], _ target: String) throws -> Data {
+            try DownloadJob.encode(ConvertFilesRunner.Options(sources: sources, target: target))
+        }
         let job = DownloadJob(id: "test", kind: "convert-files", source: source.path, title: "test",
-                              created: Date(), options: ["target": "rtf"])
+                              created: Date(), encodedOptions: try options([source.path], "rtf"))
         let fake = ConvertFilesRunner(process: { _, arguments, _ in
             let output = arguments[arguments.firstIndex(of: "-output")! + 1]
             try Data("converted".utf8).write(to: URL(fileURLWithPath: output))
@@ -54,11 +57,18 @@ struct ConvertFilesTests {
             _ = try await cancelled.run(job, context: context)
             preconditionFailure("Cancellation swallowed")
         } catch is CancellationError {}
+        var legacy = job
+        legacy.encodedOptions = nil
+        do {
+            _ = try await fake.run(legacy, context: context)
+            preconditionFailure("A job without options ran")
+        } catch let failure as ConvertFilesPlan.Failure {
+            precondition(failure.message.contains("Add the files again"), "an older build's job says what to do")
+        }
         let other = url("failed.txt")
         try "failure".write(to: other, atomically: true, encoding: .utf8)
         var batch = job
-        let encoded = try JSONEncoder().encode([source.path, other.path])
-        batch.options["sources"] = String(bytes: encoded, encoding: .utf8)
+        batch.encodedOptions = try options([source.path, other.path], "rtf")
         let partial = ConvertFilesRunner(process: { _, arguments, _ in
             if arguments.last == other.path { throw ConvertFilesPlan.Failure(message: "Synthetic failure") }
             let output = arguments[arguments.firstIndex(of: "-output")! + 1]
@@ -86,7 +96,7 @@ struct ConvertFilesTests {
         precondition(CGImageDestinationFinalize(destination))
         var imageJob = job
         imageJob.source = imageURL.path
-        imageJob.options = ["target": "jpg"]
+        imageJob.encodedOptions = try options([imageURL.path], "jpg")
         guard let nativeImage = try await native.run(imageJob, context: nativeContext) else {
             preconditionFailure("No native image output")
         }
@@ -95,8 +105,7 @@ struct ConvertFilesTests {
             let inputs = operation == "pdf-merge" ? [url("input.pdf").path, url("input.pdf").path] : [url("input.pdf").path]
             var nativeJob = job
             nativeJob.source = inputs[0]
-            nativeJob.options = ["target": operation,
-                "sources": String(bytes: try JSONEncoder().encode(inputs), encoding: .utf8)!]
+            nativeJob.encodedOptions = try options(inputs, operation)
             guard let output = try await native.run(nativeJob, context: nativeContext) else {
                 preconditionFailure("No native PDF output")
             }
@@ -116,7 +125,7 @@ struct ConvertFilesTests {
             try text.write(to: input, atomically: true, encoding: .utf8)
             var nativeJob = job
             nativeJob.source = input.path
-            nativeJob.options = ["target": target]
+            nativeJob.encodedOptions = try options([input.path], target)
             guard let output = try await native.run(nativeJob, context: nativeContext) else {
                 preconditionFailure("No native data output")
             }
@@ -137,7 +146,7 @@ struct ConvertFilesTests {
         pdf.closePDF()
         var textJob = job
         textJob.source = textPDF.path
-        textJob.options = ["target": "txt"]
+        textJob.encodedOptions = try options([textPDF.path], "txt")
         let textOutput = try await native.run(textJob, context: nativeContext)!
         let extracted = try String(contentsOf: textOutput, encoding: .utf8)
         precondition(extracted.contains("Generated text"))
@@ -147,7 +156,7 @@ struct ConvertFilesTests {
             try content.write(to: input, atomically: true, encoding: .utf8)
             var nested = job
             nested.source = input.path
-            nested.options = ["target": "json"]
+            nested.encodedOptions = try options([input.path], "json")
             do {
                 _ = try await native.run(nested, context: nativeContext)
                 preconditionFailure("Nested data accepted")
