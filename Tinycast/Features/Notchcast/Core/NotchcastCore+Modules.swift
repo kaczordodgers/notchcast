@@ -26,15 +26,8 @@ extension NotchcastCore {
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".urlCleaner")))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
-    static let remoteFans = RemoteFanModule(transport: MachLinkFanTransport(channel: macLink.channel))
-    static let remoteScreen = RemoteScreenModule(channel: macLink.channel)
-    static let blockedDialogs = BlockedDialogModule.linked(to: macLink.channel)
     static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
-    static let machRemote = MachRemoteModule()
-    static let shelf = ShelfModule()
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
-    static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { NotchcastHost.current.refreshNotchcastCommands() })
-    static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { NotchcastHost.current.refreshNotchcastCommands() })
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let agentSessions = AgentSessionsModule(availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
     static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
@@ -46,7 +39,6 @@ extension NotchcastCore {
     static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
     static private(set) var pastePlain: PlainPasteModule?
-    static let linkQuickFixes = LinkQuickFixModule().configure()
     static let accessoryNotices = AccessoryNoticesModule()
     static let brightness = DisplayBrightnessModule()
     static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)
@@ -123,15 +115,8 @@ extension NotchcastCore {
             .init(requires: [], module: NotchcastToolsCommands(core: core)),
             .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
             .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
-            .init(requires: [.machRemote], module: machRemote),
-            .init(requires: [.machRemote, .sendFiles], module: sendFiles),
-            .init(requires: [.machRemote, .updateRemote], module: updateRemote),
             .init(requires: [.backupStatus], module: backupStatus),
             .init(requires: [.machLink, .linkHealth], module: linkHealth),
-            .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
-            .init(requires: [.machLink, .machMBPFans], module: remoteFans),
-            .init(requires: [.machLink, .remoteScreen], module: remoteScreen),
-            .init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: blockedDialogs),
             .init(requires: [.agentSessions], module: agentSessions),
             .init(requires: [.openBotAgents], module: openBotAgents),
             .init(requires: [.agentThreads], module: agentThreads),
@@ -141,7 +126,6 @@ extension NotchcastCore {
             .init(requires: [.finderRename], module: finderRename),
             .init(requires: [.pastePlain], module: plainPasteModule),
             .init(requires: [.pasteImage], module: pasteImage),
-            .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),
             .init(requires: [.hideCommandM], module: hideCommandM),
