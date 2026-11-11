@@ -1,4 +1,4 @@
-// notchcast-kit: host
+// notchcast-kit: host command
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Features/CopyPath/CopyPathModule*.swift
@@ -7,14 +7,6 @@ import Foundation
 
 enum DialogTone { case neutral }
 enum NotchcastFeature { case copyPath }
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
 @MainActor final class AppCore {}
 @main struct CopyTests {
     @MainActor static func main() async {

@@ -3,22 +3,12 @@
 // notchcast-sources: Tinycast/Platform/AccessibilityText.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-kit: host
+// notchcast-kit: host command
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum DialogTone { case neutral }
 enum NotchcastFeature { case smallCommands }
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature
-    var argumentCount = 0
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-    var id: String { "command:nc-" + slug }
-}
 @MainActor final class AppCore {}
 @main struct SmallTests {
     @MainActor static func main() async {
