@@ -5,7 +5,11 @@ extension BlockedDialogModule {
         slug: "check-other-mac-dialogs", name: String(localized: "Check Other Mac Dialogs", table: "Notchcast"),
         sfSymbol: "rectangle.on.rectangle", feature: .machBlockedDialogAlert,
         run: {
-            BlockedDialogModule.shared?.checkAndReport()
+            guard let module = BlockedDialogModule.shared else {
+                NotchcastHost.current.remoteResult(String(localized: "Could Not Check Other Mac Dialogs", table: "Notchcast"))
+                return
+            }
+            module.checkAndReport()
         })
 
     func checkAndReport() {

@@ -3,13 +3,11 @@
 // notchcast-sources: Tinycast/Features/MachBlockedDialog/BlockedDialogModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum NotchcastFeature {
     case machMBPFans, remoteScreen, machBlockedDialogAlert
-}
-@MainActor final class NotchcastPreferences {
-    func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
 @MainActor final class AppCore {}
 @MainActor final class MachLinkChannel {}

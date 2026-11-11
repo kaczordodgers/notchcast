@@ -10,12 +10,8 @@ struct MediaDownloadRunner: DownloadRunner {
 
     @concurrent
     func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? {
-        guard let executable = context.tools.find(.ytDlp) else {
-            throw MediaFailure(detail: DownloadTool.ytDlp.missingDetail)
-        }
-        guard context.tools.find(.ffmpeg) != nil else {
-            throw MediaFailure(detail: DownloadTool.ffmpeg.missingDetail)
-        }
+        guard let executable = context.tools.find(.ytDlp) else { throw DownloadToolMissing(tool: .ytDlp) }
+        guard context.tools.find(.ffmpeg) != nil else { throw DownloadToolMissing(tool: .ffmpeg) }
         try FileManager.default.createDirectory(at: context.destination, withIntermediateDirectories: true)
         let aria2 = await aria2Enabled() ? context.tools.find(.aria2c)?.path : nil
         let interfaces = aria2 != nil ? await networkInterfaces() : []
@@ -30,7 +26,7 @@ struct MediaDownloadRunner: DownloadRunner {
         let decision = NetMergePolicy.evaluate(interfaces: interfaces, kind: .download,
                                                sizeBytes: size, enabled: true)
         try Task.checkCancellation()
-        func attempt(aria2Path: String?, restart: Bool = false) async throws -> ChildProcess.Result {
+        func attempt(aria2Path: String?, restart: Bool = false) async throws -> DownloadProcessResult {
             let (stream, continuation) = AsyncStream<MediaOutput.Progress>.makeStream()
             async let reporting: Void = Self.report(stream, context: context)
             defer { continuation.finish() }
@@ -45,10 +41,10 @@ struct MediaDownloadRunner: DownloadRunner {
             await reporting
             return result
         }
-        let result: ChildProcess.Result
+        let result: DownloadProcessResult
         do {
             result = try await attempt(aria2Path: aria2)
-        } catch let failure as ChildProcess.Failure {
+        } catch let failure as DownloadProcessFailure {
             try Task.checkCancellation()
             guard MediaArguments.retryNatively(stderr: failure.result.errors,
                                                source: job.source, usedAria2: aria2 != nil) else { throw failure }

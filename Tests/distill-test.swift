@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
+// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup+Host.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
@@ -159,6 +160,11 @@ struct DistillTest {
             _ = try await task.value
             preconditionFailure("Busy retry ignored cancellation")
         } catch is CancellationError {}
+        let stuck = DistillTranscriber(recognize: { _ in throw DictationWire.Failure.busy }, busyLimit: .milliseconds(300))
+        do {
+            _ = try await stuck.recognizeWhenAvailable([0])
+            preconditionFailure("Busy wait was unbounded")
+        } catch DictationWire.Failure.busy {}
         let failed = DistillTranscriber { _ in throw DictationWire.Failure.notInstalled }
         do {
             _ = try await failed.recognizeWhenAvailable([0])

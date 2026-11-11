@@ -3,15 +3,9 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastLauncherGeometry.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastLauncherPlacement.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/IslandPanel+LauncherPlacement.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import AppKit
 import QuartzCore
-
-@MainActor
-final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled: Set<NotchcastFeature> = [.island, .launcherFromIsland]
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled.contains(feature) }
-}
 
 @MainActor
 enum NotchcastLauncherSurface {
@@ -33,6 +27,7 @@ final class IslandPanel: NSPanel {
 @MainActor
 struct NotchcastLauncherPlacementTests {
     static func main() {
+        NotchcastPreferences.shared.only = [.island, .launcherFromIsland]
         let panel = IslandPanel(contentRect: .zero, styleMask: .borderless,
                                 backing: .buffered, defer: false)
         func anchor() -> CGPoint? {
@@ -48,9 +43,9 @@ struct NotchcastLauncherPlacementTests {
         panel.closedBodyFrame = CGRect(x: 2470, y: 1045, width: 180, height: 31)
         assert(anchor() == CGPoint(x: 2185, y: 1037), "on a monitor the launcher hangs a gap under the pill")
         for feature in [NotchcastFeature.island, .launcherFromIsland] {
-            NotchcastPreferences.shared.enabled.remove(feature)
+            NotchcastPreferences.shared.only?.remove(feature)
             assert(anchor() == nil)
-            NotchcastPreferences.shared.enabled.insert(feature)
+            NotchcastPreferences.shared.only?.insert(feature)
             assert(anchor() != nil)
         }
         panel.activeSpace = false
@@ -85,9 +80,9 @@ struct NotchcastLauncherPlacementTests {
         external.shown = false
         assert(NotchcastLauncherPlacement.island(hosting: underExternal, among: panels) == nil)
         external.shown = true
-        NotchcastPreferences.shared.enabled.remove(.launcherFromIsland)
+        NotchcastPreferences.shared.only?.remove(.launcherFromIsland)
         assert(NotchcastLauncherPlacement.island(hosting: underBuiltIn, among: panels) == nil)
-        NotchcastPreferences.shared.enabled.insert(.launcherFromIsland)
+        NotchcastPreferences.shared.only?.insert(.launcherFromIsland)
         let offscreen = CGRect(x: -3000, y: 0, width: 750, height: 475)
         assert(NotchcastLauncherPlacement.island(hosting: offscreen, among: panels) == nil)
         openIslandGivesWay(builtIn, external, underBuiltIn)

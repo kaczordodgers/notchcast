@@ -9,7 +9,7 @@
 // notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule+Registration.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Service/MachSSHProcessRunner.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
 import Foundation
 
 enum DialogTone { case danger }

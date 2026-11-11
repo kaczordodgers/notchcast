@@ -7,6 +7,7 @@
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-kit: host
 import Foundation
 
 enum DialogTone {}
