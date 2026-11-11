@@ -5,14 +5,9 @@ struct AgentMCPIndexBackend: AgentMCPBackend {
     let index: AgentActionIndex
 
     func actions() async throws -> [AgentMCPAction] {
-        try await catalog("actions").compactMap { fields in
-            guard case .string(let id) = fields["id"], case .string(let title) = fields["title"],
-                  case .string(let text) = fields["danger"], let danger = AgentAction.Danger(rawValue: text),
-                  let schema = fields["parameters"] else {
-                return nil
-            }
-            return try AgentMCPAction(id: id, title: title, inputSchema: JSONEncoder().encode(schema),
-                                      danger: danger.rawValue, isDestructive: danger != .harmless)
+        try await catalog().actions.filter(\.available).map {
+            try AgentMCPAction(id: $0.id, title: $0.title, inputSchema: JSONEncoder().encode($0.parameters),
+                               danger: $0.danger.rawValue, isDestructive: $0.danger != .harmless)
         }
     }
 
@@ -25,25 +20,18 @@ struct AgentMCPIndexBackend: AgentMCPBackend {
     }
 
     func states() async throws -> [AgentMCPState] {
-        try await catalog("states").compactMap { fields in
-            guard case .string(let id) = fields["id"], case .string(let title) = fields["title"] else { return nil }
-            return AgentMCPState(id: id, title: title)
-        }
+        try await catalog().states.filter(\.available).map { AgentMCPState(id: $0.id, title: $0.title) }
     }
 
     func readState(_ id: String) async throws -> Data {
         try await JSONEncoder().encode(result(for: .init(verb: .get, id: id)))
     }
 
-    private func catalog(_ key: String) async throws -> [[String: AgentJSON]] {
-        guard case .object(let catalog) = try await result(for: .init(verb: .list)),
-              case .array(let entries) = catalog[key] else {
+    private func catalog() async throws -> AgentCatalog {
+        guard let catalog = try await AgentCatalog(result(for: .init(verb: .list))) else {
             throw AgentMCPFailure(code: -32603, message: "Invalid action catalog")
         }
-        return entries.compactMap {
-            guard case .object(let fields) = $0, fields["available"] == .bool(true) else { return nil }
-            return fields
-        }
+        return catalog
     }
 
     private func result(for request: AgentRequest) async throws -> AgentJSON {
