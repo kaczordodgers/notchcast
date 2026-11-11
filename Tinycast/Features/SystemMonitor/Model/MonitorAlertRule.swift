@@ -1,5 +1,20 @@
 import Foundation
 
+/// The one owner of each alert threshold's settings key, allowed range and default.
+nonisolated struct MonitorThreshold: Sendable {
+    let key: String
+    let range: ClosedRange<Int>
+    let fallback: Int
+
+    static let cpu = Self(key: "monitorCPU", range: 10...100, fallback: 90)
+    static let temperature = Self(key: "monitorTemperature", range: 40...110, fallback: 90)
+    static let memory = Self(key: "monitorMemory", range: 0...1, fallback: 1)
+    static let disk = Self(key: "monitorDisk", range: 1...50, fallback: 10)
+    static let battery = Self(key: "monitorBattery", range: 1...50, fallback: 15)
+    static let batteryTemperature = Self(key: "monitorBatteryTemperature", range: 30...60, fallback: 40)
+    static let all = [cpu, temperature, memory, disk, battery, batteryTemperature]
+}
+
 nonisolated struct MonitorAlertRule: Sendable, Equatable {
     enum Direction: Sendable, Equatable { case above, below }
     enum Result: Sendable, Equatable { case fire, none }

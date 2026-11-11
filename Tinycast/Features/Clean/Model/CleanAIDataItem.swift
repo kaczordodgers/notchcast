@@ -6,6 +6,7 @@ struct CleanAIDataItem: Sendable {
     let kind: Kind
     let selectable: Bool
     var refusal: Refusal?
+    let size: Int64
     internal let snapshot: [String: String]
 
     enum Refusal: Sendable {
