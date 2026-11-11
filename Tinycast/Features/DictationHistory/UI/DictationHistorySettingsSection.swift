@@ -14,7 +14,7 @@ struct DictationHistorySettingRow: View {
     @State private var loadFailed = false
 
     private var reloadID: String {
-        "\(preferences.isOn(.dictationHistory))-\(NotchcastCore.dictationHistory.revision)"
+        "\(preferences.isOn(.dictationHistory))-\(DictationHistoryModule.shared.revision)"
     }
 
     var body: some View {
@@ -28,7 +28,7 @@ struct DictationHistorySettingRow: View {
                 isLoading = true
                 loadFailed = false
                 do {
-                    let loaded = try await NotchcastCore.dictationHistory.recent(limit: 100)
+                    let loaded = try await DictationHistoryModule.shared.recent(limit: 100)
                     try Task.checkCancellation()
                     entries = loaded
                 } catch is CancellationError {
@@ -48,7 +48,7 @@ struct DictationHistorySettingRow: View {
                     message: String(localized: "Every past dictation goes. This can't be undone.", table: "Notchcast"),
                     symbol: "waveform", confirmTitle: String(localized: "Clear History")) else { return }
                 do {
-                    try await NotchcastCore.dictationHistory.deleteAll()
+                    try await DictationHistoryModule.shared.deleteAll()
                     entries = []
                     loadFailed = false
                 }

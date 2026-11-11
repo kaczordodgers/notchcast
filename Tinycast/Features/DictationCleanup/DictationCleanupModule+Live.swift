@@ -1,6 +1,8 @@
 import Foundation
 
 extension DictationCleanupModule {
+    static let shared = live()
+
     static func live() -> DictationCleanupModule {
         let identifier = NotchcastIdentity.current.bundleID
         return DictationCleanupModule(

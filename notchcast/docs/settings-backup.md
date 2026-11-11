@@ -34,6 +34,7 @@ without credentials. Automatic retention is not applied.
 ## Explicit allowlist
 
 `Model/ForkSettingsBackupSchema.swift` is the key/type policy, one key per line. Its own lists hold feature switches; a described feature's other keys live in `<Name>BackupKeys.swift` in that feature's folder (one `NotchcastFeature.BackupKeys`, listed once in `featureKeys`), and `allowed`/`excluded` collect them. `BackupKeys` and its `BackupValue` shapes live in `Notchcast/Core/NotchcastFeature+BackupKeys.swift`, so a feature's key file depends on the hub, never on SettingsBackup. Island's hover delay lives in `Notchcast/Island/IslandHoverOpenBackupKeys.swift`. The capture module's keys stay in the schema until that folder can hold a key file, and the editor keys stay because `ForkSettingsBackupState+Live` restores them. `python3 notchcast/check-backup-schema.py` refuses a feature's own key typed in the schema, a key declared twice, a key file the schema does not list or that sits in a layer folder, and a switch classified zero or two times.
+Live values reach the backup the same way: a feature's `<Name>BackupState.swift` in its own folder supplies snapshot and apply for its keys as one `NotchcastBackupState`, listed one per line in `NotchcastBackupState.all` (`Notchcast/Core/NotchcastBackupState.swift`). `ForkSettingsBackupState+Live` iterates that list and names no feature type for them; validation stays in `validateLive` and the schema. Screen text, live timers, quit protection and calendar exclusions (owned by `EventReminder`) register this way; the editor, markets, weather, colour picker, appearance and cleanup values are still read in `ForkSettingsBackupState+Live`.
 JSON-backed preferences travel as bounded strings with explicit nested field validation, not Data.
 Optional weather and theme selections use JSON null. Theme colors and slot appearance are validated.
 The low-level encoder silently drops unknown and invalid entries; the app writer supplies effective
@@ -170,13 +171,13 @@ because it gates a command that changes the Dock default. Backups written before
 list are refused; the next daily file restores normally.
 The document editor carries `notchcast.editor.font` (system/jetBrainsMono),
 `notchcast.editor.theme` (system/githubDark), and `notchcast.editor.pairsAutomatically` (Bool).
-Restore updates `NotchcastCore.editor.editorPreferences`; its setters retain the bare keys
+Restore updates `EditorCoordinator.shared.editorPreferences`; its setters retain the bare keys
 `font`, `theme`, and `pairsAutomatically` in the channel's `.editor` defaults suite.
 
 ## Adding switches
 
 Other leads must classify every new `NotchcastFeature` explicitly in `listedAllowed` or `listedExcluded`,
-one entry per line, and add snapshot/apply wiring for any new plain store preference. Never infer
+one entry per line, and add snapshot/apply wiring for any new plain store preference: a `<Name>BackupState.swift` beside the feature's key file, listed once in `NotchcastBackupState.all`. Never infer
 inclusion from `allCases`. The engine harness fails for unclassified or doubly classified switches.
 The schema has a `merge=union` entry in `.gitattributes`; rerun the guard after merging.
 Read `NotchcastFeature.swift` after every main merge for duplicate var headers or stray bodies,

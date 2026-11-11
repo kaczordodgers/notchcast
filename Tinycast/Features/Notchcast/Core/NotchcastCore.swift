@@ -9,11 +9,6 @@ enum NotchcastCore {
     private static let archiveServices = ArchiveServices()
 
     static var confirmMacUpdate: () async -> Bool = { false }
-    /// Hub glue: the settings backup reads Screen Text's option without naming its folder.
-    static var screenTextRemovesLineBreaks: Bool {
-        get { ScreenTextModule.shared.removeLineBreaks }
-        set { ScreenTextModule.shared.removeLineBreaks = newValue }
-    }
 
     static func stopForTermination() async {
         tasksSync.stop()
@@ -23,7 +18,7 @@ enum NotchcastCore {
         await macUpdate.stopForTermination()
         dictationTrigger?.stop()
         await TreadmillCoordinator.shared.stopForTermination()
-        settingsBackup.stop()
+        ForkSettingsBackupModule.shared.stop()
         CaptureTrimmerModule.shared.stop()
         voiceAsk?.stop()
         RecordingModule.shared.stop()
@@ -69,14 +64,14 @@ enum NotchcastCore {
             core?.showMessage(String(localized: "Could not update Spaces ordering.", table: "Notchcast"), tone: .danger)
         }
         spacesOrder.restoreIfDisabled()
-        dictationHistory.onFailure = { [weak core] in
+        DictationHistoryModule.shared.onFailure = { [weak core] in
             core?.showMessage(String(localized: "Couldn’t update dictation history.", table: "Notchcast"), tone: .danger)
         }
         DictationFamily.shared.historySink = { raw, cleaned in
-            dictationHistory.enqueue(raw: raw, cleaned: cleaned)
+            DictationHistoryModule.shared.enqueue(raw: raw, cleaned: cleaned)
         }
-        dictationHistory.setStageEnabled = { DictationFamily.shared.setHistory($0) }
-        Task { await dictationHistory.maintain() }
+        DictationHistoryModule.shared.setStageEnabled = { DictationFamily.shared.setHistory($0) }
+        Task { await DictationHistoryModule.shared.maintain() }
         dictationCleanup.reportFailure = { [weak core] in
             core?.showMessage(String(localized: "Could not save dictation cleanup settings.", table: "Notchcast"), tone: .danger)
         }

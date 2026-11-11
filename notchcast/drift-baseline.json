@@ -60,7 +60,6 @@
     "Features/SettingsBackup -> Features/DictationCleanup": 1,
     "Features/SettingsBackup -> Features/DocumentEditor": 1,
     "Features/SettingsBackup -> Features/LiveDay": 1,
-    "Features/SettingsBackup -> Features/QuitProtection": 1,
     "Features/Shelf -> Features/AIUsage": 0,
     "Features/Shelf -> Features/MachLink": 1,
     "Features/SystemLevels -> Features/DisplayBrightness": 1,
@@ -102,17 +101,7 @@
     "notchcast.screenshot.destination": 2,
     "notchcast.screenshot.folder": 2
   },
-  "core-lookups": {
-    "Tinycast/Features/DictationHistory/UI/DictationHistorySettingsSection.swift": 2,
-    "Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule+Command.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/CopyPathModule+Command.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/ShortenLinkArgumentsAccessory.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule+Commands.swift": 0,
-    "Tinycast/Features/LiveTimer/LiveTimerCommands.swift": 2,
-    "Tinycast/Features/SettingsBackup/ForkSettingsBackupCoordinator.swift": 2,
-    "Tinycast/Features/SettingsBackup/ForkSettingsBackupModule.swift": 1,
-    "Tinycast/Features/SettingsBackup/ForkSettingsBackupState+Live.swift": 16
-  },
+  "core-lookups": {},
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,
     "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
