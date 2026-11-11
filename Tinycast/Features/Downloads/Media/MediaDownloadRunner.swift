@@ -19,11 +19,8 @@ struct MediaDownloadRunner: DownloadRunner {
         if interfaces.contains(where: { $0.kind == .wifi && $0.hasIPv4 })
             && interfaces.contains(where: { $0.kind == .iPhoneUSB && $0.hasIPv4 }) {
             let arguments = MediaArguments.probe(source: job.source, format: format)
-            do {
-                size = MediaNetwork.expectedSize(try await context.spawn(executable: executable, arguments: arguments).output)
-            } catch {
-                // A failed probe only leaves the size unknown; a cancelled one must still stop the run.
-                try Task.checkCancellation()
+            if let metadata = try? await context.spawn(executable: executable, arguments: arguments) {
+                size = MediaNetwork.expectedSize(metadata.output)
             }
         }
         let decision = NetMergePolicy.evaluate(interfaces: interfaces, kind: .download,

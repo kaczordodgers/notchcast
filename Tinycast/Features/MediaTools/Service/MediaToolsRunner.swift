@@ -86,7 +86,7 @@ struct MediaToolsRunner: Sendable {
                 if let text = page.string, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                     return text
                 }
-                let thumbnail = page.thumbnail(of: CGSize(width: Self.imageLimit, height: Self.imageLimit), for: .mediaBox)
+                let thumbnail = page.thumbnail(of: CGSize(width: 1600, height: 1600), for: .mediaBox)
                 guard let data = thumbnail.tiffRepresentation,
                       let source = CGImageSourceCreateWithData(data as CFData, nil),
                       let image = CGImageSourceCreateImageAtIndex(source, 0, nil)
