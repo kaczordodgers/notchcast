@@ -1,7 +1,10 @@
+// notchcast-kit: host
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Features/CopyPath/CopyPathModule*.swift
 import Foundation
 
-@MainActor protocol NotchcastModule {}
+enum DialogTone { case neutral }
 enum NotchcastFeature { case copyPath }
 struct NotchcastCommand: Sendable {
     let slug: String
@@ -15,12 +18,7 @@ struct NotchcastCommand: Sendable {
     static let shared = NotchcastPreferences()
     func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
-@MainActor enum NotchcastCore { static let copyPath = CopyPathModule() }
-@MainActor final class AppCore {
-    enum Tone { case neutral }
-    static let shared = AppCore()
-    func showMessage(_ text: String, tone: Tone) {}
-}
+@MainActor final class AppCore {}
 @main struct CopyTests {
     @MainActor static func main() async {
         let module = CopyPathModule(makeService: { CopyPathService { request in
@@ -49,6 +47,9 @@ struct NotchcastCommand: Sendable {
         release.yield()
         await task?.value
         precondition(!lateCopied)
+        let entries = CopyPathModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.copyPath] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === CopyPathModule.shared)
         print("Verified launcher action resolves with fake reader, copies result and reports success; a stopped module copies nothing")
     }
 }

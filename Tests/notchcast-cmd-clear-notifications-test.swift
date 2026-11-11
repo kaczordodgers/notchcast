@@ -1,7 +1,17 @@
 // notchcast-sources: Tinycast/Features/ClearNotifications/Model/*.swift
 // notchcast-sources: Tinycast/Features/ClearNotifications/Service/*.swift
+// notchcast-sources: Tinycast/Features/ClearNotifications/ClearNotificationsModule.swift
+// notchcast-sources: Tinycast/Features/ClearNotifications/ClearNotificationsModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import AppKit
 import Synchronization
+
+enum NotchcastFeature { case clearNotifications }
+@MainActor final class NotchcastPreferences {
+    func isOn(_ feature: NotchcastFeature) -> Bool { true }
+}
+@MainActor final class AppCore {}
 
 @main
 struct ClearNotificationsTests {
@@ -91,5 +101,10 @@ struct ClearNotificationsTests {
             preconditionFailure("AppleScript compile failed: \(String(describing: errorInfo))")
         }
         print("Verified cmd-clear-notifications: shipped AppleScript compiles without executing notifications")
+
+        let entries = ClearNotificationsModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.clearNotifications] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === ClearNotificationsModule.shared)
+        print("Verified cmd-clear-notifications: registration returns the shared module behind its switch")
     }
 }
