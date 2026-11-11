@@ -157,6 +157,11 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
         precondition(partial["notchcast.appearance.theme.light"] == nil && partial.count == complete.count - 1)
         liveDefaults.removeObject(forKey: "notchcast.appearance.theme.light")
         print("PASS: an unreadable theme drops only its own key from a snapshot")
+        liveDefaults.set(Data("not cleanup settings".utf8), forKey: "dictationCleanupSettings")
+        let failedSnapshot = (try? ForkSettingsBackupState.live.snapshot()) == nil
+        liveDefaults.removeObject(forKey: "dictationCleanupSettings")
+        precondition(failedSnapshot)
+        print("PASS: a feature whose snapshot throws fails the whole backup snapshot")
         for feature in NotchcastFeature.BackupKeys.all {
             let own = try feature.snapshot()
             precondition(Set(own.keys) == Set(feature.allowed.keys), "\(feature.allowed.keys.sorted())")
