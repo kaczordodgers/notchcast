@@ -10,7 +10,7 @@ step xcode
 source "$TOOLS/notchcast/ci-xcode.sh"
 # The fork-strings check compares against upstream's catalog, so fetch upstream first.
 step upstream
-git fetch -q --no-tags "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+bash "$TOOLS/notchcast/fetch-upstream.sh" --no-tags
 export UPSTREAM=$(git merge-base HEAD refs/remotes/upstream/main)
 step xcstrings
 if [ -n "${BASE_SHA:-}" ]; then

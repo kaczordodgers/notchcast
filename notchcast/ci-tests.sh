@@ -33,7 +33,7 @@ if [ "$status" -ne 0 ] && ls "$BIN"/*.failed >/dev/null 2>&1; then
   status=0
   if [ -n "$still" ]; then
     if [ -z "${UPSTREAM:-}" ]; then
-      git fetch -q --no-tags "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+      bash "$TOOLS/notchcast/fetch-upstream.sh" --no-tags
       UPSTREAM=$(git merge-base HEAD refs/remotes/upstream/main)
     fi
     git worktree add -q --detach "$RUNNER_TEMP/pristine" "$UPSTREAM"
