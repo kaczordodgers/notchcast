@@ -399,7 +399,7 @@ final class BatteryModule: NotchcastModule {
 
     private var hasRepairCandidates: Bool {
         journal.effects.contains { key, effect in
-            guard effect.attempts < 6 else { return false }
+            guard effect.attempts < BatteryOwnershipJournal.maxAttempts else { return false }
             if !running { return true }
             switch BatteryOwnershipJournal.Key(rawValue: key) {
             case .chargeLimit: return !preferences.isOn(.batteryChargeLimit)
@@ -411,9 +411,7 @@ final class BatteryModule: NotchcastModule {
     }
 
     private func repairMarkedChanges(now: Date) async {
-        guard journal.effects.values.contains(where: {
-            $0.attempts < 6 && ($0.retryAt.map { now >= $0 } ?? true)
-        }) else { return }
+        guard journal.effects.values.contains(where: { $0.isDue(now: now) }) else { return }
         do {
             guard runner.installed(), (Int(try await runner.version()) ?? 0) >= 2 else { return }
             for key in BatteryOwnershipJournal.Key.released {
