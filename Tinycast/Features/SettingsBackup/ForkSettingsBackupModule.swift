@@ -30,7 +30,7 @@ final class ForkSettingsBackupModule: NotchcastModule {
     }
 
     func stop() {
-        NotchcastCore.settingsBackupRestore.stop()
+        ForkSettingsBackupCoordinator.shared.stop()
         task?.cancel()
         task = nil
     }

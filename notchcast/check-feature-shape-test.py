@@ -358,8 +358,8 @@ class FeatureShapeTests(unittest.TestCase):
     def test_repeated_static(self):
         source = (self.root / MODULES).read_text()
         self.rejected(MODULES, source.replace(
-            "    static let timers = LiveTimerModule()\n",
-            "    static let timers = LiveTimerModule()\n    static let timers = LiveTimerModule(sound: true)\n"),
+            "    static let timers = LiveTimerModule.shared\n",
+            "    static let timers = LiveTimerModule.shared\n    static let timers = LiveTimerModule(sound: true)\n"),
             "repeated static timers")
 
     def test_repeated_search_entry_with_new_keywords(self):
