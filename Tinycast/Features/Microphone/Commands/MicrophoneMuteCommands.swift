@@ -12,7 +12,7 @@ enum MicrophoneMuteCommands {
             NotchcastPreferences.shared.isEnabled(.microphoneMute)
         }, run: {
             guard NotchcastPreferences.shared.isEnabled(.microphoneMute) else { return }
-            NotchcastCore.services?.microphone.setMuted(muted)
+            MicrophoneMuteModule.shared?.setMuted(muted)
         })
     }
 }

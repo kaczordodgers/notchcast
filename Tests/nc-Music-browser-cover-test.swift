@@ -1,32 +1,11 @@
 // notchcast-sources: Tinycast/Features/Music/Model/*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/*.swift
 // notchcast-kit: core
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastServicesModules.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
 import AppKit
 import ImageIO
-
-@MainActor
-final class CountingModule: NotchcastModule {
-    func start() {}
-    func stop() {}
-}
-
-@MainActor
-final class NotchcastServices {
-    let music = CountingModule()
-    let lastPlayer = CountingModule()
-    let appleMusic = CountingModule()
-    let spotify = CountingModule()
-    let microphone = CountingModule()
-    let marks = CountingModule()
-    let tasks = CountingModule()
-    let sharpCovers: MusicSharpCoversModule
-
-    init(sharpCovers: MusicSharpCoversModule) { self.sharpCovers = sharpCovers }
-}
 
 @MainActor
 final class Log {
@@ -267,8 +246,9 @@ struct BrowserCoverTests {
         let source = FakeSource()
         model.setSystemSource(source)
         model.setEnabled(true)
-        let services = NotchcastServices(sharpCovers: MusicSharpCoversModule(model: model, finder: finder))
-        let controller = NotchcastModuleController(services.moduleEntries, preferences: preferences)
+        let controller = NotchcastModuleController([.init(
+            requires: [.island, .musicNowPlaying, .musicSharpCovers],
+            module: MusicSharpCoversModule(model: model, finder: finder))], preferences: preferences)
         controller.run()
 
         let thumb = "https://i.ytimg.com/vi/1PxhTfmEyQ8/maxresdefault.jpg"

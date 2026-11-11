@@ -8,11 +8,17 @@
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorModule.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlerts.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Store/MonitorAlertPreferences.swift
+// notchcast-sources: Tinycast/Features/SystemMonitor/MonitorModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-kit: core root platform
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootHelperClient.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootWait.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootToolPath.swift
 import Foundation
+
+enum DialogTone { case danger }
+@MainActor final class AppCore {}
 
 @MainActor
 final class FakeFans {
@@ -90,6 +96,11 @@ struct MonitorStoreTests {
     }
 
     static func main() async {
+        let registered = MonitorModule.register(AppCore())
+        precondition(registered.count == 1 && registered[0].module === MonitorModule.shared)
+        precondition(registered[0].requires == [.systemMonitor] && registered[0].requiresAny.isEmpty)
+        print("PASS: the monitor registers its one module behind the System Monitor switch")
+
         let wakeProbe = SampleProbe()
         let wakeAlerts = SampleProbe(percent: 95)
         let waking = MonitorStore(sample: { await wakeProbe.sample() },

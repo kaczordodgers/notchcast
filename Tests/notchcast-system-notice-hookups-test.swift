@@ -1,14 +1,17 @@
-// notchcast-kit: host
 // notchcast-sources: Tinycast/Features/LowDisk/Model/LowDiskEngine.swift
 // notchcast-sources: Tinycast/Features/LowDisk/LowDiskModule.swift
 // notchcast-sources: Tinycast/Features/LowDisk/LowDiskModule+Notice.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule.swift
 // notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Notice.swift
+// notchcast-sources: Tinycast/Features/SystemNotices/SystemNoticesModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 
-@MainActor protocol NotchcastModule {}
 enum DialogTone {}
+@MainActor final class AppCore {}
 @MainActor final class LowDiskManager {
     var onNotice: ((LowDiskEngine.Space) -> Void)?
     func start() {}
@@ -44,6 +47,9 @@ enum DialogTone {}
         precondition(IslandHUDRouter.messages.last?.hasPrefix("Low disk space:") == true)
         disk.stop()
         precondition(disk.manager.onNotice == nil && refreshes == 2)
+        let registered = SystemNoticesModule.register(AppCore())
+        precondition(registered.count == 1 && registered[0].module === SystemNoticesModule.shared)
+        precondition(registered[0].requires == [.island, .systemNotices] && registered[0].requiresAny.isEmpty)
         let system = SystemNoticesModule()
         system.start()
         precondition(refreshes == 3)

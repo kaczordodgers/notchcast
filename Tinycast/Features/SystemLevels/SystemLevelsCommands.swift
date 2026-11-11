@@ -12,7 +12,7 @@ enum SystemLevelsCommands {
             slug: "volume-\(percent)", name: String(localized: name), sfSymbol: "speaker.wave.2", feature: .volumeLevels,
             isEnabled: { NotchcastPreferences.shared.isOn(.island) && NotchcastPreferences.shared.isOn(.volumeLevels) },
             run: {
-                let service = NotchcastCore.systemLevels.service
+                let service = SystemLevelsModule.shared.service
                 Task { @MainActor in
                     guard service.isRunning, NotchcastPreferences.shared.isOn(.island),
                           NotchcastPreferences.shared.isOn(.volumeLevels) else { return }
@@ -20,7 +20,7 @@ enum SystemLevelsCommands {
                     guard !Task.isCancelled, service.isRunning else { return }
                     if case .fallbackToNativeKeys = result {
                         let message = String(localized: "The current audio output does not support software volume.")
-                        AppCore.shared.showMessage(message)
+                        NotchcastHost.current.showMessage(message, .success)
                     }
                 }
             })
