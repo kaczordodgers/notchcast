@@ -84,8 +84,7 @@ jobs:
         if: steps.plan.outputs.tag != ''
         working-directory: src
         run: |
-          source ../tools/notchcast/config.env
-          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+          bash ../tools/notchcast/fetch-upstream.sh
           echo "upstream=$(git merge-base HEAD refs/remotes/upstream/main)" >> "$GITHUB_OUTPUT"
       - name: Regenerate project
         if: steps.plan.outputs.tag != ''

@@ -27,6 +27,5 @@ jobs:
       # Findings upstream already has are the baseline; only what our commits add is reported.
       - name: ai-design-check on our changes
         run: |
-          source notchcast/config.env
-          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+          bash notchcast/fetch-upstream.sh
           notchcast/design-check.sh "$(git merge-base HEAD refs/remotes/upstream/main)"

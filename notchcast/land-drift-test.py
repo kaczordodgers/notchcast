@@ -42,7 +42,7 @@ class Landing(unittest.TestCase):
     def shell(self, script, *args, env=None):
         return subprocess.run(['bash', '-c', 'set -euo pipefail\n'
                                'refuse() { printf "REFUSED: %s\\n" "$*"; exit 1; }\n'
-                               'drift_tools="$PWD/notchcast"\n' + script,
+                               'drift_tools="$PWD/notchcast"\n' f'merge_tools="{ROOT}/notchcast"\n' + script,
                                'landing-fixture', *args], cwd=self.root, capture_output=True, text=True, env=env)
 
     def commit(self, message):
@@ -169,7 +169,7 @@ class Landing(unittest.TestCase):
 
     def test_sourced_helper_change_needs_signoff(self):
         self.commit('Base')
-        for helper in ('hold.sh', 'drift-gates.sh', 'merge.sh'):
+        for helper in ('hold.sh', 'drift-gates.sh', 'merge.sh', 'sync-wait.sh', 'local-build-status.sh', 'fork-point.sh'):
             with self.subTest(helper=helper):
                 base = fixtures.git(self.root, 'rev-parse', 'HEAD')
                 fixtures.write(self.root, f'notchcast/{helper}', 'refuse() { echo "WARN: $*"; }\n')
