@@ -74,13 +74,10 @@
     "notchcast/root -> Features/SystemTools": 1
   },
   "clones": {
-    "Tinycast/Features/FleetPanel/Service/FleetMachLinkTransport.swift | Tinycast/Features/MachMBPFans/Service/MachLinkFanTransport.swift": 0,
     "Tinycast/Features/FleetPanel/Service/FleetMachLinkTransport.swift | Tinycast/Features/Todo/TodoLinkWiring.swift": 0,
     "Tinycast/Features/MachRemote/Integration/SendFilesModule.swift | Tinycast/Features/MachRemote/Integration/UpdateRemoteModule.swift": 1,
     "Tinycast/Features/Notchcast/Gallery/GalleryPages+Island.swift | Tinycast/Features/Notchcast/Gallery/IslandMotionStage.swift": 1,
-    "Tinycast/Features/Notchcast/Root/RootContract.swift | notchcast/root/RootContract.swift": 0,
-    "Tinycast/Features/RemoteScreen/RemoteScreenModule.swift | Tinycast/Features/Todo/TodoLinkWiring.swift": 0,
-    "Tinycast/Features/Tweaks/Service/MacSetupService.swift | Tinycast/Features/Tweaks/Service/TypingPreferenceService.swift": 0
+    "Tinycast/Features/RemoteScreen/RemoteScreenModule.swift | Tinycast/Features/Todo/TodoLinkWiring.swift": 0
   },
   "constants": {
     "app.notchcast": 3,
@@ -93,22 +90,18 @@
   "core-lookups": {},
   "dead": {
     "Tinycast/Features/CaptureTrimmer/Service/CaptureTrimmerSettingsSection.swift:CaptureTrimmerSettingsSection": 1,
-    "Tinycast/Features/Clean/Service/CleanFileTrashTransport.swift:CleanFileTrashTransport": 0,
     "Tinycast/Features/DictationEnglish/Service/DictationEnglishSettingsSection.swift:DictationEnglishSettingsSection": 1,
     "Tinycast/Features/DictationTrigger/UI/DictationTriggerSettingsSection.swift:DictationTriggerSettingsSection": 1,
-    "Tinycast/Features/DisplayBrightness/Service/KeyboardBrightnessService.swift:KeyboardBrightnessService": 0,
     "Tinycast/Features/Music/NowPlayingAdapter/NowPlayingAdapter.swift:tinycastNowPlayingWatch": 1,
     "Tinycast/Features/Notchcast/Island/IslandAnalyserBars.swift:dismantleNSView": 1,
     "Tinycast/Features/Notchcast/Island/IslandPieces.swift:IslandRing": 1,
-    "Tinycast/Features/Tweaks/Model/MacSetupRootVerbs.swift:MacSetupRootVerbs": 0,
     "Tinycast/Features/Tweaks/Model/TypingCatalog.swift:requiresLogout": 0
   },
   "file-size": {
     "Tinycast/Features/Appearance/Model/RaycastThemeCatalog.swift": 666,
     "Tinycast/Features/Battery/Store/BatteryModule.swift": 444,
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift": 2275,
-    "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413,
-    "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0
+    "Tinycast/Features/Katana/Model/KatanaPresetImporter.swift": 413
   },
   "test-only": {
     "Tinycast/Features/AgentSessions/Pricing/AgentPricingEngine.swift:roundedUSD": 1,
@@ -119,7 +112,6 @@
     "Tinycast/Features/GitHub/Service/GitHubHTMLEntities.swift:GitHubHTMLEntities": 1,
     "Tinycast/Features/IslandHome/Model/IslandHomeModel.swift:IslandHomeModel": 1,
     "Tinycast/Features/IslandHome/Service/IslandHomeActivityAdapter.swift:IslandHomeActivityAdapter": 1,
-    "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift:GitHubHTMLEntities": 0,
     "Tinycast/Features/MarkdownQuickLook/Service/MarkdownQuickLookReader.swift:MarkdownQuickLookReader": 1,
     "Tinycast/Features/Music/Service/SoloistBuilds.swift:readDownload": 0,
     "Tinycast/Features/Notchcast/Core/NotchcastFeature.swift:systemToolsSettingsFeatures": 1,
@@ -143,58 +135,8 @@
     "Tinycast/Features/SystemMonitor/Model/MonitorFormat.swift:MonitorFormat": 1,
     "Tinycast/Features/SystemTools/Service/NotificationCleanupService.swift:NotificationCleanupService": 1,
     "Tinycast/Features/SystemTools/Service/TouchIDService.swift:TouchIDService": 1,
-    "Tinycast/Features/Todo/Model/TodoReminder.swift:Snooze": 0,
-    "Tinycast/Features/Todo/Model/TodoTaskDetail.swift:TodoTaskDetail": 0,
-    "Tinycast/Features/Todo/Service/TodoAgentGateway.swift:TodoAgentGateway": 0,
-    "Tinycast/Features/Todo/Service/TodoReminderTimer.swift:TodoReminderTimer": 0,
-    "Tinycast/Features/Treadmill/Service/UnavailableTreadmillTransport.swift:UnavailableTreadmillTransport": 0,
-    "Tinycast/Features/Tweaks/Model/AIOffDaemonPlan.swift:AIOffDaemonPlan": 0,
     "Tinycast/Features/Tweaks/Model/AppleAppsPolicy.swift:dockPlan": 0,
-    "Tinycast/Features/Tweaks/Model/AppleAppsPolicy.swift:serviceCommands": 0,
-    "Tinycast/Features/Tweaks/Model/MacSetupCatalog.swift:MacSetupCatalog": 0,
-    "Tinycast/Features/Tweaks/Model/MacSetupPresetCatalog.swift:MacSetupPresetCatalog": 0,
-    "Tinycast/Features/Tweaks/Model/SpotlightIndexing.swift:SpotlightIndexing": 0,
-    "Tinycast/Features/Tweaks/Model/SpotlightRootVerbs.swift:SpotlightRootVerbs": 0,
-    "Tinycast/Features/Tweaks/Service/AIOffNativeModelService.swift:AIOffNativeModelService": 0,
-    "Tinycast/Features/Tweaks/Service/AppleAppsService.swift:AppleAppsService": 0,
-    "Tinycast/Features/Tweaks/Service/TweakPlanSession.swift:TweakPlanSession": 0
+    "Tinycast/Features/Tweaks/Model/AppleAppsPolicy.swift:serviceCommands": 0
   },
-  "upstream-folders": {
-    "Tinycast/Features/Launcher/Answers/LauncherAnswersModule.swift": 0,
-    "Tinycast/Features/Launcher/Answers/Model/CurrencyAnswerQuery.swift": 0,
-    "Tinycast/Features/Launcher/Answers/Model/NBPAnswerRates.swift": 0,
-    "Tinycast/Features/Launcher/Answers/Service/NBPAnswerRateProvider.swift": 0,
-    "Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule+Command.swift": 0,
-    "Tinycast/Features/Launcher/ClearNotifications/ClearNotificationsModule.swift": 0,
-    "Tinycast/Features/Launcher/ClearNotifications/Model/ClearNotificationsFailure.swift": 0,
-    "Tinycast/Features/Launcher/ClearNotifications/Service/ClearNotificationsExecutor.swift": 0,
-    "Tinycast/Features/Launcher/ClearNotifications/Service/ClearNotificationsRunner.swift": 0,
-    "Tinycast/Features/Launcher/ClearNotifications/Service/ClearNotificationsScript.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/CopyPathModule+Command.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/CopyPathModule.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/Model/CopyPathEngine.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/Model/CopyPathTarget.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/Service/CopyPathService.swift": 0,
-    "Tinycast/Features/Launcher/CopyPath/Service/CopyPathSystemReader.swift": 0,
-    "Tinycast/Features/Launcher/GitHub/GitHubModule.swift": 0,
-    "Tinycast/Features/Launcher/GitHub/Model/GitHubRepository.swift": 0,
-    "Tinycast/Features/Launcher/GitHub/Service/GitHubHTMLEntities.swift": 0,
-    "Tinycast/Features/Launcher/GitHub/Service/GitHubSearchSession.swift": 0,
-    "Tinycast/Features/Launcher/GitHub/Service/GitHubService.swift": 0,
-    "Tinycast/Features/Launcher/Keys/LauncherAliasSpace.swift": 0,
-    "Tinycast/Features/Launcher/Keys/LauncherList+NumberKeys.swift": 0,
-    "Tinycast/Features/Launcher/Keys/LauncherNumberKeys.swift": 0,
-    "Tinycast/Features/Launcher/Keys/LauncherScreen+AliasSpace.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/Model/NoiseControlEngine.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/Model/RandomPasswordEngine.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/Service/AirDropService.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/Service/NoiseControlService.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/Service/NoiseControlSystem.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/Service/RandomPasswordService.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/Service/ShortenLinkService.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/ShortenLinkArgumentsAccessory.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule+Arguments.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule+Commands.swift": 0,
-    "Tinycast/Features/Launcher/SmallCommands/SmallCommandsModule.swift": 0
-  }
+  "upstream-folders": {}
 }
