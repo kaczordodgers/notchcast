@@ -8,25 +8,13 @@
 // notchcast-sources: Tinycast/Features/HotKeys/Service/HotKeyManager.swift
 // notchcast-sources: Tinycast/Platform/ASCIIKeyboardLayout.swift
 // notchcast-sources: Tests/hotkey-dispatch-fixtures.swift
-// notchcast-kit: core
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-kit: core command
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandInputState.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Island/HotKeyManager+IslandToggle.swift
 import Carbon.HIToolbox
 import Foundation
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry {
-    enum Kind { case command }
-    let id: String
-    let name: String
-    let url: URL
-    let bundleID: String?
-    let kind: Kind
-    let settingsOwner: SettingsTab?
-    let symbolName: String
-}
 @MainActor final class AppCore {
     static let shared = AppCore()
     var paletteCoordinator: AppCore { self }

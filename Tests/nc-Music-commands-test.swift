@@ -9,20 +9,8 @@
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
-// notchcast-kit: core platform
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-kit: core platform command
 import AppKit
-enum SettingsTab: Sendable { case notchcast, notchcastMusicAndSound }
-struct AppEntry: Sendable {
- let id: String
- let name: String
- let url: URL
- let bundleID: String?
- enum Kind: Sendable { case command }
- let kind: Kind
- let settingsOwner: SettingsTab?
- let symbolName: String?
-}
 
 enum DialogTone { case danger, success }
 @MainActor final class AppCore {
