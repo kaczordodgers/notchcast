@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sourced by land.sh and local-ci.sh; the caller sets scratch and top, cwd is the merged tree.
+# Sourced by merge.sh, for land.sh and local-ci.sh; the caller sets scratch and top, cwd is the merged tree.
 refuse() { echo "REFUSED: $*" >&2; exit 1; }
 prepare_drift_tools() {
     drift_tools="$scratch/gates-$1"

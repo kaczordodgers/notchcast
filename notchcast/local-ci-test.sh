@@ -16,13 +16,20 @@ cat > "$scratch/bin/git" <<'STUB'
 if [ "$1" = clone ]; then
     tree=${@: -1}
     echo "$tree" >> "$EVENTS"
-    mkdir -p "$tree"
+    mkdir -p "$tree/notchcast" "$tree/Tinycast/Features"
+    : > "$tree/.gitattributes"
+    printf '#!/bin/sh\n' > "$tree/notchcast/check-bundle-readme.sh"
+    chmod +x "$tree/notchcast/check-bundle-readme.sh"
 fi
+# The merged tree and main differ, so the merge is not refused as empty.
+if [ "$1" = rev-parse ]; then echo "${@: -1}"; fi
 STUB
+printf '#!/bin/sh\n' > "$scratch/bin/swiftc"
 cat > "$scratch/bin/python3" <<'STUB'
 #!/bin/bash
 if [ "$1" = -c ]; then echo fixture; exit 0; fi
 if [[ "$1" == */check-drift.py ]]; then [ -z "${DRIFT_FAIL:-}" ] || echo 'gate 1: FAIL'; exit "${DRIFT_FAIL:-0}"; fi
+if [[ "$1" != */build-queue.py ]]; then exit 0; fi
 echo "builder $RUN"
 echo "$RUN: $*" >> "$QUEUE_CALLS"
 sleep 1
@@ -78,6 +85,6 @@ grep -q '^autoowner: .*build-queue.py hold -- bash ' "$QUEUE_CALLS" || { cat "$Q
 echo 'PASS: local CI does not wait on, or reorder for, an auto hold'
 if DRIFT_FAIL=1 RUN=drift bash "$script" 1 > "$scratch/drift" 2>&1; then echo 'FAIL: drift passed'; exit 1; fi
 grep -q '^REFUSED: drift baseline grew$' "$scratch/drift" || { cat "$scratch/drift"; echo 'FAIL: no drift refusal'; exit 1; }
-grep -q '^failure: .*, drift; log: ' "$scratch/drift" || { cat "$scratch/drift"; echo 'FAIL: status step is not drift'; exit 1; }
+grep -q '^failure: .*, refused: drift baseline grew; log: ' "$scratch/drift" || { cat "$scratch/drift"; echo 'FAIL: the status does not name the refusal'; exit 1; }
 ! grep -q '^drift:' "$QUEUE_CALLS" || { echo 'FAIL: built after a drift refusal'; exit 1; }
 echo 'PASS: a drift refusal fails local CI before the build'
