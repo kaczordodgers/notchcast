@@ -10,14 +10,24 @@ extension TreadmillCoordinator: AgentDeviceBackend {
         guard let agentIndex else { return }
         unregisterAgentActions()
         guard walkEnabled else { return }
-        do { try AgentDeviceActions.register(.treadmill, backend: self, in: agentIndex) }
+        do { try AgentDeviceActions.register(self, in: agentIndex) }
         catch { unregisterAgentActions() }
     }
 
     private func unregisterAgentActions() {
-        for id in ["device.treadmill"] + AgentDeviceActions.Device.treadmill.operations.map({ "device.treadmill.\($0)" }) {
-            agentIndex?.unregister(id)
-        }
+        if let agentIndex { AgentDeviceActions.unregister(self, from: agentIndex) }
+    }
+
+    var deviceName: String { "treadmill" }
+
+    var operations: [(name: String, parameters: AgentParameterSchema)] {
+        let speed = AgentParameterSchema.Property(kind: .number, minimum: TreadmillProtocol.speedRange.lowerBound,
+                                                  maximum: TreadmillProtocol.speedRange.upperBound)
+        let minutes = AgentParameterSchema.Property(kind: .integer, minimum: 0,
+                                                    maximum: Double(TreadmillProtocol.maximumMinutes))
+        return [("start", .init(properties: ["speed": speed, "minutes": minutes], required: ["speed", "minutes"])),
+                ("stop", .init()), ("pause", .init()), ("resume", .init()),
+                ("speed", .init(properties: ["speed": speed], required: ["speed"]))]
     }
 
     var isAvailable: Bool { walkEnabled && isReady && connected }
