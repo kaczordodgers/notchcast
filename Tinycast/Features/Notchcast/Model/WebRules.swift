@@ -5,6 +5,15 @@ nonisolated enum WebRules {
 
     static func isLoopbackHost(_ host: String?) -> Bool { ["127.0.0.1", "localhost", "::1"].contains(host?.lowercased() ?? "") }
 
+    static func isXHost(_ host: String?) -> Bool {
+        ["x.com", "twitter.com"].contains(host?.lowercased().replacing(/^(www|mobile)\./, with: "") ?? "")
+    }
+
+    static func isYouTubeHost(_ host: String?) -> Bool {
+        guard let host = host?.lowercased() else { return false }
+        return host == "youtu.be" || host == "youtube.com" || host.hasSuffix(".youtube.com")
+    }
+
     static func isTrackingParameter(_ name: String) -> Bool {
         let name = name.lowercased()
         return name.hasPrefix("utm_") || trackingParameters.contains(name)

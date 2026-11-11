@@ -74,7 +74,7 @@ final class AIUsageModule: NotchcastModule {
 
     private func configurePeer() {
         otherMac.configure(
-            peerEnabled: preferences.isOn(.aiUsageOtherMac) && preferences.isOn(.machLink),
+            peerEnabled: preferences.isEnabled(.aiUsageOtherMac),
             providers: Set(snapshots.map(\.providerID).filter { !$0.isEmpty }))
     }
 }
