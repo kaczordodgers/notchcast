@@ -56,12 +56,8 @@ final class SystemLevelKeysModule: NotchcastModule {
         generation += 1
         let current = generation
         withObservationTracking {
-            let volume = preferences.showsVolumeInIsland
-            let display = preferences.isOn(.displayBrightness)
             let presenter = hudPresenterAvailable
-            let keys = Set(MediaLevelKey.allCases.filter {
-                $0.isBrightness ? display : presenter && volume
-            })
+            let keys = Set(MediaLevelKey.allCases.filter { keysEnabled(isBrightness: $0.isBrightness) })
             monitor.setEnabled(keys)
             latest = nil
             if !presenter { present(nil) }
@@ -77,10 +73,14 @@ final class SystemLevelKeysModule: NotchcastModule {
         center.hasPresenter && preferences.isOn(.islandLiveActivities)
     }
 
+    private func keysEnabled(isBrightness: Bool) -> Bool {
+        let volume = preferences.showsVolumeInIsland
+        let display = preferences.isOn(.displayBrightness)
+        return isBrightness ? display : hudPresenterAvailable && volume
+    }
+
     private func prepare(_ press: MediaLevelKeyMonitor.Press) -> MediaLevelKeyMonitor.Operation {
-        guard press.key.isBrightness
-            ? preferences.isOn(.displayBrightness) : hudPresenterAvailable && preferences.showsVolumeInIsland
-        else { return { .cancelled } }
+        guard keysEnabled(isBrightness: press.key.isBrightness) else { return { .cancelled } }
         if press.key.isBrightness {
             let controller = brightness.controller
             let preferences = preferences
