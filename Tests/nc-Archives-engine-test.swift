@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/JobOutput.swift
 // notchcast-kit: platform
 import Darwin
 import Foundation
