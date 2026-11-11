@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Add Notchcast tools to AI chat.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

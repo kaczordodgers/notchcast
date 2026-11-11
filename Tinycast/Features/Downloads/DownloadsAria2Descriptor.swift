@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Use aria2c for faster media downloads when it is installed.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

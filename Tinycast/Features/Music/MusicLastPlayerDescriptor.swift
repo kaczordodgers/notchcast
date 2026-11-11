@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Send playback controls to the last active player.", table: "Notchcast"),
         group: .music,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island, .musicNowPlaying],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

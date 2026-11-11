@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Tap Globe to start or finish dictation, or hold it to talk.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.accessibility, .microphone],
         isSystemFeature: false,

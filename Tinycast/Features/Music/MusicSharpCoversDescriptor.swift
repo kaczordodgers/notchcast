@@ -7,6 +7,7 @@ extension NotchcastFeature.Descriptor {
                          table: "Notchcast"),
         group: .music,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [.island, .musicNowPlaying],
         requiredGrants: [],
         isSystemFeature: false,

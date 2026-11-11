@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Include approximate chunk timestamps in Distill transcripts.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: false,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

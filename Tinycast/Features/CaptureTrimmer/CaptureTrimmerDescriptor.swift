@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Trim recordings and export MP4 or GIF files.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

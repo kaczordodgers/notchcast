@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Read waiting items from local OpenBot agents.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

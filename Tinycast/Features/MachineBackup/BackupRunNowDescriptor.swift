@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Allow starting the configured backup job.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

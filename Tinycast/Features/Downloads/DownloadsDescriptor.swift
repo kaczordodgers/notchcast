@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Download video, audio, transcripts and webpages from clipboard links.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

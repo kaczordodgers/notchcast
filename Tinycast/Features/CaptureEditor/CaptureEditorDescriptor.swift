@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Mark up a capture and copy it.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: false,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

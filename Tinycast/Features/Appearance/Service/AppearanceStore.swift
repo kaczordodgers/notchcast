@@ -5,10 +5,10 @@ import Observation
 final class AppearanceStore {
     private(set) static weak var current: AppearanceStore?
     static let preferences = NotchcastIdentity.current.defaults
-    static let lightKey = "notchcast.appearance.theme.light"
-    static let darkKey = "notchcast.appearance.theme.dark"
-    static let importedKey = "notchcast.appearance.themes.imported"
-    static let opacityKey = "notchcast.appearance.theme.backgroundOpacity"
+    nonisolated static let lightKey = "notchcast.appearance.theme.light"
+    nonisolated static let darkKey = "notchcast.appearance.theme.dark"
+    nonisolated static let importedKey = "notchcast.appearance.themes.imported"
+    nonisolated static let opacityKey = "notchcast.appearance.theme.backgroundOpacity"
     nonisolated static let defaultOpacity = 0.7
 
     @ObservationIgnored private let defaults: UserDefaults

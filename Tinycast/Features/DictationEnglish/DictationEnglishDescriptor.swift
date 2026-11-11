@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Use English for dictation.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

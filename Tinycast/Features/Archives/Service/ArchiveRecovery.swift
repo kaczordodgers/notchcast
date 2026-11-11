@@ -9,7 +9,7 @@ nonisolated struct ArchiveRecovery: Codable {
     var state: State
     var owner: Int32? = getpid()
 
-    private static let key = "archiveRecoveryParents"
+    static let key = "archiveRecoveryParents"
     var sidecar: URL { URL(fileURLWithPath: staging.path + ".json") }
 
     private var resolved: Self {

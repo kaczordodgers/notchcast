@@ -3,6 +3,7 @@ import OSLog
 
 @MainActor
 final class AgentBridgeModule: NotchcastModule {
+    nonisolated static let grantsKey = "agentActionGrants"
     let index = AgentActionIndex()
     private(set) var configured = false
     private var confirmation: AgentConfirmationAuthorization?
@@ -11,7 +12,7 @@ final class AgentBridgeModule: NotchcastModule {
     func configure(_ core: AppCore) {
         guard !configured else { return }
         do {
-            let grants = try AgentGrantStore(bundleIdentifier: NotchcastIdentity.current.bundleID)
+            let grants = try AgentGrantStore(bundleIdentifier: NotchcastIdentity.current.bundleID, key: Self.grantsKey)
             let audit = AgentAuditStore(directory: NotchcastIdentity.supportRoot.appending(path: "agent"))
             let confirmation = AgentConfirmationAuthorization(grants: grants,
                 isEnabled: { NotchcastPreferences.shared.isOn(.agentConfirmation) },

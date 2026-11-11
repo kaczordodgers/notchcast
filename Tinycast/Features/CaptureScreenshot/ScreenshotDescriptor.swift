@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Capture an area, window or display.", table: "Notchcast"),
         group: .captureAndDictation,
         defaultEnabled: true,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.screenRecording],
         isSystemFeature: false,

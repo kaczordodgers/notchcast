@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Open the launcher from the island.", table: "Notchcast"),
         group: .launcher,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [],
         isSystemFeature: false,
