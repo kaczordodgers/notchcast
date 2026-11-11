@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Show the island at the top of the screen.", table: "Notchcast"),
         group: .island,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,

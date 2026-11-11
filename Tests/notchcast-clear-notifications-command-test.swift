@@ -33,6 +33,27 @@ enum NotchcastFeature { case clearNotifications }
         precondition(calls.withLock { $0 } == 1)
         precondition(AppCore.shared.messages.last == "Notifications cleared: 7")
         module.stop()
+        struct Unknown: Error {}
+        let causes: [(any Error, String)] = [
+            (ClearNotificationsFailure.accessibilityRequired, "Allow Accessibility access to clear notifications."),
+            (ClearNotificationsFailure.automationRequired, "Allow Automation access to clear notifications."),
+            (ClearNotificationsFailure.notificationCenterUnavailable, "Notification Center could not be opened."),
+            (ClearNotificationsFailure.unreadable, "Notification Center could not be read."),
+            (ClearNotificationsFailure.notificationsRemain, "Some notifications could not be cleared."),
+            (ClearNotificationsFailure.invalidResult, "Could not clear notifications."),
+            (ClearNotificationsFailure.preparationFailed, "Could not clear notifications."),
+            (ClearNotificationsFailure.automationFailed(-50), "Could not clear notifications (error -50)."),
+            (Unknown(), "Could not clear notifications."),
+        ]
+        for (failure, message) in causes {
+            let failing = ClearNotificationsModule(runner: ClearNotificationsRunner { _ in throw failure })
+            failing.start()
+            failing.clearFromLauncher()
+            await failing.commandTask?.value
+            precondition(AppCore.shared.messages.last == message, "\(failure) reported \(AppCore.shared.messages.last ?? "")")
+            failing.stop()
+        }
+        AppCore.shared.messages.removeLast(causes.count)
         module.clearFromLauncher()
         await module.commandTask?.value
         precondition(calls.withLock { $0 } == 1)
@@ -45,5 +66,6 @@ enum NotchcastFeature { case clearNotifications }
         precondition(ClearNotificationsModule.shared.commandTask != nil && AppCore.shared.messages.count == 1)
         print("Verified launcher action reaches fake runner, reports count, refuses stopped module")
         print("Verified the command reaches the registered module, which refuses until started")
+        print("Verified each failure reports its own message")
     }
 }

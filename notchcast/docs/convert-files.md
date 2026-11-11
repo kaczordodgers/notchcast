@@ -1,7 +1,7 @@
 # Convert Files engine
 
-`ConvertFilesPlan.make` accepts local file URLs, a target extension or PDF operation,
-an optional page range and an injected set of occupied outputs. It performs no IO.
+`ConvertFilesPlan.make` accepts local file URLs, a target extension or PDF operation
+and an optional page range. It performs no IO and names no file: each item carries a stem and suffix, its arguments hold `ConvertFilesPlan.outputPlaceholder`, and `JobOutput.publish` picks the free name once the conversion is done.
 
 `ConvertFilesRunner` implements `DownloadRunner` with kind `convert-files`.
 Job options are `ConvertFilesRunner.Options`: the absolute `sources` paths, `target` and `pages`. A job without them, as an older build queued it, fails with a message to add the files again rather than converting a guessed source.

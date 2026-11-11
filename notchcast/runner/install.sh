@@ -26,9 +26,13 @@ DOMAIN="gui/$(id -u)"
 ARCHIVE="$ROOT/actions-runner-osx-arm64-$VERSION.tar.gz"
 mkdir -p "$ROOT" "$LOGS" "$AGENTS"
 
-agent() { # template label name dir
-    local plist="$AGENTS/$2.plist"
-    sed -e "s|@NAME@|$3|g" -e "s|@DIR@|$4|g" -e "s|@ROOT@|$ROOT|g" -e "s|@LOGS@|$LOGS|g" \
+agent() { # template label name dir title command...
+    # Login Items shows the executable's name, so launchd runs a wrapper named <title>.
+    local plist="$AGENTS/$2.plist" exe="$ROOT/bin/$5"
+    mkdir -p "$ROOT/bin"
+    printf '#!/bin/bash\nexec%s\n' "$(printf ' %q' "${@:6}")" > "$exe"
+    chmod 755 "$exe"
+    sed -e "s|@EXEC@|$exe|g" -e "s|@NAME@|$3|g" -e "s|@DIR@|$4|g" -e "s|@ROOT@|$ROOT|g" -e "s|@LOGS@|$LOGS|g" \
         -e "s|@HOST@|$HOST|g" -e "s|@REPO@|$FORK_REPO|g" "$HERE/$1" > "$plist"
     plutil -lint -s "$plist"
     launchctl bootout "$DOMAIN/$2" 2>/dev/null || true
@@ -49,6 +53,10 @@ for i in $(seq 1 "$COUNT"); do
     name="$HOST-$i"
     dir="$ROOT/$name"
     mkdir -p "$dir/tmp"
+    # Outside home: debug builds bake the work path in, and check-identity refuses account names.
+    work="/Users/Shared/notchcast-runner/$name"
+    mkdir -p "$work"
+    chmod 700 "$work"
     if [ ! -f "$dir/.runner" ]; then
         if [ ! -f "$ARCHIVE" ]; then
             curl -sSfLo "$ARCHIVE" "https://github.com/actions/runner/releases/download/v$VERSION/$(basename "$ARCHIVE")"
@@ -57,9 +65,18 @@ for i in $(seq 1 "$COUNT"); do
         tar -xzf "$ARCHIVE" -C "$dir"
         # The registration token lasts an hour and goes straight to config.sh: never printed, never stored.
         (cd "$dir" && ./config.sh --unattended --url "https://github.com/$FORK_REPO" --name "$name" \
-            --labels notchcast-mac --work _work --replace \
+            --labels notchcast-mac --work "$work" --replace \
             --token "$(gh api -X POST "repos/$FORK_REPO/actions/runners/registration-token" --jq .token)")
     fi
-    agent runner.plist "notchcast.runner.$name" "$name" "$dir"
+    # Older registrations still name _work; the runner reads workFolder at job start.
+    python3 - "$dir/.runner" "$work" <<'PY'
+import codecs, json, sys
+path, work = sys.argv[1:]
+raw = open(path, 'rb').read()
+config = json.loads(raw.decode('utf-8-sig'))
+config['workFolder'] = work
+open(path, 'wb').write((codecs.BOM_UTF8 if raw.startswith(codecs.BOM_UTF8) else b'') + json.dumps(config, indent=2).encode())
+PY
+    agent runner.plist "notchcast.runner.$name" "$name" "$dir" "Notchcast CI runner $name" "$dir/run.sh"
 done
-agent gate.plist notchcast.runner-gate "$HOST" "$ROOT"
+agent gate.plist notchcast.runner-gate "$HOST" "$ROOT" "Notchcast CI runner gate" "$ROOT/gate.sh" "$HOST" "$FORK_REPO"

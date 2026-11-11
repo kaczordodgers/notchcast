@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Press Escape five times to exit; ends after 300 seconds.", table: "Notchcast"),
         group: .tools,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: true,

@@ -4,7 +4,7 @@ final class MusicBlockAppleMusicModule: NotchcastModule {
 
     init(music: MusicNowPlayingModule) {
         blocker = MusicLaunchBlocker { [weak music] playing in
-            if let music, music.soloist.isConnected, music.soloist.authState?.loggedIn == true {
+            if let music, music.soloist.isReady {
                 if playing { music.soloist.send(.play) }
                 return Task {}
             }

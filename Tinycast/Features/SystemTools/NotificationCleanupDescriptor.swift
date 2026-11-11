@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Dismiss disk-ejection alerts automatically.", table: "Notchcast"),
         group: .tweaks,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

@@ -183,6 +183,17 @@ enum NotchcastFeature: String, CaseIterable, Sendable {
         }
     }
 
+    /// Whether a settings backup carries the switch; a switch that grants a capability stays out.
+    var backedUp: Bool {
+        if let descriptor { return descriptor.backedUp }
+        return switch self {
+        case .treadmillWalk: false
+        case .treadmillHistory: false
+        case .editorSpellChecking: true
+        default: preconditionFailure("\(self) has neither a descriptor nor a backedUp arm")
+        }
+    }
+
     /// What the feature cannot work without; Settings lists these while the feature is on.
     var requiredGrants: [NotchcastGrant] {
         descriptor?.requiredGrants ?? []

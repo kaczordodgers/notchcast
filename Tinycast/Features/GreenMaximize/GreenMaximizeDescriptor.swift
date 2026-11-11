@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Click the green button to maximize or restore; hold Option for macOS behavior.", table: "Notchcast"),
         group: .system,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [],
         requiredGrants: [.accessibility],
         isSystemFeature: false,

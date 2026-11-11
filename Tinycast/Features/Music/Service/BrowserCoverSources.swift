@@ -63,11 +63,4 @@ enum BrowserCoverSources {
     static func square(_ image: Data) async -> Data? {
         BrowserCoverRules.squareCover(image)
     }
-
-    private final class RedirectRefusal: NSObject, URLSessionTaskDelegate {
-        func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
-                        newRequest request: URLRequest) async -> URLRequest? {
-            nil
-        }
-    }
 }

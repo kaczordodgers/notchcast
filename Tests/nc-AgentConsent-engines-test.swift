@@ -6,7 +6,7 @@ struct AgentConsentTests {
     static func main() async throws {
         let now = Date(timeIntervalSince1970: 100)
         let identifier = "test.agent-consent." + UUID().uuidString
-        let store = try AgentGrantStore(bundleIdentifier: identifier)
+        let store = try AgentGrantStore(bundleIdentifier: identifier, key: "agentActionGrants")
         defer {
             UserDefaults(suiteName: identifier + ".notchcast.agent-consent")?
                 .removePersistentDomain(forName: identifier + ".notchcast.agent-consent")
@@ -28,7 +28,7 @@ struct AgentConsentTests {
         assert(AgentConsentPolicy.decide(agentID: "a", actionID: "write", danger: .dangerous,
                                          grants: store.grants, now: now,
                                          islandConfirmationAvailable: true) == .ask)
-        let restored = try AgentGrantStore(bundleIdentifier: identifier)
+        let restored = try AgentGrantStore(bundleIdentifier: identifier, key: "agentActionGrants")
         assert(restored.grants == store.grants)
         try store.allow(agentID: "a", actionID: "kill", danger: .dangerous, now: now)
         assert(store.grants.count == 1)

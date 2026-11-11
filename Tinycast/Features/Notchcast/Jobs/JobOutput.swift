@@ -3,11 +3,14 @@ import Foundation
 
 nonisolated enum JobOutput {
     /// Moves `staged` to the first free of `stem + suffix`, `stem (2) + suffix`, …; never replaces a file.
-    static func publish(_ staged: URL, in folder: URL, stem: String, suffix: String) throws -> URL {
+    static func publish(
+        _ staged: URL, in folder: URL, stem: String, suffix: String,
+        exclusiveRename: (String, String) -> Int32 = { renamex_np($0, $1, UInt32(RENAME_EXCL)) }
+    ) throws -> URL {
         for number in 1...10_000 {
             try Task.checkCancellation()
             let target = folder.appending(path: stem + (number == 1 ? "" : " (\(number))") + suffix)
-            if renamex_np(staged.path, target.path, UInt32(RENAME_EXCL)) == 0 { return target }
+            if exclusiveRename(staged.path, target.path) == 0 { return target }
             let code = errno
             if code == EEXIST { continue }
             // Volumes without exclusive rename (exFAT, SMB) still refuse to move onto an existing file.

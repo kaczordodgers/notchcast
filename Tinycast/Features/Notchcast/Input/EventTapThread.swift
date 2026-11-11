@@ -26,7 +26,7 @@ final class EventTapThread: Sendable {
     let id: UUID
     let mask: CGEventMask
     let options: CGEventTapOptions
-    private let logger = Logger(subsystem: NotchcastIdentity.upstreamSubsystem, category: "EventTapHub")
+    private let logger = Logger(subsystem: NotchcastIdentity.current.bundleID, category: "EventTapHub")
     private let state: Mutex<State>
     private let finished = DispatchSemaphore(value: 0)
     private let onEvent: @Sendable (EventTapHub.Event, [UUID]) -> Void

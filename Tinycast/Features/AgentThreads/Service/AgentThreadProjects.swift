@@ -11,8 +11,7 @@ protocol AgentThreadProjectReading: Sendable {
 }
 
 struct AgentThreadProjects: AgentThreadProjectReading {
-    var url = FileManager.default.homeDirectoryForCurrentUser
-        .appending(path: ".t3/userdata/statev2.sqlite")
+    var url = AgentPaths(home: FileManager.default.homeDirectoryForCurrentUser).t3State
 
     @concurrent
     func projects() async throws -> [AgentThreadProject] {

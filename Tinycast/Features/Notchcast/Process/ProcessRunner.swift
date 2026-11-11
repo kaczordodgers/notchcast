@@ -15,9 +15,41 @@ nonisolated enum ProcessRunner {
         var stderr = ErrorOutput.discard
         var timeout: Duration?
         var outputLimit = Int.max
-        var stopSignal = SIGTERM
+        var stopLadder = StopLadder.terminating()
         /// Stops the children the program started too; `Process` makes every child its own group leader.
         var stopsGroup = false
+    }
+
+    /// The signals a stopped child gets: `first` at once, each later one at its delay from the stop.
+    struct StopLadder: Sendable {
+        struct Rung: Sendable {
+            let signal: Int32
+            let after: Duration
+        }
+
+        let first: Int32
+        let later: [Rung]
+
+        static func terminating(_ signal: Int32 = SIGTERM, grace: Duration = .seconds(2)) -> StopLadder {
+            StopLadder(first: signal, later: [Rung(signal: SIGKILL, after: grace)])
+        }
+
+        static func interrupting(kill: Duration) -> StopLadder {
+            StopLadder(first: SIGINT, later: [Rung(signal: SIGTERM, after: .seconds(1)), Rung(signal: SIGKILL, after: kill)])
+        }
+
+        func signal(after elapsed: Duration) -> Int32 {
+            later.last { $0.after < elapsed }?.signal ?? first
+        }
+
+        @discardableResult
+        func escalate(_ send: @escaping @Sendable (Int32) -> Void) -> [DispatchWorkItem] {
+            later.map { rung in
+                let item = DispatchWorkItem { send(rung.signal) }
+                DispatchQueue.global().asyncAfter(deadline: .now() + rung.after.seconds, execute: item)
+                return item
+            }
+        }
     }
 
     struct Output: Sendable {
@@ -71,8 +103,6 @@ nonisolated enum ProcessRunner {
             var stop: Stop?
             var timers: [DispatchWorkItem] = []
         }
-
-        private static let grace = DispatchTimeInterval.seconds(2)
 
         private let request: Request
         private let folder: URL
@@ -154,14 +184,12 @@ nonisolated enum ProcessRunner {
                 state.stop = reason
                 let pid = state.process.processIdentifier
                 let target = request.stopsGroup ? -pid : pid
-                kill(target, request.stopSignal)
-                let killer = DispatchWorkItem { @Sendable in
+                kill(target, request.stopLadder.first)
+                state.timers += request.stopLadder.escalate { signal in
                     self.state.withLock { state in
-                        if state.process.isRunning { kill(target, SIGKILL) }
+                        if state.process.isRunning { kill(target, signal) }
                     }
                 }
-                DispatchQueue.global().asyncAfter(deadline: .now() + Self.grace, execute: killer)
-                state.timers.append(killer)
             }
         }
 
@@ -170,7 +198,7 @@ nonisolated enum ProcessRunner {
                 ($0.stop, $0.process.processIdentifier, $0.process.terminationStatus,
                  $0.process.terminationReason == .uncaughtSignal)
             }
-            // The leader can exit on the stop signal while a child that ignored it lives on.
+            // Leader exited: a child that ignored the stop signal gets SIGKILL now, no grace.
             if stop != nil, request.stopsGroup { kill(-pid, SIGKILL) }
             if stop == .timedOut { throw Failure.timedOut }
             try Task.checkCancellation()

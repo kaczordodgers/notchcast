@@ -7,13 +7,9 @@ struct TailscaleStatusService: Sendable {
 
     @concurrent
     func read() async -> TailscaleState {
-        let candidates = [
-            "/opt/homebrew/bin/tailscale", "/usr/local/bin/tailscale",
-            "/Applications/Tailscale.app/Contents/MacOS/Tailscale",
-        ]
-        let executable = executable ?? candidates.first {
-            FileManager.default.isExecutableFile(atPath: $0)
-        }.map { URL(filePath: $0) }
+        let bundled = URL(filePath: "/Applications/Tailscale.app/Contents/MacOS/Tailscale")
+        let executable = executable ?? ExecutableLocator.find("tailscale")
+            ?? (FileManager.default.isExecutableFile(atPath: bundled.path) ? bundled : nil)
         guard let executable, !Task.isCancelled else { return .unavailable }
         let request = ProcessRunner.Request(
             executable: executable, arguments: ["status", "--json", "--peers=false"],

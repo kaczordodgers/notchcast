@@ -28,10 +28,16 @@ if [[ " $* " == *" Tinycast/Features/Settings/SettingsTab.swift "* ]]; then
     done
 fi
 
-# The backup schema collects every feature's own key file, written in the hub's BackupKeys vocabulary.
+# The backup schema is written in the hub's BackupKeys vocabulary.
 if [[ " $* " == *" Tinycast/Features/SettingsBackup/Model/ForkSettingsBackupSchema.swift "* ]]; then
-    for source in Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift \
-        $(find Tinycast/Features -mindepth 2 -name '*BackupKeys.swift' -not -path 'Tinycast/Features/Notchcast/Core/*' | sort); do
+    for source in Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift; do
+        [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
+    done
+fi
+
+# The hub's backup list names every feature's key file; a harness without it supplies its own list.
+if [[ " $* " == *" Tinycast/Features/Notchcast/Core/NotchcastBackupKeys.swift "* ]]; then
+    for source in $(find Tinycast/Features -mindepth 2 -name '*BackupKeys.swift' -not -path 'Tinycast/Features/Notchcast/Core/*' | sort); do
         [[ " $* " == *" $source "* ]] || set -- "$@" "$source"
     done
 fi
@@ -46,7 +52,10 @@ fi
 
 # Shared fork helpers no header lists: a compiled Tinycast source naming `<symbol>` brings its files in.
 symbol_sources=(
+    'AgentPaths Tinycast/Features/Notchcast/Model/AgentPaths.swift'
     'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Platform/ProcessExit.swift'
+    'ExecutableLocator Tinycast/Platform/ExecutableLocator.swift Tinycast/Features/Notchcast/Process/ExecutableLocator+Search.swift Tinycast/Platform/ProcessExit.swift'
+    'RedirectRefusal Tinycast/Features/Notchcast/Core/RedirectRefusal.swift'
     'WebRules Tinycast/Features/Notchcast/Model/WebRules.swift'
     'NotchcastIdentity Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift'
     'ScreenRecordingAccess Tinycast/Features/Notchcast/Core/ScreenRecordingAccess.swift'

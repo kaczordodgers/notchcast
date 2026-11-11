@@ -4,6 +4,15 @@ on:
   push:
     branches-ignore: [main]
   workflow_dispatch:
+    inputs:
+      all:
+        description: Run every harness, not only the ones the branch changed (load test)
+        type: boolean
+        default: false
+      shards:
+        description: Shards for an all run, 1 to 9
+        type: number
+        default: 4
 
 permissions:
   contents: read
@@ -18,6 +27,9 @@ jobs:
   plan:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
     outputs:
       tests: ${{ steps.shards.outputs.tests }}
       shards: ${{ steps.shards.outputs.shards }}
@@ -28,22 +40,34 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Changed harnesses
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.all) }}
         run: |
           git fetch -q origin '+refs/notchcast/synced/*:refs/notchcast/synced/*'
           BEFORE=$(bash notchcast/fork-point.sh origin/main HEAD)
           ./notchcast/changed-harnesses.sh "$BEFORE" "$GITHUB_SHA" > "$RUNNER_TEMP/selected"
           cat "$RUNNER_TEMP/selected"
       # About 40 harnesses compile in the time one more runner takes to start; at most 3 run beside a PR's checks job.
+      # An all run has no selection: an empty tests output runs the whole suite, split by name over the shards.
       - name: Shards
         id: shards
+        env:
+          ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.all }}
+          REQUESTED: ${{ inputs.shards }}
         run: |
-          count=$(grep -c . "$RUNNER_TEMP/selected" || true)
-          shards=$(( (count + 39) / 40 ))
-          [ "$shards" -le 3 ] || shards=3
-          echo "tests=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")" >> "$GITHUB_OUTPUT"
+          if [ "$ALL" = true ]; then
+            case "$REQUESTED" in [1-9]) shards=$REQUESTED ;; *) echo "::error::shards must be 1 to 9, not '$REQUESTED'"; exit 1 ;; esac
+            tests=
+            echo "all harnesses in $shards shard(s)"
+          else
+            count=$(grep -c . "$RUNNER_TEMP/selected" || true)
+            shards=$(( (count + 39) / 40 ))
+            [ "$shards" -le 3 ] || shards=3
+            tests=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")
+            echo "$count harnesses in $shards shard(s)"
+          fi
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
           echo "shards=[$(seq -s, 0 $((shards - 1)))]" >> "$GITHUB_OUTPUT"
           echo "count=$shards" >> "$GITHUB_OUTPUT"
-          echo "$count harnesses in $shards shard(s)"
       - id: route
         uses: ./notchcast/actions/route
         with:

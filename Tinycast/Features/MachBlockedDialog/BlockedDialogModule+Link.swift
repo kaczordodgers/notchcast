@@ -5,7 +5,7 @@ extension BlockedDialogModule {
     static var linkChannel: MachLinkChannel?
 
     static func linked(to channel: MachLinkChannel) -> BlockedDialogModule {
-        channel.manager.register("dialogs") { request in
+        channel.manager.register(MachLinkMethod.dialogs.rawValue) { request in
             guard NotchcastPreferences.shared.isOn(.machBlockedDialogAlert) else {
                 throw MachLinkMessage.Failure.disconnected
             }

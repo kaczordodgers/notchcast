@@ -2,11 +2,11 @@ import Foundation
 
 extension MachLinkChannel: OtherMacUsagePeerChannel {
     func requestUsageSnapshot(providers: Set<String>, timeout: Duration) async throws -> OtherMacUsageSnapshot {
-        try await request(providers, method: "ai-usage", timeout: min(timeout, .seconds(2)), as: OtherMacUsageSnapshot.self)
+        try await request(providers, method: MachLinkMethod.aiUsage.rawValue, timeout: min(timeout, .seconds(2)), as: OtherMacUsageSnapshot.self)
     }
 
     func registerUsageRoute(provider: AIUsageProvider?, preferences: NotchcastPreferences) {
-        manager.register("ai-usage") { request in
+        manager.register(MachLinkMethod.aiUsage.rawValue) { request in
             guard preferences.isEnabled(.aiUsageOtherMac) else { throw MachLinkMessage.Failure.disconnected }
             let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
                 path: preferences.aiUsageCachePath, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
