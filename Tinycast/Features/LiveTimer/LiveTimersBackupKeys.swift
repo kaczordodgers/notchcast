@@ -2,17 +2,17 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let liveTimers = Self(allowed: [
-        "notchcast.liveTimer.defaultDuration": .choices([300, 600, 900, 1500, 1800, 3600]),
-        "notchcast.liveTimer.playSound": .bool,
+        LiveTimerStore.durationKey: .choices([300, 600, 900, 1500, 1800, 3600]),
+        LiveTimerStore.soundKey: .bool,
     ], excluded: [
-        "notchcast.liveTimer.entries",
+        LiveTimerStore.entriesKey,
     ], snapshot: {
         let store = LiveTimerModule.shared.store
-        return ["notchcast.liveTimer.defaultDuration": store.defaultDuration,
-                "notchcast.liveTimer.playSound": store.playSoundWhenTimeIsUp]
+        return [LiveTimerStore.durationKey: store.defaultDuration,
+                LiveTimerStore.soundKey: store.playSoundWhenTimeIsUp]
     }, apply: { values in
         let store = LiveTimerModule.shared.store
-        if let value = values["notchcast.liveTimer.defaultDuration"] as? Double { store.defaultDuration = value }
-        if let value = values["notchcast.liveTimer.playSound"] as? Bool { store.playSoundWhenTimeIsUp = value }
+        if let value = values[LiveTimerStore.durationKey] as? Double { store.defaultDuration = value }
+        if let value = values[LiveTimerStore.soundKey] as? Bool { store.playSoundWhenTimeIsUp = value }
     })
 }

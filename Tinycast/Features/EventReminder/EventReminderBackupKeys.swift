@@ -2,11 +2,11 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let eventReminder = Self(allowed: [
-        "notchcast.day.excludedCalendars": .strings(500, 256),
+        EventReminderModule.excludedCalendarsKey: .strings(500, 256),
     ], excluded: [], snapshot: {
-        ["notchcast.day.excludedCalendars": EventReminderModule.shared.calendar.excludedCalendarIDs.sorted()]
+        [EventReminderModule.excludedCalendarsKey: EventReminderModule.shared.calendar.excludedCalendarIDs.sorted()]
     }, apply: { values in
-        if let value = values["notchcast.day.excludedCalendars"] as? [String] {
+        if let value = values[EventReminderModule.excludedCalendarsKey] as? [String] {
             EventReminderModule.shared.calendar.setExcludedCalendars(Set(value))
         }
     })

@@ -2,10 +2,10 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let screenText = Self(allowed: [
-        "screenText.removeLineBreaks": .bool,
+        ScreenTextModule.removeLineBreaksKey: .bool,
     ], excluded: [], snapshot: {
-        ["screenText.removeLineBreaks": ScreenTextModule.shared.removeLineBreaks]
+        [ScreenTextModule.removeLineBreaksKey: ScreenTextModule.shared.removeLineBreaks]
     }, apply: { values in
-        if let value = values["screenText.removeLineBreaks"] as? Bool { ScreenTextModule.shared.removeLineBreaks = value }
+        if let value = values[ScreenTextModule.removeLineBreaksKey] as? Bool { ScreenTextModule.shared.removeLineBreaks = value }
     })
 }

@@ -74,6 +74,7 @@ enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor,
 }
 @MainActor final class ScreenTextModule {
     static let shared = ScreenTextModule()
+    nonisolated static let removeLineBreaksKey = "screenText.removeLineBreaks"
     var removeLineBreaks = false
 }
 extension LiveTimerModule { static let shared = LiveTimerModule() }
@@ -87,6 +88,7 @@ extension DictationCleanupModule {
 extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackupCoordinator() }
 @MainActor final class EventReminderModule {
     static let shared = EventReminderModule()
+    nonisolated static let excludedCalendarsKey = "notchcast.day.excludedCalendars"
     let calendar = CalendarStub()
 }
 @MainActor final class EditorCoordinator {

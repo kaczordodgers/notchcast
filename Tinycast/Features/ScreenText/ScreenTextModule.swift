@@ -4,9 +4,10 @@ import Observation
 @MainActor @Observable
 final class ScreenTextModule: NotchcastModule {
     typealias Recognize = @Sendable (CaptureAreaSelection, Bool) async throws -> ScreenTextResult
+    nonisolated static let removeLineBreaksKey = "screenText.removeLineBreaks"
     var removeLineBreaks: Bool {
         didSet {
-            defaults.set(removeLineBreaks, forKey: "screenText.removeLineBreaks")
+            defaults.set(removeLineBreaks, forKey: Self.removeLineBreaksKey)
             cancel()
         }
     }
@@ -32,7 +33,7 @@ final class ScreenTextModule: NotchcastModule {
         self.area = area
         self.recognize = recognize
         self.write = write
-        removeLineBreaks = defaults.bool(forKey: "screenText.removeLineBreaks")
+        removeLineBreaks = defaults.bool(forKey: Self.removeLineBreaksKey)
     }
 
     func start() { enabled = true }
