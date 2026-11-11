@@ -27,8 +27,7 @@ nonisolated enum MediaArguments {
     }
 
     static func probe(source: String, format: Format) -> [String] {
-        ["--ignore-config", "--no-playlist", "--print", "%(filesize,filesize_approx)s"] + selection(format)
-            + ["--", source]
+        base + ["--print", "%(filesize,filesize_approx)s"] + selection(format) + ["--", source]
     }
 
     private static func selection(_ format: Format) -> [String] {
@@ -61,15 +60,18 @@ nonisolated enum MediaArguments {
     }
 
     static func originalLanguage(source: String) -> [String] {
-        ["--ignore-config", "--no-playlist", "--skip-download", "--print", "%(language)s", "--", source]
+        base + ["--skip-download", "--print", "%(language)s", "--", source]
     }
 
     static func retryNatively(stderr: String, source: String, usedAria2: Bool) -> Bool {
         usedAria2 && WebRules.isYouTubeHost(URL(string: source)?.host) && stderr.contains("403")
     }
 
+    /// Every yt-dlp call reads no user config and takes one video, never a playlist.
+    private static let base = ["--ignore-config", "--no-playlist"]
+
     private static func common(destination: URL) -> [String] {
-        ["--ignore-config", "--no-playlist", "--newline", "--no-colors", "--no-simulate",
-         "--paths", destination.path, "-o", "%(title)s [%(id)s].%(ext)s"]
+        base + ["--newline", "--no-colors", "--no-simulate",
+                "--paths", destination.path, "-o", "%(title)s [%(id)s].%(ext)s"]
     }
 }

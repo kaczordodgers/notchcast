@@ -43,7 +43,8 @@ final class LiveSoloistLauncher: SoloistLauncher {
             let process = Process()
             process.executableURL = executable
             process.arguments = arguments
-            process.environment = ["PATH": "/usr/bin:/bin", "LANG": "en_US.UTF-8"]
+            process.environment = ExecutableLocator.environment(
+                running: executable, adding: ["LANG": "en_US.UTF-8"], inherited: [:])
             process.standardInput = FileHandle.nullDevice
             let pipe = Pipe()
             process.standardOutput = pipe

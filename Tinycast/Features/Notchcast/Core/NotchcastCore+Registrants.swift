@@ -8,7 +8,6 @@ extension NotchcastCore {
         ScreenshotModule.self,
         ScreenTextModule.self,
         ScrollingCaptureModule.self,
-        CaptureTrimmerModule.self,
         CaptureEditorCoordinator.self,
         RecordingModule.self,
         ForkSettingsBackupModule.self,

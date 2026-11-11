@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/MachRemoteModule+Actions.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import AppKit
 
 enum DialogTone {}
@@ -8,11 +9,7 @@ enum DialogTone {}
     var automation: Task<Void, Never>?
 }
 
-@MainActor struct NotchcastPreferences {
-    static let shared = Self()
-    func isOn(_ feature: Feature) -> Bool { true }
-    enum Feature { case machRemote, sendFiles }
-}
+enum NotchcastFeature { case machRemote, sendFiles }
 
 @MainActor struct UpdateRemoteModule {
     static let shared = Self()

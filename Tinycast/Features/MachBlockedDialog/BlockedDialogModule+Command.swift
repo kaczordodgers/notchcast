@@ -9,7 +9,8 @@ extension BlockedDialogModule {
                 .allSatisfy { NotchcastPreferences.shared.isOn($0) }
         }, run: {
             guard let module = BlockedDialogModule.shared else {
-                return NotchcastHost.current.remoteResult(String(localized: "Could Not Check Other Mac Dialogs", table: "Notchcast"))
+                NotchcastHost.current.remoteResult(String(localized: "Could Not Check Other Mac Dialogs", table: "Notchcast"))
+                return
             }
             module.checkAndReport()
         })

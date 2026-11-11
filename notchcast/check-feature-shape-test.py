@@ -25,8 +25,9 @@ PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
 HIDE = Path("Tinycast/Features/HideCommandM/HideCommandMDescriptor.swift")
-# A capture-module arm: it stays on the switches, so planted edits keep an anchor.
-ARM = "case .colorPicker: .captureAndDictation"
+# An arm of a feature still on the switches, so planted edits keep an anchor.
+ARM = "case .editorSpellChecking: .system"
+CAPTURE_EDITOR = "Tinycast/Features/CaptureEditor/CaptureEditorDescriptor.swift"
 AI_COMMAND = "Tinycast/Features/Tweaks/TweakProfileCommands.swift"
 SCREEN_TEXT = ".feature(.screenText, settings: [.captureScreenTextLineBreaks])"
 VOICE_ENTRY = ".init(requires: [.voiceAsk], module: voiceAskModule)"
@@ -48,14 +49,19 @@ BREAKS = (
     ("feature-pins", ".archivesInPlace defaultEnabled is true; the spec pins false",
      "Tinycast/Features/Archives/ArchivesInPlaceDescriptor.swift", "defaultEnabled: false", "defaultEnabled: true"),
     ("feature-pins", ".captureEditor defaultEnabled is true; the spec pins false",
-     SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: true"),
+     CAPTURE_EDITOR, "defaultEnabled: false", "defaultEnabled: true"),
+    ("feature-pins", ".recording requiredGrants is []; the spec pins [.screenRecording]",
+     "Tinycast/Features/CaptureRecording/RecordingDescriptor.swift", "requiredGrants: [.screenRecording]", "requiredGrants: []"),
+    ("feature-pins", ".colorPicker group is .system; the spec pins .captureAndDictation",
+     "Tinycast/Features/ColorPicker/ColorPickerDescriptor.swift", "group: .captureAndDictation", "group: .system"),
     ("feature-pins", ".startupItems wired is false; the spec pins true", SHAPE.FEATURE, "        .todoIsland,\n", "        .todoIsland,\n        .startupItems,\n"),
     ("feature-pins", ".screenText settings is []; the spec pins [.captureScreenTextLineBreaks]",
      SHAPE.TREE, SCREEN_TEXT, ".feature(.screenText, settings: [])"),
     ("feature-pins", ".sudoTouchID needsIsland is true; a feature whose isSystemTweak is true keeps false",
      "Tinycast/Features/SystemTools/SudoTouchIDDescriptor.swift", "dependencies: []", "dependencies: [.island]"),
     ("feature-text", ".screenshot needs a localized, non-empty title",
-     SHAPE.FEATURE, 'case .screenshot: String(localized: "Screenshots", table: "Notchcast")', 'case .screenshot: ""'),
+     "Tinycast/Features/CaptureScreenshot/ScreenshotDescriptor.swift",
+     'title: String(localized: "Screenshots", table: "Notchcast")', 'title: ""'),
     ("settings-item-once", ".scrollingCapture is already in the settings tree",
      SHAPE.TREE, SCREEN_TEXT, ".feature(.scrollingCapture, settings: [])"),
     ("settings-item-once", ".screenText has no place in the settings tree",
@@ -93,8 +99,8 @@ BREAKS = (
     ("feature-pins", ".globeDictation needsIsland is true; the spec pins false",
      GLOBE, "dependencies: [],", "dependencies: [\n            .island\n        ],"),
     ("feature-pins", "open the descriptor with `static let <feature> = Self(`", GLOBE, "= Self(", "= NotchcastFeature.Descriptor("),
-    ("feature-pins", ".captureEditor defaultEnabled reads `[`; state the whole value on one line",
-     SHAPE.FEATURE, "case .captureEditor: false", "case .captureEditor: ["),
+    ("feature-pins", ".treadmillWalk defaultEnabled reads `[`; state the whole value on one line",
+     SHAPE.FEATURE, "case .treadmillWalk: false", "case .treadmillWalk: ["),
     ("setting-one-case", "declare only one enum case per line", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay, islandRowless\n"),
     ("setting-row", ".probeNoRow needs exactly one arm", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay\n    case probeNoRow // new\n"),
     ("setting-row-arm", ".captureScreenTextLineBreaks needs exactly one arm that shows a row",
@@ -106,6 +112,8 @@ BREAKS = (
      "Tinycast/App/AppCore.swift", "await ArchiveModule.shared.prepareForTermination()", ""),
     ("source-hooks", "hook missing or out of order: BlockedDialogModule.linkChannel = macLink.channel",
      "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "        BlockedDialogModule.linkChannel = macLink.channel\n", ""),
+    ("source-hooks", "hook missing or out of order: NotchcastHost.current = NotchcastHost(",
+     "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "NotchcastHost.current = NotchcastHost(", "_ = NotchcastHost("),
     ("source-hooks", "hook missing or out of order: if deepLinkCoordinator.handles(url)",
      "Tinycast/App/AppCore.swift", ARCHIVES_HOOK, "", DEEP_LINK_HOOK, ARCHIVES_HOOK + "        do {"),
     ("source-hooks", "hook missing or out of order: var extensionsEnabled: Bool { get { false } set { } }",
@@ -148,7 +156,6 @@ def append_feature(source, name):
         "settingsGroup": f".{name}Group",
         "title": f'String(localized: "{name}")',
         "subtitle": f'String(localized: "{name} subtitle")',
-        "requiredGrants": "[.accessibility]",
     }
     if "var startsOff:" in source:
         values["startsOff"] = "true"
@@ -186,7 +193,7 @@ class FeatureShapeTests(unittest.TestCase):
     def test_shared_multi_case_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            ARM, "case .colorPicker, .screenshot: .captureAndDictation"),
+            ARM, "case .editorSpellChecking, .treadmillHistory: .system"),
             "multi-case arm")
 
     def test_single_line_string_values(self):
@@ -194,19 +201,19 @@ class FeatureShapeTests(unittest.TestCase):
             with self.subTest(value=value):
                 source = (ROOT / SHAPE.FEATURE).read_text()
                 self.assertEqual(source.count(ARM), 1)
-                (self.root / SHAPE.FEATURE).write_text(source.replace(ARM, f"case .colorPicker: {value}"))
+                (self.root / SHAPE.FEATURE).write_text(source.replace(ARM, f"case .editorSpellChecking: {value}"))
                 self.assertEqual(SHAPE.check(self.root), [])
 
     def test_two_switch_cases_on_one_line(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            ARM, 'case .colorPicker: "Other"; case .extra: "Extra"'),
+            ARM, 'case .editorSpellChecking: "Other"; case .extra: "Extra"'),
             "own line")
 
     def test_multiline_string_value(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            ARM, 'case .colorPicker:\n            "Other"'),
+            ARM, 'case .editorSpellChecking:\n            "Other"'),
             "keep each feature arm on one line")
 
     def test_shared_group_line(self):
@@ -222,7 +229,7 @@ class FeatureShapeTests(unittest.TestCase):
     def test_bare_case_before_multiline_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            ARM, "case\n            .colorPicker, .screenshot: .captureAndDictation"),
+            ARM, "case\n            .editorSpellChecking, .treadmillHistory: .system"),
             "multi-case arm")
 
     def test_enum_comma_on_next_line(self):
@@ -248,7 +255,7 @@ class FeatureShapeTests(unittest.TestCase):
     def test_default_enabled_multi_case_arm(self):
         source = (self.root / SHAPE.FEATURE).read_text()
         self.rejected(SHAPE.FEATURE, source.replace(
-            "case .captureEditor: false", "case .captureEditor, .treadmillWalk: false"),
+            "case .treadmillWalk: false", "case .treadmillWalk, .treadmillHistory: false"),
             "multi-case arm")
 
     def test_union_duplicated_group_header(self):
@@ -396,7 +403,7 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_arm_for_described_feature(self):
         for anchor, arm in ((ARM + "\n", "case .hideCommandM: .system\n"),
-                            ("case .recording: [.screenRecording]\n", "case .linkHealth: []\n")):
+                            ("case .treadmillWalk: false\n", "case .captureEditor: false\n")):
             with self.subTest(arm=arm):
                 source = (ROOT / SHAPE.FEATURE).read_text()
                 self.assertEqual(source.count(anchor), 1)
@@ -503,10 +510,10 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_undescribed_feature_without_exhaustive_arm(self):
         source = (ROOT / SHAPE.FEATURE).read_text()
-        arm = '        case .colorPicker: String(localized: "Color Picker", table: "Notchcast")\n'
+        arm = '        case .editorSpellChecking: String(localized: "Editor Spell Checking", table: "Notchcast")\n'
         self.assertEqual(source.count(arm), 1)
         self.rejected(SHAPE.FEATURE, source.replace(arm, ""),
-                      ".colorPicker needs a descriptor or a title arm")
+                      ".editorSpellChecking needs a descriptor or a title arm")
 
     def init_repository(self):
         (self.root / ".gitattributes").write_text((ROOT / ".gitattributes").read_text())
@@ -578,7 +585,7 @@ class FeatureShapeTests(unittest.TestCase):
         for name in ("unionAlpha", "unionBeta", "unionGamma"):
             self.assertEqual(features.count(f"    case {name}\n"), 1)
             self.assertEqual(groups.count(f"        case {name}Group\n"), 1)
-            expected_arms = 5 if "var startsOff:" in features else 4
+            expected_arms = 4 if "var startsOff:" in features else 3
             self.assertEqual(features.count(f"case .{name}:"), expected_arms)
 
     def test_list_appends_merge_and_edit_is_caught(self):
