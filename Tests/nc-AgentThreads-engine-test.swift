@@ -59,8 +59,15 @@ struct AgentThreadsTest {
     @MainActor
     static func main() async throws {
         let runner = FakeRunner()
-        let environment = AgentThreadRunner.environment(for: "/opt/homebrew/bin/t3", inheriting: ["KEEP": "yes"])
-        precondition(environment == ["PATH": "/opt/homebrew/bin:/usr/bin:/bin", "KEEP": "yes"])
+        let tool = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: tool) }
+        try FileManager.default.createDirectory(at: tool.appending(path: "t3"), withIntermediateDirectories: true)
+        precondition(ExecutableLocator.find("t3", in: [tool]) == nil, "A folder named like the tool is not the tool")
+        precondition(ExecutableLocator.find("sh", in: [tool, URL(filePath: "/bin")])?.path == "/bin/sh")
+        precondition(ExecutableLocator.find("../bin/sh", in: [URL(filePath: "/usr")]) == nil)
+        let path = try await AgentThreadRunner(locate: { URL(filePath: "/bin/sh") }).run(arguments: ["-c", "echo $PATH"])
+        precondition(String(decoding: path, as: UTF8.self).hasPrefix("/bin:/opt/homebrew/bin:/usr/local/bin:"),
+                     "Child PATH comes from ExecutableLocator")
         let data = try await runner.run(arguments: [])
         let rows = try AgentThreadParser.list(data, project: "Demo")
         precondition(rows.count == 1 && rows[0].title == "Example" && rows[0].project == "Demo")
@@ -114,11 +121,11 @@ struct AgentThreadsTest {
             preconditionFailure("Bad JSON accepted")
         } catch {}
         do {
-            _ = try await AgentThreadRunner(paths: []).run(arguments: [])
+            _ = try await AgentThreadRunner(locate: { nil }).run(arguments: [])
             preconditionFailure("Missing CLI accepted")
         } catch { precondition(error as? AgentThreadFailure == .unavailable) }
         do {
-            _ = try await AgentThreadRunner(paths: ["/bin/sleep"], timeout: .milliseconds(30))
+            _ = try await AgentThreadRunner(locate: { URL(filePath: "/bin/sleep") }, timeout: .milliseconds(30))
                 .run(arguments: ["2"])
             preconditionFailure("Timeout not enforced")
         } catch { precondition(error as? AgentThreadFailure == .timeout) }

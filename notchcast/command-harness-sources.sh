@@ -47,6 +47,7 @@ fi
 # Shared fork helpers no header lists: a compiled Tinycast source naming `<symbol>` brings its files in.
 symbol_sources=(
     'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Platform/ProcessExit.swift'
+    'ExecutableLocator Tinycast/Platform/ExecutableLocator.swift Tinycast/Features/Notchcast/Process/ExecutableLocator+Search.swift Tinycast/Platform/ProcessExit.swift'
     'WebRules Tinycast/Features/Notchcast/Model/WebRules.swift'
     'NotchcastIdentity Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift'
 )
