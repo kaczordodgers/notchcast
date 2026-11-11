@@ -4,10 +4,7 @@
 // notchcast-sources: Tinycast/Features/CaptureEditor/View/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/CaptureEditorCoordinator+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/DesignSystem/Interaction/AnimatedPanel.swift
 // notchcast-sources: Tinycast/DesignSystem/Interaction/Motion.swift
 // notchcast-sources: Tinycast/DesignSystem/Theme.swift Tinycast/DesignSystem/InterfaceMetrics.swift

@@ -4,9 +4,7 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/MachRemoteShell.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/SendFilesModule.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/UpdateRemoteModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule.swift
 // notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule+Registration.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Service/MachSSHProcessRunner.swift

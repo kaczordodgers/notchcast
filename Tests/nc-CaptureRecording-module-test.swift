@@ -4,12 +4,9 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingFiles.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingWriting.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingSource.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/CaptureRecording/RecordingModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import CoreMedia
 import Foundation
 
