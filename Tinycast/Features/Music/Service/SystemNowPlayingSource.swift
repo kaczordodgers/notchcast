@@ -260,9 +260,10 @@ final class SystemNowPlayingSource: NowPlayingSource {
                 return true
             }
             guard shouldStop else { return }
-            if process.isRunning { process.terminate() }
-            DispatchQueue.global(qos: .utility).asyncAfter(deadline: .now() + 1) { [process] in
-                if process.isRunning { kill(process.processIdentifier, SIGKILL) }
+            let ladder = ProcessRunner.StopLadder.terminating(grace: .seconds(1))
+            if process.isRunning { kill(process.processIdentifier, ladder.first) }
+            ladder.escalate { [process] signal in
+                if process.isRunning { kill(process.processIdentifier, signal) }
             }
         }
 
