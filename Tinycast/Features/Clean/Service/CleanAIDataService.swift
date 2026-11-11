@@ -19,8 +19,8 @@ struct CleanAIDataService: Sendable {
             var pending = [policy.home.appendingPathComponent(root)]
             while let path = pending.popLast() {
                 try Task.checkCancellation()
-                guard safe(path), let attributes = try? FileManager().attributesOfItem(atPath: path.path)
-                else { continue }
+                guard CleanService.physical(path, inside: policy.home),
+                      let attributes = try? FileManager().attributesOfItem(atPath: path.path) else { continue }
                 if policy.permits(path, kind: kind),
                    let snapshot = try? measure(path), old(snapshot.newest, kind: kind) {
                     let refusal = try await refusal(path, kind: kind)
@@ -54,11 +54,12 @@ struct CleanAIDataService: Sendable {
                     if !FileManager().fileExists(atPath: folder.path) {
                         try FileManager().createDirectory(at: folder, withIntermediateDirectories: false)
                     }
-                    guard safe(folder) else { throw CocoaError(.fileWriteNoPermission) }
+                    guard CleanService.physical(folder, inside: policy.home) else { throw CocoaError(.fileWriteNoPermission) }
                     let destination = folder.appendingPathComponent(UUID().uuidString)
                     let original = try Data(contentsOf: item.path)
                     try copy(item.path, destination)
-                    guard safe(destination), try Data(contentsOf: destination) == original,
+                    guard CleanService.physical(destination, inside: policy.home),
+                          try Data(contentsOf: destination) == original,
                           try Data(contentsOf: item.path) == original else {
                         results.append(.init(path: item.path, status: .recoveryFailed, recovery: nil)); continue
                     }
@@ -83,7 +84,8 @@ struct CleanAIDataService: Sendable {
     }
 
     private func current(_ item: CleanAIDataItem) async throws -> Bool {
-        guard safe(item.path), policy.permits(item.path, kind: item.kind) else { return false }
+        guard CleanService.physical(item.path, inside: policy.home),
+              policy.permits(item.path, kind: item.kind) else { return false }
         let snapshot = try measure(item.path)
         let permitted = try await refusal(item.path, kind: item.kind) == nil
         return snapshot.values == item.snapshot && old(snapshot.newest, kind: item.kind) && permitted
@@ -128,26 +130,13 @@ struct CleanAIDataService: Sendable {
         now().timeIntervalSince(date) > max(kind == .worktree ? 86_400 : 0, policy.age)
     }
 
-    private func safe(_ path: URL) -> Bool {
-        guard path.path.hasPrefix(policy.home.path + "/") else { return false }
-        var cursor = path
-        while cursor.path != "/" {
-            guard let attributes = try? FileManager().attributesOfItem(atPath: cursor.path),
-                  attributes[.type] as? FileAttributeType != .typeSymbolicLink else { return false }
-            let parent = cursor.deletingLastPathComponent()
-            guard parent.path != cursor.path else { return false }
-            cursor = parent
-        }
-        return true
-    }
-
     private func measure(_ path: URL) throws -> (values: [String: String], newest: Date) {
         var pending = [path]
         var values: [String: String] = [:]
         var newest = Date.distantPast
         while let entry = pending.popLast() {
             try Task.checkCancellation()
-            guard safe(entry) else { throw CocoaError(.fileReadNoPermission) }
+            guard CleanService.physical(entry, inside: policy.home) else { throw CocoaError(.fileReadNoPermission) }
             let attributes = try FileManager().attributesOfItem(atPath: entry.path)
             let type = attributes[.type] as? FileAttributeType
             guard type == .typeRegular || type == .typeDirectory else {

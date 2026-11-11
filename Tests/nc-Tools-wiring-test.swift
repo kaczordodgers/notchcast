@@ -8,7 +8,7 @@
 // notchcast-sources: Tinycast/Features/AppUpdates/Model/AppUpdate.swift
 // notchcast-sources: Tinycast/Features/AppUpdates/AppUpdatesModule.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Model/*.swift
-// notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift
+// notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift Tinycast/Platform/ExecutableLocator.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/MacUpdateModule.swift
 import Foundation
 
@@ -86,8 +86,9 @@ struct ToolsWiringTests {
         precondition(checks == 2)
 
         let runner = ToolsFakeRunner()
-        let service = MacUpdateService(runner: runner, home: "/fixture", appRoot: "/fixture",
-                                      exists: { _ in true }, resolve: { $0 }, locked: { false })
+        let service = MacUpdateService(runner: runner, appRoot: "/fixture",
+                                      exists: { _ in true }, resolve: { $0 }, locked: { false },
+                                      locate: { "/fixture/" + $0 })
         let mac = MacUpdateModule(service: service)
         var confirmations = 0
         mac.run { confirmations += 1; return true }

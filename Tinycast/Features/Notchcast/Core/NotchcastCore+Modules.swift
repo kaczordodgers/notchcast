@@ -14,7 +14,7 @@ extension NotchcastCore {
     static let systemTools = SystemToolsModule()
     static let cleaning = CleaningModeModule(engine: CleaningModeEngine(hub: eventTapHub), granted: { Permissions.isAccessibilityTrusted() })
     static let appUpdates = AppUpdatesModule.live()
-    static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
+    static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
     static let clean = CleanModule()
     static let macLink = AIUsageLinkModule()
     static let tasksSync = TodoLinkCoordinator.live(channel: macLink.channel, preferences: .shared)

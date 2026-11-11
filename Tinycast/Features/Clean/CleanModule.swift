@@ -3,9 +3,6 @@ import Observation
 import SQLite3
 import Synchronization
 
-extension NotchcastCore {
-}
-
 @MainActor
 final class CleanModule: NotchcastModule {
     nonisolated private static let history = CleanHistoryStore(
@@ -75,13 +72,12 @@ final class CleanModule: NotchcastModule {
         switch feature {
         case .cleanJunk:
             let clock = Date.now
-            let scanner = CleanService(policy: .init(home: home, now: clock, logAge: 30 * 86_400,
-                installerAge: 30 * 86_400, installedBundleIDs: [], protectedNames: []), transport: trash)
-            let scanned = try await scanner.scan()
+            let policy = { CleanPolicy(home: home, now: clock, logAge: 30 * 86_400, installerAge: 30 * 86_400,
+                installedBundleIDs: $0, protectedNames: []) }
+            let scanned = try await CleanService(policy: policy([]), transport: trash).scan()
             let installed = await installedBundleIDs(scanned)
             try Task.checkCancellation()
-            let service = CleanService(policy: .init(home: home, now: clock, logAge: 30 * 86_400,
-                installerAge: 30 * 86_400, installedBundleIDs: installed, protectedNames: []), transport: trash)
+            let service = CleanService(policy: policy(installed), transport: trash)
             let items = scanned.filter { $0.category != .leftovers || !installed.contains($0.path.lastPathComponent) }
             trash.recordSizes(Dictionary(uniqueKeysWithValues: items.map { ($0.path, $0.size) }))
             return .init(items: items.map { .init(id: $0.path, size: $0.size, reportOnly: $0.reportOnly) }) { paths in
@@ -115,8 +111,6 @@ final class CleanModule: NotchcastModule {
             }) { paths in
                 let selected = Set(paths)
                 for index in scan.nodes.indices where selected.contains(scan.nodes[index].path) {
-                    let node = scan.nodes[index]
-                    guard !paths.contains(where: { node.path.path.hasPrefix($0.path + "/") }) else { continue }
                     try await scanner.trash(index, from: scan, currentID: scan.id)
                 }
             }
@@ -181,18 +175,24 @@ final class CleanModule: NotchcastModule {
             }
         case .cleanSystem:
             let client = CleanSystemRootClient(run: { try await RootHelperClient().clean($0, input: $1) },
-                policy: .init(roots: CleanSystemPolicy.allowedRoots, now: .now,
-                              cacheAge: 30 * 86_400, logAge: 30 * 86_400))
-            let entries = try await client.list()
+                policy: .standard(now: .now))
+            let entries = try await helper { try await client.list() }
             return .init(items: entries.map {
                 .init(id: URL(fileURLWithPath: $0.path), size: $0.size)
             }) { paths in
                 let selected = entries.filter { entry in paths.contains { $0.path == entry.path } }
                 guard selected.count == paths.count else { throw Failure.itemsChanged }
-                let skipped = try await client.trash(selected)
+                let skipped = try await helper { try await client.trash(selected) }
                 if skipped > 0 { throw Failure.skipped(skipped) }
             }
         default: throw Failure.itemsChanged
+        }
+    }
+
+    nonisolated private static func helper<T>(_ body: () async throws -> T) async throws -> T {
+        do { return try await body() } catch CleanSystemRootClient.Failure.helperUpdate,
+            RootHelperClient.Failure.reinstallRequired, RootHelperClient.Failure.unsafePath(.missing) {
+            throw CleanCoordinator.HelperUpdate()
         }
     }
 
@@ -223,13 +223,11 @@ final class CleanModule: NotchcastModule {
     }
 
     private enum Failure: LocalizedError {
-        case itemsChanged, helperUpdate, toolFailed
-        case skipped(Int)
+        case itemsChanged, toolFailed, skipped(Int)
         var errorDescription: String? {
             switch self {
             case .skipped(let count): String(localized: "\(count) entries skipped")
             case .itemsChanged: String(localized: "Some items changed or could not be processed. Scan again to review them.", table: "Notchcast")
-            case .helperUpdate: String(localized: "Needs the Notchcast helper update", table: "Notchcast")
             case .toolFailed: String(localized: "The Clean tool could not complete the request.", table: "Notchcast")
             }
         }
@@ -281,7 +279,7 @@ final class CleanModule: NotchcastModule {
 
         private func read(_ path: URL) async throws -> CleanAIDataGitState? {
             func git(_ arguments: [String]) async throws -> String {
-                let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/usr/bin/git"),
+                let result = try await CleanTool.run(URL(fileURLWithPath: "/usr/bin/git"),
                     ["--no-optional-locks", "-c", "core.fsmonitor=false", "-C", path.path] + arguments, timeout: 5)
                 guard result.code == 0, result.error.isEmpty else { throw Failure.toolFailed }
                 return result.output.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -311,7 +309,7 @@ final class CleanModule: NotchcastModule {
 
     private struct Tools: CleanOptimizeProcessTransport, CleanOptimizeDatabaseTransport {
         @concurrent func run(_ request: CleanOptimizeRequest) async throws -> CleanOptimizeRequest.Result {
-            .exited(try await CleanProcessRunner.execute(request.executable, request.arguments, timeout: request.timeout).code)
+            .exited(try await CleanTool.run(request.executable, request.arguments, timeout: request.timeout).code)
         }
 
         @concurrent func count(at database: URL, timeout: TimeInterval) async throws -> Int {
@@ -323,7 +321,7 @@ final class CleanModule: NotchcastModule {
         }
 
         static func idle(_ path: URL, recursive: Bool = false) async throws -> Bool? {
-            let result = try await CleanProcessRunner.execute(URL(fileURLWithPath: "/usr/sbin/lsof"),
+            let result = try await CleanTool.run(URL(fileURLWithPath: "/usr/sbin/lsof"),
                 ["-nP", "-t"] + (recursive ? ["+D", path.path] : ["--", path.path]), timeout: 5)
             guard result.error.isEmpty else { return nil }
             if result.code == 0 { return false }
