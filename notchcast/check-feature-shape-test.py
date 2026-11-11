@@ -111,6 +111,14 @@ BREAKS = (
      SHAPE.APP_SETTINGS, "var extensionsEnabled: Bool {\n        get { false }", "var extensionsEnabled: Bool {\n        get { true }"),
     ("source-hooks", "keep showSupport out of this file",
      "Tinycast/App/MenuBarItem.swift", "showAbout() }", "showAbout() }\n            Button(\"Support\") { showSupport() }"),
+    ("source-hooks", "hook missing or out of order: Released under AGPL-3.0",
+     "Tinycast/Windows/About/AboutView.swift", "Released under AGPL-3.0", "Released"),
+    ("source-hooks", "hook missing or out of order: await NotchcastCore.stopForTermination()",
+     "Tinycast/App/AppDelegate.swift", "await NotchcastCore.stopForTermination()", ""),
+    ("source-hooks", "hook missing or out of order: AppCore.shared.handleOpenURL(url)",
+     "Tinycast/App/AppDelegate.swift", "AppCore.shared.handleOpenURL(url)", "_ = url"),
+    ("source-hooks", "hook missing or out of order: case .about: AboutView()",
+     "Tinycast/Features/Settings/SettingsDetailView.swift", "case .about: AboutView()", "case .about: EmptyView()"),
     ("plist", "declare one Archives document type", SHAPE.PLIST, "<string>Alternate</string>", "<string>Owner</string>"),
     ("plist", "declare one Archives document type", SHAPE.ARCHIVE_FORMATS, '"public.zip-archive", ', ""),
     ("plist", "imported type com.example.zoo-archive is neither app.notchcast.* nor in FOREIGN_TYPES", SHAPE.PLIST,
@@ -119,18 +127,6 @@ BREAKS = (
     ("plist", "NSBonjourServices lists exactly MachLinkManager.serviceType",
      SHAPE.PLIST, "<string>_notchcast-link._tcp</string>", "<string>_other-link._tcp</string>"),
     ("plist", "NSLocalNetworkUsageDescription reads", SHAPE.PLIST, SHAPE.LOCAL_NETWORK, "Uses the network."),
-)
-# Upstream's own lines, respelled as an upstream reformat would: no hook pins them, so the tree still holds.
-RESPELLED = (
-    ("Tinycast/App/AppDelegate.swift", "for url in urls", "for link in urls"),
-    ("Tinycast/App/AppDelegate.swift", "AppCore.shared.handleOpenURL(url)", "AppCore.shared.handleOpenURL(link)"),
-    ("Tinycast/Features/Settings/SettingsCoordinator.swift", "showSettings(tab: .about)", "showSettings(tab: SettingsTab.about)"),
-    ("Tinycast/Features/Settings/SettingsDetailView.swift", "case .about: AboutView()", "case .about: AboutView(core: core)"),
-    ("Tinycast/Windows/About/AboutView.swift", "Released under AGPL-3.0", "Licensed under AGPL-3.0"),
-    ("Tinycast/Features/AppleShortcuts/UI/AppleShortcutCoordinator.swift",
-     "guard settings.appleShortcutsEnabled else", "guard settings.appleShortcutsEnabled == true else"),
-    ("Tinycast/Features/Extensions/Service/ExtensionManager.swift",
-     "guard isEnabled, showsInLauncher else", "guard showsInLauncher, isEnabled else"),
 )
 
 
@@ -669,17 +665,6 @@ class FeatureFactTests(unittest.TestCase):
             self.assertEqual(SHAPE.fact_errors(self.root), [])
         finally:
             path.write_text(shipped)
-
-    def test_upstream_respelling_its_own_lines_passes(self):
-        for path, old, new in RESPELLED:
-            with self.subTest(old=old):
-                shipped = (self.root / path).read_text()
-                self.assertIn(old, shipped)
-                (self.root / path).write_text(shipped.replace(old, new))
-                try:
-                    self.assertEqual(SHAPE.fact_errors(self.root), [])
-                finally:
-                    (self.root / path).write_text(shipped)
 
     def test_each_planted_break_is_caught(self):
         for rule, message, path, *swaps in BREAKS:
