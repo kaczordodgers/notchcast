@@ -155,6 +155,16 @@ struct NotchcastCommand: Sendable {
         precondition(!NotchcastPreferences.shared.isEnabled(.captureTrimmer))
         print("PASS: restored captureTrimmer true stays off and disabled")
         precondition(Set(complete.keys) == Set(ForkSettingsBackupSchema.allowed.keys))
+        liveDefaults.set("not theme data", forKey: "notchcast.appearance.theme.light")
+        let partial = try ForkSettingsBackupState.live.snapshot()
+        precondition(partial["notchcast.appearance.theme.light"] == nil && partial.count == complete.count - 1)
+        liveDefaults.removeObject(forKey: "notchcast.appearance.theme.light")
+        print("PASS: an unreadable theme drops only its own key from a snapshot")
+        for feature in NotchcastFeature.BackupKeys.all {
+            let own = try feature.snapshot()
+            precondition(Set(own.keys) == Set(feature.allowed.keys), "\(feature.allowed.keys.sorted())")
+        }
+        print("PASS: every feature's own snapshot returns exactly the keys it allows")
         let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
         precondition(complete.keys.allSatisfy { $0.firstMatch(of: secretName) == nil })
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
