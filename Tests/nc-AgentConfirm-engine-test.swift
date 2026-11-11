@@ -45,7 +45,7 @@ struct AgentConfirmationTests {
         try coordinator.choose(id: first.id, choice: .allowOnce, now: now)
         assert(transport.replies.last?.verdict == .allowOnce)
         try coordinator.choose(id: second.id, choice: .deny, now: now)
-        assert(transport.replies.last?.verdict.exitCode == 5)
+        assert(transport.replies.last?.verdict == .deny)
         let persistent = request()
         coordinator.receive(persistent, now: now)
         try coordinator.choose(id: persistent.id, choice: .alwaysAllow, now: now)

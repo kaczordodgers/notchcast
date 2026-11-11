@@ -70,18 +70,7 @@ struct OpenBotService: Sendable {
         try await request(["agents", agent, "pending"])
     }
 
-    func delivery(agent: String, id: String) async throws -> OpenBotDelivery {
-        try await request(["agents", agent, "deliveries", id])
-    }
-
-    func send(agent: String, text: String) async throws -> OpenBotReceipt {
-        struct Message: Encodable { let text: String; let clientMessageId: UUID }
-        let body = try JSONEncoder().encode(Message(text: text, clientMessageId: UUID()))
-        guard body.count <= 32768 else { throw OpenBotFailure.oversized }
-        return try await request(["agents", agent, "messages"], body: body)
-    }
-
-    private func request<Value: Decodable & Sendable>(_ path: [String], body: Data? = nil) async throws -> Value {
+    private func request<Value: Decodable & Sendable>(_ path: [String]) async throws -> Value {
         do {
             for attempt in 0...1 {
                 try Task.checkCancellation()
@@ -93,15 +82,12 @@ struct OpenBotService: Sendable {
                     url.appendPathComponent(component)
                 }
                 var request = URLRequest(url: url)
-                request.httpMethod = body == nil ? "GET" : "POST"
-                request.httpBody = body
                 request.setValue("Bearer " + access.token, forHTTPHeaderField: "Authorization")
-                if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
                 let (data, status) = try await transport.send(request)
                 try Task.checkCancellation()
                 if status == 401 && attempt == 0 { continue }
                 switch status {
-                case body == nil ? 200 : 202:
+                case 200:
                     guard let value = try? JSONDecoder().decode(Value.self, from: data) else {
                         throw OpenBotFailure.malformed
                     }

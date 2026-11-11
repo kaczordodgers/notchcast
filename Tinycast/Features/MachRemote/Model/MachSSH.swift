@@ -4,12 +4,8 @@ struct MachSSH: Sendable {
     struct Result: Sendable {
         let status: Int32
         let output: String
-        var message: String? {
-            status == 255 ? String(localized: "Unable to reach the remote Mac over SSH", table: "Notchcast") : nil
-        }
     }
 
-    enum Route: Sendable { case thunderbolt, tailscale }
     typealias Runner = @Sendable (String, [String]) async throws -> Result
     static let options = ["-o", "BatchMode=yes", "-o", "ConnectTimeout=5",
                           "-o", "ServerAliveInterval=5", "-o", "ServerAliveCountMax=3"]
@@ -31,20 +27,6 @@ struct MachSSH: Sendable {
         guard Self.isValid(address) else { throw ConfigurationError.address }
         return try await runner("/usr/bin/ssh", options + Self.options + [address, command])
     }
-
-    func route(thunderboltAddress: String) async throws -> Route {
-        guard Self.isValid(address) else { throw ConfigurationError.address }
-        let result = try await runner("/usr/bin/ssh", ["-G", address])
-        guard result.status == 0 else { throw RouteError.unavailable }
-        let hostname = result.output.split(separator: "\n").compactMap { line -> String? in
-            let fields = line.split(whereSeparator: \.isWhitespace)
-            return fields.count == 2 && fields[0].lowercased() == "hostname" ? String(fields[1]) : nil
-        }.first
-        guard let hostname else { throw RouteError.unavailable }
-        return hostname == thunderboltAddress ? .thunderbolt : .tailscale
-    }
-
-    enum RouteError: Error { case unavailable }
 
     func terminalScript(directory: String) throws -> String {
         guard Self.isValid(address) else { throw ConfigurationError.address }

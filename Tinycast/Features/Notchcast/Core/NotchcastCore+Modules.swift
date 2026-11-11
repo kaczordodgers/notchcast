@@ -17,7 +17,7 @@ extension NotchcastCore {
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".urlCleaner")))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
-    static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
+    static let aiUsage = AIUsageModule(channel: macLink.channel)
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
     static let pasteImage = PasteImageModule(hub: eventTapHub)

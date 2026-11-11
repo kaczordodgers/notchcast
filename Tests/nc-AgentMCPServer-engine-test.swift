@@ -31,7 +31,8 @@ struct EngineTest {
     @MainActor
     static func main() async throws {
         let backend = FakeBackend()
-        let module = AgentMCPModule(backend: backend)
+        let module = AgentMCPModule()
+        module.engine.configure(backend: backend)
         let suite = "test.mcp." + UUID().uuidString
         let preferences = NotchcastPreferences(suiteName: suite)
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
@@ -46,11 +47,11 @@ struct EngineTest {
         precondition(module.engine.isRunning)
         func send(_ method: String, _ params: String = "{}", id: String = "1") async -> String {
             let line = "{\"jsonrpc\":\"2.0\",\"id\":\(id),\"method\":\"\(method)\",\"params\":\(params)}"
-            return String(bytes: await module.engine.receive(line: Data(line.utf8)) ?? Data(), encoding: .utf8)!
+            return String(bytes: await module.engine.receive(line: Data(line.utf8), session: "direct") ?? Data(), encoding: .utf8)!
         }
-        let malformed = await module.engine.receive(line: Data("no".utf8))!
+        let malformed = await module.engine.receive(line: Data("no".utf8), session: "direct")!
         precondition(String(bytes: malformed, encoding: .utf8)!.contains("-32700"))
-        let invalid = await module.engine.receive(line: Data("[]".utf8))!
+        let invalid = await module.engine.receive(line: Data("[]".utf8), session: "direct")!
         precondition(String(bytes: invalid, encoding: .utf8)!.contains("-32600"))
         let early = await send("tools/list")
         precondition(early.contains("-32002"))
@@ -68,7 +69,7 @@ struct EngineTest {
         let listing = Data(#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#.utf8)
         let evicted = await module.engine.receive(line: listing, session: "client-0")!
         precondition(String(bytes: evicted, encoding: .utf8)!.contains("Initialize first"))
-        _ = await module.engine.receive(line: initialization)
+        _ = await module.engine.receive(line: initialization, session: "direct")
         print("PASS 65 initializes succeed and least recently used session is evicted")
         let tools = await send("tools/list", id: #""request""#)
         precondition(tools.contains("inputSchema") && tools.contains("annotations"))
@@ -92,7 +93,7 @@ struct EngineTest {
         precondition(unregistered.contains("Unknown tool") && backend.calls == 6)
         let unknown = await send("unknown")
         precondition(unknown.contains("-32601"))
-        let notification = await module.engine.receive(line: Data(#"{"jsonrpc":"2.0","method":"unknown"}"#.utf8))
+        let notification = await module.engine.receive(line: Data(#"{"jsonrpc":"2.0","method":"unknown"}"#.utf8), session: "direct")
         precondition(notification == nil)
         let resources = await send("resources/list")
         precondition(resources.contains("agents.list"))

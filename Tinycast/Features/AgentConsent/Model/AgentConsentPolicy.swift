@@ -21,13 +21,12 @@ enum AgentConsentPolicy {
     }
 
     static func decide(
-        agentID: String, actionID: String, danger: Danger, grants: [Grant],
-        now: Date, islandConfirmationAvailable: Bool = false
+        agentID: String, actionID: String, danger: Danger, grants: [Grant], now: Date
     ) -> Decision {
         guard !agentID.isEmpty, !actionID.isEmpty else { return .refuse }
         switch danger {
         case .harmless: return .allow
-        case .dangerous: return islandConfirmationAvailable ? .ask : .refuse
+        case .dangerous: return .refuse
         case .consent:
             return grants.contains { $0.covers(agentID: agentID, actionID: actionID, now: now) }
                 ? .allow : .ask

@@ -8,8 +8,6 @@ final class AgentMCPEngine {
     private var generation = UUID()
     private var pending: [UUID: (session: String, task: Task<Data, any Error>)] = [:]
 
-    init(backend: (any AgentMCPBackend)? = nil) { self.backend = backend }
-
     func configure(backend: any AgentMCPBackend) {
         stop()
         self.backend = backend
@@ -29,7 +27,7 @@ final class AgentMCPEngine {
         for operation in pending.values where operation.session == session { operation.task.cancel() }
     }
 
-    func receive(line: Data, session: String = "direct") async -> Data? {
+    func receive(line: Data, session: String) async -> Data? {
         let value: Any
         do {
             value = try JSONSerialization.jsonObject(with: line, options: .fragmentsAllowed)

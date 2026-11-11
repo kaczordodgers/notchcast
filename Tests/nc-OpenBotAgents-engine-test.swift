@@ -89,7 +89,7 @@ struct OpenBotTests {
         for routines in ["", ",\"routines\":null"] {
             let fixture = "[{\"id\":\"fixture-bot\",\"name\":\"Paper Kite\"\(routines)}]"
             let decoded = try await service(FixtureTransport([(fixture, 200)])).agents()
-            precondition(decoded.count == 1 && decoded[0].routines.isEmpty)
+            precondition(decoded.count == 1 && decoded[0].name == "Paper Kite")
         }
         for fixture in ["{}", #"{"prompts":null,"approvals":null,"browserTakeovers":null}"#] {
             let decoded = try await service(FixtureTransport([(fixture, 200)])).pending(agent: "fixture-bot")
@@ -109,43 +109,10 @@ struct OpenBotTests {
         precondition(kept.isWaiting && kept.prompts.count == 1)
         precondition(kept.prompts[0].questions.map(\.question) == ["Keep"])
         precondition(kept.approvals.count == 1 && kept.browserTakeovers.count == 1)
-        let routines = #"{"routines":[null,{"id":42},{"id":"paper","name":"Keep","active":true}]}"#
-        let keptAgent = try JSONDecoder().decode(OpenBotAgent.self, from: Data(routines.utf8))
-        precondition(keptAgent.routines.count == 1 && keptAgent.routines[0].name == "Keep")
-        for answer in ["null", "{}", "[]", "42", "true", #""Paper answer""#] {
-            let fixture = "{\"id\":\"fixture-delivery\",\"status\":\"completed\",\"answer\":\(answer)}"
-            let delivery = try await service(FixtureTransport([(fixture, 200)]))
-                .delivery(agent: "fixture-bot", id: "fixture-delivery")
-            precondition(delivery.answer == (answer == #""Paper answer""# ? "Paper answer" : nil))
-        }
         await expectFailure(.malformed) { _ = try await service(FixtureTransport([("{}", 200)])).agents() }
         await expectFailure(.malformed) {
             _ = try await service(FixtureTransport([("[]", 200)])).pending(agent: "fixture-bot")
         }
-        let statuses: [(String, OpenBotDelivery.Status)] = [
-            ("queued", .queued), ("pending", .pending), ("running", .running), ("completed", .completed),
-            ("failed", .failed), ("interrupted", .interrupted), ("cancelled", .cancelled), ("future", .unknown)]
-        for (status, expected) in statuses {
-            let fixture = "{\"id\":\"fixture-delivery\",\"status\":\"\(status)\",\"answer\":null}"
-            let delivery = try await service(FixtureTransport([(fixture, 200)]))
-                .delivery(agent: "fixture-bot", id: "fixture-delivery")
-            precondition(delivery.status == expected, "\(status)")
-            precondition(delivery.status.hasEnded == ["completed", "failed", "interrupted", "cancelled"].contains(status))
-        }
-        let receipt = """
-            {"messageId":"fixture-message","deliveries":[
-            {"id":"fixture-delivery","recipientAgentId":"fixture-bot","status":"queued"}]}
-            """
-        let sends = FixtureTransport([(receipt, 202), (receipt, 202)])
-        for _ in 0..<2 { _ = try await service(sends).send(agent: "fixture-bot", text: "Hello paper") }
-        let bodies = try sends.requests.withLock { requests in
-            try requests.map { request -> [String: String] in
-                precondition(request.value(forHTTPHeaderField: "Origin") == nil)
-                return try JSONDecoder().decode([String: String].self, from: request.httpBody!)
-            }
-        }
-        precondition(bodies[0]["clientMessageId"] != bodies[1]["clientMessageId"])
-        precondition(UUID(uuidString: bodies[0]["clientMessageId"]!) != nil)
         for (code, failure) in [(400, OpenBotFailure.input), (401, .unauthorized), (403, .forbidden),
             (404, .missing), (405, .method), (409, .conflict), (413, .oversized), (415, .mediaType),
             (429, .rateLimited), (500, .server), (503, .server), (302, .unexpected)] {
@@ -167,10 +134,6 @@ struct OpenBotTests {
             await expectFailure(.invalidURL) { _ = try OpenBotCredentials(url: url, token: "synthetic-secret") }
         }
         let unused = FixtureTransport([])
-        await expectFailure(.oversized) {
-            _ = try await service(unused).send(agent: "fixture-bot", text: String(repeating: "a", count: 32769))
-        }
-        precondition(unused.requests.withLock { $0.isEmpty })
         await expectFailure(.off) {
             _ = try await OpenBotService(transport: unused, credentials: { throw OpenBotFailure.off }).agents()
         }
@@ -256,8 +219,8 @@ struct OpenBotTests {
         precondition(entries.count == 1 && entries[0].requires == [.openBotAgents] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === OpenBotAgentsModule.shared)
         print("PASS: registration entry")
-        print("PASS: agents, pending questions/counts, receipt, all delivery statuses and malformed JSON")
-        print("PASS: HTTP errors, single 401 credential retry, loopback, body limit, UUIDs, token redaction and stop")
+        print("PASS: agents, pending questions/counts and malformed JSON")
+        print("PASS: HTTP errors, single 401 credential retry, loopback, token redaction and stop")
         print("PASS: switch defaults off, independent of island; shipped command gate removes command when off")
         print("PASS: tolerant optional fields and non-string answers; wrong top-level types rejected")
         print("PASS: double start; isolated 403/404 pending failures, both agents listed, waiting count 1")

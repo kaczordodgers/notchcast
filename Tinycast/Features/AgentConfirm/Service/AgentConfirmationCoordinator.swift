@@ -30,7 +30,7 @@ final class AgentConfirmationCoordinator {
             if reply.verdict == .alwaysAllow, let pending, pending.request.id == reply.id {
                 do {
                     try grants.allow(agentID: pending.request.agentID, actionID: pending.request.actionID,
-                                     danger: pending.danger, now: now)
+                                     danger: pending.danger)
                 } catch {
                     transport.reply(.init(id: reply.id, verdict: .deny))
                     throw error

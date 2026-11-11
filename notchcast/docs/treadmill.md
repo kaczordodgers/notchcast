@@ -34,5 +34,5 @@ PR #63's `NotchcastExtrasSection` was not on main at implementation time. The fe
 the two switch rows through the current automatic list; the Extras section can list the same cases.
 
 Left for the look: live walk activity, controls, history/chart, goal and lubrication notices, and goal
-configuration. `stats()`, `history.archive`, `engine.walk`, `onGoalReached` and `lubeDueMark` expose data
+configuration. `stats()`, `history.archive`, `engine.walk` and `lubeDueMark` expose data
 without owning presentation. Hardware behaviour requires separate validation with the owner.

@@ -15,7 +15,6 @@ final class TreadmillCoordinator {
     private(set) var isReady = false
     private(set) var lastError: (any Error)?
     @ObservationIgnored var agentIndex: AgentActionIndex?
-    @ObservationIgnored var onGoalReached: (() -> Void)?
     @ObservationIgnored private let transport: any TreadmillTransport
     @ObservationIgnored private let clock: () -> Date
     @ObservationIgnored private let calendar: () -> Calendar
@@ -236,9 +235,6 @@ final class TreadmillCoordinator {
             history.update(current: engine.walk, finished: update.finished)
             let reachedGoal = historyEnabled
                 && history.takeGoalReached(preferences.goal, now: clock(), calendar: calendar())
-            if reachedGoal {
-                onGoalReached?()
-            }
             let reminded = historyEnabled && (reminders?.post(history: history, reachedGoal: reachedGoal,
                                                                now: clock(), calendar: calendar()) ?? false)
             persist(force: previousPhase != engine.walk?.phase || !update.finished.isEmpty || reachedGoal || reminded)

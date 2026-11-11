@@ -2,11 +2,11 @@ import Foundation
 
 struct AgentAuditEntry: Codable, Equatable, Sendable {
     enum Surface: String, Codable, Sendable {
-        case deeplink, cli, mcp
+        case cli, mcp
     }
 
     enum Verdict: String, Codable, Sendable {
-        case ran, allowedAfterAsking, declined, refused, failed
+        case ran, declined, failed
     }
 
     let time: Date
