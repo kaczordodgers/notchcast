@@ -1,0 +1,35 @@
+name: Route macOS jobs
+description: A runs-on label for each of count macOS jobs, an idle maintainer Mac (notchcast/runner) first, else the hosted image.
+inputs:
+  count:
+    description: How many macOS jobs the run starts.
+    required: true
+  idle:
+    description: The NOTCHCAST_IDLE_<HOST> variable of each maintainer Mac, one per line, and no other variable.
+    required: true
+  eligible:
+    description: The string false keeps every job hosted.
+    default: 'true'
+outputs:
+  runners:
+    description: JSON array of count runs-on labels, the Macs first.
+    value: ${{ steps.route.outputs.runners }}
+runs:
+  using: composite
+  steps:
+    - id: route
+      shell: bash
+      env:
+        COUNT: ${{ inputs.count }}
+        IDLE: ${{ inputs.idle }}
+        ELIGIBLE: ${{ inputs.eligible }}
+        ACTOR: ${{ github.actor }}
+        OWNER: ${{ github.repository_owner }}
+        REPO: ${{ github.repository }}
+        EVENT: ${{ github.event_name }}
+        ACTION: ${{ github.event.action }}
+        HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+      run: |
+        runners=$(python3 "$GITHUB_ACTION_PATH/../../runner/route.py")
+        echo "runners=$runners" >> "$GITHUB_OUTPUT"
+        echo "$runners"

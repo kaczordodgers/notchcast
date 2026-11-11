@@ -16,7 +16,17 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/cache/restore@v6
+    # The cache key holds the working directory, so a maintainer Mac keeps its own compiled harnesses on its disk.
+    - id: cache
+      shell: bash
+      env:
+        NAME: ${{ inputs.cache }}
+      run: |
+        dir="$RUNNER_TEMP/swiftc-cache"
+        if [ "$RUNNER_ENVIRONMENT" = self-hosted ]; then dir="$RUNNER_TOOL_CACHE/swiftc-cache/$NAME"; fi
+        echo "dir=$dir" >> "$GITHUB_OUTPUT"
+    - uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      if: runner.environment == 'github-hosted'
       with:
         path: ${{ runner.temp }}/swiftc-cache
         key: harness-bin-${{ inputs.cache }}-${{ github.run_id }}-${{ github.run_attempt }}
@@ -29,7 +39,7 @@ runs:
         UPSTREAM: ${{ inputs.upstream }}
         NOTCHCAST_ONLY_TESTS: ${{ inputs.only }}
         NOTCHCAST_SHARD: ${{ inputs.shard }}
-        NOTCHCAST_SWIFTC_CACHE: ${{ runner.temp }}/swiftc-cache
+        NOTCHCAST_SWIFTC_CACHE: ${{ steps.cache.outputs.dir }}
         LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
         NOTCHCAST_TEST_HELPER_EXECUTABLE: '1'
       run: bash "$GITHUB_ACTION_PATH/../../ci-tests.sh"
@@ -46,11 +56,11 @@ runs:
       if: ${{ !cancelled() }}
       shell: bash
       env:
-        NOTCHCAST_SWIFTC_CACHE: ${{ runner.temp }}/swiftc-cache
+        NOTCHCAST_SWIFTC_CACHE: ${{ steps.cache.outputs.dir }}
       run: python3 "$GITHUB_ACTION_PATH/../../swiftc-cache.py" finish
     # A failed harness still compiled, so its binary is saved too; a job that compiled nothing saves nothing.
-    - uses: actions/cache/save@v6
-      if: ${{ !cancelled() && steps.compiled.outputs.stored != '0' && steps.compiled.outputs.stored != '' }}
+    - uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      if: ${{ !cancelled() && runner.environment == 'github-hosted' && steps.compiled.outputs.stored != '0' && steps.compiled.outputs.stored != '' }}
       with:
         path: ${{ runner.temp }}/swiftc-cache
         key: harness-bin-${{ inputs.cache }}-${{ github.run_id }}-${{ github.run_attempt }}
