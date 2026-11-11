@@ -2,8 +2,6 @@ import Foundation
 
 /// One line per module and per entry, so branches that add modules merge by union.
 /// `notchcast/check-feature-shape.py` rejects a line a union merge kept twice.
-import Foundation
-
 extension NotchcastCore {
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
@@ -47,7 +45,6 @@ extension NotchcastCore {
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let editor = EditorCoordinator.shared
-    static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
     static func entries(core: AppCore) -> [NotchcastModuleController.Entry] {
         agents.configure(core)
@@ -111,7 +108,6 @@ extension NotchcastCore {
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
-            .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
         ]
     }
 }

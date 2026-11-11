@@ -42,5 +42,6 @@ extension NotchcastCore {
         MusicNowPlayingModule.self,
         MicrophoneMuteModule.self,
         TodoModule.self,
+        MachineBackupCoordinator.self,
     ]
 }

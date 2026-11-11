@@ -24,8 +24,8 @@ enum NotchcastCore {
         RecordingModule.shared.stop()
         await RecordingModule.shared.waitUntilIdle()
         await editor.flushForTermination()
-        machineBackup.stop()
-        await machineBackup.waitUntilIdle()
+        MachineBackupCoordinator.shared.stop()
+        await MachineBackupCoordinator.shared.waitUntilIdle()
         BatteryModule.shared.stop()
         MonitorModule.shared.stop()
         await RootWait.drainForTermination {
