@@ -1,6 +1,7 @@
 // notchcast-sources: Tinycast/Features/CaptureScrolling/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureScrolling/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Service/ScreenRecordingAccess.swift
 import CoreGraphics
 import Foundation
 import ImageIO

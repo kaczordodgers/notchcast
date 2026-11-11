@@ -38,7 +38,7 @@ final class ScrollingCaptureSession {
 
     init(
         prepareCapture: @escaping PrepareCapture = ScrollingScreenSource.prepare,
-        requestAccess: @escaping () -> Bool = { CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess() }
+        requestAccess: @escaping () -> Bool = ScreenRecordingAccess.isGrantedOrRequest
     ) {
         self.prepareCapture = prepareCapture
         self.requestAccess = requestAccess

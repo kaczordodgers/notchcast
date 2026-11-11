@@ -2,6 +2,7 @@
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Service/*.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/Date+CaptureFileName.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/CaptureFailure.swift
+// notchcast-sources: Tinycast/Features/CaptureArea/Service/ScreenRecordingAccess.swift
 import AppKit
 
 @main
