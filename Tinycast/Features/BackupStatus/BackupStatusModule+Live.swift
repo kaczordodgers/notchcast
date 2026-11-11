@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 extension BackupStatusModule {
     convenience init(path: @escaping @MainActor () -> String, post: @escaping @MainActor (String) -> Void) {
@@ -21,5 +22,17 @@ extension BackupStatusModule {
         }, configurationNotice: {
             path().hasPrefix("/") ? nil : String(localized: "Backup status path is not configured.", table: "Notchcast")
         }, post: post)
+        follow(path)
+    }
+
+    /// The change fires before the write lands, so the task re-arms and reads the new path.
+    private func follow(_ path: @escaping @MainActor () -> String) {
+        withObservationTracking { _ = path() } onChange: { [weak self] in
+            Task { @MainActor in
+                guard let self else { return }
+                self.follow(path)
+                self.pathChanged()
+            }
+        }
     }
 }
