@@ -2,6 +2,8 @@
 // notchcast-sources: Tinycast/Features/ConvertFiles/Service/ConvertFilesRunner.swift
 // notchcast-sources: Tinycast/Features/ConvertFiles/Service/ConvertFilesNative.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Tools/ConvertFilesRunner+Archives.swift
+// notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
 // notchcast-kit: platform
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 import Foundation
@@ -25,7 +27,8 @@ struct ConvertFilesTests {
         for (input, target, tool) in [("png", "jpg", "native"), ("png", "webp", "cwebp"),
             ("png", "heic", "sips"), ("md", "html", "pandoc"), ("wav", "mp3", "ffmpeg"),
             ("mov", "mp4", "ffmpeg"), ("srt", "vtt", "ffmpeg"), ("json", "yaml", "native"),
-            ("pdf", "pdf-split", "native"), ("zip", "extract", "tar"), ("txt", "zip", "tar")] {
+            ("pdf", "pdf-split", "native"), ("zip", "extract", "archives"), ("txt", "zip", "archives"),
+            ("txt", "7z", "archives"), ("txt", "tar.gz", "tar")] {
             let planned = try ConvertFilesPlan.make(sources: [url("input." + input)], target: target)
             precondition(planned.items[0].tool == tool)
         }
@@ -145,6 +148,33 @@ struct ConvertFilesTests {
             precondition(converted.contains("hello"))
             try manager.removeItem(at: output)
         }
+        var zipJob = job
+        zipJob.encodedOptions = try options([source.path], "zip")
+        let zipped = try await native.run(zipJob, context: nativeContext)
+        precondition(zipped?.lastPathComponent == "a 'quoted' file.txt.zip", "Archives builds and names the zip")
+        let savedParents = UserDefaults.standard.stringArray(forKey: "archiveRecoveryParents")
+        defer { UserDefaults.standard.set(savedParents, forKey: "archiveRecoveryParents") }
+        let bundle = url("bundle")
+        try manager.createDirectory(at: bundle, withIntermediateDirectories: false)
+        for name in ["one.txt", "two.txt"] { try Data(name.utf8).write(to: bundle.appending(path: name)) }
+        let packed = url("bundle.tar.bz2")
+        let packing = try await ArchiveProcess.run(tool: URL(filePath: "/usr/bin/tar"),
+            arguments: ["-cjf", packed.path, "-C", bundle.path, "one.txt", "two.txt"])
+        precondition(packing.status == 0)
+        try manager.removeItem(at: bundle)
+        let warning = Data("0081;00000000;Safari;".utf8)
+        let marked = warning.withUnsafeBytes {
+            setxattr(packed.path, "com.apple.quarantine", $0.baseAddress, warning.count, 0, 0)
+        }
+        precondition(marked == 0)
+        var extractJob = job
+        extractJob.encodedOptions = try options([packed.path], "extract")
+        guard let unpacked = try await ConvertFilesRunner().run(extractJob, context: context) else {
+            preconditionFailure("No extraction output")
+        }
+        let carried = try ArchiveFiles.quarantine(unpacked.appending(path: "one.txt"))
+        precondition(carried == warning, "extracted files keep the archive's quarantine")
+        precondition(unpacked.lastPathComponent == "bundle", "Archives names the extracted folder")
         let textPDF = url("text.pdf")
         var box = CGRect(x: 0, y: 0, width: 200, height: 200)
         let pdf = CGContext(textPDF as CFURL, mediaBox: &box, nil)!
