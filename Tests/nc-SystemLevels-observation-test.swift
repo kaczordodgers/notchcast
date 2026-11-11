@@ -1,50 +1,27 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Model/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/Service/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/MediaLevelKeyMonitor.swift
-// notchcast-kit: input platform
+// notchcast-kit: input platform core host
 // notchcast-sources: Tinycast/Features/DisplayBrightness/Model/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 import Synchronization
-
-enum Paster {
-    static let tinycastEventTag: Int64 = 0x54494E59
-}
 
 func CGDisplayBounds(_ display: UInt32) -> CGRect { .zero }
 
 @MainActor
 enum BrightnessDisplayService {
     static func isAvailable(_ id: BrightnessDisplay.ID) -> Bool { true }
-}
-
-@MainActor
-final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    typealias SynchronousHandler = @Sendable (CGEventType, CGEvent) -> Verdict
-    var handlers: [UUID: SynchronousHandler] = [:]
-
-    func registerSynchronous(mask: CGEventMask, handler: @escaping SynchronousHandler) -> UUID {
-        let id = UUID()
-        handlers[id] = handler
-        return id
-    }
-
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { handlers[id] = nil }
 }
 
 @MainActor
@@ -111,10 +88,4 @@ struct SystemLevelObservationTests {
     }
 }
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = CommandIndexFixture()
-}
-@MainActor final class CommandIndexFixture {
-    func refreshNotchcastCommands() {}
-}
+enum DialogTone {}

@@ -1,10 +1,11 @@
 // notchcast-sources: Tinycast/Features/Music/Model/*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastServicesModules.swift
+// notchcast-kit: core
+// notchcast-sources: Tinycast/Features/Music/MusicNowPlayingModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Microphone/MicrophoneMuteModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Microphone/Settings/MicrophoneFailure+Settings.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastKeyMonitor.swift
 // notchcast-sources: Tinycast/Features/Microphone/Model/*.swift
 // notchcast-sources: Tinycast/Features/Microphone/Service/*.swift
@@ -22,36 +23,14 @@
 // notchcast-sources: Tinycast/Platform/AppPaths.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Input/EventTapSubscription.swift
+// notchcast-kit: input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import Foundation
 import AppKit
 import Observation
 
-enum Paster { static let tinycastEventTag: Int64 = 0x54494E59 }
-
 @MainActor private var trusted = false
 @MainActor func AXIsProcessTrusted() -> Bool { trusted }
-
-enum EventTapPolicy {
-    static func mask(for type: CGEventType) -> CGEventMask { 1 << type.rawValue }
-}
-
-@MainActor @Observable
-final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    @ObservationIgnored var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
-    @ObservationIgnored var removals = 0
-    var isTrusted = false
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
-        precondition(mask & EventTapPolicy.mask(for: .keyDown) != 0)
-        self.handler = handler
-        return UUID()
-    }
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { removals += 1; handler = nil }
-}
 
 @MainActor
 final class CountingModule: NotchcastModule {
@@ -62,25 +41,7 @@ final class CountingModule: NotchcastModule {
 }
 
 @MainActor final class AppCore {}
-
-@MainActor
-final class NotchcastServices {
-    let music = CountingModule()
-    let lastPlayer = CountingModule()
-    let appleMusic = CountingModule()
-    let sharpCovers = CountingModule()
-    let spotify = CountingModule()
-    let microphone = CountingModule()
-    let marks = CountingModule()
-    let tasks = CountingModule()
-    let keys = Keys()
-
-    init(core: AppCore, preferences: NotchcastPreferences) {}
-
-    final class Keys {
-        func run() {}
-    }
-}
+enum DialogTone { case success, danger }
 
 @main
 @MainActor
@@ -159,17 +120,23 @@ struct MusicModuleTests {
         let features: [NotchcastFeature] = [
             .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect, .microphoneMute, .inUseMarks
         ]
-        for feature in features {
-            precondition(!feature.title.isEmpty && !feature.subtitle.isEmpty)
-            let grants: [NotchcastGrant] = [.musicLastPlayer, .musicBlockAppleMusic, .microphoneMute].contains(feature)
-                ? [.accessibility] : []
-            precondition(feature.requiredGrants == grants)
-        }
-        let services = NotchcastServices(core: AppCore(), preferences: preferences)
-        let controller = NotchcastModuleController(services.moduleEntries, preferences: preferences)
+        precondition(MusicNowPlayingModule.shared == nil && MicrophoneMuteModule.shared == nil)
+        let registered = MusicNowPlayingModule.register(AppCore()) + MicrophoneMuteModule.register(AppCore())
+        precondition(registered.count == 7 && registered.allSatisfy { $0.requiresAny.isEmpty })
+        precondition(registered[0].module === MusicNowPlayingModule.shared)
+        precondition(registered[1].module is MusicLastPlayerModule)
+        precondition(registered[2].module === MusicBlockAppleMusicModule.shared)
+        precondition(registered[3].module is MusicSharpCoversModule)
+        precondition(registered[4].module === SpotifyConnectModule.shared)
+        precondition(registered[5].module === MicrophoneMuteModule.shared)
+        precondition(registered[6].module === InUseMarksModule.shared)
+        precondition(registered[3].requires == [.island, .musicNowPlaying, .musicSharpCovers])
+        let counted = registered.map { _ in CountingModule() }
+        let controller = NotchcastModuleController(zip(registered, counted).map {
+            .init(requires: $0.requires, module: $1)
+        }, preferences: preferences)
         controller.run()
-        let modules = [services.music, services.lastPlayer, services.appleMusic,
-                       services.spotify, services.microphone, services.marks]
+        let modules = [counted[0], counted[1], counted[2], counted[4], counted[5], counted[6]]
         precondition(modules.map(\.starts) == [1, 1, 1, 0, 1, 0])
         preferences.set(.spotifyConnect, true)
         preferences.set(.inUseMarks, true)
@@ -282,6 +249,7 @@ struct MusicModuleTests {
         preferences.set(.island, false)
         await settle()
         precondition(hub.handler == nil && hub.removals == 1 && mute.hotKeyStatus == nil)
+        precondition(hub.masks.allSatisfy { $0 & EventTapPolicy.mask(for: .keyDown) != 0 })
         hub.isTrusted = false
         await settle()
         precondition(mute.hotKeyStatus == nil, "a monitor with mute off shows no F5 warning")

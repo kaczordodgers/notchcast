@@ -23,7 +23,7 @@ struct FinderRenameSettingRow: View {
 }
 
 struct ArchiveToolSettingRow: View {
-    private let module = NotchcastCore.archives
+    private let module = ArchiveModule.shared
 
     var body: some View {
         LabeledContent {
@@ -54,7 +54,7 @@ struct ArchiveToolSettingRow: View {
 
 struct ArchiveJobsSettingRow: View {
     var body: some View {
-        ArchiveJobList(module: NotchcastCore.archives)
+        ArchiveJobList(module: .shared)
     }
 }
 

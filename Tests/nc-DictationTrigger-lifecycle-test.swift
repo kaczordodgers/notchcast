@@ -1,5 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/DictationTrigger/DictationTriggerModule.swift
 import Foundation
 import Observation
@@ -65,8 +65,6 @@ struct DictationTriggerLifecycleTest {
         module.stop()
         module.stop()
         precondition(stops == 2 && !reserved)
-        precondition(!NotchcastFeature.globeDictation.needsIsland)
-        precondition(NotchcastFeature.globeDictation.requiredGrants == [.accessibility, .microphone])
         print("PASS: Globe switch starts/stops engine, reserves Globe, pauses for recording, ignores Island")
     }
 

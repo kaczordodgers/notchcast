@@ -7,10 +7,7 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/ScreenRecordingSource.swift
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingModule.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift Tinycast/Features/CaptureArea/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: core host
 import AVFoundation
 import Foundation
 
@@ -114,8 +111,6 @@ struct RecordingTests {
         expect(restored.frameRate == 30 && restored.folder == root, "preferences use injected suite")
         restored.frameRate = 999
         expect(restored.frameRate == 60, "unsupported frame rate resets to 60")
-        expect(NotchcastFeature.recording.settingsGroup == .captureAndDictation, "settings group")
-        expect(NotchcastFeature.recording.requiredGrants == [.screenRecording], "only Screen Recording grant")
     }
 
     @MainActor

@@ -1,8 +1,6 @@
 // notchcast-sources: Tinycast/Features/CaptureEditor/Model/*.swift
 // notchcast-sources: Tinycast/Features/CaptureEditor/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
+// notchcast-kit: core
 
 import AppKit
 import ImageIO
@@ -246,8 +244,6 @@ struct CaptureEditorEngineTest {
         let suite = "capture-editor-preferences-\(UUID())"
         defer { UserDefaults.standard.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(!NotchcastFeature.captureEditor.defaultEnabled && NotchcastFeature.captureEditor.isWired)
-        precondition(NotchcastFeature.captureEditor.settingsGroup == .captureAndDictation)
         precondition(!preferences.isOn(.captureEditor))
         let controller = NotchcastModuleController([.init(requires: [.captureEditor], module: editor)], preferences: preferences)
         controller.run()

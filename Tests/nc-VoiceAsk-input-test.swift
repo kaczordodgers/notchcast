@@ -1,29 +1,7 @@
 // notchcast-sources: Tinycast/Features/VoiceAsk/Service/VoiceAskInput.swift
 // notchcast-kit: input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
-
-enum Paster { static let tinycastEventTag: Int64 = 12345 }
-
-@MainActor final class EventTapHub {
-    struct Event {
-        let type: CGEventType
-        let flags: CGEventFlags
-        let keyCode: Int64
-        var isRepeat = false
-        var isSynthetic = false
-    }
-    enum Verdict { case pass, swallow }
-    var handlers: [UUID: @MainActor @Sendable (Event) -> Void] = [:]
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID {
-        let id = UUID()
-        handlers[id] = handler
-        return id
-    }
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID { UUID() }
-    func remove(_ id: UUID) { handlers[id] = nil }
-    func send(_ event: Event) { handlers.values.forEach { $0(event) } }
-}
 
 @MainActor final class VoiceAskModule {
     var keyCode: Int64 = 105

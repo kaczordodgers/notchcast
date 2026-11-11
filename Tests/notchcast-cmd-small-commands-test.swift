@@ -2,7 +2,7 @@
 // notchcast-sources: Tinycast/Features/SmallCommands/Service/*.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Model/WebRules.swift
+// notchcast-kit: host
 import AppKit
 import Synchronization
 

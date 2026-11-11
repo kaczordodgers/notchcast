@@ -1,31 +1,18 @@
 // notchcast-sources: -lsqlite3 Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
-// notchcast-kit: platform
+// notchcast-kit: platform host command
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
-// notchcast-reads: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
+// notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 import SQLite3
 
-@MainActor protocol NotchcastModule { func start(); func stop() }
 enum TestFeature { case agentThreads }
-enum TestTone { case neutral }
-struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: TestFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: TestFeature) -> Bool { true }
-}
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    func showMessage(_ message: String, tone: TestTone) {}
-}
-@MainActor enum NotchcastCore { static let agentThreads = AgentThreadsModule() }
+typealias NotchcastFeature = TestFeature
+enum DialogTone { case neutral }
+@MainActor final class AppCore {}
 
 private struct FakeProjects: AgentThreadProjectReading {
     var values = [AgentThreadProject(id: "demo", title: "Demo")]
@@ -231,14 +218,14 @@ struct AgentThreadsTest {
         module.start()
         module.stop()
         precondition(availabilityCalls == 2)
+        let entries = AgentThreadsModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.agentThreads] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === AgentThreadsModule.shared)
+        print("PASS: registration entry")
         print("PASS: SQLite active projects only; missing file/table; per-project arguments and names")
         print("PASS: partial list failure; show failure preserves phase; availability changed on start and stop")
         print("PASS: child PATH preserves environment; refresh completion selects waiting link; failure messages")
-        let catalog = try String(contentsOfFile:
-            "Tinycast/Features/AgentThreads/AgentThreadsModule.swift", encoding: .utf8)
-        precondition(catalog.components(separatedBy: "isEnabled: { NotchcastPreferences.shared.isOn(.agentThreads) }")
-            .count == 3)
         print("PASS: real statuses including null, loopback link, dropped bad rows, show calls = 3, cancellation idle/ready")
-        print("PASS: waiting order, finished window, missing CLI, bad JSON, timeout, command gates")
+        print("PASS: waiting order, finished window, missing CLI, bad JSON, timeout")
     }
 }

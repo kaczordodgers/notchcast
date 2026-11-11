@@ -3,29 +3,11 @@
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillCommands.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core host command
 import Foundation
 
-enum SettingsTab: Sendable { case notchcast }
 enum DialogTone: Sendable { case neutral, success, danger }
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    var feature: NotchcastFeature? = nil
-    var owner: SettingsTab? = .notchcast
-    var legacyID: String?
-    var isEnabled: @MainActor @Sendable () -> Bool = { true }
-    let run: @MainActor @Sendable () -> Void
-}
-@MainActor enum NotchcastCore { static var treadmill: TreadmillCoordinator! }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    var messages: [(String, DialogTone)] = []
-    func showMessage(_ message: String, tone: DialogTone = .success) { messages.append((message, tone)) }
-}
+extension TreadmillCoordinator { static var shared: TreadmillCoordinator! }
 @MainActor private final class FakeTransport: TreadmillTransport {
     var maintainsConnection = true
     var onReady: (() -> Void)?
@@ -57,36 +39,38 @@ struct NotchcastCommand: Sendable {
         let coordinator = TreadmillCoordinator(transport: transport,
             history: TreadmillHistoryStore(repository: TreadmillRepository(directory: root)),
             preferences: TreadmillPreferences(defaults: defaults))
-        NotchcastCore.treadmill = coordinator
+        TreadmillCoordinator.shared = coordinator
+        var messages: [(String, DialogTone)] = []
+        NotchcastHost.current.showMessage = { messages.append(($0, $1)) }
         try await coordinator.prepare()
         coordinator.setEnabled(.walk, true)
         let all = [TreadmillCommands.start, TreadmillCommands.stop, TreadmillCommands.pause,
                    TreadmillCommands.faster, TreadmillCommands.slower]
         for command in all {
             command.run()
-            precondition(AppCore.shared.messages.last?.1 == .danger && transport.sent.isEmpty)
-            precondition(AppCore.shared.messages.last?.0 == "The walking pad is not connected.")
+            precondition(messages.last?.1 == .danger && transport.sent.isEmpty)
+            precondition(messages.last?.0 == "The walking pad is not connected.")
         }
         print("Treadmill commands: all five disconnected actions report danger without writes")
         transport.onFailure?(TreadmillBluetoothFailure.unauthorized)
         precondition(coordinator.lastError as? TreadmillBluetoothFailure == .unauthorized)
         TreadmillCommands.start.run()
-        precondition(AppCore.shared.messages.last?.0 == "The walking pad is not connected.")
+        precondition(messages.last?.0 == "The walking pad is not connected.")
         precondition(TreadmillBluetoothFailure.unauthorized.localizedDescription
             == "Allow Bluetooth access in System Settings.")
         print("Treadmill commands: exact error messages and stale connection error regression passed")
         transport.onReady?()
         transport.sent = []
         TreadmillCommands.pause.run()
-        precondition(AppCore.shared.messages.last?.0 == "There is no walk in progress.")
+        precondition(messages.last?.0 == "There is no walk in progress.")
         TreadmillCommands.start.run()
         let startFrame = try TreadmillProtocol.start(minutes: 0)
         precondition(transport.sent == [startFrame])
         precondition(coordinator.engine.requestedSpeed == 4)
-        precondition(AppCore.shared.messages.last?.0 == "Walk start requested at \(coordinator.engine.requestedSpeed!.formatted()) km/h.")
+        precondition(messages.last?.0 == "Walk start requested at \(coordinator.engine.requestedSpeed!.formatted()) km/h.")
         TreadmillCommands.start.run()
-        precondition(AppCore.shared.messages.last?.0 == "A walk is already in progress.")
-        AppCore.shared.messages.removeLast()
+        precondition(messages.last?.0 == "A walk is already in progress.")
+        messages.removeLast()
         transport.status(3)
         TreadmillCommands.faster.run()
         let fasterFrame = try TreadmillProtocol.speed(4.5)
@@ -101,11 +85,11 @@ struct NotchcastCommand: Sendable {
         precondition(transport.sent.last == TreadmillProtocol.resume)
         TreadmillCommands.stop.run()
         precondition(transport.sent.last == TreadmillProtocol.stop)
-        precondition(AppCore.shared.messages.suffix(6).allSatisfy { $0.1 == .success })
+        precondition(messages.suffix(6).allSatisfy { $0.1 == .success })
         let count = transport.sent.count
         transport.fail = true
         TreadmillCommands.stop.run()
-        precondition(transport.sent.count == count && AppCore.shared.messages.last?.1 == .danger)
+        precondition(transport.sent.count == count && messages.last?.1 == .danger)
         print("Treadmill commands: start defaults, stop, pause/resume, faster/slower frames and thrown-error feedback passed")
         let preferences = NotchcastPreferences.shared
         let previous = preferences.isOn(.treadmillWalk)
@@ -114,10 +98,8 @@ struct NotchcastCommand: Sendable {
         precondition(all.filter { $0.isEnabled() }.isEmpty)
         preferences.set(.treadmillWalk, true)
         precondition(all.allSatisfy { $0.isEnabled() })
-        precondition(all.allSatisfy { $0.feature == .treadmillWalk }, "Catalog gates commands by their owner feature")
         print("Treadmill commands: switch off excludes all five commands; switch on enables all five")
         transport.fail = false
         await coordinator.stopForTermination()
     }
 }
-

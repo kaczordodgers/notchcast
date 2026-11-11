@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/MediaTools/Service/*.swift
+// notchcast-sources: Tinycast/Features/MediaTools/Service/*.swift Tinycast/Features/Notchcast/Jobs/JobOutput.swift
 import AppKit
 import AVFoundation
 import ImageIO

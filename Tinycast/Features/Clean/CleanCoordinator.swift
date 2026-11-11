@@ -50,7 +50,12 @@ final class CleanCoordinator {
         self.report = report
     }
 
-    var helperCurrent = true
+    struct HelperUpdate: LocalizedError {
+        var errorDescription: String? { String(localized: "Needs the Notchcast helper update", table: "Notchcast") }
+    }
+
+    /// Learned from System runs, never a gate: only a scan can see that the helper was updated.
+    private(set) var helperCurrent = true
 
     func setEnabled(_ feature: NotchcastFeature, _ value: Bool) {
         if value {
@@ -83,6 +88,7 @@ final class CleanCoordinator {
                 let review = try await scan(feature, roots)
                 guard let self, current(feature, identity) else { return }
                 reviews[feature] = review
+                if feature == .cleanSystem { helperCurrent = true }
                 finish(feature, identity)
             } catch {
                 self?.failed(error, feature, identity)
@@ -153,7 +159,7 @@ final class CleanCoordinator {
     }
 
     private func available(_ feature: NotchcastFeature) -> Bool {
-        enabled.contains(feature) && isOn(feature) && (feature != .cleanSystem || helperCurrent)
+        enabled.contains(feature) && isOn(feature)
     }
 
     private func begin(_ feature: NotchcastFeature) -> UUID {
@@ -174,8 +180,10 @@ final class CleanCoordinator {
     }
 
     private func failed(_ error: Error, _ feature: NotchcastFeature, _ identity: UUID) {
-        let shouldReport = current(feature, identity) && !(error is CancellationError)
+        let isCurrent = current(feature, identity)
         finish(feature, identity)
-        if shouldReport { report(error) }
+        guard isCurrent, !(error is CancellationError) else { return }
+        if error is HelperUpdate { helperCurrent = false }
+        report(error)
     }
 }

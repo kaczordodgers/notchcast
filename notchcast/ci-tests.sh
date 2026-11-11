@@ -8,10 +8,16 @@ set -a
 # shellcheck disable=SC1091
 source "$TOOLS/notchcast/config.env"
 set +a
-# shellcheck disable=SC2016
-grep -q '^    local name=\$1$' Scripts/run-tests.sh || { echo "::error::run-tests.sh changed shape; update the skip hook"; exit 1; }
-# shellcheck disable=SC2016
-sed -i '' -E 's/^    local name=\$1$/    local name=$1; if [ -n "${NOTCHCAST_ONLY_TESTS:-}" ]; then case " $NOTCHCAST_ONLY_TESTS " in *" $name "*) ;; *) return 0;; esac; fi; case " $CI_SKIP_TESTS " in *" $name "*) echo "skipped on the runner: $name" >\&2; return 0;; esac/' Scripts/run-tests.sh
+# The queue filter in notchcast/test-harnesses.sh reads NOTCHCAST_ONLY_TESTS, NOTCHCAST_SHARD and CI_SKIP_TESTS.
+if [ -n "${NOTCHCAST_SWIFTC_CACHE:-}" ]; then
+  # The swiftc already on PATH, not the toolchain's binary: xcrun's shim is what supplies the SDK.
+  NOTCHCAST_SWIFTC_REAL=$(command -v swiftc)
+  NOTCHCAST_SWIFTC_TOOLCHAIN="$("$NOTCHCAST_SWIFTC_REAL" --version 2>&1) $(xcrun --show-sdk-path) $(xcrun --show-sdk-version) $(sw_vers -buildVersion)"
+  export NOTCHCAST_SWIFTC_REAL NOTCHCAST_SWIFTC_TOOLCHAIN
+  mkdir -p "$NOTCHCAST_SWIFTC_CACHE" "$RUNNER_TEMP/swiftc-shim"
+  ln -sf "$TOOLS/notchcast/swiftc-cache.py" "$RUNNER_TEMP/swiftc-shim/swiftc"
+  export PATH="$RUNNER_TEMP/swiftc-shim:$PATH"
+fi
 status=0
 ./Scripts/run-tests.sh || status=$?
 BIN="${TMPDIR:-/tmp}/tinycast-harness"
@@ -26,6 +32,10 @@ if [ "$status" -ne 0 ] && ls "$BIN"/*.failed >/dev/null 2>&1; then
   done
   status=0
   if [ -n "$still" ]; then
+    if [ -z "${UPSTREAM:-}" ]; then
+      git fetch -q --no-tags "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
+      UPSTREAM=$(git merge-base HEAD refs/remotes/upstream/main)
+    fi
     git worktree add -q --detach "$RUNNER_TEMP/pristine" "$UPSTREAM"
     for name in $still; do
       if [ ! -e "$RUNNER_TEMP/pristine/Tests/$name.swift" ]; then
@@ -42,11 +52,12 @@ if [ "$status" -ne 0 ] && ls "$BIN"/*.failed >/dev/null 2>&1; then
     git worktree remove --force "$RUNNER_TEMP/pristine"
   fi
 fi
+# After the retry, which rewrites a log; run-tests.sh shows a green harness's SKIP nowhere else.
+grep -h '^SKIP:' "$BIN"/*.log 2>/dev/null | sed 's/^/::notice::/' || true
 if [ "$status" -ne 0 ]; then
   for f in "$BIN"/*.failed; do
     [ -e "$f" ] || continue
     cat "${f%.failed}.log"
   done
 fi
-git checkout -- Scripts/run-tests.sh
 exit $status

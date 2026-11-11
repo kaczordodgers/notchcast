@@ -8,12 +8,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandActivityCenter.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandMessage.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Activities/IslandValue.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Downloads/NotchcastDownloadRunner.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
+// notchcast-kit: core
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Platform/NotificationToken.swift
@@ -26,12 +22,13 @@ enum MediaArguments {
 
 struct MediaDownloadRunner: DownloadRunner {
     let format: MediaArguments.Format
+    var aria2Enabled: @MainActor @Sendable () -> Bool
     var networkInterfaces: @MainActor @Sendable () -> [NetMergePolicy.Interface]
     var kind: String { format.rawValue }
     let tools: [DownloadTool] = []
 
     func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? {
-        await context.report(DownloadProgress(stage: job.options["aria2Enabled"]))
+        await context.report(DownloadProgress(stage: String(await aria2Enabled())))
         try await Task.sleep(for: .seconds(60))
         return nil
     }
@@ -46,11 +43,12 @@ struct WebpageRunner: DownloadRunner {
 struct NotchcastDownloadServices: Sendable {
     var tools: DownloadToolLookup
     var releaseSpeech: @MainActor @Sendable () async -> Void
-    let transcriptRunner = FakeTranscriptRunner()
+    let transcriptRunner = TranscriptDownloadRunner()
 }
 
-struct FakeTranscriptRunner: DownloadRunner {
-    let kind = "transcript"
+struct TranscriptDownloadRunner: DownloadRunner {
+    static let kind = "transcript"
+    var kind: String { Self.kind }
     let tools: [DownloadTool] = []
     func run(_ job: DownloadJob, context: DownloadRunContext) async throws -> URL? { nil }
 }

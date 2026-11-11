@@ -5,88 +5,53 @@ import Foundation
 import Foundation
 
 extension NotchcastCore {
-    static let katana = KatanaModule()
-    static let treadmillWalk = TreadmillModule(treadmill, capability: .walk)
-    static let treadmillHistory = TreadmillModule(treadmill, capability: .history)
-    static let treadmill = TreadmillCoordinator.live()
     static let agents = AgentBridgeModule()
     static let agentCLI = AgentCLIModule()
     static let systemTools = SystemToolsModule()
-    static let tweaks = TweaksModule()
-    static let typingTweaks = TweaksModule(key: "typingTweaksPlans")
-    static let finderTweaks = TweaksModule(key: "finderTweaksPlans")
-    static let dockTweaks = TweaksModule(key: "dockTweaksPlans")
-    static let appleAppsTweaks = TweaksModule(key: "appleAppsTweaksPlans")
-    static let iPhoneBackupTweaks = TweaksModule(key: "iPhoneBackupTweaksPlans")
     static let cleaning = CleaningModeModule(engine: CleaningModeEngine(hub: eventTapHub), granted: { Permissions.isAccessibilityTrusted() })
     static let appUpdates = AppUpdatesModule.live()
-    static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), home: NSHomeDirectory(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
+    static let macUpdate = MacUpdateModule(service: MacUpdateService(runner: MacUpdateRunner(), appRoot: "/Applications", exists: { FileManager.default.isExecutableFile(atPath: $0) }, resolve: { URL(filePath: $0).resolvingSymlinksInPath().path }, locked: { MacUpdateLock.isHeld(at: "/opt/homebrew/var/homebrew/locks/update") }))
     static let clean = CleanModule()
     static let macLink = AIUsageLinkModule()
     static let tasksSync = TodoLinkCoordinator.live(channel: macLink.channel, preferences: .shared)
     static let github = GitHubModule()
-    static let clearNotifications = ClearNotificationsModule()
     static let answers = LauncherAnswersModule()
-    static let copyPath = CopyPathModule()
-    static let smallCommands = SmallCommandsModule()
     static let urlCleaner = URLCleanerModule(defaults: UserDefaults(suiteName: NotchcastIdentity.current.suiteName(suffix: ".urlCleaner")))
     static let mediaTools = MediaToolsModule()
     static let convertFiles = ConvertFilesModule()
-    static let remoteFans = RemoteFanModule(transport: MachLinkFanTransport(channel: macLink.channel))
-    static let remoteScreen = RemoteScreenModule(channel: macLink.channel)
-    static let blockedDialogs = BlockedDialogModule.linked(to: macLink.channel)
     static let aiUsage = AIUsageModule(channel: macLink.channel, post: remoteNotice)
-    static let machRemote = MachRemoteModule()
-    static let shelf = ShelfModule()
     static let backupStatus = BackupStatusModule(path: { NotchcastPreferences.shared.backupStatusPath }, post: remoteNotice)
-    static let sendFiles = SendFilesModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let updateRemote = UpdateRemoteModule(preferences: .shared, runner: MachSSHProcessRunner.run, post: remoteResult, changed: { AppCore.shared.appIndex.refreshNotchcastCommands() })
     static let linkHealth = LinkHealthModule(probe: { try await macLink.channel.probeHealth() }, post: remoteNotice)
-    static let agentSessions = AgentSessionsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let openBotAgents = OpenBotAgentsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() }, report: OpenBotAgentsModule.report)
-    static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents, enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) }, availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let fleetPanel = FleetPanelModule(transport: FleetMachLinkTransport(channel: macLink.channel), availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let finderTools = FinderToolsCoordinator(hub: eventTapHub)
-    static let finderCut = FinderToolsModule(coordinator: finderTools, feature: .finderCutPaste)
-    static let finderRename = FinderToolsModule(coordinator: finderTools, feature: .finderRename)
     static let pasteImage = PasteImageModule(hub: eventTapHub)
-    static private(set) var pastePlain: PlainPasteModule?
-    static let linkQuickFixes = LinkQuickFixModule().configure()
-    static let systemNotices = SystemNoticesModule()
     static let accessoryNotices = AccessoryNoticesModule()
-    static let systemLevels = SystemLevelsModule()
     static let brightness = DisplayBrightnessModule()
     static let levelNoticePresenter = SystemLevelIslandPresenter(center: .shared)
-    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: systemLevels, brightness: brightness, present: { levelNoticePresenter.present($0) })
+    static let levelKeys = SystemLevelKeysModule(hub: eventTapHub, levels: SystemLevelsModule.shared, brightness: brightness, present: { levelNoticePresenter.present($0) })
     static let timers = LiveTimerModule.shared
     static let weather = DayWeatherModule.shared
     static let markets = DayMarketsModule.shared
     static let quitProtection = QuitProtectionStore.shared
-    static let eventTapHub = EventTapHub()
+    static let eventTapHub = EventTapHub.shared
     static let showDesktop = ShowDesktopModule(hub: eventTapHub)
     static let hideCommandM = HideCommandMModule(hub: eventTapHub)
     static let middleClick = MiddleClickModule(hub: eventTapHub)
     static let greenMaximize = GreenMaximizeModule(hub: eventTapHub)
     static let spacesOrder = SpacesOrderModule()
     static let quitProtectionModule = QuitProtectionModule(store: quitProtection, hub: eventTapHub)
-    static let battery = BatteryModule(preferences: .shared, runner: .live)
     static let eventReminder = EventReminderModule.shared
     static private(set) var agentChatTools: AgentChatToolsModule?
     static let agentMCPServer = AgentMCPModule()
     static var dictationTrigger: DictationTriggerModule?
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: NotchcastIdentity.supportRoot.appending(path: "Torrents")))
-    static let archives = ArchiveModule(preferences: .shared)
     static let dictationCleanup = DictationCleanupModule.shared
     static private(set) var voiceAsk: VoiceAskModule?
     private static var voiceAskInput: VoiceAskInput?
     static let editor = EditorCoordinator.shared
-    static let quickLook = QuickLookCoordinator(preferences: .shared)
     static let machineBackup = MachineBackupCoordinator(tooling: MachineBackupRunner(), preferences: .shared)
 
-    static func entries(core: AppCore, monitor: MonitorModule) -> [NotchcastModuleController.Entry] {
+    static func entries(core: AppCore) -> [NotchcastModuleController.Entry] {
         agents.configure(core)
         agentCLI.configure(index: agents.index)
+        if agents.configured { agentMCPServer.configure(index: agents.index) }
         let binaryPath = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".local/bin/notchcast").path
         let chatTools = AgentChatToolsModule(store: core.mcpSettings, binaryPath: binaryPath, isBinaryInstalled: { FileManager.default.isExecutableFile(atPath: binaryPath) }, onChange: { [weak core] in core?.mcpCoordinator.applyEnabled() })
         agentChatTools = chatTools
@@ -97,35 +62,21 @@ extension NotchcastCore {
         self.voiceAsk = voiceAskModule
         voiceAskModule.configure(transport: VoiceAskCLITransport.production())
         voiceAskInput = VoiceAskInput(hub: eventTapHub, module: voiceAskModule)
-        let plainPasteModule = PlainPasteModule(clipboard: core.clipboardManager)
-        self.pastePlain = plainPasteModule
         let downloadServices = NotchcastDownloadServices(core: core)
         pasteImage.configureFeedback(core)
         core.clipboardManager.pasteboardDidChange = { urlCleaner.clipboardDidChange(URLCleanerSystemPasteboard($0)) }
         return [
-            .init(requires: [.katana], module: katana),
-            .init(requires: [.treadmillWalk], module: treadmillWalk),
-            .init(requires: [.treadmillHistory], module: treadmillHistory),
             .init(requires: [.agentActions], module: agents),
             .init(requires: [.agentActions, .agentCLI], module: agentCLI),
             .init(requires: [.appearance], module: core.appearanceCoordinator),
             .init(requires: [], requiresAny: [.startupItems, .notificationCleanup, .sudoTouchID], module: systemTools),
-            .init(requires: [], requiresAny: [.aiFeaturesOff, .spotlightOff, .privacyChoices], module: tweaks),
-            .init(requires: [.typingTweaks], module: typingTweaks),
-            .init(requires: [.finderTweaks], module: finderTweaks),
-            .init(requires: [.dockTweaks], module: dockTweaks),
-            .init(requires: [.appleAppsTweaks], module: appleAppsTweaks),
-            .init(requires: [.iPhoneBackupTweaks], module: iPhoneBackupTweaks),
             .init(requires: [.cleaningMode], module: cleaning),
             .init(requires: [.appUpdates], module: appUpdates),
             .init(requires: [.macUpdate], module: macUpdate),
             .init(requires: [], requiresAny: CleanCoordinator.features, module: clean.configure(core)),
             .init(requires: [.audioPriority], module: AudioPriorityModule()),
             .init(requires: [.githubSearch], module: github),
-            .init(requires: [.clearNotifications], module: clearNotifications),
             .init(requires: [.launcherAnswers], module: answers),
-            .init(requires: [.copyPath], module: copyPath),
-            .init(requires: [.smallCommands], module: smallCommands),
             .init(requires: [.aiUsage], module: aiUsage),
             .init(requires: [.machLink], module: macLink),
             .init(requires: [.tasksSync, .tasks, .machLink], module: tasksSync),
@@ -135,36 +86,16 @@ extension NotchcastCore {
             .init(requires: [], module: NotchcastToolsCommands(core: core)),
             .init(requires: [.downloads], module: DownloadsModule(core: core, services: downloadServices)),
             .init(requires: [.distill], module: DistillModule(core: core, services: downloadServices)),
-            .init(requires: [.machRemote], module: machRemote),
-            .init(requires: [.machRemote, .sendFiles], module: sendFiles),
-            .init(requires: [.machRemote, .updateRemote], module: updateRemote),
             .init(requires: [.backupStatus], module: backupStatus),
             .init(requires: [.machLink, .linkHealth], module: linkHealth),
-            .init(requires: [.machLink, .shelfBetweenMacs], module: shelf),
-            .init(requires: [.machLink, .machMBPFans], module: remoteFans),
-            .init(requires: [.machLink, .remoteScreen], module: remoteScreen),
-            .init(requires: [.machLink, .island, .islandStatusMessages, .machBlockedDialogAlert], module: blockedDialogs),
-            .init(requires: [.agentSessions], module: agentSessions),
-            .init(requires: [.openBotAgents], module: openBotAgents),
-            .init(requires: [.agentThreads], module: agentThreads),
-            .init(requires: [.agentIsland], module: agentIsland),
-            .init(requires: [.fleetPanel], module: fleetPanel),
-            .init(requires: [.finderCutPaste], module: finderCut),
-            .init(requires: [.finderRename], module: finderRename),
-            .init(requires: [.pastePlain], module: plainPasteModule),
             .init(requires: [.pasteImage], module: pasteImage),
-            .init(requires: [.linkQuickFixes], module: linkQuickFixes),
             .init(requires: [.island], module: IslandController.shared),
             .init(requires: [.showDesktop], module: showDesktop),
             .init(requires: [.hideCommandM], module: hideCommandM),
             .init(requires: [.middleClick], module: middleClick),
             .init(requires: [.greenMaximize], module: greenMaximize),
             .init(requires: [.spacesOrder], module: spacesOrder),
-            .init(requires: [.systemMonitor], module: monitor),
-            .init(requires: [], requiresAny: [.batteryChargeLimit, .batterySailing, .batteryHeatProtection, .batteryCalibration, .keepAwake, .lidClosedAwake], module: battery),
-            .init(requires: [.island, .systemNotices], module: systemNotices),
             .init(requires: [.island, .accessoryNotices], module: accessoryNotices),
-            .init(requires: [.island, .volumeLevels], module: systemLevels),
             .init(requires: [.displayBrightness], module: brightness),
             .init(requires: [], module: levelKeys),
             .init(requires: [.quitProtection], module: quitProtectionModule),
@@ -176,12 +107,9 @@ extension NotchcastCore {
             .init(requires: [.agentMCPServer], module: agentMCPServer),
             .init(requires: [.globeDictation], module: trigger),
             .init(requires: [.dictationEnglish], module: DictationEnglishModule(hub: eventTapHub, coordinator: core.dictationCoordinator)),
-            .init(requires: [.torrents], module: torrents),
-            .init(requires: [.archives], module: archives),
             .init(requires: [.dictationCleanup], module: dictationCleanup),
             .init(requires: [.voiceAsk], module: voiceAskModule),
             .init(requires: [], requiresAny: [.markdownFiles, .plainTextFiles], module: editor),
-            .init(requires: [.quickLookSpace], module: quickLook),
             .init(requires: [], requiresAny: [.backupRunNow, .backupBrowseRestore], module: machineBackup),
         ]
     }

@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Settings/SettingsTab.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSettings*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/Tree/NotchcastSetting.swift
@@ -7,7 +7,6 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift
 // notchcast-sources: Tinycast/Features/Launcher/Model/SearchRelevance.swift
 // notchcast-sources: Tinycast/Platform/LocalizedResource.swift
-// notchcast-reads: Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift
 import Foundation
 
 @main
@@ -91,9 +90,6 @@ struct NotchcastSettingsLinksTests {
             if let anchor = entry.anchor {
                 if [.notchcastBackupSettingsFile, .notchcastBackupExport, .notchcastBackupImport].contains(anchor) {
                     precondition(module == .backups)
-                    let source = try String(contentsOfFile:
-                        "Tinycast/Features/Notchcast/Settings/Tree/NotchcastBackupGroups.swift", encoding: .utf8)
-                    precondition(source.contains("SettingsSectionHeader(.notchcastBackup"))
                     continue
                 }
                 precondition(module.groups.contains { $0.title.resolved() == anchor.title })

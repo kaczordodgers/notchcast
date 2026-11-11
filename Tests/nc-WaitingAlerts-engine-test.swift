@@ -1,29 +1,16 @@
+// notchcast-kit: host command
 // notchcast-sources: -strict-concurrency=complete -lsqlite3
 // notchcast-sources: Tinycast/Features/WaitingAlerts/Model/*.swift Tinycast/Features/WaitingAlerts/Service/*.swift
 // notchcast-sources: Tinycast/Features/FileSearch/Service/FileSystemWatcher.swift
 // notchcast-sources: Tinycast/Features/WaitingAlerts/WaitingAlertsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 import SQLite3
 
-typealias NotchcastFeature = TestFeature
-enum TestFeature { case waitingAlerts, agentThreads }
+enum NotchcastFeature { case waitingAlerts, agentThreads }
 enum DialogTone { case neutral }
-struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: TestFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = false
-    func isOn(_ feature: TestFeature) -> Bool { enabled }
-}
 @MainActor final class AppCore {}
 @MainActor final class FakeWatcher: WaitingAlertsWatching {
     var changed: (@MainActor () -> Void)?
@@ -55,6 +42,7 @@ struct NotchcastCommand {
     }
     @MainActor static func settle() async { for _ in 0..<30 { await Task.yield() } }
     @MainActor static func main() async throws {
+        NotchcastPreferences.shared.enabled = false
         try await verifyReader()
         try await verifyWatcher()
         let approval = [wait("one", .approval)]

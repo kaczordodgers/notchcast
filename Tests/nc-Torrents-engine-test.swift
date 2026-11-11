@@ -1,10 +1,6 @@
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
-// notchcast-kit: platform
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: platform core
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 import CryptoKit
@@ -350,7 +346,7 @@ import Foundation
 
     @MainActor static func smoke(file: URL, root: URL) async throws {
         guard TorrentToolLocator().aria2c() != nil else {
-            print("SKIP: aria2c not installed; fake loopback RPC server checks passed")
+            print("SKIP: real aria2c smoke: aria2c not installed")
             return
         }
         let destination = root.appendingPathComponent("download")

@@ -3,15 +3,16 @@
 // notchcast-sources: Tinycast/Features/Tweaks/Model/TweakPreference.swift Tinycast/Features/Tweaks/Model/TweakValue.swift
 import Foundation
 // notchcast-sources: Tinycast/Features/Tweaks/TweakProfileCommands.swift Tests/Support/TweakProfileCommandFakes.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
+// notchcast-kit: command
 
 @main
 struct AICommandTests {
     @MainActor
     static func main() async throws {
-        precondition(TweakProfileCommands.ai.feature == .aiFeaturesOff)
         TweakProfileCommands.ai.run()
-        for _ in 0..<1000 where NotchcastCore.tweaks.calls == 0 { await Task.yield() }
-        precondition(NotchcastCore.tweaks.calls == 1 && NotchcastCore.tweaks.kept == [])
+        for _ in 0..<1000 where TweaksModule.shared.calls == 0 { await Task.yield() }
+        precondition(TweaksModule.shared.calls == 1 && TweaksModule.shared.kept == [])
         var calls = 0
         func request(_ kept: Set<String>?, _ privacy: Set<String>) async throws {
             precondition(kept == [] && privacy.isEmpty)

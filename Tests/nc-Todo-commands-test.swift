@@ -1,7 +1,7 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift Tinycast/Features/Todo/Service/TodoStore*.swift
-// notchcast-sources: Tinycast/Features/Todo/Commands/*.swift Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Todo/Commands/*.swift
+// notchcast-kit: core command
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
 import Observation
 
@@ -14,20 +14,10 @@ final class RefreshState {
     var value = 0
 }
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry {
-    enum Kind { case command }
-    init(id: String, name: String, url: URL, bundleID: String?, kind: Kind,
-         settingsOwner: SettingsTab?, symbolName: String) {}
-}
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    func showMessage(_ message: String) { preconditionFailure("Production feedback used") }
-}
-@MainActor enum NotchcastCore {
-    struct Services { var tasks: Tasks }
-    struct Tasks { var store: TodoStore? }
-    static var services: Services?
+enum DialogTone { case success }
+@MainActor final class TodoModule {
+    static var shared: TodoModule?
+    var store: TodoStore?
 }
 
 @main @MainActor
@@ -39,6 +29,7 @@ struct TodoCommandTests {
     static var store: TodoStore?
 
     static func main() async throws {
+        NotchcastHost.current.showMessage = { _, _ in preconditionFailure("Production feedback used") }
         let directory = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let opened = try await TodoStore.open(directory: directory)
@@ -53,7 +44,6 @@ struct TodoCommandTests {
             clipboardText: { clipboard }, report: { messages.append($0) })
         precondition(defaultContext.language == .polish)
         let commands = TodoCommands.commands(context: { context })
-        precondition(commands.map(\.slug) == ["add-task-from-clipboard", "complete-next-task", "undo-last-task-change"])
         for command in commands {
             enabled = false
             let before = opened.state

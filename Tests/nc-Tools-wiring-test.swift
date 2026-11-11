@@ -1,18 +1,14 @@
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core platform
 // notchcast-sources: Tinycast/Features/CleaningMode/Model/*.swift
 // notchcast-sources: Tinycast/Features/CleaningMode/Service/CleaningModeEngine.swift
 // notchcast-sources: Tinycast/Features/CleaningMode/CleaningModeModule.swift
 // notchcast-sources: Tinycast/Features/AppUpdates/Model/AppUpdate.swift
 // notchcast-sources: Tinycast/Features/AppUpdates/AppUpdatesModule.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/Model/*.swift
-// notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift
-// notchcast-kit: platform
+// notchcast-sources: Tinycast/Features/MacUpdate/Service/*.swift Tinycast/Platform/ExecutableLocator.swift
 // notchcast-sources: Tinycast/Features/MacUpdate/MacUpdateModule.swift
 import Foundation
 
@@ -90,8 +86,9 @@ struct ToolsWiringTests {
         precondition(checks == 2)
 
         let runner = ToolsFakeRunner()
-        let service = MacUpdateService(runner: runner, home: "/fixture", appRoot: "/fixture",
-                                      exists: { _ in true }, resolve: { $0 }, locked: { false })
+        let service = MacUpdateService(runner: runner, appRoot: "/fixture",
+                                      exists: { _ in true }, resolve: { $0 }, locked: { false },
+                                      locate: { "/fixture/" + $0 })
         let mac = MacUpdateModule(service: service)
         var confirmations = 0
         mac.run { confirmations += 1; return true }

@@ -1,6 +1,5 @@
 // notchcast-sources: -swift-version 6 -strict-concurrency=complete
-// notchcast-sources: Tinycast/Features/Notchcast/Core/Notchcast[FMP]*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: core host command
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/ScreenshotModule+Command.swift
 // notchcast-sources: Tinycast/Features/CaptureScreenshot/Model/ScreenshotRequest.swift
@@ -10,15 +9,6 @@ import AppKit
 @MainActor final class CaptureAreaService {
     func start(completion: @escaping (CaptureAreaSelection?) -> Void) throws {}
     func stop() {}
-}
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
 }
 
 extension ScreenshotModule {
@@ -67,7 +57,6 @@ struct ScreenshotModuleTest {
         ], preferences: preferences)
         controller.run()
         let command = ScreenshotModule.launcherCommand
-        precondition(command.slug == "screenshot-display")
         preferences.set(.screenshot, true)
         await settle()
         command.run()

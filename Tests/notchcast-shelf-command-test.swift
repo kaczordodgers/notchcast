@@ -3,20 +3,15 @@
 // notchcast-sources: Tinycast/Features/Shelf/Service/ShelfLinkStatus.swift
 // notchcast-sources: Tinycast/Features/Shelf/ShelfModule*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum NotchcastFeature: Sendable { case shelfBetweenMacs, machLink }
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature?
-    var isEnabled: @MainActor @Sendable () -> Bool = { true }
-    let run: @MainActor @Sendable () -> Void
-}
-
-enum SettingsTab { case notchcastTwoMacs }
+enum DialogTone {}
+@MainActor final class AppCore {}
 
 @MainActor enum SettingsActionCommands {
     static var openedShelf = false
@@ -25,16 +20,8 @@ enum SettingsTab { case notchcastTwoMacs }
     }
 }
 
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var enabled = true
-    func isOn(_ feature: NotchcastFeature) -> Bool { enabled }
-}
-
-@MainActor enum NotchcastCore {
-    static let shelf = ShelfModule()
+@MainActor enum Probe {
     static var messages: [String] = []
-    static func remoteResult(_ text: String) { messages.append(text) }
 }
 
 @MainActor final class ShelfPeer: ShelfLinkStatus, ShelfTransport {
@@ -45,7 +32,11 @@ enum SettingsTab { case notchcastTwoMacs }
 
 @main struct ShelfCommandTest {
     @MainActor static func main() async {
-        let module = NotchcastCore.shelf
+        NotchcastHost.current.remoteResult = { Probe.messages.append($0) }
+        let module = ShelfModule.shared
+        let entries = ShelfModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].module === module)
+        precondition(entries[0].requires == [.machLink, .shelfBetweenMacs] && entries[0].requiresAny.isEmpty)
         let peer = ShelfPeer()
         module.transport = peer
         module.linkStatus = peer
@@ -57,17 +48,17 @@ enum SettingsTab { case notchcastTwoMacs }
         NotchcastPreferences.shared.enabled = false
         precondition(!command.isEnabled())
         command.run()
-        while NotchcastCore.messages.isEmpty { await Task.yield() }
+        while Probe.messages.isEmpty { await Task.yield() }
         precondition(peer.items.count == 1)
         precondition(peer.items[0].data == Data("Test shelf text".utf8))
-        precondition(NotchcastCore.messages.last == "Sent Clipboard to Other Mac")
+        precondition(Probe.messages.last == "Sent Clipboard to Other Mac")
         peer.shelfPeerAvailable = false
         ShelfModule.clipboardCommand { "Another item" }.run()
-        while NotchcastCore.messages.count < 2 { await Task.yield() }
+        while Probe.messages.count < 2 { await Task.yield() }
         precondition(peer.items.count == 1)
-        precondition(NotchcastCore.messages.last == "Could Not Send Clipboard to Other Mac")
+        precondition(Probe.messages.last == "Could Not Send Clipboard to Other Mac")
         ShelfModule.clipboardCommand { nil }.run()
-        precondition(NotchcastCore.messages.count == 3)
+        precondition(Probe.messages.count == 3)
         module.stop()
         print("shelf command: fake peer received text; unavailable peer, empty clipboard and gate passed")
     }

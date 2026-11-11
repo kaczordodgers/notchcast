@@ -1,14 +1,11 @@
 // notchcast-sources: Tinycast/Features/Distill/Model/*.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DistillTranscriber.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DistillRunner.swift
-// notchcast-sources: Tinycast/Features/Distill/Service/DistillQueue.swift
 // notchcast-sources: Tinycast/Features/Distill/Service/DownloadRunContext+Distill.swift
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationAudioChunks.swift
 // notchcast-sources: Tinycast/Features/Dictation/Model/DictationModel.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationWire.swift
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadRunner.swift
-// notchcast-sources: Tinycast/Features/Downloads/Service/DownloadRunContext.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/DownloadToolLookup.swift
 // notchcast-sources: Tinycast/Features/Downloads/Service/ChildProcess.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
@@ -40,13 +37,11 @@ struct DistillTest {
         testLinks()
         testNaming()
         testChunkPlan()
-        try testLegacy(root: root)
-        try testQueue(root: root)
         try testPublication(root: root)
         try await testTranscription(root: root)
         try await testBusy()
         try await testRunner(root: root)
-        print("Distill passed: links, dedupe, naming, chunks, timestamps, legacy import, publication and cancellation")
+        print("Distill passed: links, dedupe, naming, chunks, timestamps, publication and cancellation")
     }
 
     private static func testLinks() {
@@ -90,59 +85,6 @@ struct DistillTest {
         let cut = DistillAudioChunks.cut(in: samples, final: false)
         precondition(silence.contains(cut) && cut < DictationWire.maximumSamples)
         precondition(DistillAudioChunks.cut(in: samples, final: true) == maximum)
-    }
-
-    private static func testLegacy(root: URL) throws {
-        let fixture = Data("""
-        {"entries":[
-          {"canonicalUrl":"https://youtu.be/abc?si=a","addedAt":"2026-01-02T00:00:00Z","state":"queued"},
-          {"url":"https://example.com/post","addedAt":1767225600000,"status":"failed","lastError":"offline","attempts":2},
-          {"url":"https://youtube.com/watch?v=abc","state":"queued"},
-          {"url":"https://example.com/done","state":"done"},
-          {"url":"https://example.com/running","state":"running"},
-          {"url":"file:///invalid","state":"failed"}
-        ]}
-        """.utf8)
-        let legacy = root.appending(path: "legacy.json")
-        try fixture.write(to: legacy)
-        let queueFile = root.appending(path: "imported.json")
-        let queue = try DistillQueue(file: queueFile)
-        try check(queue.importLegacy(from: legacy, now: .distantPast) == 2)
-        precondition(queue.links.map(\.state) == [.failed, .waiting])
-        precondition(queue.links.first?.attempts == 2 && queue.links.first?.detail == "offline")
-        try check(Data(contentsOf: legacy) == fixture)
-        try queue.remove(queue.links[0].id)
-        let reloaded = try DistillQueue(file: queueFile)
-        try check(reloaded.importLegacy(from: legacy, now: .distantPast) == 0)
-        precondition(reloaded.links.count == 1)
-        let keyed = try LegacyDistillQueue.parse(Data("""
-        {"entries":{"https://example.com/keyed":{"state":"queued"}}}
-        """.utf8), now: .distantPast)
-        precondition(keyed.count == 1)
-        let orion = try LegacyDistillQueue.parse(Data("""
-        [{"url":"https://example.com/orion","stage":"queued","added":"2026-01-01T00:00:00Z"}]
-        """.utf8), now: .distantPast)
-        precondition(orion.count == 1 && orion[0].added != .distantPast)
-    }
-
-    @MainActor
-    private static func testQueue(root: URL) throws {
-        let file = root.appending(path: "queue.json")
-        let queue = try DistillQueue(file: file)
-        try check(queue.add(text: "https://youtu.be/one https://youtube.com/watch?v=one", now: .distantPast).count == 1)
-        let id = queue.links[0].id
-        try queue.fail(id, detail: "offline")
-        try check(queue.add(text: "https://youtu.be/one", now: .distantPast).isEmpty)
-        try check(DistillQueue(file: file).links[0].state == .failed)
-        try queue.retry(id)
-        precondition(queue.links[0].state == .waiting && queue.links[0].attempts == 1 && queue.links[0].detail == nil)
-        try queue.remove(id)
-        try check(queue.add(text: "https://youtu.be/one", now: .distantPast).count == 1)
-        let invalid = try DistillQueue(file: root.appending(path: "queue.json/invalid.json"))
-        do {
-            _ = try invalid.add(text: "https://example.com/one", now: .distantPast)
-            preconditionFailure("Unwritable queue succeeded")
-        } catch { precondition(invalid.links.isEmpty) }
     }
 
     private static func testPublication(root: URL) throws {
@@ -251,26 +193,20 @@ struct DistillTest {
             tools: DownloadToolLookup(directories: [bin]),
             report: { value in stages.withLock { $0.append(value.stage ?? "") } })
         let work = root.appending(path: "runner-work")
-        let runner = DistillRunner(transcriber: DistillTranscriber { _ in "A transcript." }, workDirectory: work) { _, target in
+        let runner = DistillRunner(transcriber: DistillTranscriber { _ in "A transcript." }, workDirectory: work,
+                                   timestamps: { false }) { _, target in
             target.appending(path: "webpage.md")
         }
         let job = DownloadJob(id: UUID().uuidString, kind: "distill", source: "https://youtu.be/abc",
                               title: "Fixture", created: .distantPast)
         let registered: any DownloadRunner = runner
-        precondition(registered.kind == "distill" && registered.tools == [.ytDlp, .ffmpeg])
+        precondition(registered.kind == "distill" && registered.tools.isEmpty, "a web link needs no tool")
         let result = try await registered.run(job, context: context)!
         try check(String(contentsOf: result, encoding: .utf8) == "A transcript.\n")
         precondition(stages.withLock { $0 } == ["Transcribing 1 of 1"])
         try check(FileManager.default.contentsOfDirectory(atPath: work.path).isEmpty)
         let page = try await runner.run(source: "https://open.spotify.com/track/fixture", destination: root, context: context)
         precondition(page.lastPathComponent == "webpage.md")
-        let unavailable = DistillRunner(transcriber: runner.transcriber, workDirectory: work)
-        do {
-            _ = try await unavailable.run(source: "https://example.com/article", destination: root, context: context)
-            preconditionFailure("Unconnected webpage saver succeeded")
-        } catch {
-            precondition(error.localizedDescription.contains("not connected"))
-        }
         let fileText = try await runner.transcriber.text(file: result, workDirectory: work, context: context)
         precondition(fileText == "A transcript.\n")
         let ready = AsyncStream<Void>.makeStream()
@@ -278,7 +214,7 @@ struct DistillTest {
             ready.continuation.yield(())
             try await Task.sleep(for: .seconds(60))
             return "Late text"
-        }, workDirectory: work, saveWebpage: runner.saveWebpage)
+        }, workDirectory: work, timestamps: { false }, saveWebpage: runner.saveWebpage)
         let cancelled = Task {
             try await slow.run(source: "https://youtu.be/cancelled", destination: root.appending(path: "cancelled-output"),
                                context: context)

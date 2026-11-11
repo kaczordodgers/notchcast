@@ -17,16 +17,10 @@ enum XPost {
     typealias Loader = @Sendable (URLRequest) async throws -> (Data, URLResponse)
 
     /// Cacheless, never `URLSession.shared`, so the saved Markdown stays the only copy.
-    static let session: URLSession = {
-        let config = URLSessionConfiguration.ephemeral
-        config.urlCache = nil
-        return URLSession(configuration: config)
-    }()
+    static let session = URLSession(configuration: NotchcastIdentity.sessionConfiguration())
 
     static func apiURL(_ source: URL) -> URL? {
-        guard let scheme = source.scheme?.lowercased(), ["http", "https"].contains(scheme),
-              let host = source.host(percentEncoded: false)?.lowercased().replacing(/^(www|mobile)\./, with: ""),
-              ["x.com", "twitter.com"].contains(host) else { return nil }
+        guard WebRules.isWebScheme(source.scheme), WebRules.isXHost(source.host(percentEncoded: false)) else { return nil }
         let parts = source.pathComponents.filter { $0 != "/" }
         // x.com/i/article/<id> carries an article id, not the status id fxtwitter needs.
         guard parts.count >= 3, ["status", "article"].contains(parts[1]),

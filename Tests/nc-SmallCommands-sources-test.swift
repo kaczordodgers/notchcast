@@ -1,10 +1,12 @@
-// notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift Tinycast/Features/SmallCommands/Service/*.swift Tinycast/Features/SmallCommands/SmallCommandsModule*.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift Tinycast/Features/SmallCommands/Service/*.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/SmallCommandsModule.swift
+// notchcast-sources: Tinycast/Features/SmallCommands/SmallCommandsModule+Commands.swift
 // notchcast-sources: Tinycast/Features/CopyPath/Model/*.swift Tinycast/Features/CopyPath/Service/*.swift Tinycast/Platform/AccessibilityText.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Model/WebRules.swift
+// notchcast-kit: host
 import Foundation
 
 @MainActor protocol NotchcastModule {}
-enum DialogTone {}
+enum DialogTone { case neutral }
 enum NotchcastFeature { case smallCommands }
 struct NotchcastCommand: Sendable {
     let slug: String
@@ -20,14 +22,10 @@ struct NotchcastCommand: Sendable {
     static let shared = NotchcastPreferences()
     func isOn(_ feature: NotchcastFeature) -> Bool { true }
 }
-@MainActor enum NotchcastCore { static let smallCommands = SmallCommandsModule() }
-@MainActor final class AppCore {
-    enum Tone { case neutral }
-    static let shared = AppCore()
-    func showMessage(_ text: String, tone: Tone) { preconditionFailure("Unexpected HUD") }
-}
+extension SmallCommandsModule { static let shared = SmallCommandsModule() }
 @main struct SourceTests {
     @MainActor static func main() async throws {
+        NotchcastHost.current.showMessage = { _, _ in preconditionFailure("Unexpected HUD") }
         let module = SmallCommandsModule()
         module.start()
         defer { module.stop() }

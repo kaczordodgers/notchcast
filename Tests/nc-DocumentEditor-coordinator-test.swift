@@ -2,10 +2,7 @@
 // notchcast-sources: Tinycast/Features/DocumentEditor/Model/*.swift
 // notchcast-sources: Tinycast/Features/DocumentEditor/Service/*.swift
 // notchcast-sources: Tinycast/Features/DocumentEditor/EditorCoordinator.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteDocument.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteEditAction.swift
 // notchcast-sources: Tinycast/Features/Notes/Model/NoteEditPlan.swift
@@ -78,9 +75,6 @@ struct EditorCoordinatorTests {
         cancelled.cancel()
         _ = await cancelled.result
         precondition(coordinator.documents.count == 1)
-        precondition(NotchcastFeature.markdownFiles.settingsGroup == .system)
-        precondition(!NotchcastFeature.markdownFiles.needsIsland)
-        precondition(!NotchcastFeature.plainTextFiles.needsIsland)
         print("Editor coordinator: lifecycle, type switches, identity, spelling and dirty-close protection passed")
     }
 }

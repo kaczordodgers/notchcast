@@ -11,8 +11,8 @@ struct NotchcastSettingRowsC: View {
         case .downloadsDistillFolder:
             DistillFolderSettingRow()
         case .downloadsTorrents:
-            TorrentToolSettingRow(module: NotchcastCore.torrents)
-            TorrentJobsSettingRow(module: NotchcastCore.torrents)
+            TorrentToolSettingRow(module: TorrentModule.shared)
+            TorrentJobsSettingRow(module: TorrentModule.shared)
         case .filesAndClipboardCutPasteShortcut:
             FinderCutPasteSettingRow()
         case .filesAndClipboardRenameShortcut:

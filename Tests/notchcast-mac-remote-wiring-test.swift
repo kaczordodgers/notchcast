@@ -4,10 +4,16 @@
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/MachRemoteShell.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/SendFilesModule.swift
 // notchcast-sources: Tinycast/Features/MachRemote/Integration/UpdateRemoteModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
+// notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule.swift
+// notchcast-sources: Tinycast/Features/MachRemote/MachRemoteModule+Registration.swift
+// notchcast-sources: Tinycast/Features/MachRemote/Service/MachSSHProcessRunner.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 import Foundation
+
+enum DialogTone { case danger }
+@MainActor final class AppCore {}
 
 @MainActor
 final class RemoteCalls {
@@ -76,5 +82,14 @@ struct MacRemoteWiringTest {
         send.send([URL(fileURLWithPath: "/synthetic-file")])
         update.update()
         precondition(calls.calls.count == count)
+        let entries = MachRemoteModule.register(AppCore())
+        precondition(entries.map(\.requires) == [[.machRemote], [.machRemote, .sendFiles], [.machRemote, .updateRemote]])
+        precondition(entries.allSatisfy(\.requiresAny.isEmpty) && entries[0].module === MachRemoteModule.shared)
+        precondition(entries[1].module === SendFilesModule.shared && entries[2].module === UpdateRemoteModule.shared)
+        var results: [String] = []
+        NotchcastHost.current.remoteResult = { results.append($0) }
+        SendFilesModule.shared.post("sent")
+        UpdateRemoteModule.shared.post("updated")
+        precondition(results == ["sent", "updated"])
     }
 }

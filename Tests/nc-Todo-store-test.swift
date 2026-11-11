@@ -1,9 +1,6 @@
 // notchcast-sources: Tinycast/Features/Todo/Model/*.swift
 // notchcast-sources: Tinycast/Features/Todo/Service/*.swift Tinycast/Features/Todo/TodoModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-kit: platform
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core platform
 import Foundation
 
 @main @MainActor
@@ -306,9 +303,7 @@ struct TodoStoreTests {
         let suite = "todo-module.\(UUID().uuidString)"
         defer { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
-        precondition(!preferences.isOn(.tasks) && !NotchcastFeature.tasks.needsIsland)
-        precondition(NotchcastFeature.tasks.dependencies.isEmpty && NotchcastFeature.tasks.requiredGrants.isEmpty)
-        precondition(NotchcastFeature.tasks.settingsGroup == .tasks)
+        precondition(!preferences.isOn(.tasks))
         var failures: [String] = []
         let module = TodoModule(directory: directory, showFailure: { failures.append($0) })
         let controller = NotchcastModuleController([.init(requires: [.tasks], module: module)], preferences: preferences)

@@ -64,7 +64,7 @@ struct TimerDefaultDurationSettingRow: View {
 struct TaskCountSettingRow: View {
 
     var body: some View {
-        if let module = NotchcastCore.services?.tasks, let store = module.store {
+        if let module = TodoModule.shared, let store = module.store {
             Text("Tasks: \(store.state.tasks.count)", tableName: "Notchcast").foregroundStyle(.secondary)
         }
     }
@@ -75,7 +75,7 @@ struct TodoistImportSettingRow: View {
     @State private var result: String?
     var body: some View {
         Group {
-            if let module = NotchcastCore.services?.tasks {
+            if let module = TodoModule.shared {
                 Button(String(localized: "Import Todoist JSON export…", table: "Notchcast"), action: selectFile)
                     .help(String(localized: "Accepts a JSON object with Todoist tasks, projects, sections and labels arrays.", table: "Notchcast"))
                     .disabled(module.store == nil || selectedFile != nil)
@@ -84,7 +84,7 @@ struct TodoistImportSettingRow: View {
             }
         }
         .task(id: selectedFile) {
-            guard let url = selectedFile, let module = NotchcastCore.services?.tasks,
+            guard let url = selectedFile, let module = TodoModule.shared,
                   let store = module.store else { return }
             defer { selectedFile = nil }
             do {

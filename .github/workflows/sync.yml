@@ -234,6 +234,8 @@ jobs:
       - uses: ./tools/notchcast/actions/tests
         with:
           upstream: ${{ env.TAG_COMMIT }}
+          # An older tree: its compiled harnesses must not become the newest "all" that main and PRs restore.
+          cache: release-${{ matrix.release.tag }}
       - uses: ./tools/notchcast/actions/release
         with:
           version: ${{ steps.app.outputs.version }}

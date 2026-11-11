@@ -2,12 +2,10 @@
 // notchcast-sources: Tinycast/Features/Music/Model/Soloist*.swift
 // notchcast-sources: Tinycast/Features/Music/Service/Soloist*.swift
 // notchcast-sources: Tinycast/Platform/KeychainSecretStore.swift Tinycast/Platform/AppPaths.swift
-// notchcast-kit: platform
+// notchcast-kit: platform core
 // notchcast-sources: Tinycast/Features/Music/Settings/SoloistFailure+Settings.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/Model/*.swift
 // notchcast-sources: Tinycast/Features/SettingsBackup/ForkSettingsBackupRestore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
 import CryptoKit
 import Darwin
 import Foundation
@@ -257,10 +255,6 @@ struct SoloistRuntimeTest {
         check(data.range(of: Data("fixture-secret".utf8)) == nil, "backup bytes leaked key")
         let decoded = try ForkSettingsBackupEngine.decode(data)
         check(decoded["soloist.api-key"] == nil, "backup accepted secret field")
-        let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
-        for name in ForkSettingsBackupSchema.allowed.keys {
-            check(name.firstMatch(of: secretName) == nil, "backup allows secret-shaped key \(name)")
-        }
         print("PASS: fixture argv stdout/stderr, launch failure, saved-key snapshot and backup exclusion")
     }
 

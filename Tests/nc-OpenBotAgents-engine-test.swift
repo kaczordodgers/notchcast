@@ -3,8 +3,12 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Command.swift
+// notchcast-sources: Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
 // notchcast-sources: -strict-concurrency=complete -warnings-as-errors
+// notchcast-kit: command
 import Foundation
 import Synchronization
 
@@ -18,28 +22,9 @@ final class NotchcastPreferences {
     }
 }
 
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
+enum DialogTone { case neutral }
 
-@MainActor
-enum NotchcastCore {
-    static let openBotAgents = OpenBotAgentsModule(
-        availabilityChanged: { AppCore.shared.refreshCommands() }, report: OpenBotAgentsModule.report)
-}
-
-@MainActor
-final class AppCore {
-    enum Tone { case neutral }
-    static let shared = AppCore()
-    func refreshCommands() {}
-    func showMessage(_ text: String, tone: Tone) {}
-}
+@MainActor final class AppCore {}
 
 final class FixtureTransport: OpenBotTransport {
     let responses: Mutex<[(String, Int)]>
@@ -261,14 +246,16 @@ struct OpenBotTests {
         await gated.waitUntilIdle()
         gated.stop()
         precondition(availability == 2)
-        precondition(!NotchcastFeature.openBotAgents.defaultEnabled)
-        precondition(NotchcastFeature.openBotAgents.isWired && !NotchcastFeature.openBotAgents.needsIsland)
         let commands = [OpenBotAgentsModule.refreshCommand]
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
         NotchcastPreferences.shared.enabled = true
         precondition(commands.filter { $0.isEnabled() }.count == 1)
         NotchcastPreferences.shared.enabled = false
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
+        let entries = OpenBotAgentsModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.openBotAgents] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === OpenBotAgentsModule.shared)
+        print("PASS: registration entry")
         print("PASS: agents, pending questions/counts, receipt, all delivery statuses and malformed JSON")
         print("PASS: HTTP errors, single 401 credential retry, loopback, body limit, UUIDs, token redaction and stop")
         print("PASS: switch defaults off, independent of island; shipped command gate removes command when off")

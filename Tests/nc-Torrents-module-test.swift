@@ -6,20 +6,15 @@
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentRPCClient.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentS*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/TorrentTool*.swift
-// notchcast-kit: platform
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: platform core
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift
 import Foundation
 
 // notchcast-sources: Tinycast/Features/Torrents/NotchcastTorrentModuleEntries.swift
-@MainActor enum NotchcastCore {
-    static let torrents = TorrentModule(session: TorrentAria2Session(stateDirectory: AppPaths.applicationSupport().appending(path: "Torrents")))
-}
+// notchcast-sources: Tinycast/Features/Torrents/TorrentModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 enum AppPaths {
     static func applicationSupport() -> URL { URL(fileURLWithPath: "/unused") }
 }
@@ -76,7 +71,6 @@ struct TorrentModuleTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         precondition(preferences.isOn(.torrents) && preferences.isOn(.torrentsUseIPhone))
         precondition(!preferences.isOn(.torrentsKeepSharing))
-        precondition(NotchcastFeature.allCases.filter { $0.settingsGroup == .torrents }.allSatisfy { !$0.needsIsland })
         let session = Session()
         let root = URL(fileURLWithPath: ProcessInfo.processInfo.environment["TORRENT_TEST_ROOT"]
             ?? FileManager.default.temporaryDirectory.path)
@@ -207,7 +201,10 @@ struct TorrentModuleTests {
         await module.manager.stop()
         let core = AppCore()
         precondition(!core.handleTorrentURL(URL(string: "https://example.invalid")!))
-        let shared = NotchcastCore.torrents.preferences
+        let entries = TorrentModule.register(core)
+        precondition(entries.count == 1 && entries[0].requires == [.torrents] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === TorrentModule.shared)
+        let shared = TorrentModule.shared.preferences
         let original = shared.isOn(.torrents)
         defer { shared.set(.torrents, original) }
         shared.set(.torrents, false)

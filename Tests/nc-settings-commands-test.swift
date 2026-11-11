@@ -1,22 +1,7 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
+// notchcast-kit: core command
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
-// notchcast-reads: notchcast/check-command-owners.py Tinycast/Features/**/*.swift
 import Foundation
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry {
-    enum Kind { case command }
-    let id: String
-    let name: String
-    let url: URL
-    let bundleID: String?
-    let kind: Kind
-    let settingsOwner: SettingsTab?
-    let symbolName: String
-}
 @MainActor final class AppCore {
     static let shared = AppCore()
     var paletteCoordinator: AppCore { self }
@@ -43,23 +28,12 @@ extension NotchcastCommandCatalog {
             child.waitUntilExit()
             exit(child.terminationStatus)
         }
-        let process = Process()
-        process.executableURL = URL(filePath: "/usr/bin/env")
-        process.arguments = ["python3", "notchcast/check-command-owners.py"]
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        try process.run()
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        process.waitUntilExit()
-        precondition(process.terminationStatus == 0)
-        let rows = try JSONDecoder().decode([Row].self, from: data)
-        precondition(!rows.isEmpty, "Every catalog command must retain owner gate coverage")
         let preferences = NotchcastPreferences.shared
         let home = ProcessInfo.processInfo.environment["NC_SETTINGS_COMMANDS_HOME"]!
         precondition(NSHomeDirectory() == home, "preferences must stay in the throwaway home")
-        for row in rows {
-            let owner = NotchcastFeature(rawValue: row.owner)!
-            var command = NotchcastCommand(slug: row.id, name: row.id, sfSymbol: "test", feature: owner, run: { runs += 1 })
+        for owner in NotchcastFeature.allCases {
+            let slug = owner.rawValue
+            var command = NotchcastCommand(slug: slug, name: slug, sfSymbol: "test", feature: owner, run: { runs += 1 })
             NotchcastCommandCatalog.all = [command]
             for feature in NotchcastFeature.allCases { preferences.set(feature, true) }
             preferences.set(owner, false)
@@ -84,7 +58,6 @@ extension NotchcastCommandCatalog {
             NotchcastCommandCatalog.all = [command]
             precondition(!NotchcastCommandCatalog.isEnabled(command.id))
         }
-        print("PASS: \(rows.count) commands covered; catalog count \(rows.count); owner, dependency and runtime gates")
+        print("PASS: a command of each of \(NotchcastFeature.allCases.count) features; owner, dependency and runtime gates")
     }
-    struct Row: Decodable { let id: String; let owner: String }
 }

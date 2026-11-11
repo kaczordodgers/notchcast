@@ -1,11 +1,15 @@
 // notchcast-sources: Tinycast/Features/MachineSetupProfile/Model/*.swift Tinycast/Features/MachineSetupProfile/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachineSetupProfile/MachineSetupProfileCoordinator+Command.swift
+// notchcast-kit: command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
+// notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
 import Foundation
 
 @main
 struct MachineSetupProcessTests {
     @MainActor
     static func main() async throws {
+        NotchcastPreferences.shared.enabled = false
         let live = MachineSetupProfileProcessExecutor.live()
         let read = try live.process("/usr/bin/defaults", ["read", "com.apple.dock", "autohide"])
         precondition(read.status == 0 || read.status == 1)
@@ -110,21 +114,7 @@ struct MachineSetupProcessTests {
     }
 }
 
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastPreferences.Feature?
-    let isEnabled: @MainActor @Sendable () -> Bool
-    let run: @MainActor @Sendable () -> Void
-}
-
-@MainActor
-final class NotchcastPreferences {
-    enum Feature { case machineSetupProfile }
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: Feature) -> Bool { false }
-}
+enum NotchcastFeature { case machineSetupProfile }
 
 @MainActor
 enum BackupActions {

@@ -101,7 +101,6 @@ if [ "${1:-}" = --statuses ]; then
 fi
 git clone --quiet --no-hardlinks "$root" "$scratch/repo"
 cd "$scratch/repo"
-git remote add upstream "$root"
 git config user.name Damian
 git config user.email 336236323+kaczordodgers@users.noreply.github.com
 printf '#!/usr/bin/env python3\n' > notchcast/check-drift.py
@@ -109,6 +108,22 @@ printf '#!/usr/bin/env python3\n' > notchcast/check-drift-test.py
 git add notchcast/check-drift.py notchcast/check-drift-test.py
 git commit --quiet -m 'Fixture: isolate drift gates covered by land-drift-test.py'
 base=$(git rev-parse HEAD)
+# land.sh refreshes upstream main: the fixture serves this checkout's upstream/main to itself, so CI's checkout,
+# which has no main branch, runs it too.
+git fetch --quiet "$root" refs/remotes/upstream/main
+git switch --quiet --detach
+git update-ref refs/heads/main FETCH_HEAD
+git remote add upstream "$scratch/repo"
+# Each landing runs only the harness the fixtures break; --full keeps the whole selection (97 harnesses, twice).
+land="$root/notchcast/land.sh"
+if [ "${1:-}" != --full ]; then
+    cp -R "$root/notchcast" "$scratch/tools"
+    mv "$scratch/tools/changed-harnesses.sh" "$scratch/tools/changed-harnesses-full.sh"
+    printf '#!/bin/bash\n"$(dirname "$0")/changed-harnesses-full.sh" "$@" | { grep -x notchcast-core-test || true; }\n' \
+        > "$scratch/tools/changed-harnesses.sh"
+    chmod +x "$scratch/tools/changed-harnesses.sh"
+    land="$scratch/tools/land.sh"
+fi
 # A Sync rewrite: old main has our commit; new main is upstream's next commit plus the same change replayed.
 fixture_commit() {
     printf '%s\n' "$2" > "notchcast/$1.fixture"
@@ -129,16 +144,16 @@ git switch --quiet -c fork-conflict "$old"
 fixture_commit upstream pr
 conflict=$(git rev-parse HEAD)
 status=0
-"$root/notchcast/land.sh" --check "$new" "$clean" > "$scratch/fork.log" 2>&1 || status=$?
+"$land" --check "$new" "$clean" > "$scratch/fork.log" 2>&1 || status=$?
 [ "$status" -eq 1 ] && grep -q 'REFUSED: merge conflict: notchcast/ours.fixture' "$scratch/fork.log"
 echo 'PASS: without a recorded tip, a PR from before the rewrite conflicts with its own replayed commit'
 git update-ref "refs/notchcast/synced/$old" "$old"
 git update-ref "refs/notchcast/synced/$new" "$new"
-"$root/notchcast/land.sh" --check "$new" "$clean" > "$scratch/fork.log" 2>&1 || { cat "$scratch/fork.log"; exit 1; }
+"$land" --check "$new" "$clean" > "$scratch/fork.log" 2>&1 || { cat "$scratch/fork.log"; exit 1; }
 grep -q "merging from ${old:0:8}" "$scratch/fork.log"
 echo 'PASS: a PR from before the rewrite lands from its recorded fork point, past a newer recorded tip'
 status=0
-"$root/notchcast/land.sh" --check "$new" "$conflict" > "$scratch/fork.log" 2>&1 || status=$?
+"$land" --check "$new" "$conflict" > "$scratch/fork.log" 2>&1 || status=$?
 [ "$status" -eq 1 ] && grep -q 'REFUSED: merge conflict: notchcast/upstream.fixture' "$scratch/fork.log"
 echo 'PASS: a real conflict from the recorded fork point still refuses'
 git switch --quiet -c fork-updated "$old"
@@ -147,7 +162,7 @@ fixture_commit pr updated
 updated=$(git rev-parse HEAD)
 git switch --quiet -c fork-newer "$new"
 fixture_commit upstream newer
-"$root/notchcast/land.sh" --check HEAD "$updated" > "$scratch/fork.log" 2>&1 || { cat "$scratch/fork.log"; exit 1; }
+"$land" --check HEAD "$updated" > "$scratch/fork.log" 2>&1 || { cat "$scratch/fork.log"; exit 1; }
 if grep -q 'merging from' "$scratch/fork.log"; then cat "$scratch/fork.log"; exit 1; fi
 echo 'PASS: a PR from before the rewrite that merged the new main lands by a plain merge'
 git for-each-ref --format='delete %(refname)' refs/notchcast/synced/ | git update-ref --stdin
@@ -158,7 +173,8 @@ from pathlib import Path
 import re
 p = Path('Tinycast/Features/Notchcast/Core/NotchcastFeature.swift')
 s = p.read_text().replace('    case island\n', '    case landingFixture\n    case island\n', 1)
-values = {'settingsGroup': '.activities', 'title': '"Fixture"', 'subtitle': '"Fixture."',
+values = {'settingsGroup': '.activities', 'title': 'String(localized: "Fixture", table: "Notchcast")',
+          'subtitle': 'String(localized: "Fixture.", table: "Notchcast")',
           'requiredGrants': '[]', 'defaultEnabled': 'false'}
 for name, value in values.items():
     s, count = re.subn(rf'(var {name}: [^\n]+ {{\n(?:        if let descriptor [^\n]+\n)?        (?:return )?switch self {{\n)',
@@ -194,7 +210,7 @@ a=$(git rev-parse HEAD)
 "$root/notchcast/changed-harnesses.sh" "$base" "$a" > "$scratch/selected"
 grep -x notchcast-core-test "$scratch/selected"
 grep -x nc-Battery-store-test "$scratch/selected"
-"$root/notchcast/land.sh" --check "$base" "$a" > "$scratch/a.log" 2>&1 || { cat "$scratch/a.log"; exit 1; }
+"$land" --check "$base" "$a" > "$scratch/a.log" 2>&1 || { cat "$scratch/a.log"; exit 1; }
 echo 'PASS: A alone'
 git switch --quiet -c fixture-b "$base"
 python3 - <<'PY'
@@ -211,13 +227,13 @@ PY
 git add Tinycast/Features/Notchcast/Core/LandingFixture.swift Tests/notchcast-core-test.swift
 git commit --quiet -m 'Fixture: add exhaustive consumer'
 b=$(git rev-parse HEAD)
-"$root/notchcast/land.sh" --check "$base" "$b" > "$scratch/b.log" 2>&1 || { cat "$scratch/b.log"; exit 1; }
+"$land" --check "$base" "$b" > "$scratch/b.log" 2>&1 || { cat "$scratch/b.log"; exit 1; }
 echo 'PASS: B alone'
 git merge --quiet --no-commit --no-ff "$a"
 git merge --abort
 echo 'PASS: A and B merge without text conflicts'
 status=0
-"$root/notchcast/land.sh" --check "$b" "$a" > "$scratch/combined.log" 2>&1 || status=$?
+"$land" --check "$b" "$a" > "$scratch/combined.log" 2>&1 || status=$?
 [ "$status" -eq 1 ]
 grep 'REFUSED: notchcast-core-test failed' "$scratch/combined.log"
 edit_config() {
@@ -231,7 +247,7 @@ ours=$(git rev-parse HEAD)
 git switch --quiet -c fixture-conflict "$base"
 edit_config '# theirs'
 status=0
-"$root/notchcast/land.sh" --check "$ours" HEAD > "$scratch/conflict.log" 2>&1 || status=$?
+"$land" --check "$ours" HEAD > "$scratch/conflict.log" 2>&1 || status=$?
 [ "$status" -eq 1 ]
 grep 'REFUSED: merge conflict' "$scratch/conflict.log"
 git switch --quiet -c fixture-warning "$base"
@@ -246,7 +262,7 @@ PY
 git add Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
 git commit --quiet -m 'Fixture: a second body after the first'
 status=0
-"$root/notchcast/land.sh" --check "$base" HEAD > "$scratch/warning.log" 2>&1 || status=$?
+"$land" --check "$base" HEAD > "$scratch/warning.log" 2>&1 || status=$?
 [ "$status" -eq 1 ]
 grep 'REFUSED: NotchcastFeature\*.swift does not typecheck without warnings' "$scratch/warning.log"
 echo 'PASS: a warning in the feature files refuses the landing'

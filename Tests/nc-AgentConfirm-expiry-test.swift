@@ -51,7 +51,8 @@ struct ConfirmationExpiryTests {
         for _ in 0..<100 where screen.open != nil { try await Task.sleep(for: .milliseconds(10)) }
         precondition(screen.open == nil, "dialog of an expired request stayed open")
         let second = Task { await index.handle(AgentRequest(verb: .run, id: "second")) }
-        for _ in 0..<100 where screen.open == nil { try await Task.sleep(for: .milliseconds(10)) }
+        // Yields, not a sleep: a runner's 10 ms sleep can outlast this request's 100 ms deadline.
+        for _ in 0..<100 where screen.open == nil { await Task.yield() }
         precondition(shown == ["first", "second"], "request after an expiry was not shown: \(shown)")
         screen.close(0)
         let reply = await second.value

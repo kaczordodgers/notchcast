@@ -1,7 +1,4 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core host
 // notchcast-sources: Tinycast/Features/GitHub/Model/*.swift
 // notchcast-sources: Tinycast/Features/GitHub/Service/*.swift
 // notchcast-sources: Tinycast/Features/GitHub/GitHubModule.swift
@@ -19,7 +16,6 @@
 // notchcast-sources: Tinycast/Features/SmallCommands/Model/*.swift
 // notchcast-sources: Tinycast/Features/SmallCommands/Service/*.swift
 // notchcast-sources: Tinycast/Features/SmallCommands/SmallCommandsModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift Tinycast/Features/Notchcast/Model/WebRules.swift
 import Foundation
 
 enum DialogTone {}

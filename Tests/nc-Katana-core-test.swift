@@ -1,14 +1,13 @@
-// notchcast-reads: Tinycast/Features/Katana/README.md notchcast/docs/katana.md
+// notchcast-reads: notchcast/docs/katana.md
 // notchcast-sources: Tinycast/Features/Katana/Model/*.swift Tinycast/Features/Katana/Service/*.swift
 
 // notchcast-sources: Tinycast/Features/Katana/KatanaModule.swift
+// notchcast-sources: Tinycast/Features/Katana/KatanaModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-kit: core
 
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
 
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 import Foundation
@@ -364,16 +363,16 @@ struct KatanaTests {
         fake.pause = nil
         do { try await stopped.value; fatalError("Stopped load succeeded") } catch is CancellationError {}
         expect(fake.memory[KatanaSysEx.previewMute] == [0], "Stop after mute still unmutes")
-        expect(NotchcastFeature.katana.isSystemFeature, "Katana defaults off as a System feature")
-        expect(!FileManager.default.fileExists(atPath: "Tinycast/Features/Katana/README.md"),
-               "Katana documentation cannot collide with bundled README")
         expect(FileManager.default.fileExists(atPath: "notchcast/docs/katana.md"), "Katana docs live in fork docs")
         let module = KatanaModule(midi: SilentKatanaMIDI())
-        expect(NotchcastFeature.katana.settingsGroup == .system, "Katana uses the System settings group")
         module.start()
         expect(!module.client.isConnected && module.audio.isEnabled, "Module starts without opening hardware")
         module.stop()
         expect(!module.client.isEnabled && !module.audio.isEnabled, "Module stops both engines")
+        let entries = KatanaModule.register(AppCore())
+        expect(entries.count == 1 && entries[0].requires == [.katana] && entries[0].requiresAny.isEmpty,
+               "Katana registers one entry behind its switch")
+        expect(entries[0].module === KatanaModule.shared, "The registered entry is the shared module")
     }
 
     @MainActor
@@ -423,6 +422,8 @@ struct KatanaTests {
         expect(try Data(contentsOf: library) == data, "Failed import preserves library")
     }
 }
+
+@MainActor final class AppCore {}
 
 @MainActor
 final class SilentKatanaMIDI: KatanaMIDILayer {

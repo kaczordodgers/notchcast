@@ -1,8 +1,6 @@
 // notchcast-sources: Tinycast/Features/BackupStatus/Model/*.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastCore+RemoteNotice.swift
 // notchcast-sources: Tinycast/Features/BackupStatus/BackupStatusModule+Live.swift
 import Foundation
@@ -149,6 +147,27 @@ enum BackupStatusTest {
         changed?()
         for _ in 0..<100 { await Task.yield() }
         check(notices.count == 2)
-        print("Backup status: parser, monitoring, deadlines and switch lifecycle passed")
+        var watchedPaths: [String] = []
+        var pathRestarts: [@MainActor () -> Void] = []
+        preferences.backupStatusPath = "/tmp/first.json"
+        let restored = BackupStatusModule(read: { throw CocoaError(.fileReadNoSuchFile) }, watch: { _ in
+            watchedPaths.append(preferences.backupStatusPath)
+            return {}
+        }, schedule: { _, action in
+            pathRestarts.append(action)
+            return {}
+        }, configurationNotice: { preferences.backupStatusPath.hasPrefix("/") ? nil : "unset" }, post: { _ in })
+        restored.start()
+        // A settings restore assigns the stored path and tells nobody.
+        preferences.backupStatusPath = "/tmp/restored.json"
+        for _ in 0..<100 { await Task.yield() }
+        check(pathRestarts.count == 1)
+        pathRestarts.removeLast()()
+        check(watchedPaths == ["/tmp/first.json", "/tmp/restored.json"])
+        preferences.backupStatusPath = "/tmp/again.json"
+        for _ in 0..<100 { await Task.yield() }
+        check(pathRestarts.count == 1)
+        restored.stop()
+        print("Backup status: parser, monitoring, deadlines, switch lifecycle and a restored path passed")
     }
 }

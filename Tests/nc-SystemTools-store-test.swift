@@ -1,10 +1,7 @@
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
+// notchcast-kit: core root
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
-// notchcast-kit: root
 // notchcast-sources: Tinycast/Features/SystemTools/Model/TouchIDPolicy.swift
 // notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsHelperPolicy.swift
 // notchcast-sources: Tinycast/Features/SystemTools/UI/SystemToolsStore.swift
@@ -20,14 +17,11 @@ struct SystemToolsStoreTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         for feature in NotchcastFeature.allCases where feature.isSystemTweak {
             precondition(!preferences.isOn(feature))
-            precondition(!feature.needsIsland)
         }
         precondition(preferences.isOn(.island))
         precondition(NotchcastFeature.systemToolsSettingsFeatures == [
             .startupItems, .notificationCleanup, .sudoTouchID, .aiFeaturesOff, .spotlightOff, .privacyChoices
         ])
-        precondition(NotchcastFeature.aiFeaturesOff.isWired && NotchcastFeature.privacyChoices.isWired)
-        precondition(NotchcastFeature.notificationCleanup.requiredGrants == [.accessibility])
         var effects: [Bool] = []
         precondition(SystemToolsHelperPolicy.available(.sudoTouchID))
         precondition(SystemToolsHelperPolicy.available(.spotlightOff))

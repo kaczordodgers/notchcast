@@ -1,50 +1,80 @@
 name: Main harnesses
 
 on:
+  push:
+    branches-ignore: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Per event, so a push never cancels a dispatched run: only a newer push replaces a push run.
 concurrency:
-  group: main-harnesses-${{ github.ref }}
-  cancel-in-progress: false
+  group: main-harnesses-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'push' }}
 
 jobs:
-  harnesses:
-    runs-on: xcode-27
-    timeout-minutes: 30
+  # On Linux, so a macOS runner is spent only on shards that have harnesses to run.
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      tests: ${{ steps.shards.outputs.tests }}
+      shards: ${{ steps.shards.outputs.shards }}
+      runners: ${{ steps.route.outputs.runners }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          path: tools
-          persist-credentials: false
-      - uses: actions/checkout@v7
-        with:
-          path: src
           fetch-depth: 0
           persist-credentials: false
-      - uses: ./tools/notchcast/actions/xcode
       - name: Changed harnesses
-        working-directory: src
         run: |
           git fetch -q origin '+refs/notchcast/synced/*:refs/notchcast/synced/*'
           BEFORE=$(bash notchcast/fork-point.sh origin/main HEAD)
           ./notchcast/changed-harnesses.sh "$BEFORE" "$GITHUB_SHA" > "$RUNNER_TEMP/selected"
           cat "$RUNNER_TEMP/selected"
-      - name: Run harnesses, retry failures alone
-        working-directory: src
-        env:
-          LIBDISPATCH_COOPERATIVE_POOL_STRICT: '1'
-          NOTCHCAST_TEST_HELPER_EXECUTABLE: '1'
+      # About 40 harnesses compile in the time one more runner takes to start; at most 3 run beside a PR's checks job.
+      - name: Shards
+        id: shards
         run: |
-          export TMPDIR="$RUNNER_TEMP/main-harnesses"
-          mkdir -p "$TMPDIR"
-          source ../tools/notchcast/config.env
-          git fetch -q "https://github.com/$UPSTREAM_REPO.git" "+refs/heads/main:refs/remotes/upstream/main"
-          UPSTREAM=$(git merge-base "$GITHUB_SHA" upstream/main)
-          NOTCHCAST_ONLY_TESTS=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")
-          export UPSTREAM NOTCHCAST_ONLY_TESTS
-          [ -n "${NOTCHCAST_ONLY_TESTS// /}" ] || exit 0
-          # run-tests.sh replays no log when bash's crash notice splits its result line, so print it here.
-          bash ../tools/notchcast/ci-tests.sh
+          count=$(grep -c . "$RUNNER_TEMP/selected" || true)
+          shards=$(( (count + 39) / 40 ))
+          [ "$shards" -le 3 ] || shards=3
+          echo "tests=$(tr '\n' ' ' < "$RUNNER_TEMP/selected")" >> "$GITHUB_OUTPUT"
+          echo "shards=[$(seq -s, 0 $((shards - 1)))]" >> "$GITHUB_OUTPUT"
+          echo "count=$shards" >> "$GITHUB_OUTPUT"
+          echo "$count harnesses in $shards shard(s)"
+      - id: route
+        uses: ./notchcast/actions/route
+        with:
+          count: ${{ steps.shards.outputs.count }}
+          idle: |
+            ${{ vars.NOTCHCAST_IDLE_MBA }}
+            ${{ vars.NOTCHCAST_IDLE_MBP }}
+  harnesses:
+    needs: plan
+    # An empty selection skips this job and the run still concludes success; an empty matrix would fail it.
+    if: ${{ needs.plan.outputs.shards != '[]' }}
+    runs-on: ${{ fromJSON(needs.plan.outputs.runners)[matrix.shard] }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.plan.outputs.shards) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: tools
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./tools/notchcast/actions/xcode
+      - name: Run harnesses, retry failures alone
+        uses: ./tools/notchcast/actions/tests
+        with:
+          only: ${{ needs.plan.outputs.tests }}
+          shard: ${{ matrix.shard }} ${{ strategy.job-total }}
+          cache: push-${{ matrix.shard }}of${{ strategy.job-total }}

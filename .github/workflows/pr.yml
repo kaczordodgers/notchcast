@@ -15,16 +15,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  # On Linux: a runner for checks (slot 0) and for each shard, an idle maintainer Mac first (notchcast/runner/route.py).
+  route:
     if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
-    runs-on: xcode-27
-    timeout-minutes: 90
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      runners: ${{ steps.route.outputs.runners }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          sparse-checkout: notchcast
+          persist-credentials: false
+      - id: route
+        uses: ./notchcast/actions/route
+        with:
+          count: 4
+          idle: |
+            ${{ vars.NOTCHCAST_IDLE_MBA }}
+            ${{ vars.NOTCHCAST_IDLE_MBP }}
+  checks:
+    needs: route
+    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
+    runs-on: ${{ fromJSON(needs.route.outputs.runners)[0] }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: tools
           persist-credentials: false
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           path: src
           fetch-depth: 0
@@ -34,13 +54,56 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          NOTCHCAST_HARNESSES_SHARDED: '1'
         run: bash ../tools/notchcast/ci-build.sh
-      # Only after a green build: Sync's plan skips testing a main whose tree (GENERATED aside) a PR build already proved.
+  # The whole suite, split by harness name (notchcast/test-harnesses.sh), beside the checks job.
+  harnesses:
+    needs: route
+    if: github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft
+    runs-on: ${{ fromJSON(needs.route.outputs.runners)[matrix.slot] }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {shard: 0, slot: 1}
+          - {shard: 1, slot: 2}
+          - {shard: 2, slot: 3}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: tools
+          persist-credentials: false
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          path: src
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: ./tools/notchcast/actions/xcode
+      - uses: ./tools/notchcast/actions/tests
+        with:
+          shard: ${{ matrix.shard }} ${{ strategy.job-total }}
+          cache: pr-${{ matrix.shard }}of${{ strategy.job-total }}
+  # land.sh reads the check named build: green only when the checks job and every shard are.
+  build:
+    needs: [checks, harnesses]
+    if: ${{ !cancelled() && (github.event_name == 'workflow_dispatch' || !github.event.pull_request.draft) }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checks and every harness shard passed
+        if: needs.checks.result != 'success' || needs.harnesses.result != 'success'
+        run: |
+          echo "::error::checks: ${{ needs.checks.result }}, harnesses: ${{ needs.harnesses.result }}"
+          exit 1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # Only after a green build: Sync's plan skips testing a tree (GENERATED aside) a PR build already proved.
       - name: Record the tested tree
         id: tree
-        working-directory: src
         run: |
-          echo "key=$(python3 ../tools/notchcast/ci.py tested-key HEAD)" >> "$GITHUB_OUTPUT"
+          echo "key=$(python3 notchcast/ci.py tested-key HEAD)" >> "$GITHUB_OUTPUT"
           git rev-parse HEAD > "$RUNNER_TEMP/tested-commit"
       - uses: actions/upload-artifact@v7
         with:

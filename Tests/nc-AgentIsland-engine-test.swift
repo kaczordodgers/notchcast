@@ -4,37 +4,19 @@
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/Model/*.swift Tinycast/Features/OpenBotAgents/Service/*.swift
 // notchcast-reads: Tinycast/Resources/Notchcast.xcstrings
+// notchcast-sources: Tinycast/Features/AgentIsland/AgentIslandModule+Registration.swift
+// notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-kit: host command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
-@MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
 enum TestFeature { case agentThreads, openBotAgents, agentIsland }
-enum TestTone { case neutral }
-struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: TestFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var on = false
-    func isOn(_ feature: TestFeature) -> Bool { on }
-}
-@MainActor final class TestAppIndex { func refreshNotchcastCommands() {} }
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let appIndex = TestAppIndex()
-    func showMessage(_ text: String, tone: TestTone) {}
-}
-@MainActor enum NotchcastCore {
-    static let agentThreads = AgentThreadsModule(availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-    static let openBotAgents = OpenBotAgentsModule()
-    static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents,
-        enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) },
-        availabilityChanged: { AppCore.shared.appIndex.refreshNotchcastCommands() })
-}
+typealias NotchcastFeature = TestFeature
+enum DialogTone { case neutral }
+@MainActor final class AppCore {}
+extension OpenBotAgentsModule { static let shared = OpenBotAgentsModule() }
 
 private struct Projects: AgentThreadProjectReading {
     func projects() async throws -> [AgentThreadProject] { [.init(id: "demo", title: "Demo")] }
@@ -89,6 +71,7 @@ private struct CountingRunner: AgentThreadRunning {
 
 @main struct AgentIslandTest {
     @MainActor static func main() async throws {
+        NotchcastPreferences.shared.enabled = false
         let now = Date(timeIntervalSince1970: 100)
         func row(_ phase: AgentThread.Phase, _ id: String = "a", date: Date? = nil) -> AgentThread {
             AgentThread(id: id, title: id, project: "Demo", model: "Example", phase: phase,
@@ -172,11 +155,14 @@ private struct CountingRunner: AgentThreadRunning {
         precondition(combined.message == .counts(waiting: 5, working: 5))
         let absent = evaluate(workers, ["b": approval], t3: false, bot: false)
         precondition(absent == .init() && absent.message == .idle)
-        let module = NotchcastCore.agentIsland
+        let entries = AgentIslandModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.agentIsland] && entries[0].requiresAny.isEmpty)
+        let module = AgentIslandModule.shared
+        precondition(entries[0].module === module)
         module.start()
         precondition(module.presentation == .init())
         precondition(!AgentIslandModule.command.isEnabled())
-        NotchcastPreferences.shared.on = true
+        NotchcastPreferences.shared.enabled = true
         precondition(AgentIslandModule.command.isEnabled())
         precondition(module.openItem(source: .t3, thread: failed) == failed.link)
         precondition(module.openItem(source: .openBot, thread: failed) == nil)

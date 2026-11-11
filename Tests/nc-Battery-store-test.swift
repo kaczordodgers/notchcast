@@ -1,21 +1,27 @@
 // notchcast-sources: Tinycast/Features/Battery/Model/*.swift Tinycast/Features/Battery/Service/*.swift
-// notchcast-sources: Tinycast/Features/Battery/Store/*.swift Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-kit: core root platform
+// notchcast-sources: Tinycast/Features/Battery/Store/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Model/*.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityPreferences.swift
 // notchcast-sources: Tinycast/Features/AudioPriority/Service/AudioPriorityStore.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-kit: root platform
 // notchcast-sources: Tinycast/Features/SystemMonitor/Model/BatteryReading.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/BatteryService.swift
 // notchcast-sources: Tinycast/Features/SystemMonitor/Service/PowerRegistryAccess.swift
+// notchcast-sources: Tinycast/Features/Battery/BatteryModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
+
+@MainActor final class AppCore {}
 
 @main
 @MainActor
 struct BatteryStoreTests {
     static func main() async {
+        let entries = BatteryModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires.isEmpty && entries[0].module === BatteryModule.shared)
+        precondition(entries[0].requiresAny == [.batteryChargeLimit, .batterySailing, .batteryHeatProtection,
+                                                .batteryCalibration, .keepAwake, .lidClosedAwake])
+        print("PASS: registration returns the shared module under any battery switch")
         await followupCases()
         await roundThreeCases()
         await safetyCases()

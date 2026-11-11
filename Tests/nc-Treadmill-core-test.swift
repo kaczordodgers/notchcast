@@ -3,11 +3,12 @@
 // notchcast-sources: Tinycast/Features/AgentBridge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/Service/*.swift
 // notchcast-sources: Tinycast/Features/Treadmill/TreadmillModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastPreferences.swift
+// notchcast-sources: Tinycast/Features/Treadmill/TreadmillCoordinator+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-kit: core
 import Foundation
+
+@MainActor final class AppCore {}
 
 @MainActor
 final class IslandActivityCenter {
@@ -94,7 +95,16 @@ private struct TreadmillTests {
         try await history()
         try await coordinator()
         rejections()
+        registration()
         print("Treadmill: \(checks) checks passed; fake transport only")
+    }
+
+    private static func registration() {
+        let entries = TreadmillCoordinator.register(AppCore())
+        expect(entries.map(\.requires) == [[.treadmillWalk], [.treadmillHistory]], "Walk and history each register an entry")
+        expect(entries.allSatisfy { $0.requiresAny.isEmpty && $0.module is TreadmillModule }, "Both entries are switch modules")
+        expect(entries.map { ($0.module as? TreadmillModule)?.capability } == [.walk, .history],
+               "The walk switch runs the walk capability and the history switch runs history")
     }
 
     private static func rejections() {
@@ -320,8 +330,6 @@ private struct TreadmillTests {
         transport.maintainsConnection = false
         print("Treadmill safety: fresh switch off; timeout emits Stop; late running rejected; restart waits for idle")
         module.start()
-        expect(!NotchcastFeature.treadmillWalk.needsIsland && !NotchcastFeature.treadmillHistory.needsIsland,
-               "Treadmill switches work without island")
         coordinator.setEnabled(.history, true)
         expect(transport.opens == 0 && transport.sent.isEmpty, "Enabling never opens transport")
         coordinator.setEnabled(.walk, false)

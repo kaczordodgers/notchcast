@@ -1,4 +1,4 @@
-// notchcast-sources: Tinycast/Features/Downloads/Model/*.swift Tinycast/Features/Downloads/Service/*.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Jobs/*.swift Tinycast/Features/Downloads/Service/*.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsIslandBridge.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsActivity.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Downloads/DownloadsQueueController.swift
@@ -114,7 +114,7 @@ struct DownloadsIslandTest {
     }
 
     private static func makeController(file: URL, root: URL) -> DownloadsQueueController {
-        DownloadsQueueController(file: file, destination: root.appending(path: "out"),
+        DownloadsQueueController(file: file, destination: root.appending(path: "out"), speechKinds: [],
                                  tools: DownloadToolLookup(directories: [], home: root),
                                  report: { preconditionFailure($0) })
     }

@@ -25,8 +25,6 @@ if command.operation != .read {
             try FanSMC.Controller(smc: FanSMC.Connection()).run(command)
         case .spotlightOff, .spotlightOn:
             try Spotlight.run(command)
-        case .standbyOff, .standbyOn, .autopoweroffOff, .autopoweroffOn:
-            try Power.run(command)
         case .sudoTouchIDOn, .sudoTouchIDOff:
             try SudoTouchID.run(enabled: command == .sudoTouchIDOn)
         default:
