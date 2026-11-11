@@ -80,6 +80,26 @@ struct CaptureWiringTest {
         }
         precondition(ScreenTextModule.failureMessage(ScreenTextService.Failure.noContent)
                      != ScreenTextModule.failureMessage(ScreenTextService.Failure.clipboardWriteFailed))
+        let mapped: [(any Error, CaptureFailure)] = [
+            (ScreenTextService.Failure.clipboardWriteFailed, .clipboardFailed),
+            (ScreenTextService.Failure.displayUnavailable, .areaUnavailable),
+            (ScrollingCaptureSession.Failure.permissionDenied, .permissionDenied),
+            (ScrollingCaptureSession.Failure.invalidRect, .areaUnavailable),
+            (ScrollingCaptureSession.Failure.displayUnavailable, .areaUnavailable),
+            (ScrollingCaptureSession.Failure.alreadyRunning, .captureFailed),
+            (ScrollingCaptureSession.Failure.invalidFrame, .captureFailed),
+            (ScrollingCaptureSession.Failure.imageCreationFailed, .captureFailed),
+            (ScrollingCaptureSession.Failure.pngEncodingFailed, .captureFailed),
+            (CaptureFailure.disabled, .disabled),
+        ]
+        for (error, shared) in mapped {
+            precondition(CaptureFailure(error) == shared, "\(error) maps to \(shared)")
+            precondition(ScrollingCaptureModule.failureMessage(error) == shared.message)
+            precondition(ScreenTextModule.failureMessage(error) == shared.message)
+        }
+        precondition(CaptureFailure(ScreenTextService.Failure.noContent) == nil)
+        precondition(CaptureFailure(CocoaError(.fileNoSuchFile)) == nil)
+        precondition(ScrollingCaptureModule.failureMessage(CocoaError(.fileNoSuchFile)) == CaptureFailure.captureFailed.message)
         await testInFlightStop(defaults: defaults)
         let textEntries = ScreenTextModule.register(AppCore())
         precondition(textEntries.count == 1 && textEntries[0].requires == [.screenText] && textEntries[0].requiresAny.isEmpty)
