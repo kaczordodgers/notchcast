@@ -168,6 +168,13 @@ extension ForkSettingsBackupCoordinator { static let shared = ForkSettingsBackup
             precondition(ForkSettingsBackupSchema.excluded.contains(feature.rawValue) != feature.backedUp, feature.rawValue)
         }
         print("PASS: a switch is carried or left out as its feature's backedUp flag says")
+        let alertRows = try String(
+            contentsOfFile: "Tinycast/Features/Notchcast/Settings/Rows/MonitorAndFansSettingRows.swift", encoding: .utf8)
+        let alertKeys = try String(
+            contentsOfFile: "Tinycast/Features/SystemMonitor/MonitorAlertsBackupKeys.swift", encoding: .utf8)
+        precondition(alertRows.firstMatch(of: /in: \d/) == nil, "a settings row types an alert threshold's bounds itself")
+        precondition(alertKeys.firstMatch(of: /\.integer\(\d/) == nil, "the backup types an alert threshold's bounds itself")
+        print("PASS: the alert rows and the backup type no threshold bounds of their own")
         let secretName = /(?i)soloist|spotify|api.?key|secret|token|password/
         precondition(complete.keys.allSatisfy { $0.firstMatch(of: secretName) == nil })
         let cleanupStore = DictationCleanupSettingsStore(defaults: liveDefaults,
