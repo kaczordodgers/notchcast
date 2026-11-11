@@ -7,7 +7,7 @@ extension CopyPathModule {
         run: {
             let app = NSWorkspace.shared.menuBarOwningApplication
             let target = app.map { CopyPathTarget(processID: $0.processIdentifier, bundleID: $0.bundleIdentifier) }
-            NotchcastCore.copyPath.copyFromLauncher(target: target, home: NSHomeDirectory())
+            CopyPathModule.shared.copyFromLauncher(target: target, home: NSHomeDirectory())
         })
 
     func copyFromLauncher(target: CopyPathTarget?, home: String,
@@ -16,7 +16,7 @@ extension CopyPathModule {
                               return NSPasteboard.general.setString($0, forType: .string)
                           },
                           report: @escaping (String) -> Void = {
-                              AppCore.shared.showMessage($0, tone: .neutral)
+                              NotchcastHost.current.showMessage($0, .neutral)
                           }) {
         guard isRunning, let service else { return }
         commandTask?.cancel()

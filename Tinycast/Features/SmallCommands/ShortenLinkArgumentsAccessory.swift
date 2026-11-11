@@ -24,7 +24,7 @@ enum ShortenLinkArgumentsAccessory {
         let argument = vm.commandArguments[PaletteState.argumentKey(entry.id, "link")] ?? ""
         if NotchcastCommandCatalog.isEnabled(entry.id) {
             dismiss()
-            NotchcastCore.smallCommands.runFromLauncher(.shorten, argument: argument)
+            SmallCommandsModule.shared.runFromLauncher(.shorten, argument: argument)
         }
         return true
     }
