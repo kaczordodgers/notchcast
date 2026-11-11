@@ -31,18 +31,6 @@ extension LauncherScreen {
             query: vm.query, caretUTF16: caretUTF16, selectionLength: selectionLength,
             hasModifiers: hasModifiers, entries: candidates, enabled: true,
             aliases: Array(core.aliases.aliases.values))
-        LauncherAliasSpaceTrace.note("""
-            decide rows=\(rows.count) candidates=\(candidates.count) \
-            arguments=\(candidates.first?.argumentCount ?? -1) kind=\(candidates.first.map { "\($0.kind)" } ?? "none") \
-            prefixed=\(core.aliases.aliases.values.contains { $0.hasPrefix(vm.query + " ") }) \
-            aliasHits=\(core.aliases.aliases.values.filter { $0 == vm.query }.count) \
-            caret=\(caretUTF16) length=\(vm.query.utf16.count) selection=\(selectionLength) \
-            modifiers=\(hasModifiers) decision=\(decision.traceName) \
-            aliases=\(core.aliases.aliases.count) indexed=\(appIndex.apps.count) \
-            foldHits=\(core.aliases.aliases.values.filter {
-                $0.lowercased() == vm.query.trimmingCharacters(in: .whitespaces).lowercased() }.count) \
-            ascii=\(vm.query.allSatisfy(\.isASCII))
-            """)
         let id: String
         switch decision {
         case .ignore: return .ignore
