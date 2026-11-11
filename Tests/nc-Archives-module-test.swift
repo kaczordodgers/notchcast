@@ -1,10 +1,12 @@
 // notchcast-sources: Tinycast/Features/Archives/Model/*.swift Tinycast/Features/Archives/Service/*.swift
 // notchcast-sources: Tinycast/Features/Archives/ArchiveModule.swift
-// notchcast-sources: Tinycast/Features/Archives/NotchcastArchiveModules.swift
-// notchcast-kit: core platform
+// notchcast-sources: Tinycast/Features/Archives/ArchiveModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-kit: core host platform
 import Foundation
 
-@MainActor enum NotchcastCore {}
+@MainActor final class AppCore {}
+enum DialogTone { case neutral, danger }
 
 @MainActor
 final class FakeArchiveDefaults: ArchiveDefaultApplicationSetting {
@@ -60,9 +62,19 @@ struct ArchiveModuleLifecycleTests {
         let application = URL(fileURLWithPath: "/fixture/Notchcast.app")
         let module = ArchiveModule(preferences: preferences, locator: Locator(tool: nil),
                                    defaultApplications: service, application: application)
-        let controller = NotchcastModuleController(NotchcastCore.archiveModuleEntries(module), preferences: preferences)
+        let controller = NotchcastModuleController([.init(requires: [.archives], module: module)], preferences: preferences)
         controller.run()
         precondition(module.isRunning && service.calls.isEmpty)
+        var messages: [String] = []
+        var tones: [DialogTone] = []
+        NotchcastHost.current.showMessage = { messages.append($0); tones.append($1) }
+        let entries = ArchiveModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.archives] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === ArchiveModule.shared)
+        var finished = ArchiveJob(id: UUID(), archive: URL(fileURLWithPath: "/fixture/out.zip"))
+        finished.failure = .toolMissing
+        ArchiveModule.shared.queue.compressionFinished(finished)
+        precondition(messages == [ArchiveFailure.toolMissing.message] && tones == [.danger])
         module.stop()
         module.stop()
         precondition(!module.isRunning && service.calls.isEmpty)
@@ -217,7 +229,7 @@ struct ArchiveModuleLifecycleTests {
         let preferences = NotchcastPreferences(suiteName: suite)
         let module = ArchiveModule(preferences: preferences, locator: Locator(tool: tool),
                                    defaultApplications: FakeArchiveDefaults())
-        let controller = NotchcastModuleController(NotchcastCore.archiveModuleEntries(module), preferences: preferences)
+        let controller = NotchcastModuleController([.init(requires: [.archives], module: module)], preferences: preferences)
         controller.run()
         await module.refreshTool()
         precondition(module.toolURL == tool)

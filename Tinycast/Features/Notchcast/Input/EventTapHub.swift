@@ -5,6 +5,8 @@ import Observation
 @MainActor
 @Observable
 final class EventTapHub {
+    static let shared = EventTapHub()
+
     struct Event: Sendable {
         let type: CGEventType
         let location: CGPoint
