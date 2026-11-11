@@ -22,7 +22,9 @@ Existing outputs are never replaced, including when another writer creates the c
 
 Implemented operations include PDF merge, split, page ranges and selectable text extraction; ImageIO encoding,
 cwebp and sips images; textutil and sandboxed pandoc documents; ffmpeg media and subtitles;
-bsdtar packing and extraction; JSON, CSV, and flat YAML/TOML tables.
+bsdtar tar.gz packing; JSON, CSV, and flat YAML/TOML tables.
+
+zip and 7z packing and every extraction go to Archives: the plan marks them `archives`, and `ConvertFilesRunner.archive` (hub glue in `Notchcast/Tools`, so neither feature folder names the other) calls `ArchiveCompressor` and `ArchiveExtractionRunner`. Archives stages, checks the listing, carries the quarantine and names the output by its own rules, so these items skip the scratch folder and `JobOutput.publish` here. They need what Archives needs: hatchzip for zip, 7z, rar and tar extraction, `7zz` for 7z packing. tar.gz packing stays on bsdtar because Archives has no such format.
 
 Remaining coverage: nested YAML/TOML (rejected explicitly), PDF page rendering, webarchive output,
 all embedded subtitle tracks, legacy image decoder fallback and richer media encoding options.

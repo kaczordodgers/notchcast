@@ -20,20 +20,13 @@ extension ArchiveExtractionRunner {
         if let output = try ArchiveRecovery.recover(in: archive.deletingLastPathComponent(), archive: archive) {
             return output
         }
-        for suffix in [".hatchzip", ".hatchzip-tail", ".tmp"]
-        where ArchiveFiles.exists(URL(fileURLWithPath: archive.path + suffix)) { throw ArchiveFailure.existingProgress }
-        let attributes = try ArchiveFiles.attributes(archive)
-        guard attributes.st_mode & S_IFMT == S_IFREG else { throw ArchiveFailure.unsafePath(archive.lastPathComponent) }
+        let attributes = try ArchiveFiles.fresh(archive)
         let tool = try route == .xad ? fallbackTools.require("unar")
             : route == .zstd ? fallbackTools.require("zstd") : URL(fileURLWithPath: "/usr/bin/bsdtar")
         let lister = try route == .xad ? fallbackTools.require("lsar") : tool
-        let warning = try ArchiveFiles.quarantine(archive)
-        let staging = archive.deletingLastPathComponent().appending(path: ".notchcast-extract-\(UUID().uuidString)")
-        try FileManager.default.createDirectory(at: staging, withIntermediateDirectories: false,
-                                               attributes: [.posixPermissions: 0o700])
+        let (staging, warning) = try ArchiveFiles.stage(beside: archive)
         var durable = ArchiveRecovery(archive: archive, staging: staging, inPlace: false, state: .running)
         do {
-            try ArchiveFiles.applyQuarantine(warning, to: staging)
             try durable.save()
             let maximum = ArchiveFallbackLimits.maximumBytes(archiveBytes: attributes.st_size)
             let intermediate = staging.appending(path: ".notchcast-input-\(UUID().uuidString).tar")
