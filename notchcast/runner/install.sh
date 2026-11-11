@@ -49,8 +49,7 @@ for i in $(seq 1 "$COUNT"); do
     name="$HOST-$i"
     dir="$ROOT/$name"
     mkdir -p "$dir/tmp"
-    # Jobs work outside the home folder: a debug build bakes its paths into the app, and
-    # check-identity.py refuses some account names as forbidden names.
+    # Outside home: debug builds bake the work path in, and check-identity refuses account names.
     work="/Users/Shared/notchcast-runner/$name"
     mkdir -p "$work" && chmod 700 "$work"
     if [ ! -f "$dir/.runner" ]; then
