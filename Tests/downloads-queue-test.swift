@@ -223,7 +223,7 @@ struct DownloadsQueueTest {
 
     @MainActor
     private static func processes(_ root: URL) async throws {
-        let context = DownloadRunContext(destination: root)
+        let context = DownloadRunContext(destination: root, tools: DownloadToolLookup())
         let lines = Lines()
         let result = try await context.spawn(executable: URL(filePath: "/bin/sh"), arguments: [
             "-c", "printf 'one\\rtwo\\nlast'; printf 'error one\\nlast error\\n  \\n' >&2"

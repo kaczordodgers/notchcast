@@ -47,7 +47,7 @@ extension NotchcastToolsCommands {
                 case .makeGIF: tool = .gif
                 case .compressImage: tool = .image()
                 case .resizeImage:
-                    let dimensions = [640, 1024, 1600]
+                    let dimensions = [640, 1024, MediaToolsRunner.imageLimit]
                     guard let index = await Self.choose(core, title: action.name,
                                                        values: dimensions.map(String.init)), valid() else { return }
                     tool = .image(maxDimension: dimensions[index])

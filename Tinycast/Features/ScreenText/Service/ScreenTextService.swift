@@ -3,7 +3,17 @@ import ScreenCaptureKit
 import Vision
 
 enum ScreenTextService {
-    enum Failure: Error { case displayUnavailable, noContent, clipboardWriteFailed }
+    enum Failure: CaptureFailureConvertible {
+        case displayUnavailable, noContent, clipboardWriteFailed
+
+        var captureFailure: CaptureFailure? {
+            switch self {
+            case .clipboardWriteFailed: .clipboardFailed
+            case .displayUnavailable: .areaUnavailable
+            case .noContent: nil
+            }
+        }
+    }
 
     @MainActor
     static func copy(

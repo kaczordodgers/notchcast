@@ -91,15 +91,7 @@ final class ScreenshotModule: NotchcastModule {
         if failure.domain == NSCocoaErrorDomain && (512..<1024).contains(failure.code) {
             return String(localized: "Could not save the screenshot.", table: "Notchcast")
         }
-        let shared: CaptureFailure = switch error {
-        case let shared as CaptureFailure: shared
-        case ScreenshotRequest.Failure.permissionDenied: .permissionDenied
-        case ScreenshotRequest.Failure.clipboardFailed: .clipboardFailed
-        case ScreenshotRequest.Failure.disabled: .disabled
-        case ScreenshotRequest.Failure.invalidRect, ScreenshotRequest.Failure.targetUnavailable: .areaUnavailable
-        default: .captureFailed
-        }
-        return shared.message
+        return (CaptureFailure(error) ?? .captureFailed).message
     }
 
     private var outputDestination: ScreenshotRequest.Destination {
@@ -117,4 +109,16 @@ final class ScreenshotModule: NotchcastModule {
     }
 
     isolated deinit { captureTask?.cancel(); commandTask?.cancel() }
+}
+
+extension ScreenshotRequest.Failure: CaptureFailureConvertible {
+    var captureFailure: CaptureFailure? {
+        switch self {
+        case .permissionDenied: .permissionDenied
+        case .clipboardFailed: .clipboardFailed
+        case .disabled: .disabled
+        case .invalidRect, .targetUnavailable: .areaUnavailable
+        case .encodingFailed: .captureFailed
+        }
+    }
 }

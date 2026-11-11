@@ -76,10 +76,10 @@ private struct NotchcastModuleFeatureRows: View {
         if feature == .microphoneMute, servicesReady {
             MicrophoneHotKeyFailureSettingRow()
         }
-        if feature == .settingsBackup, NotchcastCore.settingsBackupRestore.choosing {
-            ForkSettingsBackupCopiesView(copies: NotchcastCore.settingsBackupRestore.copies,
-                restore: { NotchcastCore.settingsBackupRestore.restore(name: $0) })
-                .onDisappear { NotchcastCore.settingsBackupRestore.cancelChoosing() }
+        if feature == .settingsBackup, ForkSettingsBackupCoordinator.shared.choosing {
+            ForkSettingsBackupCopiesView(copies: ForkSettingsBackupCoordinator.shared.copies,
+                restore: { ForkSettingsBackupCoordinator.shared.restore(name: $0) })
+                .onDisappear { ForkSettingsBackupCoordinator.shared.cancelChoosing() }
         }
         if preferences.isEnabled(feature) && feature.settingsAvailable {
             if feature == .shelfBetweenMacs { ShelfReceivedSection() }

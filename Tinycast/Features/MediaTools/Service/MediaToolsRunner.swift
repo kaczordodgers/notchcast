@@ -5,10 +5,13 @@ import UniformTypeIdentifiers
 import Vision
 
 struct MediaToolsRunner: Sendable {
+    /// The largest side an image tool produces, and the size a PDF page is rasterized for text recognition.
+    static let imageLimit = 1600
+
     enum Tool: Sendable {
         case video(targetBytes: Int? = nil)
         case gif
-        case image(maxDimension: Int = 1600)
+        case image(maxDimension: Int = MediaToolsRunner.imageLimit)
         case text
     }
 
@@ -58,7 +61,7 @@ struct MediaToolsRunner: Sendable {
     }
 
     private func image(_ input: URL, output: URL, dimension: Int) throws {
-        guard (1...1600).contains(dimension) else { throw Failure.invalidOptions }
+        guard (1...Self.imageLimit).contains(dimension) else { throw Failure.invalidOptions }
         guard let source = CGImageSourceCreateWithURL(input as CFURL, nil),
               let image = CGImageSourceCreateThumbnailAtIndex(source, 0, [
                 kCGImageSourceCreateThumbnailFromImageAlways: true,

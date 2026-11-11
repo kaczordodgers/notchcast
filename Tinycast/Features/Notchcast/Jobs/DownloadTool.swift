@@ -13,3 +13,9 @@ struct DownloadTool: Sendable, Hashable {
         String(localized: "\(name) is not installed. Install it with: \(installCommand)", table: "Notchcast")
     }
 }
+
+/// The one error a run throws when a tool it needs is not installed.
+struct DownloadToolMissing: LocalizedError {
+    let tool: DownloadTool
+    var errorDescription: String? { tool.missingDetail }
+}
