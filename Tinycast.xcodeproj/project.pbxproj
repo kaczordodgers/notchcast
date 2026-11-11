@@ -532,6 +532,7 @@
 		40A3D450D6DD63B4F5B22049 /* ArchiveCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0A176170D05EDC107E224B6 /* ArchiveCommands.swift */; };
 		40B5BD0D7AF5C6CC43798EFF /* WindowInventory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757234C5623740BAF7ABE358 /* WindowInventory.swift */; };
 		40CF6999C6287E6E8158173A /* AppUpdateBrewRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD7F0202FA69BECFD171DD55 /* AppUpdateBrewRunner.swift */; };
+		40DF7DA2740E3D7E31449BCD /* ConvertFilesRunner+Archives.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3E3DAC9A277580A34C76018 /* ConvertFilesRunner+Archives.swift */; };
 		40E28FFBE1DDE737D43A7836 /* ClipboardFileKind.swift in Sources */ = {isa = PBXBuildFile; fileRef = D381DD8CB296A6D5CFF90111 /* ClipboardFileKind.swift */; };
 		40E4E3FDBF1CD6B25FF725F7 /* TorrentSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBA184CB34C9D97181E35645 /* TorrentSession.swift */; };
 		40ECBF2454FB72C224D8F138 /* SystemNoticesModule+Notice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3EA9107DBBE910CC622B554 /* SystemNoticesModule+Notice.swift */; };
@@ -1590,6 +1591,7 @@
 		BEAAD72E748375E0039AC90F /* CommandID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 164CB3E1BB5B7D87AF8E7023 /* CommandID.swift */; };
 		BEB4F1BB14E195873EF2D314 /* BackupRunNowDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 435665599F5C7BB2F69C308A /* BackupRunNowDescriptor.swift */; };
 		BED3AC19A800D48E2B4A5C1D /* ArchiveDefaultApplicationSetting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1445767EF2E1300E23C0F48D /* ArchiveDefaultApplicationSetting.swift */; };
+		BEEFA76E026E7EF222896118 /* ArchiveExtractionGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE3EEF5C9833DC91A69B2B1A /* ArchiveExtractionGate.swift */; };
 		BEEFC6E459D8B604416E1350 /* DistillTranscriber.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6629A8DBF3FB21AC3AE50836 /* DistillTranscriber.swift */; };
 		BF04DEAF1B660EE399B43962 /* UninstallScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A7F606D7F71B6FC0CC6ABC8 /* UninstallScanner.swift */; };
 		BF8A5300FEEFF53E37DE365A /* TreadmillHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42CF32A3F1BFF3BCC04D15BC /* TreadmillHistoryStore.swift */; };
@@ -1832,7 +1834,6 @@
 		DD6F8839E56CC228C5A7AC68 /* AudioPriorityDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = BABE9ECAA99060C14328BFF8 /* AudioPriorityDescriptor.swift */; };
 		DDFA439EA7942183414375DC /* AppPaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6A96350EBE68EC79497FA2D /* AppPaths.swift */; };
 		DDFF8A9F420A4733DFA32A07 /* ReleaseFeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = D28281DFC434C75F8A594635 /* ReleaseFeed.swift */; };
-		DE384108EE2DF0D6787FAF58 /* TouchIDService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3145C7A10FFBE770C03D9820 /* TouchIDService.swift */; };
 		DE6667D94DA4CB3CD0B9ACF4 /* MacUpdateModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDFA3907E872EC4DFD4AB247 /* MacUpdateModule.swift */; };
 		DE70697E237B8488A20A8CB9 /* AgentRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B88FF5D010DBBA1E3854A23 /* AgentRequest.swift */; };
 		DE7333A4347021915DBBE8E7 /* ScrollingRowLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D6288129F7D53800AB575D8 /* ScrollingRowLog.swift */; };
@@ -2650,7 +2651,6 @@
 		31100C34F7AFC029E42F08C1 /* IPhoneBackupPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IPhoneBackupPolicy.swift; sourceTree = "<group>"; };
 		3111655F925234368AA7EE31 /* ExtensionMenuBarSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionMenuBarSnapshot.swift; sourceTree = "<group>"; };
 		312C1D2D151724AC0AB2A5A9 /* DictationEnglishDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DictationEnglishDescriptor.swift; sourceTree = "<group>"; };
-		3145C7A10FFBE770C03D9820 /* TouchIDService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TouchIDService.swift; sourceTree = "<group>"; };
 		31569E535614FE2F82880C09 /* NoteHeadingMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteHeadingMenuView.swift; sourceTree = "<group>"; };
 		316A544BF6628C0465DE28D8 /* EmojiIndex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiIndex.swift; sourceTree = "<group>"; };
 		31744BF4C9304E413225C7B7 /* AgentThreadProjects.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentThreadProjects.swift; sourceTree = "<group>"; };
@@ -3734,6 +3734,7 @@
 		B387D22D9C920FA6443EB193 /* ChatAttachmentReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatAttachmentReader.swift; sourceTree = "<group>"; };
 		B3C67D4EC8BF510397C5D2F5 /* MusicCommands+Playback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MusicCommands+Playback.swift"; sourceTree = "<group>"; };
 		B3C7D17F97002FD58E8A5F53 /* PermissionsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionsSettingsView.swift; sourceTree = "<group>"; };
+		B3E3DAC9A277580A34C76018 /* ConvertFilesRunner+Archives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConvertFilesRunner+Archives.swift"; sourceTree = "<group>"; };
 		B418F3FA07FF50D2DE78C126 /* AgentSocketIO.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentSocketIO.swift; sourceTree = "<group>"; };
 		B41F1D55DFD5EF034511E0D4 /* TodoViewOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoViewOptions.swift; sourceTree = "<group>"; };
 		B423C0B5874D1AF24B304195 /* ForkSettingsBackupSchema.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForkSettingsBackupSchema.swift; sourceTree = "<group>"; };
@@ -4333,6 +4334,7 @@
 		FDC04AF159B94B3E8D1A5217 /* QwenRecognizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QwenRecognizer.swift; sourceTree = "<group>"; };
 		FE19FD7B6090464C41406FA0 /* BrowserCoverFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrowserCoverFinder.swift; sourceTree = "<group>"; };
 		FE31A7F41EDA33E7E574F62D /* CustomWindowSizeStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomWindowSizeStore.swift; sourceTree = "<group>"; };
+		FE3EEF5C9833DC91A69B2B1A /* ArchiveExtractionGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveExtractionGate.swift; sourceTree = "<group>"; };
 		FE41DC04958D7C2FF8C47F62 /* CustomCommandCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomCommandCoordinator.swift; sourceTree = "<group>"; };
 		FE71628ECC3D89381D7B0E5C /* FinderToolsCoordinator+Commands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FinderToolsCoordinator+Commands.swift"; sourceTree = "<group>"; };
 		FE72CE02F853ACE956627347 /* SystemAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemAction.swift; sourceTree = "<group>"; };
@@ -6628,7 +6630,6 @@
 				7293FC88186F90972CA65841 /* KillProcessService.swift */,
 				A675C035074A8BD25A78C519 /* NotificationCleanupService.swift */,
 				834824B62383A49098EDDDC5 /* StartupItemService.swift */,
-				3145C7A10FFBE770C03D9820 /* TouchIDService.swift */,
 			);
 			path = Service;
 			sourceTree = "<group>";
@@ -8577,6 +8578,7 @@
 		AD2A8DD6BD15A6CDED54879E /* Tools */ = {
 			isa = PBXGroup;
 			children = (
+				B3E3DAC9A277580A34C76018 /* ConvertFilesRunner+Archives.swift */,
 				683A1FB200911E44416D5507 /* NotchcastToolsCommands.swift */,
 				351B5FBFEF1D46005EE3A626 /* NotchcastToolsCommands+Core.swift */,
 				4F7FA2380724B5F1F5B8A177 /* NotchcastToolsLauncherCommands.swift */,
@@ -9671,6 +9673,7 @@
 				88E6C83AF6BF0F2A853671E7 /* ArchiveCompressor.swift */,
 				1A516A2D54706483696D1FFB /* ArchiveDefaultApplicationService.swift */,
 				1445767EF2E1300E23C0F48D /* ArchiveDefaultApplicationSetting.swift */,
+				FE3EEF5C9833DC91A69B2B1A /* ArchiveExtractionGate.swift */,
 				3529C80659D7206621216C15 /* ArchiveExtractionRunner.swift */,
 				54CF6BAB73498D9C57AE0C14 /* ArchiveExtractionRunner+Fallback.swift */,
 				71B7108C08A4634E58E51303 /* ArchiveFallbackSpace.swift */,
@@ -10755,6 +10758,7 @@
 				3E9DDA323BA5583AD5D0B10D /* ArchiveDefaultApplicationService.swift in Sources */,
 				BED3AC19A800D48E2B4A5C1D /* ArchiveDefaultApplicationSetting.swift in Sources */,
 				47DEA48F0B9C9C1510EA9A2F /* ArchiveEngineRoute.swift in Sources */,
+				BEEFA76E026E7EF222896118 /* ArchiveExtractionGate.swift in Sources */,
 				78D0EEEA2C64023046BA5A91 /* ArchiveExtractionRunner+Fallback.swift in Sources */,
 				F12C97DFBA55702D5BBD83BD /* ArchiveExtractionRunner.swift in Sources */,
 				1AA1093FFEA50FDB55FB1EB8 /* ArchiveFailure+Presentation.swift in Sources */,
@@ -11081,6 +11085,7 @@
 				240708CD749A75F5EF4705E8 /* ConvertFilesModule.swift in Sources */,
 				DBDD3AEB4E503BF078CFA202 /* ConvertFilesNative.swift in Sources */,
 				A57E25EEC44524C1DB8C2830 /* ConvertFilesPlan.swift in Sources */,
+				40DF7DA2740E3D7E31449BCD /* ConvertFilesRunner+Archives.swift in Sources */,
 				13B6C75F5E13A79352DB13EC /* ConvertFilesRunner.swift in Sources */,
 				2CFB2FDC6FF3196BDD931490 /* CopyPathDescriptor.swift in Sources */,
 				A330C38FCE31E0C7BDB64A79 /* CopyPathEngine.swift in Sources */,
@@ -12475,7 +12480,6 @@
 				5946A0AFC37A632ED5EF4FB0 /* TorrentsKeepSharingDescriptor.swift in Sources */,
 				6624BC85FB808E29A6F3F68C /* TorrentsUseIPhoneDescriptor.swift in Sources */,
 				297926CC87395EE0B5097DDE /* TouchIDPolicy.swift in Sources */,
-				DE384108EE2DF0D6787FAF58 /* TouchIDService.swift in Sources */,
 				A439D7FB04FB97F3543C9237 /* TranscriptDownloadRunner.swift in Sources */,
 				B1592750790B497077FE0D7C /* TreadmillAgentActions.swift in Sources */,
 				93F0D33777E93858CBA3ED14 /* TreadmillArchive.swift in Sources */,
