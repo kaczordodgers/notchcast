@@ -15,6 +15,7 @@ final class WiringFake: Sendable {
         var scans = 0
         var trashed: [URL] = []
         var suspended = false
+        var helperOutdated = false
         var continuation: CheckedContinuation<Void, Never>?
         var optimized: [CleanOptimizeTask] = []
     }
@@ -46,6 +47,7 @@ final class WiringFake: Sendable {
                     }
                 }
             }
+            if state.withLock({ $0.helperOutdated }) { throw CleanCoordinator.HelperUpdate() }
             if suspend {
                 await withCheckedContinuation { continuation in
                     state.withLock { $0.continuation = continuation }
@@ -81,6 +83,7 @@ struct CleanWiringTest {
         var questionContinuation: CheckedContinuation<Bool, Never>?
         var optimizeQuestions: [CleanOptimizeTask] = []
         var optimizeAccept = false
+        var reports = 0
         let coordinator = CleanCoordinator(transport: fake.transport, isOn: preferences.isOn,
             listen: { _ in listeners += 1; return { listeners -= 1 } },
             question: { feature, count, bytes in
@@ -92,7 +95,7 @@ struct CleanWiringTest {
                 return accept
             },
             optimizeQuestion: { optimizeQuestions.append($0); return optimizeAccept },
-            report: { preconditionFailure("Unexpected failure: \($0)") })
+            report: { precondition($0 is CleanCoordinator.HelperUpdate, "Unexpected failure: \($0)"); reports += 1 })
         coordinator.scan(.cleanJunk)
         coordinator.apply(.cleanJunk)
         coordinator.optimize(.quickLook)
@@ -132,16 +135,21 @@ struct CleanWiringTest {
         continuation?.resume()
         await coordinator.waitUntilIdle()
         precondition(coordinator.reviews[.cleanJunk] == nil && !coordinator.busy.contains(.cleanJunk))
+        fake.state.withLock { $0.suspended = false }
         let scans = fake.state.withLock { $0.scans }
         preferences.set(.cleanSystem, true)
         coordinator.setEnabled(.cleanSystem, true)
-        coordinator.helperCurrent = false
+        fake.state.withLock { $0.helperOutdated = true }
         coordinator.scan(.cleanSystem)
+        await coordinator.waitUntilIdle()
+        precondition(!coordinator.helperCurrent && reports == 1 && coordinator.reviews[.cleanSystem] == nil)
+        fake.state.withLock { $0.helperOutdated = false }
+        coordinator.scan(.cleanSystem)
+        await coordinator.waitUntilIdle()
+        precondition(fake.state.withLock { $0.scans == scans + 2 } && coordinator.helperCurrent)
         coordinator.apply(.cleanSystem)
         await coordinator.waitUntilIdle()
-        precondition(fake.state.withLock { $0.scans == scans })
         precondition(questions.count == 2)
-        fake.state.withLock { $0.suspended = false }
         preferences.set(.cleanJunk, true)
         coordinator.setEnabled(.cleanJunk, true)
         coordinator.scan(.cleanJunk)
@@ -174,8 +182,26 @@ struct CleanWiringTest {
         precondition(fake.state.withLock { $0.trashed == [fake.reviewed] })
         coordinator.stop()
         precondition(listeners == 0)
+        let folder = root.appendingPathComponent("folder")
+        let child = folder.appendingPathComponent("child")
+        var diskQuestions: [(Int, Int64?)] = []
+        let disk = CleanCoordinator(transport: .init(scan: { _, _ in
+            .init(items: [.init(id: folder, size: 8), .init(id: child, size: 4)]) { paths in
+                fake.state.withLock { $0.trashed += paths }
+            }
+        }), isOn: { _ in true }, question: { _, count, bytes in diskQuestions.append((count, bytes)); return true },
+            optimizeQuestion: { _ in false }, report: { preconditionFailure("Unexpected failure: \($0)") })
+        disk.setEnabled(.cleanDisk, true)
+        disk.scan(.cleanDisk, roots: [root])
+        await disk.waitUntilIdle()
+        disk.selection[.cleanDisk] = [folder, child]
+        disk.apply(.cleanDisk)
+        await disk.waitUntilIdle()
+        precondition(diskQuestions.count == 1 && diskQuestions[0].0 == 1 && diskQuestions[0].1 == 8)
+        precondition(fake.state.withLock { $0.trashed == [fake.reviewed, folder] })
         print("PASS: default off; no work on enable; listeners removed; decline preserves sentinels")
-        print("PASS: accept trashes reviewed only; stale scan dropped; missing helper verb does nothing")
+        print("PASS: accept trashes reviewed only; stale scan dropped; a stale helper sets the notice, a later scan clears it")
+        print("PASS: Disk counts and trashes only the outermost selected folder")
         print("PASS: stale confirmation dropped; Optimize asks its action question without an item count")
     }
 }
