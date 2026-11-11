@@ -13,12 +13,8 @@ extension KatanaModule {
             feature: .katana, isEnabled: { NotchcastPreferences.shared.isOn(.katana) },
             run: {
                 Task { @MainActor in
-                    await NotchcastCore.katana.selectChannel(channel) { text, danger in
-                        if danger {
-                            AppCore.shared.showMessage(text, tone: .danger)
-                        } else {
-                            AppCore.shared.showMessage(text)
-                        }
+                    await KatanaModule.shared.selectChannel(channel) { text, danger in
+                        NotchcastHost.current.showMessage(text, danger ? .danger : .success)
                     }
                 }
             })

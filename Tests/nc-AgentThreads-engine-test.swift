@@ -2,14 +2,17 @@
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 // notchcast-kit: platform host command
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
+// notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 import SQLite3
 
-@MainActor protocol NotchcastModule { func start(); func stop() }
-enum NotchcastFeature { case agentThreads }
+enum TestFeature { case agentThreads }
+typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-@MainActor enum NotchcastCore { static let agentThreads = AgentThreadsModule() }
+@MainActor final class AppCore {}
 
 private struct FakeProjects: AgentThreadProjectReading {
     var values = [AgentThreadProject(id: "demo", title: "Demo")]
@@ -215,6 +218,10 @@ struct AgentThreadsTest {
         module.start()
         module.stop()
         precondition(availabilityCalls == 2)
+        let entries = AgentThreadsModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.agentThreads] && entries[0].requiresAny.isEmpty)
+        precondition(entries[0].module === AgentThreadsModule.shared)
+        print("PASS: registration entry")
         print("PASS: SQLite active projects only; missing file/table; per-project arguments and names")
         print("PASS: partial list failure; show failure preserves phase; availability changed on start and stop")
         print("PASS: child PATH preserves environment; refresh completion selects waiting link; failure messages")

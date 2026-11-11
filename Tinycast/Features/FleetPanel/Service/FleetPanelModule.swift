@@ -12,7 +12,7 @@ final class FleetPanelModule: NotchcastModule {
     private(set) var local = FleetSnapshot.Column.sourceOff
     private(set) var remote = FleetSnapshot.Column.linkDown
     private let readLocal: @MainActor () async -> FleetSnapshot
-    private let transport: any FleetTransport
+    @ObservationIgnored var transport: (any FleetTransport)?
     private let now: () -> Date
     private let availabilityChanged: () -> Void
     private var enabled = false
@@ -20,7 +20,7 @@ final class FleetPanelModule: NotchcastModule {
     @ObservationIgnored private var task: Task<Void, Never>?
 
     init(readLocal: @escaping @MainActor () async -> FleetSnapshot = FleetLocalSource.read,
-         transport: any FleetTransport, now: @escaping () -> Date = Date.init,
+         transport: (any FleetTransport)? = nil, now: @escaping () -> Date = Date.init,
          availabilityChanged: @escaping () -> Void = {}) {
         self.readLocal = readLocal
         self.transport = transport
@@ -58,7 +58,8 @@ final class FleetPanelModule: NotchcastModule {
 
     func waitUntilIdle() async { await task?.value }
 
-    private static func remoteColumn(_ transport: any FleetTransport, now: Date) async -> FleetSnapshot.Column {
+    private static func remoteColumn(_ transport: (any FleetTransport)?, now: Date) async -> FleetSnapshot.Column {
+        guard let transport else { return .linkDown }
         do {
             return try await transport.read().column(now: now, remote: true)
         } catch MachLinkMessage.Failure.disconnected {
@@ -93,7 +94,7 @@ final class FleetPanelModule: NotchcastModule {
         slug: "show-fleet", name: String(localized: "Show Fleet", table: "Notchcast"),
         sfSymbol: "desktopcomputer", feature: .fleetPanel,
         isEnabled: { NotchcastPreferences.shared.isOn(.fleetPanel) },
-        run: { NotchcastCore.fleetPanel.refresh {
-            NotchcastHost.current.showMessage(NotchcastCore.fleetPanel.message, .neutral)
+        run: { FleetPanelModule.shared.refresh {
+            NotchcastHost.current.showMessage(FleetPanelModule.shared.message, .neutral)
         } })
 }

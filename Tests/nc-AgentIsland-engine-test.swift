@@ -1,23 +1,22 @@
-// notchcast-kit: host command
 // notchcast-sources: -strict-concurrency=complete -lsqlite3 Tinycast/Features/AgentIsland/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentIsland/Service/*.swift Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift Tinycast/Features/AgentThreads/AgentThreadsModule.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/Model/*.swift Tinycast/Features/OpenBotAgents/Service/*.swift
 // notchcast-reads: Tinycast/Resources/Notchcast.xcstrings
+// notchcast-sources: Tinycast/Features/AgentIsland/AgentIslandModule+Registration.swift
+// notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
+// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
+// notchcast-kit: host command
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
-@MainActor protocol NotchcastModule: AnyObject { func start(); func stop() }
-enum NotchcastFeature { case agentThreads, openBotAgents, agentIsland }
+enum TestFeature { case agentThreads, openBotAgents, agentIsland }
+typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-@MainActor enum NotchcastCore {
-    static let agentThreads = AgentThreadsModule(availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
-    static let openBotAgents = OpenBotAgentsModule()
-    static let agentIsland = AgentIslandModule(threads: agentThreads, bots: openBotAgents,
-        enabled: { NotchcastPreferences.shared.isOn($0 == .t3 ? .agentThreads : .openBotAgents) },
-        availabilityChanged: { NotchcastHost.current.refreshNotchcastCommands() })
-}
+@MainActor final class AppCore {}
+extension OpenBotAgentsModule { static let shared = OpenBotAgentsModule() }
 
 private struct Projects: AgentThreadProjectReading {
     func projects() async throws -> [AgentThreadProject] { [.init(id: "demo", title: "Demo")] }
@@ -156,7 +155,10 @@ private struct CountingRunner: AgentThreadRunning {
         precondition(combined.message == .counts(waiting: 5, working: 5))
         let absent = evaluate(workers, ["b": approval], t3: false, bot: false)
         precondition(absent == .init() && absent.message == .idle)
-        let module = NotchcastCore.agentIsland
+        let entries = AgentIslandModule.register(AppCore())
+        precondition(entries.count == 1 && entries[0].requires == [.agentIsland] && entries[0].requiresAny.isEmpty)
+        let module = AgentIslandModule.shared
+        precondition(entries[0].module === module)
         module.start()
         precondition(module.presentation == .init())
         precondition(!AgentIslandModule.command.isEnabled())
