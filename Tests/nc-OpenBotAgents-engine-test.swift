@@ -1,7 +1,5 @@
 // notchcast-sources: Tinycast/Features/OpenBotAgents/Model/*.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/Service/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastFeature+SettingsGroup.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Command.swift
 // notchcast-sources: Tinycast/Features/OpenBotAgents/OpenBotAgentsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
@@ -12,8 +10,8 @@
 import Foundation
 import Synchronization
 
-
 enum DialogTone { case neutral }
+enum NotchcastFeature { case openBotAgents }
 
 @MainActor final class AppCore {}
 
