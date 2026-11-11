@@ -35,11 +35,11 @@ struct NotchcastSettingRowsC: View {
         case .captureRecordingOptions:
             RecordingFolderSettingRow(module: RecordingModule.shared)
         case .dictationCleanup:
-            DictationCleanupEndpointSettingRow(module: NotchcastCore.dictationCleanup)
-            DictationCleanupEffortSettingRow(module: NotchcastCore.dictationCleanup)
-            DictationCleanupPromptSettingRow(module: NotchcastCore.dictationCleanup)
-            DictationCleanupVocabularySettingRow(module: NotchcastCore.dictationCleanup)
-            DictationCleanupAPIKeySettingRow(module: NotchcastCore.dictationCleanup)
+            DictationCleanupEndpointSettingRow(module: DictationCleanupModule.shared)
+            DictationCleanupEffortSettingRow(module: DictationCleanupModule.shared)
+            DictationCleanupPromptSettingRow(module: DictationCleanupModule.shared)
+            DictationCleanupVocabularySettingRow(module: DictationCleanupModule.shared)
+            DictationCleanupAPIKeySettingRow(module: DictationCleanupModule.shared)
         default:
             EmptyView()
         }

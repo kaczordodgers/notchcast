@@ -16,11 +16,13 @@ final class NotchcastModuleController {
 
     private let entries: [Entry]
     private let preferences: NotchcastPreferences
+    private let modulesChanged: @MainActor () -> Void
     private var running: Set<Int> = []
 
-    init(_ entries: [Entry], preferences: NotchcastPreferences) {
+    init(_ entries: [Entry], preferences: NotchcastPreferences, modulesChanged: @escaping @MainActor () -> Void = {}) {
         self.entries = entries
         self.preferences = preferences
+        self.modulesChanged = modulesChanged
     }
 
     /// Applies the switches now and again after every change to one the entries read.
@@ -32,6 +34,7 @@ final class NotchcastModuleController {
     }
 
     private func update() {
+        let before = running
         for (index, entry) in entries.enumerated() {
             let enabled = entry.requires.allSatisfy(preferences.isOn)
                 && (entry.requiresAny.isEmpty || entry.requiresAny.contains(where: preferences.isOn))
@@ -41,5 +44,6 @@ final class NotchcastModuleController {
                 entry.module.stop()
             }
         }
+        if running != before { modulesChanged() }
     }
 }

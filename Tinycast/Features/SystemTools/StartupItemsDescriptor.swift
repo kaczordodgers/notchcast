@@ -10,6 +10,7 @@ extension NotchcastFeature.Descriptor {
         dependencies: [],
         requiredGrants: [],
         isSystemFeature: false,
-        isSystemTweak: true
+        isSystemTweak: true,
+        usesSystemToolsHelper: true
     )
 }

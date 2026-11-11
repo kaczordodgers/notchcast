@@ -4,7 +4,7 @@ extension MachRemoteModule {
     func update() { UpdateRemoteModule.shared.update() }
 
     func sendFinderSelection() {
-        guard NotchcastPreferences.shared.isOn(.machRemote), NotchcastPreferences.shared.isOn(.sendFiles) else { return }
+        guard NotchcastPreferences.shared.isEnabled(.sendFiles) else { return }
         let source = """
         tell application "Finder" to set chosenItems to selection as alias list
         set paths to {}
@@ -18,8 +18,7 @@ extension MachRemoteModule {
         automation?.cancel()
         automation = Task {
             let result = try? await MachSSHProcessRunner.run("/usr/bin/osascript", ["-e", source])
-            guard !Task.isCancelled, NotchcastPreferences.shared.isOn(.machRemote),
-                  NotchcastPreferences.shared.isOn(.sendFiles) else { return }
+            guard !Task.isCancelled, NotchcastPreferences.shared.isEnabled(.sendFiles) else { return }
             guard let result, result.status == 0 else {
                 NotchcastHost.current.remoteResult(String(localized: "Select files in Finder and configure the remote Mac.",
                                                   table: "SendFiles"))

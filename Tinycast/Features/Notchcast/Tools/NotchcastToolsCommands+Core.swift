@@ -3,7 +3,7 @@ import AppKit
 extension NotchcastToolsCommands {
     convenience init(core: AppCore) {
         self.init(preferences: .shared, selection: Self.finderSelection, post: Self.post,
-                  refresh: { [weak core] in core?.appIndex.refreshNotchcastCommands() }
+                  refresh: { NotchcastHost.current.refreshNotchcastCommands() }
         ) { [weak core] action, files, valid in
             guard let core, valid() else { return }
             switch action {

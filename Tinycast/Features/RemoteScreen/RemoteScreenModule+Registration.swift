@@ -5,6 +5,6 @@ extension RemoteScreenModule: NotchcastRegistrant {
         guard let linkChannel else { return [] }
         let module = RemoteScreenModule(channel: linkChannel)
         shared = module
-        return [.init(requires: [.machLink, .remoteScreen], module: module)]
+        return [.init(requires: [.remoteScreen], module: module)]
     }
 }

@@ -7,7 +7,7 @@ extension NotchcastFeature.Descriptor {
         group: .activities,
         defaultEnabled: false,
         backedUp: false,
-        dependencies: [],
+        dependencies: [.machLink],
         requiredGrants: [],
         isSystemFeature: false,
         isSystemTweak: false

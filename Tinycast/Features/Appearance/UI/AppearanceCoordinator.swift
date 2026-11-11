@@ -27,7 +27,6 @@ final class AppearanceCoordinator: NotchcastModule {
 
     func start() {
         store.setEnabled(true)
-        core.appIndex.refreshNotchcastCommands()
         if !reportedReset, !store.invalidPreferenceKeys.isEmpty {
             reportedReset = true
             core.showMessage(String(localized: "Theme Reset", table: "Notchcast"), tone: .danger)
@@ -40,7 +39,6 @@ final class AppearanceCoordinator: NotchcastModule {
         operationID = UUID()
         endPreview()
         store.setEnabled(false)
-        core.appIndex.refreshNotchcastCommands()
         if core.palette.mode == .theme { core.paletteCoordinator.popToRootNow() }
     }
 

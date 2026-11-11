@@ -1,4 +1,5 @@
-// notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule*.swift
+// notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule.swift
+// notchcast-sources: Tinycast/Features/DictationCleanup/DictationCleanupModule+Live.swift
 // notchcast-sources: Tinycast/Features/DictationCleanup/Model/DictationCleanupSettings.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Dictation/DictationFamily.swift Tests/dictation-family-stubs.swift
 

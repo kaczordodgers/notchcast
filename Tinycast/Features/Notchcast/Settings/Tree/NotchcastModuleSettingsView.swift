@@ -51,38 +51,24 @@ private struct NotchcastModuleFeatureRows: View {
     private let preferences = NotchcastPreferences.shared
 
     var body: some View {
+        let extras = feature.settingsExtras
+        let servicesReady = NotchcastCore.services != nil || !extras.needsServices
         Toggle(isOn: Binding(get: { preferences.isOn(feature) }, set: { feature.setFromSettings($0) })) {
             SettingsRowTitle(anchor, verbatim: feature.title)
             if feature.helperLocked {
                 Text("Needs the Notchcast helper update", tableName: "Notchcast")
             } else {
                 // One Text, so a second caption line keeps the description's size.
-                Text([feature.subtitle, detail].compactMap(\.self).joined(separator: "\n"))
+                Text([feature.subtitle, extras.detail].compactMap(\.self).joined(separator: "\n"))
             }
-            if feature == .cleaningMode {
-                TimelineView(.periodic(from: .now, by: 1)) { _ in
-                    if NotchcastCore.cleaning.remaining > 0 {
-                        Text("\(Duration.seconds(NotchcastCore.cleaning.remaining).formatted(.units())) left")
-                    }
-                }
-            }
+            extras.label
         }
         .settingsEnabled(preferences.isOn(.island) || !feature.needsIsland)
         .settingsEnabled(feature.dependencies.allSatisfy(preferences.isEnabled))
         .settingsEnabled(feature.settingsAvailable)
-        if NotchcastSettingsModule.module(of: feature) == .battery && ![.accessoryBatteries, .accessoryNotices].contains(feature) {
-            NotchcastBatteryStatusSettingRow(feature: feature)
-        }
-        if feature == .microphoneMute, servicesReady {
-            MicrophoneHotKeyFailureSettingRow()
-        }
-        if feature == .settingsBackup, ForkSettingsBackupCoordinator.shared.choosing {
-            ForkSettingsBackupCopiesView(copies: ForkSettingsBackupCoordinator.shared.copies,
-                restore: { ForkSettingsBackupCoordinator.shared.restore(name: $0) })
-                .onDisappear { ForkSettingsBackupCoordinator.shared.cancelChoosing() }
-        }
+        if servicesReady { extras.rows }
         if preferences.isEnabled(feature) && feature.settingsAvailable {
-            if feature == .shelfBetweenMacs { ShelfReceivedSection() }
+            extras.enabledRows
             ForEach(commands, id: \.id) { command in
                 if command.slug.hasPrefix("settings-") {
                     NotchcastActionCommandRow(command: command)
@@ -95,20 +81,6 @@ private struct NotchcastModuleFeatureRows: View {
                     .settingsEnabled(preferences.isEnabled(feature))
             }
         }
-    }
-
-    private var detail: String? {
-        switch feature {
-        case .dockTweaks: String(localized: "Changes screenshot preferences and restarts SystemUIServer after confirmation.", table: "Notchcast")
-        case .cleaningMode: String(localized: "Media keys still work.", table: "Notchcast")
-        case .cleanAIData: String(localized: "Codex and OpenCode are report-only.", table: "Notchcast")
-        default: nil
-        }
-    }
-
-    /// Spotify and microphone rows read services that `NotchcastCore.start` creates; the offscreen gallery never starts them.
-    private var servicesReady: Bool {
-        NotchcastCore.services != nil || ![.spotifyConnect, .microphoneMute, .inUseMarks].contains(feature)
     }
 
     private var commands: [NotchcastCommand] {

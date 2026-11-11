@@ -5,6 +5,6 @@ extension RemoteFanModule: NotchcastRegistrant {
         guard let linkChannel else { return [] }
         let module = RemoteFanModule(transport: MachLinkFanTransport(channel: linkChannel))
         shared = module
-        return [.init(requires: [.machLink, .machMBPFans], module: module)]
+        return [.init(requires: [.machMBPFans], module: module)]
     }
 }
