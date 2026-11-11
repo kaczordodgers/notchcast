@@ -33,11 +33,11 @@ echo 'PASS: idle count published every run and logged once, the busy runner not 
 printf '#!/bin/bash\nexit 1\n' > "$WORK/root/admit"
 chmod 755 "$WORK/root/admit"
 gate
-calls 'NOTCHCAST_IDLE_MBA 0' 'first refusal'
+calls 'NOTCHCAST_IDLE_MBA -1' 'first refusal'
 gate
-calls 'bootout mba-1,NOTCHCAST_IDLE_MBA 0' 'second refusal'
+calls 'bootout mba-1,NOTCHCAST_IDLE_MBA -1' 'second refusal'
 test -e "$WORK/loaded/mba-2"
-echo 'PASS: a refusal publishes 0 first, then stops only the runner without a job'
+echo 'PASS: a refusal publishes -1 first, then stops only the runner without a job'
 
 rm "$WORK/root/admit" "$WORK/busy/mba-2"
 gate

@@ -35,20 +35,16 @@ def count_of(env):
 
 
 def fresh(lines, now):
-    """Idle runner count of each Mac whose gate reported in time; an empty list is no Mac online."""
+    """Idle counts of Macs that reported in time and take jobs; gate.sh publishes -1 while refusing."""
     counts = []
     for line in lines.splitlines():
         try:
             count, stamp = (int(part) for part in line.split())
         except ValueError:
             continue
-        if -60 <= now - stamp <= FRESH:
-            counts.append(max(count, 0))
+        if count >= 0 and -60 <= now - stamp <= FRESH:
+            counts.append(count)
     return counts
-
-
-def idle(lines, now):
-    return sum(fresh(lines, now))
 
 
 def hosted(label):
@@ -74,8 +70,7 @@ def route(env, now, busy=None):
     online = fresh(env.get("IDLE") or "", now)
     pool = sum(online)
     if busy is None or not online:
-        # Without the hosted count, or with every Mac asleep (a job pinned to one would queue until it wakes):
-        # idle Macs first, the hosted image for the rest.
+        # No hosted count, or no Mac taking jobs: idle Macs first, hosted for the rest.
         macs = min(count, pool)
         return [MAC] * macs + [HOSTED] * (count - macs)
     # Hosted only while an idle Mac is not waiting for the job and a hosted slot is free.
@@ -99,7 +94,7 @@ def decide(env, now, fetch):
         except Exception as error:
             print(f"route: hosted count unavailable, idle Macs first ({error})", file=sys.stderr)
     labels = route(env, now, busy)
-    print(f"route: hosted busy {busy}, idle Macs {idle(env.get('IDLE') or '', now)} -> {labels}", file=sys.stderr)
+    print(f"route: hosted busy {busy}, idle Macs {sum(fresh(env.get('IDLE') or '', now))} -> {labels}", file=sys.stderr)
     return labels
 
 
