@@ -30,6 +30,12 @@ struct CleanProcessTest {
         precondition(killed.code == 128 + SIGHUP)
         let result = try await CleanTool.run(shell, ["-c", "echo alive; echo $GIT_TERMINAL_PROMPT >&2"], timeout: 2)
         precondition(result.code == 0 && result.output == "alive\n" && result.error == "0\n")
+        let noise = "head -c \"$1\" /dev/zero | tr '\\0' x >&2"
+        let cut = try await CleanTool.run(shell, ["-c", noise, "test", "1048577"], timeout: 10)
+        precondition(cut.error.utf8.count == 1_048_576 + 12 && cut.error.hasSuffix("x\n[truncated]"))
+        let whole = try await CleanTool.run(shell, ["-c", noise, "test", "1048576"], timeout: 10)
+        precondition(whole.error.utf8.count == 1_048_576 && whole.error.hasSuffix("x"))
         print("PASS process-group timeout/prompt cancellation; a killed tool never reads as exit code 1")
+        print("PASS error output past 1 MiB is cut and marked; exactly 1 MiB is returned whole")
     }
 }

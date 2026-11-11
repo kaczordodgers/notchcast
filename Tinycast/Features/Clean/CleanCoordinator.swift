@@ -180,9 +180,10 @@ final class CleanCoordinator {
     }
 
     private func failed(_ error: Error, _ feature: NotchcastFeature, _ identity: UUID) {
-        let shouldReport = current(feature, identity) && !(error is CancellationError)
+        let isCurrent = current(feature, identity)
         finish(feature, identity)
+        guard isCurrent, !(error is CancellationError) else { return }
         if error is HelperUpdate { helperCurrent = false }
-        if shouldReport { report(error) }
+        report(error)
     }
 }

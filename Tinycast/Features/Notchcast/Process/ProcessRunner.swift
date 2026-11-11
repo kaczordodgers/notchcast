@@ -166,9 +166,12 @@ nonisolated enum ProcessRunner {
         }
 
         func finish() throws -> Output {
-            let (stop, status, signaled) = state.withLock {
-                ($0.stop, $0.process.terminationStatus, $0.process.terminationReason == .uncaughtSignal)
+            let (stop, pid, status, signaled) = state.withLock {
+                ($0.stop, $0.process.processIdentifier, $0.process.terminationStatus,
+                 $0.process.terminationReason == .uncaughtSignal)
             }
+            // The leader can exit on the stop signal while a child that ignored it lives on.
+            if stop != nil, request.stopsGroup { kill(-pid, SIGKILL) }
             if stop == .timedOut { throw Failure.timedOut }
             try Task.checkCancellation()
             if stop == .cancelled { throw CancellationError() }
