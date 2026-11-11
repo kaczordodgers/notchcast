@@ -3,6 +3,7 @@
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationCapture.swift
 // notchcast-sources: Tinycast/Features/Dictation/Service/DictationSpectrum.swift
 // notchcast-kit: input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 import Carbon.HIToolbox
 import Synchronization
@@ -223,42 +224,4 @@ struct DictationTriggerTest {
 enum DictationWire {
     static let sampleRate = 16_000
     static let maximumSamples = sampleRate * 60 * 5
-}
-
-enum Paster { static let tinycastEventTag: Int64 = 1 }
-
-@MainActor
-final class EventTapHub {
-    struct Event: Sendable {
-        let type: CGEventType
-        let flags: CGEventFlags
-        let keyCode: Int64
-        let isRepeat: Bool
-        let isSynthetic: Bool
-        let timestamp: CGEventTimestamp
-    }
-
-    private(set) var handlers: [UUID: @MainActor @Sendable (Event) -> Void] = [:]
-
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID {
-        let id = UUID()
-        handlers[id] = handler
-        return id
-    }
-
-    func remove(_ id: UUID) { handlers[id] = nil }
-
-    enum Verdict { case pass, swallow }
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID { UUID() }
-
-    func send(
-        _ type: CGEventType, key: Int, flags: CGEventFlags = [], at time: TimeInterval,
-        isRepeat: Bool = false, isSynthetic: Bool = false
-    ) {
-        let event = Event(
-            type: type, flags: flags, keyCode: Int64(key), isRepeat: isRepeat,
-            isSynthetic: isSynthetic, timestamp: UInt64(time * 1_000_000_000))
-        for handler in handlers.values { handler(event) }
-    }
 }

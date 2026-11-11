@@ -1,29 +1,17 @@
 // notchcast-sources: -lsqlite3 Tinycast/Features/AgentThreads/Model/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule.swift
-// notchcast-kit: platform
+// notchcast-kit: platform host command
 // notchcast-sources: Tinycast/Features/AgentThreads/Service/*.swift
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 import SQLite3
 
 enum TestFeature { case agentThreads }
 typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: TestFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    func isOn(_ feature: TestFeature) -> Bool { true }
-}
 @MainActor final class AppCore {}
 
 private struct FakeProjects: AgentThreadProjectReading {

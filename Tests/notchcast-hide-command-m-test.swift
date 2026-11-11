@@ -1,25 +1,10 @@
 // notchcast-sources: Tinycast/Features/HideCommandM/Model/*.swift
 // notchcast-sources: Tinycast/Features/HideCommandM/Service/*.swift
 // notchcast-kit: platform input
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
-enum Paster { static let tinycastEventTag: Int64 = 12345 }
-
-@MainActor final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
-    var count = 0
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
-        self.handler = handler
-        count += 1
-        return UUID()
-    }
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    func remove(_ id: UUID) { count -= 1; handler = nil }
-}
 
 @main @MainActor
 struct HideCommandMTests {
@@ -36,7 +21,7 @@ struct HideCommandMTests {
         }
         module.start()
         module.start()
-        precondition(hub.count == 1, "Start twice registers once")
+        precondition(hub.consumerCount == 1, "Start twice registers once")
         precondition(send(code: 45) == .pass)
         precondition(send(flags: [.maskCommand, .maskShift]) == .pass)
         precondition(send(false) == .pass)
@@ -52,7 +37,7 @@ struct HideCommandMTests {
         precondition(send(false) == .pass)
         module.stop()
         module.stop()
-        precondition(hub.count == 0 && hub.handler == nil)
+        precondition(hub.consumerCount == 0 && hub.handler == nil)
         for pid: Int32 in [0, 1, 2] {
             for finder in [false, true] {
                 for windows in [false, true] {

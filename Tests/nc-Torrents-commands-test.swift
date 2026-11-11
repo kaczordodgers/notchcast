@@ -1,24 +1,12 @@
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
-// notchcast-kit: platform core
+// notchcast-kit: platform core command
 // notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
 // notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
 // notchcast-sources: Tinycast/Features/Torrents/Settings/TorrentJob+Presentation.swift
 // notchcast-sources: Tinycast/Features/Torrents/Commands/*.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommand.swift
 import AppKit
 
-enum SettingsTab: Sendable { case notchcast }
-struct AppEntry: Sendable {
-    let id: String
-    let name: String
-    let url: URL
-    let bundleID: String?
-    enum Kind: Sendable { case command }
-    let kind: Kind
-    let settingsOwner: SettingsTab?
-    let symbolName: String?
-}
 @MainActor final class AppCore {
     static let shared = AppCore()
     enum Tone { case danger }

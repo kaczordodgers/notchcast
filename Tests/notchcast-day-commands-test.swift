@@ -1,5 +1,6 @@
 // notchcast-sources: Tinycast/Features/LiveDay/DayCommands.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Pages/IslandPage+Command.swift
+// notchcast-kit: command
 import Foundation
 
 enum NotchcastFeature: Hashable { case island, dayCalendar, dayWeather, dayMarkets }
@@ -16,14 +17,6 @@ enum IslandPage { case home, day
     var commandsAvailable = true
     func open(page: IslandPage, takeKey: Bool = false) {}
     func selectPage(_ page: IslandPage) {}
-}
-@MainActor struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: NotchcastFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
 }
 
 @main @MainActor struct DayCommandTests {

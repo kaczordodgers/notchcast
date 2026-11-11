@@ -1,29 +1,14 @@
 // notchcast-sources: Tinycast/Features/QuitProtection/Model/*.swift Tinycast/Features/QuitProtection/Service/*.swift
 // notchcast-sources: Tinycast/Features/QuitProtection/QuitProtectionModule.swift
 // notchcast-kit: platform input host
+// notchcast-sources: Tests/Support/EventTapHubFake.swift
 import AppKit
 
 @MainActor protocol NotchcastModule { func start(); func stop() }
-enum Paster { static let tinycastEventTag: Int64 = 12345 }
 enum ASCIIKeyboardLayout {
     @MainActor static func character(for code: Int, modifiers: UInt32) -> String? {
         code == 12 ? "q" : code == 13 ? "w" : nil
     }
-}
-@MainActor final class EventTapHub {
-    struct Event {}
-    enum Verdict { case pass, swallow }
-    func register(mask: CGEventMask, handler: @escaping @MainActor @Sendable (Event) -> Void) -> UUID { UUID() }
-    var handler: (@Sendable (CGEventType, CGEvent) -> Verdict)?
-    var count = 0
-    func registerSynchronous(mask: CGEventMask,
-                             handler: @escaping @Sendable (CGEventType, CGEvent) -> Verdict) -> UUID {
-        precondition(mask != 0)
-        self.handler = handler
-        count += 1
-        return UUID()
-    }
-    func remove(_ id: UUID) { count -= 1; handler = nil }
 }
 @main @MainActor struct ModuleTests {
     static func main() {
@@ -40,7 +25,7 @@ enum ASCIIKeyboardLayout {
         }
         module.start()
         module.start()
-        precondition(hub.count == 1)
+        precondition(hub.consumerCount == 1)
         let idleReads = targetReads
         RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
         precondition(targetReads == idleReads, "Idle protection must not poll the target")
@@ -63,7 +48,7 @@ enum ASCIIKeyboardLayout {
         precondition(module.notice == nil, "Deadline must fire in tracking mode")
         module.stop()
         module.stop()
-        precondition(hub.count == 0 && module.notice == nil)
+        precondition(hub.consumerCount == 0 && module.notice == nil)
         print("PASS: module lifecycle, synchronous interception, synthetic bypass; no system effects")
     }
 }

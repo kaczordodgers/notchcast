@@ -6,22 +6,9 @@
 // notchcast-sources: Tinycast/Features/CaptureRecording/Service/RecordingSource.swift
 // notchcast-sources: Tinycast/Features/CaptureArea/Model/*.swift Tinycast/Features/CaptureArea/Service/*.swift
 // notchcast-sources: Tinycast/Platform/ScreenTarget.swift
-// notchcast-kit: core host
+// notchcast-kit: core host command
 import AppKit
 import CoreMedia
-
-struct NotchcastCommand: Sendable {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    var feature: NotchcastFeature?
-    var owner: SettingsTab? = .notchcast
-    var legacyID: String?
-    var isEnabled: @MainActor @Sendable () -> Bool = { true }
-    let run: @MainActor @Sendable () -> Void
-}
-
-enum SettingsTab { case notchcast }
 
 enum DialogTone { case danger, neutral, success }
 

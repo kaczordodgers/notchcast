@@ -8,25 +8,13 @@
 // notchcast-sources: Tinycast/Features/AgentThreads/AgentThreadsModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastModule.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastHost.swift
+// notchcast-kit: host command
+// notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 import Foundation
 
 enum TestFeature { case agentThreads, openBotAgents, agentIsland }
 typealias NotchcastFeature = TestFeature
 enum DialogTone { case neutral }
-struct NotchcastCommand {
-    let slug: String
-    let name: String
-    let sfSymbol: String
-    let feature: TestFeature
-    let isEnabled: @MainActor () -> Bool
-    let run: @MainActor () -> Void
-}
-@MainActor final class NotchcastPreferences {
-    static let shared = NotchcastPreferences()
-    var on = false
-    func isOn(_ feature: TestFeature) -> Bool { on }
-}
 @MainActor final class AppCore {}
 extension OpenBotAgentsModule { static let shared = OpenBotAgentsModule() }
 
@@ -83,6 +71,7 @@ private struct CountingRunner: AgentThreadRunning {
 
 @main struct AgentIslandTest {
     @MainActor static func main() async throws {
+        NotchcastPreferences.shared.enabled = false
         let now = Date(timeIntervalSince1970: 100)
         func row(_ phase: AgentThread.Phase, _ id: String = "a", date: Date? = nil) -> AgentThread {
             AgentThread(id: id, title: id, project: "Demo", model: "Example", phase: phase,
@@ -173,7 +162,7 @@ private struct CountingRunner: AgentThreadRunning {
         module.start()
         precondition(module.presentation == .init())
         precondition(!AgentIslandModule.command.isEnabled())
-        NotchcastPreferences.shared.on = true
+        NotchcastPreferences.shared.enabled = true
         precondition(AgentIslandModule.command.isEnabled())
         precondition(module.openItem(source: .t3, thread: failed) == failed.link)
         precondition(module.openItem(source: .openBot, thread: failed) == nil)
