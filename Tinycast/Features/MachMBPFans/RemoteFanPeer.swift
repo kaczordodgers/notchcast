@@ -11,6 +11,11 @@ struct MachLinkFanTransport: RemoteFanTransport {
     }
 }
 
+extension RemoteFanModule {
+    /// Set by hub glue in `start` before registrants register; `register` returns [] while nil.
+    static var linkChannel: MachLinkChannel?
+}
+
 extension MonitorModule {
     func registerRemoteFanRoute(on channel: MachLinkChannel, preferences: NotchcastPreferences = .shared) {
         channel.manager.register("mbp-fans") { [weak self] request in

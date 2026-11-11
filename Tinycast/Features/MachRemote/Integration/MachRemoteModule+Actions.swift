@@ -1,7 +1,7 @@
 import AppKit
 
 extension MachRemoteModule {
-    func update() { NotchcastCore.updateRemote.update() }
+    func update() { UpdateRemoteModule.shared.update() }
 
     func sendFinderSelection() {
         guard NotchcastPreferences.shared.isOn(.machRemote), NotchcastPreferences.shared.isOn(.sendFiles) else { return }
@@ -21,14 +21,14 @@ extension MachRemoteModule {
             guard !Task.isCancelled, NotchcastPreferences.shared.isOn(.machRemote),
                   NotchcastPreferences.shared.isOn(.sendFiles) else { return }
             guard let result, result.status == 0 else {
-                NotchcastCore.remoteResult(String(localized: "Select files in Finder and configure the remote Mac.",
+                NotchcastHost.current.remoteResult(String(localized: "Select files in Finder and configure the remote Mac.",
                                                   table: "SendFiles"))
                 return
             }
             let paths = result.output.split(separator: "\0", omittingEmptySubsequences: false)
             guard paths.last == "\n" || paths.last == "",
                   paths.dropLast().allSatisfy({ $0.hasPrefix("/") }) else { return }
-            NotchcastCore.sendFiles.send(paths.dropLast().map { URL(fileURLWithPath: String($0)) })
+            SendFilesModule.shared.send(paths.dropLast().map { URL(fileURLWithPath: String($0)) })
         }
     }
 }
