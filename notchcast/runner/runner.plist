@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>Label</key><string>notchcast.runner.@NAME@</string>
+<key>ProgramArguments</key><array><string>@DIR@/run.sh</string></array>
+<key>WorkingDirectory</key><string>@DIR@</string>
+<key>RunAtLoad</key><true/>
+<key>KeepAlive</key><true/>
+<key>ThrottleInterval</key><integer>10</integer>
+<key>LimitLoadToSessionType</key><string>Aqua</string>
+<key>EnvironmentVariables</key><dict>
+<key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+<key>TMPDIR</key><string>@DIR@/tmp</string>
+<key>ACTIONS_RUNNER_HOOK_JOB_STARTED</key><string>@ROOT@/job-started.sh</string>
+<key>ACTIONS_RUNNER_HOOK_JOB_COMPLETED</key><string>@ROOT@/job-completed.sh</string>
+<key>NOTCHCAST_RUNNER_GATE</key><string>@HOST@ @REPO@</string>
+</dict>
+<key>StandardOutPath</key><string>@LOGS@/runner-@NAME@.log</string>
+<key>StandardErrorPath</key><string>@LOGS@/runner-@NAME@.log</string>
+</dict></plist>

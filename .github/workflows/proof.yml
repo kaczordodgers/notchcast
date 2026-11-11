@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       checks: ${{ steps.plan.outputs.checks }}
+      runners: ${{ steps.route.outputs.runners }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -36,10 +37,17 @@ jobs:
             checks=$CHECKS
           fi
           echo "checks=$checks" >> "$GITHUB_OUTPUT"
+      # A ready PR's build (pr.yml) starts with this run and takes the Macs first.
+      - id: route
+        uses: ./notchcast/actions/route
+        with:
+          count: 1
+          vars: ${{ toJSON(vars) }}
+          eligible: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft }}
   proof:
     needs: plan
     if: needs.plan.outputs.checks != ''
-    runs-on: xcode-27
+    runs-on: ${{ fromJSON(needs.plan.outputs.runners)[0] }}
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v7
