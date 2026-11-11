@@ -48,6 +48,33 @@ struct NotchcastCommand: Sendable {
             await module.commandTask?.value
         }
         precondition(calls == 4 && copied.count == 2 && reports == ["Copied", "Copied", "Done", "Done"])
+        typealias Failure = SmallCommandsFailure
+        precondition(SmallCommandsModule.failure(NoiseControlService.Outcome.switched(.off)) == nil)
+        precondition(SmallCommandsModule.failure(AirDropService.Outcome.sent(1)) == nil)
+        let causes: [(any Error, String)] = [
+            (Failure.noLink, "No link to shorten."),
+            (Failure.controlCenterNotRunning, "Control Center is not running."),
+            (SmallCommandsModule.failure(NoiseControlService.Outcome.noAirPods)!, "No AirPods with noise control found."),
+            (SmallCommandsModule.failure(NoiseControlService.Outcome.unchanged)!, "Noise control did not change."),
+            (SmallCommandsModule.failure(AirDropService.Outcome.cancelled)!, "AirDrop was cancelled."),
+            (SmallCommandsModule.failure(AirDropService.Outcome.noSelection)!, "Select files in Finder first."),
+            (SmallCommandsModule.failure(AirDropService.Outcome.unavailable)!, "AirDrop is unavailable."),
+            (NoiseControlService.Failure.needsAccessibility, "Allow Accessibility access to switch noise control."),
+            (Failure.disabled, "Unavailable"),
+            (AirDropService.Failure.busy, "Unavailable"),
+        ]
+        for (failure, message) in causes {
+            reports = []
+            module.runFromLauncher(.noise, execute: { _ in throw failure }, report: { reports.append($0) })
+            await module.commandTask?.value
+            precondition(reports == [message], "\(failure) reported \(reports)")
+        }
+        do {
+            _ = try await module.perform(.shorten, frontAddress: { nil }, clipboard: { nil })
+            preconditionFailure("shorten without a link must fail")
+        } catch {
+            precondition(error as? Failure == .noLink)
+        }
         module.stop()
         var ranWhileStopped = false
         module.runFromLauncher(.password, execute: { _ in ranWhileStopped = true; return nil })
@@ -57,5 +84,6 @@ struct NotchcastCommand: Sendable {
         precondition(entries.count == 1 && entries[0].requires == [.smallCommands] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === SmallCommandsModule.shared)
         print("Verified four launcher actions reach fake runners, copy text, report completion and stop")
+        print("Verified each failure cause reports its own message")
     }
 }
