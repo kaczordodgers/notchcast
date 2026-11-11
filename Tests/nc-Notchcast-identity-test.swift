@@ -44,7 +44,7 @@ struct NotchcastIdentityTest {
         listener.newConnectionHandler = { connection in
             connection.start(queue: .global())
             connection.receive(minimumIncompleteLength: 1, maximumLength: 4096) { data, _, _, _ in
-                let line = String(String(decoding: data ?? Data(), as: UTF8.self).prefix { !$0.isNewline })
+                let line = String((String(bytes: data ?? Data(), encoding: .utf8) ?? "").prefix { !$0.isNewline })
                 requests.withLock { $0.append(line) }
                 let head = line.contains("/next") ? "200 OK" : "302 Found\r\nLocation: /next"
                 let reply = "HTTP/1.1 \(head)\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
