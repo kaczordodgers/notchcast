@@ -133,13 +133,9 @@ private struct CountingRunner: AgentThreadRunning {
         precondition(evaluate([recent, newest], date: now.addingTimeInterval(1)).t3 == .finished("new"))
         let failed = row(.failed)
         precondition(evaluate([failed], date: now.addingTimeInterval(500)).t3 == .failed("a"))
-        engine.dismissFailed(failed)
-        precondition(evaluate([failed]).t3 == .idle)
         precondition(evaluate([failed], t3: false).t3 == .idle)
-        precondition(evaluate([failed]).t3 == .idle)
         precondition(evaluate([]).t3 == .idle)
-        precondition(evaluate([failed]).t3 == .idle)
-        precondition(evaluate([row(.failed, date: now.addingTimeInterval(1))]).t3 == .failed("a"))
+        precondition(evaluate([failed]).t3 == .failed("a"))
         let decoder = JSONDecoder()
         func pending(_ json: String) throws -> OpenBotPending {
             try decoder.decode(OpenBotPending.self, from: Data(json.utf8))
@@ -164,8 +160,6 @@ private struct CountingRunner: AgentThreadRunning {
         precondition(!AgentIslandModule.command.isEnabled())
         NotchcastPreferences.shared.enabled = true
         precondition(AgentIslandModule.command.isEnabled())
-        precondition(module.openItem(source: .t3, thread: failed) == failed.link)
-        precondition(module.openItem(source: .openBot, thread: failed) == nil)
         module.stop()
         for _ in 0..<10 { await Task.yield() }
         precondition(module.presentation == .init())

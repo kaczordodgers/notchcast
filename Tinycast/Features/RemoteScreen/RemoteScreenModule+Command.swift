@@ -5,7 +5,8 @@ extension RemoteScreenModule {
         slug: "remote-screen", name: String(localized: "Remote Screen", table: "Notchcast"), sfSymbol: "display", feature: .remoteScreen,
         isEnabled: { [.machLink, .remoteScreen].allSatisfy { NotchcastPreferences.shared.isOn($0) } },
         run: { Task { do {
-            try await RemoteScreenModule.shared?.coordinator.show(.init(host: "peer.local"), preferredClientInstalled: false)
+            guard let module = RemoteScreenModule.shared else { throw RemoteScreenRequest.Failure.unavailable }
+            try await module.coordinator.show(.init(host: "peer.local"), preferredClientInstalled: false)
         } catch {
             let message = switch error {
             case RemoteScreenRequest.Failure.peerDisabled: String(localized: "Remote Screen is off on the other Mac.", table: "Notchcast")

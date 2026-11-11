@@ -2,7 +2,6 @@ import AppKit
 
 @MainActor
 enum ArchiveCompressionCommands {
-    static var selection: () async throws -> [URL] = { [] }
     nonisolated static let standard = NotchcastCommand(slug: "compress", name: String(localized: "Compress with Notchcast", table: "Notchcast"), sfSymbol: "archivebox", feature: .archives, isEnabled: { ArchiveCommands.enabled }, run: { run(.zip) })
     nonisolated static let small = NotchcastCommand(slug: "compress-small", name: String(localized: "Compress Small", table: "Notchcast"), sfSymbol: "archivebox", feature: .archives, isEnabled: { ArchiveCommands.enabled }, run: { run(.small) })
     nonisolated static let fast = NotchcastCommand(slug: "compress-fast", name: String(localized: "Compress Fast", table: "Notchcast"), sfSymbol: "archivebox", feature: .archives, isEnabled: { ArchiveCommands.enabled }, run: { run(.fast) })
@@ -14,7 +13,7 @@ enum ArchiveCompressionCommands {
         }
         Task {
             do {
-                let urls = try await selection()
+                let urls = try await NotchcastHost.current.finderSelection().map { URL(filePath: $0) }
                 submit(urls, format: format)
             } catch {
                 NotchcastHost.current.showMessage(String(localized: "Couldn’t read the Finder selection.", table: "Notchcast"), .danger)

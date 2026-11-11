@@ -1,6 +1,5 @@
 // notchcast-sources: Tinycast/Features/CommandRunner/Model/*.swift
 // notchcast-sources: Tinycast/Features/CommandRunner/Service/CatalogShellCommandRunner.swift
-// notchcast-sources: Tinycast/Features/CommandRunner/Service/CommandQuickAdd.swift
 // notchcast-kit: core
 import Foundation
 import Synchronization
@@ -45,32 +44,6 @@ struct CommandCatalogTest {
         while !started.withLock({ $0 }) { await Task.yield() }
         task.cancel()
         do { _ = try await task.value; preconditionFailure("cancel ignored") } catch is CancellationError {}
-        let item = CommandListItem(id: "item", title: "Item", target: .command(id: entry.id, arguments: [payload]))
-        let decoded = try JSONDecoder().decode(CommandListItem.self, from: JSONEncoder().encode(item))
-        precondition(decoded == item)
-        let token = "synthetic-secret"
-        let reads = Mutex(0)
-        let quick = CommandQuickAdd(readToken: {
-            reads.withLock { $0 += 1 }; return token
-        }, client: { text, secret in
-            precondition(text == "task text" && secret == token); return true
-        })
-        try await quick.add("  task text  ")
-        try await quick.add("task text")
-        precondition(reads.withLock { $0 } == 2)
-        struct SecretError: Error { let value: String }
-        let failed = CommandQuickAdd(readToken: { token }, client: { _, _ in throw SecretError(value: token) })
-        do { try await failed.add("task"); preconditionFailure("error ignored") } catch {
-            precondition(!String(reflecting: error).contains(token))
-        }
-        let rejected = CommandQuickAdd(readToken: { token }, client: { _, _ in false })
-        do { try await rejected.add("task"); preconditionFailure("failure ignored") } catch {
-            precondition(error == .failed)
-        }
-        let missing = CommandQuickAdd(readToken: { nil }, client: { _, _ in preconditionFailure("client called") })
-        do { try await missing.add("task"); preconditionFailure("missing token accepted") } catch {
-            precondition(error == .missingToken)
-        }
         precondition(!NotchcastFeature.commandRunner.defaultEnabled)
         precondition(!NotchcastFeature.commandRunner.needsIsland)
         precondition(NotchcastFeature.commandRunner.settingsGroup == .launcher)

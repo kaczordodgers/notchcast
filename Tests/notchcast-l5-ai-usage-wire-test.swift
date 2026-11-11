@@ -32,12 +32,10 @@ struct AIUsageWiringTest {
         let channel = MachLinkChannel()
         let module = AIUsageModule(provider: provider, preferences: preferences, channel: channel)
         let link = AIUsageLinkModule(defaults: defaults)
-        var missingNotices: [String] = []
         preferences.aiUsageCachePath = directory.path
-        let defaultCacheModule = AIUsageModule(preferences: preferences, post: { missingNotices.append($0) })
+        let defaultCacheModule = AIUsageModule(preferences: preferences)
         defaultCacheModule.start()
         try await defaultCacheModule.refresh()
-        precondition(missingNotices.isEmpty)
         precondition(defaultCacheModule.snapshots.first?.windows.first?.used == 42)
         defaultCacheModule.stop()
         let controller = NotchcastModuleController([

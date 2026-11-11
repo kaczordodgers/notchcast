@@ -83,14 +83,12 @@ final class AgentActionIndex {
         case .status:
             return .object(["running": .bool(isRunning), "protocolVersion": .number(1)])
         case .list:
-            return .object([
-                "actions": .array(actionIDs.compactMap { actions[$0] }.map {
-                    $0.action.json(available: $0.isAvailable())
-                }),
-                "states": .array(stateIDs.compactMap { states[$0] }.map {
-                    .object(["id": .string($0.id), "title": .string($0.title), "available": .bool($0.isAvailable())])
-                })
-            ])
+            return AgentCatalog(
+                actions: actionIDs.compactMap { actions[$0] }.map { $0.action.catalogEntry(available: $0.isAvailable()) },
+                states: stateIDs.compactMap { states[$0] }.map {
+                    .init(id: $0.id, title: $0.title, available: $0.isAvailable())
+                }
+            ).json
         case .get:
             guard let id = request.id, let provider = states[id] else { throw AgentReply.Code.badRequest }
             guard provider.isAvailable() else { throw AgentReply.Code.failed }

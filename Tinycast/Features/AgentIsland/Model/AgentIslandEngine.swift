@@ -17,14 +17,9 @@ struct AgentIslandEngine: Sendable {
     }
     enum Message: Equatable, Sendable { case idle, counts(waiting: Int, working: Int) }
 
-    private var dismissed: [String: AgentThread] = [:]
     private var previous: [String: AgentThread.Phase] = [:]
     private var completions: [String: Date] = [:]
     private(set) var presentation = Presentation()
-
-    mutating func dismissFailed(_ thread: AgentThread) {
-        if thread.phase == .failed { dismissed[thread.id] = thread }
-    }
 
     mutating func update(threads: [AgentThread], pending: [String: OpenBotPending],
                          t3Enabled: Bool, openBotEnabled: Bool, now: Date) {
@@ -38,7 +33,6 @@ struct AgentIslandEngine: Sendable {
             }
         }
         previous = Dictionary(threads.map { ($0.id, $0.phase) }, uniquingKeysWith: { first, _ in first })
-        dismissed = dismissed.filter { id, value in !threads.contains { $0.id == id && $0 != value } }
         let approvals = threads.filter { $0.phase == .waitingForApproval }
             .reduce(0) { $0 + max(1, $1.pendingCount) }
         let questions = threads.filter { $0.phase == .waitingForInput }.count
@@ -51,7 +45,7 @@ struct AgentIslandEngine: Sendable {
             result.t3 = .approval(approvals)
         } else if questions > 0 {
             result.t3 = .question(questions)
-        } else if let failed = threads.first(where: { $0.phase == .failed && dismissed[$0.id] != $0 }) {
+        } else if let failed = threads.first(where: { $0.phase == .failed }) {
             result.t3 = .failed(failed.title)
         } else if !working.isEmpty {
             result.t3 = .working(names: working.prefix(3).map(\.title), total: working.count)

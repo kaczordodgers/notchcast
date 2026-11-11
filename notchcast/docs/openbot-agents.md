@@ -17,12 +17,12 @@ The credential reader uses OPENBOT_AUTOMATION_DIR or the OpenBot automation fold
 
 OpenBotAgentsModule.shared, the registered module, refreshes on module start and through its gated command, which reports the number of bots with waiting items through the neutral upstream message HUD. setActive(true) enables thirty-second polling for a future visible consumer; setActive(false) returns to one refresh without a timer.
 
-OpenBotService exposes agents(), pending(agent:), send(agent:text:) and delivery(agent:id:). Sending returns the 202 receipt; callers follow its delivery identifiers with delivery(agent:id:) until a terminal status. Each send creates a fresh clientMessageId UUID and refuses encoded JSON bodies over 32768 bytes before reading credentials or using transport. Transport errors and HTTP failures have distinct typed states. Message and delivery calls belong to their caller's structured task and cancellation; the module owns refresh work only.
+OpenBotService exposes agents() and pending(agent:), both read-only; nothing sends a message. Transport errors and HTTP failures have distinct typed states.
 
 Answering prompts and approvals is out of scope because the answer and decision schemas are not verified. No routine execution API is implemented. OpenBot uses PolyForm Noncommercial: this implementation uses its API contract only and copies no OpenBot code. The Codync host is not built: it is not installed and its API is not stable.
 
-Missing or null routines and prompt questions default to empty arrays; question text is optional. Missing pending collections default to empty arrays. Delivery answers retain only string values; other shapes become nil. Non-JSON and incorrect top-level response types are malformed. These tolerant fields do not claim verification of the pending-item or answer schemas.
+Missing or null prompt questions default to empty arrays; question text is optional. Missing pending collections default to empty arrays. Non-JSON and incorrect top-level response types are malformed. These tolerant fields do not claim verification of the pending-item or answer schemas.
 
 ## Verification
 
-Tests/nc-OpenBotAgents-engine-test.swift uses synthetic in-memory fixtures for bots, pending questions, message receipts, delivery states, HTTP failures, credential rotation, URL restrictions, size limits and stop cancellation. No real OpenBot calls or automation-folder reads are part of verification. App compilation and live integration remain for the landing lane.
+Tests/nc-OpenBotAgents-engine-test.swift uses synthetic in-memory fixtures for bots, pending questions, HTTP failures, credential rotation, URL restrictions and stop cancellation. No real OpenBot calls or automation-folder reads are part of verification. App compilation and live integration remain for the landing lane.
