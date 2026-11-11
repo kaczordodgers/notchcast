@@ -12,8 +12,7 @@ struct RootVerbsTest {
             "charge-limit-off", "charge-limit-read", "spotlight-off", "spotlight-on",
             "sudo-touchid-on", "sudo-touchid-off", "fans-auto", "fans-medium", "fans-max",
             "battery-charging-on", "battery-charging-off", "battery-adapter-on", "battery-adapter-off",
-            "battery-sleep-on", "battery-sleep-off", "standby-off", "standby-on",
-            "autopoweroff-off", "autopoweroff-on",
+            "battery-sleep-on", "battery-sleep-off",
         ]
         precondition(RootContract.Command.allCases.map(\.rawValue) == wire, "verb table unchanged")
         for command in RootContract.Command.allCases {
