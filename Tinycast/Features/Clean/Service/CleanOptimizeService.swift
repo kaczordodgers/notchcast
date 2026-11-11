@@ -43,7 +43,6 @@ struct CleanOptimizeService: Sendable {
         case .exited(0): return .ran
         case .exited(let code): return .failed(.exitCode(code))
         case .timedOut: return .failed(.timedOut)
-        case .failed: return .failed(.transportFailed)
         }
     }
 
