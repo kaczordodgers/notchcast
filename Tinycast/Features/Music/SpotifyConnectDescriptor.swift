@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Use this Mac as a Spotify playback device.", table: "Notchcast"),
         group: .music,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [.island, .musicNowPlaying],
         requiredGrants: [],
         isSystemFeature: false,

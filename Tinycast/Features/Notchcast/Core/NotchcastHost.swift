@@ -8,4 +8,6 @@ struct NotchcastHost {
     var refreshNotchcastCommands: @MainActor () -> Void = {}
     var finderSelection: @MainActor () async throws -> [String] = { [] }
     var browserAddresses: @MainActor (_ processID: Int32, _ bundleID: String?) async throws -> [String] = { _, _ in [] }
+    var confirm: @MainActor (_ title: String, _ message: String, _ symbol: String, _ confirmTitle: String) async -> Bool =
+        { _, _, _, _ in false }
 }

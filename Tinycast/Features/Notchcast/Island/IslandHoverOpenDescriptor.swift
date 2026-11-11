@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Open the island when the pointer hovers over it.", table: "Notchcast"),
         group: .islandOptions,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [],
         isSystemFeature: false,

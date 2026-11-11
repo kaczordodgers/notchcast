@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Forecast from Open-Meteo on the Day page.", table: "Notchcast"),
         group: .activities,
         defaultEnabled: true,
+        backedUp: true,
         dependencies: [.island],
         requiredGrants: [],
         isSystemFeature: false,

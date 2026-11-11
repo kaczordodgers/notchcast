@@ -6,6 +6,7 @@ extension NotchcastFeature.Descriptor {
         subtitle: String(localized: "Upload as much as you download before stopping.", table: "Notchcast"),
         group: .torrents,
         defaultEnabled: false,
+        backedUp: false,
         dependencies: [.torrents],
         requiredGrants: [],
         isSystemFeature: false,

@@ -20,7 +20,7 @@ CHECKER = ROOT / "notchcast/check-feature-shape.py"
 SPEC = importlib.util.spec_from_file_location("feature_shape", CHECKER)
 SHAPE = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(SHAPE)
-SCHEMA, MODULES, SEARCH, DESCRIPTORS, REGISTRANTS, CATALOG = SHAPE.LISTS
+MODULES, SEARCH, DESCRIPTORS, REGISTRANTS, BACKUP_KEYS, CATALOG = SHAPE.LISTS
 PREFS = SHAPE.PREFERENCES
 DESCRIBED = sorted(path.relative_to(ROOT) for path in ROOT.glob("Tinycast/Features/**/*Descriptor.swift")
                    if path.relative_to(ROOT).parent != SHAPE.DESCRIPTORS.parent)
@@ -59,6 +59,11 @@ BREAKS = (
      SHAPE.TREE, SCREEN_TEXT, ".feature(.screenText, settings: [])"),
     ("feature-pins", ".sudoTouchID needsIsland is true; a feature whose isSystemTweak is true keeps false",
      "Tinycast/Features/SystemTools/SudoTouchIDDescriptor.swift", "dependencies: []", "dependencies: [.island]"),
+    ("backup-flag", ".hideCommandM needs backedUp: true or false", HIDE, "        backedUp: true,\n", ""),
+    ("backup-flag", ".colorPicker needs backedUp: true or false",
+     "Tinycast/Features/ColorPicker/ColorPickerDescriptor.swift", "        backedUp: true,\n", ""),
+    ("backup-flag", ".copyPath needs backedUp: true or false", "Tinycast/Features/CopyPath/CopyPathDescriptor.swift",
+     "        backedUp: true,\n", ""),
     ("feature-text", ".screenshot needs a localized, non-empty title",
      "Tinycast/Features/CaptureScreenshot/ScreenshotDescriptor.swift",
      'title: String(localized: "Screenshots", table: "Notchcast")', 'title: ""'),
@@ -101,7 +106,7 @@ BREAKS = (
      GLOBE, "dependencies: [],", "dependencies: [\n            .island\n        ],"),
     ("feature-pins", "open the descriptor with `static let <feature> = Self(`", GLOBE, "= Self(", "= NotchcastFeature.Descriptor("),
     ("feature-pins", ".treadmillWalk defaultEnabled reads `[`; state the whole value on one line",
-     SHAPE.FEATURE, "case .treadmillWalk: false", "case .treadmillWalk: ["),
+     SHAPE.FEATURE, "case .treadmillWalk: false\n        default: true", "case .treadmillWalk: [\n        default: true"),
     ("setting-one-case", "declare only one enum case per line", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay, islandRowless\n"),
     ("setting-row", ".probeNoRow needs exactly one arm", SHAPE.SETTINGS, "    case islandHoverDelay\n", "    case islandHoverDelay\n    case probeNoRow // new\n"),
     ("setting-row-arm", ".captureScreenTextLineBreaks needs exactly one arm that shows a row",
@@ -170,11 +175,6 @@ def append_feature(source, name):
 
 
 class FeatureShapeTests(unittest.TestCase):
-    def test_repeated_backup_key(self):
-        source = (ROOT / SCHEMA).read_text()
-        self.rejected(SCHEMA, source.replace('"island": .bool,',
-            '"island": .bool,\n        "island": .string(10),'), "repeated entry island")
-
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory(prefix="notchcast-feature-union-")
         self.addCleanup(self.temporary.cleanup)
@@ -289,6 +289,12 @@ class FeatureShapeTests(unittest.TestCase):
         self.assertEqual(source.count(line), 1)
         self.rejected(REGISTRANTS, source.replace(line, line + line), "repeated entry LowDiskModule")
 
+    def test_repeated_backup_feature(self):
+        source = (self.root / BACKUP_KEYS).read_text()
+        line = "        .lowDiskWarning,\n"
+        self.assertEqual(source.count(line), 1)
+        self.rejected(BACKUP_KEYS, source.replace(line, line + line), "repeated entry lowDiskWarning")
+
     def test_catalog_entry_listed_twice(self):
         source = (self.root / CATALOG).read_text()
         line = "        KatanaModule.a2Command,\n"
@@ -378,24 +384,25 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_setting_split_over_lines(self):
         source = (self.root / PREFS).read_text()
-        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }'
+        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: Self.fanModeKey) } }'
         self.rejected(PREFS, source.replace(line, line.replace("{ didSet", "{\n        didSet")),
                       "keep each setting on one line")
 
     def test_repeated_setting(self):
         source = (self.root / PREFS).read_text()
-        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }\n'
+        line = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: Self.fanModeKey) } }\n'
         self.rejected(PREFS, source.replace(line, line + line.replace("String", "String?")), "repeated setting fanMode")
 
     def test_repeated_assignment(self):
         source = (self.root / PREFS).read_text()
-        line = '        fanMode = defaults.string(forKey: "fanMode") ?? "auto"\n'
+        line = '        fanMode = defaults.string(forKey: Self.fanModeKey) ?? "auto"\n'
         self.rejected(PREFS, source.replace(line, line + line.replace('"auto"', '"quiet"')), "repeated assignment fanMode")
 
     def test_init_statement_split_over_lines(self):
         source = (self.root / PREFS).read_text()
         self.rejected(PREFS, source.replace(
-            'Self.threshold(defaults, "monitorCPU", 90, 10...100)', 'Self.threshold(defaults, "monitorCPU",\n            90, 10...100)'),
+            "Self.threshold(defaults, Self.monitorCPUKey, 90, 10...100)",
+            "Self.threshold(defaults, Self.monitorCPUKey,\n            90, 10...100)"),
             "keep each init statement on one line")
 
     def test_union_duplicated_preferences_class(self):
@@ -404,7 +411,7 @@ class FeatureShapeTests(unittest.TestCase):
 
     def test_arm_for_described_feature(self):
         for anchor, arm in ((ARM + "\n", "case .hideCommandM: .system\n"),
-                            ("case .treadmillWalk: false\n", "case .captureEditor: false\n")):
+                            ("case .treadmillHistory: false\n", "case .captureEditor: false\n")):
             with self.subTest(arm=arm):
                 source = (ROOT / SHAPE.FEATURE).read_text()
                 self.assertEqual(source.count(anchor), 1)
@@ -625,8 +632,8 @@ class FeatureShapeTests(unittest.TestCase):
         self.init_repository()
         prefs = self.root / PREFS
         base = prefs.read_text()
-        setting = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: "fanMode") } }\n'
-        assignment = '        fanMode = defaults.string(forKey: "fanMode") ?? "auto"\n'
+        setting = '    var fanMode: String { didSet { defaults.set(fanMode, forKey: Self.fanModeKey) } }\n'
+        assignment = '        fanMode = defaults.string(forKey: Self.fanModeKey) ?? "auto"\n'
         for name in ("alpha", "beta"):
             run(self.root, "git", "switch", "-qc", name, "base")
             prefs.write_text(base.replace(setting, setting + f'    var {name}: Bool {{ didSet {{ defaults.set({name}, forKey: "{name}") }} }}\n').replace(

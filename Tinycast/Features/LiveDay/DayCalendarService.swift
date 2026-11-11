@@ -12,12 +12,13 @@ final class DayCalendarService {
     private let defaults: UserDefaults
     private var excludedIDs: Set<String>
     var excludedCalendarIDs: Set<String> { excludedIDs }
-    private let excludedKey = "notchcast.day.excludedCalendars"
+    private let excludedKey: String
 
-    init(store: CalendarStore, defaults: UserDefaults = DayStorage.defaults) {
+    init(store: CalendarStore, excludedKey: String, defaults: UserDefaults = DayStorage.defaults) {
         self.store = store
         self.defaults = defaults
-        excludedIDs = Set(defaults.stringArray(forKey: "notchcast.day.excludedCalendars") ?? [])
+        self.excludedKey = excludedKey
+        excludedIDs = Set(defaults.stringArray(forKey: excludedKey) ?? [])
     }
 
     func start() {
