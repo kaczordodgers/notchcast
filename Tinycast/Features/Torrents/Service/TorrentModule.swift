@@ -16,8 +16,8 @@ final class TorrentModule: NotchcastModule {
     @ObservationIgnored private var pending: [URL] = []
     @ObservationIgnored private(set) lazy var manager = TorrentManager(
         session: session, destination: destination,
-        extraArguments: { [weak self] in self?.networkArguments() ?? [] },
-        interfacesPresent: { [weak self] arguments in self?.interfacesPresent(arguments) ?? false })
+        extraArguments: { [weak self] in self?.networkArguments() ?? ([], []) },
+        interfacesPresent: { [weak self] names in self?.interfacesPresent(names) ?? false })
 
     init(
         session: any TorrentSession,
@@ -84,17 +84,16 @@ final class TorrentModule: NotchcastModule {
         url.scheme?.lowercased() == "magnet" || (url.isFileURL && url.pathExtension.lowercased() == "torrent")
     }
 
-    private func networkArguments() -> [String] {
-        guard preferences.isOn(.torrentsUseIPhone) else { return [] }
+    private func networkArguments() -> (arguments: [String], interfaces: [String]) {
+        guard preferences.isOn(.torrentsUseIPhone) else { return ([], []) }
         let interfaces = (try? readInterfaces()) ?? []
-        return NetMergePolicy.evaluate(
+        let arguments = NetMergePolicy.evaluate(
             interfaces: interfaces, kind: .torrent, sizeBytes: nil, enabled: true).aria2Arguments
+        return (arguments, NetMergePolicy.interfaceNames(in: arguments))
     }
 
-    private func interfacesPresent(_ arguments: [String]) -> Bool {
-        guard let argument = arguments.first(where: { $0.hasPrefix("--multiple-interface=") }),
-              let interfaces = try? readInterfaces() else { return false }
-        let names = argument.dropFirst("--multiple-interface=".count).split(separator: ",").map(String.init)
+    private func interfacesPresent(_ names: [String]) -> Bool {
+        guard let interfaces = try? readInterfaces() else { return false }
         return names.allSatisfy { name in interfaces.contains { $0.bsdName == name && $0.hasIPv4 } }
     }
 
