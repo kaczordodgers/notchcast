@@ -74,7 +74,7 @@
     "Features/Todo -> Features/MachLink": 1,
     "Features/Torrents -> Features/NetMerge": 1,
     "Features/Treadmill -> Features/AgentBridge": 2,
-    "Features/Tweaks -> Features/SystemTools": 1,
+    "Features/Tweaks -> Features/SystemTools": 0,
     "notchcast/root -> Features/Clean": 1,
     "notchcast/root -> Features/SystemTools": 1
   },
@@ -147,7 +147,7 @@
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastOptions": 1,
     "Tinycast/Features/Notchcast/Settings/NotchcastSettingsSearch.swift:notchcastPaste": 1,
     "Tinycast/Features/SystemMonitor/Model/MonitorFormat.swift:MonitorFormat": 1,
-    "Tinycast/Features/SystemTools/Service/NotificationCleanupService.swift:NotificationCleanupService": 1,
+    "Tinycast/Features/SystemTools/Service/NotificationCleanupService.swift:NotificationCleanupService": 0,
     "Tinycast/Features/Todo/Model/TodoReminder.swift:Snooze": 0,
     "Tinycast/Features/Todo/Model/TodoTaskDetail.swift:TodoTaskDetail": 0,
     "Tinycast/Features/Todo/Service/TodoAgentGateway.swift:TodoAgentGateway": 0,

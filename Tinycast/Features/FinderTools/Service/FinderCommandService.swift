@@ -42,7 +42,7 @@ enum FinderCommandService {
         else { return }
         for event in [down, up] {
             event.flags = flags
-            event.setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag)
+            event.markSynthetic()
             event.postToPid(pid)
         }
     }

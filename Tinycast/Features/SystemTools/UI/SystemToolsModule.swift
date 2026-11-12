@@ -16,10 +16,8 @@ final class SystemToolsModule: NotchcastModule {
                                               apply: SystemToolsModule.apply)
 
     static func apply(_ feature: NotchcastFeature, enabled: Bool) async throws {
-        guard feature == .sudoTouchID || feature == .spotlightOff else { return }
-        let command: RootContract.Command = feature == .sudoTouchID
-            ? (enabled ? .sudoTouchIDOn : .sudoTouchIDOff)
-            : (enabled ? .spotlightOff : .spotlightOn)
+        guard feature == .sudoTouchID else { return }
+        let command: RootContract.Command = enabled ? .sudoTouchIDOn : .sudoTouchIDOff
         _ = try await RootHelperClient().run(command)
     }
 
@@ -44,7 +42,7 @@ final class SystemToolsModule: NotchcastModule {
             if running { refreshTask = Task { await refresh() } }
         }
         do {
-            if feature == .sudoTouchID || feature == .spotlightOff {
+            if feature == .sudoTouchID {
                 guard let core, await core.confirm(title: feature.title, message: feature.subtitle,
                                                   symbol: "gearshape", confirmTitle: feature.title) else { return }
             }

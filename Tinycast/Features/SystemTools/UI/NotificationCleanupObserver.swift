@@ -66,10 +66,16 @@ final class NotificationCleanupObserver {
         }
         let root = AXUIElementCreateApplication(pid)
         for _ in 0..<100 {
-            guard let element = selected(in: root, depth: 0),
-                  let alert = snapshot(element), let action = policy.closeAction(for: alert),
-                  snapshot(element) == alert else { return }
-            guard AXUIElementPerformAction(element, action as CFString) == .success else { return }
+            guard let element = selected(in: root, depth: 0), let alert = snapshot(element) else { return }
+            do {
+                guard try NotificationCleanupService(policy: policy).apply(
+                    alerts: [alert], trusted: true, current: { _ in snapshot(element) }, perform: { _, action in
+                        let result = AXUIElementPerformAction(element, action as CFString)
+                        guard result == .success else {
+                            throw NSError(domain: NSOSStatusErrorDomain, code: Int(result.rawValue))
+                        }
+                    }) == 1 else { return }
+            } catch { return }
         }
     }
 
