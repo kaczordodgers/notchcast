@@ -55,11 +55,9 @@ import Foundation
         precondition(signaled.exitStatus == 128 + SIGTERM)
         let timedPIDFile = root.appending(path: "timed-grandchild")
         let started = ContinuousClock.now
-        do {
-            _ = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
-                arguments: [script.path, timedPIDFile.path], workingDirectory: root.path, timeout: .seconds(1)))
-            preconditionFailure("Timeout expected")
-        } catch ProcessRunner.Failure.timedOut {}
+        let timedOut = try await CommandProcessRunner.run(.init(executable: "/bin/sh",
+            arguments: [script.path, timedPIDFile.path], workingDirectory: root.path, timeout: .seconds(1)))
+        precondition(!timedOut.succeeded && timedOut.exitStatus == 143, "Timeout must return a failed result")
         precondition(ContinuousClock.now - started < .seconds(10), "Timeout must stop a long command")
         let timedPID = Int32(try String(contentsOf: timedPIDFile, encoding: .utf8)
             .trimmingCharacters(in: .whitespacesAndNewlines))!

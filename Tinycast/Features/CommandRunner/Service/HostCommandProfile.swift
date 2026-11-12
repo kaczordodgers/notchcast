@@ -8,7 +8,12 @@ enum HostCommandProfile {
         let status = gethostname(&name, name.count)
         let bytes = name.prefix { $0 != 0 }.map { UInt8(bitPattern: $0) }
         let hostname = host ?? (status == 0 ? String(bytes: bytes, encoding: .utf8) ?? "" : "")
-        let data = try Data(contentsOf: file)
+        let data: Data
+        do {
+            data = try Data(contentsOf: file)
+        } catch CocoaError.fileReadNoSuchFile {
+            return []
+        }
         let entries = try JSONDecoder().decode([HostCommandCatalog.Entry].self, from: data)
         let catalog = try HostCommandCatalog(base: entries, host: hostname)
         return catalog.entries

@@ -84,12 +84,8 @@ import Foundation
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let file = directory.appending(path: "profile.json")
-        do {
-            _ = try await HostCommandProfile.load(file: file, host: "test-host")
-            preconditionFailure("Missing profile must throw")
-        } catch let error as CocoaError {
-            precondition(error.code == .fileReadNoSuchFile)
-        }
+        let missing = try await HostCommandProfile.load(file: file, host: "test-host")
+        precondition(missing.isEmpty, "Missing profile must be empty")
         try Data("invalid".utf8).write(to: file)
         do {
             _ = try await HostCommandProfile.load(file: file, host: "test-host")
