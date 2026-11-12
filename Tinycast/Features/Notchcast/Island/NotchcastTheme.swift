@@ -80,6 +80,19 @@ enum NotchcastTheme {
         static let dot = Theme.Size.colorDot
     }
 
+    enum Usage {
+        static let nameColumn: CGFloat = 150
+        static let windowColumn: CGFloat = 190
+        static let columnGap = Theme.Spacing.xl
+        static let lineGap = Theme.Spacing.xxs
+        static let bar = Theme.Spacing.xs
+        /// "100% left" at the value size, so the bars keep one length whatever the number.
+        static let percentColumn: CGFloat = 58
+        /// Under this share left a window takes the warning hue and a mark; at none, the error hue.
+        static let lowLeft = 20
+        static let staleOpacity = 0.5
+    }
+
     /// The two visualizers Damian chooses between: Orion's and Damian Tools'.
     enum Visualizer {
         static let height: CGFloat = 14
