@@ -1,7 +1,7 @@
 extension SystemNoticesModule: NotchcastRegistrant {
     static let shared = SystemNoticesModule()
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         [.init(requires: [.island, .systemNotices], module: shared)]
     }
 }

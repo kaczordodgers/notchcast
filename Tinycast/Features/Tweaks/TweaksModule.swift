@@ -6,7 +6,6 @@ final class TweaksModule: NotchcastModule {
     private(set) var running = false
     private let setupProfileRunner: TweakProfileRunner
     let store: TweaksStore
-    private weak var core: AppCore?
     private var stopping: Task<Void, Never>?
     private var wantsEnabled = false
     private let profileRunner: (Data, String) async throws -> Void
@@ -32,9 +31,8 @@ final class TweaksModule: NotchcastModule {
         })
     }
 
-    func configure(_ core: AppCore) {
-        self.core = core
-        if let journalFailure { core.showMessage(journalFailure) }
+    func configure() {
+        if let journalFailure { NotchcastHost.current.showMessage(journalFailure, .success) }
     }
     func start() {
         running = true
@@ -43,27 +41,27 @@ final class TweaksModule: NotchcastModule {
     }
 
     func setFeature(_ feature: NotchcastFeature, enabled: Bool) async {
-        guard let core, !store.busy else { return }
+        guard !store.busy else { return }
         if !enabled, !store.plans.isEmpty {
-            guard await core.confirm(title: feature.title,
-                message: String(localized: "Restore the captured preferences before disabling this feature?", table: "Notchcast"),
-                symbol: "arrow.uturn.backward", confirmTitle: String(localized: "Restore", table: "Notchcast")) else { return }
+            guard await NotchcastHost.current.confirm(feature.title,
+                String(localized: "Restore the captured preferences before disabling this feature?", table: "Notchcast"),
+                "arrow.uturn.backward", String(localized: "Restore", table: "Notchcast")) else { return }
         }
         preferences.set(feature, enabled)
     }
 
     func setSpotlight(enabled: Bool) async {
-        guard !spotlightBusy, let core else { return }
+        guard !spotlightBusy else { return }
         spotlightBusy = true
         defer { spotlightBusy = false }
         let feature = NotchcastFeature.spotlightOff
-        guard await core.confirm(title: feature.title, message: feature.subtitle,
-                                 symbol: "gearshape", confirmTitle: feature.title),
+        guard await NotchcastHost.current.confirm(feature.title, feature.subtitle,
+                                 "gearshape", feature.title),
               preferences.isOn(feature) != enabled else { return }
         do {
             _ = try await RootHelperClient().run(enabled ? .spotlightOff : .spotlightOn)
             preferences.set(feature, enabled)
-        } catch { core.showMessage(error.localizedDescription, tone: .danger) }
+        } catch { NotchcastHost.current.showMessage(error.localizedDescription, .danger) }
     }
 
     func stop() {
@@ -73,7 +71,7 @@ final class TweaksModule: NotchcastModule {
         guard stopping == nil else { return }
         stopping = Task { [weak self] in
             guard let self else { return }
-            do { try await store.stop() } catch { core?.showMessage(error.localizedDescription) }
+            do { try await store.stop() } catch { NotchcastHost.current.showMessage(error.localizedDescription, .success) }
             stopping = nil
             if wantsEnabled { store.start() }
         }
@@ -89,10 +87,10 @@ final class TweaksModule: NotchcastModule {
     }
 
     func showLibrary() async {
-        guard let core, store.enabled, !store.busy,
-              await core.confirm(title: String(localized: "Show library", table: "Notchcast"),
-                  message: String(localized: "Make your Library folder visible in Finder.", table: "Notchcast"),
-                  symbol: "folder", confirmTitle: String(localized: "Apply")), store.enabled else { return }
+        guard store.enabled, !store.busy,
+              await NotchcastHost.current.confirm(String(localized: "Show library", table: "Notchcast"),
+                  String(localized: "Make your Library folder visible in Finder.", table: "Notchcast"),
+                  "folder", String(localized: "Apply")), store.enabled else { return }
         do {
             try await store.apply("show-library") {
                 let home = FileManager.default.homeDirectoryForCurrentUser
@@ -100,22 +98,22 @@ final class TweaksModule: NotchcastModule {
                 return .init(entries: [], extraApply: [FinderCatalog.library(home: home, hidden: false)],
                              extraRevert: [FinderCatalog.library(home: home, hidden: hidden)])
             }
-        } catch { core.showMessage(error.localizedDescription) }
+        } catch { NotchcastHost.current.showMessage(error.localizedDescription, .success) }
     }
 
     func handOffProfile(_ restriction: AppleAppsPolicy.Restriction) async {
-        guard let core, store.enabled, !store.busy,
-              await core.confirm(title: String(localized: "Review configuration profile", table: "Notchcast"),
-                  message: String(localized:
+        guard store.enabled, !store.busy,
+              await NotchcastHost.current.confirm(String(localized: "Review configuration profile", table: "Notchcast"),
+                  String(localized:
                     "macOS requires your approval to install this restriction; remove it in System Settings.", table: "Notchcast"),
-                  symbol: "gearshape", confirmTitle: String(localized: "Open…")),
+                  "gearshape", String(localized: "Open…")),
               store.enabled else { return }
         do {
             let identifier = NotchcastIdentity.current.bundleID + "." + restriction.rawValue
             let data = try AppleAppsPolicy.profile([restriction], identifier: identifier,
                 profileUUID: UUID(), payloadUUID: UUID())
             try await profileRunner(data, identifier)
-        } catch { core.showMessage(error.localizedDescription) }
+        } catch { NotchcastHost.current.showMessage(error.localizedDescription, .success) }
     }
 
     @concurrent
@@ -129,16 +127,16 @@ final class TweaksModule: NotchcastModule {
 
     func set(_ identifier: String, writes: [TypingPreferencePlan.Write], on: Bool,
              title: String, subtitle: String, restart: String?) async {
-        guard let core, store.enabled, !store.busy,
-              await core.confirm(title: title, message: subtitle, symbol: "gearshape",
-                                 confirmTitle: String(localized: "Apply")),
+        guard store.enabled, !store.busy,
+              await NotchcastHost.current.confirm(title, subtitle, "gearshape",
+                                 String(localized: "Apply")),
               store.enabled, !Task.isCancelled else { return }
         do {
             try await store.set(identifier, writes: writes, on: on)
             if let restart, store.enabled {
                 try await Self.run([.init(executable: "/usr/bin/killall", arguments: [restart])])
             }
-        } catch { core.showMessage(error.localizedDescription) }
+        } catch { NotchcastHost.current.showMessage(error.localizedDescription, .success) }
     }
 
     @concurrent

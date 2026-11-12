@@ -1,7 +1,7 @@
 extension CopyPathModule: NotchcastRegistrant {
     static let shared = CopyPathModule()
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         [.init(requires: [.copyPath], module: shared)]
     }
 }

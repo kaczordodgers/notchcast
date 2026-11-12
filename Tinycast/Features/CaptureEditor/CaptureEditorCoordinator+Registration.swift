@@ -3,7 +3,7 @@ extension CaptureEditorCoordinator: NotchcastRegistrant {
         NotchcastHost.current.showMessage($0.localizedDescription, .danger)
     })
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         CaptureEditorWindowController.shared.attach(to: shared)
         return [.init(requires: [.captureEditor], module: shared)]
     }
