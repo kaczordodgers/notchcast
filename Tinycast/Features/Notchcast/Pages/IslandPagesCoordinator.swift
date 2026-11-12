@@ -7,6 +7,7 @@ final class IslandPagesCoordinator {
     private let refreshState = IslandPageRefresh()
     private var homeRevision = UUID()
     var headerFocus: Int?
+    private(set) var activePage: IslandPage?
     var pages: [IslandPage] { IslandPage.allCases.filter { $0.isAvailable } }
     @ObservationIgnored private let day: IslandDayPage
     @ObservationIgnored private let openSettings: () -> Void
@@ -38,6 +39,7 @@ final class IslandPagesCoordinator {
     #endif
 
     func didOpen(page: IslandPage) {
+        activePage = page
         headerFocus = nil
         cancelRefresh()
         if page == .day { day.reloadIfStale() }
@@ -46,6 +48,7 @@ final class IslandPagesCoordinator {
     }
 
     func didClose() {
+        activePage = nil
         cancelRefresh()
         headerFocus = nil
         day.clock.stop()

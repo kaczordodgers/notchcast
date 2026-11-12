@@ -6,17 +6,24 @@ final class AIUsageModule: NotchcastModule {
     private(set) var isRunning = false
     private(set) var snapshots: [AIUsageSnapshot] = []
     private(set) var gatewayDown = false
+    private(set) var isLoading = false
     private(set) var refreshedAt: Date?
     let otherMac: OtherMacUsageService
-    @ObservationIgnored private let provider: AIUsageProvider?
     @ObservationIgnored private let source: AIUsageSnapshotAdapter
     @ObservationIgnored private let preferences: NotchcastPreferences
+    @ObservationIgnored private let clock: () -> Date
     @ObservationIgnored private var generation = 0
     @ObservationIgnored private var refreshID: UUID?
     @ObservationIgnored private var lastGateway: String?
 
     var needsRefresh: Bool {
-        lastGateway != preferences.aiUsageGateway || (refreshedAt.map { Date.now.timeIntervalSince($0) > 60 } ?? true)
+        guard lastGateway == preferences.aiUsageGateway, let refreshedAt else { return true }
+        let now = clock()
+        return now.timeIntervalSince(refreshedAt) > 60 || snapshots.contains { snapshot in
+            snapshot.windows.contains { window in
+                window.resetsAt.map { refreshedAt < $0 && $0 <= now } ?? false
+            }
+        }
     }
 
     var peerStatus: String {
@@ -24,16 +31,16 @@ final class AIUsageModule: NotchcastModule {
     }
 
     init(
-        provider: AIUsageProvider? = nil,
         preferences: NotchcastPreferences = .shared,
-        channel: MachLinkChannel = MachLinkChannel()
+        channel: MachLinkChannel = MachLinkChannel(),
+        clock: @escaping () -> Date = { Date.now }
     ) {
-        self.provider = provider
         self.preferences = preferences
+        self.clock = clock
         let source = AIUsageSnapshotAdapter()
         self.source = source
         otherMac = OtherMacUsageService(source: source, channel: channel, clock: { Date() })
-        channel.registerUsageRoute(provider: provider, preferences: preferences)
+        channel.registerUsageRoute(source: source, preferences: preferences)
     }
 
     func start() {
@@ -49,6 +56,7 @@ final class AIUsageModule: NotchcastModule {
         snapshots = []
         refreshedAt = nil
         gatewayDown = false
+        isLoading = false
         source.snapshots = []
         otherMac.configure(peerEnabled: false, providers: [])
     }
@@ -57,25 +65,20 @@ final class AIUsageModule: NotchcastModule {
         guard isRunning else { return }
         let request = UUID()
         refreshID = request
+        isLoading = true
+        defer { if refreshID == request { isLoading = false } }
         let operation = generation
         let gateway = preferences.aiUsageGateway
         do {
-            let values: [AIUsageSnapshot]
-            if let provider {
-                values = await provider.refresh()
-            } else {
-                values = try await AIUsageProvider.fetch(gateway: gateway, now: .now)
-            }
+            let values = try await AIUsageProvider.fetch(gateway: gateway, now: clock())
             try Task.checkCancellation()
             guard isRunning, generation == operation, refreshID == request,
                   preferences.aiUsageGateway == gateway else { return }
             snapshots = values
             source.snapshots = values
             gatewayDown = false
-            refreshedAt = .now
+            refreshedAt = clock()
             lastGateway = gateway
-            configurePeer()
-            try await otherMac.refresh()
         } catch {
             try Task.checkCancellation()
             guard isRunning, generation == operation, refreshID == request,

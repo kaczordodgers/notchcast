@@ -11,7 +11,7 @@ nonisolated enum MagpieQuotaDecoder {
         let name: String
         let alias: String?
         let plan: String?
-        let windows: [Window]
+        let windows: [WindowEntry]
         let readAt: Date
         let asOf: Date?
     }
@@ -20,6 +20,14 @@ nonisolated enum MagpieQuotaDecoder {
         let name: String
         let used: Double
         let resetsAt: Date?
+    }
+
+    private struct WindowEntry: Decodable {
+        let value: Window?
+
+        init(from decoder: any Decoder) {
+            value = try? Window(from: decoder)
+        }
     }
 
     static func decode(_ data: Data, now: Date) throws -> [AIUsageSnapshot] {
@@ -36,20 +44,18 @@ nonisolated enum MagpieQuotaDecoder {
         }
         let response = try decoder.decode(Response.self, from: data)
         guard response.object == "list" else { throw CocoaError(.coderReadCorrupt) }
-        return try response.data.enumerated().map { index, account in
-            let windows = try account.windows.enumerated().map { windowIndex, window in
-                guard window.used.isFinite, (0...100).contains(window.used) else {
-                    throw CocoaError(.coderReadCorrupt)
-                }
+        return response.data.enumerated().map { index, account in
+            let windows = account.windows.enumerated().compactMap { windowIndex, entry -> AIUsageSnapshot.Window? in
+                guard let window = entry.value, window.used.isFinite else { return nil }
                 return AIUsageSnapshot.Window(
                     id: String(windowIndex), label: window.name, used: window.used, limit: 100,
-                    resetsAt: window.resetsAt, durationMinutes: nil)
+                    resetsAt: window.resetsAt)
             }
             return AIUsageSnapshot(
                 providerID: account.provider, plan: account.plan, checkedAt: account.readAt,
                 status: account.asOf != nil || now.timeIntervalSince(account.readAt) > 15 * 60 ? .stale : .available,
                 windows: windows, accountID: "\(account.provider)-\(index)",
-                accountName: account.alias ?? account.name, asOf: account.asOf)
+                accountName: account.alias.flatMap { $0.isEmpty ? nil : $0 } ?? account.name, asOf: account.asOf)
         }
     }
 }

@@ -19,11 +19,13 @@ struct AIUsageAccount: Identifiable, Equatable {
 struct AIUsagePageView: View {
     enum Content: Equatable {
         case accounts([AIUsageAccount])
+        case loading
         case gatewayDown
     }
 
     let content: Content
     var now = Date.now
+    var isLive = false
     var onRetry: () -> Void = {}
     @Environment(\.metrics) private var metrics
     @Environment(\.islandHeaderHeight) private var headerHeight
@@ -31,7 +33,15 @@ struct AIUsagePageView: View {
 
     var body: some View {
         switch content {
+        case .accounts(let accounts) where accounts.isEmpty:
+            Text("No AI accounts available.", tableName: "Notchcast")
+                .foregroundStyle(NotchcastTheme.Colors.secondary)
+                .padding(metrics.spacing.xxl)
         case .accounts(let accounts): list(accounts)
+        case .loading:
+            Text("Loading AI accounts…", tableName: "Notchcast")
+                .foregroundStyle(NotchcastTheme.Colors.secondary)
+                .padding(metrics.spacing.xxl)
         case .gatewayDown: gatewayDown
         }
     }
@@ -39,7 +49,7 @@ struct AIUsagePageView: View {
     private func list(_ accounts: [AIUsageAccount]) -> some View {
         ScrollView {
             VStack(spacing: 0) {
-                ForEach(accounts) { AIUsageAccountRow(account: $0, now: now) }
+                ForEach(accounts) { AIUsageAccountRow(account: $0, now: now, isLive: isLive) }
             }
             .padding(metrics.spacing.md)
             .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { listHeight = $0 }
@@ -75,6 +85,7 @@ struct AIUsagePageView: View {
 private struct AIUsageAccountRow: View {
     let account: AIUsageAccount
     let now: Date
+    let isLive: Bool
     @Environment(\.metrics) private var metrics
 
     var body: some View {
@@ -97,12 +108,14 @@ private struct AIUsageAccountRow: View {
                 .lineLimit(1)
             }
             .frame(width: NotchcastTheme.Usage.nameColumn, alignment: .leading)
-            ForEach(account.windows, id: \.id) { window in
-                AIUsageWindowCell(window: window, now: now)
-                    .frame(width: NotchcastTheme.Usage.windowColumn)
-                    .opacity(stale ? NotchcastTheme.Usage.staleOpacity : 1)
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: NotchcastTheme.Usage.windowColumn),
+                                        spacing: NotchcastTheme.Usage.columnGap)],
+                      alignment: .leading, spacing: metrics.spacing.sm) {
+                ForEach(account.windows, id: \.id) { window in
+                    AIUsageWindowCell(window: window, readAt: account.readAt, now: now, isLive: isLive)
+                        .opacity(stale ? NotchcastTheme.Usage.staleOpacity : 1)
+                }
             }
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, metrics.spacing.md)
         .padding(.vertical, metrics.spacing.sm)
@@ -112,10 +125,13 @@ private struct AIUsageAccountRow: View {
 
 private struct AIUsageWindowCell: View {
     let window: AIUsageSnapshot.Window
+    let readAt: Date
     let now: Date
+    let isLive: Bool
     @Environment(\.metrics) private var metrics
+    @State private var resetNow: Date?
 
-    private var left: Int { window.percentLeft }
+    private var left: Int { window.percentLeft(at: resetNow ?? now, readAt: readAt) }
 
     /// Low and empty windows take a hue and a mark, so the warning never rests on colour alone.
     private var tone: (color: Color, symbol: String)? {
@@ -130,10 +146,12 @@ private struct AIUsageWindowCell: View {
                 Text(verbatim: window.label)
                     .foregroundStyle(NotchcastTheme.Colors.secondary)
                 Spacer(minLength: metrics.spacing.xs)
-                if let countdown = window.secondsUntilReset(at: now).map(AIUsageCountdown.text) {
-                    Text("resets in \(countdown)", tableName: "Notchcast")
-                        .monospacedDigit()
-                        .foregroundStyle(NotchcastTheme.Colors.tertiary)
+                if isLive, let reset = window.resetsAt, reset > Date.now {
+                    TimelineView(.periodic(from: .now, by: 1)) { context in
+                        countdown(at: context.date)
+                    }
+                } else {
+                    countdown(at: resetNow ?? now)
                 }
             }
             .font(NotchcastTheme.Typography.detail)
@@ -153,6 +171,23 @@ private struct AIUsageWindowCell: View {
                 .lineLimit(1)
                 .frame(minWidth: NotchcastTheme.Usage.percentColumn, alignment: .trailing)
             }
+        }
+        .task(id: isLive ? window.resetsAt : nil) {
+            resetNow = nil
+            guard isLive, let reset = window.resetsAt else { return }
+            let delay = reset.timeIntervalSinceNow
+            if delay > 0 { try? await Task.sleep(for: .seconds(delay)) }
+            guard !Task.isCancelled else { return }
+            resetNow = .now
+        }
+    }
+
+    @ViewBuilder private func countdown(at date: Date) -> some View {
+        if let seconds = window.secondsUntilReset(at: date) {
+            let countdown = AIUsageCountdown.text(seconds)
+            Text("resets in \(countdown)", tableName: "Notchcast")
+                .monospacedDigit()
+                .foregroundStyle(NotchcastTheme.Colors.tertiary)
         }
     }
 }
@@ -178,48 +213,16 @@ private struct AIUsageBar: View {
 }
 
 /// "2h 14m", "3d 4h", "41m": the two largest units, abbreviated in the user's language.
-private enum AIUsageCountdown {
-    static func text(_ seconds: TimeInterval) -> String {
+@MainActor private enum AIUsageCountdown {
+    private static let formatter: DateComponentsFormatter = {
         let formatter = DateComponentsFormatter()
         formatter.unitsStyle = .abbreviated
         formatter.maximumUnitCount = 2
+        return formatter
+    }()
+
+    static func text(_ seconds: TimeInterval) -> String {
         formatter.allowedUnits = seconds < 60 ? [.second] : [.day, .hour, .minute]
         return formatter.string(from: seconds) ?? ""
     }
 }
-
-#if DEBUG
-extension AIUsageAccount {
-    /// Eight accounts in Magpie's shape with every state on show: low, empty, cached, and windows with no reset.
-    static func samples(now: Date) -> [AIUsageAccount] {
-        func window(_ id: String, _ label: String, used: Double, resetsIn minutes: Double?) -> AIUsageSnapshot.Window {
-            AIUsageSnapshot.Window(id: id, label: label, used: used, limit: 100,
-                                   resetsAt: minutes.map { now.addingTimeInterval($0 * 60) }, durationMinutes: nil)
-        }
-        func claude(_ id: String, _ name: String, plan: String, _ used: (Double, Double, Double),
-                    readAt: Date? = nil, cached: Bool = false) -> AIUsageAccount {
-            AIUsageAccount(id: id, name: name, plan: plan, readAt: readAt ?? now, isCached: cached, windows: [
-                window("five-hour", "5 hours", used: used.0, resetsIn: 134),
-                window("seven-day", "7 days", used: used.1, resetsIn: 4_560),
-                window("seven-day-fable", "7 days · Fable", used: used.2, resetsIn: 4_560),
-            ])
-        }
-        return [
-            claude("ultra", "Claude Ultra", plan: "Max", (43, 88, 5)),
-            claude("team-1", "Claude Team #1", plan: "Team", (12, 34, 20)),
-            claude("team-2", "Claude Team #2", plan: "Team", (100, 71, 40)),
-            claude("team-3", "Claude Team #3", plan: "Team", (25, 50, 10),
-                   readAt: now.addingTimeInterval(-40 * 60), cached: true),
-            claude("team-4", "Claude Team #4", plan: "Team", (0, 9, 0)),
-            claude("team-5", "Claude Team #5", plan: "Team", (66, 58, 31)),
-            AIUsageAccount(id: "grok", name: "Grok", plan: "SuperGrok", readAt: now, windows: [
-                window("seven-day", "7 days", used: 30, resetsIn: nil),
-            ]),
-            AIUsageAccount(id: "codex", name: "Codex", plan: "Pro", readAt: now, windows: [
-                window("seven-day", "7 days", used: 62, resetsIn: 8_820),
-                window("images", "Image generation", used: 83, resetsIn: nil),
-            ]),
-        ]
-    }
-}
-#endif
