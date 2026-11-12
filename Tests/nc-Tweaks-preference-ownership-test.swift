@@ -37,3 +37,4 @@ struct PreferenceOwnershipTests {
         if !failures.isEmpty { exit(1) }
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

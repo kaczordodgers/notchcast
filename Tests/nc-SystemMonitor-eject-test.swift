@@ -113,3 +113,4 @@ struct DiskEjectTests {
 
     static func awaitResultIsNil(_ result: DiskEjectResult?) -> Bool { result == nil }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

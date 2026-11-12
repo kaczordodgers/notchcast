@@ -56,3 +56,4 @@ struct MachineSetupProfileTests {
         print("machine setup profile: PASS")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

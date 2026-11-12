@@ -276,3 +276,4 @@ private struct CountingRunner: AgentThreadRunning {
         print("PASS: observation receives synthetic source changes; start does no I/O; refresh awaits both sources")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

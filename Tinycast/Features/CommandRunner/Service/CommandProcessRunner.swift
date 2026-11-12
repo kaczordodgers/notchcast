@@ -5,10 +5,11 @@ enum CommandProcessRunner {
     static func run(_ request: CatalogShellCommandRunner.Request) async throws
         -> CatalogShellCommandRunner.Result
     {
+        let executable = URL(fileURLWithPath: request.executable)
         do {
             let result = try await ProcessRunner.run(.init(
-                executable: URL(fileURLWithPath: request.executable), arguments: request.arguments,
-                environment: DownloadToolLookup().environment,
+                executable: executable, arguments: request.arguments,
+                environment: ExecutableLocator.environment(running: executable),
                 directory: request.workingDirectory.map { URL(fileURLWithPath: $0) },
                 stderr: .capture(limit: 65_536), timeout: request.timeout,
                 stopLadder: .terminating(grace: .milliseconds(250)), stopsGroup: true,

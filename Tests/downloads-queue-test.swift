@@ -193,8 +193,10 @@ struct DownloadsQueueTest {
         let lookup = DownloadToolLookup(directories: [first, second], home: root, environment: ["SECRET": "omitted"])
         let reading = try await lookup.lookup(tool)
         expect(reading.path == first.appending(path: tool.name) && reading.version == "fixture 1.2", "lookup path and version")
-        expect(lookup.environment["SECRET"] == nil, "unrelated environment is excluded")
-        expect(lookup.environment["PATH"] == [first.path, second.path].joined(separator: ":"), "child PATH uses search folders")
+        let environment = lookup.environment(running: first.appending(path: tool.name))
+        expect(environment["SECRET"] == nil, "unrelated environment is excluded")
+        expect(environment["PATH"] == [first.path, "/opt/homebrew/bin", "/usr/local/bin", first.path, second.path]
+            .joined(separator: ":"), "Child PATH includes the executable directory and shared tool paths")
         let directories = ExecutableLocator.searchDirectories(home: root, path: "/custom/bin:/usr/local/bin:/bin:.")
         expect(directories.map(\.path) == ["/opt/homebrew/bin", "/usr/local/bin",
                                           root.appending(path: ".local/bin").path, "/custom/bin", "/bin"], "lookup order")

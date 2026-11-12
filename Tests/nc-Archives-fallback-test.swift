@@ -182,6 +182,7 @@ struct ArchivesFallbackTest {
         let script = #"""
         #!/usr/bin/python3
         import json, os, pathlib, signal, sys, time
+        assert os.environ['PATH'].split(':')[0] == str(pathlib.Path(sys.argv[0]).parent)
         args = sys.argv[1:]
         archive = pathlib.Path(args[-1])
         if pathlib.Path(sys.argv[0]).name == 'lsar':
@@ -315,3 +316,4 @@ struct ArchivesFallbackTest {
         print("PASS: real bsdtar, zstd→bsdtar and unar reject unsafe paths before extraction; staging cleaned")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

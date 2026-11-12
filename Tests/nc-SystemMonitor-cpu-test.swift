@@ -279,3 +279,4 @@ struct SystemMonitorCPUTests {
               + " | fan RPMs [\(fans)] | SMC initial/steady \(duration) ms")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

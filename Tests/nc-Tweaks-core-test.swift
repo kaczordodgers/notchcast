@@ -17,3 +17,4 @@ struct TweakCoreTests {
         print("PASS: tweaks profiles and shared models")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

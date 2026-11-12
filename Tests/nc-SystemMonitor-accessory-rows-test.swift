@@ -17,3 +17,4 @@ struct AccessoryRowsTests {
         print("6 passed, 0 failed; fake readings only")
     }
 }
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift

@@ -285,6 +285,7 @@ import Foundation
         let source = """
         #!/usr/bin/env node
         const fs = require('node:fs'), http = require('node:http');
+        if (process.env.PATH.split(':')[0] !== require('node:path').dirname(process.argv[1])) process.exit(9);
         const option = name => process.argv.find(arg => arg.startsWith(name + '='))?.split('=')[1];
         const root = option('--fixture-root'), owner = Number(option('--stop-with-process'));
         fs.writeFileSync(root + '/pid', String(process.pid));
