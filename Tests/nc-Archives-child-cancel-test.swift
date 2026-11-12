@@ -17,7 +17,8 @@ struct ArchiveChildCancelTest {
     static func main() async throws {
         let environment = try await ArchiveProcess.run(tool: URL(filePath: "/usr/bin/env"), arguments: [], captureOutput: true)
         require(String(bytes: environment.output, encoding: .utf8)?
-            .contains("PATH=/usr/bin:/opt/homebrew/bin:/usr/local/bin:") == true, "Archives use the shared executable environment")
+            .contains("PATH=/usr/bin:/opt/homebrew/bin:/usr/local/bin:") == true,
+            "Archives use the shared executable environment")
         try await streamingChecks()
         let progress = Mutex((calls: 0, active: false))
         _ = try await ArchiveProcess.run(tool: URL(fileURLWithPath: "/bin/sleep"), arguments: ["0.6"], progress: {
