@@ -7,28 +7,21 @@ final class UpdateRemoteCoordinator {
     private(set) var isRunning = false
     private(set) var progress = UpdateRemoteProgress()
     private(set) var result: UpdateRemoteProgress.Result?
-    @ObservationIgnored private let runner: any UpdateRemoteShellRunning
+    @ObservationIgnored private let runner: any RemoteShellRunning
     @ObservationIgnored private let scriptPath: String
     @ObservationIgnored private let post: @MainActor (String) -> Void
     @ObservationIgnored private var task: Task<Void, Never>?
     @ObservationIgnored private var operation = UUID()
 
-    init(runner: any UpdateRemoteShellRunning, scriptPath: String = "", post: @escaping @MainActor (String) -> Void) {
+    init(runner: any RemoteShellRunning, scriptPath: String = "", post: @escaping @MainActor (String) -> Void) {
         self.runner = runner
         self.scriptPath = scriptPath
         self.post = post
     }
 
-    static func arguments(alias: String, scriptPath: String = "") -> [String]? {
-        guard MachSSH.isValid(alias), !scriptPath.isEmpty
-        else { return nil }
-        return ["-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10", "--", alias,
-                "exec " + MachSSH.remotePath(scriptPath)]
-    }
-
     func start() {
         guard !isRunning else { return }
-        guard let arguments = Self.arguments(alias: runner.sshAlias, scriptPath: scriptPath) else {
+        guard MachSSH.isValid(runner.sshAlias), !scriptPath.isEmpty else {
             result = .unreachable
             post((MachSSH.isValid(runner.sshAlias) ? MachSSH.ConfigurationError.path : .address).localizedDescription)
             return
@@ -42,10 +35,13 @@ final class UpdateRemoteCoordinator {
             guard let self else { return }
             do {
                 try Task.checkCancellation()
-                let response = try await runner.run("/usr/bin/ssh", arguments: arguments) { [weak self] line in
+                let response = try await runner.ssh(command: "exec " + MachSSH.remotePath(scriptPath),
+                    options: ["-T", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10"]) { [weak self] output in
                     guard let self, self.operation == identity, !Task.isCancelled else { return }
-                    self.progress.consume(line)
-                    self.post(line)
+                    for line in output.split(separator: "\n") {
+                        self.progress.consume(String(line))
+                        self.post(String(line))
+                    }
                 }
                 guard operation == identity else { return }
                 if Task.isCancelled { finish(.cancelled) } else { finish(progress.result(status: response.status)) }
