@@ -10,8 +10,6 @@ final class PasteImageModule: NotchcastModule {
     private let tap: EventTapSubscription
     private let takes = OSAllocatedUnfairLock(initialState: false)
     private var activation: NotificationToken?
-    private var ticker: Task<Void, Never>?
-    private var changeCount: Int?
     var onFailure: (() -> Void)?
     private var work: Task<Void, Never>?
 
@@ -37,12 +35,12 @@ final class PasteImageModule: NotchcastModule {
             Task { @MainActor [weak self] in self?.paste() }
             return true
         }
-        frontmostChanged()
+        refresh()
         let center = NSWorkspace.shared.notificationCenter
         activation = NotificationToken(center.addObserver(
             forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in self?.frontmostChanged() }
+            Task { @MainActor in self?.refresh() }
         }, center: center)
     }
 
@@ -51,35 +49,13 @@ final class PasteImageModule: NotchcastModule {
         work?.cancel()
         work = nil
         tap.stop()
-        stopTicking()
-    }
-
-    private func stopTicking() {
-        ticker?.cancel()
-        ticker = nil
-        changeCount = nil
         takes.withLock { $0 = false }
     }
 
-    private func frontmostChanged() {
+    func refresh() {
         guard tap.isActive else { return }
-        stopTicking()
-        guard finderIsFrontmost() else { return }
-        ticker = Task { [weak self] in
-            while true {
-                do { try await Task.sleep(for: .milliseconds(500)) } catch { return }
-                guard !Task.isCancelled, let self else { return }
-                self.clipboardTick()
-            }
-        }
-        clipboardTick()
-    }
-
-    func clipboardTick() {
-        let board = NSPasteboard(name: pasteboard)
-        guard ticker != nil, board.changeCount != changeCount else { return }
-        changeCount = board.changeCount
-        let accepts = PasteImagePolicy.accepts(types: board.types?.map(\.rawValue) ?? [])
+        let types = NSPasteboard(name: pasteboard).types?.map(\.rawValue) ?? []
+        let accepts = finderIsFrontmost() && PasteImagePolicy.accepts(types: types)
         takes.withLock { $0 = accepts }
     }
 
