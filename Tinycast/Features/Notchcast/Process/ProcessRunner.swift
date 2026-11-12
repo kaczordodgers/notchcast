@@ -19,6 +19,7 @@ nonisolated enum ProcessRunner {
         var stopsGroup = false
         var outputTail: Int?
         var onLine: (@Sendable (String) -> Void)?
+        var onData: (@Sendable (Data) async throws -> Void)?
         var cleansGroupOnExit = false
     }
 
@@ -169,8 +170,8 @@ nonisolated enum ProcessRunner {
                 }
                 let stdoutFile = folder.appending(path: "out")
                 let stderrFile = folder.appending(path: "err")
-                let stdoutStream = request.outputTail != nil || request.onLine != nil
-                    ? ProcessOutputStream(limit: request.outputTail, onLine: request.onLine) : nil
+                let stdoutStream = request.outputTail != nil || request.onLine != nil || request.onData != nil
+                    ? ProcessOutputStream(limit: request.outputTail, onLine: request.onLine, onData: request.onData) : nil
                 let stderrStream = request.outputTail != nil && { if case .capture = request.stderr { true } else { false } }()
                     ? ProcessOutputStream(limit: request.outputTail) : nil
                 let stdout = try stdoutStream?.pipe.fileHandleForWriting ?? Self.create(stdoutFile)
@@ -211,7 +212,7 @@ nonisolated enum ProcessRunner {
                 let exit = try state.process.runObservingExit()
                 for stream in [stdoutStream, stderrStream].compactMap({ $0 }) {
                     try? stream.pipe.fileHandleForWriting.close()
-                    stream.start { self.state.withLock { $0.drainDeadline } }
+                    stream.start(deadline: { self.state.withLock { $0.drainDeadline } }, failed: { self.stop(.cancelled) })
                 }
                 if let timeout = request.timeout {
                     let timer = DispatchWorkItem { @Sendable in self.stop(.timedOut) }
@@ -226,6 +227,9 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard state.stop == nil, !state.drained else { return }
                 state.stop = reason
+                if request.onData != nil {
+                    state.drainDeadline = .now + (request.stopLadder.later.last?.after ?? .zero) + .milliseconds(250)
+                }
                 let pid = state.process.processIdentifier
                 let target = request.stopsGroup ? -pid : pid
                 kill(target, request.stopLadder.first)
@@ -241,6 +245,7 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard !state.drained else { return }
                 state.stop = .cancelled
+                state.drainDeadline = .now
                 let pid = state.process.processIdentifier
                 kill(request.stopsGroup ? -pid : pid, SIGKILL)
             }
@@ -248,17 +253,21 @@ nonisolated enum ProcessRunner {
 
         func drain() {
             state.withLock { state in
-                if request.stopsGroup, request.cleansGroupOnExit || state.stop != nil {
+                if request.stopsGroup, request.cleansGroupOnExit || (state.stop != nil && request.onData == nil) {
                     kill(-state.process.processIdentifier, SIGKILL)
                 }
-                state.drainDeadline = .now + .milliseconds(250)
+                if request.onData == nil { state.drainDeadline = .now + .milliseconds(250) }
             }
             stdoutStream?.wait()
             stderrStream?.wait()
+            if request.stopsGroup, request.onData != nil {
+                state.withLock { _ = kill(-$0.process.processIdentifier, SIGKILL) }
+            }
             state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() } }
         }
 
         func finish() throws -> Output {
+            if let error = stdoutStream?.error { throw error }
             let (stop, status, signaled) = state.withLock {
                 ($0.stop, $0.process.terminationStatus,
                  $0.process.terminationReason == .uncaughtSignal)
@@ -295,15 +304,20 @@ nonisolated final class ProcessOutputStream: Sendable {
     let pipe = Pipe()
     private let limit: Int?
     private let onLine: (@Sendable (String) -> Void)?
+    private let onData: (@Sendable (Data) async throws -> Void)?
+    private let failure = Mutex<(any Error)?>(nil)
     private let captured = Mutex(Data())
     private let readers = DispatchGroup()
 
-    init(limit: Int?, onLine: (@Sendable (String) -> Void)? = nil) {
+    init(limit: Int?, onLine: (@Sendable (String) -> Void)? = nil,
+         onData: (@Sendable (Data) async throws -> Void)? = nil) {
         self.limit = limit
         self.onLine = onLine
+        self.onData = onData
     }
     var data: Data { captured.withLock { $0 } }
-    func start(deadline: @escaping @Sendable () -> ContinuousClock.Instant?) {
+    var error: (any Error)? { failure.withLock { $0 } }
+    func start(deadline: @escaping @Sendable () -> ContinuousClock.Instant?, failed: @escaping @Sendable () -> Void) {
         readers.enter()
         Thread.detachNewThread { @Sendable in
             defer { self.readers.leave(); try? self.pipe.fileHandleForReading.close() }
@@ -319,8 +333,21 @@ nonisolated final class ProcessOutputStream: Sendable {
                 let count = Darwin.read(descriptor, &buffer, buffer.count)
                 if count < 0 && errno == EINTR { continue }
                 guard count > 0 else { break }
+                if let onData = self.onData {
+                    let chunk = Data(buffer.prefix(count))
+                    let consumed = DispatchSemaphore(value: 0)
+                    Task.detached {
+                        defer { consumed.signal() }
+                        do { try await onData(chunk) } catch {
+                            self.failure.withLock { $0 = error }
+                            failed()
+                        }
+                    }
+                    consumed.wait()
+                    if self.error != nil { break }
+                }
                 self.captured.withLock {
-                    $0.append(contentsOf: buffer.prefix(count))
+                    if self.onData == nil || self.limit != nil { $0.append(contentsOf: buffer.prefix(count)) }
                     if let limit = self.limit { Self.trim(&$0, limit: limit) }
                 }
                 if let onLine = self.onLine {
