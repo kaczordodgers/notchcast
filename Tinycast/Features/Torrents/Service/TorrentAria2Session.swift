@@ -6,8 +6,7 @@ import Foundation
 
     private let locator: any TorrentToolLocating
     private let stateDirectory: URL
-    private var process: Process?
-    private var exit: ProcessExit?
+    private var process: ProcessRunner.Running?
     private var client: TorrentRPCClient?
 
     var processIdentifier: Int32? { process?.processIdentifier }
@@ -20,13 +19,13 @@ import Foundation
 
     isolated deinit {
         client?.invalidate()
-        if let process, process.isRunning { kill(process.processIdentifier, SIGKILL) }
+        process?.terminate()
     }
 
     func terminate() {
         client?.invalidate()
         client = nil
-        if let process, process.isRunning { kill(process.processIdentifier, SIGKILL) }
+        process?.terminate()
     }
 
     func start(extraArguments: [String]) async throws {
@@ -38,15 +37,16 @@ import Foundation
         try Task.checkCancellation()
         let port = try Self.freePort()
         let secret = UUID().uuidString + UUID().uuidString
-        let child = Process()
-        child.executableURL = executable
-        child.arguments = Self.arguments(port: port, secret: secret, stateDirectory: stateDirectory,
-                                         extraArguments: extraArguments)
-        child.standardInput = FileHandle.nullDevice
-        child.standardOutput = FileHandle.nullDevice
-        child.standardError = FileHandle.nullDevice
+        var request = ProcessRunner.Request(executable: executable,
+            arguments: Self.arguments(port: port, secret: secret, stateDirectory: stateDirectory,
+                                      extraArguments: extraArguments),
+            environment: ProcessInfo.processInfo.environment,
+            directory: URL(fileURLWithPath: FileManager.default.currentDirectoryPath))
+        request.outputTail = 0
+        request.stopLadder = .interrupting(kill: .seconds(2))
+        let child: ProcessRunner.Running
         do {
-            exit = try child.runObservingExit()
+            child = try ProcessRunner.start(request)
         } catch {
             throw TorrentFailure.launchFailed
         }
@@ -106,17 +106,9 @@ import Foundation
         client?.invalidate()
         client = nil
         guard let child = process else { return }
-        let ladder = ProcessRunner.StopLadder.interrupting(kill: .seconds(2))
-        if child.isRunning { kill(child.processIdentifier, ladder.first) }
-        var waited = Duration.zero
-        for rung in ladder.later {
-            await Self.waitBriefly(child, for: rung.after - waited)
-            waited = rung.after
-            if child.isRunning { kill(child.processIdentifier, rung.signal) }
-        }
-        if let exit { await Self.reap(exit) }
+        child.cancel()
+        _ = try? await child.output()
         process = nil
-        exit = nil
     }
 
     static func arguments(port: UInt16, secret: String, stateDirectory: URL, extraArguments: [String]) -> [String] {
@@ -174,13 +166,4 @@ import Foundation
         let listeners = lines.filter { $0.hasPrefix("n") }
         return output.status == 0 && lines.contains("p\(pid)") && listeners == ["n127.0.0.1:\(port)"]
     }
-
-    private static func waitBriefly(_ process: Process, for duration: Duration) async {
-        let deadline = ContinuousClock.now + duration
-        while process.isRunning, ContinuousClock.now < deadline {
-            do { try await Task.sleep(for: .milliseconds(100)) } catch { break }
-        }
-    }
-
-    @concurrent private static func reap(_ exit: ProcessExit) async { exit.wait() }
 }
