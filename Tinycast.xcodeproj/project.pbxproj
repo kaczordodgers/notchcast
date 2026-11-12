@@ -106,7 +106,6 @@
 		0B6F8887E335508D57003126 /* ScreenTextResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E8F3D14F3FEC7A976F612F /* ScreenTextResult.swift */; };
 		0B9C941402B85C69A33200C2 /* UninstallProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A48095F6487DEE76663F88 /* UninstallProtection.swift */; };
 		0BAD7435DED1450EEBAECD92 /* MarkdownFilesDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25636BA454BEEC3FAF34E168 /* MarkdownFilesDescriptor.swift */; };
-		0BE48E73B2C43F83CA5F5E36 /* UpdateRemoteShellRunning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B66CAFDEA5578FB6E9E23F /* UpdateRemoteShellRunning.swift */; };
 		0C1CACEF014462D3F581CE54 /* EmojiSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B42664C60B760276FBAAD61 /* EmojiSettingsView.swift */; };
 		0C5A029ACFA4850B3D30689B /* TypingTweaksDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1F1C09BD2EE9C6A0678EBC /* TypingTweaksDescriptor.swift */; };
 		0C634C93A8A30A18C63C1329 /* ColorPickerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10E1A7A7678DF83871CCFBB /* ColorPickerDescriptor.swift */; };
@@ -2518,7 +2517,6 @@
 		20F0D01B8B9E54D3C2FDC9F7 /* AIUsageSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIUsageSnapshot.swift; sourceTree = "<group>"; };
 		20F281D0AD946F83FA85D0FF /* ScreenshotRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotRequest.swift; sourceTree = "<group>"; };
 		214881AB623CD50455D6892C /* CleanHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanHistoryEntry.swift; sourceTree = "<group>"; };
-		21B66CAFDEA5578FB6E9E23F /* UpdateRemoteShellRunning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateRemoteShellRunning.swift; sourceTree = "<group>"; };
 		21C13EC38CAAF82D9B6A5F34 /* CalcQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcQuestion.swift; sourceTree = "<group>"; };
 		21E677A6C2D10B5F61FDC5FC /* TweaksSettingRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweaksSettingRows.swift; sourceTree = "<group>"; };
 		220CECFE780E8BE18FAE0A1C /* ExtensionGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionGridLayout.swift; sourceTree = "<group>"; };
@@ -8333,7 +8331,6 @@
 				6D87CB2E2D6F7E5348EE44C3 /* UpdateRemote.xcstrings */,
 				6513EA053511215F55F5E336 /* UpdateRemoteCoordinator.swift */,
 				4DED1964CA1F02325C693F73 /* UpdateRemoteProgress.swift */,
-				21B66CAFDEA5578FB6E9E23F /* UpdateRemoteShellRunning.swift */,
 			);
 			path = UpdateRemote;
 			sourceTree = "<group>";
@@ -12616,7 +12613,6 @@
 				B84A8E79EDAAC930A503EE4D /* UpdateRemoteDescriptor.swift in Sources */,
 				8B04621B5B018F01049A224F /* UpdateRemoteModule.swift in Sources */,
 				E0BD4D34463C8B2C841E34BA /* UpdateRemoteProgress.swift in Sources */,
-				0BE48E73B2C43F83CA5F5E36 /* UpdateRemoteShellRunning.swift in Sources */,
 				3F570FCA0BCB9E0C5CFAB0D2 /* UpdateSignature.swift in Sources */,
 				3F712A8D4E094AFA18162768 /* UrlCleanerDescriptor.swift in Sources */,
 				5FC53F9968A5DFF24CD109DD /* VisibilityStore.swift in Sources */,
