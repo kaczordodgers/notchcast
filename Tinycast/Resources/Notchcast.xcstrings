@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Magpie isn't running" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Magpie läuft nicht"}},"es":{"stringUnit":{"state":"translated","value":"Magpie no está en ejecución"}},"fr":{"stringUnit":{"state":"translated","value":"Magpie n’est pas en cours d’exécution"}},"ja":{"stringUnit":{"state":"translated","value":"Magpieは起動していません"}},"ko":{"stringUnit":{"state":"translated","value":"Magpie가 실행 중이 아닙니다"}},"pt":{"stringUnit":{"state":"translated","value":"O Magpie não está em execução"}},"ru":{"stringUnit":{"state":"translated","value":"Magpie не запущен"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"Magpie 未运行"}}}},
+    "Start Magpie to see how much of each AI account is left." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Starte Magpie, um das verbleibende Kontingent jedes KI-Kontos zu sehen."}},"es":{"stringUnit":{"state":"translated","value":"Inicia Magpie para ver la cuota restante de cada cuenta de IA."}},"fr":{"stringUnit":{"state":"translated","value":"Lancez Magpie pour voir le quota restant de chaque compte d’IA."}},"ja":{"stringUnit":{"state":"translated","value":"Magpieを起動すると、各AIアカウントの残り容量を確認できます。"}},"ko":{"stringUnit":{"state":"translated","value":"각 AI 계정의 남은 할당량을 보려면 Magpie를 시작하세요."}},"pt":{"stringUnit":{"state":"translated","value":"Inicie o Magpie para ver a cota restante de cada conta de IA."}},"ru":{"stringUnit":{"state":"translated","value":"Запустите Magpie, чтобы увидеть остаток квоты каждого аккаунта ИИ."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"启动 Magpie 以查看每个 AI 账户的剩余额度。"}}}},
+    "as of %@" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Stand %@"}},"es":{"stringUnit":{"state":"translated","value":"a las %@"}},"fr":{"stringUnit":{"state":"translated","value":"à %@"}},"ja":{"stringUnit":{"state":"translated","value":"%@時点"}},"ko":{"stringUnit":{"state":"translated","value":"%@ 기준"}},"pt":{"stringUnit":{"state":"translated","value":"às %@"}},"ru":{"stringUnit":{"state":"translated","value":"на %@"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"截至 %@"}}}},
+    "resets in %@" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Reset in %@"}},"es":{"stringUnit":{"state":"translated","value":"se restablece en %@"}},"fr":{"stringUnit":{"state":"translated","value":"réinitialisation dans %@"}},"ja":{"stringUnit":{"state":"translated","value":"%@後にリセット"}},"ko":{"stringUnit":{"state":"translated","value":"%@ 후 초기화"}},"pt":{"stringUnit":{"state":"translated","value":"redefine em %@"}},"ru":{"stringUnit":{"state":"translated","value":"сброс через %@"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"%@后重置"}}}},
+    "Loading AI accounts…" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"KI-Konten werden geladen…"}},"es":{"stringUnit":{"state":"translated","value":"Cargando cuentas de IA…"}},"fr":{"stringUnit":{"state":"translated","value":"Chargement des comptes d’IA…"}},"ja":{"stringUnit":{"state":"translated","value":"AIアカウントを読み込み中…"}},"ko":{"stringUnit":{"state":"translated","value":"AI 계정 불러오는 중…"}},"pt":{"stringUnit":{"state":"translated","value":"Carregando contas de IA…"}},"ru":{"stringUnit":{"state":"translated","value":"Загрузка аккаунтов ИИ…"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"正在加载 AI 账户…"}}}},
+    "No AI accounts available." : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Keine KI-Konten verfügbar."}},"es":{"stringUnit":{"state":"translated","value":"No hay cuentas de IA disponibles."}},"fr":{"stringUnit":{"state":"translated","value":"Aucun compte d’IA disponible."}},"ja":{"stringUnit":{"state":"translated","value":"利用可能なAIアカウントはありません。"}},"ko":{"stringUnit":{"state":"translated","value":"사용 가능한 AI 계정이 없습니다."}},"pt":{"stringUnit":{"state":"translated","value":"Nenhuma conta de IA disponível."}},"ru":{"stringUnit":{"state":"translated","value":"Нет доступных аккаунтов ИИ."}},"zh-Hans":{"stringUnit":{"state":"translated","value":"没有可用的 AI 账户。"}}}},
     "Edit Capture" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Aufnahme bearbeiten"}},"es":{"stringUnit":{"state":"translated","value":"Editar captura"}},"fr":{"stringUnit":{"state":"translated","value":"Modifier la capture"}},"ja":{"stringUnit":{"state":"translated","value":"キャプチャを編集"}},"ko":{"stringUnit":{"state":"translated","value":"캡처 편집"}},"pt":{"stringUnit":{"state":"translated","value":"Editar captura"}},"ru":{"stringUnit":{"state":"translated","value":"Редактировать снимок"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"编辑截图"}}}},
     "Arrow" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Pfeil"}},"es":{"stringUnit":{"state":"translated","value":"Flecha"}},"fr":{"stringUnit":{"state":"translated","value":"Flèche"}},"ja":{"stringUnit":{"state":"translated","value":"矢印"}},"ko":{"stringUnit":{"state":"translated","value":"화살표"}},"pt":{"stringUnit":{"state":"translated","value":"Seta"}},"ru":{"stringUnit":{"state":"translated","value":"Стрелка"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"箭头"}}}},
     "Rectangle" : {"localizations":{"de":{"stringUnit":{"state":"translated","value":"Rechteck"}},"es":{"stringUnit":{"state":"translated","value":"Rectángulo"}},"fr":{"stringUnit":{"state":"translated","value":"Rectangle"}},"ja":{"stringUnit":{"state":"translated","value":"長方形"}},"ko":{"stringUnit":{"state":"translated","value":"사각형"}},"pt":{"stringUnit":{"state":"translated","value":"Retângulo"}},"ru":{"stringUnit":{"state":"translated","value":"Прямоугольник"}},"zh-Hans":{"stringUnit":{"state":"translated","value":"矩形"}}}},
@@ -2645,56 +2651,16 @@
         }
       }
     },
-    "AI usage cache directory" : {
+    "Magpie gateway" : {
       "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cacheverzeichnis der KI-Nutzung"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Directorio de caché de uso de IA"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dossier du cache d’utilisation de l’IA"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI使用状況キャッシュのディレクトリ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 사용량 캐시 디렉터리"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Diretório de cache de uso de IA"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Каталог кэша использования ИИ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "AI 用量缓存目录"
-          }
-        }
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "Magpie-Gateway" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Puerta de enlace de Magpie" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Passerelle Magpie" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "Magpieゲートウェイ" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "Magpie 게이트웨이" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Gateway do Magpie" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Шлюз Magpie" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Magpie 网关" } }
       }
     },
     "AI usage cache directory is not configured." : {
@@ -38757,6 +38723,18 @@
             "value" : "显示设备"
           }
         }
+      }
+    },
+    "Show Island AI Usage" : {
+      "localizations" : {
+        "de" : { "stringUnit" : { "state" : "translated", "value" : "KI-Nutzung im Island anzeigen" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar uso de IA en la isla" } },
+        "fr" : { "stringUnit" : { "state" : "translated", "value" : "Afficher l’utilisation de l’IA dans l’îlot" } },
+        "ja" : { "stringUnit" : { "state" : "translated", "value" : "アイランドのAI使用状況を表示" } },
+        "ko" : { "stringUnit" : { "state" : "translated", "value" : "아일랜드 AI 사용량 표시" } },
+        "pt" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar uso de IA na ilha" } },
+        "ru" : { "stringUnit" : { "state" : "translated", "value" : "Показать использование ИИ в островке" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "显示灵动岛 AI 用量" } }
       }
     },
     "Show Island Day" : {

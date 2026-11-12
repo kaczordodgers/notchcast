@@ -61,11 +61,13 @@ enum ForkSettingsBackupService {
     }
 
     @concurrent
-    static func save(_ data: Data, folder: URL, day: Int) async throws {
+    @discardableResult
+    static func save(_ data: Data, folder: URL, day: Int, replacing: Bool = false) async throws -> Bool {
         try Task.checkCancellation()
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         let destination = folder.appendingPathComponent("settings-v2-\(day).plist")
-        guard !FileManager.default.fileExists(atPath: destination.path) else { return }
+        guard replacing || !FileManager.default.fileExists(atPath: destination.path) else { return false }
         try data.write(to: destination, options: .atomic)
+        return true
     }
 }

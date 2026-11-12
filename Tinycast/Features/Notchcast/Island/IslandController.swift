@@ -107,8 +107,9 @@ final class IslandController: NotchcastModule {
         if openPanel !== panels[index] { openPanel?.setOpen(false, animated: true) }
         openPanel = panels[index]
         openedAt = ProcessInfo.processInfo.systemUptime
-        let target = wasOpen ? page : page.landingPage(
-            hasLiveActivities: hasLiveActivities && NotchcastPreferences.shared.isOn(.islandLiveActivities))
+        let target = page.landingPage(
+            hasLiveActivities: wasOpen || (hasLiveActivities && NotchcastPreferences.shared.isOn(.islandLiveActivities)),
+            isAvailable: page.isAvailable)
         let changedPage = self.page != target
         self.page = target
         input.open()
@@ -137,7 +138,7 @@ final class IslandController: NotchcastModule {
     }
 
     func selectPage(_ page: IslandPage) {
-        guard isOpen, self.page != page else { return }
+        guard isOpen, self.page != page, page.isAvailable else { return }
         self.page = page
         pages?.didOpen(page: page)
     }

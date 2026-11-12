@@ -31,6 +31,7 @@ fix-mac-link linkQuickFixes
 generate-password smallCommands
 island-day island
 island-home island
+island-usage island
 katana-\(channel.title.lowercased()) katana
 keep-awake keepAwake
 machine-setup-profile machineSetupProfile
