@@ -1586,6 +1586,7 @@
 		BC9716CA233BCDC81B39C7D2 /* BatteryModule+Registration.swift in Sources */ = {isa = PBXBuildFile; fileRef = F977018B0EC4CE3877DA4C62 /* BatteryModule+Registration.swift */; };
 		BC9F41BFC48925D862B36B57 /* SoloistSystemEvents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF1FF1670A747607237E6C29 /* SoloistSystemEvents.swift */; };
 		BCA7E1C4BCF6F77634E54CA7 /* MeetingClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = 474E6D9830E336752C79F461 /* MeetingClock.swift */; };
+		BCC79336EF2E3CED5D372DFC /* NotchcastHost+Live.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4035C04A43ABA57834BBC1 /* NotchcastHost+Live.swift */; };
 		BD0B60F4203FD2D852377CD1 /* WindowSwitchCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08BB552C55576C43EBC8177C /* WindowSwitchCoordinator.swift */; };
 		BD0C138940A1B20828610D05 /* DictionarySession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53E2A503ABA6A28E229C6FD6 /* DictionarySession.swift */; };
 		BD0D91ADFEC096476788939C /* WindowManagementSettingsFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 487E7A6C4F2366E135B9A5E7 /* WindowManagementSettingsFile.swift */; };
@@ -1731,6 +1732,7 @@
 		CF45C7540666EDB299A4BDFC /* DayMarketsPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 468F66DE6BF8BC6A5EB6DCD6 /* DayMarketsPolicy.swift */; };
 		CF59A1D1C7FE76558B638460 /* ExtensionSearchAccessory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FBBC69BC9727C5E3FE77120 /* ExtensionSearchAccessory.swift */; };
 		CF8F02DF46B5E44017E4EEA5 /* MacUpdatePlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117BFA286F70BF1BC6876DDC /* MacUpdatePlan.swift */; };
+		CF9E1B1388C0BF2A2E6A2069 /* MagpieGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7451A4958C5933C7F0D3E0E /* MagpieGateway.swift */; };
 		CFA094CC7C889075A7CC59CB /* PlainPasteModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3BD55A6C34631BD313A05CB /* PlainPasteModule.swift */; };
 		CFAB7F24931229F9C5FDD0C6 /* TweakProfileCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8D8175122E1156E630F7CBA /* TweakProfileCommands.swift */; };
 		CFAC92920F69461FA653AEDA /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB44DCF1B6B9C9846CFB053D /* CameraView.swift */; };
@@ -2790,6 +2792,7 @@
 		3E81B4C409EBB4D3D0DECD47 /* CalcGrowth.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcGrowth.swift; sourceTree = "<group>"; };
 		3E93C0AAEF10EEEF6F67FA0F /* RemoteFanRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteFanRequest.swift; sourceTree = "<group>"; };
 		3EFEEE7AAC2C81B612381A6C /* TorrentJob+Presentation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TorrentJob+Presentation.swift"; sourceTree = "<group>"; };
+		3F4035C04A43ABA57834BBC1 /* NotchcastHost+Live.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "NotchcastHost+Live.swift"; sourceTree = "<group>"; };
 		3FCA6A3F125163DD10E56564 /* ChatCitations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCitations.swift; sourceTree = "<group>"; };
 		3FD57D9B2C6C46B5ADDDE173 /* MCPHTTPTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MCPHTTPTransport.swift; sourceTree = "<group>"; };
 		3FE591549F24AE554C13CD0C /* FavoriteSlots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoriteSlots.swift; sourceTree = "<group>"; };
@@ -3932,6 +3935,7 @@
 		C5E81315D562CC67B1D02B36 /* AgentConfirmationAuthorization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AgentConfirmationAuthorization.swift; sourceTree = "<group>"; };
 		C6D3097A511CBA0F5EB0BE9F /* NotchcastLauncherPlacement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotchcastLauncherPlacement.swift; sourceTree = "<group>"; };
 		C72BE86418ADB42DB0200628 /* ArchiveJob.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveJob.swift; sourceTree = "<group>"; };
+		C7451A4958C5933C7F0D3E0E /* MagpieGateway.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MagpieGateway.swift; sourceTree = "<group>"; };
 		C794B42BC4C230797CEFE0A9 /* RemoteScreenState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteScreenState.swift; sourceTree = "<group>"; };
 		C7B3FC48B58E1005453E7E18 /* Snippet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Snippet.swift; sourceTree = "<group>"; };
 		C7C0F66A568B254D17C11355 /* LocalizedResource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizedResource.swift; sourceTree = "<group>"; };
@@ -7858,6 +7862,7 @@
 		93AE5939BC0CDD7EFA84FD2B /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				C7451A4958C5933C7F0D3E0E /* MagpieGateway.swift */,
 				5C7004E044C21FBE331A4AFF /* NotchcastBackupKeys.swift */,
 				029E778D787F1C312F783D63 /* NotchcastCore.swift */,
 				BA6B5EA9794CA8166E8239DC /* NotchcastCore+Modules.swift */,
@@ -7869,6 +7874,7 @@
 				1A4375F32CE5EF93414F2530 /* NotchcastFeature+Descriptor.swift */,
 				677F8A0FC830078693198CFD /* NotchcastFeature+SettingsGroup.swift */,
 				93C6A949962533938E049470 /* NotchcastHost.swift */,
+				3F4035C04A43ABA57834BBC1 /* NotchcastHost+Live.swift */,
 				86C0E70DD1F4F75084F2D9B2 /* NotchcastIdentity.swift */,
 				15733D0EB12E73FF910893E5 /* NotchcastKeyMonitor.swift */,
 				E62C614AFCF22DEB2C7B5BF8 /* NotchcastModule.swift */,
@@ -11836,6 +11842,7 @@
 				E0C98D601C5E8EE1E95F0524 /* MachineSetupProfileProcessExecutor+Live.swift in Sources */,
 				A3D5CE8403BC42E963E9A500 /* MachineSetupProfileProcessExecutor.swift in Sources */,
 				F106F9BB6291B7325EC8D480 /* MachineSetupProfileRunner.swift in Sources */,
+				CF9E1B1388C0BF2A2E6A2069 /* MagpieGateway.swift in Sources */,
 				88CB10D015149DFAB1EA755E /* MagpieQuotaDecoder.swift in Sources */,
 				5188C7DF4F18DAA7227715F8 /* MarkdownBlock.swift in Sources */,
 				1E0A1B1B84673EF39871842C /* MarkdownCodeView.swift in Sources */,
@@ -11992,6 +11999,7 @@
 				EE04546FF29B2D82D750FA13 /* NotchcastGrantsSection.swift in Sources */,
 				DC1E8A5BEC74C98AC5E53AF9 /* NotchcastHidden+Tabs.swift in Sources */,
 				69A46A511381273B00153D07 /* NotchcastHidden.swift in Sources */,
+				BCC79336EF2E3CED5D372DFC /* NotchcastHost+Live.swift in Sources */,
 				F8DC6D2F99A9DEB7D8451E14 /* NotchcastHost.swift in Sources */,
 				72EF71D19E73C5C31FF7811B /* NotchcastIdentity.swift in Sources */,
 				A434E3F9D093A781F18CA055 /* NotchcastKeyMonitor.swift in Sources */,
