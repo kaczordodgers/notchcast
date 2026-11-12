@@ -1,3 +1,4 @@
+import AppKit
 import Darwin
 import Foundation
 import Synchronization
@@ -21,6 +22,7 @@ nonisolated enum ProcessRunner {
         var onLine: (@Sendable (String) -> Void)?
         var onData: (@Sendable (Data) async throws -> Void)?
         var cleansGroupOnExit = false
+        var killsOnQuit = false
     }
 
     /// The signals a stopped child gets: `first` at once, each later one at its delay from the stop.
@@ -134,6 +136,7 @@ nonisolated enum ProcessRunner {
             var timers: [DispatchWorkItem] = []
             var drained = false
             var drainDeadline: ContinuousClock.Instant?
+            var termination: NotificationToken?
         }
 
         private let request: Request
@@ -209,6 +212,12 @@ nonisolated enum ProcessRunner {
 
         func launch() throws -> ProcessExit {
             try state.withLock { state in
+                if request.killsOnQuit {
+                    let center = NotificationCenter.default
+                    state.termination = NotificationToken(center.addObserver(
+                        forName: NSApplication.willTerminateNotification, object: nil, queue: nil
+                    ) { [weak self] _ in self?.terminate() }, center: center)
+                }
                 let exit = try state.process.runObservingExit()
                 for stream in [stdoutStream, stderrStream].compactMap({ $0 }) {
                     try? stream.pipe.fileHandleForWriting.close()
@@ -284,7 +293,10 @@ nonisolated enum ProcessRunner {
         }
 
         func dispose() {
-            state.withLock { state in state.timers.forEach { $0.cancel() } }
+            state.withLock { state in
+                state.termination = nil
+                state.timers.forEach { $0.cancel() }
+            }
             for handle in handles { try? handle.close() }
             try? FileManager.default.removeItem(at: folder)
         }

@@ -1,4 +1,5 @@
 // notchcast-sources: Tinycast/Features/Clean/CleanTool.swift Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Features/Clean/Model/CleanOptimizeRequest.swift
 import Darwin
 import Foundation

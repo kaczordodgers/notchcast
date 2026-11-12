@@ -1,6 +1,8 @@
 // notchcast-sources: Tinycast/Features/Notchcast/Process/ProcessRunner.swift
+// notchcast-sources: Tinycast/Platform/NotificationToken.swift
 // notchcast-sources: Tinycast/Platform/ProcessExit.swift Tinycast/Platform/ExecutableLocator.swift
 
+import AppKit
 import Darwin
 import Foundation
 import Synchronization
@@ -97,6 +99,20 @@ struct ProcessRunnerTest {
         let echo = try await ProcessRunner.run(request("/bin/echo", ["hello"]))
         check(echo.status == 0 && echo.stdout == Data("hello\n".utf8) && echo.stderr.isEmpty)
         check((try await ProcessRunner.run(request("/usr/bin/true"))).status == 0)
+
+        var quit = request("/bin/sleep", ["30"])
+        let kept = try ProcessRunner.start(quit)
+        quit.killsOnQuit = true
+        quit.timeout = .seconds(1)
+        let stopped = try ProcessRunner.start(quit)
+        NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+        let quitError = await failure { try await stopped.output() }
+        let keptRunning = kept.isRunning
+        kept.cancel()
+        _ = await failure { try await kept.output() }
+        check(quitError is CancellationError)
+        check(keptRunning)
+        print("PASS: shared quit supervision is opt-in and reaps the child")
 
         var failing = request("/bin/sh", ["-c", "echo out; echo err >&2; exit 3"])
         failing.stderr = .capture(limit: .max)
