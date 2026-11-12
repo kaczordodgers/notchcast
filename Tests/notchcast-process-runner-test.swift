@@ -154,6 +154,10 @@ struct ProcessRunnerTest {
         let cancelled = Task { try await ProcessRunner.run(request("/bin/echo", ["never"])) }
         cancelled.cancel()
         check((await failure { try await cancelled.value }) is CancellationError)
+        let drained = try ProcessRunner.start(request("/bin/echo", ["late"]))
+        _ = try await drained.output()
+        let late = Task { withUnsafeCurrentTask { $0?.cancel() }; return try await drained.output() }
+        check((await failure { try await late.value }) is CancellationError)
 
         let blocking = try ProcessRunner.runBlocking(request("/bin/echo", ["sync"]))
         check(blocking.status == 0 && blocking.stdout == Data("sync\n".utf8))
