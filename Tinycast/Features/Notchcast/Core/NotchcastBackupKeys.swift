@@ -9,7 +9,6 @@ extension NotchcastFeature.BackupKeys {
         .fanControl,
         .liveTimers,
         .quitProtection,
-        .eventReminder,
         .dayWeather,
         .dayMarkets,
         .screenText,
