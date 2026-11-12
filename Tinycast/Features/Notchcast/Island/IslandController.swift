@@ -10,7 +10,7 @@ final class IslandController: NotchcastModule {
     private var input = IslandInputState()
     var isOpen: Bool { input.isOpen }
     var isPinned: Bool { input.isPinned }
-    private(set) var commandsAvailable = false
+    var commandsAvailable = false
     private(set) var hasKeyboardFocus = false
     var hasLiveActivities = false
     /// A song that stands in for Now Playing; set only by the Debug build's live demo.
@@ -35,7 +35,6 @@ final class IslandController: NotchcastModule {
     @ObservationIgnored private var spaceObservation: NotificationToken?
     @ObservationIgnored private var hoverTask: Task<Void, Never>?
     @ObservationIgnored private var pages: IslandPagesCoordinator?
-    @ObservationIgnored private var setCommandAvailable: (Bool) -> Void = { _ in }
 
     func configurePages(_ core: AppCore) {
         guard pages == nil else { return }
@@ -44,10 +43,6 @@ final class IslandController: NotchcastModule {
         let pages = IslandPagesCoordinator(core: core, island: self)
         self.pages = pages
         openContent = AnyView(IslandPagesView().environment(self).environment(pages).environment(core.palette))
-        setCommandAvailable = { [weak self] available in
-            self?.commandsAvailable = available
-            NotchcastHost.current.refreshNotchcastCommands()
-        }
         setCommandAvailable(false)
     }
 
