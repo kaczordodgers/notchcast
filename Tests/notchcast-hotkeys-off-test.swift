@@ -8,18 +8,13 @@
 // notchcast-sources: Tinycast/Features/HotKeys/Service/HotKeyManager.swift
 // notchcast-sources: Tinycast/Platform/ASCIIKeyboardLayout.swift
 // notchcast-sources: Tests/[Hh]ot[Kk]ey*[Dd]ispatch*[Ff]ixtures.swift
-// notchcast-kit: core command
+// notchcast-kit: core command host
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/HotKeyManager+NotchcastCommands.swift
 import Carbon.HIToolbox
 import Foundation
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    var paletteCoordinator: AppCore { self }
-    var isVisible = false
-    func hidePalette(restoreFocus: Bool) {}
-}
+enum DialogTone {}
 extension NotchcastCommandCatalog {
     nonisolated(unsafe) static var all: [NotchcastCommand] = []
 }

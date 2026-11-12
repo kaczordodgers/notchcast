@@ -15,7 +15,7 @@ enum TweakProfileCommands {
 
     @MainActor
     private static func perform(_ feature: NotchcastFeature) async {
-        let core = AppCore.shared
+        let host = NotchcastHost.current
         let message = feature == .aiFeaturesOff
             ? String(localized: "Review a profile disabling all Apple intelligence features.", table: "Notchcast")
             : String(localized: "Review a profile disabling analytics, personalized ads, web results and suggestions.", table: "Notchcast")
@@ -23,11 +23,10 @@ enum TweakProfileCommands {
             try await TweakProfileCommandRunner.run(ai: feature == .aiFeaturesOff,
                 enabled: { NotchcastPreferences.shared.isOn(feature) },
                 confirm: {
-                    await core.confirm(title: feature.title, message: message,
-                        symbol: "gearshape", confirmTitle: String(localized: "Open…"))
+                    await host.confirm(feature.title, message, "gearshape", String(localized: "Open…"))
                 }, request: { kept, privacy in
                     _ = try await TweaksModule.shared.requestProfile(keepingAI: kept, privacy: privacy)
                 })
-        } catch { core.showMessage(error.localizedDescription) }
+        } catch { host.showMessage(error.localizedDescription, .success) }
     }
 }

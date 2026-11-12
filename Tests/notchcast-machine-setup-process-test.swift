@@ -1,6 +1,6 @@
 // notchcast-sources: Tinycast/Features/MachineSetupProfile/Model/*.swift Tinycast/Features/MachineSetupProfile/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachineSetupProfile/MachineSetupProfileCoordinator+Command.swift
-// notchcast-kit: command
+// notchcast-kit: command host
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
 // notchcast-sources: Tinycast/Platform/ExecutableLocator.swift
 import Foundation
@@ -9,6 +9,12 @@ import Foundation
 struct MachineSetupProcessTests {
     @MainActor
     static func main() async throws {
+        NotchcastHost.current.confirm = { _, _, _, _ in
+            fatalError("Confirmation is injected by the coordinator harness")
+        }
+        NotchcastHost.current.showMessage = { _, _ in
+            fatalError("Presentation is injected by the coordinator harness")
+        }
         NotchcastPreferences.shared.enabled = false
         let live = MachineSetupProfileProcessExecutor.live()
         let read = try live.process("/usr/bin/defaults", ["read", "com.apple.dock", "autohide"])
@@ -121,14 +127,4 @@ enum BackupActions {
     static func chooseJSONFile() -> URL? { nil }
 }
 
-@MainActor
-final class AppCore {
-    enum Tone { case success, danger }
-    static let shared = AppCore()
-    func confirm(title: String, message: String?, symbol: String?, confirmTitle: String) async -> Bool {
-        fatalError("Confirmation is injected by the coordinator harness")
-    }
-    func showMessage(_ message: String, tone: Tone) {
-        fatalError("Presentation is injected by the coordinator harness")
-    }
-}
+enum DialogTone { case success, danger }

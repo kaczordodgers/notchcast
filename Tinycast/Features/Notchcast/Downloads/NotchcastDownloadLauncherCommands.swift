@@ -73,7 +73,7 @@ enum NotchcastDownloadLauncherCommands {
     private static func perform(_ action: NotchcastDownloadCommands.Action) {
         guard isEnabled(action), let downloads, let distill else { return }
         start(action, with: NotchcastDownloadCommands(downloads: downloads, distill: distill, preferences: .shared,
-            status: { AppCore.shared.showMessage($0, tone: .danger) }))
+            status: { NotchcastHost.current.showMessage($0, .danger) }))
     }
 
     /// Each run reads links when invoked and queues its own; only a newer Run Distill replaces one.

@@ -1,13 +1,8 @@
-// notchcast-kit: core command
+// notchcast-kit: core command host
 // notchcast-sources: Tinycast/Features/Notchcast/Launcher/NotchcastCommandCatalog.swift
 import Foundation
 
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    var paletteCoordinator: AppCore { self }
-    var isVisible = false
-    func hidePalette(restoreFocus: Bool) {}
-}
+enum DialogTone {}
 extension NotchcastCommandCatalog {
     nonisolated(unsafe) static var all: [NotchcastCommand] = []
 }
@@ -31,6 +26,8 @@ extension NotchcastCommandCatalog {
         let preferences = NotchcastPreferences.shared
         let home = ProcessInfo.processInfo.environment["NC_SETTINGS_COMMANDS_HOME"]!
         precondition(NSHomeDirectory() == home, "preferences must stay in the throwaway home")
+        var dismissals = 0
+        NotchcastHost.current.dismissPalette = { dismissals += 1 }
         for owner in NotchcastFeature.allCases {
             let slug = owner.rawValue
             var command = NotchcastCommand(slug: slug, name: slug, sfSymbol: "test", feature: owner, run: { runs += 1 })
@@ -40,11 +37,20 @@ extension NotchcastCommandCatalog {
             precondition(!NotchcastCommandCatalog.isEnabled(command.id))
             let before = runs
             precondition(NotchcastCommandCatalog.dispatch(command.id, dismiss: { preconditionFailure() }))
+            NotchcastCommandCatalog.perform(command.id)
+            precondition(dismissals == 0, "a disabled command leaves the palette open")
             precondition(runs == before)
             preferences.set(owner, true)
             precondition(NotchcastCommandCatalog.isEnabled(command.id))
             precondition(NotchcastCommandCatalog.dispatch(command.id, dismiss: {}))
             precondition(runs == before + 1)
+            NotchcastCommandCatalog.perform(command.id)
+            precondition(dismissals == 1 && runs == before + 2)
+            command.keepsPalette = true
+            NotchcastCommandCatalog.all = [command]
+            NotchcastCommandCatalog.perform(command.id)
+            precondition(dismissals == 1 && runs == before + 3, "a palette command leaves the palette open")
+            dismissals = 0
             for dependency in owner.dependencies {
                 preferences.set(dependency, false)
                 precondition(!NotchcastCommandCatalog.isEnabled(command.id))
