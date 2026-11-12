@@ -40,7 +40,7 @@ import Synchronization
         }
         let pidFile = root.appending(path: "orphan")
         let orphaning = ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c",
-            #"sh -c 'trap "" TERM; sleep 30 & echo $! > "$1"; wait' test "$1" & sleep .1; exit 0"#, "test", pidFile.path])
+            #"sh -c 'trap "" TERM; sleep 30 & echo $! > "$1"; wait' test "$1" & while [ ! -s "$1" ]; do sleep .01; done; exit 0"#, "test", pidFile.path])
         let exited = try await orphaning.run()
         precondition(exited.status == 0)
         let orphan = Int32(try String(contentsOf: pidFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
@@ -63,12 +63,13 @@ import Synchronization
         precondition(signaled.status == 128 + SIGTERM)
         let progress = Mutex<MediaOutput.Progress?>(nil)
         let result = try await ChildProcess(executable: URL(filePath: "/bin/sh"), arguments: ["-c",
-            "printf 'MEDIA_PROGRESS 50 100 NA 10 5\\r'; printf '%s' \"$PROBE\"; pwd; exit 7"],
+            "printf 'MEDIA_PROGRESS 50 100 NA 10 5\\r'; printf '%s' \"$PROBE\"; printf oops >&2; pwd; exit 7"],
             environment: ["PROBE": "exact:"], workingDirectory: root).run { line in
                 if let value = MediaOutput.progress(line) { progress.withLock { $0 = value } }
             }
         precondition(result.status == 7 && result.output.contains("exact:/") && result.output.contains(root.lastPathComponent))
         precondition(progress.withLock { $0?.fraction } == 0.5)
+        precondition(result.errors.contains("oops"))
         let cancelled = ChildProcess(executable: URL(filePath: "/bin/echo"), arguments: ["never"])
         cancelled.cancel()
         do { _ = try await cancelled.run(); preconditionFailure("pre-cancel") } catch is CancellationError {}
