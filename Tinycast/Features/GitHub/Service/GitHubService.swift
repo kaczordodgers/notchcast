@@ -113,7 +113,7 @@ struct GitHubService: Sendable {
 
     private static let session: URLSession = {
         let configuration = NotchcastIdentity.sessionConfiguration()
-        return URLSession(configuration: configuration)
+        return URLSession(configuration: configuration, delegate: RedirectRefusal(), delegateQueue: nil)
     }()
 
     static func network(_ request: URLRequest) async throws -> (Data, HTTPURLResponse) {
