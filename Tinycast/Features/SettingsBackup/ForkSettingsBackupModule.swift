@@ -4,6 +4,7 @@ import Observation
 @MainActor @Observable
 final class ForkSettingsBackupModule: NotchcastModule {
     private(set) var failed = false
+    private var partialDay: Int?
     private var task: Task<Void, Never>?
 
     func start() {
@@ -15,11 +16,13 @@ final class ForkSettingsBackupModule: NotchcastModule {
                     let (values, skipped) = ForkSettingsBackupState.liveSnapshot()
                     let now = Date.now
                     let data = try ForkSettingsBackupEngine.encode(values, created: now)
-                    try await ForkSettingsBackupService.save(
+                    let day = Int(now.timeIntervalSince1970 / 86_400)
+                    let wrote = try await ForkSettingsBackupService.save(
                         data, folder: NotchcastIdentity.supportRoot.appendingPathComponent("fork-settings-backups"),
-                        day: Int(now.timeIntervalSince1970 / 86_400))
+                        day: day, replacing: partialDay == day)
                     guard !Task.isCancelled else { return }
-                    failed = !skipped.isEmpty
+                    if wrote { partialDay = skipped.isEmpty ? nil : day }
+                    failed = partialDay == day
                 } catch {
                     guard !Task.isCancelled else { return }
                     failed = true
