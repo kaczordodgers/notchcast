@@ -30,8 +30,11 @@ import Synchronization
             let task = Task { try await child.run { _ in ready.withLock { $0 = true } } }
             try await waitFor { ready.withLock { $0 } }
             let pid = Int32(try String(contentsOf: pidFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
-            if quit { NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil) }
-            else { child.cancel() }
+            if quit {
+                NotificationCenter.default.post(name: NSApplication.willTerminateNotification, object: nil)
+            } else {
+                child.cancel()
+            }
             do { _ = try await task.value; preconditionFailure("expected cancellation") } catch is CancellationError {}
             try await waitFor { kill(pid, 0) == -1 && errno == ESRCH }
         }
@@ -43,9 +46,11 @@ import Synchronization
         let orphan = Int32(try String(contentsOf: pidFile, encoding: .utf8).trimmingCharacters(in: .whitespacesAndNewlines))!
         try await waitFor { kill(orphan, 0) == -1 && errno == ESRCH }
         let escapedFile = root.appending(path: "escaped")
+        let detaching = "use POSIX; if (fork()==0) { setsid(); open F, '>', $ARGV[0] or die; "
+            + "print F $$; close F; sleep 30; exit; } "
+            + "while (!-s $ARGV[0]) { select undef,undef,undef,.01; }"
         let escaped = ChildProcess(executable: URL(filePath: "/usr/bin/perl"), arguments: ["-e",
-            #"use POSIX; if (fork()==0) { setsid(); open F, '>', $ARGV[0] or die; print F $$; close F; sleep 30; exit; } while (!-s $ARGV[0]) { select undef,undef,undef,.01; }"#,
-            escapedFile.path])
+            detaching, escapedFile.path])
         let started = ContinuousClock.now
         _ = try await escaped.run()
         let escapedPID = Int32(try String(contentsOf: escapedFile, encoding: .utf8))!
