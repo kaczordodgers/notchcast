@@ -13,7 +13,7 @@ esac
 STUB
 chmod +x "$scratch/bin/git"
 export ROOT="$root" PATH="$scratch/bin:$PATH"
-unset GITHUB_ACTIONS
+unset GITHUB_ACTIONS RUNNER_ENVIRONMENT
 for support in Command HotKey; do
     export CHANGED="Tests/Notchcast${support}HarnessSupport.swift"
     bash "$root/notchcast/changed-harnesses.sh" base head > "$scratch/selected"
@@ -32,3 +32,14 @@ export CHANGED="Tinycast/Features/Todo/TodoModule.swift"
 bash "$root/notchcast/changed-harnesses.sh" base head > "$scratch/selected"
 if grep -qx ExtensionTests "$scratch/selected"; then echo 'FAIL: an unrelated change selected ExtensionTests'; exit 1; fi
 echo 'PASS: unrelated upstream harnesses stay unselected'
+export CHANGED=Tests/nc-ScreenText-ocr-test.swift GITHUB_ACTIONS=true
+for runner in local self-hosted github-hosted; do
+    export RUNNER_ENVIRONMENT=$runner
+    bash "$root/notchcast/changed-harnesses.sh" base head > "$scratch/selected"
+    if [ "$runner" = github-hosted ]; then
+        if grep -qx nc-ScreenText-ocr-test "$scratch/selected"; then echo 'FAIL: hosted runner selected OCR'; exit 1; fi
+    else
+        grep -qx nc-ScreenText-ocr-test "$scratch/selected" || { echo "FAIL: $runner omitted OCR"; exit 1; }
+    fi
+done
+echo 'PASS: only GitHub-hosted runners omit VM-incompatible harnesses'

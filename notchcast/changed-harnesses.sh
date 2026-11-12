@@ -27,6 +27,6 @@ for path, inputs in harnesses():
     if str(path) in changed or touched:
         selected.add(name)
 # CI_SKIP_TESTS names what the hosted VM cannot run; a Mac runs them, and core always runs.
-skipped = set(os.environ['CI_SKIP_TESTS'].split()) if os.environ.get('GITHUB_ACTIONS') else set()
+skipped = set(os.environ['CI_SKIP_TESTS'].split()) if os.environ.get('RUNNER_ENVIRONMENT') == 'github-hosted' else set()
 print('\n'.join(sorted((selected - skipped) | {'notchcast-core-test'})))
 PY
