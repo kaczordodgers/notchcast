@@ -5,6 +5,7 @@ import Synchronization
 
 nonisolated enum ProcessRunner {
     struct Request: Sendable {
+        enum GroupCleanup: Sendable { case keepAfterExit, killBeforeDrain, drainThenKill }
         enum ErrorOutput: Sendable { case discard, capture(limit: Int), merge }
 
         var executable: URL
@@ -21,7 +22,7 @@ nonisolated enum ProcessRunner {
         var outputTail: Int?
         var onLine: (@Sendable (String) -> Void)?
         var onData: (@Sendable (Data) async throws -> Void)?
-        var cleansGroupOnExit = false
+        var groupCleanup = GroupCleanup.keepAfterExit
         var killsOnQuit = false
     }
 
@@ -236,7 +237,7 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard state.stop == nil, !state.drained else { return }
                 state.stop = reason
-                if request.onData != nil {
+                if request.groupCleanup == .drainThenKill {
                     state.drainDeadline = .now + (request.stopLadder.later.last?.after ?? .zero) + .milliseconds(250)
                 }
                 let pid = state.process.processIdentifier
@@ -254,7 +255,7 @@ nonisolated enum ProcessRunner {
             state.withLock { state in
                 guard !state.drained else { return }
                 state.stop = .cancelled
-                if request.onData != nil { state.drainDeadline = .now }
+                if request.groupCleanup == .drainThenKill { state.drainDeadline = .now }
                 let pid = state.process.processIdentifier
                 kill(request.stopsGroup ? -pid : pid, SIGKILL)
             }
@@ -262,14 +263,15 @@ nonisolated enum ProcessRunner {
 
         func drain() {
             state.withLock { state in
-                if request.stopsGroup, request.cleansGroupOnExit || (state.stop != nil && request.onData == nil) {
+                if request.stopsGroup, request.groupCleanup == .killBeforeDrain
+                    || (state.stop != nil && request.groupCleanup == .keepAfterExit) {
                     kill(-state.process.processIdentifier, SIGKILL)
                 }
-                if request.onData == nil { state.drainDeadline = .now + .milliseconds(250) }
+                if request.groupCleanup != .drainThenKill { state.drainDeadline = .now + .milliseconds(250) }
             }
             stdoutStream?.wait()
             stderrStream?.wait()
-            if request.stopsGroup, request.onData != nil {
+            if request.stopsGroup, request.groupCleanup == .drainThenKill {
                 state.withLock { _ = kill(-$0.process.processIdentifier, SIGKILL) }
             }
             state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() } }

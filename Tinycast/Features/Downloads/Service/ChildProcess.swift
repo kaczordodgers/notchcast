@@ -19,7 +19,7 @@ final class ChildProcess: Sendable {
         request = ProcessRunner.Request(executable: executable, arguments: arguments,
             environment: environment, directory: workingDirectory, stderr: .capture(limit: 65_536),
             stopLadder: .terminating(grace: .milliseconds(250)), stopsGroup: true,
-            outputTail: 65_536, cleansGroupOnExit: true, killsOnQuit: true)
+            outputTail: 65_536, groupCleanup: .killBeforeDrain, killsOnQuit: true)
     }
 
     func run(onLine: @escaping @Sendable (String) -> Void = { _ in }) async throws -> DownloadProcessResult {
