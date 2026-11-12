@@ -32,6 +32,46 @@ struct ProcessRunnerTest {
     }
 
     @MainActor static func main() async throws {
+        let release = Mutex(false)
+        var backpressure = request("/usr/bin/perl", ["-e", #"$|=1; print "x" x 2000000;"#])
+        backpressure.onData = { _ in
+            while !release.withLock({ $0 }) { try await Task.sleep(for: .milliseconds(10)) }
+        }
+        let blocked = try ProcessRunner.start(backpressure)
+        try await Task.sleep(for: .milliseconds(300))
+        check(blocked.isRunning)
+        release.withLock { $0 = true }
+        _ = try await blocked.output()
+        let bytes = Mutex(Data())
+        let consuming = Mutex(false)
+        var binary = request("/usr/bin/perl", ["-e", #"print pack("C*", 0..255) x 4096"#])
+        binary.onData = { chunk in
+            check(!consuming.withLock { let old = $0; $0 = true; return old })
+            try await Task.sleep(for: .milliseconds(1))
+            bytes.withLock { $0.append(chunk) }
+            consuming.withLock { $0 = false }
+        }
+        let binaryOutput = try await ProcessRunner.run(binary)
+        check(binaryOutput.stdout.isEmpty)
+        check(bytes.withLock { $0 } == Data((0..<(256 * 4096)).map { UInt8($0 % 256) }))
+        final class ConsumerError: Error {}
+        let consumerError = ConsumerError()
+        let callbacks = Mutex(0)
+        binary.arguments = ["-e", #"$|=1; $SIG{INT}=$SIG{TERM}=$SIG{PIPE}="IGNORE"; alarm 4; print "x" x 65536; sleep 30"#]
+        binary.stopLadder = .terminating(grace: .milliseconds(100))
+        binary.onData = { _ in
+            callbacks.withLock { $0 += 1 }
+            throw consumerError
+        }
+        let rejecting = ContinuousClock.now
+        let rejected = try ProcessRunner.start(binary)
+        check(await failure { try await rejected.output() } as? ConsumerError === consumerError)
+        check(rejecting.duration(to: .now) < .seconds(2))
+        check(!rejected.isRunning && kill(rejected.processIdentifier, 0) == -1 && errno == ESRCH)
+        try await Task.sleep(for: .milliseconds(100))
+        check(callbacks.withLock { $0 } == 1)
+        print("PASS: binary bytes, serial consumption, backpressure, original consumer error, reaped child, no later callback")
+
         let lines = Mutex<[String]>([])
         var streaming = request("/usr/bin/perl", ["-e",
             #"$|=1; print "\xc3"; select undef,undef,undef,.05; print "\xa9\r\n\na\rb\n"; sleep 1; print "last";"#])

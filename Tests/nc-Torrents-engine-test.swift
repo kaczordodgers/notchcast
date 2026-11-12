@@ -1,8 +1,14 @@
 // notchcast-sources: Tinycast/Features/Torrents/Model/*.swift
-// notchcast-sources: Tinycast/Features/Torrents/Service/*.swift
-// notchcast-kit: platform core
-// notchcast-sources: Tinycast/Features/NetMerge/Model/*.swift
-// notchcast-sources: Tinycast/Features/NetMerge/Service/*.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentAria2Session.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentManager.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentQueueHost.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentRPCClient.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentSession.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentStatus.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentSubmission.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentToolLocating.swift
+// notchcast-sources: Tinycast/Features/Torrents/Service/TorrentToolLocator.swift
+// notchcast-kit: platform
 import CryptoKit
 import Darwin
 import Foundation
@@ -60,6 +66,10 @@ import Foundation
     }
 
     struct MissingTool: TorrentToolLocating { func aria2c() -> URL? { nil } }
+    struct FakeTool: TorrentToolLocating {
+        let url: URL
+        func aria2c() -> URL? { url }
+    }
 
     @MainActor static var checks = 0
 
@@ -68,9 +78,9 @@ import Foundation
         guard condition else { fatalError(message) }
     }
 
-    @MainActor static func until(_ message: String, _ predicate: () -> Bool) async throws {
+    @MainActor static func until(_ message: String, timeout: Duration = .seconds(60), _ predicate: () -> Bool) async throws {
         // A wedged wait fails by name instead of running into the suite's 300 s kill.
-        let deadline = ContinuousClock.now + .seconds(60)
+        let deadline = ContinuousClock.now + timeout
         while !predicate() {
             guard ContinuousClock.now < deadline else { fatalError("Timed out: \(message)") }
             try await Task.sleep(for: .milliseconds(10))
@@ -109,6 +119,7 @@ import Foundation
         try await failureChecks(magnet: magnet, root: root)
         try await batchChecks(root: root)
         try await rpcChecks(root: root)
+        try await sessionChecks(root: root)
         try await smoke(file: file, root: root)
         print("PASS: \(checks) torrent parsing, lifecycle, progress, cancellation, retry and RPC checks")
     }
@@ -267,6 +278,84 @@ import Foundation
         session.isAlive = false
         try await until("Dead child fails remaining jobs") { manager.jobs[3].error == .rpcUnavailable }
         await manager.stop()
+    }
+
+    @MainActor static func sessionChecks(root: URL) async throws {
+        let tool = root.appendingPathComponent("fake-aria2")
+        let source = """
+        #!/usr/bin/env node
+        const fs = require('node:fs'), http = require('node:http');
+        const option = name => process.argv.find(arg => arg.startsWith(name + '='))?.split('=')[1];
+        const root = option('--fixture-root'), owner = Number(option('--stop-with-process'));
+        fs.writeFileSync(root + '/pid', String(process.pid));
+        for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
+          fs.appendFileSync(root + '/signals', signal + ' ' + Date.now() + '\\n');
+        });
+        if (!fs.existsSync(root + '/descendant')) {
+          const descendant = require('node:child_process').spawn(process.execPath, ['-e',
+          `setInterval(() => { try { process.kill(${owner}, 0); } catch { process.exit(); } }, 100);`
+          ], {stdio: 'ignore'});
+          fs.writeFileSync(root + '/descendant', String(descendant.pid));
+        }
+        const server = http.createServer((request, response) => {
+          let body = '';
+          request.on('data', chunk => { body += chunk; });
+          request.on('end', () => {
+            const message = JSON.parse(body);
+            const valid = message.method === 'aria2.getSessionInfo' &&
+              message.params[0] === 'token:' + option('--rpc-secret');
+            response.end(JSON.stringify({jsonrpc: '2.0', id: message.id,
+              result: valid ? {sessionId: 'fixture'} : null}));
+          });
+        });
+        server.listen(Number(option('--rpc-listen-port')), '127.0.0.1');
+        setInterval(() => { try { process.kill(owner, 0); } catch { process.exit(); } }, 100).unref();
+        """
+        try source.write(to: tool, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: tool.path)
+        let locator = FakeTool(url: tool)
+        let arguments = ["--fixture-root=\(root.path)"]
+        var session: TorrentAria2Session? = TorrentAria2Session(stateDirectory: root, locator: locator)
+        try await session!.start(extraArguments: arguments)
+        let pid = session!.processIdentifier!
+        let fixturePID = try String(contentsOf: root.appendingPathComponent("pid"), encoding: .utf8)
+        check(String(pid) == fixturePID && session!.isAlive && kill(pid, 0) == 0, "Real session owns live fixture PID")
+        try await session!.start(extraArguments: [])
+        check(session!.processIdentifier == pid, "Repeated start keeps the same process")
+        let descendantText = try String(contentsOf: root.appendingPathComponent("descendant"), encoding: .utf8)
+        let descendant = Int32(descendantText)!
+        defer { kill(descendant, SIGKILL) }
+        let stopped = ContinuousClock.now
+        await session!.stop()
+        let elapsed = stopped.duration(to: .now)
+        check(!session!.isAlive && session!.processIdentifier == nil && kill(pid, 0) == -1 && errno == ESRCH,
+              "Stop awaits reaping and clears the handle")
+        let signals = try String(contentsOf: root.appendingPathComponent("signals"), encoding: .utf8)
+            .split(separator: "\n").map { $0.split(separator: " ") }
+        check(signals.map { String($0[0]) } == ["SIGINT", "SIGTERM"], "Stop delivers INT then TERM")
+        check(Int64(signals[1][1])! - Int64(signals[0][1])! >= 900 && elapsed >= .milliseconds(1800)
+            && elapsed < .milliseconds(2800), "Stop waits for TERM at 1 s and KILL at 2 s")
+        check(kill(descendant, 0) == 0, "Aria2 stop signals only its PID")
+        try await session!.start(extraArguments: arguments)
+        let terminated = session!.processIdentifier!
+        session!.terminate()
+        try await until("Immediate terminate reaps child", timeout: .seconds(1)) { kill(terminated, 0) == -1 && errno == ESRCH }
+        await session!.stop()
+        try await session!.start(extraArguments: arguments)
+        let released = session!.processIdentifier!
+        weak var weakSession = session
+        session = nil
+        check(weakSession == nil, "Running handle does not retain its session")
+        try await until("Deinit reaps child", timeout: .seconds(1)) { kill(released, 0) == -1 && errno == ESRCH }
+        let missing = TorrentAria2Session(stateDirectory: root,
+            locator: FakeTool(url: root.appendingPathComponent("missing-executable")))
+        do {
+            try await missing.start(extraArguments: [])
+            fatalError("Missing executable started")
+        } catch TorrentFailure.launchFailed {
+            check(!missing.isAlive && missing.processIdentifier == nil, "Launch failure stays typed and owns no PID")
+        }
+        print("PASS: real session PID, liveness, INT/TERM/KILL timing, PID-only stop, terminate, deinit, launch failure")
     }
 
     @MainActor static func rpcChecks(root: URL) async throws {
