@@ -1,7 +1,6 @@
 # Convert Files engine
 
-`ConvertFilesPlan.make` accepts local file URLs, a target extension or PDF operation
-and an optional page range. It performs no IO and names no file: each item carries a stem and suffix, its arguments hold `ConvertFilesPlan.outputPlaceholder`, and `JobOutput.publish` picks the free name once the conversion is done.
+`ConvertFilesPlan.make` accepts local file URLs, a target extension or PDF operation and an optional page range. It performs no IO and names no file: each item carries a stem and suffix, its arguments hold `ConvertFilesPlan.outputPlaceholder`, and `JobOutput.publish` picks the free name once the conversion is done.
 
 `ConvertFilesRunner` implements `DownloadRunner` with kind `convert-files`.
 Job options are `ConvertFilesRunner.Options`: the absolute `sources` paths, `target` and `pages`. A job without them, as an older build queued it, fails with a message to add the files again rather than converting a guessed source.
@@ -13,12 +12,7 @@ Attach `ConvertFilesModule` to the existing `DownloadQueue` with `attach(to:post
 The module owns no queue or process manager. Its feature switch gates submissions.
 Commands remain unregistered for the command integration lane.
 
-Native image, PDF and data work runs in process off the main actor through `@concurrent`.
-Cancellation is checked between files, PDF pages and data records, and before publishing.
-No native conversion needs a toolchain or child process. External conversions continue to use
-the injected process runner and resolve tools through `DownloadToolLookup`.
-Outputs stage in unique sibling scratch folders and publish through `JobOutput.publish`, an exclusive rename.
-Existing outputs are never replaced, including when another writer creates the chosen name.
+Native image, PDF and data work runs in process off the main actor through `@concurrent`. Cancellation is checked between files, PDF pages and data records, and before publishing. No native conversion needs a toolchain or child process. External conversions continue to use the injected process runner. The plan lists typed tool requirements, including ffprobe only for audio and video. The runner resolves the whole batch through `DownloadToolLookup` before converting any file and reports missing tools as `DownloadToolMissing`. Outputs stage in unique sibling scratch folders and publish through `JobOutput.publish`, an exclusive rename. Existing outputs are never replaced, including when another writer creates the chosen name.
 
 Implemented operations include PDF merge, split, page ranges and selectable text extraction; ImageIO encoding,
 cwebp and sips images; textutil and sandboxed pandoc documents; ffmpeg media and subtitles;

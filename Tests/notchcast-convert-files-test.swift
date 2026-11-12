@@ -30,8 +30,12 @@ struct ConvertFilesTests {
             ("pdf", "pdf-split", "native"), ("zip", "extract", "archives"), ("txt", "zip", "archives"),
             ("txt", "7z", "archives"), ("txt", "tar.gz", "tar")] {
             let planned = try ConvertFilesPlan.make(sources: [url("input." + input)], target: target)
-            precondition(planned.items[0].tool == tool)
+            precondition(planned.items[0].tool.rawValue == tool)
         }
+        let subtitles = try ConvertFilesPlan.make(sources: [url("input.srt")], target: "vtt")
+        precondition(subtitles.tools == [.ffmpeg] && !subtitles.items[0].needsProbe)
+        let media = try ConvertFilesPlan.make(sources: [url("input.wav")], target: "mp3")
+        precondition(media.tools == [.ffprobe, .ffmpeg] && media.items[0].needsProbe)
         do {
             _ = try ConvertFilesPlan.make(sources: [source], target: "mp4")
             preconditionFailure("Unsupported pair accepted")
@@ -53,7 +57,9 @@ struct ConvertFilesTests {
             _ = try await fake.run(job, context: DownloadRunContext(destination: temporary,
                 tools: DownloadToolLookup(directories: [])))
             preconditionFailure("Missing tool accepted")
-        } catch { precondition(error.localizedDescription.contains("textutil")) }
+        } catch let failure as DownloadToolMissing {
+            precondition(failure.tool.name == "textutil")
+        }
         let cancelled = ConvertFilesRunner(process: { _, _, _ in throw CancellationError() })
         do {
             _ = try await cancelled.run(job, context: context)
@@ -116,6 +122,13 @@ struct ConvertFilesTests {
             preconditionFailure("No native image output")
         }
         precondition(CGImageSourceCreateWithURL(nativeImage as CFURL, nil) != nil)
+        var mixed = job
+        mixed.encodedOptions = try options([imageURL.path, url("movie.mov").path], "gif")
+        do {
+            _ = try await native.run(mixed, context: nativeContext)
+            preconditionFailure("Missing batch tools accepted")
+        } catch let failure as DownloadToolMissing { precondition(failure.tool == .ffprobe) }
+        precondition(!manager.fileExists(atPath: url("native.gif").path), "Preflight precedes the first conversion")
         for operation in ["pdf-merge", "pdf-split"] {
             let inputs = operation == "pdf-merge" ? [url("input.pdf").path, url("input.pdf").path] : [url("input.pdf").path]
             var nativeJob = job

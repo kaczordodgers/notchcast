@@ -1,6 +1,22 @@
 import Foundation
 
 struct ConvertFilesPlan: Sendable, Equatable {
+    enum Tool: String, Sendable {
+        case native, archives, cwebp, sips, pandoc, textutil, ffmpeg, tar
+
+        var executable: DownloadTool? {
+            switch self {
+            case .native, .archives: nil
+            case .ffmpeg: .ffmpeg
+            case .cwebp: .cwebp
+            case .pandoc: .pandoc
+            case .sips: .sips
+            case .textutil: .textutil
+            case .tar: .tar
+            }
+        }
+    }
+
     /// Stands in for the output path in `Item.arguments`; the runner swaps in the scratch file.
     static let outputPlaceholder = "{output}"
 
@@ -9,8 +25,9 @@ struct ConvertFilesPlan: Sendable, Equatable {
         /// `JobOutput` numbers the name at publish; empty when `archives` names the output.
         let stem: String
         let suffix: String
-        let tool: String
+        let tool: Tool
         let arguments: [String]
+        var needsProbe = false
     }
 
     struct Failure: LocalizedError, Equatable {
@@ -19,6 +36,17 @@ struct ConvertFilesPlan: Sendable, Equatable {
     }
 
     let items: [Item]
+
+    var tools: [DownloadTool] {
+        var tools: [DownloadTool] = []
+        for item in items {
+            for tool in (item.needsProbe ? [.ffprobe] : []) + [item.tool.executable].compactMap({ $0 })
+                where !tools.contains(tool) {
+                tools.append(tool)
+            }
+        }
+        return tools
+    }
 
     static func make(sources: [URL], target: String, pages: String = "") throws -> Self {
         guard !sources.isEmpty, sources.allSatisfy({ $0.isFileURL && $0.path.hasPrefix("/") }) else {
@@ -31,11 +59,11 @@ struct ConvertFilesPlan: Sendable, Equatable {
                 throw Failure(message: String(localized: "PDF merge requires PDF files.", table: "Notchcast"))
             }
             let base = sources[0].deletingPathExtension().lastPathComponent
-            return Self(items: [Item(sources: sources, stem: base + " merged", suffix: ".pdf", tool: "native",
+            return Self(items: [Item(sources: sources, stem: base + " merged", suffix: ".pdf", tool: .native,
                                      arguments: [format, pages] + sources.map(\.path))])
         }
         if ["zip", "7z"].contains(format) {
-            return Self(items: [Item(sources: sources, stem: "", suffix: "", tool: "archives", arguments: [format])])
+            return Self(items: [Item(sources: sources, stem: "", suffix: "", tool: .archives, arguments: [format])])
         }
         if format == "tar.gz" {
             var arguments = ["-c", "-f", out, "-z", "--format=pax"]
@@ -43,7 +71,7 @@ struct ConvertFilesPlan: Sendable, Equatable {
                 arguments += ["-C", source.deletingLastPathComponent().path, "./" + source.lastPathComponent]
             }
             let base = sources[0].deletingPathExtension().lastPathComponent
-            return Self(items: [Item(sources: sources, stem: base, suffix: ".tar.gz", tool: "tar", arguments: arguments)])
+            return Self(items: [Item(sources: sources, stem: base, suffix: ".tar.gz", tool: .tar, arguments: arguments)])
         }
         let images = Set(("jpg jpeg png webp heic heif tiff tif avif bmp ico icns cr2 cr3 nef arw dng raf orf "
             + "psd exr hdr jp2 tga ppm").split(separator: " ").map(String.init))
@@ -69,48 +97,61 @@ struct ConvertFilesPlan: Sendable, Equatable {
                 stem += " pages"
                 suffix = ".pdf"
             }
-            var tool: String
+            var tool: Tool
+            var needsProbe = false
             var arguments: [String]
             if format == "extract" {
                 (stem, suffix) = ("", "")
-                tool = "archives"
+                tool = .archives
                 arguments = [format]
             } else if ext == "pdf", ["pdf-split", "pdf-range", "txt"].contains(format) {
-                tool = "native"
+                tool = .native
                 arguments = [format == "txt" ? "pdf-text" : format, pages, source.path]
             } else if data.contains(ext), data.contains(format) {
-                tool = "native"
+                tool = .native
                 arguments = ["data", format, source.path]
             } else if images.contains(ext), imageOutputs.contains(format) {
                 if format == "webp" {
-                    tool = "cwebp"
+                    tool = .cwebp
                     arguments = ["-quiet", "-lossless", source.path, "-o", out]
                 } else if ["heic", "avif"].contains(format) {
-                    tool = "sips"
+                    tool = .sips
                     arguments = ["-s", "format", format, source.path, "--out", out]
                 } else {
-                    tool = "native"
+                    tool = .native
                     arguments = ["image", format, source.path]
                 }
             } else if (ext == "md" || ext == "markdown") && ["docx", "html", "epub"].contains(format)
                         || ["docx", "html", "htm", "epub"].contains(ext) && format == "md" {
-                tool = "pandoc"
+                tool = .pandoc
                 arguments = ["--sandbox", "--standalone", source.path, "-o", out]
             } else if documents.contains(ext), documents.contains(format), format != "htm", format != "webarchive" {
-                tool = "textutil"
+                tool = .textutil
                 arguments = ["-convert", format, "-encoding", "UTF-8", "-noload", "-nostore", "-strip",
                              "-output", out, source.path]
             } else if subtitles.contains(ext) && subtitles.contains(format)
                         || audio.contains(ext) && audioOutputs.contains(format)
                         || video.contains(ext) && audioOutputs.union(videoOutputs).contains(format) {
-                tool = "ffmpeg"
+                tool = .ffmpeg
+                needsProbe = !subtitles.contains(ext)
                 arguments = ["-nostdin", "-v", "error", "-n", "-protocol_whitelist", "file,pipe,crypto,data",
                              "-i", source.path, out]
             } else {
                 throw Failure(message: String(localized: "This file conversion is not supported.", table: "Notchcast"))
             }
-            items.append(Item(sources: [source], stem: stem, suffix: suffix, tool: tool, arguments: arguments))
+            items.append(Item(sources: [source], stem: stem, suffix: suffix, tool: tool,
+                              arguments: arguments, needsProbe: needsProbe))
         }
         return Self(items: items)
     }
+}
+
+extension DownloadTool {
+    static let ffprobe = DownloadTool(
+        name: "ffprobe", installCommand: "brew install ffmpeg", versionArguments: ["-version"])
+    static let cwebp = DownloadTool(name: "cwebp", installCommand: "brew install webp", versionArguments: ["-version"])
+    static let pandoc = DownloadTool(name: "pandoc", installCommand: "brew install pandoc")
+    static let sips = DownloadTool(name: "sips", installCommand: "Restore /usr/bin/sips")
+    static let textutil = DownloadTool(name: "textutil", installCommand: "Restore /usr/bin/textutil")
+    static let tar = DownloadTool(name: "tar", installCommand: "Restore /usr/bin/tar")
 }
