@@ -1,7 +1,7 @@
 extension ClearNotificationsModule: NotchcastRegistrant {
     static let shared = ClearNotificationsModule()
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         [.init(requires: [.clearNotifications], module: shared)]
     }
 }

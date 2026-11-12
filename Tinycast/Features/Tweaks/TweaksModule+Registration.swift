@@ -6,9 +6,9 @@ extension TweaksModule: NotchcastRegistrant {
     static let appleApps = TweaksModule(key: "appleAppsTweaksPlans")
     static let iPhoneBackup = TweaksModule(key: "iPhoneBackupTweaksPlans")
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         for module in [shared, typing, finder, dock, appleApps, iPhoneBackup] {
-            module.configure(core)
+            module.configure()
         }
         return [
             .init(requires: [], requiresAny: [.aiFeaturesOff, .spotlightOff, .privacyChoices], module: shared),

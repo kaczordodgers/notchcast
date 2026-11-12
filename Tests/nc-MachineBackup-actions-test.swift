@@ -1,11 +1,8 @@
 // notchcast-sources: Tinycast/Features/MachineBackup/Model/*.swift Tinycast/Features/MachineBackup/Service/*.swift
 // notchcast-sources: Tinycast/Features/MachineBackup/MachineBackupCoordinator+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: platform core
 import Foundation
 import Synchronization
-
-@MainActor final class AppCore {}
 
 private final class FakeBackupTooling: MachineBackupTooling {
     struct State {
@@ -166,7 +163,7 @@ struct MachineBackupActionsTest {
 
     @MainActor
     static func coordinatorChecks(_ configuration: MachineBackupConfiguration) async throws {
-        let entries = MachineBackupCoordinator.register(AppCore())
+        let entries = MachineBackupCoordinator.register()
         precondition(entries.count == 1 && entries[0].module === MachineBackupCoordinator.shared)
         precondition(entries[0].requires.isEmpty && entries[0].requiresAny == [.backupRunNow, .backupBrowseRestore])
         let suite = "nc-backup-test-" + UUID().uuidString

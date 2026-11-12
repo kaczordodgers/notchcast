@@ -1,7 +1,7 @@
 extension ForkSettingsBackupModule: NotchcastRegistrant {
     static let shared = ForkSettingsBackupModule()
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         [.init(requires: [.settingsBackup], module: shared)]
     }
 }

@@ -7,7 +7,7 @@ extension MonitorModule: NotchcastRegistrant {
         NotchcastHost.current.showMessage(String(localized: "Could not change fan mode.", table: "Notchcast"), .danger)
     })
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         [.init(requires: [.systemMonitor], module: shared)]
     }
 }

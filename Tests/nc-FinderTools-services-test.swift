@@ -6,15 +6,12 @@
 // notchcast-kit: core platform command
 // notchcast-sources: Tinycast/Features/FinderTools/UI/FinderToolsCoordinator+Commands.swift
 // notchcast-sources: Tinycast/Features/FinderTools/FinderToolsCoordinator+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 import Foundation
 import CoreGraphics
 
 enum Paster {
     static let tinycastEventTag: Int64 = 0x54494E59
 }
-
-@MainActor final class AppCore {}
 
 @main @MainActor
 struct FinderToolsServicesTest {
@@ -41,7 +38,7 @@ struct FinderToolsServicesTest {
         let hyper: CGEventFlags = [.maskCommand, .maskAlternate, .maskControl, .maskShift]
         precondition(FinderCommandService.originalKey(for: .rename)?.1 == hyper)
         precondition(FinderCommandService.originalKey(for: .forget) == nil)
-        let entries = FinderToolsCoordinator.register(AppCore())
+        let entries = FinderToolsCoordinator.register()
         precondition(entries.map(\.requires) == [[.finderCutPaste], [.finderRename]])
         precondition(entries.allSatisfy { $0.requiresAny.isEmpty && $0.module is FinderToolsModule })
         precondition(entries[0].module !== entries[1].module)

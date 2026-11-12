@@ -9,7 +9,6 @@ import Foundation
 
 enum NotchcastFeature { case linkQuickFixes }
 enum DialogTone { case success }
-@MainActor final class AppCore {}
 
 @main
 struct LinkQuickFixTests {
@@ -103,7 +102,7 @@ struct LinkQuickFixTests {
         assert(copied == ["fixture"] && messages.last == "Command copied.")
         assert(opened == [URL(string: "x-apple.systempreferences:com.apple.Network-Settings.extension")!, log])
         assert(settings == 1)
-        let entries = LinkQuickFixModule.register(AppCore())
+        let entries = LinkQuickFixModule.register()
         assert(entries.count == 1 && entries[0].module === LinkQuickFixModule.shared)
         assert(entries[0].requires == [.linkQuickFixes] && entries[0].requiresAny.isEmpty)
         var options: [String] = []

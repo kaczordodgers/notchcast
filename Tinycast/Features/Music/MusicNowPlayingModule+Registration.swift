@@ -1,7 +1,7 @@
 extension MusicNowPlayingModule: NotchcastRegistrant {
     static private(set) var shared: MusicNowPlayingModule?
 
-    static func register(_ core: AppCore) -> [NotchcastModuleController.Entry] {
+    static func register() -> [NotchcastModuleController.Entry] {
         let defaults = NotchcastPreferences.shared.engineDefaults
         let music = MusicNowPlayingModule(defaults: defaults)
         let appleMusic = MusicBlockAppleMusicModule(music: music)

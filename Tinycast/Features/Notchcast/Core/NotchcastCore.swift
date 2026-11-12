@@ -66,7 +66,7 @@ enum NotchcastCore {
         FleetPanelModule.shared.transport = FleetMachLinkTransport(channel: macLink.channel)
         IslandController.shared.configurePages(core)
         systemTools.configure(core)
-        let modules = entries(core: core) + registrants.flatMap { $0.register(core) }
+        let modules = entries(core: core) + registrants.flatMap { $0.register() }
         let services = NotchcastServices(core: core, preferences: preferences)
         self.services = services
         if let tasks = TodoModule.shared { tasksSync.connect(to: tasks) }

@@ -9,7 +9,6 @@ import AppKit
 import Synchronization
 
 enum NotchcastFeature { case clearNotifications }
-@MainActor final class AppCore {}
 
 @main
 struct ClearNotificationsTests {
@@ -100,7 +99,7 @@ struct ClearNotificationsTests {
         }
         print("Verified cmd-clear-notifications: shipped AppleScript compiles without executing notifications")
 
-        let entries = ClearNotificationsModule.register(AppCore())
+        let entries = ClearNotificationsModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.clearNotifications] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === ClearNotificationsModule.shared)
         print("Verified cmd-clear-notifications: registration returns the shared module behind its switch")

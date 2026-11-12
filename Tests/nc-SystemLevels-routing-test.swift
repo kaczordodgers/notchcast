@@ -2,7 +2,6 @@
 // notchcast-sources: Tinycast/Features/SystemLevels/Service/*.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelsModule+Registration.swift
-// notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-kit: host
 // notchcast-sources: Tinycast/Features/SystemLevels/SystemLevelKeysModule.swift
 // notchcast-sources: Tinycast/Features/SystemLevels/VolumeLevelsGate.swift
@@ -110,7 +109,7 @@ struct SystemLevelRoutingTests {
     }
 
     static func main() async {
-        let registered = SystemLevelsModule.register(AppCore())
+        let registered = SystemLevelsModule.register()
         check(registered.count == 1 && registered[0].module === SystemLevelsModule.shared,
               "Registration returns the shared levels module")
         check(registered[0].requires == [.island, .volumeLevels] && registered[0].requiresAny.isEmpty,
@@ -228,5 +227,4 @@ struct SystemLevelRoutingTests {
     }
 }
 
-@MainActor final class AppCore {}
 enum DialogTone {}

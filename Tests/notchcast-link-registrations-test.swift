@@ -9,7 +9,6 @@ import Foundation
 enum NotchcastFeature {
     case machMBPFans, remoteScreen, machBlockedDialogAlert
 }
-@MainActor final class AppCore {}
 @MainActor final class MachLinkChannel {}
 
 @MainActor struct MachLinkFanTransport { let channel: MachLinkChannel }
@@ -38,27 +37,26 @@ enum NotchcastFeature {
 
 @main struct LinkRegistrationsTest {
     @MainActor static func main() {
-        let core = AppCore()
-        precondition(RemoteFanModule.register(core).isEmpty && RemoteFanModule.shared == nil)
-        precondition(RemoteScreenModule.register(core).isEmpty && RemoteScreenModule.shared == nil)
-        precondition(BlockedDialogModule.register(core).isEmpty && BlockedDialogModule.shared == nil)
+        precondition(RemoteFanModule.register().isEmpty && RemoteFanModule.shared == nil)
+        precondition(RemoteScreenModule.register().isEmpty && RemoteScreenModule.shared == nil)
+        precondition(BlockedDialogModule.register().isEmpty && BlockedDialogModule.shared == nil)
 
         let channel = MachLinkChannel()
         RemoteFanModule.linkChannel = channel
         RemoteScreenModule.linkChannel = channel
         BlockedDialogModule.linkChannel = channel
 
-        let fans = RemoteFanModule.register(core)
+        let fans = RemoteFanModule.register()
         precondition(fans.count == 1 && fans[0].module === RemoteFanModule.shared)
         precondition(fans[0].requires == [.machMBPFans] && fans[0].requiresAny.isEmpty)
         precondition(RemoteFanModule.shared?.transport.channel === channel)
 
-        let screen = RemoteScreenModule.register(core)
+        let screen = RemoteScreenModule.register()
         precondition(screen.count == 1 && screen[0].module === RemoteScreenModule.shared)
         precondition(screen[0].requires == [.remoteScreen] && screen[0].requiresAny.isEmpty)
         precondition(RemoteScreenModule.shared?.channel === channel)
 
-        let dialogs = BlockedDialogModule.register(core)
+        let dialogs = BlockedDialogModule.register()
         precondition(dialogs.count == 1 && dialogs[0].module === BlockedDialogModule.shared)
         precondition(dialogs[0].requires == [.machBlockedDialogAlert])
         precondition(dialogs[0].requiresAny.isEmpty && BlockedDialogModule.shared?.channel === channel)
