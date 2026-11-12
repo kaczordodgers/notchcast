@@ -250,7 +250,7 @@ struct ArchiveModuleLifecycleTests {
         await settle()
         module.retry(module.queue.jobs[0].id)
         try await until { module.queue.jobs[0].state == .extracting }
-        await module.prepareForTermination()
+        await controller.stopForTermination(.beforeMacUpdate)
         precondition(module.queue.jobs[0].state == .cancelled)
     }
 }

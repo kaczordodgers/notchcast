@@ -35,7 +35,7 @@ The final component retains its symlink checks; hatchzip resumes use its saved d
 Orderly shutdown cancels the worker and signals the child process group. There is no parent-death
 watchdog: a hard app kill relies on recovery at the next launch.
 
-`ArchiveProcess` consumes raw stdout through `ProcessRunner` with backpressure. Cancellation signals the process group with INT, TERM after one second and KILL after three seconds. One owned task reports idle progress about every 250 ms and is cancelled and awaited before the operation returns.
+`ArchiveProcess` consumes raw stdout through `ProcessRunner` with backpressure. Cancellation signals the process group with INT, TERM after one second and KILL after three seconds. One owned task reports idle progress about every 250 ms and is cancelled and awaited before the operation returns. `ArchiveModule` drains active work in its `.beforeMacUpdate` termination phase.
 
 `Open archives with Notchcast` defaults off and also depends on Archives. Enabling it calls
 `ArchiveDefaultApplicationService` for the claimable archive UTIs. Defaults preserve the previous claims, including RAR and split `.001`, and add supported types declared by Archive Utility; `.iso` and `.pkg` remain excluded. Other supported formats remain available through Open With and launcher opens. Disabling it, including by disabling
