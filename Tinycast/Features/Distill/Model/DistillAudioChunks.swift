@@ -1,7 +1,7 @@
 import Foundation
 
 nonisolated enum DistillAudioChunks {
-    static let sampleRate = 16_000
+    static let sampleRate = DictationWire.sampleRate
     static let maximumSamples = sampleRate * 240
 
     struct Chunk: Equatable, Sendable {
