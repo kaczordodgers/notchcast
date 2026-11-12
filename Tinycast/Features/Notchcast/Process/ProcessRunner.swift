@@ -2,7 +2,6 @@ import Darwin
 import Foundation
 import Synchronization
 
-/// Runs one program to its exit; a timeout or cancellation stops it, and output is read from files.
 nonisolated enum ProcessRunner {
     struct Request: Sendable {
         enum ErrorOutput: Sendable { case discard, capture(limit: Int), merge }
@@ -18,6 +17,9 @@ nonisolated enum ProcessRunner {
         var stopLadder = StopLadder.terminating()
         /// Stops the children the program started too; `Process` makes every child its own group leader.
         var stopsGroup = false
+        var outputTail: Int?
+        var onLine: (@Sendable (String) -> Void)?
+        var cleansGroupOnExit = false
     }
 
     /// The signals a stopped child gets: `first` at once, each later one at its delay from the stop.
@@ -65,19 +67,42 @@ nonisolated enum ProcessRunner {
     @concurrent
     static func run(_ request: Request) async throws -> Output {
         try Task.checkCancellation()
-        let job = try Job(request)
-        defer { job.dispose() }
-        let exit = try job.launch()
-        return try await withTaskCancellationHandler {
-            await withCheckedContinuation { continuation in
-                Thread.detachNewThread { @Sendable in
-                    exit.wait()
-                    continuation.resume()
+        return try await start(request).output()
+    }
+
+    struct Running: Sendable {
+        fileprivate let job: Job
+        private let completion: Task<Output, any Error>
+
+        fileprivate init(job: Job, exit: ProcessExit) {
+            self.job = job
+            completion = Task.detached {
+                defer { job.dispose() }
+                await withCheckedContinuation { continuation in
+                    Thread.detachNewThread { @Sendable in
+                        exit.wait()
+                        job.drain()
+                        continuation.resume()
+                    }
                 }
+                return try job.finish()
             }
-            return try job.finish()
-        } onCancel: {
-            job.stop(.cancelled)
+        }
+
+        var processIdentifier: Int32 { job.processIdentifier }
+        var isRunning: Bool { job.isRunning }
+        func cancel() { job.stop(.cancelled) }
+        func terminate() { job.terminate() }
+        func output() async throws -> Output {
+            try await withTaskCancellationHandler { try await completion.value } onCancel: { cancel() }
+        }
+    }
+
+    static func start(_ request: Request) throws -> Running {
+        let job = try Job(request)
+        do { return try Running(job: job, exit: job.launch()) } catch {
+            job.dispose()
+            throw error
         }
     }
 
@@ -92,16 +117,19 @@ nonisolated enum ProcessRunner {
             Thread.sleep(forTimeInterval: 0.01)
         }
         exit.wait()
+        job.drain()
         return try job.finish()
     }
 
-    private enum Stop { case cancelled, timedOut }
+    fileprivate enum Stop { case cancelled, timedOut }
 
-    private final class Job: Sendable {
+    fileprivate final class Job: Sendable {
         private struct State {
             var process: Process
             var stop: Stop?
             var timers: [DispatchWorkItem] = []
+            var drained = false
+            var drainDeadline: ContinuousClock.Instant?
         }
 
         private let request: Request
@@ -110,8 +138,11 @@ nonisolated enum ProcessRunner {
         private let stderrFile: URL
         private let handles: [FileHandle]
         private let state: Mutex<State>
+        private let stdoutStream: ProcessOutputStream?
+        private let stderrStream: ProcessOutputStream?
 
         var isRunning: Bool { state.withLock { $0.process.isRunning } }
+        var processIdentifier: Int32 { state.withLock { $0.process.processIdentifier } }
 
         init(_ request: Request) throws {
             let files = FileManager.default
@@ -135,14 +166,18 @@ nonisolated enum ProcessRunner {
                 }
                 let stdoutFile = folder.appending(path: "out")
                 let stderrFile = folder.appending(path: "err")
-                let stdout = try Self.create(stdoutFile)
+                let stdoutStream = request.outputTail != nil || request.onLine != nil
+                    ? ProcessOutputStream(limit: request.outputTail, onLine: request.onLine) : nil
+                let stderrStream = request.outputTail != nil && { if case .capture = request.stderr { true } else { false } }()
+                    ? ProcessOutputStream(limit: request.outputTail) : nil
+                let stdout = try stdoutStream?.pipe.fileHandleForWriting ?? Self.create(stdoutFile)
                 handles.append(stdout)
                 process.standardOutput = stdout
                 switch request.stderr {
                 case .discard: process.standardError = FileHandle.nullDevice
                 case .merge: process.standardError = stdout
                 case .capture:
-                    let stderr = try Self.create(stderrFile)
+                    let stderr = try stderrStream?.pipe.fileHandleForWriting ?? Self.create(stderrFile)
                     handles.append(stderr)
                     process.standardError = stderr
                 }
@@ -151,6 +186,8 @@ nonisolated enum ProcessRunner {
                 self.stdoutFile = stdoutFile
                 self.stderrFile = stderrFile
                 self.handles = handles
+                self.stdoutStream = stdoutStream
+                self.stderrStream = stderrStream
                 state = Mutex(State(process: process))
             } catch {
                 try? files.removeItem(at: folder)
@@ -169,6 +206,10 @@ nonisolated enum ProcessRunner {
         func launch() throws -> ProcessExit {
             try state.withLock { state in
                 let exit = try state.process.runObservingExit()
+                for stream in [stdoutStream, stderrStream].compactMap({ $0 }) {
+                    try? stream.pipe.fileHandleForWriting.close()
+                    stream.start { self.state.withLock { $0.drainDeadline } }
+                }
                 if let timeout = request.timeout {
                     let timer = DispatchWorkItem { @Sendable in self.stop(.timedOut) }
                     DispatchQueue.global().asyncAfter(deadline: .now() + timeout.seconds, execute: timer)
@@ -180,32 +221,52 @@ nonisolated enum ProcessRunner {
 
         func stop(_ reason: Stop) {
             state.withLock { state in
-                guard state.stop == nil, state.process.isRunning else { return }
+                guard state.stop == nil, !state.drained else { return }
                 state.stop = reason
                 let pid = state.process.processIdentifier
                 let target = request.stopsGroup ? -pid : pid
                 kill(target, request.stopLadder.first)
                 state.timers += request.stopLadder.escalate { signal in
                     self.state.withLock { state in
-                        if state.process.isRunning { kill(target, signal) }
+                        if !state.drained { kill(target, signal) }
                     }
                 }
             }
         }
 
+        func terminate() {
+            state.withLock { state in
+                guard !state.drained else { return }
+                state.stop = .cancelled
+                let pid = state.process.processIdentifier
+                kill(request.stopsGroup ? -pid : pid, SIGKILL)
+            }
+        }
+
+        func drain() {
+            state.withLock { state in
+                if request.stopsGroup, request.cleansGroupOnExit || state.stop != nil {
+                    kill(-state.process.processIdentifier, SIGKILL)
+                }
+                state.drainDeadline = .now + .milliseconds(250)
+            }
+            stdoutStream?.wait()
+            stderrStream?.wait()
+            state.withLock { $0.drained = true; $0.timers.forEach { $0.cancel() } }
+        }
+
         func finish() throws -> Output {
-            let (stop, pid, status, signaled) = state.withLock {
-                ($0.stop, $0.process.processIdentifier, $0.process.terminationStatus,
+            let (stop, status, signaled) = state.withLock {
+                ($0.stop, $0.process.terminationStatus,
                  $0.process.terminationReason == .uncaughtSignal)
             }
-            // Leader exited: a child that ignored the stop signal gets SIGKILL now, no grace.
-            if stop != nil, request.stopsGroup { kill(-pid, SIGKILL) }
             if stop == .timedOut { throw Failure.timedOut }
             try Task.checkCancellation()
             if stop == .cancelled { throw CancellationError() }
-            let stdout = try Self.read(stdoutFile, limit: request.outputLimit, failing: true)
+            let stdout = try stdoutStream?.data ?? Self.read(stdoutFile, limit: request.outputLimit, failing: true)
+            if request.outputTail == nil, stdout.count > request.outputLimit { throw Failure.outputLimit }
             let stderr = if case .capture(let limit) = request.stderr {
-                try Self.read(stderrFile, limit: limit, failing: false)
+                try stderrStream?.data ?? Self.read(stderrFile, limit: limit, failing: false)
             } else { Data() }
             return Output(status: status, signaled: signaled, stdout: stdout, stderr: stderr)
         }
@@ -224,6 +285,60 @@ nonisolated enum ProcessRunner {
             try handle.seek(toOffset: 0)
             return try handle.read(upToCount: Int(min(size, UInt64(limit)))) ?? Data()
         }
+    }
+}
+
+nonisolated final class ProcessOutputStream: Sendable {
+    let pipe = Pipe()
+    private let limit: Int?
+    private let onLine: (@Sendable (String) -> Void)?
+    private let captured = Mutex(Data())
+    private let readers = DispatchGroup()
+
+    init(limit: Int?, onLine: (@Sendable (String) -> Void)? = nil) {
+        self.limit = limit
+        self.onLine = onLine
+    }
+    var data: Data { captured.withLock { $0 } }
+    func start(deadline: @escaping @Sendable () -> ContinuousClock.Instant?) {
+        readers.enter()
+        Thread.detachNewThread { @Sendable in
+            defer { self.readers.leave(); try? self.pipe.fileHandleForReading.close() }
+            let descriptor = self.pipe.fileHandleForReading.fileDescriptor
+            var pending = Data()
+            var buffer = [UInt8](repeating: 0, count: 8192)
+            while deadline().map({ ContinuousClock.now < $0 }) ?? true {
+                var event = pollfd(fd: descriptor, events: Int16(POLLIN), revents: 0)
+                let ready = poll(&event, 1, 50)
+                if ready < 0 && errno == EINTR { continue }
+                if ready == 0 { continue }
+                guard ready > 0 else { break }
+                let count = Darwin.read(descriptor, &buffer, buffer.count)
+                if count < 0 && errno == EINTR { continue }
+                guard count > 0 else { break }
+                self.captured.withLock {
+                    $0.append(contentsOf: buffer.prefix(count))
+                    if let limit = self.limit { Self.trim(&$0, limit: limit) }
+                }
+                if let onLine = self.onLine {
+                    pending.append(contentsOf: buffer.prefix(count))
+                    while let newline = pending.firstIndex(where: { $0 == 10 || $0 == 13 }) {
+                        let line = String(bytes: pending[..<newline], encoding: .utf8) ?? ""
+                        pending.removeSubrange(...newline)
+                        if !line.isEmpty { onLine(line) }
+                    }
+                    Self.trim(&pending, limit: 65_536)
+                }
+            }
+            if let onLine = self.onLine, !pending.isEmpty {
+                onLine(String(bytes: pending, encoding: .utf8) ?? "")
+            }
+        }
+    }
+    func wait() { readers.wait() }
+    private static func trim(_ data: inout Data, limit: Int) {
+        if data.count > limit { data.removeFirst(data.count - limit) }
+        while let first = data.first, first & 0xC0 == 0x80 { data.removeFirst() }
     }
 }
 

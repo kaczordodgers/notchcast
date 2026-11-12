@@ -32,6 +32,28 @@ struct ProcessRunnerTest {
     }
 
     @MainActor static func main() async throws {
+        let lines = Mutex<[String]>([])
+        var streaming = request("/usr/bin/perl", ["-e",
+            #"$|=1; print "\xc3"; select undef,undef,undef,.05; print "\xa9\r\n\na\rb\n"; sleep 1; print "last";"#])
+        streaming.outputTail = 65_536
+        streaming.onLine = { line in lines.withLock { $0.append(line) } }
+        let running = try ProcessRunner.start(streaming)
+        let deadline = ContinuousClock.now + .seconds(5)
+        while lines.withLock({ $0.count < 3 }) {
+            check(ContinuousClock.now < deadline)
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        check(running.isRunning && running.processIdentifier > 0)
+        _ = try await running.output()
+        check(lines.withLock { $0 } == ["é", "a", "b", "last"])
+        streaming.arguments = ["-e", #"print "x" x 200000; print "END"; print STDERR "y" x 200000, "ERR";"#]
+        streaming.stderr = .capture(limit: 65_536)
+        streaming.onLine = nil
+        let tail = try await ProcessRunner.run(streaming)
+        check(tail.stdout.count == 65_536 && tail.stdout.suffix(3) == Data("END".utf8))
+        check(tail.stderr.count == 65_536 && tail.stderr.suffix(3) == Data("ERR".utf8))
+        print("PASS: incremental split UTF-8, CR/LF/CRLF, final partial line, bounded stdout/stderr")
+
         let echo = try await ProcessRunner.run(request("/bin/echo", ["hello"]))
         check(echo.status == 0 && echo.stdout == Data("hello\n".utf8) && echo.stderr.isEmpty)
         check((try await ProcessRunner.run(request("/usr/bin/true"))).status == 0)
