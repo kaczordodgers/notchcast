@@ -18,8 +18,7 @@ extension MusicCommands {
             let preferences = NotchcastPreferences.shared
             if on, (try? SpotifyConnectModule.shared?.key.isSaved) != true {
                 preferences.set(.spotifyConnect, true)
-                AppCore.shared.settingsCoordinator.showSettings(
-                    tab: .notchcastMusicAndSound, revealing: .section(.notchcastSpotify))
+                NotchcastHost.current.showSpotifySettings()
             } else if preferences.isOn(.spotifyConnect) == on {
                 NotchcastHost.current.showMessage(on
                     ? String(localized: "Spotify Connect Speaker is already on.", table: "Notchcast")

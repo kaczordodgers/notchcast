@@ -4,12 +4,14 @@
 import Foundation
 // notchcast-sources: Tinycast/Features/Tweaks/TweakProfileCommands.swift Tests/Support/TweakProfileCommandFakes.swift
 // notchcast-sources: Tests/Support/NotchcastPreferencesFake.swift
-// notchcast-kit: command
+// notchcast-kit: command host
 
 @main
 struct AICommandTests {
     @MainActor
     static func main() async throws {
+        NotchcastHost.current.confirm = { _, _, _, _ in true }
+        NotchcastHost.current.showMessage = { message, _ in preconditionFailure(message) }
         TweakProfileCommands.ai.run()
         for _ in 0..<1000 where TweaksModule.shared.calls == 0 { await Task.yield() }
         precondition(TweaksModule.shared.calls == 1 && TweaksModule.shared.kept == [])

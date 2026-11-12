@@ -9,31 +9,7 @@ import Foundation
 
 enum NotchcastFeature { case linkQuickFixes }
 enum DialogTone { case success }
-enum SettingsAnchor { case notchcastAIUsage }
-enum SettingsTarget: Equatable { case section(SettingsAnchor) }
-struct DialogAction {
-    enum Role { case standard, cancel }
-    var title: String
-    var role: Role = .standard
-}
-@MainActor final class AppCore {
-    static let shared = AppCore()
-    let settingsCoordinator = Settings()
-    var options: [DialogAction] = []
-    var defaultIndex = -1
-    var dialogMessage: String?
-    final class Settings {
-        var target: SettingsTarget?
-        func showSettings(tab: SettingsTab, revealing: SettingsTarget) { target = revealing }
-    }
-    func choose(title: String, message: String?, symbol: String?, options: [DialogAction],
-                defaultIndex: Int) async -> Int {
-        self.options = options
-        self.dialogMessage = message
-        self.defaultIndex = defaultIndex
-        return defaultIndex
-    }
-}
+@MainActor final class AppCore {}
 
 @main
 struct LinkQuickFixTests {
@@ -127,33 +103,40 @@ struct LinkQuickFixTests {
         assert(copied == ["fixture"] && messages.last == "Command copied.")
         assert(opened == [URL(string: "x-apple.systempreferences:com.apple.Network-Settings.extension")!, log])
         assert(settings == 1)
-        let entries = LinkQuickFixModule.register(AppCore.shared)
+        let entries = LinkQuickFixModule.register(AppCore())
         assert(entries.count == 1 && entries[0].module === LinkQuickFixModule.shared)
         assert(entries[0].requires == [.linkQuickFixes] && entries[0].requiresAny.isEmpty)
+        var options: [String] = []
+        var dialogMessage: String?
+        NotchcastHost.current.choose = { title, message, symbol, choices, cancelTitle in
+            assert(title == "Fix Mac Link" && symbol == "link" && cancelTitle == "Cancel")
+            options = choices
+            dialogMessage = message
+            return choices.count
+        }
+        var settingsOpened = false
+        NotchcastHost.current.showLinkSettings = { settingsOpened = true }
         let live = LinkQuickFixModule().configure()
         live.start()
         var link: (paired: Bool, reachability: LinkQuickFixModule.Reachability) = (true, .down)
         live.state = { link }
         live.execute = { _ in assertionFailure("Cancel executed an action") }
         await live.run()
-        assert(AppCore.shared.options.count == 4 && AppCore.shared.defaultIndex == 3)
-        assert(AppCore.shared.options.last?.role == .cancel)
-        assert(AppCore.shared.options.map(\.title) == ["Open Network Settings",
-            "Copy Tailscale Command", "Copy DNS Reset Command", "Cancel"])
+        assert(options == ["Open Network Settings", "Copy Tailscale Command", "Copy DNS Reset Command"])
         link.reachability = .unknown
         await live.run()
-        assert(AppCore.shared.dialogMessage == "Mac Link could not be checked yet.")
+        assert(dialogMessage == "Mac Link could not be checked yet.")
         link.paired = false
         await live.run()
-        assert(AppCore.shared.options.map(\.title) == ["Open Mac Link Settings", "Cancel"])
+        assert(options == ["Open Mac Link Settings"])
         let relink = LinkQuickFixModule().configure()
         relink.execute(.relinkInConnections)
-        assert(AppCore.shared.settingsCoordinator.target == .section(.notchcastAIUsage))
+        assert(settingsOpened)
         _ = await live.choose([.copyCommand("sync")], nil)
-        assert(AppCore.shared.options.first?.title == "Copy Sync Command")
-        print("Review cases: cause labels, registration entry, unknown/unpaired/up, settings target, dialog state changes passed")
+        assert(options.first == "Copy Sync Command")
+        print("Review cases: cause labels, registration entry, unknown/unpaired/up, settings hook, dialog state changes passed")
         print("Link quick fixes: down offers 3, unpaired relinks, up reports connected, Cancel runs nothing")
-        print("Link quick fixes: all executor effects and production dialog default passed")
+        print("Link quick fixes: all executor effects and host choice cancellation passed")
         print("Link quick fixes: all cause mappings, configuration validation and lifecycle gates passed")
     }
 }

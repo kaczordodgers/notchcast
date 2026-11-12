@@ -57,7 +57,7 @@ enum NotchcastSettingsModule {
 enum SettingsActionCommands {
     @MainActor static func show(_ tab: SettingsStub.Tab, _ feature: NotchcastFeature) { }
 }
-enum ColorPickerFormat: String { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
+enum ColorPickerFormat: String, CaseIterable { case hex, hexLowercase, rgb, hsl, swiftUIColor, nsColorLiteral }
 enum ColorPickerService { static let formatKey = "notchcast.colorPicker.format" }
 enum ScreenshotModule {
     static let destinationKey = "notchcast.screenshot.destination"
