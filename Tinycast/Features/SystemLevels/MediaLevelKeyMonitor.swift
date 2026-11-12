@@ -126,7 +126,7 @@ final class MediaLevelKeyMonitor {
                 modifierFlags: NSEvent.ModifierFlags(rawValue: UInt(press.modifiers)), timestamp: 0,
                 windowNumber: 0, context: nil, subtype: 8,
                 data1: (press.key.rawValue << 16) | (state << 8), data2: -1)?.cgEvent
-            event?.setIntegerValueField(.eventSourceUserData, value: Paster.tinycastEventTag)
+            event?.markSynthetic()
             return event
         }
     }

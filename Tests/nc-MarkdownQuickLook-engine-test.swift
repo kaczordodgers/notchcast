@@ -64,10 +64,6 @@ struct MarkdownQuickLookTests {
         coordinator.previewOnSpace(fileURL: url, selectedByArrowKeys: true, dismissLauncher: {})
         let second = coordinator.request!.id
         precondition(first != second)
-        coordinator.dismissPreview(first)
-        precondition(coordinator.request?.id == second)
-        coordinator.dismissPreview(second)
-        precondition(coordinator.request == nil)
         coordinator.previewOnSpace(fileURL: url, selectedByArrowKeys: true, dismissLauncher: {})
         coordinator.stop()
         precondition(coordinator.request == nil)
@@ -79,7 +75,7 @@ struct MarkdownQuickLookTests {
         precondition(entries.count == 1 && entries[0].requires == [.quickLookSpace] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === QuickLookCoordinator.shared)
         print("Space: typed spaces, modifiers, repeats, composition, invalid items and disabled switch pass")
-        print("Requests: dismissal ordering, teardown, persisted preference and stale dismissal pass")
+        print("Requests: dismissal ordering, teardown and persisted preference pass")
 
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

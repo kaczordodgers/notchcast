@@ -4,7 +4,7 @@ extension NotchcastFeature.BackupKeys {
     static let quitProtection = Self(allowed: [
         QuitProtectionStore.quitEnabledKey: .bool,
         QuitProtectionStore.closeEnabledKey: .bool,
-        QuitProtectionStore.modeKey: .string(11, ["hold", "doublePress"]),
+        QuitProtectionStore.modeKey: .string(11, QuitProtectionEngine.Mode.allCases.map(\.rawValue)),
         QuitProtectionStore.exceptionsKey: .strings(500, 256),
     ], excluded: [], snapshot: { QuitProtectionStore.shared.backupValues },
        apply: { QuitProtectionStore.shared.applyBackup($0) })

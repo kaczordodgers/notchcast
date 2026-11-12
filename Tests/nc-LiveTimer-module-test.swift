@@ -1,4 +1,6 @@
 // notchcast-sources: Tinycast/Features/LiveTimer/LiveTimerModule.swift
+// notchcast-sources: Tinycast/Features/LiveTimer/LiveTimerModule+Shared.swift
+// notchcast-sources: Tinycast/Features/LiveTimer/LiveTimersBackupKeys.swift
 
 // notchcast-sources: Tinycast/Features/LiveTimer/Model/*.swift
 
@@ -14,6 +16,9 @@ import Foundation
 @main
 struct TimerModuleTest {
     @MainActor static func main() {
+        let durationRule = NotchcastFeature.BackupKeys.liveTimers.allowed[LiveTimerStore.durationKey]!
+        precondition(LiveTimerStore.defaultDurations.allSatisfy { durationRule.accepts($0) })
+        precondition(!durationRule.accepts(301) && !durationRule.accepts(true))
         let suite = "timer-module-test-\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }

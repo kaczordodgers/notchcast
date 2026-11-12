@@ -20,11 +20,6 @@ final class QuickLookCoordinator: NotchcastModule {
         systemPreview.close()
     }
 
-    func dismissPreview(_ id: UUID) {
-        guard request?.id == id else { return }
-        request = nil
-    }
-
     @discardableResult
     func previewOnSpace(
         fileURL: URL?, selectedByArrowKeys: Bool, hasModifiers: Bool = false,
