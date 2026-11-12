@@ -31,7 +31,7 @@ final class SendFilesModule: NotchcastModule {
         guard isRunning, preferences.isEnabled(.sendFiles) else { return }
         guard coordinator?.isRunning != true else { return }
         let shell = MachRemoteShell(ssh: MachSSH(address: preferences.remoteMacAddress, runner: runner))
-        coordinator = SendFilesCoordinator(shell: MachSendFilesRunner(shell: shell), post: post)
+        coordinator = SendFilesCoordinator(shell: shell, post: post)
         coordinator?.sendFinderSelection(urls)
     }
 }

@@ -3,7 +3,7 @@ import Foundation
 nonisolated struct SystemToolsProcessRunner: Sendable {
     enum Failure: Error { case invalidExecutable, timedOut, failed(Int32) }
     static let allowedExecutables: Set<String> = [
-        "/bin/launchctl", "/usr/bin/defaults", "/bin/kill", "/usr/bin/open",
+        "/bin/launchctl", "/usr/bin/defaults", "/usr/bin/open",
         "/usr/bin/killall", "/bin/chflags"
     ]
 
@@ -48,16 +48,6 @@ nonisolated struct SystemToolsProcessRunner: Sendable {
         guard current == item else { throw StartupItem.Failure.unknownState }
         try StartupItemService().apply(item, enabled: enabled, uid: uid, home: home) {
             _ = try run("/bin/launchctl", arguments: $0)
-        }
-    }
-
-    @concurrent
-    func stopProcesses(_ targets: [KillProcessEntry], signal: KillProcessService.Signal,
-                       uid: UInt32, ownPID: Int32) async throws {
-        let service = KillProcessService()
-        try service.apply(targets: targets, signal: signal, uid: uid, ownPID: ownPID,
-                          lookup: service.read(pid:)) { pid, signal in
-            _ = try run("/bin/kill", arguments: ["-\(signal.rawValue)", String(pid)])
         }
     }
 }

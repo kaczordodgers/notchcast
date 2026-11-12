@@ -106,7 +106,6 @@
 		0B6F8887E335508D57003126 /* ScreenTextResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9E8F3D14F3FEC7A976F612F /* ScreenTextResult.swift */; };
 		0B9C941402B85C69A33200C2 /* UninstallProtection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37A48095F6487DEE76663F88 /* UninstallProtection.swift */; };
 		0BAD7435DED1450EEBAECD92 /* MarkdownFilesDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25636BA454BEEC3FAF34E168 /* MarkdownFilesDescriptor.swift */; };
-		0BE48E73B2C43F83CA5F5E36 /* UpdateRemoteShellRunning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B66CAFDEA5578FB6E9E23F /* UpdateRemoteShellRunning.swift */; };
 		0C1CACEF014462D3F581CE54 /* EmojiSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B42664C60B760276FBAAD61 /* EmojiSettingsView.swift */; };
 		0C5A029ACFA4850B3D30689B /* TypingTweaksDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E1F1C09BD2EE9C6A0678EBC /* TypingTweaksDescriptor.swift */; };
 		0C634C93A8A30A18C63C1329 /* ColorPickerDescriptor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10E1A7A7678DF83871CCFBB /* ColorPickerDescriptor.swift */; };
@@ -141,6 +140,7 @@
 		108FCA885546F7C5D9ABACFE /* SpeedTestPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACE8B1D456BD9C7812022DEF /* SpeedTestPhase.swift */; };
 		109E27ACDAADDA42FE33E119 /* SettingsNavigationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364BEC0805A8F5C39444EAF5 /* SettingsNavigationState.swift */; };
 		10AEFE3E4DBCB684591F9577 /* DictationHistoryClearPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE84CA7EC485178E5650C285 /* DictationHistoryClearPolicy.swift */; };
+		10B61F23E93C2BF646E032F6 /* TweaksProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = B980255574E95283DFBB7C64 /* TweaksProcessRunner.swift */; };
 		10B7252F61354D808C3FD82C /* AgentThreadRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6276CFDA9B30EA32D6FAB20B /* AgentThreadRunner.swift */; };
 		111C7849734672342763E47E /* AIUsageLinkModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39B9934664D4E885435C6653 /* AIUsageLinkModule.swift */; };
 		111E36B0E213889FD850A7A7 /* AgentSocketServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8FF5734FCF55E7CD106A50E /* AgentSocketServer.swift */; };
@@ -2517,7 +2517,6 @@
 		20F0D01B8B9E54D3C2FDC9F7 /* AIUsageSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIUsageSnapshot.swift; sourceTree = "<group>"; };
 		20F281D0AD946F83FA85D0FF /* ScreenshotRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotRequest.swift; sourceTree = "<group>"; };
 		214881AB623CD50455D6892C /* CleanHistoryEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanHistoryEntry.swift; sourceTree = "<group>"; };
-		21B66CAFDEA5578FB6E9E23F /* UpdateRemoteShellRunning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateRemoteShellRunning.swift; sourceTree = "<group>"; };
 		21C13EC38CAAF82D9B6A5F34 /* CalcQuestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalcQuestion.swift; sourceTree = "<group>"; };
 		21E677A6C2D10B5F61FDC5FC /* TweaksSettingRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweaksSettingRows.swift; sourceTree = "<group>"; };
 		220CECFE780E8BE18FAE0A1C /* ExtensionGridLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionGridLayout.swift; sourceTree = "<group>"; };
@@ -3813,6 +3812,7 @@
 		B940F40350111BF762B30276 /* DistillConvertDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistillConvertDescriptor.swift; sourceTree = "<group>"; };
 		B95EE36A1805571776CA7C48 /* TodoDateParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoDateParser.swift; sourceTree = "<group>"; };
 		B97A8C3E88FEBCBBEADF415B /* LauncherScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LauncherScreen.swift; sourceTree = "<group>"; };
+		B980255574E95283DFBB7C64 /* TweaksProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TweaksProcessRunner.swift; sourceTree = "<group>"; };
 		B99BE1533DFEFBE8B945C7DC /* AiUsageOtherMacDescriptor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AiUsageOtherMacDescriptor.swift; sourceTree = "<group>"; };
 		B9B724FD9A867189A6118DF7 /* SpaceGesture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpaceGesture.swift; sourceTree = "<group>"; };
 		B9D14B02D3FE262EADFD3404 /* MarkdownTableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTableView.swift; sourceTree = "<group>"; };
@@ -5772,6 +5772,7 @@
 			children = (
 				F877ABA00BEEF66090AC6BA1 /* FinderService.swift */,
 				2EC8A1C35E347AF1E5359493 /* TweakProfileRunner.swift */,
+				B980255574E95283DFBB7C64 /* TweaksProcessRunner.swift */,
 				05A803EA633937B8C0A40636 /* TweaksStore.swift */,
 				AF3C227305E6114F78165AC2 /* TypingPreferenceService.swift */,
 			);
@@ -8330,7 +8331,6 @@
 				6D87CB2E2D6F7E5348EE44C3 /* UpdateRemote.xcstrings */,
 				6513EA053511215F55F5E336 /* UpdateRemoteCoordinator.swift */,
 				4DED1964CA1F02325C693F73 /* UpdateRemoteProgress.swift */,
-				21B66CAFDEA5578FB6E9E23F /* UpdateRemoteShellRunning.swift */,
 			);
 			path = UpdateRemote;
 			sourceTree = "<group>";
@@ -12576,6 +12576,7 @@
 				74D9F7F8C8CEA5EE27436E4D /* TweaksJournal.swift in Sources */,
 				335EA62CC3B4438DE7B62079 /* TweaksModule+Registration.swift in Sources */,
 				2D291EDC389621CBAE514A2F /* TweaksModule.swift in Sources */,
+				10B61F23E93C2BF646E032F6 /* TweaksProcessRunner.swift in Sources */,
 				FCB85830D3BB3592C0C9AB64 /* TweaksSettingRows.swift in Sources */,
 				1130E414461A3373899056A9 /* TweaksStore.swift in Sources */,
 				A9658E00D0EA7EA1558D7651 /* TwoMacsSettingRows.swift in Sources */,
@@ -12612,7 +12613,6 @@
 				B84A8E79EDAAC930A503EE4D /* UpdateRemoteDescriptor.swift in Sources */,
 				8B04621B5B018F01049A224F /* UpdateRemoteModule.swift in Sources */,
 				E0BD4D34463C8B2C841E34BA /* UpdateRemoteProgress.swift in Sources */,
-				0BE48E73B2C43F83CA5F5E36 /* UpdateRemoteShellRunning.swift in Sources */,
 				3F570FCA0BCB9E0C5CFAB0D2 /* UpdateSignature.swift in Sources */,
 				3F712A8D4E094AFA18162768 /* UrlCleanerDescriptor.swift in Sources */,
 				5FC53F9968A5DFF24CD109DD /* VisibilityStore.swift in Sources */,

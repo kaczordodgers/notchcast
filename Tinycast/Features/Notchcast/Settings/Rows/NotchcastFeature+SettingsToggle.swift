@@ -24,6 +24,8 @@ extension NotchcastFeature {
             Task { await TweaksModule.appleApps.setFeature(self, enabled: on) }
         case .iPhoneBackupTweaks:
             Task { await TweaksModule.iPhoneBackup.setFeature(self, enabled: on) }
+        case .spotlightOff:
+            Task { await TweaksModule.shared.setSpotlight(enabled: on) }
         case _ where usesSystemToolsHelper:
             guard SystemToolsHelperPolicy.available(self) else { return }
             Task { await NotchcastCore.systemTools.set(self, enabled: on) }

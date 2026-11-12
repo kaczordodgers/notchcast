@@ -2,7 +2,7 @@ import Foundation
 
 extension NotchcastFeature.BackupKeys {
     static let liveTimers = Self(allowed: [
-        LiveTimerStore.durationKey: .choices([300, 600, 900, 1500, 1800, 3600]),
+        LiveTimerStore.durationKey: .choices(LiveTimerStore.defaultDurations),
         LiveTimerStore.soundKey: .bool,
     ], excluded: [
         LiveTimerStore.entriesKey,

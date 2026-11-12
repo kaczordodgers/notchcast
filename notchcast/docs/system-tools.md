@@ -3,6 +3,7 @@
 SystemTools and Tweaks register with the Notchcast module controller. Each folder runs while
 any of its feature switches is on. Settings changes pass through SystemToolsStore; guarded
 helper changes finish before the switch is persisted, including reversal on switch-off.
+Spotlight is the exception: `TweaksModule.setSpotlight` confirms, runs and persists it.
 
 Startup Items lists user and system LaunchAgents. Only user agents are editable. Each change
 asks through AppCore's confirmation dialog and rechecks the item before executing its engine
@@ -11,7 +12,8 @@ than guessing from plist contents.
 
 SystemToolsProcessRunner accepts fixed absolute executables, passes arguments without a shell,
 and bounds child execution with a timeout and cancellation. Blocking process work runs outside
-the main actor. Helper operations use RootHelperClient and remain unavailable until their verbs
+the main actor. Tweaks runs its commands through its own `TweaksProcessRunner` allowlist.
+Helper operations use RootHelperClient and remain unavailable until their verbs
 exist in RootContract.
 
 The notification observer attaches to Notification Center only while cleanup is enabled and
