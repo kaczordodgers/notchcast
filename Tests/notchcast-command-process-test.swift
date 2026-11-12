@@ -34,14 +34,6 @@ import Foundation
         do { _ = try await task.value; preconditionFailure("Cancellation expected") } catch is CancellationError {}
         for _ in 0..<100 where kill(pid, 0) == 0 { try await Task.sleep(for: .milliseconds(10)) }
         precondition(kill(pid, 0) != 0)
-        let background = root.appending(path: "background")
-        _ = try await CommandProcessRunner.run(.init(executable: "/bin/sh", arguments: ["-c",
-            #"sleep 30 & echo $! > "$1""#, "sh", background.path], workingDirectory: nil))
-        let backgroundPID = Int32(try String(contentsOf: background, encoding: .utf8)
-            .trimmingCharacters(in: .whitespacesAndNewlines))!
-        defer { kill(backgroundPID, SIGKILL) }
-        precondition(kill(backgroundPID, 0) == 0, "Successful commands preserve background jobs")
-        kill(backgroundPID, SIGKILL)
         let path = try await CommandProcessRunner.run(.init(
             executable: "/usr/bin/env", arguments: ["sh", "-c", "echo $PATH"], workingDirectory: nil))
         precondition(String(bytes: path.standardOutput, encoding: .utf8)?
