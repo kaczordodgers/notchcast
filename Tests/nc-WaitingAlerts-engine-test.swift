@@ -122,7 +122,7 @@ enum DialogTone { case neutral }
         precondition(!WaitingAlertsModule.command.isEnabled())
         NotchcastPreferences.shared.enabled = true
         precondition(WaitingAlertsModule.command.isEnabled())
-        let entries = WaitingAlertsModule.register(AppCore())
+        let entries = WaitingAlertsModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.waitingAlerts] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === WaitingAlertsModule.shared)
         print("PASS: transitions, first-read suppression, coalescing, approval/question/count text")

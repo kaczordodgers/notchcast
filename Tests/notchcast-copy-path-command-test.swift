@@ -53,7 +53,7 @@ enum NotchcastFeature { case copyPath }
         release.yield()
         await task?.value
         precondition(!lateCopied)
-        let entries = CopyPathModule.register(AppCore())
+        let entries = CopyPathModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.copyPath] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === CopyPathModule.shared)
         print("Verified launcher action resolves with fake reader, copies result and reports success; a stopped module copies nothing")

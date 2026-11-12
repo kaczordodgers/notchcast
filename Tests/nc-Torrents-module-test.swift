@@ -201,7 +201,7 @@ struct TorrentModuleTests {
         await module.manager.stop()
         let core = AppCore()
         precondition(!core.handleTorrentURL(URL(string: "https://example.invalid")!))
-        let entries = TorrentModule.register(core)
+        let entries = TorrentModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.torrents] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === TorrentModule.shared)
         let shared = TorrentModule.shared.preferences

@@ -115,7 +115,7 @@ struct ScreenshotLifecycleTest {
         await expectCancellation(fifth)
         precondition(probe.calls == 5 && probe.outputs == 1)
         module.stop()
-        let entries = ScreenshotModule.register(AppCore())
+        let entries = ScreenshotModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.screenshot] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === ScreenshotModule.shared)
         print("PASS: screenshot switch starts/stops capture; destination and caller cancellation stop output; registration entry")

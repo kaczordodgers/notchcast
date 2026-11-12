@@ -110,7 +110,7 @@ struct SystemLevelRoutingTests {
     }
 
     static func main() async {
-        let registered = SystemLevelsModule.register(AppCore())
+        let registered = SystemLevelsModule.register()
         check(registered.count == 1 && registered[0].module === SystemLevelsModule.shared,
               "Registration returns the shared levels module")
         check(registered[0].requires == [.island, .volumeLevels] && registered[0].requiresAny.isEmpty,

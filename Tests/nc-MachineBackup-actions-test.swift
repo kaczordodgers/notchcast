@@ -166,7 +166,7 @@ struct MachineBackupActionsTest {
 
     @MainActor
     static func coordinatorChecks(_ configuration: MachineBackupConfiguration) async throws {
-        let entries = MachineBackupCoordinator.register(AppCore())
+        let entries = MachineBackupCoordinator.register()
         precondition(entries.count == 1 && entries[0].module === MachineBackupCoordinator.shared)
         precondition(entries[0].requires.isEmpty && entries[0].requiresAny == [.backupRunNow, .backupBrowseRestore])
         let suite = "nc-backup-test-" + UUID().uuidString

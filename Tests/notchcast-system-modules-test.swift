@@ -8,8 +8,10 @@
 // notchcast-sources: Tinycast/Features/Tweaks/TweaksModule+Registration.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Core/NotchcastRegistrant.swift
 // notchcast-sources: Tinycast/Features/Notchcast/Root/RootContract.swift
-// notchcast-kit: core platform
+// notchcast-kit: core platform host
 import Foundation
+
+enum DialogTone { case success, danger }
 
 @MainActor
 final class AppCore {
@@ -35,7 +37,7 @@ struct RootHelperClient {
 struct SystemModuleTests {
     @MainActor
     static func main() async throws {
-        let registered = TweaksModule.register(AppCore())
+        let registered = TweaksModule.register()
         let owned: [TweaksModule] = [.shared, .typing, .finder, .dock, .appleApps, .iPhoneBackup]
         precondition(registered.count == 6 && zip(registered, owned).allSatisfy { $0.module === $1 })
         precondition(registered[0].requires.isEmpty
@@ -81,8 +83,10 @@ struct SystemModuleTests {
         } catch TweaksJournalFailure.unreadable {}
         precondition(journalDefaults.data(forKey: journalKey) == corrupt)
         let core = AppCore()
+        NotchcastHost.current.confirm = { _, _, _, _ in core.approved }
+        NotchcastHost.current.showMessage = { text, _ in core.messages.append(text) }
         let spotlight = TweaksModule(key: UUID().uuidString, preferences: preferences)
-        spotlight.configure(core)
+        spotlight.configure()
         await spotlight.setSpotlight(enabled: true)
         precondition(RootHelperClient.commands.isEmpty && !preferences.isOn(.spotlightOff))
         core.approved = true

@@ -44,7 +44,7 @@ enum DialogTone {}
         precondition(IslandHUDRouter.messages.last?.hasPrefix("Low disk space:") == true)
         disk.stop()
         precondition(disk.manager.onNotice == nil)
-        let registered = SystemNoticesModule.register(AppCore())
+        let registered = SystemNoticesModule.register()
         precondition(registered.count == 1 && registered[0].module === SystemNoticesModule.shared)
         precondition(registered[0].requires == [.island, .systemNotices] && registered[0].requiresAny.isEmpty)
         let system = SystemNoticesModule()

@@ -51,7 +51,7 @@ struct RecordingModuleTests {
         precondition(source.stops > 0 && module.phase == .idle)
         precondition(messages.last?.0 == "Recording failed.")
         precondition(messages.last?.1 == .danger)
-        let entries = RecordingModule.register(AppCore())
+        let entries = RecordingModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.recording] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === RecordingModule.shared)
         print("PASS switch-off save failure reports danger HUD; registration entry")

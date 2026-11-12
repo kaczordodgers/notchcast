@@ -54,7 +54,7 @@ struct MenuThumbnail: View {
         preview.previewSucceeded()
         preview.reportPreviewFailure(CaptureEditorRender.Failure.encoding)
         precondition(failures == 2)
-        let entries = CaptureEditorCoordinator.register(AppCore())
+        let entries = CaptureEditorCoordinator.register()
         precondition(entries.count == 1 && entries[0].requires == [.captureEditor] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === CaptureEditorCoordinator.shared)
         precondition(CaptureEditorWindowController.shared.coordinator === CaptureEditorCoordinator.shared)

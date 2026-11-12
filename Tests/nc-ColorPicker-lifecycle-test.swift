@@ -76,7 +76,7 @@ struct ColorPickerLifecycleTest {
         await settle()
         module.pick { precondition($0 == .cancelled) }
         precondition(samples == 3)
-        let entries = ColorPickerModule.register(AppCore())
+        let entries = ColorPickerModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.colorPicker] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === ColorPickerModule.shared)
         print("PASS: color picker switch gates sampling, stops stale copies and preserves format; registration entry")

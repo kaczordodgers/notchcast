@@ -30,7 +30,7 @@ FEATURE_FOLDER = r"Tinycast/Features/(?!Notchcast/(?:Core/|[^/]+$))(?:(?!(?:Mode
 DESCRIPTOR_FILE = re.compile(FEATURE_FOLDER + r"(\w+)Descriptor\.swift")
 REGISTRATION_FILE = re.compile(FEATURE_FOLDER + r"(\w+)\+Registration\.swift")
 # A body, with its brace on any following line; the protocol's bodiless requirement is not one.
-REGISTER = re.compile(r"\bfunc\s+register\s*\(\s*_\s+\w+\s*:\s*AppCore\s*\)(?:\s*(?:async|throws|->[^{}\n]*))*\s*\{")
+REGISTER = re.compile(r"\bstatic\s+func\s+register\s*\(\s*\)(?:\s*(?:async|throws|->[^{}\n]*))*\s*\{")
 DESCRIPTOR_DECLARATION = re.compile(r"extension\s+NotchcastFeature\.Descriptor\b|\bDescriptor\s*(?:\.init\s*)?\("
                                     r"|\bstatic\s+(?:let|var)\s+\w+\s*:\s*(?:NotchcastFeature\.)?Descriptor\b"
                                     r"|->\s*(?:NotchcastFeature\.)?Descriptor\b")
@@ -115,9 +115,9 @@ HOOKS = (
      "ShelfModule.shared.linkStatus = shelfChannel", "ShelfModule.shared.transport = shelfChannel",
      "RemoteFanModule.linkChannel = macLink.channel", "RemoteScreenModule.linkChannel = macLink.channel",
      "BlockedDialogModule.linkChannel = macLink.channel", "LinkQuickFixModule.shared.state = {",
-     "return (macLink.isRunning && macLink.isPaired, reachability)", "registrants.flatMap { $0.register(core) }"),
+     "return (macLink.isRunning && macLink.isPaired, reachability)", "registrants.flatMap { $0.register() }"),
     ("Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "BatteryModule.shared.repairAtLaunch()",
-     "registrants.flatMap { $0.register(core) }", "let services = NotchcastServices(core: core, preferences: preferences)",
+     "registrants.flatMap { $0.register() }", "let services = NotchcastServices(core: core, preferences: preferences)",
      "if let tasks = TodoModule.shared { tasksSync.connect(to: tasks) }",
      "MonitorModule.shared.registerRemoteFanRoute(on: macLink.channel)",
      "MonitorModule.shared.fans.restore(preservingPreference: true, silently: true)"),
@@ -391,7 +391,7 @@ def registration_errors(root):
     for path in sorted((root / "Tinycast/Features").rglob("*.swift")):
         relative = path.relative_to(root)
         source = path.read_text()
-        if "AppCore" not in source:
+        if "register" not in source:
             continue
         code = mask_literals(source)
         implementation = REGISTER.search(code)
@@ -400,7 +400,7 @@ def registration_errors(root):
         number = code.count("\n", 0, implementation.start()) + 1
         place = REGISTRATION_FILE.fullmatch(relative.as_posix())
         if not place:
-            errors.append((relative, number, "implement register(_: AppCore) in "
+            errors.append((relative, number, "implement register() in "
                                              "Tinycast/Features/<its folder>/<Type>+Registration.swift"))
         elif relative.parts[2] in upstream:
             errors.append((relative, number, f"upstream ships Features/{relative.parts[2]}/; "

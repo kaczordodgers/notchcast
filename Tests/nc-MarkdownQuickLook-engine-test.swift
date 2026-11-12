@@ -71,7 +71,7 @@ struct MarkdownQuickLookTests {
             fileURL: url, selectedByArrowKeys: true,
             dismissLauncher: { preferences.set(.quickLookSpace, false) })
         precondition(coordinator.request == nil)
-        let entries = QuickLookCoordinator.register(AppCore())
+        let entries = QuickLookCoordinator.register()
         precondition(entries.count == 1 && entries[0].requires == [.quickLookSpace] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === QuickLookCoordinator.shared)
         print("Space: typed spaces, modifiers, repeats, composition, invalid items and disabled switch pass")

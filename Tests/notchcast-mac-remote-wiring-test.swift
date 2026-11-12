@@ -101,7 +101,7 @@ struct MacRemoteWiringTest {
         send.send([URL(fileURLWithPath: "/synthetic-file")])
         update.update()
         precondition(calls.calls.count == count)
-        let entries = MachRemoteModule.register(AppCore())
+        let entries = MachRemoteModule.register()
         precondition(entries.map(\.requires) == [[.machRemote], [.sendFiles], [.updateRemote]])
         precondition(entries.allSatisfy(\.requiresAny.isEmpty) && entries[0].module === MachRemoteModule.shared)
         precondition(entries[1].module === SendFilesModule.shared && entries[2].module === UpdateRemoteModule.shared)

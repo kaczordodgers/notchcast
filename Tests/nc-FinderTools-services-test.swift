@@ -41,7 +41,7 @@ struct FinderToolsServicesTest {
         let hyper: CGEventFlags = [.maskCommand, .maskAlternate, .maskControl, .maskShift]
         precondition(FinderCommandService.originalKey(for: .rename)?.1 == hyper)
         precondition(FinderCommandService.originalKey(for: .forget) == nil)
-        let entries = FinderToolsCoordinator.register(AppCore())
+        let entries = FinderToolsCoordinator.register()
         precondition(entries.map(\.requires) == [[.finderCutPaste], [.finderRename]])
         precondition(entries.allSatisfy { $0.requiresAny.isEmpty && $0.module is FinderToolsModule })
         precondition(entries[0].module !== entries[1].module)

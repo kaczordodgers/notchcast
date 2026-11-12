@@ -142,7 +142,7 @@ private struct SlowRunner: AgentThreadRunning {
         print("PASS: responder deadline returns failed without waiting for or cancelling the shared refresh")
         var refreshes = 0
         NotchcastHost.current.refreshNotchcastCommands = { refreshes += 1 }
-        let entries = FleetPanelModule.register(AppCore())
+        let entries = FleetPanelModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.fleetPanel] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === FleetPanelModule.shared)
         let link = MachLinkChannel()

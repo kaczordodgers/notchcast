@@ -71,7 +71,7 @@ struct ArchiveModuleLifecycleTests {
         var messages: [String] = []
         var tones: [DialogTone] = []
         NotchcastHost.current.showMessage = { messages.append($0); tones.append($1) }
-        let entries = ArchiveModule.register(AppCore())
+        let entries = ArchiveModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.archives] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === ArchiveModule.shared)
         var finished = ArchiveJob(id: UUID(), archive: URL(fileURLWithPath: "/fixture/out.zip"))

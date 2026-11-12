@@ -205,7 +205,7 @@ struct OpenBotTests {
         precondition(commands.filter { $0.isEnabled() }.count == 1)
         NotchcastPreferences.shared.only = []
         precondition(commands.filter { $0.isEnabled() }.isEmpty)
-        let entries = OpenBotAgentsModule.register(AppCore())
+        let entries = OpenBotAgentsModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.openBotAgents] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === OpenBotAgentsModule.shared)
         print("PASS: registration entry")

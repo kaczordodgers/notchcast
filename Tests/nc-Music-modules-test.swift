@@ -121,7 +121,7 @@ struct MusicModuleTests {
             .musicNowPlaying, .musicLastPlayer, .musicBlockAppleMusic, .spotifyConnect, .microphoneMute, .inUseMarks
         ]
         precondition(MusicNowPlayingModule.shared == nil && MicrophoneMuteModule.shared == nil)
-        let registered = MusicNowPlayingModule.register(AppCore()) + MicrophoneMuteModule.register(AppCore())
+        let registered = MusicNowPlayingModule.register() + MicrophoneMuteModule.register()
         precondition(registered.count == 7 && registered.allSatisfy { $0.requiresAny.isEmpty })
         precondition(registered[0].module === MusicNowPlayingModule.shared)
         precondition(registered[1].module is MusicLastPlayerModule)

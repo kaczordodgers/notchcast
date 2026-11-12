@@ -17,7 +17,7 @@ import Foundation
 @MainActor
 struct BatteryStoreTests {
     static func main() async {
-        let entries = BatteryModule.register(AppCore())
+        let entries = BatteryModule.register()
         precondition(entries.count == 1 && entries[0].requires.isEmpty && entries[0].module === BatteryModule.shared)
         precondition(entries[0].requiresAny == [.batteryChargeLimit, .batterySailing, .batteryHeatProtection,
                                                 .batteryCalibration, .keepAwake, .lidClosedAwake])

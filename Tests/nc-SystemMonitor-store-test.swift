@@ -96,7 +96,7 @@ struct MonitorStoreTests {
     }
 
     static func main() async {
-        let registered = MonitorModule.register(AppCore())
+        let registered = MonitorModule.register()
         precondition(registered.count == 1 && registered[0].module === MonitorModule.shared)
         precondition(registered[0].requires == [.systemMonitor] && registered[0].requiresAny.isEmpty)
         print("PASS: the monitor registers its one module behind the System Monitor switch")

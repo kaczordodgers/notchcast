@@ -232,7 +232,7 @@ struct AgentThreadsTest {
         module.start()
         module.stop()
         precondition(availabilityCalls == 2)
-        let entries = AgentThreadsModule.register(AppCore())
+        let entries = AgentThreadsModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.agentThreads] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === AgentThreadsModule.shared)
         print("PASS: registration entry")

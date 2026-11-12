@@ -151,7 +151,7 @@ private struct CountingRunner: AgentThreadRunning {
         precondition(combined.message == .counts(waiting: 5, working: 5))
         let absent = evaluate(workers, ["b": approval], t3: false, bot: false)
         precondition(absent == .init() && absent.message == .idle)
-        let entries = AgentIslandModule.register(AppCore())
+        let entries = AgentIslandModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.agentIsland] && entries[0].requiresAny.isEmpty)
         let module = AgentIslandModule.shared
         precondition(entries[0].module === module)

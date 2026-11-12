@@ -33,7 +33,7 @@ enum DialogTone {}
     @MainActor static func main() async {
         NotchcastHost.current.remoteResult = { Probe.messages.append($0) }
         let module = ShelfModule.shared
-        let entries = ShelfModule.register(AppCore())
+        let entries = ShelfModule.register()
         precondition(entries.count == 1 && entries[0].module === module)
         precondition(entries[0].requires == [.shelfBetweenMacs] && entries[0].requiresAny.isEmpty)
         let peer = ShelfPeer()

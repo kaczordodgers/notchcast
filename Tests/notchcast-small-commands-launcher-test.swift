@@ -76,7 +76,7 @@ enum NotchcastFeature { case smallCommands }
         module.runFromLauncher(.password, execute: { _ in ranWhileStopped = true; return nil })
         for _ in 0..<20 { await Task.yield() }
         precondition(!ranWhileStopped)
-        let entries = SmallCommandsModule.register(AppCore())
+        let entries = SmallCommandsModule.register()
         precondition(entries.count == 1 && entries[0].requires == [.smallCommands] && entries[0].requiresAny.isEmpty)
         precondition(entries[0].module === SmallCommandsModule.shared)
         print("Verified four launcher actions reach fake runners, copy text, report completion and stop")
