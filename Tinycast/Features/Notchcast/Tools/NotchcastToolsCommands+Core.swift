@@ -23,7 +23,7 @@ extension NotchcastToolsCommands {
                 NotchcastCore.convertFiles.attach(to: queue, post: Self.post)
                 try NotchcastCore.convertFiles.convert(files, target: formats[index])
             case .runHostCommand, .listCommands:
-                let entries = await HostCommandProfile.load(
+                let entries = try await HostCommandProfile.load(
                     file: NotchcastIdentity.supportRoot.appending(path: "Notchcast/host-commands.json"))
                 guard valid() else { return }
                 guard !entries.isEmpty else {

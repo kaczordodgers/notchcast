@@ -5,6 +5,7 @@ struct CatalogShellCommandRunner: Sendable {
         let executable: String
         let arguments: [String]
         let workingDirectory: String?
+        var timeout: Duration = .seconds(300)
     }
 
     struct Result: Sendable, Equatable {

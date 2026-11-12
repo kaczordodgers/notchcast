@@ -84,15 +84,39 @@ import Foundation
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let file = directory.appending(path: "profile.json")
-        let missing = await HostCommandProfile.load(file: file, host: "test-host")
-        precondition(missing.isEmpty)
+        do {
+            _ = try await HostCommandProfile.load(file: file, host: "test-host")
+            preconditionFailure("Missing profile must throw")
+        } catch let error as CocoaError {
+            precondition(error.code == .fileReadNoSuchFile)
+        }
         try Data("invalid".utf8).write(to: file)
-        let invalid = await HostCommandProfile.load(file: file, host: "test-host")
-        precondition(invalid.isEmpty)
+        do {
+            _ = try await HostCommandProfile.load(file: file, host: "test-host")
+            preconditionFailure("Malformed profile must throw")
+        } catch is DecodingError {}
+        var failures: [String] = []
+        let failedProfile = NotchcastToolsCommands(preferences: preferences, selection: { [] },
+            post: { failures.append($0) }, refresh: {}) { _, _, _ in
+                _ = try await HostCommandProfile.load(file: file, host: "test-host")
+            }
+        failedProfile.start()
+        failedProfile.perform(.listCommands)
+        await failedProfile.settle()
+        failedProfile.stop()
+        precondition(failures.count == 1 && !failures[0].isEmpty && failures[0] != "No host commands configured.")
         let entry = HostCommandCatalog.Entry(id: "fake", title: "Fake", executable: "/synthetic/tool")
+        try JSONEncoder().encode([entry, entry]).write(to: file)
+        do {
+            _ = try await HostCommandProfile.load(file: file, host: "test-host")
+            preconditionFailure("Invalid catalog must throw")
+        } catch HostCommandCatalog.ProfileError.invalidEntries {}
         try JSONEncoder().encode([entry]).write(to: file)
-        let loaded = await HostCommandProfile.load(file: file, host: "test-host")
+        let loaded = try await HostCommandProfile.load(file: file, host: "test-host")
         precondition(loaded == [entry])
+        try JSONEncoder().encode([HostCommandCatalog.Entry]()).write(to: file)
+        let empty = try await HostCommandProfile.load(file: file, host: "test-host")
+        precondition(empty.isEmpty)
         print("Tools wiring passed")
     }
 }
