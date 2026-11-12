@@ -5,15 +5,13 @@ extension MachLinkChannel: OtherMacUsagePeerChannel {
         try await request(providers, method: MachLinkMethod.aiUsage.rawValue, timeout: min(timeout, .seconds(2)), as: OtherMacUsageSnapshot.self)
     }
 
-    func registerUsageRoute(provider: AIUsageProvider?, preferences: NotchcastPreferences) {
+    func registerUsageRoute(source: AIUsageSnapshotAdapter, preferences: NotchcastPreferences) {
         manager.register(MachLinkMethod.aiUsage.rawValue) { request in
             guard preferences.isEnabled(.aiUsageOtherMac) else { throw MachLinkMessage.Failure.disconnected }
-            let provider = provider ?? AIUsageProvider(cacheDirectory: AIUsageProvider.cacheDirectory(
-                path: preferences.aiUsageCachePath, homeDirectory: FileManager.default.homeDirectoryForCurrentUser))
             let providers = try request.value(as: Set<String>.self)
-            let source = AIUsageSnapshotAdapter()
-            source.snapshots = await provider.refresh().filter { providers.contains($0.providerID) }
-            let response = try MachLinkMessage(id: request.id, method: request.method, value: await source.localSnapshot())
+            let local = try await source.localSnapshot()
+            let snapshot = OtherMacUsageSnapshot(readings: local.readings.filter { providers.contains($0.providerID) })
+            let response = try MachLinkMessage(id: request.id, method: request.method, value: snapshot)
             try Task.checkCancellation()
             guard preferences.isEnabled(.aiUsageOtherMac) else { throw MachLinkMessage.Failure.disconnected }
             return response
