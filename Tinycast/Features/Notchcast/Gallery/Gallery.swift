@@ -95,7 +95,7 @@ struct GalleryPage {
 @MainActor
 enum GalleryPages {
     static func all(_ core: AppCore) -> [GalleryPage] {
-        island(core) + launcher(core) + notchcastSettings(core) + settings(core)
+        island(core) + aiUsage(core) + launcher(core) + notchcastSettings(core) + settings(core)
     }
 
     static func window(_ view: some View, size: CGSize, dark: Bool) -> NSWindow {
