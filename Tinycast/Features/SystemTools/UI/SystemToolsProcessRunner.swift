@@ -2,10 +2,7 @@ import Foundation
 
 nonisolated struct SystemToolsProcessRunner: Sendable {
     enum Failure: Error { case invalidExecutable, timedOut, failed(Int32) }
-    static let allowedExecutables: Set<String> = [
-        "/bin/launchctl", "/usr/bin/defaults", "/usr/bin/open",
-        "/usr/bin/killall", "/bin/chflags"
-    ]
+    static let allowedExecutables: Set<String> = ["/bin/launchctl"]
 
     func run(_ executable: String, arguments: [String], timeout: TimeInterval = 5) throws -> String {
         guard Self.allowedExecutables.contains(executable) else {

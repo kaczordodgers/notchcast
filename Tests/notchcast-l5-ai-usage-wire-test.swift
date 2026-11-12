@@ -98,6 +98,15 @@ struct AIUsageWiringTest {
         defer { defaults.removePersistentDomain(forName: suite) }
         let preferences = NotchcastPreferences(suiteName: suite)
         precondition(preferences.aiUsageGateway == "http://127.0.0.1:3425")
+        let remote = try AIUsageProvider.gatewayURL(" https://example.com:3425/proxy \n")
+        precondition(remote.absoluteString == "https://example.com:3425/proxy")
+        for address in ["file:///tmp/gateway", "http:///", "http://user@example.com", "HTTP://example.com",
+                        "http://example.com?key=bad", "http://example.com#fragment"] {
+            do {
+                _ = try AIUsageProvider.gatewayURL(address)
+                preconditionFailure("Accepted a malformed gateway: \(address)")
+            } catch URLError.badURL {}
+        }
         precondition(!preferences.isEnabled(.aiUsageOtherMac))
         let http = try QuotaHTTPServer()
         defer { http.stop() }

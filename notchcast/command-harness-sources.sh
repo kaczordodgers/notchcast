@@ -56,6 +56,7 @@ symbol_sources=(
     'ProcessRunner Tinycast/Features/Notchcast/Process/ProcessRunner.swift Tinycast/Platform/ProcessExit.swift'
     'ExecutableLocator Tinycast/Platform/ExecutableLocator.swift Tinycast/Features/Notchcast/Process/ExecutableLocator+Search.swift Tinycast/Platform/ProcessExit.swift'
     'RedirectRefusal Tinycast/Features/Notchcast/Core/RedirectRefusal.swift'
+    'MagpieGateway Tinycast/Features/Notchcast/Core/MagpieGateway.swift'
     'WebRules Tinycast/Features/Notchcast/Model/WebRules.swift'
     'NotchcastIdentity Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift Tinycast/Platform/AppPaths.swift'
     'ScreenRecordingAccess Tinycast/Features/Notchcast/Core/ScreenRecordingAccess.swift'

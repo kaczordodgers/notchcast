@@ -3,7 +3,6 @@ import Foundation
 struct NotchcastIdentity: Sendable {
     static let fallbackBundleIdentifier = "app.notchcast.dev"
     static let releaseBundleIdentifier = "app.notchcast"
-    static let upstreamSubsystem = "com.tinycast"
 
     static var current: Self { Self(bundleIdentifier: Bundle.main.bundleIdentifier) }
     static var supportRoot: URL { AppPaths.applicationSupport() }

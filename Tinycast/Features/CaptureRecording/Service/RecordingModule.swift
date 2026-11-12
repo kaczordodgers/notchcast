@@ -287,7 +287,7 @@ final class RecordingModule: NotchcastModule {
             do { try await RecordingFiles.discard(workspace) } catch { failure = error }
         }
         if let failure {
-            Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.notchcast", category: "Recording")
+            Logger(subsystem: NotchcastIdentity.current.bundleID, category: "Recording")
                 .error("Recording cleanup failed: \(failure.localizedDescription, privacy: .public)")
         }
         return failure

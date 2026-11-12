@@ -38,7 +38,7 @@ final class NotchcastPreferences {
         remoteTerminalDirectory = defaults.string(forKey: Self.remoteTerminalDirectoryKey) ?? ""
         remoteUpdatePath = defaults.string(forKey: Self.remoteUpdatePathKey) ?? ""
         backupStatusPath = defaults.string(forKey: Self.backupStatusPathKey) ?? ""
-        aiUsageGateway = defaults.string(forKey: Self.aiUsageGatewayKey) ?? "http://127.0.0.1:3425"
+        aiUsageGateway = defaults.string(forKey: Self.aiUsageGatewayKey) ?? MagpieGateway.defaultAddress
         buildStatsPath = defaults.string(forKey: Self.buildStatsPathKey) ?? ""
         greenMaximizeExcludedApps = defaults.string(forKey: Self.greenMaximizeExcludedAppsKey) ?? ""
         monitorCPU = Self.threshold(defaults, Self.monitorCPUKey, .cpu)

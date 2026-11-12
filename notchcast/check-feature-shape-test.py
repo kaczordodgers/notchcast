@@ -117,8 +117,9 @@ BREAKS = (
      "Tinycast/App/AppCore.swift", "await ArchiveModule.shared.prepareForTermination()", ""),
     ("source-hooks", "hook missing or out of order: BlockedDialogModule.linkChannel = macLink.channel",
      "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "        BlockedDialogModule.linkChannel = macLink.channel\n", ""),
-    ("source-hooks", "hook missing or out of order: NotchcastHost.current = NotchcastHost(",
-     "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "NotchcastHost.current = NotchcastHost(", "_ = NotchcastHost("),
+    ("source-hooks", "hook missing or out of order: NotchcastHost.current = .live(core: core)",
+     "Tinycast/Features/Notchcast/Core/NotchcastCore.swift", "NotchcastHost.current = .live(core: core)",
+     "_ = NotchcastHost.live(core: core)"),
     ("source-hooks", "hook missing or out of order: if deepLinkCoordinator.handles(url)",
      "Tinycast/App/AppCore.swift", ARCHIVES_HOOK, "", DEEP_LINK_HOOK, ARCHIVES_HOOK + "        do {"),
     ("source-hooks", "hook missing or out of order: var extensionsEnabled: Bool { get { false } set { } }",
@@ -649,7 +650,8 @@ class FeatureShapeTests(unittest.TestCase):
             str(ROOT / "Tinycast/Features/Notchcast/Core/NotchcastFeature+BackupKeys.swift"),
             str(ROOT / "Tinycast/Features/SystemMonitor/MonitorAlertsBackupKeys.swift"),
             str(ROOT / "Tinycast/Features/Notchcast/Root/RootContract.swift"),
-            str(ROOT / "Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift"), str(ROOT / "Tinycast/Platform/AppPaths.swift"))
+            str(ROOT / "Tinycast/Features/Notchcast/Core/NotchcastIdentity.swift"), str(ROOT / "Tinycast/Platform/AppPaths.swift"),
+            str(ROOT / "Tinycast/Features/Notchcast/Core/MagpieGateway.swift"))
         run(self.root, "git", "switch", "-qc", "edit", "base~2")
         prefs.write_text(base.replace('?? "auto"', '?? "quiet"'))
         run(self.root, "git", "commit", "-qam", "Change fan mode default")
