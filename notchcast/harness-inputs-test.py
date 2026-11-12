@@ -57,8 +57,8 @@ class HarnessInputsTest(unittest.TestCase):
 
     def test_upstream_registration_selects_conditional_tabs_consumer(self):
         shutil.copy(ROOT / "Scripts/run-tests.sh", self.root / "Scripts/run-tests.sh")
-        (self.root / "Tests/launcher-settings-file-test.swift").touch()
-        self.assertIn("launcher-settings-file-test", self.selected(
+        (self.root / "Tests/LauncherSettingsFileTests.swift").touch()
+        self.assertIn("LauncherSettingsFileTests", self.selected(
             "Tinycast/Features/Notchcast/Hidden/NotchcastHidden+Tabs.swift"))
 
     def test_upstream_queue_gets_only_additional_inputs(self):
@@ -67,11 +67,11 @@ class HarnessInputsTest(unittest.TestCase):
         (self.root / source).touch()
         (self.root / "Scripts/run-tests.sh").write_text(
             'S=Tinycast/Features/Settings\nBASE="$S/SettingsTab.swift"\n'
-            'run slow -O launcher-settings-file-test \\\n    $BASE # upstream inputs\n')
-        (self.root / "Tests/launcher-settings-file-test.swift").write_text(
+            'run slow -O LauncherSettingsFileTests \\\n    $BASE # upstream inputs\n')
+        (self.root / "Tests/LauncherSettingsFileTests.swift").write_text(
             '// notchcast-sources: -framework AppKit\n')
         queue = self.root / "queue"
-        queue.write_text(f"0 launcher-settings-file-test -O {source}\n")
+        queue.write_text(f"0 LauncherSettingsFileTests -O {source}\n")
         subprocess.run(["bash", "-c", 'emit_db=0; SELF=upstream; QUEUE=queue; '
                         'run() { :; }; source notchcast/test-harnesses.sh'],
                        cwd=self.root, env=self.env, check=True)
