@@ -14,6 +14,8 @@ struct MacUpdateRunner: MacUpdateProcessRunning {
         var timedOut = false
     }
 
+    static let outputLimit = 65536
+
     func run(_ command: MacUpdateCommand) async throws -> Result {
         precondition(command.path.hasPrefix("/"))
         try Task.checkCancellation()
@@ -30,7 +32,7 @@ struct MacUpdateRunner: MacUpdateProcessRunning {
                 let count = read(descriptor, &buffer, buffer.count)
                 guard count > 0 else { return }
                 bytes.append(contentsOf: buffer.prefix(count))
-                if bytes.count > 65536 { bytes.removeFirst(bytes.count - 65536) }
+                if bytes.count > Self.outputLimit { bytes.removeFirst(bytes.count - Self.outputLimit) }
             }
         }
         var actions: posix_spawn_file_actions_t?
@@ -64,17 +66,25 @@ struct MacUpdateRunner: MacUpdateProcessRunning {
         }
         guard error == 0 else { throw POSIXError(POSIXErrorCode(rawValue: error) ?? .EIO) }
         pipe.fileHandleForWriting.closeFile()
-        defer { pipe.fileHandleForReading.closeFile() }
-        var status: Int32 = 0
-        var reaped = false
+        let readable = DispatchSource.makeReadSource(fileDescriptor: descriptor, queue: .main)
+        // A pipe at end of file fires its source without pause, so the source ends there.
+        readable.setEventHandler { if readable.data == 0 { readable.cancel() } else { drain() } }
+        readable.setCancelHandler { pipe.fileHandleForReading.closeFile() }
+        readable.resume()
+        defer { readable.cancel() }
+        let (exits, continuation) = AsyncStream<Void>.makeStream()
+        let process = DispatchSource.makeProcessSource(identifier: pid, eventMask: .exit, queue: .main)
+        process.setEventHandler { continuation.yield(); continuation.finish() }
+        process.resume()
+        defer { process.cancel() }
         let deadline = ContinuousClock.now + command.timeout
-        while !Task.isCancelled && ContinuousClock.now < deadline {
-            drain()
-            if waitpid(pid, &status, WNOHANG) == pid { reaped = true; break }
-            do { try await Task.sleep(for: .milliseconds(25)) } catch { break }
-        }
+        let timer = Task { try? await Task.sleep(until: deadline); continuation.finish() }
+        defer { timer.cancel() }
+        var status: Int32 = 0
+        var exited = false
+        for await _ in exits { exited = true }
         let timedOut = ContinuousClock.now >= deadline
-        if !reaped {
+        if !exited {
             let ladder = ProcessRunner.StopLadder.terminating(grace: .milliseconds(250))
             kill(-pid, ladder.first)
             var waited = Duration.zero
@@ -84,9 +94,9 @@ struct MacUpdateRunner: MacUpdateProcessRunning {
                 waited = rung.after
                 kill(-pid, rung.signal)
             }
-            while waitpid(pid, &status, 0) == -1 && errno == EINTR {}
         }
-        drain()
+        while waitpid(pid, &status, 0) == -1 && errno == EINTR {}
+        if !readable.isCancelled { drain() }
         try Task.checkCancellation()
         let signal = status & 0x7f
         return Result(status: signal == 0 ? (status >> 8) & 255 : 128 + signal,
