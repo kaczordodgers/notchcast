@@ -16,6 +16,8 @@ uses a suspending clock so time asleep does not consume its ten minutes.
 Turning the switch off immediately rejects inputs and cancels job state, then asynchronously stops
 the child. Opens received after re-enabling during shutdown wait for that shutdown to finish.
 
+`TorrentAria2Session` owns one `ProcessRunner.Running` handle. Stop signals only the aria2 PID with INT, TERM after one second and KILL after two seconds, then awaits reaping. Termination and session release kill it immediately. Listener ownership and the authenticated RPC handshake still gate startup.
+
 The existing queued `AppCore.handleOpenURL` path forwards magnet links and local `.torrent` file
 URLs to the module. Unsupported URLs return unhandled; disabled torrent inputs show a settings HUD.
 The Info.plist

@@ -15,8 +15,64 @@ struct ArchiveChildCancelTest {
     }
 
     static func main() async throws {
+        try await streamingChecks()
+        let progress = Mutex((calls: 0, active: false))
+        _ = try await ArchiveProcess.run(tool: URL(fileURLWithPath: "/bin/sleep"), arguments: ["0.6"], progress: {
+            progress.withLock {
+                require(!$0.active, "Idle progress callbacks overlap")
+                $0.active = true
+                $0.calls += 1
+            }
+            await withCheckedContinuation { continuation in
+                DispatchQueue.global().asyncAfter(deadline: .now() + 0.5) { continuation.resume() }
+            }
+            progress.withLock { $0.active = false }
+        })
+        require(progress.withLock { $0.calls == 1 && !$0.active }, "Idle progress was not awaited")
+        try await Task.sleep(for: .milliseconds(300))
+        require(progress.withLock { $0.calls == 1 && !$0.active }, "Progress outlived the operation")
+        print("PASS: one idle progress callback, awaited teardown, no callback after return")
         try await check(escaped: false)
         try await check(escaped: true)
+    }
+
+    static func streamingChecks() async throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try FileManager.default.createDirectory(at: root, withIntermediateDirectories: false)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let perl = URL(fileURLWithPath: "/usr/bin/perl")
+        let arguments = ["-e", "print pack('C*',0..255)x256"]
+        let file = root.appending(path: "output")
+        let bytes = Data((0..<65_536).map { UInt8($0 % 256) })
+        let result = try await ArchiveProcess.run(tool: perl, arguments: arguments, captureOutput: true,
+                                                 outputFile: file, maximumOutputBytes: Int64(bytes.count))
+        require(result.output == bytes && result.outputBytes == bytes.count, "Binary capture or byte count changed")
+        require(try Data(contentsOf: file) == bytes, "Binary output file changed")
+        do {
+            _ = try await ArchiveProcess.run(tool: perl, arguments: arguments, outputFile: file)
+            require(false, "Existing output file was overwritten")
+        } catch { require(try Data(contentsOf: file) == bytes, "Exclusive output creation changed the file") }
+        let rejected = root.appending(path: "rejected")
+        do {
+            _ = try await ArchiveProcess.run(tool: perl, arguments: arguments, captureListing: true,
+                captureOutput: true, outputFile: rejected, maximumOutputBytes: 0)
+            require(false, "Expansion limit accepted output")
+        } catch ArchiveFailure.expansionLimit {}
+        require(try Data(contentsOf: rejected).isEmpty, "Rejected chunk reached the output file")
+        do {
+            _ = try await ArchiveProcess.run(tool: perl, arguments: ["-e", "print 'x'x16000001"], captureOutput: true)
+            require(false, "Capture exceeded 16 MB")
+        } catch ArchiveFailure.invalidListing {}
+        let failed = try await ArchiveProcess.run(tool: perl, arguments: ["-e", "print 'bad';exit 5"], captureListing: true)
+        require(failed.status == 5, "Failed listing was finished")
+        do {
+            _ = try await ArchiveProcess.run(tool: perl, arguments: ["-e", "print 'bad'"], captureListing: true)
+            require(false, "Successful listing was not finished")
+        } catch ArchiveFailure.invalidListing {}
+        let signaled = try await ArchiveProcess.run(tool: perl, arguments: ["-e", "kill 15,$$"])
+        require(signaled.status == 143, "Signal status did not preserve 128 + signal")
+        print("PASS: archive binary bytes, exclusive output, expansion/capture limits, "
+            + "rejected writes, listing finish, signal status")
     }
 
     static func check(escaped: Bool) async throws {
