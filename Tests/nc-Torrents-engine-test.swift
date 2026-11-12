@@ -155,7 +155,10 @@ import Foundation
         var argumentReads = 0
         let manager = TorrentManager(session: session, destination: root, extraArguments: {
             argumentReads += 1
-            return ["--multiple-interface=en0,en7"]
+            return (["--multiple-interface=en0,en7"], ["en0", "en7"])
+        }, interfacesPresent: { names in
+            check(names == ["en0", "en7"], "Interface policy passes parsed names")
+            return true
         }, now: { date }, pollInterval: .milliseconds(10), revealFiles: { revealed = $0 })
         let ids = manager.enqueue([file, magnet])
         try await until("Same info hash is rejected across torrent and magnet") { manager.jobs[1].error == .alreadyRunning }
@@ -444,7 +447,7 @@ import Foundation
         let session = TorrentAria2Session(stateDirectory: root.appendingPathComponent("aria2-state"))
         let offline = ["--enable-dht=false", "--enable-dht6=false", "--bt-enable-lpd=false",
                        "--bt-exclude-tracker=*", "--interface=127.0.0.1"]
-        let manager = TorrentManager(session: session, destination: destination, extraArguments: { offline },
+        let manager = TorrentManager(session: session, destination: destination, extraArguments: { (offline, []) },
                                      pollInterval: .milliseconds(100))
         var large = Data("d7:comment1600000:".utf8)
         large.append(Data(repeating: 65, count: 1_600_000))
